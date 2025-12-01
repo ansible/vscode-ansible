@@ -144,6 +144,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
 
     it("should set webview html content", async () => {
       const getLightspeedUserContent3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockLightspeedUser.getLightspeedUserContent,
       );
       getLightspeedUserContent3.mockResolvedValue("Test User Content");
@@ -223,9 +224,11 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         false,
         false,
       );
-      expect(
-        vi.mocked(mockLightspeedUser.getLightspeedUserContent),
-      ).not.toHaveBeenCalled();
+      const getLightspeedUserContent4 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockLightspeedUser.getLightspeedUserContent,
+      );
+      expect(getLightspeedUserContent4).not.toHaveBeenCalled();
     });
 
     it("should pass correct playbook and role status for Google provider", async () => {
@@ -268,6 +271,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
 
     it("should show login form when WCA user is not authenticated", async () => {
       const getLightspeedUserContent = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockLightspeedUser.getLightspeedUserContent,
       );
       getLightspeedUserContent.mockResolvedValue("");
@@ -490,6 +494,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       };
 
       const getLightspeedUserContent2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockLightspeedUser.getLightspeedUserContent,
       );
       getLightspeedUserContent2.mockResolvedValue("");
@@ -528,9 +533,11 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       mockSettingsManager.settings.lightSpeedService = {
         ...TEST_LIGHTSPEED_SETTINGS.WCA,
       };
-      vi.mocked(mockLightspeedUser.getLightspeedUserContent).mockResolvedValue(
-        "Test User",
+      const getLightspeedUserContent5 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockLightspeedUser.getLightspeedUserContent,
       );
+      getLightspeedUserContent5.mockResolvedValue("Test User");
 
       await provider.refreshWebView();
 

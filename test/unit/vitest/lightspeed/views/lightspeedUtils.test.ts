@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as vscode from "vscode";
 import {
   generatePlaybook,
   explainPlaybook,
@@ -19,7 +18,6 @@ import {
 import {
   TEST_PROMPTS,
   TEST_CONTENT,
-  TEST_LIGHTSPEED_SETTINGS,
   PROVIDER_TYPES,
   ANSIBLE_CONTENT,
 } from "../testConstants";
@@ -66,7 +64,6 @@ vi.mock("vscode", async () => {
 
 // Import after mocks
 import { lightSpeedManager } from "../../../../../src/extension";
-import { commands } from "vscode";
 
 describe("lightspeedUtils", () => {
   let mockApiInstance: typeof lightSpeedManager.apiInstance;
@@ -81,6 +78,7 @@ describe("lightspeedUtils", () => {
 
     // Get references to mocks
     mockApiInstance = lightSpeedManager.apiInstance;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mockProviderManager = lightSpeedManager.providerManager!;
   });
 
@@ -91,18 +89,22 @@ describe("lightspeedUtils", () => {
         outline: TEST_CONTENT.OUTLINE_DEFAULT,
       };
 
-      vi.mocked(mockProviderManager.generatePlaybook).mockResolvedValue(
-        mockLLMResponse,
+      const generatePlaybookMock = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generatePlaybook,
       );
+      generatePlaybookMock.mockResolvedValue(mockLLMResponse);
 
       const result = await generatePlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         "",
         "test-generation-id",
       );
 
-      expect(mockProviderManager.generatePlaybook).toHaveBeenCalledWith({
+      expect(generatePlaybookMock).toHaveBeenCalledWith({
         prompt: TEST_PROMPTS.INSTALL_NGINX,
         type: "playbook",
         createOutline: true,
@@ -123,18 +125,22 @@ describe("lightspeedUtils", () => {
         outline: customOutline,
       };
 
-      vi.mocked(mockProviderManager.generatePlaybook).mockResolvedValue(
-        mockLLMResponse,
+      const generatePlaybook2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generatePlaybook,
       );
+      generatePlaybook2.mockResolvedValue(mockLLMResponse);
 
       const result = await generatePlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         customOutline,
         "test-generation-id",
       );
 
-      expect(mockProviderManager.generatePlaybook).toHaveBeenCalledWith({
+      expect(generatePlaybook2).toHaveBeenCalledWith({
         prompt: TEST_PROMPTS.INSTALL_NGINX,
         type: "playbook",
         createOutline: false,
@@ -150,11 +156,15 @@ describe("lightspeedUtils", () => {
 
     it("should handle errors from Google provider and return error response", async () => {
       const errorMessage = "API rate limit exceeded";
-      vi.mocked(mockProviderManager.generatePlaybook).mockRejectedValue(
-        new Error(errorMessage),
+      const generatePlaybook3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generatePlaybook,
       );
+      generatePlaybook3.mockRejectedValue(new Error(errorMessage));
 
       const result = await generatePlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         "",
@@ -177,18 +187,22 @@ describe("lightspeedUtils", () => {
         generationId: "wca-test-id",
       };
 
-      vi.mocked(mockApiInstance.playbookGenerationRequest).mockResolvedValue(
-        mockWCAResponse,
+      const playbookGenerationRequest = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockApiInstance.playbookGenerationRequest,
       );
+      playbookGenerationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await generatePlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         "",
         "test-generation-id",
       );
 
-      expect(mockApiInstance.playbookGenerationRequest).toHaveBeenCalledWith({
+      expect(playbookGenerationRequest).toHaveBeenCalledWith({
         text: TEST_PROMPTS.INSTALL_NGINX,
         outline: undefined,
         createOutline: true,
@@ -208,17 +222,21 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      vi.mocked(mockProviderManager.chatRequest).mockResolvedValue(
-        mockChatResponse,
+      const chatRequest = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.chatRequest,
       );
+      chatRequest.mockResolvedValue(mockChatResponse);
 
       const result = await explainPlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
         explanationId,
       );
 
-      expect(mockProviderManager.chatRequest).toHaveBeenCalledWith({
+      expect(chatRequest).toHaveBeenCalledWith({
         message: expect.stringContaining(playbookContent),
         conversationId: explanationId,
         metadata: { isExplanation: true },
@@ -234,11 +252,15 @@ describe("lightspeedUtils", () => {
     it("should handle errors from Google provider and return error response", async () => {
       const playbookContent = ANSIBLE_CONTENT.PLAYBOOK;
       const errorMessage = "Explanation service unavailable";
-      vi.mocked(mockProviderManager.chatRequest).mockRejectedValue(
-        new Error(errorMessage),
+      const chatRequest2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.chatRequest,
       );
+      chatRequest2.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainPlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
         "test-explanation-id",
@@ -262,17 +284,21 @@ describe("lightspeedUtils", () => {
         explanationId: explanationId,
       };
 
-      vi.mocked(mockApiInstance.explanationRequest).mockResolvedValue(
-        mockWCAResponse,
+      const explanationRequest = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockApiInstance.explanationRequest,
       );
+      explanationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await explainPlaybook(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
         explanationId,
       );
 
-      expect(mockApiInstance.explanationRequest).toHaveBeenCalledWith({
+      expect(explanationRequest).toHaveBeenCalledWith({
         content: playbookContent,
         explanationId: explanationId,
       });
@@ -289,11 +315,15 @@ describe("lightspeedUtils", () => {
         outline: TEST_CONTENT.OUTLINE_DEFAULT,
       };
 
-      vi.mocked(mockProviderManager.generateRole).mockResolvedValue(
-        mockLLMResponse,
+      const generateRoleMock = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generateRole,
       );
+      generateRoleMock.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleName,
         TEST_PROMPTS.CREATE_ROLE,
@@ -301,7 +331,7 @@ describe("lightspeedUtils", () => {
         "test-generation-id",
       );
 
-      expect(mockProviderManager.generateRole).toHaveBeenCalledWith({
+      expect(generateRoleMock).toHaveBeenCalledWith({
         prompt: TEST_PROMPTS.CREATE_ROLE,
         type: "role",
         createOutline: true,
@@ -314,6 +344,7 @@ describe("lightspeedUtils", () => {
           {
             path: "tasks/main.yml",
             content: mockLLMResponse.content,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             file_type: "task" as any,
           },
         ],
@@ -331,11 +362,15 @@ describe("lightspeedUtils", () => {
         outline: customOutline,
       };
 
-      vi.mocked(mockProviderManager.generateRole).mockResolvedValue(
-        mockLLMResponse,
+      const generateRole2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generateRole,
       );
+      generateRole2.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleName,
         TEST_PROMPTS.CREATE_ROLE,
@@ -343,7 +378,7 @@ describe("lightspeedUtils", () => {
         "test-generation-id",
       );
 
-      expect(mockProviderManager.generateRole).toHaveBeenCalledWith({
+      expect(generateRole2).toHaveBeenCalledWith({
         prompt: TEST_PROMPTS.CREATE_ROLE,
         type: "role",
         createOutline: false,
@@ -364,11 +399,15 @@ describe("lightspeedUtils", () => {
         outline: TEST_CONTENT.OUTLINE_DEFAULT,
       };
 
-      vi.mocked(mockProviderManager.generateRole).mockResolvedValue(
-        mockLLMResponse,
+      const generateRole3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generateRole,
       );
+      generateRole3.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         undefined,
         TEST_PROMPTS.CREATE_ROLE,
@@ -384,11 +423,15 @@ describe("lightspeedUtils", () => {
 
     it("should handle errors from Google provider and return error response", async () => {
       const errorMessage = "Role generation failed";
-      vi.mocked(mockProviderManager.generateRole).mockRejectedValue(
-        new Error(errorMessage),
+      const generateRole4 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.generateRole,
       );
+      generateRole4.mockRejectedValue(new Error(errorMessage));
 
       const result = await generateRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         "test-role",
         TEST_PROMPTS.CREATE_ROLE,
@@ -413,6 +456,8 @@ describe("lightspeedUtils", () => {
           {
             path: "tasks/main.yml",
             content: ANSIBLE_CONTENT.SINGLE_TASK,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             file_type: "task" as any,
           },
         ],
@@ -421,11 +466,14 @@ describe("lightspeedUtils", () => {
         generationId: "wca-test-id",
       };
 
-      vi.mocked(mockApiInstance.roleGenerationRequest).mockResolvedValue(
-        mockWCAResponse,
+      const roleGenerationRequest = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockApiInstance.roleGenerationRequest,
       );
+      roleGenerationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await generateRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleName,
         TEST_PROMPTS.CREATE_ROLE,
@@ -433,7 +481,7 @@ describe("lightspeedUtils", () => {
         "test-generation-id",
       );
 
-      expect(mockApiInstance.roleGenerationRequest).toHaveBeenCalledWith({
+      expect(roleGenerationRequest).toHaveBeenCalledWith({
         text: TEST_PROMPTS.CREATE_ROLE,
         outline: undefined,
         createOutline: true,
@@ -451,6 +499,7 @@ describe("lightspeedUtils", () => {
         {
           path: "tasks/main.yml",
           content: ANSIBLE_CONTENT.SINGLE_TASK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           file_type: "task" as any,
         },
       ];
@@ -461,18 +510,22 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      vi.mocked(mockProviderManager.chatRequest).mockResolvedValue(
-        mockChatResponse,
+      const chatRequest3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.chatRequest,
       );
+      chatRequest3.mockResolvedValue(mockChatResponse);
 
       const result = await explainRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         roleName,
         explanationId,
       );
 
-      expect(mockProviderManager.chatRequest).toHaveBeenCalledWith({
+      expect(chatRequest3).toHaveBeenCalledWith({
         message: expect.stringContaining(roleFiles[0].path),
         conversationId: explanationId,
         metadata: {
@@ -493,11 +546,13 @@ describe("lightspeedUtils", () => {
         {
           path: "tasks/main.yml",
           content: ANSIBLE_CONTENT.SINGLE_TASK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           file_type: "task" as any,
         },
         {
           path: "handlers/main.yml",
           content: "- name: restart nginx",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           file_type: "handler" as any,
         },
       ];
@@ -508,11 +563,15 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      vi.mocked(mockProviderManager.chatRequest).mockResolvedValue(
-        mockChatResponse,
+      const chatRequest4 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.chatRequest,
       );
+      chatRequest4.mockResolvedValue(mockChatResponse);
 
       const result = await explainRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         roleName,
@@ -520,7 +579,7 @@ describe("lightspeedUtils", () => {
       );
 
       const expectedMessage = expect.stringContaining("tasks/main.yml");
-      expect(mockProviderManager.chatRequest).toHaveBeenCalledWith({
+      expect(chatRequest4).toHaveBeenCalledWith({
         message: expectedMessage,
         conversationId: explanationId,
         metadata: {
@@ -541,15 +600,20 @@ describe("lightspeedUtils", () => {
         {
           path: "tasks/main.yml",
           content: ANSIBLE_CONTENT.SINGLE_TASK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           file_type: "task" as any,
         },
       ];
       const errorMessage = "Role explanation failed";
-      vi.mocked(mockProviderManager.chatRequest).mockRejectedValue(
-        new Error(errorMessage),
+      const chatRequest5 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.chatRequest,
       );
+      chatRequest5.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         "test-role",
@@ -570,6 +634,7 @@ describe("lightspeedUtils", () => {
         {
           path: "tasks/main.yml",
           content: ANSIBLE_CONTENT.SINGLE_TASK,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           file_type: "task" as any,
         },
       ];
@@ -581,18 +646,21 @@ describe("lightspeedUtils", () => {
         explanationId: explanationId,
       };
 
-      vi.mocked(mockApiInstance.roleExplanationRequest).mockResolvedValue(
-        mockWCAResponse,
+      const roleExplanationRequest = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockApiInstance.roleExplanationRequest,
       );
+      roleExplanationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await explainRole(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         roleName,
         explanationId,
       );
 
-      expect(mockApiInstance.roleExplanationRequest).toHaveBeenCalledWith({
+      expect(roleExplanationRequest).toHaveBeenCalledWith({
         files: roleFiles,
         roleName: roleName,
         explanationId: explanationId,

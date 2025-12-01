@@ -216,18 +216,24 @@ describe("WebviewMessageHandlers", () => {
       );
 
       // Verify webview.postMessage was called with the response
-      expect(mockWebview.postMessage).toHaveBeenCalledWith({
+      const postMessage = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockWebview.postMessage,
+      );
+      expect(postMessage).toHaveBeenCalledWith({
         type: "generatePlaybook",
         data: mockPlaybookResponse,
       });
 
       // Verify contentMatch was called
+
       expect(vi.mocked(contentMatch)).toHaveBeenCalledWith(
         expect.any(String), // generationId
         mockPlaybookResponse.playbook,
       );
 
       // Verify updatePromptHistory was called
+
       expect(vi.mocked(updatePromptHistory)).toHaveBeenCalledWith(
         mockContext,
         "Create a playbook to install nginx",
@@ -261,6 +267,8 @@ describe("WebviewMessageHandlers", () => {
 
       // Verify sendErrorMessage was called (via postMessage with errorMessage type)
       // The actual implementation sends error via sendErrorMessage which posts a message
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "errorMessage",
         data: "Failed to get an answer from the server: Failed to generate playbook: API error",
@@ -268,6 +276,7 @@ describe("WebviewMessageHandlers", () => {
 
       // Verify contentMatch and updatePromptHistory were NOT called on error
       expect(vi.mocked(contentMatch)).not.toHaveBeenCalled();
+
       expect(vi.mocked(updatePromptHistory)).not.toHaveBeenCalled();
     });
   });
@@ -281,11 +290,12 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers.handleMessage(message, mockWebview, mockContext);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalled();
     });
 
     it("should log warning for unknown message type", async () => {
-      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(vi.fn());
       const message = {
         type: "unknownMessageType",
         data: {},
@@ -310,12 +320,14 @@ describe("WebviewMessageHandlers", () => {
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockWorkspaceFolders as any,
       );
 
       const message = { type: "getHomeDirectory", data: {} };
       messageHandlers["handleGetHomeDirectory"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "homeDirectory",
         data: "/workspace/path",
@@ -331,12 +343,14 @@ describe("WebviewMessageHandlers", () => {
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockWorkspaceFolders as any,
       );
 
       const message = { type: "ui-mounted", data: {} };
       messageHandlers["handleUiMounted"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         command: "homedirAndTempdir",
         homedir: "/workspace/path",
@@ -371,6 +385,7 @@ describe("WebviewMessageHandlers", () => {
 
       messageHandlers["handleSetPlaybookData"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "setPlaybookData",
         data: { content: "test playbook" },
@@ -385,6 +400,7 @@ describe("WebviewMessageHandlers", () => {
 
       messageHandlers["handleSetRoleData"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "setRoleData",
         data: { content: "test role" },
@@ -405,11 +421,13 @@ describe("WebviewMessageHandlers", () => {
         mockContext,
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockContext.workspaceState.get).toHaveBeenCalledWith(
         "ansible.lightspeed.recent_prompts",
         [],
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "getRecentPrompts",
         data: recentPrompts,
@@ -424,6 +442,7 @@ describe("WebviewMessageHandlers", () => {
       // Wait for debounce (200ms)
       await new Promise((resolve) => setTimeout(resolve, 250));
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "getCollectionList",
         data: [],
@@ -457,6 +476,7 @@ describe("WebviewMessageHandlers", () => {
         "test-explanation-id",
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "explainPlaybook",
         data: mockResponse,
@@ -482,6 +502,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleExplainPlaybook"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "errorMessage",
         data: "Failed to get an answer from the server: Failed to explain playbook",
@@ -517,6 +538,7 @@ describe("WebviewMessageHandlers", () => {
         "test-role-explanation-id",
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "explainRole",
         data: mockResponse,
@@ -542,6 +564,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleExplainRole"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "errorMessage",
         data: "Failed to get an answer from the server: Failed to explain role",
@@ -588,6 +611,7 @@ describe("WebviewMessageHandlers", () => {
         expect.any(String),
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "generateRole",
         data: mockResponse,
@@ -627,6 +651,7 @@ describe("WebviewMessageHandlers", () => {
         mockContext,
       );
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "errorMessage",
         data: "Failed to get an answer from the server: Failed to generate role",
@@ -679,6 +704,7 @@ describe("WebviewMessageHandlers", () => {
         model: "gpt-4",
         sentimentFeedback: {
           value: 5,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       };
 
@@ -691,7 +717,8 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleFeedback"](message);
 
-      expect(vi.mocked(sendTelemetry)).toHaveBeenCalledWith(
+      const sendTelemetryMock2 = vi.mocked(sendTelemetry);
+      expect(sendTelemetryMock2).toHaveBeenCalledWith(
         lightSpeedManager.telemetry.telemetryService,
         expect.any(Function),
         "lightspeed.feedback",
@@ -702,6 +729,7 @@ describe("WebviewMessageHandlers", () => {
       );
 
       // Should not call API feedbackRequest for LLM providers
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(
         lightSpeedManager.apiInstance.feedbackRequest,
       ).not.toHaveBeenCalled();
@@ -716,7 +744,7 @@ describe("WebviewMessageHandlers", () => {
 
       const consoleErrorSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(vi.fn());
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "gpt-4",
@@ -747,6 +775,7 @@ describe("WebviewMessageHandlers", () => {
         model: "wca-model",
         sentimentFeedback: {
           value: 5,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       };
 
@@ -759,11 +788,13 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleFeedback"](message);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(
         lightSpeedManager.apiInstance.feedbackRequest,
       ).toHaveBeenCalledWith(feedbackRequest, false);
 
       // Should not call sendTelemetry for WCA provider
+
       expect(vi.mocked(sendTelemetry)).not.toHaveBeenCalled();
     });
   });
@@ -781,6 +812,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitCreate"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(messageHandlers["creatorOps"].runInitCommand).toHaveBeenCalledWith(
         message.payload,
         mockWebview,
@@ -825,6 +857,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleCheckAdePresence"](message, mockWebview);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(messageHandlers["creatorOps"].isADEPresent).toHaveBeenCalledWith(
         mockWebview,
       );
@@ -842,6 +875,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenLogFile"](message);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(messageHandlers["fileOps"].openLogFile).toHaveBeenCalledWith(
         "/path/to/log.txt",
       );
@@ -935,6 +969,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenDevfile"](message);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(messageHandlers["fileOps"].openDevfile).toHaveBeenCalledWith(
         "/path/to/project",
       );
@@ -950,6 +985,7 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenScaffoldedFile"](message);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(messageHandlers["fileOps"].openFileInEditor).toHaveBeenCalledWith(
         "/path/to/project/execution-environment.yml",
       );
@@ -966,6 +1002,7 @@ describe("WebviewMessageHandlers", () => {
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockWorkspaceFolders as any,
       );
 
