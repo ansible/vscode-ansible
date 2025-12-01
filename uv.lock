@@ -77,6 +77,19 @@ wheels = [
 ]
 
 [[package]]
+name = "ansible-creator"
+version = "25.11.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jinja2" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d5/c4/88b664f9973b9e15f4f4dfdf022f07d4d0ae676f2e9f320d141a5ef4c8ea/ansible_creator-25.11.0.tar.gz", hash = "sha256:1ba0662f3480ba80c81b2c0dc08168b705f559e0881a4497a4e6338e51193e1f", size = 9771623, upload-time = "2025-11-10T13:37:18.096Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/06/9857e7b8f7f561efb8f3dab0cae6c04cdec5f48fd30adc3d20ca8a4b2f89/ansible_creator-25.11.0-py3-none-any.whl", hash = "sha256:95f54cd32192f94f3916445c52165105d0e87063f121bdfebe444a006c1666f2", size = 97949, upload-time = "2025-11-10T13:37:16.398Z" },
+]
+
+[[package]]
 name = "ansible-lint"
 version = "25.11.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1815,6 +1828,7 @@ source = { virtual = "." }
 dev = [
     { name = "ansible-core", version = "2.19.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "ansible-core", version = "2.20.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "ansible-creator" },
     { name = "ansible-lint" },
     { name = "ansible-navigator" },
     { name = "cython", marker = "python_full_version >= '3.12'" },
@@ -1839,6 +1853,7 @@ lint = [
 [package.metadata.requires-dev]
 dev = [
     { name = "ansible-core", specifier = ">=2.13.0" },
+    { name = "ansible-creator", specifier = ">=25.11.0" },
     { name = "ansible-lint", specifier = ">=6.8.7" },
     { name = "ansible-navigator", specifier = ">=25.5.0" },
     { name = "cython", marker = "python_full_version >= '3.12'", specifier = ">=3.0.5" },

@@ -146,7 +146,7 @@ def cli() -> None:
         run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
 
         run(
-            "npm exec -- vsce package --no-dependencies --no-git-tag-version"
+            "npm exec -- vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
             f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
         )
         # Using zipinfo instead of `npm exec -- vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
