@@ -97,7 +97,6 @@ describe("lightspeedUtils", () => {
 
       const result = await generatePlaybook(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         "",
@@ -133,7 +132,6 @@ describe("lightspeedUtils", () => {
 
       const result = await generatePlaybook(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         customOutline,
@@ -164,7 +162,6 @@ describe("lightspeedUtils", () => {
 
       const result = await generatePlaybook(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
         "",
@@ -194,7 +191,6 @@ describe("lightspeedUtils", () => {
       playbookGenerationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await generatePlaybook(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         TEST_PROMPTS.INSTALL_NGINX,
@@ -230,7 +226,6 @@ describe("lightspeedUtils", () => {
 
       const result = await explainPlaybook(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
         explanationId,
@@ -259,7 +254,6 @@ describe("lightspeedUtils", () => {
       chatRequest2.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainPlaybook(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
@@ -292,7 +286,6 @@ describe("lightspeedUtils", () => {
 
       const result = await explainPlaybook(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         playbookContent,
         explanationId,
@@ -322,7 +315,6 @@ describe("lightspeedUtils", () => {
       generateRoleMock.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleName,
@@ -370,7 +362,6 @@ describe("lightspeedUtils", () => {
 
       const result = await generateRole(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleName,
         TEST_PROMPTS.CREATE_ROLE,
@@ -407,7 +398,6 @@ describe("lightspeedUtils", () => {
 
       const result = await generateRole(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         undefined,
         TEST_PROMPTS.CREATE_ROLE,
@@ -430,7 +420,6 @@ describe("lightspeedUtils", () => {
       generateRole4.mockRejectedValue(new Error(errorMessage));
 
       const result = await generateRole(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         "test-role",
@@ -456,7 +445,6 @@ describe("lightspeedUtils", () => {
           {
             path: "tasks/main.yml",
             content: ANSIBLE_CONTENT.SINGLE_TASK,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             file_type: "task" as any,
           },
@@ -518,7 +506,6 @@ describe("lightspeedUtils", () => {
 
       const result = await explainRole(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         roleName,
@@ -571,7 +558,6 @@ describe("lightspeedUtils", () => {
 
       const result = await explainRole(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
         roleName,
@@ -612,7 +598,6 @@ describe("lightspeedUtils", () => {
       chatRequest5.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainRole(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockApiInstance as any,
         roleFiles,
