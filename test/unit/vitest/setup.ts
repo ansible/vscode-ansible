@@ -25,11 +25,17 @@ vi.mock("vscode", () => {
   return {
     commands: {
       executeCommand: vi.fn(),
+      registerCommand: vi.fn(),
     },
     ExtensionContext: vi.fn(),
     window: {
       showErrorMessage: vi.fn(),
       showInformationMessage: vi.fn(),
+      showWarningMessage: vi.fn(),
+      showQuickPick: vi.fn(),
+      showInputBox: vi.fn(),
+      withProgress: vi.fn(),
+      showTextDocument: vi.fn(),
       createOutputChannel: vi.fn(
         (name: string, options?: { log?: boolean }) => {
           // If log option is true, return LogOutputChannel with logging methods
@@ -59,6 +65,7 @@ vi.mock("vscode", () => {
     workspace: {
       workspaceFolders: [],
       getConfiguration: vi.fn(),
+      openTextDocument: vi.fn(),
     },
     Uri: {
       file: vi.fn(),
@@ -87,6 +94,11 @@ vi.mock("vscode", () => {
       Notification: 15,
       SourceControl: 1,
       Window: 10,
+    },
+    ConfigurationTarget: {
+      Workspace: 1,
+      Global: 2,
+      WorkspaceFolder: 3,
     },
   };
 });

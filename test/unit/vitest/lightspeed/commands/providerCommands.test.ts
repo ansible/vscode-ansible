@@ -11,52 +11,6 @@ import {
   GOOGLE_PROVIDER,
 } from "../testConstants";
 
-// Mock vscode module
-vi.mock("vscode", () => {
-  const mockCommands = {
-    registerCommand: vi.fn(),
-  };
-
-  const mockWindow = {
-    showWarningMessage: vi.fn(),
-    showInformationMessage: vi.fn(),
-    showErrorMessage: vi.fn(),
-    showQuickPick: vi.fn(),
-    showInputBox: vi.fn(),
-    withProgress: vi.fn(),
-    showTextDocument: vi.fn(),
-  };
-
-  const mockWorkspace = {
-    getConfiguration: vi.fn(),
-    openTextDocument: vi.fn(),
-  };
-
-  const mockConfiguration = {
-    get: vi.fn(),
-    update: vi.fn(),
-  };
-
-  return {
-    commands: mockCommands,
-    window: mockWindow,
-    workspace: mockWorkspace,
-    ConfigurationTarget: {
-      Workspace: 1,
-      Global: 2,
-      WorkspaceFolder: 3,
-    },
-    ProgressLocation: {
-      Notification: 15,
-    },
-    __mockCommands: mockCommands,
-    __mockWindow: mockWindow,
-    __mockWorkspace: mockWorkspace,
-    __mockConfiguration: mockConfiguration,
-  };
-});
-
-// Mock providerFactory - must use hardcoded values, not imports (hoisted)
 vi.mock("../../../../../src/features/lightspeed/providers/factory", () => {
   const mockProviderInfo = {
     type: "google",
