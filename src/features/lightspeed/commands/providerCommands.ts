@@ -251,8 +251,7 @@ export class ProviderCommands {
       label: provider.displayName,
       description: provider.active ? "(Currently Active)" : "",
       detail: provider.type,
-      providerType: provider.type,
-      providerDisplayName: provider.displayName,
+      provider: provider,
     }));
 
     const selectedProvider = await vscode.window.showQuickPick(providerItems, {
@@ -270,7 +269,7 @@ export class ProviderCommands {
       // Switch to selected provider
       await config.update(
         "provider",
-        selectedProvider.providerType,
+        selectedProvider.provider.type,
         vscode.ConfigurationTarget.Workspace,
       );
       await config.update(
@@ -282,7 +281,7 @@ export class ProviderCommands {
       await this.lightSpeedManager.providerManager.refreshProviders();
 
       vscode.window.showInformationMessage(
-        `Switched to ${selectedProvider.providerDisplayName}`,
+        `Switched to ${selectedProvider.provider.displayName}`,
       );
     } catch (error) {
       vscode.window.showErrorMessage(

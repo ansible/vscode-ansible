@@ -107,19 +107,12 @@ export const TEST_CONFIGS = {
 } as const;
 
 // Base LightSpeedServiceSettings with all required common properties
-export const BASE_LIGHTSPEED_SETTINGS: Omit<
-  LightSpeedServiceSettings,
-  "provider" | "apiKey" | "apiEndpoint"
-> = {
+export const BASE_LIGHTSPEED_SETTINGS: Omit<LightSpeedServiceSettings, "provider" | "apiKey" | "apiEndpoint"> = {
   enabled: true,
-  URL: "",
   modelName: undefined,
-  model: undefined,
   timeout: DEFAULT_TIMEOUTS.DEFAULT,
   customHeaders: {},
   suggestions: { enabled: true, waitWindow: 0 },
-  playbookGenerationCustomPrompt: undefined,
-  playbookExplanationCustomPrompt: undefined,
 };
 
 // Complete LightSpeedServiceSettings for common test scenarios
@@ -167,17 +160,12 @@ export const GOOGLE_PROVIDER = {
 
 // Ansible test content
 export const ANSIBLE_CONTENT = {
-  SINGLE_TASK:
-    "- name: Install nginx\n  ansible.builtin.package:\n    name: nginx\n    state: present",
-  MULTI_TASK:
-    "- name: Task one\n  ansible.builtin.debug:\n    msg: 'First task'\n- name: Task two\n  ansible.builtin.debug:\n    msg: 'Second task'",
-  PLAYBOOK:
-    "---\n- hosts: all\n  tasks:\n    - name: Install nginx\n      ansible.builtin.package:\n        name: nginx",
+  SINGLE_TASK: "- name: Install nginx\n  ansible.builtin.package:\n    name: nginx\n    state: present",
+  MULTI_TASK: "- name: Task one\n  ansible.builtin.debug:\n    msg: 'First task'\n- name: Task two\n  ansible.builtin.debug:\n    msg: 'Second task'",
+  PLAYBOOK: "---\n- hosts: all\n  tasks:\n    - name: Install nginx\n      ansible.builtin.package:\n        name: nginx",
   INVALID_YAML: "- name: Task\n  invalid: [unclosed",
-  YAML_WITH_CODE_BLOCK:
-    "```yaml\n- name: Test task\n  ansible.builtin.debug:\n    msg: 'test'\n```",
-  YAML_WITH_EXPLANATION:
-    "Here's the playbook:\n- name: Test task\n  ansible.builtin.debug:\n    msg: 'test'",
+  YAML_WITH_CODE_BLOCK: "```yaml\n- name: Test task\n  ansible.builtin.debug:\n    msg: 'test'\n```",
+  YAML_WITH_EXPLANATION: "Here's the playbook:\n- name: Test task\n  ansible.builtin.debug:\n    msg: 'test'",
   EMPTY: "",
   NULL_YAML: "null",
 } as const;
