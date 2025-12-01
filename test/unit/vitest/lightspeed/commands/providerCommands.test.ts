@@ -167,6 +167,7 @@ describe("ProviderCommands", () => {
   describe("testProviderConnection", () => {
     it("should show warning when no provider is active", async () => {
       const getActiveProvider = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getActiveProvider,
       );
       getActiveProvider.mockReturnValue(null);
@@ -178,9 +179,11 @@ describe("ProviderCommands", () => {
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
         "No provider is currently active. Please configure a provider first.",
       );
-      expect(
-        vi.mocked(mockProviderManager.testProviderConnection),
-      ).not.toHaveBeenCalled();
+      const testProviderConnection2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.testProviderConnection,
+      );
+      expect(testProviderConnection2).not.toHaveBeenCalled();
     });
 
     it("should test Google provider connection successfully", async () => {
@@ -192,8 +195,12 @@ describe("ProviderCommands", () => {
         },
       };
 
-      const getActiveProvider2 = vi.mocked(mockProviderManager.getActiveProvider);
+      const getActiveProvider2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.getActiveProvider,
+      );
       const testProviderConnection = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.testProviderConnection,
       );
       getActiveProvider2.mockReturnValue("llmprovider");
@@ -240,9 +247,11 @@ describe("ProviderCommands", () => {
       };
 
       const getActiveProvider = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getActiveProvider,
       );
       const testProviderConnection = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.testProviderConnection,
       );
       getActiveProvider.mockReturnValue("llmprovider");
@@ -322,10 +331,16 @@ describe("ProviderCommands", () => {
         undefined,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
-      expect(providerFactory.getSupportedProviders).toHaveBeenCalled();
-      expect(vscode.window.showQuickPick).toHaveBeenCalledWith(
+      const getSupportedProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        providerFactory.getSupportedProviders,
+      );
+      const showQuickPick5 = vi.mocked(vscode.window.showQuickPick);
+      expect(getSupportedProviders).toHaveBeenCalled();
+      expect(showQuickPick5).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             label: GOOGLE_PROVIDER.DISPLAY_NAME,
@@ -348,7 +363,11 @@ describe("ProviderCommands", () => {
         TEST_API_KEYS.GOOGLE,
         vscode.ConfigurationTarget.Workspace,
       );
-      expect(mockProviderManager.refreshProviders).toHaveBeenCalled();
+      const refreshProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.refreshProviders,
+      );
+      expect(refreshProviders).toHaveBeenCalled();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
         `✅ ${GOOGLE_PROVIDER.DISPLAY_NAME} configured successfully!`,
         "Test Connection",
@@ -356,13 +375,20 @@ describe("ProviderCommands", () => {
     });
 
     it("should handle user cancellation during provider selection", async () => {
-      vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+      const showQuickPick6 = vi.mocked(vscode.window.showQuickPick);
+      const showInputBox = vi.mocked(vscode.window.showInputBox);
+      const refreshProviders2 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.refreshProviders,
+      );
+      showQuickPick6.mockResolvedValue(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
-      expect(vscode.window.showQuickPick).toHaveBeenCalled();
-      expect(vscode.window.showInputBox).not.toHaveBeenCalled();
-      expect(mockProviderManager.refreshProviders).not.toHaveBeenCalled();
+      expect(showQuickPick6).toHaveBeenCalled();
+      expect(showInputBox).not.toHaveBeenCalled();
+      expect(refreshProviders2).not.toHaveBeenCalled();
     });
 
     it("should handle user cancellation during API key input", async () => {
@@ -415,7 +441,11 @@ describe("ProviderCommands", () => {
         expect.anything(),
         expect.anything(),
       );
-      expect(mockProviderManager.refreshProviders).not.toHaveBeenCalled();
+      const refreshProviders4 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.refreshProviders,
+      );
+      expect(refreshProviders4).not.toHaveBeenCalled();
     });
 
     it("should set default endpoint when available", async () => {
@@ -474,10 +504,10 @@ describe("ProviderCommands", () => {
     });
 
     it("should handle errors during configuration", async () => {
-      vi.mocked(vscode.window.showQuickPick).mockRejectedValue(
-        new Error("Configuration error"),
-      );
+      const showQuickPick7 = vi.mocked(vscode.window.showQuickPick);
+      showQuickPick7.mockRejectedValue(new Error("Configuration error"));
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
@@ -510,12 +540,15 @@ describe("ProviderCommands", () => {
       ];
 
       const getActiveProvider = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getActiveProvider,
       );
       const getProviderStatus = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getProviderStatus,
       );
       const getAvailableProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       getActiveProvider.mockReturnValue("llmprovider");
@@ -545,13 +578,16 @@ describe("ProviderCommands", () => {
       expect(getProviderStatus).toHaveBeenCalledWith("llmprovider");
       expect(getAvailableProviders).toHaveBeenCalled();
 
-      expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith({
+      const openTextDocument = vi.mocked(vscode.workspace.openTextDocument);
+      const showTextDocument = vi.mocked(vscode.window.showTextDocument);
+      expect(openTextDocument).toHaveBeenCalledWith({
         content: expect.stringContaining("✅ **Active Provider**: LLMPROVIDER"),
         language: "markdown",
       });
 
-      const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
-        .calls[0][0] as { content: string };
+      const callArgs = openTextDocument.mock.calls[0][0] as {
+        content: string;
+      };
       expect(callArgs.content).toContain(
         `📋 **Model**: ${MODEL_NAMES.GEMINI_PRO}`,
       );
@@ -565,7 +601,7 @@ describe("ProviderCommands", () => {
         "⚪ **Red Hat Ansible Lightspeed** (wca)",
       );
 
-      expect(vscode.window.showTextDocument).toHaveBeenCalledWith(mockDoc);
+      expect(showTextDocument).toHaveBeenCalledWith(mockDoc);
     });
 
     it("should show status when no provider is active", async () => {
@@ -578,9 +614,11 @@ describe("ProviderCommands", () => {
       ];
 
       const getActiveProvider = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getActiveProvider,
       );
       const getAvailableProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       getActiveProvider.mockReturnValue(null);
@@ -595,18 +633,19 @@ describe("ProviderCommands", () => {
       const mockDoc = {
         content: "",
       };
-      vi.mocked(vscode.workspace.openTextDocument).mockResolvedValue(
+      const openTextDocument4 = vi.mocked(vscode.workspace.openTextDocument);
+      const showTextDocument4 = vi.mocked(vscode.window.showTextDocument);
+      openTextDocument4.mockResolvedValue(
         mockDoc as unknown as vscode.TextDocument,
       );
-      vi.mocked(vscode.window.showTextDocument).mockResolvedValue(
-        {} as unknown as vscode.TextEditor,
-      );
+      showTextDocument4.mockResolvedValue({} as unknown as vscode.TextEditor);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).showProviderStatus();
 
-      const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
-        .calls[0][0] as { content: string };
+      const callArgs = openTextDocument4.mock.calls[0][0] as {
+        content: string;
+      };
       expect(callArgs.content).toContain("❌ **No active provider**");
       expect(callArgs.content).toContain(
         `⚪ **${GOOGLE_PROVIDER.DISPLAY_NAME}** (${PROVIDER_TYPES.GOOGLE})`,
@@ -628,12 +667,15 @@ describe("ProviderCommands", () => {
       ];
 
       const getActiveProvider = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getActiveProvider,
       );
       const getProviderStatus = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getProviderStatus,
       );
       const getAvailableProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       getActiveProvider.mockReturnValue("llmprovider");
@@ -649,18 +691,19 @@ describe("ProviderCommands", () => {
       const mockDoc = {
         content: "",
       };
-      vi.mocked(vscode.workspace.openTextDocument).mockResolvedValue(
+      const openTextDocument5 = vi.mocked(vscode.workspace.openTextDocument);
+      const showTextDocument5 = vi.mocked(vscode.window.showTextDocument);
+      openTextDocument5.mockResolvedValue(
         mockDoc as unknown as vscode.TextDocument,
       );
-      vi.mocked(vscode.window.showTextDocument).mockResolvedValue(
-        {} as unknown as vscode.TextEditor,
-      );
+      showTextDocument5.mockResolvedValue({} as unknown as vscode.TextEditor);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).showProviderStatus();
 
-      const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
-        .calls[0][0] as { content: string };
+      const callArgs = openTextDocument5.mock.calls[0][0] as {
+        content: string;
+      };
       expect(callArgs.content).toContain("❌ **Active Provider**: LLMPROVIDER");
       expect(callArgs.content).toContain("⚠️ **Error**: Invalid API key");
     });
@@ -695,6 +738,7 @@ describe("ProviderCommands", () => {
 
       const getConfiguration = vi.mocked(vscode.workspace.getConfiguration);
       const getAvailableProviders = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       const showQuickPick = vi.mocked(vscode.window.showQuickPick);
@@ -721,7 +765,7 @@ describe("ProviderCommands", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();
 
-      expect(vscode.window.showQuickPick).toHaveBeenCalledWith(
+      expect(showQuickPick).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
             label: GOOGLE_PROVIDER.DISPLAY_NAME,
@@ -743,9 +787,11 @@ describe("ProviderCommands", () => {
         true,
         vscode.ConfigurationTarget.Workspace,
       );
-      expect(
-        vi.mocked(mockProviderManager.refreshProviders),
-      ).toHaveBeenCalled();
+      const refreshProviders3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.refreshProviders,
+      );
+      expect(refreshProviders3).toHaveBeenCalled();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
         `Switched to ${GOOGLE_PROVIDER.DISPLAY_NAME}`,
       );
@@ -753,6 +799,7 @@ describe("ProviderCommands", () => {
 
     it("should handle user cancellation during provider selection", async () => {
       const getAvailableProviders5 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       const showQuickPick4 = vi.mocked(vscode.window.showQuickPick);
@@ -775,9 +822,11 @@ describe("ProviderCommands", () => {
 
       expect(showQuickPick4).toHaveBeenCalled();
       expect(getConfiguration4).not.toHaveBeenCalled();
-      expect(
-        vi.mocked(mockProviderManager.refreshProviders),
-      ).not.toHaveBeenCalled();
+      const refreshProviders5 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        mockProviderManager.refreshProviders,
+      );
+      expect(refreshProviders5).not.toHaveBeenCalled();
     });
 
     it("should handle errors during provider switch", async () => {
@@ -799,6 +848,7 @@ describe("ProviderCommands", () => {
 
       const getConfiguration3 = vi.mocked(vscode.workspace.getConfiguration);
       const getAvailableProviders3 = vi.mocked(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.getAvailableProviders,
       );
       const showQuickPick3 = vi.mocked(vscode.window.showQuickPick);
