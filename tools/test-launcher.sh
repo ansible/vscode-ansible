@@ -50,7 +50,6 @@ UI_TARGET="${UI_TARGET:-*Test.js}"
 OPTSTRING=":c"
 
 # https://github.com/microsoft/vscode/issues/204005
-unset NODE_OPTIONS
 rm -f out/log/.failed >/dev/null
 
 function start_server() {
@@ -154,11 +153,6 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-# Clean up any corrupted VS Code cache from previous failed runs
-log notice "Cleaning up VS Code cache before download..."
-rm -rf .vscode-test/ out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
-rm -f out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
-
 retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
 log notice "Downloading ChromeDriver..."
@@ -249,6 +243,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
         } | tee >(sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/ui/${TEST_ID}.log") 2>&1
     done
     ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
+    touch out/junit/ui/.passed
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
     export NODE_NO_WARNINGS=1
@@ -258,7 +253,10 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
 
     mkdir -p out/userdata/User/
     mkdir -p out/junit/e2e
+    rm -f out/junit/e2e/*.*
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
     npm exec -- vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
+    touch out/junit/e2e/.passed
+    rm -f test/testFixtures/.vscode/settings.json
 fi

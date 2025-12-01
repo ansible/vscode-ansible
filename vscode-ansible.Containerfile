@@ -3,7 +3,6 @@ FROM ghcr.io/jdx/mise:latest
 
 ENV CI=1
 ENV MISE_TRUSTED_CONFIG_PATHS=/
-ENV NODE_OPTIONS=--max-old-space-size=8192
 ENV SKIP_UI=1
 WORKDIR /usr/src/app
 

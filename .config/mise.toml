@@ -15,6 +15,7 @@ _.python.venv = { create = true, path = "~/.local/share/virtualenvs/vsa", python
   "--seed",
 ] }  # pass args to uv venv
 _.file = { path = ".env", tools = true }
+_.path = ["./node_modules/.bin"]
 
 # Do not use other hooks than preinstall or postinstall because they will
 # not work without 'mise activate' command, something that we do not use on CI.
@@ -31,6 +32,6 @@ gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn
 node = "22.20.0"
 python = "3.13"
-task = "latest"
+task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
 yarn = "latest"

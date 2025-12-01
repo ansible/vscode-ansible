@@ -3,10 +3,10 @@ import { mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { createInitHandler } from "../../src/tools/creator.js";
+import { createProjectsHandler } from "../../src/tools/creator.js";
 
 describe("creator", () => {
-  describe("ansible_create_playbook", () => {
+  describe("create_ansible_projects - playbook", () => {
     let tempDir: string;
     let currentDir: string;
 
@@ -21,22 +21,31 @@ describe("creator", () => {
       process.chdir(currentDir);
     });
 
-    it("should create playbook", async () => {
-      // Remove folder from disk, ignore error if it does not exist
-      const handler = createInitHandler("playbook");
-      const result = await handler({ name: "foo.bar" });
+    it("should create playbook project", async () => {
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "playbook",
+        namespace: "foo",
+        collectionName: "bar",
+        projectDirectory: "test_playbook",
+      });
       expect(result.isError).toBeUndefined();
     });
 
-    it("should create playbook (fail)", async () => {
-      const handler = createInitHandler("playbook");
-      const result = await handler({ name: "foo.bar.ss..s" });
+    it("should create playbook project (fail - invalid collection name)", async () => {
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "playbook",
+        namespace: "foo",
+        collectionName: "bar.ss..s",
+        projectDirectory: "test_playbook",
+      });
       expect(result.isError).toBe(true);
       expect(result.content).toBeDefined();
     });
   });
 
-  describe("ansible_create_collection", () => {
+  describe("create_ansible_projects - collection", () => {
     let tempDir: string;
     let currentDir: string;
 
@@ -52,23 +61,49 @@ describe("creator", () => {
     });
 
     it("should create collection", async () => {
-      // Remove folder from disk, ignore error if it does not exist
-      const handler = createInitHandler("collection");
-      const result = await handler({ name: "foo.bar" });
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "bar",
+        projectDirectory: "test_collection",
+      });
       expect(result.isError).toBeUndefined();
     });
 
-    it("create collection (fail)", async () => {
-      const handler = createInitHandler("collection");
-      const result = await handler({ name: "this.is.invalid.collection.name" });
+    it("create collection (fail - invalid collection name)", async () => {
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "this",
+        collectionName: "is.invalid.collection.name",
+        projectDirectory: "test_collection",
+      });
       expect(result.isError).toBe(true);
       expect(result.content).toBeDefined();
     });
 
-    it("create collection (fail no name)", async () => {
-      const handler = createInitHandler("collection");
-      const result = await handler({ name: "" });
-      expect(result.isError).toBe(true);
+    it("create collection (fail - missing namespace)", async () => {
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "collection",
+        collectionName: "bar",
+        projectDirectory: "test_collection",
+      });
+      // Should prompt for namespace, not error
+      expect(result.isError).toBe(false);
+      expect(result.content).toBeDefined();
+    });
+
+    it("create collection (fail - missing collection name)", async () => {
+      const handler = createProjectsHandler(tempDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        projectDirectory: "test_collection",
+      });
+      // Should prompt for collection name, not error
+      expect(result.isError).toBe(false);
       expect(result.content).toBeDefined();
     });
   });

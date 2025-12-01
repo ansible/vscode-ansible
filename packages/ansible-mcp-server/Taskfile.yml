@@ -8,6 +8,12 @@ env:
 vars:
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
+includes:
+  base:
+    taskfile: ../../Taskfile.base.yml
+    internal: true
+    flatten: true
+
 tasks:
   default:
     dir: "{{ .TASKFILE_DIR }}"
@@ -22,9 +28,12 @@ tasks:
   build:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
+    deps:
+      - install
     cmds:
-      - task -d ../.. install
       - npm run build
+    generates:
+      - out/server/**/*.*
     sources:
       - package-lock.json
       - package.json
@@ -32,12 +41,27 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - vitest.config.ts
+      - exclude: "**/*-artifact-*.json"
+      - exclude: ansible-navigator.log
   test:
     desc: Run all tests and coverage report
+    deps:
+      - build
     dir: "{{ .TASKFILE_DIR }}"
+    status:
+      - test -f ../../out/junit/mcp/.passed
+    sources:
+      - package.json
+      - test/**/*.*
+      - src/**/*.*
+      - tsconfig.json
+      - vitest.config.ts
+      - exclude: "**/*-artifact-*.json"
+      - exclude: ansible-navigator.log
     cmds:
-      - task: build
+      - rm -f ../../out/junit/mcp/.passed
       - npm run test:coverage
+      - touch ../../out/junit/mcp/.passed
     interactive: true
   test-watch:
     desc: Run tests in watch mode
@@ -47,6 +71,8 @@ tasks:
     interactive: true
   package:
     desc: Package MCP server
+    deps:
+      - build
     dir: "{{ .TASKFILE_DIR }}"
     sources:
       - README.md
@@ -56,7 +82,6 @@ tasks:
     generates:
       - "*.tgz"
     cmds:
-      - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
       - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false

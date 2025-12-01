@@ -22,7 +22,7 @@ import {
   formatDependencyError,
   type Dependency,
 } from "./dependencyChecker.js";
-import { createInitHandler } from "./tools/creator.js";
+import { createProjectsHandler } from "./tools/creator.js";
 import {
   getEERules,
   getExecutionEnvironmentSchema,
@@ -306,7 +306,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createListToolsHandler(() => Array.from(registeredTools)),
-    [], // No dependencies
+    [],
   );
 
   registerToolWithDeps(
@@ -361,13 +361,12 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   );
 
   // Schema with userMessage - tool extracts filename from user's prompt
+  // Using Zod schema to match other tools (required for proper MCP tool discovery)
   const navigatorInputSchema = {
-    type: "object",
-    properties: {
-      userMessage: {
-        type: "string",
-        description:
-          "**REQUIRED:** The user's original message/prompt. Just pass it as-is (DO NOT leave empty). " +
+    userMessage: z
+      .string()
+      .describe(
+        "**REQUIRED:** The user's original message/prompt. Just pass it as-is (DO NOT leave empty). " +
           "The tool will parse it to extract the playbook filename. " +
           "\n" +
           "**EXAMPLES OF CORRECT USAGE:** " +
@@ -376,41 +375,41 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           '- User says: \'run playbooks/site.yml\' → You MUST pass: {"userMessage": "run playbooks/site.yml"} ' +
           "\n" +
           "**DO NOT call this tool with empty userMessage or {}. Always provide the user's message.**",
-      },
-      filePath: {
-        type: "string",
-        description:
-          "Advanced: Direct file path to the playbook. " +
+      ),
+    filePath: z
+      .string()
+      .optional()
+      .describe(
+        "Advanced: Direct file path to the playbook. " +
           "If provided, this takes precedence over userMessage parsing. " +
           "Most of the time, just use userMessage instead.",
-      },
-      mode: {
-        type: "string",
-        enum: ["stdout", "interactive"],
-        default: "stdout",
-        description:
-          "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
+      ),
+    mode: z
+      .enum(["stdout", "interactive"])
+      .optional()
+      .default("stdout")
+      .describe(
+        "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
           "Only specify if user explicitly requests a different mode.",
-      },
-      environment: {
-        type: "string",
-        default: "auto",
-        description:
-          "Environment selection: 'auto' (default, checks PATH first, then venv), 'system' (only use PATH/system), " +
+      ),
+    environment: z
+      .string()
+      .optional()
+      .default("auto")
+      .describe(
+        "Environment selection: 'auto' (default, checks PATH first, then venv), 'system' (only use PATH/system), " +
           "'venv' (only use virtual environment), or a specific venv name/path (e.g., 'ansible-dev', 'venv', '/path/to/venv'). " +
           "When a specific venv name is provided, the tool searches in the workspace and parent directories.",
-      },
-      disableExecutionEnvironment: {
-        type: "boolean",
-        default: false,
-        description:
-          "Set to `true` to disable execution environments (passes --ee false). " +
+      ),
+    disableExecutionEnvironment: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Set to `true` to disable execution environments (passes --ee false). " +
           "**Use this if you encounter Podman/Docker errors.** " +
           "When disabled, ansible-navigator will use the local Ansible installation instead of containerized execution environments.",
-      },
-    },
-    required: ["userMessage"], // userMessage is REQUIRED - LLM must pass the user's prompt
-    additionalProperties: false,
+      ),
   };
 
   registerToolWithDeps(
@@ -537,7 +536,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createADEEnvironmentInfoHandler(workspaceRoot),
-    [], // No dependencies
+    [],
   );
 
   registerToolWithDeps(
@@ -610,7 +609,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createADESetupEnvironmentHandler(workspaceRoot),
-    [], // No dependencies
+    [],
   );
 
   registerToolWithDeps(
@@ -651,26 +650,90 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createADTCheckEnvHandler(),
-    [], // No dependencies
-  );
-
-  registerToolWithDeps(
-    "ansible_create_playbook",
-    {
-      title: "Create Playbook",
-      description: "Create a new Ansible playbook.",
-    },
-    createInitHandler("playbook"),
     [],
   );
 
   registerToolWithDeps(
-    "ansible_create_collection",
+    "create_ansible_projects",
     {
-      title: "Create Collection",
-      description: "Create a new Ansible collection.",
+      title: "Create Ansible Projects",
+      description:
+        "Create new Ansible collection or playbook project using ansible-creator. " +
+        "This tool supports both collection and playbook project types with an interactive flow. " +
+        "If project type is not specified, the tool will prompt you to choose between collection or playbook. " +
+        "Then it will guide you through providing the required information (collection name, path, etc.). " +
+        "Use this tool to scaffold new Ansible projects with proper structure and best practices.",
+      inputSchema: {
+        projectType: z
+          .union([z.literal("collection"), z.literal("playbook")])
+          .optional()
+          .describe(
+            "The type of project to create: 'collection' for Ansible collections or 'playbook' for playbook projects. " +
+              "If not provided, the tool will prompt you to specify this first.",
+          ),
+        namespace: z
+          .string()
+          .optional()
+          .describe(
+            "The collection namespace (e.g., 'test_org'). " +
+              "Required for both collection and playbook projects. " +
+              "Must be provided along with 'collectionName'.",
+          ),
+        collectionName: z
+          .string()
+          .optional()
+          .describe(
+            "The collection name (e.g., 'test_coll'). " +
+              "Required for both collection and playbook projects. " +
+              "For playbook projects, this is the name of the adjacent collection. " +
+              "Must be provided along with 'namespace'. " +
+              "The full collection name will be constructed as 'namespace.collectionName'.",
+          ),
+        projectDirectory: z
+          .string()
+          .optional()
+          .describe(
+            "The name of the project directory where the project will be created (e.g., 'my_playbook_proj', 'my_collection_proj'). " +
+              "The directory will be created inside the workspace. " +
+              "If not provided, the tool will prompt you to specify this.",
+          ),
+        path: z
+          .string()
+          .optional()
+          .describe(
+            "Advanced: Full destination directory path for the project. " +
+              "If provided, this takes precedence over projectDirectory. " +
+              "For collections, the collection will be created at <path>/ansible_collections/<namespace>/<collectionName>. " +
+              "For playbooks, the project will be created at the specified path.",
+          ),
+      },
+      annotations: {
+        keywords: [
+          "create ansible project",
+          "create collection",
+          "create playbook",
+          "ansible-creator",
+          "initialize ansible project",
+          "new ansible collection",
+          "ansible project setup",
+          "scaffold ansible project",
+          "scaffold collection",
+          "scaffold playbook",
+          "ansible project creation",
+          "ansible project initialization",
+        ],
+        useCases: [
+          "Create a new Ansible collection project",
+          "Create a new Ansible playbook project",
+          "Initialize Ansible project structure",
+          "Scaffold Ansible content with best practices",
+          "Set up new Ansible development project",
+          "Create Ansible collection with proper structure",
+          "Create playbook project with adjacent collection",
+        ],
+      },
     },
-    createInitHandler("collection"),
+    createProjectsHandler(workspaceRoot),
     [],
   );
 
@@ -802,9 +865,17 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         return await handlers[toolName].callback(handlerArgs);
       }
 
+      // Log available tools for debugging
+      const availableToolNames = handlers
+        ? Object.keys(handlers).join(", ")
+        : "no handlers object";
+      console.error(
+        `[MCP] Tool '${toolName}' handler not found. Available handlers: ${availableToolNames}`,
+      );
+
       throw new McpError(
         ErrorCode.InternalError,
-        `Tool '${toolName}' handler not found`,
+        `Tool '${toolName}' handler not found. Available tools in registry: ${availableToolNames}`,
       );
     },
   );

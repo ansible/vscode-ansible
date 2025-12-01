@@ -20,9 +20,9 @@ EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
 
 if command -v sudo >/dev/null 2>&1; then
-    SUDO=""
-else
     SUDO=sudo
+else
+    SUDO=""
 fi
 
 mkdir -p out/log
@@ -49,28 +49,6 @@ get_version () {
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
     fi
-}
-
-find_powershell() {
-    # Sometimes these are not in PATH under wsl, so we need to look deeper
-    local candidates=(
-        "pwsh.exe"
-        "powershell.exe"
-        "/mnt/c/Program Files/PowerShell/7/pwsh.exe"
-        "/mnt/c/Program Files (x86)/PowerShell/7/pwsh.exe"
-        "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
-    )
-    for exe in "${candidates[@]}"; do
-        if cmd=$(command -v "$exe" 2>/dev/null); then
-            echo "$cmd"
-            exit 0
-        elif [ -x "$exe" ]; then
-            echo "$exe"
-            exit 0
-        fi
-    done
-    log error "Failed to find powershell executable"
-    exit 2
 }
 
 if [[ -z "${HOSTNAME:-}" ]]; then
@@ -150,11 +128,8 @@ else
         OS_VERSION="$(lsb_release --id --short 2> /dev/null)-$(lsb_release --release --short 2> /dev/null)"
         OS_VERSION="${OS_VERSION,,}"
         if [[ "$WSL" -eq 1 ]]; then
-            OS_VERSION=$($(find_powershell) -Command 'Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -property Caption, BuildNumber' | grep "Microsoft " | \
-            tr -d '\r' | \
-            sed 's/^Microsoft //I' | \
-            tr '[:upper:]' '[:lower:]' | \
-            sed 's/[ -]\+/-/g')-wsl-$OS_VERSION
+            # is wsl is configured with interop disabled, calling cmd.exe can fail ugly and without output on GHA
+            OS_VERSION=$(cmd.exe /c ver 2>/dev/null | awk '/Version/ {match($0, /\[Version ([0-9.]+)\]/, a); print a[1]}' || echo 'unknown')
         fi
     else # when inside a container this would be needed
         # shellcheck disable=SC1091
@@ -173,7 +148,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
     # DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
-    DEBS=(curl file git)
+    DEBS=(curl file git gcc libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -298,9 +273,13 @@ fi
 VIRTUAL_ENV=${EXPECTED_VENV}
 if [[ -d "${VIRTUAL_ENV}" ]]; then
     log notice "Running uv sync ..."
+    if [[ "$WSL" -eq 1 ]]; then
+        log warning "Setting UV_CONCURRENT_INSTALLS=1 because WSL was detected, see https://github.com/astral-sh/uv/issues/13481#issuecomment-3375527015"
+        export UV_CONCURRENT_INSTALLS=1
+    fi
     timed uv sync --no-progress -q || {
-        log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
-        rm -rf "${VIRTUAL_ENV}"
+    log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
+    rm -rf "${VIRTUAL_ENV}"
     }
 fi
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
@@ -407,7 +386,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
     fi
-    docker container prune -f
+    docker container prune -f >/dev/null 2>&1
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
