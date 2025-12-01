@@ -1,6 +1,7 @@
 import * as cp from "child_process";
 import { createLogger, format, transports } from "winston";
 import path from "path";
+import fs from "fs";
 
 type ConsoleMethod = "log" | "info" | "warn" | "error";
 
@@ -66,3 +67,27 @@ const overrideConsole = (method: ConsoleMethod) => {
 };
 
 (["log", "info", "warn", "error"] as ConsoleMethod[]).forEach(overrideConsole);
+
+export const mochaHooks = {
+  beforeEach() {
+    fs.rmSync("out/junit/e2e", { recursive: true });
+    fs.mkdirSync("out/userdata/User/", { recursive: true });
+    fs.mkdirSync("out/junit/e2e", { recursive: true });
+    fs.cpSync(
+      "test/testFixtures/settings.json",
+      "out/userdata/User/settings.json",
+    );
+  },
+
+  // Delete test fixture settings.json after all tests complete
+  afterEach() {
+    const settingsPath = path.join("test/testFixtures/.vscode/settings.json");
+    try {
+      if (fs.existsSync(settingsPath)) {
+        fs.unlinkSync(settingsPath);
+      }
+    } catch (err) {
+      console.warn(`Error deleting settings file: ${err}`);
+    }
+  },
+};
