@@ -195,7 +195,7 @@ onMounted(() => {
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com/ansible/latest/getting_started/index.html')">
+                <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com/projects/ansible/latest/getting_started/index.html')">
                   Learn Ansible development
                   <span class="codicon codicon-link-external"></span>
                 </a>

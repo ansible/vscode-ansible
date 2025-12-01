@@ -234,7 +234,7 @@ fi
 # fail-fast if we detect incompatible filesystem (o-w)
 # https://github.com/ansible/ansible/pull/42070
 python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
-    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://ansible.readthedocs.io/projects/team-devtools/guides/ansible/permissions/"
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://docs.ansible.com/projects/team-devtools/guides/ansible/permissions/"
     exit 100
 }
 

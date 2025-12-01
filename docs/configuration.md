@@ -19,7 +19,7 @@ any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.validation.lint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint`
-  [documentation](https://ansible.readthedocs.io/projects/lint/configuring/). ).
+  [documentation](https://docs.ansible.com/projects/lint/configuring/). ).
 - `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.

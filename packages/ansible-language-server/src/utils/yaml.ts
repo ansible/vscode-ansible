@@ -621,7 +621,7 @@ export function isCursorInsideJinjaBrackets(
   if (nodeObject && !nodeObject.includes("{{ ")) {
     // this handles the case that if a value starts with {{ foo }}, the whole expression must be quoted
     // to create a valid syntax
-    // refer: https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#when-to-quote-variables-a-yaml-gotcha
+    // refer: https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_variables.html#when-to-quote-variables-a-yaml-gotcha
     return false;
   }
 
