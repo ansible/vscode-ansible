@@ -102,7 +102,7 @@ describe("ProviderManager", () => {
   describe("constructor and initialization", () => {
     it("should initialize with Google provider when configured", async () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      
+
       // Wait for async initialization
       await new Promise(resolve => setTimeout(resolve, 0));
 

@@ -927,7 +927,7 @@ describe("WebviewMessageHandlers", () => {
       );
 
       const result = messageHandlers["getWorkspaceFolder"]();
-      
+
       expect(result).toBe("/workspace/path");
     });
 
@@ -935,27 +935,27 @@ describe("WebviewMessageHandlers", () => {
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(undefined);
 
       const result = messageHandlers["getWorkspaceFolder"]();
-      
+
       expect(result).toBe("");
     });
 
     it("should get downstream container image", () => {
       const result = messageHandlers["getContainerImage"]("downstream-image");
-      
+
       // Should return downstream constant
       expect(result).toBeDefined();
     });
 
     it("should get upstream container image by default", () => {
       const result = messageHandlers["getContainerImage"]("upstream-image");
-      
+
       // Should return upstream constant
       expect(result).toBeDefined();
     });
 
     it("should get recommended extensions", () => {
       const result = messageHandlers["getRecommendedExtensions"]();
-      
+
       expect(Array.isArray(result)).toBe(true);
     });
   });
