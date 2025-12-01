@@ -3,7 +3,7 @@ import { vi } from "vitest";
 // Mock vscode first so it's available when other packages try to require it
 vi.mock("vscode", () => {
   // Create a mock EventEmitter class
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters, @typescript-eslint/no-unused-vars
   class MockEventEmitter<T> {
     event = vi.fn();
     fire = vi.fn();

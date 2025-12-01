@@ -729,8 +729,8 @@ describe("WebviewMessageHandlers", () => {
       );
 
       // Should not call API feedbackRequest for LLM providers
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         lightSpeedManager.apiInstance.feedbackRequest,
       ).not.toHaveBeenCalled();
     });
@@ -788,8 +788,8 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleFeedback"](message);
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         lightSpeedManager.apiInstance.feedbackRequest,
       ).toHaveBeenCalledWith(feedbackRequest, false);
 
@@ -831,6 +831,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitCreatePlugin"](message, mockWebview);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["creatorOps"].runPluginAddCommand,
       ).toHaveBeenCalledWith(message.payload, mockWebview);
     });
@@ -846,6 +847,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitCreateRole"](message, mockWebview);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["creatorOps"].runRoleAddCommand,
       ).toHaveBeenCalledWith(message.payload, mockWebview);
     });
@@ -892,6 +894,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitOpenScaffoldedFolder"](message);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["fileOps"].openFolderInWorkspaceProjects,
       ).toHaveBeenCalledWith("/path/to/collection");
     });
@@ -907,6 +910,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitOpenScaffoldedFolder"](message);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["fileOps"].openFolderInWorkspaceProjects,
       ).toHaveBeenCalledWith("/path/to/project");
     });
@@ -924,6 +928,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitOpenScaffoldedFolderPlugin"](message);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["fileOps"].openFolderInWorkspacePlugin,
       ).toHaveBeenCalledWith("/path/to/project", "test_plugin", "module");
     });
@@ -940,6 +945,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitOpenRoleFolder"](message);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["fileOps"].openFolderInWorkspaceRole,
       ).toHaveBeenCalledWith("/path/to/project", "test_role");
     });
@@ -955,6 +961,7 @@ describe("WebviewMessageHandlers", () => {
       await messageHandlers["handleInitOpenDevcontainerFolder"](message);
 
       expect(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
         messageHandlers["fileOps"].openFolderInWorkspaceDevcontainer,
       ).toHaveBeenCalledWith("/path/to/project");
     });
