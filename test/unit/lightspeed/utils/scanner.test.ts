@@ -1,10 +1,13 @@
 import assert from "assert";
+import { PROJECT_ROOT } from "../../../setup";
 import { CollectionFinder } from "../../../../src/features/lightspeed/utils/scanner";
 
 describe(__filename, function () {
   describe("Playbook project", function () {
     it("Should find the collections", async function () {
-      const collectionFinder = new CollectionFinder([__dirname + "/samples"]);
+      const collectionFinder = new CollectionFinder([
+        PROJECT_ROOT + "/test/unit/lightspeed/utils/samples",
+      ]);
       await collectionFinder.refreshCache();
 
       assert.equal(collectionFinder.cache.length, 4);
@@ -25,7 +28,8 @@ describe(__filename, function () {
   describe("Collection project", function () {
     it("Should find the project collection", async function () {
       const collectionFinder = new CollectionFinder([
-        __dirname + "/samples/collections/ansible_collections/community/dummy",
+        PROJECT_ROOT +
+          "/test/unit/lightspeed/utils/samples/collections/ansible_collections/community/dummy",
       ]);
       await collectionFinder.refreshCache();
 
