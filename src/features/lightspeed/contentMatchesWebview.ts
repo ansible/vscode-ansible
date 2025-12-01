@@ -73,7 +73,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       suggestionId: suggestionId,
     };
 
-    const model = this.settingsManager.settings.lightSpeedService.model;
+    const model = this.settingsManager.settings.lightSpeedService.modelName;
     if (model && model !== "") {
       contentMatchesRequestData.model = model;
     }
