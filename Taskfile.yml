@@ -221,6 +221,7 @@ tasks:
       - CHANGELOG.md
       - README.md
       - package*.json
+      - .vscodeignore
       - webpack.config.ts
       - tools/helper
       - src/**/*
@@ -230,7 +231,7 @@ tasks:
       - "*.vsix"
       - "packages/*/*.tgz"
     cmds:
-      # while not a real dependency, we want to build both all the time:
+      # we want to build both all the time:
       - task: als:package
       - task: mcp:package
       - ./tools/helper --package

@@ -5,6 +5,7 @@ tasks:
   install:
     cmds:
       - uv sync --no-progress -q --active
+      - bash ./tools/install.sh
       - yarn install --immutable --silent
     deps:
       - setup
