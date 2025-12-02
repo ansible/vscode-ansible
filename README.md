@@ -30,7 +30,7 @@ and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by using the
 [ansible-language-server](packages/ansible-language-server).
 
 Please visit
-[vscode-ansible documentation website](https://ansible.readthedocs.io/projects/vscode-ansible/)
+[vscode-ansible documentation website](https://docs.ansible.com/projects/vscode-ansible/)
 for any instructions about installation, configuration and usage, including on
 how to contribute to it.
 
@@ -45,19 +45,19 @@ how to contribute to it.
 - [LightSpeed] support for AI-assisted code completion
 
 [auto-completion]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#smart-autocompletion
+  https://docs.ansible.com/projects/vscode-ansible/#smart-autocompletion
 [syntax highlighting]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#syntax-highlighting
+  https://docs.ansible.com/projects/vscode-ansible/#syntax-highlighting
 [linting]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#integration-with-ansible-lint
-[validation]: https://ansible.readthedocs.io/projects/vscode-ansible/#validation
+  https://docs.ansible.com/projects/vscode-ansible/#integration-with-ansible-lint
+[validation]: https://docs.ansible.com/projects/vscode-ansible/#validation
 [documentation reference]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#documentation-reference
+  https://docs.ansible.com/projects/vscode-ansible/#documentation-reference
 [go to definition]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#jump-to-module-code
+  https://docs.ansible.com/projects/vscode-ansible/#jump-to-module-code
 [walkthroughs]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#interactive-walkthroughs
+  https://docs.ansible.com/projects/vscode-ansible/#interactive-walkthroughs
 [Content Creation Tools]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#content-creation-tools
+  https://docs.ansible.com/projects/vscode-ansible/#content-creation-tools
 [LightSpeed]:
-  https://ansible.readthedocs.io/projects/vscode-ansible/#ansible-lightspeed
+  https://docs.ansible.com/projects/vscode-ansible/#ansible-lightspeed

@@ -1,8 +1,6 @@
 ABRT
-CMDB
 Containerfile
 Customizer
-DEVFILE
 Devfile
 Devfiles
 Elio’s
@@ -26,16 +24,13 @@ PKGMGR
 PYCMD
 PYTHONBREAKPOINT
 RHSSO
-SSOT
 TASKFILE
 Taskfile
 Testenvs
 Tomasz
 Towncrier
 antsibull
-argspec
 autofetch
-bindep
 cfgs
 checode
 chromedriver
@@ -50,9 +45,6 @@ dedupe
 depcheck
 devfile
 devspaces
-docsite
-docstrings
-equalto
 eslintcache
 extest
 fqcn
@@ -96,7 +88,6 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
-pydoclint
 relogin
 rhsso
 seealso
@@ -104,7 +95,6 @@ servernum
 shiki
 showformat
 sonarcloud
-sshpass
 suboption
 suboptions
 sysninja
@@ -125,6 +115,7 @@ virt
 vite
 vitebuild
 vitest
+vscodeignore
 vscoss
 vyos
 watsonx

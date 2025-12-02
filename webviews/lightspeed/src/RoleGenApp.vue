@@ -118,7 +118,7 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <ErrorBox v-model:error-messages="errorMessages" />
 
   <div>
-    <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about
+    <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about
       roles🔗</a>
   </div>
 

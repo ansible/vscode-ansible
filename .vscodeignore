@@ -89,8 +89,4 @@
 !media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html
 !media/walkthroughs/test-ansible-lint.mp4
 !media/walkthroughs/test-molecule.mp4
-# resources
-!resources/contentCreator/createDevfile/devfile-template.txt
-!resources/contentCreator/createDevcontainer/.devcontainer/devcontainer-template.txt
-!resources/contentCreator/createDevcontainer/.devcontainer/podman/devcontainer-template.txt
-!resources/contentCreator/createDevcontainer/.devcontainer/docker/devcontainer-template.txt
+!resources/**/*

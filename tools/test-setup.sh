@@ -234,7 +234,7 @@ fi
 # fail-fast if we detect incompatible filesystem (o-w)
 # https://github.com/ansible/ansible/pull/42070
 python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
-    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://ansible.readthedocs.io/projects/team-devtools/guides/ansible/permissions/"
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://docs.ansible.com/projects/team-devtools/guides/ansible/permissions/"
     exit 100
 }
 
@@ -386,7 +386,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
     fi
-    docker container prune -f
+    docker container prune -f >/dev/null 2>&1
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"

@@ -62,7 +62,7 @@ export async function scanAnsibleCfg(
   rootPath: string | undefined = undefined,
 ): Promise<AnsibleVaultConfig | undefined> {
   /*
-   * Reading order (based on the documentation: https://docs.ansible.com/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
+   * Reading order (based on the documentation: https://docs.ansible.com/projects/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
    * 1) ANSIBLE_CONFIG
    * 2) ansible.cfg (in root path)
    * 3) ~/.ansible.cfg

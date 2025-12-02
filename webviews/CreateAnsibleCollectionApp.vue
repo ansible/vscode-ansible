@@ -369,7 +369,7 @@ onMounted(async () => {
             </vscode-checkbox>
             <a
               id="ade-docs-link"
-              href="https://ansible.readthedocs.io/projects/dev-environment/"
+              href="https://docs.ansible.com/projects/dev-environment/"
               >Learn more</a
             >
           </div>
