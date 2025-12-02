@@ -64,14 +64,27 @@ describe("playbook generation features work", function () {
     );
     await analyzeButton.click();
 
-    const generateButton = await waitForCondition({
+    // Wait for the outline field to appear, which only happens after the API response is received.
+    // This ensures the API call has completed and the page has transitioned to page 2.
+    // The Continue button appears in the same template block, but waiting for the outline field
+    // is more reliable because it only exists after the response data is processed.
+    await waitForCondition({
       condition: async () => {
-        return await webView.findWebElement(
-          By.xpath("//vscode-button[contains(text(), 'Continue')]"),
-        );
+        try {
+          return await webView.findWebElement(
+            By.xpath("//textarea[@id='outline-field']"),
+          );
+        } catch {
+          return false;
+        }
       },
-      message: "Timed out waiting for Continue button",
+      message: "Timed out waiting for playbook outline field (API response)",
     });
+
+    // Now that we know the API response has arrived and page 2 is displayed, find the Continue button
+    const generateButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Continue')]"),
+    );
     await generateButton.click();
 
     // Click Open editor button to open the generated playbook in the editor
@@ -148,11 +161,20 @@ describe("playbook generation features work", function () {
       "Explain the playbook with Ansible Lightspeed",
     );
 
-    // Locate the playbook explanation webview
-    let webView = (await new EditorView().openEditor(
-      "Explanation",
-      1,
-    )) as WebView;
+    // Wait for the Explanation editor to be created before trying to open it.
+    // The webview panel creation is asynchronous and may not be immediately available.
+    const editorView = new EditorView();
+    let webView = (await waitForCondition({
+      condition: async () => {
+        try {
+          const editor = await editorView.openEditor("Explanation", 1);
+          return editor;
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for Explanation editor to be available",
+    })) as WebView;
     expect(webView, "webView should not be undefined").not.to.be.undefined;
     webView = await getWebviewByLocator(
       By.xpath("//div[@class='explanation']"),
