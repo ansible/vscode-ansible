@@ -41,3 +41,4 @@ xunit.xml
 *-artifact-*.json
 ansible-navigator.log
 resources
+test/testFixtures/.vscode/settings.json

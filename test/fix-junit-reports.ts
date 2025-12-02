@@ -1,8 +1,9 @@
 #!/usr/bin/env node --import=tsx
 import fs from "fs";
 import path from "path";
+import { PROJECT_ROOT } from "./setup";
 
-const REPORT_DIR = path.resolve(__dirname, "../out/junit");
+const REPORT_DIR = path.resolve(PROJECT_ROOT, "out/junit");
 
 function isXmlFile(filePath: string): boolean {
   return path.extname(filePath) === ".xml";
