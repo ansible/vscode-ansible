@@ -92,14 +92,15 @@ describe("playbook generation features work", function () {
     );
     await analyzeButton.click();
 
+    // Verify outline output and text edit
     const outlineList = await waitForCondition({
       condition: async () => {
-          return await webView.findWebElement(
-            By.xpath("//textarea[@id='outline-field']"),
-          );
+        return await webView.findWebElement(
+          By.xpath("//textarea[@id='outline-field']"),
+        );
       },
       message: "Timed out waiting for playbook outline field",
-      timeout: 30000,
+      timeout: 20000,
     });
     expect(outlineList, "An ordered list should exist.");
     let text = await outlineList.getText();

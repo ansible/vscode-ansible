@@ -73,7 +73,6 @@ describe("playbook generation features work", function () {
       message: "Timed out waiting for Continue button",
       timeout: 30000,
     });
-
     await generateButton.click();
 
     // Click Open editor button to open the generated playbook in the editor
@@ -150,20 +149,11 @@ describe("playbook generation features work", function () {
       "Explain the playbook with Ansible Lightspeed",
     );
 
-    // Wait for the Explanation editor to be created before trying to open it.
-    // The webview panel creation is asynchronous and may not be immediately available.
-    const editorView = new EditorView();
-    let webView = (await waitForCondition({
-      condition: async () => {
-        try {
-          const editor = await editorView.openEditor("Explanation", 1);
-          return editor;
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for Explanation editor to be available",
-    })) as WebView;
+    // Locate the playbook explanation webview
+    let webView = (await new EditorView().openEditor(
+      "Explanation",
+      1,
+    )) as WebView;
     expect(webView, "webView should not be undefined").not.to.be.undefined;
     webView = await getWebviewByLocator(
       By.xpath("//div[@class='explanation']"),

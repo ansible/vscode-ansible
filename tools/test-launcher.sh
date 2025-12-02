@@ -125,9 +125,7 @@ function refresh_settings() {
     fi
 
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
-        # Update both the old URL setting (for backward compatibility) and the new apiEndpoint setting
-        sed -i.bak "s,\"ansible.lightspeed.URL\": \".*\",\"ansible.lightspeed.URL\": \"$TEST_LIGHTSPEED_URL\"," out/settings.json
-        sed -i.bak "s,\"ansible.lightspeed.apiEndpoint\": \".*\",\"ansible.lightspeed.apiEndpoint\": \"$TEST_LIGHTSPEED_URL\"," out/settings.json
+        sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
     rm -rf out/test-resources/settings/ >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"

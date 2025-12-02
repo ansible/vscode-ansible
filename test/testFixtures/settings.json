@@ -10,7 +10,7 @@
   "ansible.executionEnvironment.pull.arguments": "",
   "ansible.executionEnvironment.pull.policy": "missing",
   "ansible.executionEnvironment.volumeMounts": [],
-  "ansible.lightspeed.apiEndpoint": "https://c.ai.ansible.redhat.com",
+  "ansible.lightspeed.URL": "https://c.ai.ansible.redhat.com",
   "ansible.lightspeed.enabled": false,
   "ansible.lightspeed.suggestions.enabled": false,
   "ansible.playbook.arguments": "",
