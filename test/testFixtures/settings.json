@@ -12,7 +12,7 @@
   "ansible.executionEnvironment.volumeMounts": [],
   "ansible.lightspeed.enabled": false,
   "ansible.lightspeed.suggestions.enabled": false,
-  "ansible.lightspeed.URL": "https://c.ai.ansible.redhat.com",
+  "ansible.lightspeed.apiEndpoint": "https://c.ai.ansible.redhat.com",
   "ansible.playbook.arguments": "",
   "ansible.python.activationScript": "",
   "ansible.python.interpreterPath": "python3",
