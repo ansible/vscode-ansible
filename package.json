@@ -1113,7 +1113,7 @@
   "scripts": {
     "als-compile": "yarn workspace @ansible/ansible-language-server compile",
     "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
-    "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
+    "compile": "yarn run clean && tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
     "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
     "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",
@@ -1121,8 +1121,7 @@
     "package": "./tools/helper --package",
     "preinstall": "",
     "pretest": "node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
-    "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
-    "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
+    "test-e2e": "yarn run compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "./tools/test-launcher.sh",
     "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",
@@ -1134,7 +1133,7 @@
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
     "webpack": "yarn run clean && yarn run mcp-compile && webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && yarn test-compile && yarn run mcp-compile && webpack --mode development --config ./webpack.config.ts",
+    "webpack-dev": "yarn compile && yarn run mcp-compile && webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch"
   },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",

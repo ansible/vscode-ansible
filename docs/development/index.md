@@ -17,6 +17,43 @@ along with their descriptions.
 $ task -l
 ```
 
+The diagram below shows the dependencies between the command task commands.
+
+```mermaid
+flowchart TD
+    build --> setup
+    docs --> setup
+    package --> build
+    test --> build
+    test --> ui
+    test --> e2e
+    test --> mcp
+    test --> unit
+    test --> als
+    default --> lint
+    default --> docs
+    default --> package
+    default --> test
+    lint --> setup
+    clean
+    code --> package
+    deps --> setup
+    ui --> build
+    unit --> build
+    e2e --> build
+    mcp --> build
+    als --> build
+
+    subgraph testing
+      test
+      mcp
+      ui
+      e2e
+      unit
+      als
+    end
+```
+
 ## Release and publication of extension
 
 Github Actions pipeline has two publishing jobs, one for marketplace publishing

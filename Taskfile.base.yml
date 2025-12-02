@@ -2,31 +2,41 @@
 # see https://taskfile.dev/#/
 version: "3"
 tasks:
-  install:
+  yarn:
     cmds:
-      - uv sync --no-progress -q --active
-      - bash ./tools/install.sh
       - yarn install --immutable --silent
-    deps:
-      - setup
     dir: "{{ .TASKFILE_DIR }}"
     generates:
       - node_modules/.yarn-state.yml
     sources:
       - package.json
       - packages/*/package.json
+      - .yarn.lock
+    run: once
+    interactive: true
+  uv:
+    cmds:
+      - uv sync --no-progress -q --active
+      - bash ./tools/uv.sh
+    generates:
+      - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
+      - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"
+    dir: "{{ .TASKFILE_DIR }}"
+    sources:
       - pyproject.toml
-      - tools/test-setup.sh
       - uv.lock
-      - yarn.lock
+      - tools/uv.sh
     run: once
     interactive: true
   setup:
-    desc: Install dependencies
+    desc: Setup build toolchain and install missing dependencies
     env:
       # used inside test-setup.sh
       OS: "{{OS}}"
       ARCH: "{{ARCH}}"
+    deps:
+      - yarn
+      - uv
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - bash ./tools/precheck.sh
