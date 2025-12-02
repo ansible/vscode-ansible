@@ -92,21 +92,14 @@ describe("playbook generation features work", function () {
     );
     await analyzeButton.click();
 
-    // Verify outline output and text edit
-    // Wait for the API response to complete - the mock server has a 1s delay,
-    // and we need additional time for network latency, Vue processing, and DOM updates in CI
     const outlineList = await waitForCondition({
       condition: async () => {
-        try {
           return await webView.findWebElement(
             By.xpath("//textarea[@id='outline-field']"),
           );
-        } catch {
-          return false;
-        }
       },
       message: "Timed out waiting for playbook outline field",
-      timeout: 30000, // Increased timeout for CI environments where API calls may be slower
+      timeout: 30000,
     });
     expect(outlineList, "An ordered list should exist.");
     let text = await outlineList.getText();
