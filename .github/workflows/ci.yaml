@@ -67,10 +67,6 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
 
-      - name: Install ansible-dev-tools
-        run: |
-          pip install ansible-dev-tools
-
       - name: Extract commit context from conventional commit
         id: extract_context
         shell: bash
@@ -268,14 +264,6 @@ jobs:
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version-file: .python-version
-
-      - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
-        run: |
-          if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
-            pipx install ansible-dev-tools
-          else
-            pip install ansible-dev-tools
-          fi
 
       - name: Ensure .env file is automatically loaded (mise)
         run: |
