@@ -68,6 +68,8 @@ describe("playbook generation features work", function () {
     // This ensures the API call has completed and the page has transitioned to page 2.
     // The Continue button appears in the same template block, but waiting for the outline field
     // is more reliable because it only exists after the response data is processed.
+    // The mock server has a 1s delay, and we need additional time for network latency,
+    // Vue processing, and DOM updates in CI environments.
     await waitForCondition({
       condition: async () => {
         try {
@@ -79,6 +81,7 @@ describe("playbook generation features work", function () {
         }
       },
       message: "Timed out waiting for playbook outline field (API response)",
+      timeout: 30000, // Increased timeout for CI environments where API calls may be slower
     });
 
     // Now that we know the API response has arrived and page 2 is displayed, find the Continue button
