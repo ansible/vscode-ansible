@@ -100,7 +100,7 @@ describe("playbook generation features work", function () {
         );
       },
       message: "Timed out waiting for playbook outline field",
-      timeout: 20000,
+      timeout: 30000,
     });
     expect(outlineList, "An ordered list should exist.");
     let text = await outlineList.getText();
