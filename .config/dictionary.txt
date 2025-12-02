@@ -30,6 +30,7 @@ Tomasz
 Towncrier
 antsibull
 autofetch
+bindep
 cfgs
 checode
 chromedriver
