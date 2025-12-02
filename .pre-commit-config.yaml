@@ -7,8 +7,6 @@ ci:
   skip:
     - codecov
     - codespell # missing uv
-    - compare-devcontainer
-    - compare-devfile
     - depcheck
     - eslint
     - md # missing uv
@@ -36,14 +34,14 @@ repos:
       - id: yamllint
       - id: md
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.3.2"
+    rev: "v2.3.8"
     hooks:
       - id: biome-check
         name: biome
         alias: biome
         args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.2.1
+    rev: v9.3.3
     hooks:
       - id: cspell
         entry: bash
@@ -110,16 +108,6 @@ repos:
         language: system
         files: "codecov.yml"
         pass_filenames: false
-
-      - id: compare-devfile
-        name: Compare extension devfile with ansible-creator
-        entry: tools/compare_devfile.sh
-        language: script
-
-      - id: compare-devcontainer
-        name: Compare extension devcontainer with ansible-creator
-        entry: tools/compare_devcontainer.sh
-        language: script
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0

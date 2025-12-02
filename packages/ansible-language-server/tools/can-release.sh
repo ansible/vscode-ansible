@@ -24,15 +24,15 @@ VERSION=$(jq -r '.version' "${DIR}/../package.json")
 # VIEW=$(npm view "@ansible/ansible-language-server@${VERSION}")
 
 if npm view "@ansible/ansible-language-server@${VERSION}" > /dev/null 2>&1; then
-    echo "::warning::$VERSION was already published, you cannot publish without updating the version number in 'package.json' file."
+    echo "::error::ansible-language-server@${VERSION} was already published, you cannot publish without updating the version number in 'package.json' file. Run 'yarn workspace @ansible/ansible-language-server version <version>' and make a pull request to bump it first."
+    exit 2
 else
     if grep -q "## v${VERSION}" "$DIR/../changelog.md"; then
         echo "Changelog entry found."
     else
-        echo "::error::Version ${VERSION} was not published but is missing from the changelog, so we should not release."
-        exit 3
+        echo "::warning::Version ${VERSION} was not published but is missing from the changelog, so we should not release."
     fi
-    npm publish --dry-run --access public @ansible-ansible-language-server-*.tgz
+    npm publish --dry-run --access public "${DIR}/../"@ansible-ansible-language-server-*.tgz
     echo "Version ${VERSION} can be published."
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "Setting can_release_to_npm=true"

@@ -23,7 +23,6 @@ coverage
 .idea
 *.pyc
 
-test/testFixtures/.vscode/
 examples/.vscode/
 .cache
 site
@@ -41,3 +40,4 @@ xunit.xml
 # Ansible Navigator artifacts
 *-artifact-*.json
 ansible-navigator.log
+resources

@@ -123,19 +123,6 @@ export class LightSpeedManager {
       this.lightSpeedAuthenticationProvider.initialize();
       this.statusBarProvider.setLightSpeedStatusBarTooltip();
       this.setContext();
-      if (lightspeedSettings.suggestions.enabled) {
-        const githubConfig = (<unknown>(
-          vscode.workspace.getConfiguration("github")
-        )) as {
-          copilot: { enable?: { ansible?: boolean } };
-        };
-        const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
-        if (copilotEnableForAnsible) {
-          vscode.window.showInformationMessage(
-            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
-          );
-        }
-      }
     }
 
     // set custom when clause for controlling visibility of views
