@@ -43,7 +43,7 @@ describe(__filename, function () {
       await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
       await updateSettings(
         settingsEditor,
-        "ansible.lightspeed.URL",
+        "ansible.lightspeed.apiEndpoint",
         process.env.TEST_LIGHTSPEED_URL,
       );
 
