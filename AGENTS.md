@@ -6,3 +6,9 @@
   not work well with transpiled code as relative paths would very different
   if the file was transpiled or run directly with ts-node or similar. Make use
   of `PROJECT_ROOT` from `test/setup.ts` if needed.
+
+## Code reviews
+
+- Ensure that build jobs produced at least 3 artifacts matching these grep
+  patterns `logs*`, `@ansible-language-server*.tgx`,
+  `ansible-extension-build-*.zip`.

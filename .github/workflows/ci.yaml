@@ -126,6 +126,24 @@ jobs:
         run: |
           task package && task package --status
 
+      - name: Upload vsix artifact
+        uses: ansible/actions/upload-artifact@main
+        with:
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          path: ansible-*.vsix
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload ansible-language-server npm package
+        uses: ansible/actions/upload-artifact@main
+        with:
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
+          path: packages/ansible-language-server/*.tgz
+          if-no-files-found: error
+          retention-days: 90
+
   build:
     name: ${{ matrix.name }}
 
@@ -158,11 +176,14 @@ jobs:
         os:
           - ubuntu-24.04
         task-name:
-          - test (linux)
+          - test
         name:
           - test (linux)
+        id:
+          - test-linux
         include:
           - name: test (macos)
+            id: test-macos
             task-name: test
             os: macos-15-large
             env:
@@ -173,6 +194,7 @@ jobs:
             continue-on-error: true
 
           - name: test (wsl)
+            id: test-wsl
             task-name: test
             os: wsl-runner
             runs-on: self-hosted
@@ -344,26 +366,6 @@ jobs:
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: Upload vsix artifact
-        if: ${{ matrix.name == 'test (linux)' }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
-          path: ansible-*.vsix
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-language-server npm package
-        if: ${{ matrix.name == 'test (linux)' }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
-          path: packages/ansible-language-server/*.tgz
-          if-no-files-found: error
-          retention-days: 90
-
       - name: Remove invalid files
         if: ${{ always() }}
         run: |
@@ -373,9 +375,9 @@ jobs:
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
+        uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
+          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}.zip
           path: |
             out/coverage
             out/junit
@@ -394,7 +396,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/als
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -406,7 +408,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/mcp
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},mcp
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -418,7 +420,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/e2e
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -430,7 +432,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/unit
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -442,7 +444,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/ui
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
