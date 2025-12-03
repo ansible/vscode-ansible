@@ -3508,7 +3508,6 @@ __metadata:
     "@types/jsdom": "npm:^27.0.0"
     "@types/lodash": "npm:^4.17.20"
     "@types/minimatch": "npm:^6.0.0"
-    "@types/mocha": "npm:^10.0.10"
     "@types/morgan": "npm:^1.9.10"
     "@types/node": "npm:^24.10.1"
     "@types/selenium-webdriver": "npm:^4.35.1"

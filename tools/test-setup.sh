@@ -15,7 +15,6 @@ PROJECT_ROOT="$(dirname "$DIR")"
 ARCH=${ARCH:-$(uname -m)}
 IMAGE_VERSION=$(./tools/get-image-version)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
-PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
@@ -27,8 +26,6 @@ else
 fi
 
 mkdir -p out/log
-# we do not want pip logs from previous runs
-:> "${PIP_LOG_FILE}"
 
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
@@ -142,20 +139,7 @@ fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
-    # qemu-user-static is required by podman on arm64
-    # python3-dev is needed for headers as some packages might need to compile
-    # DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     DEBS=(curl file git gcc libonig-dev)
-    # add nodejs to DEBS only if node is not already installed because
-    # GHA has newer versions preinstalled and installing the rpm would
-    # basically downgrade it
-    command -v node >/dev/null 2>&1 || {
-        DEBS+=(nodejs)
-    }
-    command -v npm >/dev/null 2>&1 || {
-        DEBS+=(npm)
-    }
-
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
@@ -235,31 +219,10 @@ python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)"
     exit 100
 }
 
-# install gh if missing
-if [[ "${READTHEDOCS:-}" != "True" ]]; then
-    command -v gh >/dev/null 2>&1 || {
-        log notice "Trying to install missing gh on ${OS} ..."
-        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
-        if [[ -f "/usr/bin/apt-get" ]]; then
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-            $SUDO dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        $SUDO chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | $SUDO tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        $SUDO apt-get update
-        $SUDO apt-get install gh
-        else
-            command -v dnf >/dev/null 2>&1 && $SUDO dnf install -y gh
-        fi
-        gh --version || log warning "gh cli not found and it might be needed for some commands."
-    }
-fi
-
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
-    log notice "Installing npm ... ($WSL)"
-    curl -sL https://deb.nodesource.com/setup_16.x | $SUDO bash
-    $SUDO apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
-        nodejs gcc g++ make python3-dev
+    log error "npm is installed on Windows, we do not support this setup."
+    exit 101
 fi
 
 if [[ -f yarn.lock ]]; then

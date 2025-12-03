@@ -45,9 +45,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npm run clean && npm run compile && npm run copy-resources",
     "clean": "rimraf out/server && rimraf lib",
-    "compile": "tsc -p .",
+    "compile": "tsc -p . && npm run copy-resources",
     "copy-resources": "mkdir -p out/server/src/resources/data && cp -r src/resources/data/* out/server/src/resources/data/ 2>/dev/null || true",
     "dev:stdio": "tsx src/cli.ts --stdio",
     "prepack": "npm run compile",

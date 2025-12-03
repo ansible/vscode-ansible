@@ -142,7 +142,7 @@ def cli() -> None:
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
-        run("yarn workspace @ansible/ansible-mcp-server build")
+        run("task build")
         run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
 
         run(

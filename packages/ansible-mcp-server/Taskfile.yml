@@ -31,7 +31,7 @@ tasks:
     deps:
       - setup
     cmds:
-      - npm run build
+      - npm run compile
     generates:
       - out/server/**/*.*
     sources:
