@@ -47,15 +47,25 @@ export class GoogleProvider extends BaseLLMProvider {
       `[Google Provider] Initializing with model: ${this.modelName}`,
     );
 
-    this.client = new GoogleGenAI({ apiKey: config.apiKey });
+    const testMockUrl = process.env.TEST_LLM_PROVIDER_URL;
+    if (testMockUrl) {
+      this.logger.info(
+        `[Google Provider] Test mode enabled - using mock server: ${testMockUrl}`,
+      );
+      this.client = new GoogleGenAI({
+        apiKey: config.apiKey || "dummy-key-for-tests",
+        httpOptions: {
+          baseUrl: testMockUrl,
+        },
+      });
+    } else {
+      this.client = new GoogleGenAI({ apiKey: config.apiKey });
+    }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleGeminiError(error: any, operation: string): Error {
     // Log the full error for debugging
     this.logger.error(
-      `[Google Provider] ${operation} error details: ${JSON.stringify(error, null, 2)}`,
-    );
-    console.log(
       `[Google Provider] ${operation} error details: ${JSON.stringify(error, null, 2)}`,
     );
     // Use the reusable HTTP error handler from base class
