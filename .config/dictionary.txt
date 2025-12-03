@@ -13,6 +13,7 @@ Infiles
 KUBEDOCK
 Konflux
 LIGHTSPEED
+LLMPROVIDER
 Lightspeed
 Lightspeed's
 Maciążek
@@ -39,6 +40,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 cpython
 dedupe
@@ -48,6 +50,7 @@ devspaces
 eslintcache
 extest
 fqcn
+genai
 githubcli
 haaaad
 highlightjs
@@ -62,6 +65,7 @@ libonig
 libssh
 lightspeed
 lineinfile
+llmprovider
 maxlength
 microdnf
 mocharc
@@ -72,6 +76,7 @@ mymodule
 mynamespace
 myorg
 myproject
+myrole
 nocolor
 noheading
 norecursedirs

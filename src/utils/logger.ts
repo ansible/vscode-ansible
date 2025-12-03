@@ -34,3 +34,13 @@ export class Log {
     this.output.warn(message);
   }
 }
+
+// Singleton instance for all Lightspeed features to share the same output channel
+let lightspeedLoggerInstance: Log | null = null;
+
+export function getLightspeedLogger(): Log {
+  if (!lightspeedLoggerInstance) {
+    lightspeedLoggerInstance = new Log();
+  }
+  return lightspeedLoggerInstance;
+}

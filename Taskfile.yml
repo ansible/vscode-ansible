@@ -212,6 +212,7 @@ tasks:
       - out/coverage/unit/lcov.info
     cmds:
       - npm run unit-tests
+      - npm run unit-tests-vitest-coverage
     interactive: true
   package:
     desc: Package extension

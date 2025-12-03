@@ -64,16 +64,53 @@ any level (User, Remote, Workspace and/or Folder).
 
 ## Lightspeed Configuration
 
-- `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
-- `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
-- `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
-  watsonx Code Assistant inline suggestions.
+### Core Settings
+
+- `ansible.lightspeed.enabled`: Enable/disable Ansible Lightspeed.
+- `ansible.lightspeed.provider`: Select AI provider (`wca`, `openai`, `google`, `custom`).
+  - `wca`: Red Hat Ansible Lightspeed with IBM watsonx Code Assistant (default)
+  - `openai`: Direct OpenAI API access
+  - `google`: Google Gemini API access
+  - `custom`: Custom OpenAI-compatible API
+
+- `ansible.lightspeed.apiEndpoint`: API endpoint URL for the selected provider.
+  - For WCA: `https://c.ai.ansible.redhat.com` (default)
+  - For OpenAI: `https://api.openai.com/v1`
+  - For Google: `https://generativelanguage.googleapis.com/v1beta`
+  - For Custom: Your custom API endpoint
+
+- `ansible.lightspeed.modelName`: Model name/ID to use.
+  - For WCA: Model ID override (optional, for commercial users)
+  - For LLM providers: Required model identifier (e.g., `gpt-4`, `gemini-2.5-flash`)
+
+- `ansible.lightspeed.apiKey`: API key for LLM providers.
+  - Not used for WCA (uses OAuth2 authentication)
+  - Required for `openai`, `google`, and `custom` providers
+
+- `ansible.lightspeed.timeout`: Request timeout in milliseconds (default: 30000).
+
+### Inline Suggestions
+
+- `ansible.lightspeed.suggestions.enabled`: Enable inline suggestions.
+  - Note: Currently only supported with WCA provider
+
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
-  sending an inline suggestion request to Ansible Lightspeed with watsonx Code
-  Assistant.
-- `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
-  default model. This setting is only applicable to commercial users with an
-  Ansible Lightspeed seat assignment.
+  sending an inline suggestion request.
+
+### Advanced Settings
+
+- `ansible.lightspeed.customHeaders`: Custom HTTP headers for LLM providers (JSON object).
+  - Example: `{"Custom-Header": "value"}`
+  - Not used for WCA
+
+### Backward Compatibility
+
+The following legacy settings are still supported for backward compatibility:
+
+- `ansible.lightspeed.URL`: Mapped to `ansible.lightspeed.apiEndpoint`
+- `ansible.lightspeed.modelIdOverride`: Mapped to `ansible.lightspeed.modelName`
+
+See [LLM Provider Documentation](llm-providers.md) for detailed setup instructions and examples.
 
 ## Completion & Language Server Settings
 

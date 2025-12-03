@@ -6,6 +6,7 @@ ignores:
   - "@types/vscode"  # determined by (package.json).engines.vscode
   - "@vscode/test-electron" # used by @vscode/test-cli
   - "@vscode/vsce"
+  - "@vitest/coverage-v8" # used by vitest.config.ts coverage provider
   - cypress-multi-reporters
   - depcheck
   - electron
@@ -23,3 +24,4 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
+  - "@typescript-eslint/eslint-plugin" # used by eslint.config.mjs

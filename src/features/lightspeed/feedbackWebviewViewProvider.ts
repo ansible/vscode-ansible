@@ -11,9 +11,7 @@ import {
   setWebviewMessageListener,
 } from "./utils/feedbackView";
 
-export class LightspeedFeedbackWebviewViewProvider
-  implements WebviewViewProvider
-{
+export class LightspeedFeedbackWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "lightspeed-feedback-webview";
 
   constructor(private readonly _extensionUri: Uri) {

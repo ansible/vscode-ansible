@@ -4,11 +4,17 @@ import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
-import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
+import {
+  LightSpeedCommands,
+  UserAction,
+  GOOGLE_API_ENDPOINT,
+  WCA_API_ENDPOINT_DEFAULT,
+} from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
   TelemetryManager,
+  sendTelemetry,
 } from "./utils/telemetryUtils";
 
 /* third-party */
@@ -81,6 +87,7 @@ import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/view
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
+import { ProviderCommands } from "./features/lightspeed/commands/providerCommands";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
@@ -177,6 +184,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
    * Handle "Ansible Lightspeed" in the extension
    */
   lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
+
+  // Register provider management commands
+  const providerCommands = new ProviderCommands(context, lightSpeedManager);
+  providerCommands.registerCommands();
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
 
@@ -375,6 +386,42 @@ export async function activate(context: ExtensionContext): Promise<void> {
           event,
           mcpProvider,
         );
+      }
+
+      // Check if Lightspeed provider changed - refresh explorer panel and set apiEndpoint
+      if (event.affectsConfiguration("ansible.lightspeed.provider")) {
+        const config = workspace.getConfiguration("ansible.lightspeed");
+        const provider = config.get<string>("provider");
+
+        // Determine the configuration target (workspace takes precedence over global)
+        const providerInspect = config.inspect<string>("provider");
+        let configTarget: vscode.ConfigurationTarget | undefined;
+
+        if (providerInspect?.workspaceValue !== undefined) {
+          configTarget = vscode.ConfigurationTarget.Workspace;
+        } else if (providerInspect?.workspaceFolderValue !== undefined) {
+          configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+        } else {
+          configTarget = vscode.ConfigurationTarget.Global;
+        }
+
+        // Auto-set apiEndpoint based on provider type
+        if (provider === "google") {
+          await config.update("apiEndpoint", GOOGLE_API_ENDPOINT, configTarget);
+        } else if (provider === "wca") {
+          // For WCA, use default if not set; otherwise keep user's value (for on-prem)
+          const currentEndpoint = config.get<string>("apiEndpoint");
+          if (!currentEndpoint || currentEndpoint.trim() === "") {
+            await config.update(
+              "apiEndpoint",
+              WCA_API_ENDPOINT_DEFAULT,
+              configTarget,
+            );
+          }
+          // If endpoint is already set, keep it (user's custom on-prem WCA deployment)
+        }
+
+        await lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       }
 
       await updateConfigurationChanges(
@@ -797,6 +844,43 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.lightspeed.thumbsUpDown",
       async (param: PlaybookFeedbackEvent) => {
+        const provider = extSettings.settings.lightSpeedService.provider;
+        // For LLM providers, send telemetry via Segment instead of WCA API
+        if (provider && provider !== "wca") {
+          const isExplanation = !!param.explanationId;
+          const eventName = isExplanation
+            ? "lightspeed.playbookExplanationFeedback"
+            : "lightspeed.playbookOutlineFeedback";
+
+          const telemetryData = {
+            provider: provider,
+            action: param.action,
+            explanationId: param.explanationId || undefined,
+            generationId: param.generationId || undefined,
+            model:
+              extSettings.settings.lightSpeedService.modelName || undefined,
+          };
+
+          // Send telemetry event
+          try {
+            await sendTelemetry(
+              telemetry.telemetryService,
+              telemetry.isTelemetryInit,
+              eventName,
+              telemetryData,
+            );
+          } catch (error) {
+            console.error(
+              `[Lightspeed Feedback] Telemetry failed: ${error}`,
+              error,
+            );
+          }
+          // Show success message
+          vscode.window.showInformationMessage("Thanks for your feedback!");
+          return;
+        }
+
+        // WCA provider - send to API
         if (param.explanationId) {
           lightSpeedManager.apiInstance.feedbackRequest(
             { playbookExplanationFeedback: param },
@@ -818,6 +902,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.lightspeed.roleThumbsUpDown",
       async (param: RoleFeedbackEvent) => {
+        const provider = extSettings.settings.lightSpeedService.provider;
+
+        // For LLM providers, send telemetry via Segment
+        if (provider && provider !== "wca") {
+          // Send telemetry event with same payload structure as WCA
+          try {
+            await sendTelemetry(
+              telemetry.telemetryService,
+              telemetry.isTelemetryInit,
+              "lightspeed.roleExplanationFeedback",
+              {
+                provider: provider,
+                ...param, // Include all original fields
+                model:
+                  extSettings.settings.lightSpeedService.modelName || undefined,
+              },
+            );
+          } catch (error) {
+            console.log(
+              `[Lightspeed Role Feedback] Telemetry not sent: ${error}`,
+            );
+          }
+
+          vscode.window.showInformationMessage("Thanks for your feedback!");
+          return;
+        }
+
+        // WCA provider - send to API
         lightSpeedManager.apiInstance.feedbackRequest(
           { roleExplanationFeedback: param },
           true,
@@ -851,8 +963,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       () => {
         vscode.env.openExternal(
           vscode.Uri.parse(
-            lightSpeedManager.settingsManager.settings.lightSpeedService.URL +
-              "/trial",
+            lightSpeedManager.settingsManager.settings.lightSpeedService
+              .apiEndpoint + "/trial",
           ),
         );
       },
@@ -1129,7 +1241,7 @@ const handleMcpServerConfigurationChange = async (
     if (currentSetting) {
       // MCP server was enabled - refresh the provider to register the server
       console.log("MCP server enabled, refreshing provider");
-      mcpProvider.refresh();
+      mcpProvider?.refresh();
 
       // Show success message
       vscode.window.showInformationMessage(
@@ -1138,7 +1250,7 @@ const handleMcpServerConfigurationChange = async (
     } else {
       // MCP server was disabled - refresh the provider to unregister the server
       console.log("MCP server disabled, refreshing provider");
-      mcpProvider.refresh();
+      mcpProvider?.refresh();
 
       // Show success message
       vscode.window.showInformationMessage(
