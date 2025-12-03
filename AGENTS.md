@@ -10,5 +10,5 @@
 ## Code reviews
 
 - Ensure that build jobs produced at least 3 artifacts matching these grep
-  patterns `logs*`, `@ansible-language-server*.tgx`,
+  patterns `logs*`, `@ansible-language-server*.tgz`,
   `ansible-extension-build-*.zip`.
