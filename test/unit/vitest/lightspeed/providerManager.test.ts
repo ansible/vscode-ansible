@@ -95,9 +95,8 @@ describe("ProviderManager", () => {
     } as unknown as LightSpeedAPI;
 
     // Get the mock provider from the factory
-    const factoryModule = await import(
-      "../../../../src/features/lightspeed/providers/factory.js"
-    );
+    const factoryModule =
+      await import("../../../../src/features/lightspeed/providers/factory.js");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockLlmProvider = (factoryModule as any).__mockGoogleProvider;
 

@@ -7,9 +7,8 @@ describe("LLMProviderFactory", () => {
 
   before(async () => {
     try {
-      const module = await import(
-        "../../../../src/features/lightspeed/providers/factory.js"
-      );
+      const module =
+        await import("../../../../src/features/lightspeed/providers/factory.js");
       LLMProviderFactory = module.LLMProviderFactory;
     } catch {
       console.log("Could not import LLMProviderFactory, skipping tests");

@@ -9,9 +9,8 @@ describe("ProviderManager", () => {
 
   before(async () => {
     try {
-      const module = await import(
-        "../../../src/features/lightspeed/providerManager.js"
-      );
+      const module =
+        await import("../../../src/features/lightspeed/providerManager.js");
       ProviderManager = module.ProviderManager;
     } catch {
       console.log("Could not import ProviderManager, skipping tests");
