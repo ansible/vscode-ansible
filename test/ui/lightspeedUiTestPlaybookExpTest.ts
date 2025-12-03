@@ -116,7 +116,7 @@ describe(__filename, function () {
       });
     });
 
-    it.skip("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
