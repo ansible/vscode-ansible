@@ -311,7 +311,7 @@ export async function connectLightspeed() {
 
   const alfView = await sideBar
     .getContent()
-    .getSection("Ansible Lightspeed Feedback");
+    .getSection("Ansible Lightspeed WCA Provider Feedback");
   await alfView.collapse();
 
   await explorerView.switchToFrame(5000);
