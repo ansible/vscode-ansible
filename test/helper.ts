@@ -9,6 +9,7 @@ import { integer } from "vscode-languageclient";
 import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
 import { rmSync } from "fs";
+import { PROJECT_ROOT } from "./setup";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -30,6 +31,7 @@ export function clearActivationCache(): void {
 
 export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+  PROJECT_ROOT,
   FIXTURES_BASE_PATH,
   "common",
   "collections",
@@ -124,23 +126,15 @@ export async function sleep(ms: number): Promise<void> {
 }
 
 export const getDocPath = (p: string): string => {
-  return path.resolve(
-    __dirname,
-    path.join("..", "..", "..", "test", "testFixtures", p),
-  );
+  return path.resolve(PROJECT_ROOT, "test", "testFixtures", p);
 };
 
 export const getDocUriOutsideWorkspace = (fileName: string): string => {
   return path.resolve(
-    __dirname,
-    path.join(
-      "..",
-      "..",
-      "..",
-      "test",
-      "testFixtureOutsideWorkspace",
-      fileName,
-    ),
+    PROJECT_ROOT,
+    "test",
+    "testFixtureOutsideWorkspace",
+    fileName,
   );
 };
 

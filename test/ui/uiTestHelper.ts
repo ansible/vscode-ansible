@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "chai";
 import path from "path";
+import { PROJECT_ROOT } from "../setup";
 import {
   By,
   Locator,
@@ -20,8 +21,8 @@ import { until } from "selenium-webdriver";
 // return testFixtures/ subfolders and files.
 export function getFixturePath(subdir: string = "", file: string = ""): string {
   return path.resolve(
-    __dirname,
-    path.join("..", "..", "..", "..", "test", "testFixtures", subdir, file),
+    PROJECT_ROOT,
+    path.join("test", "testFixtures", subdir, file),
   );
 }
 
