@@ -57,6 +57,13 @@
       "matchPackageNames": ["python", "python/cpython", "nodejs"]
     },
     {
+      "description": "Prevent major version upgrades for Zod until MCP SDK supports it",
+      "matchPackageNames": ["zod"],
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "allowedVersions": "<4.0.0"
+    },
+    {
       "branchTopic": "npm-dev",
       "commitMessageTopic": "npm dev",
       "groupSlug": "npm-dev",
