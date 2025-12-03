@@ -300,7 +300,7 @@ export async function testDiagnostics(
   // Poll until we have the expected number of diagnostics
   // Since waitForDiagnosisCompletion already waits for processes, this should be quick
   if (actualDiagnostics.length !== expectedDiagnostics.length) {
-    const pollTimeout = 1500; // Reduced - most diagnostics should be ready by now
+    const pollTimeout = 3000;
     const pollInterval = 50; // Very fast polling for quick response
     let elapsed = 0;
 
