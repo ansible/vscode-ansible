@@ -20,7 +20,7 @@ export function createTestServer(workspaceRoot: string) {
       }
 
       // Call the tool handler
-      const handler = registeredTools[name].callback;
+      const handler = registeredTools[name].handler;
       if (handler) {
         return await handler(args);
       }
