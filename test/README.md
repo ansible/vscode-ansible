@@ -63,7 +63,7 @@ There are a few different test suites to choose from:
 Run the following command:
 
 ```shell
-    yarn unit-tests
+    yarn unit
 ```
 
 #### End to End

@@ -3,7 +3,7 @@
   "check-coverage": true,
   "extends": "../../.c8rc.json",
   "lines": 0,
-  "reporter": ["cobertura", "lcov", "text", "text-summary"],
+  "reporter": ["cobertura", "lcovonly", "text", "text-summary"],
   "reports-dir": "../../out/coverage/als",
   "temp-directory": "../../out/tmp/.c8-tmp-als"
 }

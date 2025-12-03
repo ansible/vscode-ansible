@@ -256,7 +256,7 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     rm -f out/junit/e2e/*.*
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
+    vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly
     touch out/junit/e2e/.passed
     rm -f test/testFixtures/.vscode/settings.json
 fi

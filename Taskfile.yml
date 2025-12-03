@@ -50,11 +50,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - task: als:build
-      - task: mcp:build
-      - yarn run clean
-      - yarn run als-compile
-      - yarn run compile
+      - yarn workspaces foreach --all -tv run clean
+      - yarn run build
     sources:
       - Taskfile.yml
       - package.json
@@ -108,6 +105,8 @@ tasks:
     desc: Update python dependencies
     cmds:
       - uv sync --upgrade
+      # should prevent increasing cache size significantly on CI
+      - uv cache prune --ci
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -200,9 +199,14 @@ tasks:
     cmds:
       - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
-  test-unit:
+  ui-oldest:
+    desc: Run UI tests (CODE_VERSION='min')
+    env:
+      CODE_VERSION: min
+    deps:
+      - ui
+  unit:
     desc: Run unit tests with coverage report
-    aliases: [unit]
     deps:
       - build
     sources:
@@ -211,7 +215,7 @@ tasks:
     generates:
       - out/coverage/unit/lcov.info
     cmds:
-      - npm run unit-tests
+      - c8 --config test/unit/.c8rc.json mocha {{ .MOCHA_OPTS }}
     interactive: true
   package:
     desc: Package extension
@@ -263,3 +267,9 @@ tasks:
     cmds:
       - rm -rf .vscode-test/ out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
       - rm -f out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+  dry:
+    desc: Pretend it does run tests, used to validate configuration of the test frameworks
+    deps:
+      - package
+    cmds:
+      - mocha --dry-run

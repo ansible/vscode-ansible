@@ -14,7 +14,7 @@ runs:
         # without specific version here will not upgrade old existing versions
         version: 2025.11.11
         # https://github.com/jdx/mise-action/issues/165
-        dir: ~/.local/bin
+        mise_dir: ~/.local/bin
         reshim: true
 
     - name: Corepack enable
