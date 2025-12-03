@@ -131,25 +131,25 @@ def cli() -> None:
             logging.error(msg)
             sys.exit(2)
         run(
-            f"npm exec -- vsce publish {pre_release_arg} --skip-duplicate --packagePath"
+            f"vsce publish {pre_release_arg} --skip-duplicate --packagePath"
             f" {vsix_files[0]} --readme-path docs/README.md"
         )
-        run(f"npm exec -- ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
+        run(f"ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
         run("rm -f ./*.vsix")
-        run("npm exec -- yarn run webpack")
+        run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-        run("npm exec -- yarn run vite-build")
+        run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
-        run("npm exec -- yarn workspace @ansible/ansible-mcp-server build")
+        run("yarn workspace @ansible/ansible-mcp-server build")
         run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
 
         run(
-            "npm exec -- vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
+            "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
             f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
         )
-        # Using zipinfo instead of `npm exec -- vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+        # Using zipinfo instead of `vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
         run("mkdir -p out/log")
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         vsix_file = f"ansible-{version}.vsix"

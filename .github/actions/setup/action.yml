@@ -11,6 +11,10 @@ runs:
     - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
       with:
         experimental: true
+        # without specific version here will not upgrade old existing versions
+        version: 2025.11.11
+        # https://github.com/jdx/mise-action/issues/165
+        dir: ~/.local/bin
         reshim: true
 
     - name: Corepack enable

@@ -28,7 +28,7 @@ tasks:
   default:
     desc: Run most commands
     cmds:
-      - task: install
+      - task: setup
       - task: lint
       - task: package
       - task: docs
@@ -48,14 +48,13 @@ tasks:
   build:
     desc: Build the project
     deps:
-      - install
+      - setup
     cmds:
       - task: als:build
       - task: mcp:build
-      - npm exec -- yarn run clean
-      - npm exec -- yarn run als-compile
-      - npm exec -- yarn run compile
-      - npm exec -- tsc -p ./
+      - yarn run clean
+      - yarn run als-compile
+      - yarn run compile
     sources:
       - Taskfile.yml
       - package.json
@@ -82,7 +81,7 @@ tasks:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
       - task: "deps:python"
-      - task: install
+      - task: setup
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
@@ -115,6 +114,8 @@ tasks:
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
+    deps:
+      - setup
     sources:
       - docs/**/*
       - media/**/*
@@ -124,7 +125,6 @@ tasks:
     generates:
       - out/html/**/*
     cmds:
-      - task: install # implies setup, needed to install node deps
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
@@ -239,6 +239,8 @@ tasks:
     silent: true
   pr:
     desc: Opens a pull request using gh
+    deps:
+      - setup
     cmds:
       - task: lint
       - gh pr create
@@ -246,7 +248,6 @@ tasks:
   release:
     desc: Create a new release (used by CI)
     cmds:
-      - task: install
       - ./tools/release.sh
     interactive: true
   builder:

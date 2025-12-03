@@ -9,6 +9,7 @@ set -euo pipefail
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
 . "$DIR/_utils.sh"
+PROJECT_ROOT="$(dirname "$DIR")"
 
 # inside containers ARCH might not be set
 ARCH=${ARCH:-$(uname -m)}
@@ -72,12 +73,7 @@ fi
 
 if [[ "${OSTYPE:-}" == darwin* ]]; then
     # coreutils provides 'timeout' command
-    HOMEBREW_NO_ENV_HINTS=1 timed brew bundle --file=- <<-EOS
-brew "coreutils"
-brew "libssh"
-brew "gh"
-EOS
-    # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
+    HOMEBREW_NO_ENV_HINTS=1 brew install -q libssh coreutils
 fi
 
 is_podman_running() {
@@ -90,9 +86,10 @@ is_podman_running() {
     fi
 }
 
-if [ ! -d "$HOME/.local/bin" ] ; then
-    log warning "Creating missing ~/.local/bin"
-    mkdir -p "$HOME/.local/bin"
+NODE_MODULES_BIN="$PROJECT_ROOT/node_modules/.bin"
+if [ ! -d "$NODE_MODULES_BIN" ] ; then
+    log error "$NODE_MODULES_BIN was not found in PATH, likely mise is not correctly installed as it should inject it automatically."
+    exit 44
 fi
 
 # Detect RedHat/CentOS/Fedora:
@@ -265,99 +262,6 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
         nodejs gcc g++ make python3-dev
 fi
 
-# if a virtualenv is already active, ensure is the expected one
-EXPECTED_VENV="${HOME}/.local/share/virtualenvs/vsa"
-if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
-     log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
-fi
-VIRTUAL_ENV=${EXPECTED_VENV}
-if [[ -d "${VIRTUAL_ENV}" ]]; then
-    log notice "Running uv sync ..."
-    if [[ "$WSL" -eq 1 ]]; then
-        log warning "Setting UV_CONCURRENT_INSTALLS=1 because WSL was detected, see https://github.com/astral-sh/uv/issues/13481#issuecomment-3375527015"
-        export UV_CONCURRENT_INSTALLS=1
-    fi
-    timed uv sync --no-progress -q || {
-    log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
-    rm -rf "${VIRTUAL_ENV}"
-    }
-fi
-if [[ ! -d "${VIRTUAL_ENV}" ]]; then
-    log notice "Creating virtualenv ..."
-    # ansible-core does not support python 3.14 yet
-    which uv
-    "$SHELL" -c "uv venv '${VIRTUAL_ENV}'"
-fi
-# shellcheck disable=SC1091
-. "${VIRTUAL_ENV}/bin/activate"
-
-log notice "Using $(python3 --version)"
-log notice "Using $(uv run which python3)"
-
-if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
-    log warning "Virtualenv broken, trying to recreate it ..."
-    uv venv --clear "${VIRTUAL_ENV}"
-    # shellcheck disable=SC1091
-    . "${VIRTUAL_ENV}/bin/activate"
-    if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
-        log error "Virtualenv still broken."
-        exit 99
-    fi
-fi
-
-# Fail fast if user has broken dependencies
-uv pip check || {
-        log error "pip check failed with exit code $?"
-        if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
-            exit 98
-        else
-            log error "Ignored pip check failure on this platform due to https://sourceforge.net/p/ruamel-yaml/tickets/521/"
-        fi
-}
-
-if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    # We used the already tested constraints file from community-ansible-dev-tools EE in order
-    # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
-    # versions.
-    log notice "Running uv sync ..."
-    uv sync --no-progress -q --active
-fi
-
-# GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
-# other than our own virtualenv. (test isolation)
-if [[ -n "${CI:-}" ]]; then
-    command -v ansible >/dev/null 2>&1 || {
-        log warning "Attempting to remove pre-installed ansible on CI ..."
-        pipx uninstall --verbose ansible || true
-        if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
-            log error "Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
-            exit 66
-        fi
-    }
-    command -v ansible-lint >/dev/null 2>&1 || {
-        log warning "Attempting to remove pre-installed ansible-lint on CI ..."
-        pipx uninstall --verbose ansible-lint || true
-        if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
-            log error "Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
-            exit 67
-        fi
-    }
-    if [[ -d "${HOME}/.ansible" ]]; then
-        log warning "Removing unexpected ~/.ansible folder found on CI to avoid test contamination."
-        rm -rf "${HOME}/.ansible"
-    fi
-fi
-
-# Fail if detected tool paths are not from inside out out/ folder
-for CMD in ansible ansible-lint ansible-navigator; do
-    CMD=$(command -v $CMD 2>/dev/null)
-    [[ "${CMD}" == "$VIRTUAL_ENV"* ]] || {
-        log error "${CMD} executable is not from our own virtualenv ($VIRTUAL_ENV)"
-        exit 68
-    }
-done
-unset CMD
-
 if [[ -f yarn.lock ]]; then
     # Check if npm has permissions to install packages (system installed does not)
     # Share https://stackoverflow.com/a/59227497/99834
@@ -367,15 +271,16 @@ if [[ -f yarn.lock ]]; then
     }
 fi
 
-log notice "Docker checks..."
-if [[ -n ${DOCKER_HOST+x} ]]; then
-    log error "DOCKER_HOST is set, we do not support this setup."
-    exit 1
-fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
-DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null' && log warning 'docker not found, skipping related tests')"
-if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
+DOCKER_VERSION=null
+if [[ "${SKIP_DOCKER:-}" != '1' ]]; then
+    log notice "Docker checks..."
+    if [[ -n ${DOCKER_HOST+x} ]]; then
+        log error "DOCKER_HOST is set, we do not support this setup."
+        exit 1
+    fi
 
+    DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null')"
     DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
     if [[ "${DOCKER_STDERR}" == *"Emulate Docker CLI using podman"* ]]; then
         log error "podman-docker shim is present and we do not support it. Please remove it."
@@ -447,9 +352,11 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         podman machine inspect >out/podman.log 2>&1
     fi
 fi
+
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
-PODMAN_VERSION="$(get_version podman || echo null)"
-if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
+PODMAN_VERSION=null
+if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
+    PODMAN_VERSION="$(get_version podman 2>/dev/null || echo null)"
     podman container prune -f
     log notice "Pull our test container image with podman."
     pull_output=$(podman pull --quiet "${IMAGE}" 2>&1 >/dev/null) || {
@@ -468,6 +375,20 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
+
+log notice "Checking node tools availability..."
+command -v tsc >/dev/null 2>&1 || {
+    log error "tsc not found, please install it."
+    exit 1
+}
+command -v vsce >/dev/null 2>&1 || {
+    log error "vsce not found, please install it."
+    exit 1
+}
+command -v ovsx >/dev/null 2>&1 || {
+    log error "ovsx not found, please install it."
+    exit 1
+}
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.

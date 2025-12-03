@@ -43,9 +43,9 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
     deps:
-      - install
+      - setup
     cmds:
-      - npm exec -- yarn run compile
+      - yarn run compile
     sources:
       - package-lock.json
       - package.json
@@ -108,7 +108,7 @@ tasks:
       - build
     cmds:
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   release:
     desc: Create a new release (used by CI)

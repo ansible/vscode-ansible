@@ -260,29 +260,19 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: Setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version-file: .python-version
-
       - name: Ensure .env file is automatically loaded (mise)
         run: |
-          set -ex
-          mise doctor || true
+          set -exuo pipefail
+          mise reshim
+          mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
             echo "VIRTUAL_ENV mismatch"
             exit 99
           }
           test "$(mise exec -- which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
-            echo "::warning::python3 mismatch"
-            # exit 98
+            echo "::warning::python3 mismatch $(mise exec -- which python3) != ${HOME}/.local/share/virtualenvs/vsa/bin/python3"
+            exit 98
           }
-
-      - name: Install dependencies
-        uses: coactions/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # fix/install
-        # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
-        with:
-          cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
@@ -637,13 +627,8 @@ jobs:
           files: "*.vsix"
 
       - run: |
-          npm exec -- yarn install --immutable
+          yarn install --immutable
           ls -la *.vsix
-
-      - name: Setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version-file: .python-version
 
       - name: Publish extension to marketplaces
         run: |
