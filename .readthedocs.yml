@@ -40,9 +40,13 @@ build:
     build:
       html:
         - >
-          UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
-          PATH=~/.local/bin:$PATH
           CI=1
+          FORCE_COLOR=0
+          PATH=~/.local/bin:$PATH
+          SKIP_DOCKER=1
+          SKIP_PODMAN=1
+          UV_CONCURRENT_BUILDS=1
+          UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
           ~/.local/bin/mise exec -- task docs
     create_environment:
       - curl https://mise.run | sh

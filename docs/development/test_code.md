@@ -31,38 +31,22 @@ language feature.
 
 ## Running the Tests
 
-Each type of test has its own script and can be run by `yarn run <script-name>`:
-
-!!! tip
-
-    Always run `yarn run compile` before running the tests.
+Each type of test has its own script and can be run by `task <command>`:
 
 ### Extension test scripts
 
-1. **unit-tests:** Runs the unit tests for the extension.
-2. **test-e2e:** Runs the end-to-end tests for the extension.
-3. **test-ui-current:** Runs the UI tests on the latest version of VS Code
+1. `task unit`: Runs the unit tests for the extension.
+2. `task e2e`: Runs the end-to-end tests for the extension.
+3. `task ui`: Runs the UI tests on the latest version of VS Code
    against the code packaged as a `.vsix` file.
-4. **test-ui-oldest:** Runs the UI tests on the oldest supported version of VS
+4. `task ui-oldest`: Runs the UI tests on the oldest supported version of VS
    Code against the code packaged as a `.vsix` file.
-5. **coverage-ui-current:** Runs the UI tests on the latest version of VS Code
-   by loading the `.js` files.
-6. **coverage-ui-oldest:** Runs the UI tests on the oldest supported version of
-   VS Code by loading the `.js` files.
-
-!!! note
-
-    For `test-ui*` scripts, you must package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
 
 !!! tip
 
-    In case of debugging, use `coverage-ui*` script for running UI tests. Make sure to compile the sources with:
-
-    `yarn webpack-dev`
-
     To run a single UI test case, you can use `MOCHA_GREP` environment variable as follows:
 
-    `MOCHA_GREP="your test case name in describe statement" yarn coverage-ui-current`
+    `MOCHA_GREP="your test case name in describe statement" yarn ui-current`
 
 ### Language server test scripts
 
@@ -80,7 +64,7 @@ For the language server tests, navigate to the root of the
 
 - [c8] is recommended in favor of the older [nyc] for coverage reporting.
 - [codecov.io] coverage reports should use `cobertura` format, as it proves to
-  be more reliable than the `lcov` format, which has weird problems with
+  be more reliable than the `lcovonly` format, which has weird problems with
   processing.
 - [codecov.io] unit-test reports should use junit-format
 - [mocha] natively supports just one reporter, and we recommend setting it to

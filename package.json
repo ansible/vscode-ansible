@@ -209,22 +209,6 @@
       {
         "command": "ansible.mcpServer.disable",
         "title": "Disable Ansible Development Tools MCP Server"
-      },
-      {
-        "command": "ansible.lightspeed.testProviderConnection",
-        "title": "Ansible Lightspeed: Test Provider Connection"
-      },
-      {
-        "command": "ansible.lightspeed.configureLlmProvider",
-        "title": "Ansible Lightspeed: Configure LLM Provider"
-      },
-      {
-        "command": "ansible.lightspeed.showProviderStatus",
-        "title": "Ansible Lightspeed: Show Provider Status"
-      },
-      {
-        "command": "ansible.lightspeed.switchProvider",
-        "title": "Ansible Lightspeed: Switch Provider"
       }
     ],
     "configuration": [
@@ -431,25 +415,6 @@
       },
       {
         "properties": {
-          "ansible.lightspeed.apiEndpoint": {
-            "default": "",
-            "markdownDescription": "API endpoint URL. **Only configurable for WCA provider.** For Google, the endpoint is automatically set and cannot be changed. Default for WCA: https://c.ai.ansible.redhat.com",
-            "order": 4,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.apiKey": {
-            "markdownDescription": "API key for Google provider. Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
-            "order": 3,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.customHeaders": {
-            "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
-            "order": 6,
-            "scope": "resource",
-            "type": "object"
-          },
           "ansible.lightspeed.enabled": {
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",
@@ -457,47 +422,32 @@
             "scope": "resource",
             "type": "boolean"
           },
-          "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
-            "order": 2,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.provider": {
-            "default": "wca",
-            "enum": [
-              "wca",
-              "google"
-            ],
-            "enumDescriptions": [
-              "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
-              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
-            ],
-            "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
-            "order": 1,
+          "ansible.lightspeed.modelIdOverride": {
+            "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
+            "order": 4,
             "scope": "resource",
             "type": "string"
           },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
-            "markdownDescription": "Enable inline suggestions. Note: Currently only supported with WCA provider.",
-            "order": 7,
+            "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
+            "order": 2,
             "scope": "resource",
             "type": "boolean"
           },
           "ansible.lightspeed.suggestions.waitWindow": {
             "default": 0,
-            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request.",
-            "order": 8,
+            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request to Ansible Lightspeed with watsonx Code Assistant.",
+            "order": 3,
             "scope": "resource",
             "type": "number"
           },
-          "ansible.lightspeed.timeout": {
-            "default": 30000,
-            "markdownDescription": "Request timeout in milliseconds for API calls.",
-            "order": 5,
+          "ansible.lightspeed.URL": {
+            "default": "https://c.ai.ansible.redhat.com",
+            "markdownDescription": "URL for Ansible Lightspeed.",
+            "order": 1,
             "scope": "resource",
-            "type": "number"
+            "type": "string"
           }
         },
         "title": "Ansible Lightspeed"
@@ -792,7 +742,7 @@
         {
           "icon": "$(comment-discussion)",
           "id": "lightspeed-feedback-webview",
-          "name": "Ansible Lightspeed WCA Provider Feedback",
+          "name": "Ansible Lightspeed Feedback",
           "type": "webview",
           "when": "config.ansible.lightspeed.enabled"
         }
@@ -1075,7 +1025,6 @@
     "@types/jsdom": "^27.0.0",
     "@types/lodash": "^4.17.20",
     "@types/minimatch": "^6.0.0",
-    "@types/mocha": "^10.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.1",
     "@types/selenium-webdriver": "^4.35.1",
@@ -1087,7 +1036,7 @@
     "@types/yargs": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.48.0",
-    "@vitest/coverage-v8": "^4.0.4",
+    "@vitest/coverage-v8": "^4.0.14",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
@@ -1124,7 +1073,7 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vitest": "^4.0.4",
+    "vitest": "^4.0.14",
     "vscode-extension-tester": "^8.19.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.103.0",
@@ -1167,32 +1116,19 @@
     "rollup": "npm:@rollup/wasm-node@*"
   },
   "scripts": {
-    "als-compile": "yarn workspace @ansible/ansible-language-server compile",
+    "build": "yarn workspaces foreach --all -tvv run compile",
     "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
-    "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
-    "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
-    "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
-    "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",
-    "mcp-compile": "yarn workspace @ansible/ansible-mcp-server compile",
+    "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "package": "./tools/helper --package",
     "preinstall": "",
-    "pretest": "node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
-    "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
-    "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
-    "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
-    "test-ui-current": "./tools/test-launcher.sh",
-    "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",
-    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc.json mocha --recursive test/unit/lightspeed test/unit/mcp ${MOCHA_OPTS:-}\"",
     "unit-tests-vitest": "vitest",
     "unit-tests-vitest-coverage": "vitest run --coverage",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-preview": "vite preview",
-    "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
-    "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "yarn run clean && yarn run mcp-compile && webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && yarn test-compile && yarn run mcp-compile && webpack --mode development --config ./webpack.config.ts",
+    "webpack": "yarn run clean && yarn run build && webpack --mode production --config ./webpack.config.ts",
+    "webpack-dev": "yarn run build && webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch"
   },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",

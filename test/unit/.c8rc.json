@@ -17,7 +17,7 @@
   ],
   "exclude-after-remap": true,
   "lines": 91.45,
-  "reporter": ["cobertura", "lcov", "text"],
+  "reporter": ["cobertura", "lcovonly", "text"],
   "reports-dir": "./out/coverage/unit",
   "temp-directory": "./out/tmp/.c8-tmp-unit"
 }

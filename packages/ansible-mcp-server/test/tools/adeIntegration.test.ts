@@ -39,7 +39,7 @@ describe("ADE Tools Integration", () => {
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
-    });
+    }, 45000); // 45 second timeout for macOS slowness
 
     it("should be callable with all optional arguments", async () => {
       const args = {

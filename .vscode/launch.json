@@ -73,17 +73,6 @@
       "type": "node"
     },
     {
-      "name": "Attach to Server (src)",
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
-      "port": 6010,
-      "preLaunchTask": "npm: watch-server",
-      "request": "attach",
-      "restart": true,
-      "runtimeArgs": ["--max-old-space-size=4096"],
-      "timeout": 30000,
-      "type": "node"
-    },
-    {
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--extensionTestsPath=${workspaceFolder}/out/client/test/index"
