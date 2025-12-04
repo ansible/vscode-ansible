@@ -153,10 +153,10 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
 log notice "Downloading ChromeDriver..."
-retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 
 # Pre-pull ansible-navigator container image for UI tests (non-macOS only)
 if [[ "$OSTYPE" != "darwin"* ]]; then
@@ -189,9 +189,9 @@ if [[ "$COVERAGE" == "" ]]; then
     fi
     yarn compile
 
-    npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
+    extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
-npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
+extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
 export COVERAGE
 
@@ -215,7 +215,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
+            timeout --kill-after=15 --preserve-status 150s extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
                 -e out/ext \
@@ -256,7 +256,7 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     rm -f out/junit/e2e/*.*
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    npm exec -- vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
+    vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly
     touch out/junit/e2e/.passed
     rm -f test/testFixtures/.vscode/settings.json
 fi

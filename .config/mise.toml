@@ -27,6 +27,11 @@ experimental = true
 idiomatic_version_file_enable_tools = ["python"]
 lockfile = true
 
+[plugins]
+# required in order to ensure `mise doctor` returns correct exit code
+# see: https://github.com/jdx/mise/discussions/4432
+mise_version = "2025.6.2"
+
 [tools]
 gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn

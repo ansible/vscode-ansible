@@ -29,9 +29,9 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
     deps:
-      - install
+      - setup
     cmds:
-      - npm run build
+      - npm run compile
     generates:
       - out/server/**/*.*
     sources:
@@ -83,7 +83,7 @@ tasks:
       - "*.tgz"
     cmds:
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   clean:
     desc: Clean build artifacts

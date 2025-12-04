@@ -1,4 +1,5 @@
 ABRT
+CACHEDIR
 Containerfile
 Customizer
 Devfile
@@ -47,7 +48,6 @@ devspaces
 eslintcache
 extest
 fqcn
-githubcli
 haaaad
 highlightjs
 hostsvars
@@ -55,8 +55,8 @@ hostvars
 icontent
 johndoe
 konflux
+lcovonly
 lextudio
-libgbm
 libonig
 libssh
 lightspeed
@@ -84,6 +84,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pyvenv
 relogin
 rhsso
 seealso

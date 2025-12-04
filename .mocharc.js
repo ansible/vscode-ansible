@@ -7,6 +7,7 @@ module.exports = {
   color: true, // needed to keep colors inside vscode terminal
   recursive: true,
   extension: ["ts"],
+  ignore: ["test/e2e/**", "test/helper.ts", "src/**", "test/unit/contentCreator/**", "test/ui/**"],
   require: [
     "ts-node/register",
     "./test/mochaHooks.ts", // # this file must be loaded last

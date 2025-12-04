@@ -5,7 +5,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.8.1",
-    "zod": "^4.1.13"
+    "zod": "^3.23.8"
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
@@ -39,15 +39,14 @@
   "main": "./out/server/src/server.js",
   "name": "@ansible/ansible-mcp-server",
   "overrides": {
-    "zod": "^4.1.13"
+    "zod": "^3.23.8"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "npm run clean && npm run compile && npm run copy-resources",
     "clean": "rimraf out/server && rimraf lib",
-    "compile": "tsc -p .",
+    "compile": "tsc -p . && npm run copy-resources",
     "copy-resources": "mkdir -p out/server/src/resources/data && cp -r src/resources/data/* out/server/src/resources/data/ 2>/dev/null || true",
     "dev:stdio": "tsx src/cli.ts --stdio",
     "prepack": "npm run compile",
