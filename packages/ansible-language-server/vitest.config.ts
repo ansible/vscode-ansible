@@ -42,4 +42,3 @@ export default defineConfig({
     slowTestThreshold: 8000, // Tests >8s show duration in yellow, >16s in red
   },
 });
-

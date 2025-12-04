@@ -19,7 +19,7 @@ beforeEach((testInfo) => {
   const testName = testInfo.task.name || "";
   const suiteName = testInfo.task.suite?.name || "";
   const fullTestPath = `${suiteName} ${testName}`;
-  
+
   if (skipEE() && fullTestPath.includes("@ee")) {
     console.warn(
       `Skipped test due to environment conditions: ${fullTestPath}`,
@@ -35,7 +35,7 @@ afterEach((testInfo) => {
   const testName = testInfo.task.name || "";
   const suiteName = testInfo.task.suite?.name || "";
   const fullTestPath = `${suiteName} ${testName}`;
-  
+
   if (!(skipEE() && fullTestPath.includes("@ee"))) {
     // Only show console output if test failed
     const testState = testInfo.task.result?.state;
