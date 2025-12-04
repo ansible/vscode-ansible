@@ -1119,8 +1119,6 @@
     "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "package": "./tools/helper --package",
     "preinstall": "",
-    "unit-tests-vitest": "vitest",
-    "unit-tests-vitest-coverage": "vitest run --coverage",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-preview": "vite preview",
