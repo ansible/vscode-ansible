@@ -1,7 +1,63 @@
-// This file is loaded automatically by mocha during the test run.
-import { isWindows, console } from "./helper";
+import * as chai from "chai";
+import { ConsoleOutput } from "./consoleOutput";
+import { skipEE, console, deleteAlsCache } from "./helper";
+import { beforeAll, beforeEach, afterEach, afterAll } from "vitest";
+import { isWindows } from "./helper";
 import { execSync, spawnSync, SpawnSyncOptions } from "child_process";
 import pkg from "../../../package.json";
+
+chai.config.truncateThreshold = 0; // disable truncating
+
+const consoleOutput = new ConsoleOutput();
+
+beforeAll(() => {
+  deleteAlsCache();
+});
+
+beforeEach((testInfo) => {
+  // Check if test name or suite name includes @ee
+  const testName = testInfo.task.name || "";
+  const suiteName = testInfo.task.suite?.name || "";
+  const fullTestPath = `${suiteName} ${testName}`;
+  
+  if (skipEE() && fullTestPath.includes("@ee")) {
+    console.warn(
+      `Skipped test due to environment conditions: ${fullTestPath}`,
+    );
+    testInfo.skip();
+  } else {
+    consoleOutput.capture();
+  }
+});
+
+afterEach((testInfo) => {
+  // Check if test name or suite name includes @ee
+  const testName = testInfo.task.name || "";
+  const suiteName = testInfo.task.suite?.name || "";
+  const fullTestPath = `${suiteName} ${testName}`;
+  
+  if (!(skipEE() && fullTestPath.includes("@ee"))) {
+    // Only show console output if test failed
+    const testState = testInfo.task.result?.state;
+    if (testState !== "pass") {
+      consoleOutput.release();
+    } else {
+      // For passed tests, restore console methods without outputting captured content
+      const output = consoleOutput as any;
+      if (output.originalConsoleLog) {
+        console.log = output.originalConsoleLog;
+        console.debug = output.originalConsoleDebug;
+        console.info = output.originalConsoleInfo;
+        console.warn = output.originalConsoleWarn;
+        console.error = output.originalConsoleError;
+      }
+    }
+  }
+});
+
+afterAll(() => {
+  deleteAlsCache();
+});
 
 // Error code returned if we cannot even start testing:
 const PRETEST_ERR_RC = 2;

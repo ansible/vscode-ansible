@@ -25,7 +25,7 @@ describe("get()", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
 
-      before(async function () {
+      beforeAll(async function () {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, []);
         context = workspaceManager.getContext("");
@@ -48,7 +48,7 @@ describe("get()", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
 
-      before(async function () {
+      beforeAll(async function () {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, {
           validation: { lint: { enabled: false } },

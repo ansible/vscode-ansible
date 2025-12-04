@@ -287,7 +287,7 @@ describe("doHover()", function () {
 
   describe("Play keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -299,7 +299,7 @@ describe("doHover()", function () {
         testPlayKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -308,7 +308,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -322,7 +322,7 @@ describe("doHover()", function () {
 
   describe("Task keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -334,7 +334,7 @@ describe("doHover()", function () {
         testTaskKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -343,7 +343,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -357,7 +357,7 @@ describe("doHover()", function () {
 
   describe("Block keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -370,7 +370,7 @@ describe("doHover()", function () {
         testBlockKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -379,7 +379,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -400,7 +400,7 @@ describe("doHover()", function () {
 
   describe("Role keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -413,7 +413,7 @@ describe("doHover()", function () {
         testRoleKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -422,7 +422,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -444,7 +444,7 @@ describe("doHover()", function () {
 
   describe("Module name and options hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -457,7 +457,7 @@ describe("doHover()", function () {
         testModuleNames(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -466,7 +466,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -481,7 +481,7 @@ describe("doHover()", function () {
 
   describe("No hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -494,7 +494,7 @@ describe("doHover()", function () {
         testNoHover(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -503,7 +503,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -524,7 +524,7 @@ describe("doHover()", function () {
 
   describe("Hover for playbook adjacent collection", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -537,7 +537,7 @@ describe("doHover()", function () {
         testPlaybookAdjacentCollection(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -546,7 +546,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -568,7 +568,7 @@ describe("doHover()", function () {
 
   describe("Negate hover for non playbook adjacent collection", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -581,7 +581,7 @@ describe("doHover()", function () {
         testNonPlaybookAdjacentCollection(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -590,7 +590,7 @@ describe("doHover()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);

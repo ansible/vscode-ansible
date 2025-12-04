@@ -92,7 +92,7 @@ describe("getDefinition()", function () {
 
   describe("Module name definitions", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -105,7 +105,7 @@ describe("getDefinition()", function () {
         testModuleNamesForDefinition(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
@@ -114,7 +114,7 @@ describe("getDefinition()", function () {
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
