@@ -828,7 +828,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint-community/eslint-utils@npm:^4.4.1, @eslint-community/eslint-utils@npm:^4.7.0, @eslint-community/eslint-utils@npm:^4.8.0":
+"@eslint-community/eslint-utils@npm:^4.7.0, @eslint-community/eslint-utils@npm:^4.8.0":
   version: 4.9.0
   resolution: "@eslint-community/eslint-utils@npm:4.9.0"
   dependencies:
@@ -3523,6 +3523,8 @@ __metadata:
     "@types/yargs": "npm:^17.0.35"
     "@typescript-eslint/parser": "npm:^8.48.0"
     "@vitejs/plugin-vue": "npm:^5.2.4"
+    "@vitest/coverage-v8": "npm:^4.0.14"
+    "@vitest/ui": "npm:^4.0.4"
     "@vscode-elements/elements": "npm:^2.0.0"
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.5.2"
@@ -3536,7 +3538,6 @@ __metadata:
     eslint-formatter-gha: "npm:^1.6.0"
     eslint-formatter-unix: "npm:^9.0.1"
     eslint-plugin-chai-friendly: "npm:^1.1.0"
-    eslint-plugin-mocha: "npm:^11.2.0"
     eslint-plugin-prettier: "npm:^5.5.4"
     eslint-plugin-tsdoc: "npm:^0.5.0"
     express: "npm:^5.1.0"
@@ -3549,8 +3550,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     marked: "npm:^17.0.1"
     minimatch: "npm:^10.1.1"
-    mocha: "npm:^11.7.5"
-    mocha-junit-reporter: "npm:^2.2.1"
     mocha-multi-reporters: "npm:^1.5.1"
     morgan: "npm:^1.10.1"
     npm-check-updates: "npm:^19.1.2"
@@ -3569,6 +3568,7 @@ __metadata:
     typescript-eslint: "npm:^8.48.0"
     uuid: "npm:^13.0.0"
     vite: "npm:^7.2.4"
+    vitest: "npm:^4.0.14"
     vscode-extension-tester: "npm:^8.19.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.1.0"
@@ -5376,18 +5376,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-mocha@npm:^11.2.0":
-  version: 11.2.0
-  resolution: "eslint-plugin-mocha@npm:11.2.0"
-  dependencies:
-    "@eslint-community/eslint-utils": "npm:^4.4.1"
-    globals: "npm:^15.14.0"
-  peerDependencies:
-    eslint: ">=9.0.0"
-  checksum: 10/7aebf15ed6c78a13167dd9ce3ab36a7cd5e964f167c88121ef64c86a2e2cc41bb37761bf88a66265cc252d0865f727cff4e7bf4106145850e403855b55a7fb71
-  languageName: node
-  linkType: hard
-
 "eslint-plugin-prettier@npm:^5.5.4":
   version: 5.5.4
   resolution: "eslint-plugin-prettier@npm:5.5.4"
@@ -6305,13 +6293,6 @@ __metadata:
   version: 14.0.0
   resolution: "globals@npm:14.0.0"
   checksum: 10/03939c8af95c6df5014b137cac83aa909090c3a3985caef06ee9a5a669790877af8698ab38007e4c0186873adc14c0b13764acc754b16a754c216cc56aa5f021
-  languageName: node
-  linkType: hard
-
-"globals@npm:^15.14.0":
-  version: 15.15.0
-  resolution: "globals@npm:15.15.0"
-  checksum: 10/7f561c87b2fd381b27fc2db7df8a4ea7a9bb378667b8a7193e61fd2ca3a876479174e2a303a74345fbea6e1242e16db48915c1fd3bf35adcf4060a795b425e18
   languageName: node
   linkType: hard
 
