@@ -367,13 +367,13 @@ which you can learn more about at
 
 The extension includes an MCP server that enables AI assistants and LLM-powered tools to interact with Ansible development workflows. The MCP server provides 11 specialized tools (across multiple branches) for:
 
-- 🔍 Ansible playbook linting with automatic fixes
-- 🛠️ Development environment setup and management
-- 📦 Project scaffolding (playbooks and collections)
-- 🐳 Execution environment generation with schema validation
-- 📊 Environment diagnostics and information
-- 🚀 Playbook execution with ansible-navigator (auto-detection, Podman handling)
-- 📖 Ansible content best practices and guidelines
+- Ansible playbook linting with automatic fixes
+- Development environment setup and management
+- Project scaffolding (playbooks and collections)
+- Execution environment generation with schema validation
+- Environment diagnostics and information
+- Playbook execution with ansible-navigator (auto-detection, Podman handling)
+- Ansible content best practices and guidelines
 
 ### Learn More
 

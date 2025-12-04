@@ -10,29 +10,29 @@ The Model Context Protocol (MCP) is an open protocol that standardizes how AI ap
 
 The Ansible MCP Server provides the following capabilities:
 
-### 📚 Information & Documentation
+### Information & Documentation
 
 - **Zen of Ansible**: Access Ansible's design philosophy and principles
 - **Best Practices**: Get comprehensive guidelines for writing quality Ansible content
 - **Tool Discovery**: List all available MCP tools and their capabilities
 
-### 🔧 Environment Management
+### Environment Management
 
 - **Environment Info**: Check Python, Ansible, and development tool versions
 - **Setup Automation**: Automatically configure virtual environments and install dependencies
 - **Tool Installation**: Install and verify Ansible Development Tools (ADT)
 
-### 🏗️ Project Scaffolding
+### Project Scaffolding
 
 - **Playbook Creation**: Generate new Ansible playbooks with proper structure
 - **Collection Creation**: Scaffold new Ansible collections with best practices
 
-### ✅ Code Quality
+### Code Quality
 
 - **Ansible Lint**: Automated linting with fix capabilities
 - **Execution Environment Builder**: Create and validate execution environment definitions
 
-### ▶️ Playbook Execution
+### Playbook Execution
 
 - **Ansible Navigator**: Execute playbooks with smart environment detection and container management
 
