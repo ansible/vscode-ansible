@@ -26,19 +26,18 @@
 | `zen_of_ansible`                  | -                     | -                                                                                                              | Ansible philosophy text          |
 | `ansible_content_best_practices`  | -                     | -                                                                                                              | Best practices guidelines        |
 | `list_available_tools`            | -                     | -                                                                                                              | Tool list                        |
-| `ansible_lint`                    | `filePath` ⚠️        | `fix` ⭕                                                                                                       | Lint results                     |
+| `ansible_lint`                    | `filePath` *        | `fix`                                                                                                       | Lint results                     |
 | `ade_environment_info`            | -                     | -                                                                                                              | Environment info                 |
-| `ade_setup_environment`           | -                     | `envName` ⭕, `pythonVersion` ⭕, `collections` ⭕, `installRequirements` ⭕, `requirementsFile` ⭕            | Setup results                    |
+| `ade_setup_environment`           | -                     | `envName`, `pythonVersion`, `collections`, `installRequirements`, `requirementsFile`            | Setup results                    |
 | `adt_check_env`                   | -                     | -                                                                                                              | Installation status              |
-| `ansible_create_playbook`         | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
-| `ansible_create_collection`       | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
-| `define_and_build_execution_env`  | `baseImage` ⚠️, `tag` ⚠️ | `destinationPath` ⭕, `collections` ⭕, `systemPackages` ⭕, `pythonPackages` ⭕, `generatedYaml` ⭕    | Prompt or file creation result   |
-| `ansible_navigator`               | `userMessage` ⚠️*    | `filePath` ⭕, `mode` ⭕, `environment` ⭕, `disableExecutionEnvironment` ⭕                                    | Playbook execution results or usage guide |
+| `ansible_create_playbook`         | `name` *            | `path`                                                                                                      | Creation status                  |
+| `ansible_create_collection`       | `name` *            | `path`                                                                                                      | Creation status                  |
+| `define_and_build_execution_env`  | `baseImage`\*, `tag`\* | `destinationPath`, `collections`, `systemPackages`, `pythonPackages`, `generatedYaml`    | Prompt or file creation result   |
+| `ansible_navigator`               | `userMessage` *    | `filePath`, `mode`, `environment`, `disableExecutionEnvironment`                                    | Playbook execution results or usage guide |
 
 *Required for execution mode; optional for information mode
 
-⚠️ = Required
-⭕ = Optional
+\* = Required parameter
 
 ### Resources Summary
 
@@ -489,7 +488,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "🔍 Environment Information\n==================================================\n\n📁 Workspace: /workspace\n🐍 Python: Python 3.11.5\n🔧 Virtual Environment: /workspace/venv (not active)\n\n📦 Ansible Tools:\n  • Ansible: ansible [core 2.15.0]\n  • Ansible Lint: ansible-lint 6.14.3\n\n🛠️ Development Tools:\n  • ADE: ✅ Installed\n  • ADT: ✅ Installed\n\n📚 Installed Collections:\n  • amazon.aws 6.0.0\n  • ansible.utils 2.10.0\n  • community.general 7.0.0"
+        "text": "Environment Information\n==================================================\n\nWorkspace: /workspace\nPython: Python 3.11.5\nVirtual Environment: /workspace/venv (not active)\n\nAnsible Tools:\n  • Ansible: ansible [core 2.15.0]\n  • Ansible Lint: ansible-lint 6.14.3\n\nDevelopment Tools:\n  • ADE: Installed\n  • ADT: Installed\n\nInstalled Collections:\n  • amazon.aws 6.0.0\n  • ansible.utils 2.10.0\n  • community.general 7.0.0"
       }
     ]
   }
@@ -519,11 +518,11 @@ The server provides 11 tools organized into the following categories:
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `envName` | string | ⭕ Optional | "venv" | Name for the virtual environment directory |
-| `pythonVersion` | string | ⭕ Optional | "python3" | Python version to use (e.g., "3.11", "3.12") |
-| `collections` | string[] | ⭕ Optional | [] | Array of Ansible collection names to install |
-| `installRequirements` | boolean | ⭕ Optional | false | Whether to install from requirements.txt/requirements.yml |
-| `requirementsFile` | string | ⭕ Optional | undefined | Path to specific requirements file |
+| `envName` | string | | "venv" | Name for the virtual environment directory |
+| `pythonVersion` | string | | "python3" | Python version to use (e.g., "3.11", "3.12") |
+| `collections` | string[] | | [] | Array of Ansible collection names to install |
+| `installRequirements` | boolean | | false | Whether to install from requirements.txt/requirements.yml |
+| `requirementsFile` | string | | undefined | Path to specific requirements file |
 
 **Request (Basic):**
 
@@ -568,7 +567,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "Checking for conflicting packages...\n✅ No conflicting packages detected\n\nChecking ansible-lint status...\n✅ ansible-lint is working properly\nVersion: ansible-lint 6.14.3\n\n✅ Virtual environment created successfully\nInstalling Ansible tools in virtual environment...\n✅ ansible-lint and ansible-core installed in virtual environment\n✅ Collections installed successfully\n\n🔧 To activate the virtual environment, run:\n   source /workspace/ansible-dev/bin/activate\n\n🔧 To deactivate the virtual environment, run:\n   deactivate\n\nPerforming final verification...\n✅ Final verification passed - ansible-lint is working in virtual environment"
+        "text": "Checking for conflicting packages...\nNo conflicting packages detected\n\nChecking ansible-lint status...\nansible-lint is working properly\nVersion: ansible-lint 6.14.3\n\nVirtual environment created successfully\nInstalling Ansible tools in virtual environment...\nansible-lint and ansible-core installed in virtual environment\nCollections installed successfully\n\nTo activate the virtual environment, run:\n   source /workspace/ansible-dev/bin/activate\n\nTo deactivate the virtual environment, run:\n   deactivate\n\nPerforming final verification...\nFinal verification passed - ansible-lint is working in virtual environment"
       }
     ]
   }
@@ -620,7 +619,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "✅ ADT (ansible-dev-tools) is already installed"
+        "text": "ADT (ansible-dev-tools) is already installed"
       }
     ]
   }
@@ -637,7 +636,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "✅ ADT (ansible-dev-tools) installed successfully"
+        "text": "ADT (ansible-dev-tools) installed successfully"
       }
     ]
   }
@@ -683,8 +682,8 @@ The server provides 11 tools organized into the following categories:
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | ⚠️ **Required** | - | Name for the new playbook |
-| `path` | string | ⭕ Optional | undefined | Destination directory path |
+| `name` | string | * | - | Name for the new playbook |
+| `path` | string | | undefined | Destination directory path |
 
 **Implementation:**
 Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
@@ -716,7 +715,7 @@ Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
     "content": [
       {
         "type": "text",
-        "text": "✅ ansible-creator init playbook completed successfully\n\nOutput:\n[ansible-creator output]"
+        "text": "ansible-creator init playbook completed successfully\n\nOutput:\n[ansible-creator output]"
       }
     ]
   }
@@ -753,8 +752,8 @@ Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | ⚠️ **Required** | - | Name for the new collection (namespace.collection format) |
-| `path` | string | ⭕ Optional | undefined | Destination directory path |
+| `name` | string | * | - | Name for the new collection (namespace.collection format) |
+| `path` | string | | undefined | Destination directory path |
 
 **Implementation:**
 Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]`
@@ -786,7 +785,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "✅ ansible-creator init collection completed successfully\n\nOutput:\n[ansible-creator output]"
+        "text": "ansible-creator init collection completed successfully\n\nOutput:\n[ansible-creator output]"
       }
     ]
   }
@@ -827,8 +826,8 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `filePath` | string | ⚠️ **Required** | - | Absolute or relative path to the Ansible playbook file to lint |
-| `fix` | boolean | ⭕ Optional | undefined | If `true`, applies automatic fixes using `ansible-lint --fix`. If `undefined`, prompts user for preference. If `false`, runs lint without fixes. |
+| `filePath` | string | * | - | Absolute or relative path to the Ansible playbook file to lint |
+| `fix` | boolean | | undefined | If `true`, applies automatic fixes using `ansible-lint --fix`. If `undefined`, prompts user for preference. If `false`, runs lint without fixes. |
 
 **Request (Without Fix):**
 
@@ -873,7 +872,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "Linting completed for file: /workspace/playbooks/deploy.yml\n✅ No issues found."
+        "text": "Linting completed for file: /workspace/playbooks/deploy.yml\nNo issues found."
       }
     ]
   }
@@ -941,13 +940,13 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `baseImage` | string | ⚠️ **Required** | - | Base container image (e.g., 'quay.io/fedora/fedora-minimal:41') |
-| `tag` | string | ⚠️ **Required** | - | Tag/name for resulting image (e.g., 'my-ee:latest') |
-| `destinationPath` | string | ⭕ Optional | WORKSPACE_ROOT | Destination directory for execution-environment.yml |
-| `collections` | string[] | ⭕ Optional | [] | Ansible collection names to include |
-| `systemPackages` | string[] | ⭕ Optional | [] | System packages to install |
-| `pythonPackages` | string[] | ⭕ Optional | [] | Python packages to install |
-| `generatedYaml` | string | ⭕ Optional | undefined | Internal: LLM-generated YAML content (for step 2) |
+| `baseImage` | string | * | - | Base container image (e.g., 'quay.io/fedora/fedora-minimal:41') |
+| `tag` | string | * | - | Tag/name for resulting image (e.g., 'my-ee:latest') |
+| `destinationPath` | string | | WORKSPACE_ROOT | Destination directory for execution-environment.yml |
+| `collections` | string[] | | [] | Ansible collection names to include |
+| `systemPackages` | string[] | | [] | System packages to install |
+| `pythonPackages` | string[] | | [] | Python packages to install |
+| `generatedYaml` | string | | undefined | Internal: LLM-generated YAML content (for step 2) |
 
 **Step 1 - Missing Required Parameters:**
 
@@ -1053,7 +1052,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "✅ Execution environment file created successfully at /workspace/execution-environment.yml\n\n✓ The generated file has been validated against the execution environment schema.\n\n📄 Generated execution-environment.yml:\n```yaml\nversion: 3\nimages:\n  base_image:\n    name: quay.io/fedora/fedora-minimal:41\ndependencies:\n  galaxy: requirements.yml\n  python: requirements.txt\n  system: bindep.txt\nadditional_build_steps:\n  prepend_base:\n    - RUN dnf install -y git\n```\n\n🔨 **To build the execution environment image, run:**\n```bash\nansible-builder build --file /workspace/execution-environment.yml --context /workspace/context --tag my-ee:latest -vvv\n```\n\n**Note:** Before building, ensure you have:\n- ansible-builder installed (install via: pip install ansible-builder or via ADT)\n- A container runtime (podman or docker) installed and running\n- Sufficient permissions to build container images\n\n**Additional commands you might want to use:**\n- Create build context only: `ansible-builder create --file /workspace/execution-environment.yml --context /workspace/context`\n- Build with custom tag: `ansible-builder build --file /workspace/execution-environment.yml --context /workspace/context --tag your-custom-tag`\n\n**AGENT INSTRUCTIONS:**\n--Ask the user if the agent should run the command for them\n--If yes, run the build command and provide feedback\n--When the build completes summarize the image and build results\n--If the build fails, fix the issue and re-run the build"
+        "text": "Execution environment file created successfully at /workspace/execution-environment.yml\n\nThe generated file has been validated against the execution environment schema.\n\nGenerated execution-environment.yml:\n```yaml\nversion: 3\nimages:\n  base_image:\n    name: quay.io/fedora/fedora-minimal:41\ndependencies:\n  galaxy: requirements.yml\n  python: requirements.txt\n  system: bindep.txt\nadditional_build_steps:\n  prepend_base:\n    - RUN dnf install -y git\n```\n\n**To build the execution environment image, run:**\n```bash\nansible-builder build --file /workspace/execution-environment.yml --context /workspace/context --tag my-ee:latest -vvv\n```\n\n**Note:** Before building, ensure you have:\n- ansible-builder installed (install via: pip install ansible-builder or via ADT)\n- A container runtime (podman or docker) installed and running\n- Sufficient permissions to build container images\n\n**Additional commands you might want to use:**\n- Create build context only: `ansible-builder create --file /workspace/execution-environment.yml --context /workspace/context`\n- Build with custom tag: `ansible-builder build --file /workspace/execution-environment.yml --context /workspace/context --tag your-custom-tag`\n\n**AGENT INSTRUCTIONS:**\n--Ask the user if the agent should run the command for them\n--If yes, run the build command and provide feedback\n--When the build completes summarize the image and build results\n--If the build fails, fix the issue and re-run the build"
       }
     ]
   }
@@ -1070,7 +1069,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "✅ Execution environment file created successfully at /workspace/execution-environment.yml\n\n⚠️ **Schema Validation Warnings:**\n- /dependencies/galaxy should be object or string\n- /images missing required property 'base_image.name'\n\nThe file was generated but may not fully comply with the schema. Please review.\n\n[rest of response]"
+        "text": "Execution environment file created successfully at /workspace/execution-environment.yml\n\n**Schema Validation Warnings:**\n- /dependencies/galaxy should be object or string\n- /images missing required property 'base_image.name'\n\nThe file was generated but may not fully comply with the schema. Please review.\n\n[rest of response]"
       }
     ]
   }
@@ -1101,11 +1100,11 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `userMessage` | string | ⚠️ **Required*** | - | The user's original message/prompt for playbook execution. Tool parses it to extract playbook filename. |
-| `filePath` | string | ⭕ Optional | undefined | Advanced: Direct file path to playbook (takes precedence over userMessage parsing) |
-| `mode` | string | ⭕ Optional | "stdout" | Output mode: 'stdout' (direct terminal output) or 'interactive' (TUI for exploration) |
-| `environment` | string | ⭕ Optional | "auto" | Environment selection: 'auto' (check PATH then venv), 'system' (only PATH), 'venv' (only virtual env), or specific venv name/path |
-| `disableExecutionEnvironment` | boolean | ⭕ Optional | false | Set to `true` to disable execution environments (passes --ee false). Use if encountering Podman/Docker errors. |
+| `userMessage` | string | * | - | The user's original message/prompt for playbook execution. Tool parses it to extract playbook filename. |
+| `filePath` | string | | undefined | Advanced: Direct file path to playbook (takes precedence over userMessage parsing) |
+| `mode` | string | | "stdout" | Output mode: 'stdout' (direct terminal output) or 'interactive' (TUI for exploration) |
+| `environment` | string | | "auto" | Environment selection: 'auto' (check PATH then venv), 'system' (only PATH), 'venv' (only virtual env), or specific venv name/path |
+| `disableExecutionEnvironment` | boolean | | false | Set to `true` to disable execution environments (passes --ee false). Use if encountering Podman/Docker errors. |
 
 *Required for execution mode; can be empty `{}` for information mode.
 
@@ -1137,7 +1136,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "# Ansible Navigator - Features & Usage Guide\n\n## 📋 Output Modes\n- **stdout** (used by this tool) - Direct terminal output\n- **interactive** - Text-based UI for exploring execution\n\n## 🖥️ Execution Environments\n- **VM/Podman** (default) - Runs in isolated container\n- **Local Ansible** (with --ee false) - Uses local installation\n..."
+        "text": "# Ansible Navigator - Features & Usage Guide\n\n## Output Modes\n- **stdout** (used by this tool) - Direct terminal output\n- **interactive** - Text-based UI for exploring execution\n\n## Execution Environments\n- **VM/Podman** (default) - Runs in isolated container\n- **Local Ansible** (with --ee false) - Uses local installation\n..."
       }
     ]
   }
@@ -1191,7 +1190,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "ansible-navigator run completed for file: /workspace/playbooks/play1.yml:\n\n✅ **Playbook executed successfully!**\n\n**📋 Configuration Used:**\n- **Output Mode:** stdout (default - shows full output)\n- **Environment:** auto (auto-detected) → /workspace/venv\n- **Execution Environment:** disabled (using local Ansible)\n\n**ℹ️  What This Means:**\n- Detected virtual environment, so execution environment was automatically disabled\n- Using your local Ansible installation from the venv\n\n**🔧 Want to customize? Just ask me to:**\n- \"Run with minimal output\" → Uses stdout-minimal mode\n- \"Run in interactive mode\" → Uses interactive TUI\n- \"Use venv\" → Forces virtual environment\n- \"Use system ansible\" → Forces system PATH\n- \"Disable execution environment\" → Uses local Ansible (no Podman)\n\nOutput:\n[ansible-navigator output]"
+        "text": "ansible-navigator run completed for file: /workspace/playbooks/play1.yml:\n\n**Playbook executed successfully!**\n\n**Configuration Used:**\n- **Output Mode:** stdout (default - shows full output)\n- **Environment:** auto (auto-detected) → /workspace/venv\n- **Execution Environment:** disabled (using local Ansible)\n\n**What This Means:**\n- Detected virtual environment, so execution environment was automatically disabled\n- Using your local Ansible installation from the venv\n\n**Want to customize? Just ask me to:**\n- \"Run with minimal output\" → Uses stdout-minimal mode\n- \"Run in interactive mode\" → Uses interactive TUI\n- \"Use venv\" → Forces virtual environment\n- \"Use system ansible\" → Forces system PATH\n- \"Disable execution environment\" → Uses local Ansible (no Podman)\n\nOutput:\n[ansible-navigator output]"
       }
     ]
   }
@@ -1254,11 +1253,11 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 **Smart Features:**
 
-- 🔍 Auto-detects playbook files from user's message
-- 🐳 Handles Podman/Docker errors automatically (retries with --ee false)
-- 🔧 Environment auto-detection (PATH, venv, system)
-- 📊 Clean, formatted output with configuration details
-- 💡 Explains what happened and how to customize settings
+- Auto-detects playbook files from user's message
+- Handles Podman/Docker errors automatically (retries with --ee false)
+- Environment auto-detection (PATH, venv, system)
+- Clean, formatted output with configuration details
+- Explains what happened and how to customize settings
 
 **Security:**
 
