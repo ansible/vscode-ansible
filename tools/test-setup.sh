@@ -70,7 +70,7 @@ fi
 
 if [[ "${OSTYPE:-}" == darwin* ]]; then
     # coreutils provides 'timeout' command
-    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install -q libssh coreutils
+    HOMEBREW_NO_ENV_HINTS=1 brew install -q libssh coreutils
 fi
 
 is_podman_running() {

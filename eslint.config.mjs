@@ -10,6 +10,7 @@ import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
+import mochaPlugin from "eslint-plugin-mocha";
 import { defineConfig } from "eslint/config";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -67,8 +68,10 @@ export default defineConfig(
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
       tsdoc: tsdocPlugin,
+      mocha: mochaPlugin,
     },
     rules: {
+      "mocha/max-top-level-suites": ["warn", { limit: 1 }],
       eqeqeq: ["error", "smart"],
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",

@@ -215,7 +215,8 @@ tasks:
     generates:
       - out/coverage/unit/lcov.info
     cmds:
-      - vitest run
+      - c8 --config test/unit/.c8rc.json mocha {{ .MOCHA_OPTS }}
+      - npm run unit-tests-vitest-coverage
     interactive: true
   package:
     desc: Package extension
@@ -272,4 +273,4 @@ tasks:
     deps:
       - package
     cmds:
-      - vitest list
+      - mocha --dry-run

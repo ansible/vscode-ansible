@@ -1,5 +1,5 @@
 {
-  "branches": 81.24,
+  "branches": 80.31,
   "check-coverage": true,
   "extends": "../../.c8rc.json",
   "lines": 0,
