@@ -472,6 +472,7 @@ export class WebviewMessageHandlers {
     await thumbsUpDown(
       message.data.action ?? ThumbsUpDownAction.UP,
       message.data.explanationId,
+      message.data.explanationType ?? "playbook",
     );
   }
 
@@ -479,6 +480,7 @@ export class WebviewMessageHandlers {
     await thumbsUpDown(
       message.data.action ?? ThumbsUpDownAction.DOWN,
       message.data.explanationId,
+      message.data.explanationType ?? "playbook",
     );
   }
 

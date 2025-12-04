@@ -238,8 +238,13 @@ export async function generatePlaybook(
 export async function thumbsUpDown(
   action: ThumbsUpDownAction,
   explanationId: string,
+  explanationType: "playbook" | "role" = "playbook",
 ) {
-  commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+    const commandName = explanationType === "role" 
+    ? "ansible.lightspeed.roleThumbsUpDown"
+    : "ansible.lightspeed.thumbsUpDown";
+
+  commands.executeCommand(commandName, {
     action: action,
     explanationId: explanationId,
   });
