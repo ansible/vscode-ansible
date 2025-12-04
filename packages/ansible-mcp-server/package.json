@@ -38,13 +38,11 @@
   "license": "MIT",
   "main": "./out/server/src/server.js",
   "name": "@ansible/ansible-mcp-server",
-  "overrides": {
-    "zod": "^3.23.8"
-  },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "build": "npm run clean && npm run compile",
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p . && npm run copy-resources",
     "copy-resources": "mkdir -p out/server/src/resources/data && cp -r src/resources/data/* out/server/src/resources/data/ 2>/dev/null || true",
