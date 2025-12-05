@@ -855,14 +855,14 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       // Execute the tool handler
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handlers = (server as any)._registeredTools;
-      if (handlers && handlers[toolName]?.callback) {
+      if (handlers && handlers[toolName]?.handler) {
         // Pass workspaceRoot to handlers that need it (like ansible_navigator)
         const handlerArgs = request.params.arguments || {};
 
         if (toolName === "ansible_navigator") {
-          return await handlers[toolName].callback(handlerArgs, workspaceRoot);
+          return await handlers[toolName].handler(handlerArgs, workspaceRoot);
         }
-        return await handlers[toolName].callback(handlerArgs);
+        return await handlers[toolName].handler(handlerArgs);
       }
 
       // Log available tools for debugging

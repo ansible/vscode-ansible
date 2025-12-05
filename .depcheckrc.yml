@@ -1,11 +1,13 @@
 # https://github.com/yarnpkg/yarn/issues/3368
 ignores:
-  - "@ansible/ansible-mcp-server"
   - "@ansible/ansible-language-server"
-  - "@types/vscode-webview" # provides VSCodeAPI
+  - "@ansible/ansible-mcp-server"
   - "@types/vscode"  # determined by (package.json).engines.vscode
+  - "@types/vscode-webview" # provides VSCodeAPI
+  - "@vitest/coverage-v8"
   - "@vscode/test-electron" # used by @vscode/test-cli
   - "@vscode/vsce"
+  - "@vitest/coverage-v8" # used by vitest.config.ts coverage provider
   - cypress-multi-reporters
   - depcheck
   - electron
@@ -23,3 +25,4 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
+  - "@typescript-eslint/eslint-plugin" # used by eslint.config.mjs
