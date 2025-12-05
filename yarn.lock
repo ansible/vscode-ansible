@@ -6,9 +6,9 @@ __metadata:
   cacheKey: 10
 
 "@acemir/cssom@npm:^0.9.23":
-  version: 0.9.25
-  resolution: "@acemir/cssom@npm:0.9.25"
-  checksum: 10/d5ca0a02d3ba3a9beae3ec48ebd5afd74df5b1cc12344ac7cb1954b426828fa67b5bfa236a5f3c95ec393e5a05d47cec21410a3cf0bdd2bf02a6d2311a14572f
+  version: 0.9.26
+  resolution: "@acemir/cssom@npm:0.9.26"
+  checksum: 10/f12183e84aef1b78ce7ebd4c89a55f78a4f14bc46ed8344995c59587b8aa1cb8c070ebcc6a160db22285a82e1b1755435dce2a91d2bbcefd21ef52f97e3adfee
   languageName: node
   linkType: hard
 
@@ -4921,9 +4921,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.263":
-  version: 1.5.264
-  resolution: "electron-to-chromium@npm:1.5.264"
-  checksum: 10/83722da6fec39a3b1561a3d1087e726f9366339330891786de0af87cbaacc5c8484cc70ea2687c2c0e7ea702d4f56c45ec28dc5a831315b8f40ebd0da839ffa8
+  version: 1.5.265
+  resolution: "electron-to-chromium@npm:1.5.265"
+  checksum: 10/036506cf160fcb6e77cf3cde4b5720978fd19ccd75dbd8ceddaf7b81256549866a43efd2848b6a99c44a16d42869c05eecfc4376c4a54c3c501853e6aa756473
   languageName: node
   linkType: hard
 
