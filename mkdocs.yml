@@ -42,6 +42,7 @@ nav:
   - Ansible MCP Server:
       - index: mcp/README.md
       - API Reference: mcp/api.md
+      - Developer Guide: mcp/development.md
   - Configuration: configuration.md
   - Developer Guide:
       - development/index.md
