@@ -792,7 +792,7 @@
         {
           "icon": "$(comment-discussion)",
           "id": "lightspeed-feedback-webview",
-          "name": "Ansible Lightspeed Feedback",
+          "name": "Ansible Lightspeed WCA Provider Feedback",
           "type": "webview",
           "when": "config.ansible.lightspeed.enabled"
         }
