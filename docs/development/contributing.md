@@ -27,3 +27,15 @@ main branch commit while also generating live docs previews for each pull
 request.
 
 [rtd]: https://readthedocs.org
+
+## MCP Server
+
+The Ansible MCP Server is located in `packages/ansible-mcp-server/`.
+
+To run MCP-specific tests:
+
+```bash
+task mcp:test
+```
+
+For detailed guidance on adding new tools, resources, and writing MCP tests, see the [MCP Developer Guide](../mcp/development.md).
