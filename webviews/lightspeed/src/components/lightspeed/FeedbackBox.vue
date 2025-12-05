@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { vscodeApi } from "../../utils";
+import { ThumbsUpDownAction } from "../../../../../src/definitions/lightspeed";
 
 const props = defineProps({
   explanationId: {
@@ -13,6 +14,7 @@ const selectedFeedback = ref<"thumbsUp" | "thumbsDown" | null>(null);
 
 function handleThumbsUp() {
   vscodeApi.post("explanationThumbsUp", {
+    action: ThumbsUpDownAction.UP,
     explanationId: props.explanationId,
   });
   selectedFeedback.value = "thumbsUp";
@@ -20,6 +22,7 @@ function handleThumbsUp() {
 
 function handleThumbsDown() {
   vscodeApi.post("explanationThumbsDown", {
+    action: ThumbsUpDownAction.DOWN,
     explanationId: props.explanationId,
   });
   selectedFeedback.value = "thumbsDown";

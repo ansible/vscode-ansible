@@ -21,6 +21,7 @@ import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { LightspeedUser } from "./lightspeedUser";
 import { Log } from "../../utils/logger";
 import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
+import { ProviderManager } from "./providerManager";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +38,7 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
+  public providerManager: ProviderManager;
   private logger: Log;
 
   constructor(
@@ -75,6 +77,13 @@ export class LightSpeedManager {
       this.context,
       this.logger,
     );
+
+    // Initialize the provider manager for routing requests to WCA or LLM providers
+    this.providerManager = new ProviderManager(
+      this.settingsManager,
+      this.apiInstance,
+    );
+
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.settingsManager,
@@ -93,6 +102,7 @@ export class LightSpeedManager {
     this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
       context.extensionUri,
       this.lightspeedAuthenticatedUser,
+      this.settingsManager,
     );
     const lightspeedExplorerDisposable =
       vscode.window.registerWebviewViewProvider(
