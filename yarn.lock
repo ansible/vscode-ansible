@@ -41,7 +41,7 @@ __metadata:
     vscode-languageserver: "npm:^9.0.1"
     vscode-languageserver-textdocument: "npm:^1.0.12"
     vscode-uri: "npm:^3.1.0"
-    yaml: "npm:^2.8.1"
+    yaml: "npm:^2.8.2"
   bin:
     ansible-language-server: bin/ansible-language-server
   languageName: unknown
@@ -51,17 +51,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ansible/ansible-mcp-server@workspace:packages/ansible-mcp-server"
   dependencies:
-    "@modelcontextprotocol/sdk": "npm:1.24.2"
+    "@modelcontextprotocol/sdk": "npm:1.24.3"
     "@types/node": "npm:^24.10.1"
-    "@vitest/coverage-v8": "npm:^4.0.14"
-    "@vitest/ui": "npm:^4.0.4"
+    "@vitest/coverage-v8": "npm:^4.0.15"
+    "@vitest/ui": "npm:^4.0.15"
     ajv: "npm:^8.17.1"
     ajv-formats: "npm:^3.0.1"
     rimraf: "npm:^6.1.2"
-    tsx: "npm:^4.20.6"
+    tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
-    vitest: "npm:^4.0.14"
-    yaml: "npm:^2.8.1"
+    vitest: "npm:^4.0.15"
+    yaml: "npm:^2.8.2"
     zod: "npm:^3.23.8"
   bin:
     ansible-mcp-server: out/server/src/cli.js
@@ -1244,9 +1244,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/sdk@npm:1.24.2":
-  version: 1.24.2
-  resolution: "@modelcontextprotocol/sdk@npm:1.24.2"
+"@modelcontextprotocol/sdk@npm:1.24.3":
+  version: 1.24.3
+  resolution: "@modelcontextprotocol/sdk@npm:1.24.3"
   dependencies:
     ajv: "npm:^8.17.1"
     ajv-formats: "npm:^3.0.1"
@@ -1270,7 +1270,7 @@ __metadata:
       optional: true
     zod:
       optional: false
-  checksum: 10/3411ade6e64188eeb7c68946a08f65040a5604f7bd7fe828647d73d037103214d8372f2e9f48c988bfec55dc273be8b4915498bc820bed0a61c0d53d0a5dc8a0
+  checksum: 10/661aea493ee06674edc0d1409d5ff6e53053da2c3eb27d28ecdd5aa212d9d6bac8c00bec1cd18c1065f2d5774afef34e3cdcd19643056f954c14f611fee8cbc4
   languageName: node
   linkType: hard
 
@@ -2149,7 +2149,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:^4.17.20, @types/lodash@npm:^4.17.21":
+"@types/lodash@npm:*, @types/lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "@types/lodash@npm:4.17.21"
   checksum: 10/34920830a3bc82ba619cda05e606fef00c148a69b4f19f770645d2587ccdb8e42ef3ddfc174b7884c0c709fc0a1aeb48f7326da969bad12a1464a03efbbe414c
@@ -2367,7 +2367,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:8.48.1, @typescript-eslint/eslint-plugin@npm:^8.46.3":
+"@typescript-eslint/eslint-plugin@npm:8.48.1, @typescript-eslint/eslint-plugin@npm:^8.48.1":
   version: 8.48.1
   resolution: "@typescript-eslint/eslint-plugin@npm:8.48.1"
   dependencies:
@@ -2388,7 +2388,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:8.48.1, @typescript-eslint/parser@npm:^8.48.0":
+"@typescript-eslint/parser@npm:8.48.1, @typescript-eslint/parser@npm:^8.48.1":
   version: 8.48.1
   resolution: "@typescript-eslint/parser@npm:8.48.1"
   dependencies:
@@ -2608,7 +2608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-v8@npm:^4.0.14":
+"@vitest/coverage-v8@npm:^4.0.15":
   version: 4.0.15
   resolution: "@vitest/coverage-v8@npm:4.0.15"
   dependencies:
@@ -2703,7 +2703,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/ui@npm:^4.0.4":
+"@vitest/ui@npm:^4.0.15":
   version: 4.0.15
   resolution: "@vitest/ui@npm:4.0.15"
   dependencies:
@@ -3481,7 +3481,7 @@ __metadata:
     "@types/ini": "npm:^4.1.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^27.0.0"
-    "@types/lodash": "npm:^4.17.20"
+    "@types/lodash": "npm:^4.17.21"
     "@types/minimatch": "npm:^6.0.0"
     "@types/morgan": "npm:^1.9.10"
     "@types/node": "npm:^24.10.1"
@@ -3492,11 +3492,11 @@ __metadata:
     "@types/vscode": "npm:^1.85.0"
     "@types/vscode-webview": "npm:^1.57.5"
     "@types/yargs": "npm:^17.0.35"
-    "@typescript-eslint/eslint-plugin": "npm:^8.46.3"
-    "@typescript-eslint/parser": "npm:^8.48.0"
+    "@typescript-eslint/eslint-plugin": "npm:^8.48.1"
+    "@typescript-eslint/parser": "npm:^8.48.1"
     "@vitejs/plugin-vue": "npm:^5.2.4"
-    "@vitest/coverage-v8": "npm:^4.0.14"
-    "@vitest/ui": "npm:^4.0.4"
+    "@vitest/coverage-v8": "npm:^4.0.15"
+    "@vitest/ui": "npm:^4.0.15"
     "@vscode-elements/elements": "npm:^2.0.0"
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.5.2"
@@ -3518,7 +3518,7 @@ __metadata:
     globals: "npm:^16.5.0"
     highlight.js: "npm:^11.11.1"
     ini: "npm:^6.0.0"
-    js-yaml: "npm:^4.1.0"
+    js-yaml: "npm:^4.1.1"
     jsdom: "npm:^27.2.0"
     lodash: "npm:^4.17.21"
     marked: "npm:^17.0.1"
@@ -3527,31 +3527,31 @@ __metadata:
     morgan: "npm:^1.10.1"
     npm-check-updates: "npm:^19.1.2"
     ovsx: "npm:^0.10.7"
-    prettier: "npm:^3.6.2"
+    prettier: "npm:^3.7.4"
     primevue: "npm:4.4.1"
-    react: "npm:^19.2.0"
+    react: "npm:^19.2.1"
     rimraf: "npm:^6.1.2"
     selenium-webdriver: "npm:^4.36.0"
     semver: "npm:^7.7.3"
     sinon: "npm:^21.0.0"
     ts-loader: "npm:^9.5.4"
     ts-node: "npm:^10.9.2"
-    tsx: "npm:^4.20.6"
+    tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
-    typescript-eslint: "npm:^8.48.0"
+    typescript-eslint: "npm:^8.48.1"
     uuid: "npm:^13.0.0"
-    vite: "npm:^7.2.4"
-    vitest: "npm:^4.0.14"
+    vite: "npm:^7.2.6"
+    vitest: "npm:^4.0.15"
     vscode-extension-tester: "npm:^8.19.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.1.0"
-    vue: "npm:^3.5.22"
-    vue-tsc: "npm:^3.1.2"
+    vue: "npm:^3.5.25"
+    vue-tsc: "npm:^3.1.5"
     warnings-to-errors-webpack-plugin: "npm:^2.3.0"
     webpack: "npm:^5.103.0"
     webpack-cli: "npm:^6.0.1"
     winston: "npm:^3.18.3"
-    yaml: "npm:^2.8.1"
+    yaml: "npm:^2.8.2"
     yargs: "npm:^18.0.0"
     yarn-audit-fix: "npm:^10.1.1"
   languageName: unknown
@@ -9075,7 +9075,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.6.2":
+"prettier@npm:^3.7.4":
   version: 3.7.4
   resolution: "prettier@npm:3.7.4"
   bin:
@@ -9251,7 +9251,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.0":
+"react@npm:^19.2.1":
   version: 19.2.1
   resolution: "react@npm:19.2.1"
   checksum: 10/7c7ab0f40b98e87e1466bea8c28564c5f3c384506cbda93d24788d32b40bf6059c991687c7e90a396b11f09223a779a81b1188af9acd839aaa0a672987c13107
@@ -10704,7 +10704,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.20.6":
+"tsx@npm:^4.21.0":
   version: 4.21.0
   resolution: "tsx@npm:4.21.0"
   dependencies:
@@ -10799,7 +10799,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.48.0":
+"typescript-eslint@npm:^8.48.1":
   version: 8.48.1
   resolution: "typescript-eslint@npm:8.48.1"
   dependencies:
@@ -11059,7 +11059,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0, vite@npm:^7.2.4":
+"vite@npm:^6.0.0 || ^7.0.0, vite@npm:^7.2.6":
   version: 7.2.6
   resolution: "vite@npm:7.2.6"
   dependencies:
@@ -11114,7 +11114,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^4.0.14":
+"vitest@npm:^4.0.15":
   version: 4.0.15
   resolution: "vitest@npm:4.0.15"
   dependencies:
@@ -11263,7 +11263,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue-tsc@npm:^3.1.2":
+"vue-tsc@npm:^3.1.5":
   version: 3.1.5
   resolution: "vue-tsc@npm:3.1.5"
   dependencies:
@@ -11277,7 +11277,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vue@npm:^3.5.22":
+"vue@npm:^3.5.25":
   version: 3.5.25
   resolution: "vue@npm:3.5.25"
   dependencies:
@@ -11721,7 +11721,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.8.1":
+"yaml@npm:^2.8.2":
   version: 2.8.2
   resolution: "yaml@npm:2.8.2"
   bin:
