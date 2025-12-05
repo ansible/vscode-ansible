@@ -1,5 +1,6 @@
 import { LLMProvider, ProviderStatus } from "./providers/base";
-import { providerFactory, ProviderType } from "./providers/factory";
+import { providerFactory } from "./providers/factory";
+import { ProviderType } from "../../../src/definitions/lightspeed.js";
 import { SettingsManager } from "../../settings";
 import { LightSpeedAPI } from "./api";
 import {

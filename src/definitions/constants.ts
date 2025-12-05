@@ -83,7 +83,7 @@ Refuse to answer questions not about Ansible.`;
 
 // For task completion (inline suggestions)
 export const ANSIBLE_SYSTEM_PROMPT_COMPLETION =
-  "You are an Ansible expert. Return a single task that best completes the partial playbook. Return only the task as YAML. Do not return multiple tasks. Do not explain your response. Do not include the prompt in your response.";
+  "You are an Ansible code completion assistant. Generate ONLY valid Ansible YAML task content to continue from where the input ends. Do not include explanations, markdown formatting, or complete playbooks. Only output the task YAML continuation.";
 
 // For playbook explanation
 export const ANSIBLE_SYSTEM_PROMPT_EXPLANATION = `You're an Ansible expert.

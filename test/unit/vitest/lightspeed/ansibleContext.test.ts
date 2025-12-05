@@ -181,6 +181,21 @@ describe("AnsibleContextProcessor", () => {
       expect(result).toContain("- name: Install nginx");
     });
 
+    it("should handle prompt that already has task structure with module pattern", () => {
+      const prompt = "- ansible.builtin.debug:\n    msg: test";
+      const context: AnsibleContext = {
+        fileType: "tasks",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("- ansible.builtin.debug:");
+    });
+
     it("should handle empty context string", () => {
       const prompt = TEST_PROMPTS.INSTALL_NGINX;
       const context: AnsibleContext = {
@@ -194,6 +209,37 @@ describe("AnsibleContextProcessor", () => {
       );
 
       expect(result).toContain(prompt);
+    });
+
+    it("should handle YAML that parses to null", () => {
+      const prompt = "null";
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("null");
+    });
+
+    it("should handle YAML parsing errors gracefully", () => {
+      const prompt = "invalid: [unclosed bracket";
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("invalid: [unclosed bracket");
+      expect(console.warn).toHaveBeenCalled();
     });
   });
 
@@ -411,6 +457,22 @@ describe("AnsibleContextProcessor", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it("should reject task missing name or module", () => {
+      const content = "---\n- _meta: {}\n  _some_other: value";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Task missing name or module");
+    });
+
+    it("should reject invalid playbook or role structure", () => {
+      const content = "---\ninvalid_key: value\nanother_key: test";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid playbook or role structure");
     });
   });
 

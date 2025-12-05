@@ -5,39 +5,9 @@ import {
   GOOGLE_API_ENDPOINT,
   WCA_API_ENDPOINT_DEFAULT,
   GOOGLE_DEFAULT_MODEL,
+  ProviderType,
 } from "../../../definitions/lightspeed";
-
-export type ProviderType = "wca" | "google";
-
-export interface ProviderFactory {
-  createProvider(
-    type: ProviderType,
-    config: LightSpeedServiceSettings,
-  ): LLMProvider;
-  getSupportedProviders(): ProviderInfo[];
-  validateProviderConfig(
-    type: ProviderType,
-    config: LightSpeedServiceSettings,
-  ): boolean;
-}
-
-export interface ProviderInfo {
-  type: ProviderType;
-  name: string;
-  displayName: string;
-  description: string;
-  configSchema: ConfigField[];
-  defaultEndpoint?: string;
-}
-
-export interface ConfigField {
-  key: string;
-  label: string;
-  type: "string" | "password" | "number" | "boolean";
-  required: boolean;
-  placeholder?: string;
-  description?: string;
-}
+import { ProviderFactory, ProviderInfo } from "../../../interfaces/lightspeed";
 
 export class LLMProviderFactory implements ProviderFactory {
   private static instance: LLMProviderFactory;

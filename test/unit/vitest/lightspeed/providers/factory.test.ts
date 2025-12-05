@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  LLMProviderFactory,
-  ProviderType,
-} from "../../../../../src/features/lightspeed/providers/factory.js";
+import { LLMProviderFactory } from "../../../../../src/features/lightspeed/providers/factory.js";
+import { ProviderType } from "../../../../../src/definitions/lightspeed.js";
 import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "../testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
@@ -76,6 +74,20 @@ describe("LLMProviderFactory", () => {
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
         }).toThrow("API Key is required for Google Gemini");
+      });
+
+      it("should throw error when custom API endpoint is provided", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL,
+          apiEndpoint: "https://custom-endpoint.example.com",
+        };
+
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        }).toThrow(
+          "Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.",
+        );
       });
     });
 

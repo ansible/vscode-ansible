@@ -425,6 +425,37 @@ describe("GoogleProvider", () => {
       expect(resultWithoutOutline.outline).toBe("");
     });
 
+    it("should incorporate outline into prompt when provided", async () => {
+      const outline = "1. Setup\n2. Configure";
+      const mockPlaybook = "---\n- name: Install nginx\n  hosts: all";
+      sharedGenerateContent.mockResolvedValue({
+        text: mockPlaybook,
+      });
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_PRO,
+      });
+      const params: GenerationRequestParams = {
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        outline: outline,
+      };
+
+      await provider.generatePlaybook(params);
+
+      expect(mockEnhancePromptForAnsible).toHaveBeenCalledWith(
+        expect.stringContaining(outline),
+        expect.any(String),
+        expect.objectContaining({
+          fileType: "playbook",
+        }),
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining(outline),
+      );
+    });
+
     it("should handle errors and throw with proper message", async () => {
       const error = { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR };
       sharedGenerateContent.mockRejectedValue(error);

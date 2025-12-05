@@ -95,6 +95,9 @@ export const WCA_API_ENDPOINT_DEFAULT = "https://c.ai.ansible.redhat.com";
 // LLM Provider Default Model Names
 export const GOOGLE_DEFAULT_MODEL = "gemini-2.5-flash";
 
+// LLM Provider Types
+export type ProviderType = "wca" | "google";
+
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
 export type LIGHTSPEED_USER_TYPE = "Licensed" | "Unlicensed" | "Not logged in";
