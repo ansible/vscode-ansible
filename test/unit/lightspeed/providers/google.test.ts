@@ -82,17 +82,14 @@ vi.mock("../../../../src/utils/logger", () => {
   };
 });
 
-vi.mock(
-  "../../../../src/features/lightspeed/utils/outlineGenerator",
-  () => ({
-    generateOutlineFromPlaybook: vi.fn(() => {
-      return "1. Task one\n2. Task two";
-    }),
-    generateOutlineFromRole: vi.fn(() => {
-      return "1. Setup task\n2. Configure task";
-    }),
+vi.mock("../../../../src/features/lightspeed/utils/outlineGenerator", () => ({
+  generateOutlineFromPlaybook: vi.fn(() => {
+    return "1. Task one\n2. Task two";
   }),
-);
+  generateOutlineFromRole: vi.fn(() => {
+    return "1. Setup task\n2. Configure task";
+  }),
+}));
 
 // Reset mocks before each test
 beforeEach(() => {
