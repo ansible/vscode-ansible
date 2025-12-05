@@ -4,7 +4,10 @@ import {
   WizardGenerationActionType,
   ThumbsUpDownAction,
   UserAction,
+  ProviderType,
 } from "../definitions/lightspeed";
+import type { LightSpeedServiceSettings } from "./extensionSettings";
+import type { LLMProvider } from "../features/lightspeed/providers/base";
 
 export interface LightspeedAuthSession extends AuthenticationSession {
   rhOrgHasSubscription: boolean;
@@ -287,4 +290,35 @@ export interface LightspeedSessionModelInfo {
 export interface LightspeedSessionInfo {
   userInfo?: LightspeedSessionUserInfo;
   modelInfo?: LightspeedSessionModelInfo;
+}
+
+// LLM Provider Factory Interfaces
+export interface ConfigField {
+  key: string;
+  label: string;
+  type: "string" | "password" | "number" | "boolean";
+  required: boolean;
+  placeholder?: string;
+  description?: string;
+}
+
+export interface ProviderInfo {
+  type: ProviderType;
+  name: string;
+  displayName: string;
+  description: string;
+  configSchema: ConfigField[];
+  defaultEndpoint?: string;
+}
+
+export interface ProviderFactory {
+  createProvider(
+    type: ProviderType,
+    config: LightSpeedServiceSettings,
+  ): LLMProvider;
+  getSupportedProviders(): ProviderInfo[];
+  validateProviderConfig(
+    type: ProviderType,
+    config: LightSpeedServiceSettings,
+  ): boolean;
 }

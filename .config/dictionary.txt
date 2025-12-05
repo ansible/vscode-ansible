@@ -48,6 +48,7 @@ devspaces
 eslintcache
 extest
 fqcn
+genai
 haaaad
 highlightjs
 hostsvars
