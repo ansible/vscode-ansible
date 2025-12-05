@@ -39,7 +39,7 @@ function exec(cmd: string[], options: SpawnSyncOptions = {}) {
 // We don't require colors in the stdout of the command results.
 process.env["NO_COLOR"] = "1";
 
-const command = "ansible-lint --version";
+const command = "ansible-lint --version --offline";
 const env = process.env;
 
 try {

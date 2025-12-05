@@ -227,7 +227,7 @@ export const COMMON_DEPENDENCIES = {
     installCommand: "pip install ansible-lint",
     description: "Ansible playbook linter",
     minVersion: "6.0.0",
-    versionCommand: "ansible-lint --version",
+    versionCommand: "ansible-lint --version --offline",
     versionParser: (output: string) => {
       // Extract version from "ansible-lint 6.14.3"
       const match = output.match(/ansible-lint.*?(\d+\.\d+\.\d+)/);

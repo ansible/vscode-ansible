@@ -1532,7 +1532,7 @@ All errors use consistent format:
 - **Command:** `ansible-lint`
 - **Min Version:** 6.0.0
 - **Install:** `pip install ansible-lint`
-- **Version Check:** `ansible-lint --version`
+- **Version Check:** `ansible-lint --version --offline`
 
 #### ansible-creator
 
