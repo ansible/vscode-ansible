@@ -99,9 +99,9 @@ export interface GenerationResponseParams {
   model?: string;
 }
 
-export abstract class BaseLLMProvider<TConfig = unknown>
-  implements LLMProvider
-{
+export abstract class BaseLLMProvider<
+  TConfig = unknown,
+> implements LLMProvider {
   protected config: TConfig;
   protected timeout: number;
 

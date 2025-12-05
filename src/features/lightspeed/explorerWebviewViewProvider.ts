@@ -16,9 +16,7 @@ import { LightspeedUser } from "./lightspeedUser";
 
 import { isPlaybook, isDocumentInRole } from "./utils/explanationUtils";
 
-export class LightspeedExplorerWebviewViewProvider
-  implements WebviewViewProvider
-{
+export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "lightspeed-explorer-webview";
 
   //sessionInfo: LightspeedSessionInfo = {};
