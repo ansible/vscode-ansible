@@ -1,6 +1,8 @@
 # Ansible MCP Server - Developer Guide
 
-This guide provides detailed instructions for developers contributing to the Ansible MCP Server. It covers adding new tools, writing tests, managing dependencies, and contributing documentation.
+This guide covers MCP-specific development tasks: adding new tools, writing MCP tests, and adding resources.
+
+For general contributing guidelines (setup, workflow, code style), see the [main contributing docs](../development/contributing.md).
 
 ---
 
@@ -9,9 +11,7 @@ This guide provides detailed instructions for developers contributing to the Ans
 1. [Adding New Tools](#adding-new-tools)
 2. [Testing](#testing)
 3. [Adding Resources](#adding-resources)
-4. [Contributing Documentation](#contributing-documentation)
-5. [Development Workflow](#development-workflow)
-6. [Resources and References](#resources-and-references)
+4. [Resources and References](#resources-and-references)
 
 ---
 
@@ -21,14 +21,13 @@ This section explains how to add a new tool to the MCP server.
 
 ---
 
-## Step 1: Create Tool Implementation
+### Step 1: Create Tool Implementation
 
-Create a new file under `src/tools/` with the tool logic.
+Create a new file under `packages/ansible-mcp-server/src/tools/` with the tool logic.
 
 **Example: `src/tools/myNewTool.ts`**
 
 ```typescript
-import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 
 /**
@@ -62,7 +61,7 @@ export function formatMyNewToolResult(result: unknown): string {
 
 ---
 
-## Step 2: Create Handler Function
+### Step 2: Create Handler Function
 
 Add a handler in `src/handlers.ts`:
 
@@ -89,17 +88,17 @@ export function createMyNewToolHandler() {
 
 ---
 
-## Step 3: Register Tool in the Server
+### Step 3: Register Tool in the Server
 
 Update `src/server.ts`:
 
-### Import handler
+#### Import handler
 
 ```typescript
 import { createMyNewToolHandler } from "./handlers.js";
 ```
 
-### Register using `registerToolWithDeps`
+#### Register using `registerToolWithDeps`
 
 ```typescript
 registerToolWithDeps(
@@ -123,7 +122,7 @@ registerToolWithDeps(
 
 ---
 
-## Step 4: Update Tool Count
+### Step 4: Update Tool Count
 
 Update the constant in `src/constants.ts`:
 
@@ -133,11 +132,11 @@ export const TOOL_COUNT = 12; // increment accordingly
 
 ---
 
-## Step 5: Add Dependency Management (Optional)
+### Step 5: Add Dependency Management (Optional)
 
 If your tool uses external binaries (ansible-lint, navigator, etc.):
 
-### Update `dependencyChecker.ts`
+#### Update `dependencyChecker.ts`
 
 ```typescript
 export const MY_TOOL_DEPENDENCIES: Dependency[] = [
@@ -150,7 +149,7 @@ export const MY_TOOL_DEPENDENCIES: Dependency[] = [
 ];
 ```
 
-### Pass dependencies during registration
+#### Pass dependencies during registration
 
 ```typescript
 registerToolWithDeps(
@@ -163,87 +162,43 @@ registerToolWithDeps(
 
 ---
 
-## Best Practices for Tool Development
+### Best Practices for Tool Development
 
 - **Error Handling:** Always use try/catch and return `isError: true`.
 - **Path Resolution:** Use `resolve()` and check existence.
 - **Input Validation:** Use Zod schemas.
 - **Output Formatting:** Keep responses human-readable.
-- **Documentation:** Add JSDoc comments and examples.
 
 ---
 
 ## Testing
 
-The MCP server uses **Vitest** for testing. This section covers structure, commands, and examples.
+The MCP server uses **Vitest** for testing.
 
 ---
 
-## Directory Structure
+### Running Tests
 
-```text
-test/
-  server.test.ts
-  handlers.test.ts
-  integration.test.ts
-  tools/
-  testWrapper.ts
+Run MCP tests using task:
+
+```bash
+task mcp:test
 ```
 
----
-
-## Running Tests
-
-Navigate to the MCP server folder:
+For other test options, see `packages/ansible-mcp-server/package.json` scripts or run tests directly with vitest:
 
 ```bash
 cd packages/ansible-mcp-server
-```
-
-### Run all tests
-
-```bash
-npm test
-```
-
-### Watch mode
-
-```bash
-npm run test:watch
-```
-
-### Specific test file
-
-```bash
-npm test test/tools/ansibleLint.test.ts
-```
-
-### Category-specific
-
-```bash
-npm run test:unit
-npm run test:integration
-npm run test:ade
-npm run test:performance
-```
-
-### Coverage
-
-```bash
-npm run test:coverage
-```
-
-### Vitest UI
-
-```bash
-npm run test:ui
+npx vitest run                    # all tests
+npx vitest run --watch            # watch mode
+npx vitest run test/handlers.ts   # specific file
 ```
 
 ---
 
-## Writing MCP Tests
+### Writing MCP Tests
 
-### Typical test file structure
+#### Typical test file structure
 
 ```typescript
 describe("My New Tool", () => {
@@ -263,7 +218,7 @@ describe("My New Tool", () => {
 
 ---
 
-## Testing Handler Directly
+#### Testing Handler Directly
 
 ```typescript
 const handler = createMyNewToolHandler();
@@ -273,7 +228,7 @@ expect(result.content[0].type).toBe("text");
 
 ---
 
-## Testing Implementation Functions
+#### Testing Implementation Functions
 
 ```typescript
 const output = await runMyNewTool("a", "b");
@@ -282,7 +237,7 @@ expect(output.result).toBeDefined();
 
 ---
 
-## Server Registration Test
+#### Server Registration Test
 
 ```typescript
 const server = createTestServer("/tmp");
@@ -291,18 +246,7 @@ expect(server.listTools().map(t => t.name)).toContain("my_new_tool");
 
 ---
 
-## Integration Test Example
-
-```typescript
-const result = await server.callTool("my_new_tool", {
-  param1: "value1",
-});
-expect(result.content).toBeDefined();
-```
-
----
-
-## Test Best Practices
+### Test Best Practices
 
 - Test valid, invalid, and edge cases.
 - Always validate MCP response shape.
@@ -311,37 +255,26 @@ expect(result.content).toBeDefined();
 
 ---
 
-## Manual Testing
+### Manual Testing
 
 Manual testing is useful for validating behavior in real MCP clients.
 
----
-
-## Running Server in STDIO Mode
-
-Build:
+#### Running Server in STDIO Mode
 
 ```bash
-npm run compile
+cd packages/ansible-mcp-server
+npm run dev:stdio
 ```
 
-Run:
+Or after building:
 
 ```bash
 node out/server/src/cli.js --stdio
 ```
 
-Or dev mode:
+#### Send Manual JSON-RPC Requests
 
-```bash
-npm run dev:stdio
-```
-
----
-
-## Send Manual JSON-RPC Requests
-
-### Call `zen_of_ansible`
+**Call `zen_of_ansible`:**
 
 ```json
 {
@@ -352,7 +285,7 @@ npm run dev:stdio
 }
 ```
 
-### Call `ansible_lint`
+**Call `ansible_lint`:**
 
 ```json
 {
@@ -366,18 +299,14 @@ npm run dev:stdio
 }
 ```
 
----
-
-## Testing with Cursor / Claude Desktop
+#### Testing with Cursor / Claude Desktop
 
 - Add MCP server config
 - Restart client
 - Trigger tools via chat
 - Validate formatting, errors, and output correctness
 
----
-
-## Manual Testing Checklist
+#### Manual Testing Checklist
 
 - [ ] Tool appears in `list_available_tools`
 - [ ] Executes correctly with valid input
@@ -390,11 +319,11 @@ npm run dev:stdio
 
 ## Adding Resources
 
-Resources are read-only data exposed by the MCP server. This section explains how to add new resources.
+Resources are read-only data exposed by the MCP server.
 
 ---
 
-## Step 1: Add Resource Data File
+### Step 1: Add Resource Data File
 
 Place your resource data file in `src/resources/data/`:
 
@@ -408,7 +337,7 @@ This is the content of my resource.
 
 ---
 
-## Step 2: Create Resource Accessor
+### Step 2: Create Resource Accessor
 
 Create a function in `src/resources/` to access the resource:
 
@@ -429,7 +358,7 @@ export async function getMyResource(): Promise<string> {
 
 ---
 
-## Step 3: Register Resource in Server
+### Step 3: Register Resource in Server
 
 Update `src/server.ts`:
 
@@ -437,7 +366,6 @@ Update `src/server.ts`:
 import { getMyResource } from "./resources/myResource.js";
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  // ... existing resources ...
   return {
     resources: [
       // ... existing resources ...
@@ -452,7 +380,6 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 });
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  // ... existing resource handlers ...
   if (request.params.uri === "ansible://my-resource") {
     const content = await getMyResource();
     return {
@@ -471,9 +398,9 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
 ---
 
-## Step 4: Update Build Script (if needed)
+### Step 4: Update Build Script (if needed)
 
-If your resource needs to be copied during build, update `package.json`:
+If your resource needs to be copied during build, the existing `copy-resources` script in `package.json` handles this:
 
 ```json
 {
@@ -485,7 +412,7 @@ If your resource needs to be copied during build, update `package.json`:
 
 ---
 
-## Best Practices for Resources
+### Best Practices for Resources
 
 - Keep resource files in `src/resources/data/`.
 - Use descriptive URIs following the `ansible://` scheme.
@@ -494,109 +421,23 @@ If your resource needs to be copied during build, update `package.json`:
 
 ---
 
-## Contributing Documentation
-
-This section covers how to contribute to the MCP server documentation.
-
----
-
-## Documentation Locations
-
-- **API Reference**: `docs/mcp/api.md` - Complete API endpoint documentation
-- **Overview**: `docs/mcp/README.md` - MCP server overview and getting started
-- **Developer Guide**: `docs/mcp/development.md` - This document
-
----
-
-## Documentation Format
-
-- Use Markdown format (`.md` files)
-- Follow existing documentation style
-- Include code examples where relevant
-- Keep documentation up-to-date with code changes
-
----
-
-## Review Process
-
-1. Create or update documentation files
-2. Run linting: `npm run lint` (if applicable)
-3. Submit PR with documentation changes
-4. Documentation will be reviewed along with code changes
-
----
-
-## Development Workflow
-
-This section covers the standard development workflow for the MCP server.
-
----
-
-## Setup
-
-1. Clone the repository
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Build the project:
-
-   ```bash
-   cd packages/ansible-mcp-server
-   npm run compile
-   ```
-
----
-
-## Making Changes
-
-1. Create a feature branch
-2. Make your changes
-3. Write tests for new functionality
-4. Run tests:
-
-   ```bash
-   npm test
-   ```
-
-5. Build and verify:
-
-   ```bash
-   npm run compile
-   ```
-
----
-
-## Code Style
-
-- Follow existing code style
-- Use TypeScript strict mode
-- Add JSDoc comments for public functions
-- Keep functions focused and modular
-
----
-
 ## Resources and References
 
-## Internal Documentation
+### Internal Documentation
 
 - [API Reference](api.md) - Complete MCP server API documentation
 - [MCP Server Overview](README.md) - Getting started guide
 
-## External Resources
+### External Resources
 
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [MCP SDK Documentation](https://github.com/modelcontextprotocol/typescript-sdk)
 - [Vitest Documentation](https://vitest.dev/)
 - [Zod Documentation](https://zod.dev/)
 
-## Related Tools
+### Related Tools
 
 - [ansible-lint](https://ansible-lint.readthedocs.io/)
 - [ansible-navigator](https://ansible-navigator.readthedocs.io/)
 - [ansible-builder](https://ansible-builder.readthedocs.io/)
 - [ansible-creator](https://ansible-creator.readthedocs.io/)
-
----
