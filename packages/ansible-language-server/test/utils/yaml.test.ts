@@ -26,19 +26,20 @@ function getPathInFile(yamlFile: string, line: number, character: number) {
 }
 
 describe("yaml", function () {
-  beforeEach(function (this: Mocha.Context) {
+  beforeEach(function (testInfo) {
     const brokenTests = new Map([
       // ['<testName>', '<url-of-tracking-issue>'],
     ]);
-    const reason = brokenTests.get(this.currentTest?.title);
-    if (isWindows() && reason && this.currentTest) {
-      const msg = `Marked ${this.currentTest.title} as pending due to ${reason}`;
+    const testName = testInfo.task.name || "";
+    const reason = brokenTests.get(testName);
+    if (isWindows() && reason) {
+      const msg = `Marked ${testName} as pending due to ${reason}`;
       if (process.env.GITHUB_ACTIONS) {
-        console.log(`::warning file=${this.currentTest.file}:: ${msg}`);
+        console.log(`::warning file=${testInfo.task.file?.name || ""}:: ${msg}`);
       } else {
         console.log(`🚩 ${msg}`);
       }
-      this.currentTest.pending = true;
+      testInfo.skip();
     }
   });
 

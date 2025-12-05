@@ -223,7 +223,7 @@ describe("doCompletionResolve()", function () {
     describe("Resolve completion for module names", function () {
       describe("Resolve completion for module names when FQCN is enabled", function () {
         describe("@ee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -231,14 +231,14 @@ describe("doCompletionResolve()", function () {
           });
           testFQCNEnabled(context);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
@@ -248,7 +248,7 @@ describe("doCompletionResolve()", function () {
 
       describe("Resolve completion for module names when FQCN is disabled", function () {
         describe("@ee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -258,7 +258,7 @@ describe("doCompletionResolve()", function () {
           });
           testFQCNDisabled(context);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
@@ -266,7 +266,7 @@ describe("doCompletionResolve()", function () {
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
@@ -274,7 +274,7 @@ describe("doCompletionResolve()", function () {
           });
           testFQCNDisabled(context);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
           });
@@ -284,7 +284,7 @@ describe("doCompletionResolve()", function () {
 
     describe("Resolve completion for module options and suboptions", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -293,14 +293,14 @@ describe("doCompletionResolve()", function () {
 
         testResolveModuleOptionCompletion(context);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });

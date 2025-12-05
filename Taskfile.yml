@@ -273,3 +273,4 @@ tasks:
       - package
     cmds:
       - vitest list
+      - cd packages/ansible-language-server && vitest list
