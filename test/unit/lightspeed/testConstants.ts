@@ -2,7 +2,7 @@
  * Test constants and mock data for provider factory and base provider tests
  */
 
-import type { LightSpeedServiceSettings } from "../../../../src/interfaces/extensionSettings.js";
+import type { LightSpeedServiceSettings } from "../../../src/interfaces/extensionSettings.js";
 
 // Model names
 export const MODEL_NAMES = {
