@@ -62,28 +62,25 @@ vi.mock(
   },
 );
 
-vi.mock(
-  "../../../../src/features/lightspeed/vue/views/fileOperations",
-  () => {
-    class MockFileOperations {
-      openLogFile = vi.fn();
-      openFolderInWorkspaceProjects = vi.fn();
-      openFolderInWorkspacePlugin = vi.fn();
-      openFolderInWorkspaceRole = vi.fn();
-      openFolderInWorkspaceDevcontainer = vi.fn();
-      openDevfile = vi.fn();
-      openFileInEditor = vi.fn();
-    }
+vi.mock("../../../../src/features/lightspeed/vue/views/fileOperations", () => {
+  class MockFileOperations {
+    openLogFile = vi.fn();
+    openFolderInWorkspaceProjects = vi.fn();
+    openFolderInWorkspacePlugin = vi.fn();
+    openFolderInWorkspaceRole = vi.fn();
+    openFolderInWorkspaceDevcontainer = vi.fn();
+    openDevfile = vi.fn();
+    openFileInEditor = vi.fn();
+  }
 
-    return {
-      FileOperations: MockFileOperations,
-      openNewPlaybookEditor: vi.fn(),
-      getCollectionsFromWorkspace: vi.fn().mockResolvedValue([]),
-      getRoleBaseDir: vi.fn(),
-      fileExists: vi.fn(),
-    };
-  },
-);
+  return {
+    FileOperations: MockFileOperations,
+    openNewPlaybookEditor: vi.fn(),
+    getCollectionsFromWorkspace: vi.fn().mockResolvedValue([]),
+    getRoleBaseDir: vi.fn(),
+    fileExists: vi.fn(),
+  };
+});
 
 vi.mock(
   "../../../../src/features/lightspeed/vue/views/ansibleCreatorUtils",
