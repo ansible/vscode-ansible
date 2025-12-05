@@ -55,6 +55,7 @@ haaaad
 highlightjs
 hostsvars
 hostvars
+icontent
 johndoe
 konflux
 lcovonly
