@@ -43,6 +43,7 @@ nav:
       - index: mcp/README.md
       - API Reference: mcp/api.md
   - Configuration: configuration.md
+  - LLM Providers: llm-providers.md
   - Developer Guide:
       - development/index.md
       - development/contributing.md

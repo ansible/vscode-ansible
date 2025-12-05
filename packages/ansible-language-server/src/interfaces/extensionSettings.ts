@@ -14,8 +14,7 @@ export interface ExtensionSettingsWithDescriptionBase {
   [key: string]: SettingsEntry | string | boolean;
 }
 
-export interface ExtensionSettingsWithDescription
-  extends ExtensionSettingsWithDescriptionBase {
+export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
   ansible: AnsibleSettingsWithDescription;
   completion: CompletionSettingsWithDescription;
   validation: ValidationSettingsWithDescription;

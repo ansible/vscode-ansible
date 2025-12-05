@@ -94,9 +94,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should return formatted environment information successfully", async () => {
-      const { getEnvironmentInfo, formatEnvironmentInfo } = await import(
-        "../src/tools/adeTools.js"
-      );
+      const { getEnvironmentInfo, formatEnvironmentInfo } =
+        await import("../src/tools/adeTools.js");
 
       vi.mocked(getEnvironmentInfo).mockResolvedValue({
         virtualEnv: "venv",
@@ -161,9 +160,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should setup environment successfully", async () => {
-      const { setupDevelopmentEnvironment } = await import(
-        "../src/tools/adeTools.js"
-      );
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
 
       vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
         success: true,
@@ -188,9 +186,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle setup failures", async () => {
-      const { setupDevelopmentEnvironment } = await import(
-        "../src/tools/adeTools.js"
-      );
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
 
       vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
         success: false,
@@ -208,9 +205,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle exceptions during setup", async () => {
-      const { setupDevelopmentEnvironment } = await import(
-        "../src/tools/adeTools.js"
-      );
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
 
       vi.mocked(setupDevelopmentEnvironment).mockRejectedValue(
         new Error("Setup exception"),
@@ -310,9 +306,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should return best practices content successfully", async () => {
-      const { getAgentsGuidelines } = await import(
-        "../src/resources/agents.js"
-      );
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
 
       const mockGuidelines =
         "# Ansible Coding Guidelines for AI Agents\n\n## Best Practices\n\nTest content.";
@@ -328,9 +323,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle file reading errors gracefully", async () => {
-      const { getAgentsGuidelines } = await import(
-        "../src/resources/agents.js"
-      );
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
 
       vi.mocked(getAgentsGuidelines).mockRejectedValue(
         new Error("File not found"),
@@ -348,9 +342,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle non-Error exceptions", async () => {
-      const { getAgentsGuidelines } = await import(
-        "../src/resources/agents.js"
-      );
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
 
       vi.mocked(getAgentsGuidelines).mockRejectedValue("String error");
 
@@ -366,9 +359,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should return consistent results on multiple calls", async () => {
-      const { getAgentsGuidelines } = await import(
-        "../src/resources/agents.js"
-      );
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
 
       const mockGuidelines = "# Test Guidelines\n\nContent here.";
       vi.mocked(getAgentsGuidelines).mockResolvedValue(mockGuidelines);
@@ -382,9 +374,8 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle empty content", async () => {
-      const { getAgentsGuidelines } = await import(
-        "../src/resources/agents.js"
-      );
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
 
       vi.mocked(getAgentsGuidelines).mockResolvedValue("");
 
