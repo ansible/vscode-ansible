@@ -66,7 +66,7 @@ vi.mock("@google/genai", () => {
   };
 });
 
-vi.mock("../../../../../src/utils/logger", () => {
+vi.mock("../../../../src/utils/logger", () => {
   // Create a shared logger mock inside the factory
   const loggerMock = {
     info: vi.fn(),
@@ -83,7 +83,7 @@ vi.mock("../../../../../src/utils/logger", () => {
 });
 
 vi.mock(
-  "../../../../../src/features/lightspeed/utils/outlineGenerator",
+  "../../../../src/features/lightspeed/utils/outlineGenerator",
   () => ({
     generateOutlineFromPlaybook: vi.fn(() => {
       return "1. Task one\n2. Task two";
@@ -120,12 +120,12 @@ beforeEach(() => {
   );
 });
 
-import { GoogleProvider } from "../../../../../src/features/lightspeed/providers/google.js";
-import type { CompletionRequestParams } from "../../../../../src/interfaces/lightspeed.js";
+import { GoogleProvider } from "../../../../src/features/lightspeed/providers/google.js";
+import type { CompletionRequestParams } from "../../../../src/interfaces/lightspeed.js";
 import type {
   ChatRequestParams,
   GenerationRequestParams,
-} from "../../../../../src/features/lightspeed/providers/base.js";
+} from "../../../../src/features/lightspeed/providers/base.js";
 import {
   TEST_API_KEYS,
   MODEL_NAMES,
@@ -137,11 +137,11 @@ import {
 
 // Get the mocked modules
 import { GoogleGenAI } from "@google/genai";
-import { getLightspeedLogger } from "../../../../../src/utils/logger.js";
+import { getLightspeedLogger } from "../../../../src/utils/logger.js";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "../../../../../src/features/lightspeed/utils/outlineGenerator.js";
+} from "../../../../src/features/lightspeed/utils/outlineGenerator.js";
 
 // Access the actual mocks from the mocked modules using vi.mocked
 const mockedGenerateOutlineFromPlaybook = vi.mocked(
