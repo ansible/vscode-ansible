@@ -123,7 +123,7 @@ describe("getAnsibleMetaData()", function () {
   let executionEnvironmentInfoForTest: ansibleMetaDataEntryType = {};
 
   describe("@noee", function () {
-    before(async function () {
+    beforeAll(async function () {
       if (context !== undefined) {
         actualAnsibleMetaData = await getAnsibleMetaData(context, undefined);
       }
@@ -294,7 +294,7 @@ describe("getAnsibleMetaData()", function () {
   });
 
   describe("@ee", function () {
-    before(async function () {
+    beforeAll(async function () {
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings);
       }
@@ -335,7 +335,7 @@ describe("getAnsibleMetaData()", function () {
         }
       });
 
-      after(async function () {
+      afterAll(async function () {
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
         }

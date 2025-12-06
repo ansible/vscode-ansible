@@ -702,7 +702,7 @@ function testModuleKindAndDocumentation(
 
     expect(context).is.not.undefined;
     if (context) {
-      before(async function () {
+      beforeAll(async function () {
         const completion = await doCompletion(textDoc, position, context);
         const filteredCompletion = completion.filter(
           (item) => item.label === moduleName,
@@ -743,7 +743,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for host values with static inventory file", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -752,14 +752,14 @@ describe("doCompletion()", function () {
 
         testHostValues(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
 
@@ -768,7 +768,7 @@ describe("doCompletion()", function () {
 
         testHostValues(context, textDoc);
 
-        after(function () {
+        afterAll(function () {
           unsetAnsibleConfigEnv();
         });
       });
@@ -776,7 +776,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for play keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -785,14 +785,14 @@ describe("doCompletion()", function () {
 
         testPlayKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -812,7 +812,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for role keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -821,14 +821,14 @@ describe("doCompletion()", function () {
 
         testRoleKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -846,7 +846,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for block keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -855,14 +855,14 @@ describe("doCompletion()", function () {
 
         testBlockKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -881,7 +881,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for task keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -890,14 +890,14 @@ describe("doCompletion()", function () {
 
         testTaskKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -908,7 +908,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for module names (with different trigger scenarios)", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -917,14 +917,14 @@ describe("doCompletion()", function () {
 
         testModuleNames(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -935,7 +935,7 @@ describe("doCompletion()", function () {
 
     describe("module kind and documentation of completion item", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -944,14 +944,14 @@ describe("doCompletion()", function () {
 
         testModuleKindAndDocumentation(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -962,7 +962,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for module options and suboptions", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -971,14 +971,14 @@ describe("doCompletion()", function () {
 
         testModuleOptions(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -989,7 +989,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for option and suboption values", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -998,14 +998,14 @@ describe("doCompletion()", function () {
 
         testModuleOptionsValues(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1024,7 +1024,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for module name without FQCN", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1033,14 +1033,14 @@ describe("doCompletion()", function () {
 
         testModuleNamesWithoutFQCN(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1059,7 +1059,7 @@ describe("doCompletion()", function () {
         docSettings = context.documentSettings.get(textDoc.uri);
 
         describe("@ee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -1068,14 +1068,14 @@ describe("doCompletion()", function () {
 
           testVarsCompletionInsideJinja(context, textDoc);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
@@ -1095,7 +1095,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for playbook adjacent collection", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1104,14 +1104,14 @@ describe("doCompletion()", function () {
 
         testPlaybookAdjacentCollection(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1131,7 +1131,7 @@ describe("doCompletion()", function () {
 
     describe("Negate completion for non playbook adjacent collection", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1140,14 +1140,14 @@ describe("doCompletion()", function () {
 
         testNonPlaybookAdjacentCollection(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });

@@ -86,7 +86,7 @@ describe("commandRunner", function () {
   tests.forEach(
     ({ args, rc, stdout, stderr, pythonInterpreterPath, activationScript }) => {
       it(`call ${args.join(" ")}`, async function () {
-        this.timeout(10000);
+        // this.timeout(10000);
 
         // try to enforce ansible to output ANSI in order to check if we are
         // still able to disable it at runtime in order to keep output parseable.
