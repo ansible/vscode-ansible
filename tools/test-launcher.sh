@@ -245,18 +245,3 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
     touch out/junit/ui/.passed
 fi
-if [[ "${TEST_TYPE}" == "e2e" ]]; then
-    export NODE_NO_WARNINGS=1
-    export DONT_PROMPT_WSL_INSTALL=1
-    export SKIP_PODMAN=${SKIP_PODMAN:-0}
-    export SKIP_DOCKER=${SKIP_DOCKER:-0}
-
-    mkdir -p out/userdata/User/
-    mkdir -p out/junit/e2e
-    rm -f out/junit/e2e/*.*
-    cp -f test/testFixtures/settings.json out/userdata/User/settings.json
-    # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly
-    touch out/junit/e2e/.passed
-    rm -f test/testFixtures/.vscode/settings.json
-fi

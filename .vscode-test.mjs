@@ -12,8 +12,8 @@ export default defineConfig({
     // we could use extest to install extensions, which is more resilient.
     // "--install-extensions=ms-python.python,redhat.vscode-yaml",
     "--disable-gpu", // avoids misleading console messages during local or CI/CD test like VK_ERROR_INCOMPATIBLE_DRIVER
-    "--user-data-dir=out/userdata",
-    "--extensions-dir=out/ext",
+    "--user-data-dir=.vscode-test/user-data",
+    "--extensions-dir=.vscode-test/extensions",
     "--disable-extension=alefragnani.project-manager",
     "--disable-extension=eamodio.gitlens",
     "--disable-extension=GitHub.copilot",
