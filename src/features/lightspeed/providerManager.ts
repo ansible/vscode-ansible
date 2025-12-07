@@ -1,4 +1,11 @@
-import { LLMProvider, ProviderStatus } from "./providers/base";
+import {
+  LLMProvider,
+  ProviderStatus,
+  ChatRequestParams,
+  ChatResponseParams,
+  GenerationRequestParams,
+  GenerationResponseParams,
+} from "./providers/base";
 import { providerFactory } from "./providers/factory";
 import { ProviderType } from "../../../src/definitions/lightspeed.js";
 import { SettingsManager } from "../../settings";
@@ -7,19 +14,13 @@ import {
   CompletionRequestParams,
   CompletionResponseParams,
 } from "../../interfaces/lightspeed";
-import {
-  ChatRequestParams,
-  ChatResponseParams,
-  GenerationRequestParams,
-  GenerationResponseParams,
-} from "./providers/base";
 import { isError } from "./utils/errors";
 
 export class ProviderManager {
-  private settingsManager: SettingsManager;
-  private wcaApi: LightSpeedAPI;
+  private readonly settingsManager: SettingsManager;
+  private readonly wcaApi: LightSpeedAPI;
   private llmProvider: LLMProvider | null = null;
-  private providerStatus: Map<string, ProviderStatus> = new Map();
+  private readonly providerStatus: Map<string, ProviderStatus> = new Map();
 
   constructor(settingsManager: SettingsManager, wcaApi: LightSpeedAPI) {
     this.settingsManager = settingsManager;

@@ -542,7 +542,7 @@ export class WebviewMessageHandlers {
         for (const key in request) {
           if (
             key !== "inlineSuggestion" &&
-            Object.prototype.hasOwnProperty.call(request, key)
+            Object.hasOwn(request, key)
           ) {
             telemetryData[key] = (request as any)[key];
           }

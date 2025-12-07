@@ -24,8 +24,8 @@ export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvide
   //sessionInfo: LightspeedSessionInfo = {};
   //sessionData: LightspeedAuthSession = {} as LightspeedAuthSession;
   private lightspeedAuthenticatedUser: LightspeedUser;
-  private settingsManager: SettingsManager;
-  private logger: Log;
+  private readonly settingsManager: SettingsManager;
+  private readonly logger: Log;
   public webviewView: WebviewView | undefined;
   public lightspeedExperimentalEnabled: boolean = false;
 
