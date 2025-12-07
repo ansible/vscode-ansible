@@ -14,7 +14,7 @@ process.env = {
 };
 
 // display ansible-lint version and exit testing if ansible-lint is absent
-const command = "ansible-lint --version";
+const command = "ansible-lint --version --offline";
 try {
   // ALWAYS use 'shell: true' when we execute external commands inside the
   // extension because some of the tools may be installed in a way that does
