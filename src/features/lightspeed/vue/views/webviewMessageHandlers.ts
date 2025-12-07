@@ -540,10 +540,7 @@ export class WebviewMessageHandlers {
 
         // Copy all fields except inlineSuggestion
         for (const key in request) {
-          if (
-            key !== "inlineSuggestion" &&
-            Object.hasOwn(request, key)
-          ) {
+          if (key !== "inlineSuggestion" && Object.hasOwn(request, key)) {
             telemetryData[key] = (request as any)[key];
           }
         }
