@@ -57,10 +57,12 @@ tasks:
       - package.json
       - src/**/*
       - test/**/*
-      - tsconfig.json
+      - tsconfig*.json
       - webpack.config.ts
       - yarn.lock.json
-      - "**/tsconfig*.json"
+      - exclude: "**/.ansible/**/*"
+      - exclude: "src/vscode_ansible.egg-info/**/*"
+      - exclude; "test/testFixtures/.vscode/settings.json"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -133,10 +135,7 @@ tasks:
       - defer: { task: finish }
   lint:
     desc: Lint the project
-    deps:
-      - task: als:package # to produce the tgz file that can-release is using (implies install)
     cmds:
-      - packages/ansible-language-server/tools/can-release.sh
       - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
       - defer: { task: finish }
@@ -244,8 +243,9 @@ tasks:
     cmds:
       # we want to build both all the time:
       - task: als:package
-      - task: mcp:package
+      - task: mcp:package # to produce the tgz file that can-release is using (implies install)
       - ./tools/helper --package
+      - packages/ansible-language-server/tools/can-release.sh
       - defer: { task: finish }
     silent: true
   pr:

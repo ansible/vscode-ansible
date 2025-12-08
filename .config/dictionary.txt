@@ -1,5 +1,6 @@
 ABRT
 CACHEDIR
+CMDB
 Containerfile
 Customizer
 Devfile
@@ -25,12 +26,14 @@ PKGMGR
 PYCMD
 PYTHONBREAKPOINT
 RHSSO
+SSOT
 TASKFILE
 Taskfile
 Testenvs
 Tomasz
 Towncrier
 antsibull
+argspec
 autofetch
 bindep
 cfgs
@@ -47,6 +50,9 @@ dedupe
 depcheck
 devfile
 devspaces
+docsite
+docstrings
+equalto
 eslintcache
 extest
 fqcn
@@ -89,6 +95,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pydoclint
 pyvenv
 relogin
 rhsso
