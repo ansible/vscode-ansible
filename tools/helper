@@ -142,13 +142,12 @@ def cli() -> None:
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
+        # Webpack bundles the MCP server code into out/mcp/cli.js
+        # We only need to copy the resource data files that are loaded at runtime
+        # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
         run("task build")
-        run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
-        # Copy package.json to out/mcp/ for proper Node.js ESM module resolution
-        run("cp packages/ansible-mcp-server/package.json out/mcp/")
-        # Install production dependencies using npm install --prefix
-        # Note: out/mcp is already cleaned by 'yarn run webpack' (which runs 'yarn run clean')
-        run("npm install --production --no-audit --no-fund --loglevel=error --prefix out/mcp")
+        run("mkdir -p out/mcp/data")
+        run("cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true")
 
         run(
             "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
