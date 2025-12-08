@@ -60,6 +60,7 @@ tasks:
       - tsconfig.json
       - webpack.config.ts
       - yarn.lock.json
+      - "**/tsconfig*.json"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -174,20 +175,26 @@ tasks:
       - defer: { task: finish }
     interactive: true
   e2e:
-    desc: Run e2e tests {{.XVFB}}
+    desc: Run e2e tests with vscode-test {{.XVFB}}
     deps:
       - package
+    env:
+      NODE_NO_WARNINGS: "1"
+      DONT_PROMPT_WSL_INSTALL: "1"
     generates:
-      - out/junit/e2e/.passed
+      - out/junit/e2e/test-results.xml
+      - out/coverage/e2e/cobertura-coverage.xml
+      - out/coverage/e2e/lcov.info
     sources:
       - src/**/*
       - test/**/*
       - .vscode-test.mjs
     cmds:
-      - '{{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
+      # cannot put coverage option inside .vscode-test.mjs
+      - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
     interactive: true
   ui:
-    desc: Run UI tests {{.XVFB}}
+    desc: Run UI tests with extest {{.XVFB}}
     deps:
       - package
     sources:
