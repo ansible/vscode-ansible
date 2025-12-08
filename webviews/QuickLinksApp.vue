@@ -97,6 +97,14 @@ onMounted(() => {
           </a>
         </h3>
       </div>
+      <div class="catalogue">
+        <h3>
+          <a href="command:ansible.mcpServer.enabled" title="Activate DevTools MCP Server for AI assistants">
+            <span class="codicon codicon-server"></span> Activate DevTools MCP Server (AI)
+            <span class="new-badge">NEW</span>
+          </a>
+        </h3>
+      </div>
 
       <h3>INITIALIZE</h3>
       <p>Initialize a new Ansible project</p>
