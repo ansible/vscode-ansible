@@ -25,7 +25,6 @@ const mockAnsibleContextModule = {
 // Store original require as the import uses require()
 const originalRequire = Module.prototype.require.bind(Module.prototype);
 
-// Workaround to patch require() immediately to intercept "../ansibleContext" calls and this must happen before base.js is imported
 Module.prototype.require = function (
   this: Module,
   id: string,
@@ -70,86 +69,63 @@ import {
   ChatResponseParams,
   GenerationRequestParams,
   GenerationResponseParams,
-} from "../../../../../src/features/lightspeed/providers/base.js";
+} from "../../../../src/features/lightspeed/providers/base.js";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../../../src/interfaces/lightspeed.js";
+} from "../../../../src/interfaces/lightspeed.js";
 import {
   TEST_PROVIDER_INFO,
-  MODEL_NAMES,
-  TEST_RESPONSES,
   TEST_PROMPTS,
-  TEST_CONTENT,
   TEST_OPERATIONS,
   HTTP_STATUS_CODES,
   DEFAULT_TIMEOUTS,
   TEST_CONFIGS,
 } from "../testConstants.js";
 
-// Create a concrete implementation of BaseLLMProvider for testing
+// This is needed because BaseLLMProvider is abstract and cannot be instantiated directly
 class TestProvider extends BaseLLMProvider {
-  readonly name = TEST_PROVIDER_INFO.NAME;
-  readonly displayName = TEST_PROVIDER_INFO.DISPLAY_NAME;
+  readonly name = "test";
+  readonly displayName = "Test Provider";
 
+  // Minimal implementations of abstract methods - not tested here, only needed for instantiation
   async validateConfig(): Promise<boolean> {
-    return this.config?.apiKey !== undefined;
+    return true;
   }
 
   async getStatus(): Promise<ProviderStatus> {
-    const isValid = await this.validateConfig();
-    return {
-      connected: isValid,
-      error: isValid ? undefined : "Invalid configuration",
-      modelInfo: isValid
-        ? {
-            name: MODEL_NAMES.TEST_MODEL,
-            version: "1.0",
-            capabilities: ["completion", "chat"],
-          }
-        : undefined,
-    };
+    return { connected: true };
   }
 
   async completionRequest(
-    params: CompletionRequestParams,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
-    return {
-      predictions: [TEST_RESPONSES.COMPLETION],
-      suggestionId: params.suggestionId || TEST_RESPONSES.SUGGESTION_ID,
-    };
+    throw new Error("Not implemented in test provider");
   }
 
-  async chatRequest(params: ChatRequestParams): Promise<ChatResponseParams> {
-    return {
-      message: TEST_RESPONSES.MESSAGE,
-      conversationId:
-        params.conversationId || TEST_RESPONSES.CONVERSATION_ID_DEFAULT,
-      model: MODEL_NAMES.TEST_MODEL,
-    };
+  async chatRequest(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _params: ChatRequestParams,
+  ): Promise<ChatResponseParams> {
+    throw new Error("Not implemented in test provider");
   }
 
   async generatePlaybook(
-    params: GenerationRequestParams,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _params: GenerationRequestParams,
   ): Promise<GenerationResponseParams> {
-    return {
-      content: TEST_CONTENT.PLAYBOOK,
-      outline: params.outline || TEST_CONTENT.OUTLINE_DEFAULT,
-      model: MODEL_NAMES.TEST_MODEL,
-    };
+    throw new Error("Not implemented in test provider");
   }
 
   async generateRole(
-    params: GenerationRequestParams,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _params: GenerationRequestParams,
   ): Promise<GenerationResponseParams> {
-    return {
-      content: TEST_CONTENT.ROLE,
-      outline: params.outline || TEST_CONTENT.OUTLINE_DEFAULT,
-      model: MODEL_NAMES.TEST_MODEL,
-    };
+    throw new Error("Not implemented in test provider");
   }
 
-  // Public test helper methods to access protected members
+  // Public test helper methods to access protected members and test base class functionality
   getConfig() {
     return this.config;
   }
@@ -467,142 +443,6 @@ describe("BaseLLMProvider", () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
-    });
-  });
-
-  describe("Abstract methods implementation", () => {
-    it("should have name property", () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      expect(provider.name).toBe(TEST_PROVIDER_INFO.NAME);
-    });
-
-    it("should have displayName property", () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      expect(provider.displayName).toBe(TEST_PROVIDER_INFO.DISPLAY_NAME);
-    });
-
-    it("should validate config correctly", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const result = await provider.validateConfig();
-      expect(result).toBe(true);
-    });
-
-    it("should return false for invalid config", async () => {
-      const provider = new TestProvider({});
-      const result = await provider.validateConfig();
-      expect(result).toBe(false);
-    });
-
-    it("should get status with valid config", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const status = await provider.getStatus();
-
-      expect(status.connected).toBe(true);
-      expect(status.modelInfo).toBeDefined();
-      expect(status.modelInfo?.name).toBe(MODEL_NAMES.TEST_MODEL);
-    });
-
-    it("should get status with invalid config", async () => {
-      const provider = new TestProvider({});
-      const status = await provider.getStatus();
-
-      expect(status.connected).toBe(false);
-      expect(status.error).toBeDefined();
-    });
-
-    it("should handle completion request", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: CompletionRequestParams = {
-        prompt: TEST_PROMPTS.TEST_PROMPT,
-        suggestionId: TEST_RESPONSES.SUGGESTION_ID,
-      };
-
-      const result = await provider.completionRequest(params);
-
-      expect(result).toBeDefined();
-      expect(result.predictions).toContain(TEST_RESPONSES.COMPLETION);
-      expect(result.suggestionId).toBe(TEST_RESPONSES.SUGGESTION_ID);
-    });
-
-    it("should handle chat request", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: ChatRequestParams = {
-        message: "Hello",
-        conversationId: "conv-123",
-      };
-
-      const result = await provider.chatRequest(params);
-
-      expect(result.message).toBe(TEST_RESPONSES.MESSAGE);
-      expect(result.conversationId).toBe("conv-123");
-      expect(result.model).toBe(MODEL_NAMES.TEST_MODEL);
-    });
-
-    it("should handle chat request without conversationId", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: ChatRequestParams = {
-        message: "Hello",
-      };
-
-      const result = await provider.chatRequest(params);
-
-      expect(result.conversationId).toBe(
-        TEST_RESPONSES.CONVERSATION_ID_DEFAULT,
-      );
-    });
-
-    it("should handle playbook generation", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-      };
-
-      const result = await provider.generatePlaybook(params);
-
-      expect(result.content).toContain("playbook");
-      expect(result.outline).toBe(TEST_CONTENT.OUTLINE_DEFAULT);
-      expect(result.model).toBe(MODEL_NAMES.TEST_MODEL);
-    });
-
-    it("should handle playbook generation with outline", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-        outline: "1. Step one\n2. Step two",
-      };
-
-      const result = await provider.generatePlaybook(params);
-
-      expect(result.outline).toBe("1. Step one\n2. Step two");
-    });
-
-    it("should handle role generation", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.CREATE_ROLE,
-        type: "role",
-      };
-
-      const result = await provider.generateRole(params);
-
-      expect(result.content).toContain("role");
-      expect(result.outline).toBe(TEST_CONTENT.OUTLINE_DEFAULT);
-      expect(result.model).toBe(MODEL_NAMES.TEST_MODEL);
-    });
-
-    it("should handle role generation with outline", async () => {
-      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.CREATE_ROLE,
-        type: "role",
-        outline: "1. Setup\n2. Configure",
-      };
-
-      const result = await provider.generateRole(params);
-
-      expect(result.outline).toBe("1. Setup\n2. Configure");
     });
   });
 });

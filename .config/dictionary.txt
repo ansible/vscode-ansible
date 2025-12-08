@@ -1,4 +1,5 @@
 ABRT
+CACHEDIR
 Containerfile
 Customizer
 Devfile
@@ -31,6 +32,7 @@ Tomasz
 Towncrier
 antsibull
 autofetch
+bindep
 cfgs
 checode
 chromedriver
@@ -49,7 +51,6 @@ eslintcache
 extest
 fqcn
 genai
-githubcli
 haaaad
 highlightjs
 hostsvars
@@ -57,8 +58,8 @@ hostvars
 icontent
 johndoe
 konflux
+lcovonly
 lextudio
-libgbm
 libonig
 libssh
 lightspeed
@@ -88,6 +89,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pyvenv
 relogin
 rhsso
 seealso

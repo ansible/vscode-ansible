@@ -4,8 +4,8 @@ import { providerFactory } from "../providers/factory";
 
 export class ProviderCommands {
   constructor(
-    private context: vscode.ExtensionContext,
-    private lightSpeedManager: LightSpeedManager,
+    private readonly context: vscode.ExtensionContext,
+    private readonly lightSpeedManager: LightSpeedManager,
   ) {}
 
   /**

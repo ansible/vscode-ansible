@@ -2,6 +2,8 @@ export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
 export type IContainerEngine = "auto" | "podman" | "docker";
 
+export type ProviderType = "wca" | "google";
+
 export interface ExtensionSettings {
   activationScript: string | undefined;
   interpreterPath: string | undefined;

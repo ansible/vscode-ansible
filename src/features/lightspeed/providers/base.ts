@@ -3,6 +3,25 @@ import {
   CompletionResponseParams,
 } from "../../../interfaces/lightspeed";
 
+export interface ProviderMetadata {
+  ansibleFileType?:
+    | "playbook"
+    | "tasks"
+    | "handlers"
+    | "vars"
+    | "role"
+    | "inventory";
+  documentUri?: string;
+  workspaceContext?: string;
+  context?: string;
+  isExplanation?: boolean;
+}
+
+export interface HttpError {
+  status?: number;
+  message?: string;
+}
+
 export interface LLMProvider {
   readonly name: string;
   readonly displayName: string;
@@ -57,8 +76,7 @@ export interface ProviderStatus {
 export interface ChatRequestParams {
   message: string;
   conversationId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>; // Metadata can be any shape depending on context
+  metadata?: ProviderMetadata;
 }
 
 export interface ChatResponseParams {
@@ -72,8 +90,7 @@ export interface GenerationRequestParams {
   type: "playbook" | "role";
   createOutline?: boolean; // If true, generate outline from the result
   outline?: string; // User-edited outline to refine generation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: Record<string, any>; // Metadata can be any shape depending on context
+  metadata?: ProviderMetadata;
 }
 
 export interface GenerationResponseParams {
@@ -82,13 +99,13 @@ export interface GenerationResponseParams {
   model?: string;
 }
 
-export abstract class BaseLLMProvider implements LLMProvider {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected config: any; // Config shape varies by provider
+export abstract class BaseLLMProvider<
+  TConfig = unknown,
+> implements LLMProvider {
+  protected config: TConfig;
   protected timeout: number;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(config: any, timeout: number = 30000) {
+  constructor(config: TConfig, timeout: number = 30000) {
     this.config = config;
     this.timeout = timeout;
   }
@@ -114,8 +131,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
    */
   protected applyAnsibleContext(
     prompt: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    metadata?: Record<string, any>,
+    metadata?: ProviderMetadata,
   ): string {
     const { AnsibleContextProcessor } = require("../ansibleContext");
 
@@ -146,8 +162,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
    */
 
   protected handleHttpError(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    error: any,
+    error: HttpError,
     operation: string,
     providerName: string = "",
   ): Error {

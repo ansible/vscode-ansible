@@ -4,17 +4,17 @@ import {
   explainPlaybook,
   generateRole,
   explainRole,
-} from "../../../../../src/features/lightspeed/vue/views/lightspeedUtils";
+} from "../../../../src/features/lightspeed/vue/views/lightspeedUtils";
 import type {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   ExplanationResponseParams,
   GenerationListEntry,
-} from "../../../../../src/interfaces/lightspeed";
+} from "../../../../src/interfaces/lightspeed";
 import {
   IError,
   isError,
-} from "../../../../../src/features/lightspeed/utils/errors";
+} from "../../../../src/features/lightspeed/utils/errors";
 import {
   TEST_PROMPTS,
   TEST_CONTENT,
@@ -23,7 +23,7 @@ import {
 } from "../testConstants";
 
 // Mock extension module - use string literal to avoid hoisting issues
-vi.mock("../../../../../src/extension", () => {
+vi.mock("../../../../src/extension", () => {
   return {
     lightSpeedManager: {
       apiInstance: {
@@ -63,7 +63,7 @@ vi.mock("vscode", async () => {
 });
 
 // Import after mocks
-import { lightSpeedManager } from "../../../../../src/extension";
+import { lightSpeedManager } from "../../../../src/extension";
 
 describe("lightspeedUtils", () => {
   let mockApiInstance: typeof lightSpeedManager.apiInstance;

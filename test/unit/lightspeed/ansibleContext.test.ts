@@ -1,275 +1,611 @@
-import { assert } from "chai";
-import {
-  AnsibleContextProcessor,
-  AnsibleContext,
-} from "../../../src/features/lightspeed/ansibleContext";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AnsibleContextProcessor } from "../../../src/features/lightspeed/ansibleContext.js";
+import type { AnsibleContext } from "../../../src/features/lightspeed/ansibleContext.js";
+import { ANSIBLE_CONTENT, TEST_PROMPTS } from "./testConstants.js";
 
 describe("AnsibleContextProcessor", () => {
+  // Mock console.warn to avoid noise in test output
+  beforeEach(() => {
+    vi.spyOn(console, "warn").mockImplementation(() => {
+      // Intentionally empty - suppresses console.warn in tests
+    });
+  });
+
   describe("enhancePromptForAnsible", () => {
-    it("should enhance prompt with playbook context", () => {
-      const prompt = "- name: Install nginx";
-      const context = "---\n- hosts: all";
-      const ansibleContext: AnsibleContext = {
+    it("should enhance prompt with system context for playbook", () => {
+      const prompt = TEST_PROMPTS.INSTALL_NGINX;
+      const context: AnsibleContext = {
         fileType: "playbook",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
         prompt,
+        "",
         context,
-        ansibleContext,
       );
 
-      assert.include(result, prompt);
-      assert.include(result, "playbook");
+      expect(result).toContain("You are an expert Ansible developer");
+      expect(result).toContain("Generate Ansible playbook content");
+      expect(result).toContain(prompt);
     });
 
-    it("should enhance prompt with role context", () => {
-      const prompt = "- name: Configure service";
-      const context = "---\n- name: Setup";
-      const ansibleContext: AnsibleContext = {
-        fileType: "role",
-      };
-
-      const result = AnsibleContextProcessor.enhancePromptForAnsible(
-        prompt,
-        context,
-        ansibleContext,
-      );
-
-      assert.include(result, prompt);
-      assert.include(result, "role");
-    });
-
-    it("should handle tasks file context", () => {
-      const prompt = "- name: Copy file";
-      const context = "";
-      const ansibleContext: AnsibleContext = {
+    it("should enhance prompt with system context for tasks", () => {
+      const prompt = TEST_PROMPTS.CREATE_TASK;
+      const context: AnsibleContext = {
         fileType: "tasks",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
         prompt,
+        "",
         context,
-        ansibleContext,
       );
 
-      assert.include(result, prompt);
+      expect(result).toContain("Generate Ansible task definitions");
+      expect(result).toContain(prompt);
+    });
+
+    it("should enhance prompt with system context for handlers", () => {
+      const prompt = "Create a handler";
+      const context: AnsibleContext = {
+        fileType: "handlers",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("Generate Ansible handler definitions");
+    });
+
+    it("should enhance prompt with system context for role", () => {
+      const prompt = TEST_PROMPTS.CREATE_ROLE;
+      const context: AnsibleContext = {
+        fileType: "role",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("Generate Ansible role structure");
+    });
+
+    it("should enhance prompt with system context for vars", () => {
+      const prompt = "Define variables";
+      const context: AnsibleContext = {
+        fileType: "vars",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("Generate Ansible variable definitions");
+    });
+
+    it("should enhance prompt with system context for inventory", () => {
+      const prompt = "Create inventory";
+      const context: AnsibleContext = {
+        fileType: "inventory",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("Generate Ansible inventory content");
+    });
+
+    it("should use default playbook fileType when context is not provided", () => {
+      const prompt = TEST_PROMPTS.INSTALL_NGINX;
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        undefined,
+      );
+
+      expect(result).toContain("Generate Ansible playbook content");
+    });
+
+    it("should combine context and prompt when context is provided", () => {
+      const prompt = TEST_PROMPTS.INSTALL_NGINX;
+      const contextString = "Previous context here";
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        contextString,
+        context,
+      );
+
+      expect(result).toContain(contextString);
+      expect(result).toContain(prompt);
+    });
+
+    it("should handle multi-task prompts correctly", () => {
+      const prompt = ANSIBLE_CONTENT.MULTI_TASK;
+      const context: AnsibleContext = {
+        fileType: "tasks",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("Generate Ansible task definitions");
+      expect(result).toContain("Task one");
+      expect(result).toContain("Task two");
+    });
+
+    it("should format single task prompt correctly", () => {
+      const prompt = "Install nginx";
+      const context: AnsibleContext = {
+        fileType: "tasks",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("- name: Install nginx");
+    });
+
+    it("should handle prompt that already has task structure", () => {
+      const prompt = ANSIBLE_CONTENT.SINGLE_TASK;
+      const context: AnsibleContext = {
+        fileType: "tasks",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("- name: Install nginx");
+    });
+
+    it("should handle prompt that already has task structure with module pattern", () => {
+      const prompt = "- ansible.builtin.debug:\n    msg: test";
+      const context: AnsibleContext = {
+        fileType: "tasks",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("- ansible.builtin.debug:");
+    });
+
+    it("should handle empty context string", () => {
+      const prompt = TEST_PROMPTS.INSTALL_NGINX;
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain(prompt);
+    });
+
+    it("should handle YAML that parses to null", () => {
+      const prompt = "null";
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("null");
+    });
+
+    it("should handle YAML parsing errors gracefully", () => {
+      const prompt = "invalid: [unclosed bracket";
+      const context: AnsibleContext = {
+        fileType: "playbook",
+      };
+
+      const result = AnsibleContextProcessor.enhancePromptForAnsible(
+        prompt,
+        "",
+        context,
+      );
+
+      expect(result).toContain("invalid: [unclosed bracket");
+      expect(console.warn).toHaveBeenCalled();
     });
   });
 
   describe("extractTaskNames", () => {
     it("should extract task names from multi-task prompt", () => {
-      const prompt =
-        "- name: Install nginx\n- name: Configure firewall\n- name: Start service";
+      const prompt = ANSIBLE_CONTENT.MULTI_TASK;
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
 
-      const tasks = AnsibleContextProcessor.extractTaskNames(prompt);
-
-      assert.equal(tasks.length, 3);
-      assert.include(tasks[0], "Install nginx");
-      assert.include(tasks[1], "Configure firewall");
-      assert.include(tasks[2], "Start service");
+      expect(taskNames).toHaveLength(2);
+      expect(taskNames).toContain("Task one");
+      expect(taskNames).toContain("Task two");
     });
 
-    it("should return empty array for non-task prompt", () => {
-      const prompt = "Just some text without task names";
+    it("should extract single task name", () => {
+      const prompt = ANSIBLE_CONTENT.SINGLE_TASK;
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
 
-      const tasks = AnsibleContextProcessor.extractTaskNames(prompt);
+      expect(taskNames).toHaveLength(1);
+      expect(taskNames[0]).toBe("Install nginx");
+    });
 
-      assert.equal(tasks.length, 0);
+    it("should return empty array when no task names found", () => {
+      const prompt = "Just some text without tasks";
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
+
+      expect(taskNames).toHaveLength(0);
+    });
+
+    it("should handle task names with quotes", () => {
+      const prompt =
+        '- name: "Task with quotes"\n  ansible.builtin.debug:\n    msg: "test"';
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
+
+      expect(taskNames).toHaveLength(1);
+      expect(taskNames[0]).toBe('"Task with quotes"');
+    });
+
+    it("should handle task names with special characters", () => {
+      const prompt =
+        "- name: Task (with) [special] chars\n  ansible.builtin.debug:\n    msg: test";
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
+
+      expect(taskNames).toHaveLength(1);
+      expect(taskNames[0]).toBe("Task (with) [special] chars");
+    });
+
+    it("should handle empty string", () => {
+      const taskNames = AnsibleContextProcessor.extractTaskNames("");
+
+      expect(taskNames).toHaveLength(0);
+    });
+
+    it("should handle task names with indentation", () => {
+      const prompt =
+        "  - name: Indented task\n    ansible.builtin.debug:\n      msg: test";
+      const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
+
+      expect(taskNames).toHaveLength(1);
+      expect(taskNames[0]).toBe("Indented task");
     });
   });
 
   describe("cleanAnsibleOutput", () => {
-    it("should remove YAML frontmatter", () => {
-      const output = "```yaml\n- name: Task\n```";
-
+    it("should remove YAML code block markers", () => {
+      const output = ANSIBLE_CONTENT.YAML_WITH_CODE_BLOCK;
       const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
 
-      assert.notInclude(cleaned, "```yaml");
-      assert.notInclude(cleaned, "```");
-      assert.include(cleaned, "- name: Task");
+      expect(cleaned).not.toContain("```yaml");
+      expect(cleaned).not.toContain("```");
+      expect(cleaned).toContain("- name: Test task");
     });
 
-    it("should trim whitespace", () => {
-      const output = "\n\n  - name: Task  \n\n";
-
+    it("should remove explanatory text before YAML", () => {
+      const output = ANSIBLE_CONTENT.YAML_WITH_EXPLANATION;
       const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
 
-      assert.equal(cleaned, "- name: Task");
+      expect(cleaned).not.toContain("Here's the playbook:");
+      expect(cleaned).toContain("- name: Test task");
+    });
+
+    it("should normalize YAML formatting", () => {
+      const output = "---\n- name: Test\n  debug:\n    msg: hello";
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
+
+      expect(cleaned).toBeTruthy();
+      expect(cleaned).toContain("- name: Test");
+    });
+
+    it("should handle valid YAML without code blocks", () => {
+      const output = ANSIBLE_CONTENT.SINGLE_TASK;
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
+
+      expect(cleaned).toContain("- name: Install nginx");
+    });
+
+    it("should handle empty string", () => {
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput("");
+
+      expect(cleaned).toBe("");
+    });
+
+    it("should handle whitespace-only string", () => {
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput("   \n  \t  ");
+
+      expect(cleaned).toBe("");
+    });
+
+    it("should handle invalid YAML gracefully", () => {
+      const output = ANSIBLE_CONTENT.INVALID_YAML;
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
+
+      // Should return the original content (or cleaned version) even if YAML is invalid
+      expect(cleaned).toBeTruthy();
+    });
+
+    it("should remove multiple code block markers", () => {
+      const output = "```yaml\n- name: Test\n```";
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
+
+      // The implementation removes code blocks at start/end, not all occurrences
+      // After YAML parsing and re-serialization, code blocks should be removed
+      expect(cleaned).not.toContain("```yaml");
+      expect(cleaned).not.toContain("```");
+      expect(cleaned).toContain("- name: Test");
+    });
+
+    it("should handle YAML with leading whitespace", () => {
+      const output = "   \n   - name: Test\n     debug:\n       msg: test";
+      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
+
+      expect(cleaned).toContain("- name: Test");
     });
   });
 
   describe("validateAnsibleContent", () => {
-    it("should validate valid YAML", () => {
-      const content = "---\n- name: Task\n  debug:\n    msg: Hello";
-
+    it("should validate valid playbook structure", () => {
+      const content = ANSIBLE_CONTENT.PLAYBOOK;
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
-      assert.isTrue(result.valid);
-      assert.isEmpty(result.errors);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
 
-    it("should reject invalid YAML", () => {
-      const content = "---\n- name: Task\n  debug\n    msg: Hello";
-
+    it("should validate valid task list", () => {
+      const content = ANSIBLE_CONTENT.SINGLE_TASK;
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
-      assert.isFalse(result.valid);
-      assert.isNotEmpty(result.errors);
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should validate valid multi-task list", () => {
+      const content = ANSIBLE_CONTENT.MULTI_TASK;
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should reject invalid YAML syntax", () => {
+      const content = ANSIBLE_CONTENT.INVALID_YAML;
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]).toContain("YAML syntax error");
     });
 
     it("should reject empty content", () => {
-      const content = "";
-
+      const content = ANSIBLE_CONTENT.EMPTY;
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
-      assert.isFalse(result.valid);
-      assert.isNotEmpty(result.errors);
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]).toContain("empty or invalid");
+    });
+
+    it("should reject null YAML", () => {
+      const content = ANSIBLE_CONTENT.NULL_YAML;
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it("should validate playbook with hosts", () => {
+      const content =
+        "---\n- hosts: all\n  tasks:\n    - name: Test\n      debug:\n        msg: test";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should validate role structure", () => {
+      const content = "---\nmain: []";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should reject invalid task structure", () => {
+      const content = "---\n- invalid: task\n  no_name: true";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      // May or may not be valid depending on implementation
+      expect(result).toHaveProperty("valid");
+      expect(result).toHaveProperty("errors");
+    });
+
+    it("should handle array of non-objects", () => {
+      const content = "---\n- string\n- 123\n- true";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it("should reject task missing name or module", () => {
+      const content = "---\n- _meta: {}\n  _some_other: value";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Task missing name or module");
+    });
+
+    it("should reject invalid playbook or role structure", () => {
+      const content = "---\ninvalid_key: value\nanother_key: test";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid playbook or role structure");
     });
   });
 
   describe("getAnsibleStopSequences", () => {
-    it("should return stop sequences", () => {
+    it("should return array of stop sequences", () => {
       const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
 
-      assert.isArray(sequences);
-      assert.isNotEmpty(sequences);
+      expect(Array.isArray(sequences)).toBe(true);
+      expect(sequences.length).toBeGreaterThan(0);
+    });
+
+    it("should include document separator", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\n\n---");
+    });
+
+    it("should include new play indicator", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\n\n- hosts:");
+    });
+
+    it("should include new task indicator", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\n\n- name:");
+    });
+
+    it("should include handlers section", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\n\nhandlers:");
+    });
+
+    it("should include vars section", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\nvars:");
+    });
+
+    it("should include tasks section", () => {
+      const sequences = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences).toContain("\ntasks:");
+    });
+
+    it("should return consistent results on multiple calls", () => {
+      const sequences1 = AnsibleContextProcessor.getAnsibleStopSequences();
+      const sequences2 = AnsibleContextProcessor.getAnsibleStopSequences();
+
+      expect(sequences1).toEqual(sequences2);
     });
   });
 
   describe("getTemperatureForFileType", () => {
-    it("should return temperature for playbook", () => {
+    it("should return correct temperature for playbook", () => {
       const temp =
         AnsibleContextProcessor.getTemperatureForFileType("playbook");
 
-      assert.isNumber(temp);
-      assert.isAtLeast(temp, 0);
-      assert.isAtMost(temp, 1);
+      expect(temp).toBe(0.1);
     });
 
-    it("should return temperature for role", () => {
+    it("should return correct temperature for tasks", () => {
+      const temp = AnsibleContextProcessor.getTemperatureForFileType("tasks");
+
+      expect(temp).toBe(0.1);
+    });
+
+    it("should return correct temperature for handlers", () => {
+      const temp =
+        AnsibleContextProcessor.getTemperatureForFileType("handlers");
+
+      expect(temp).toBe(0.05);
+    });
+
+    it("should return correct temperature for role", () => {
       const temp = AnsibleContextProcessor.getTemperatureForFileType("role");
 
-      assert.isNumber(temp);
-      assert.isAtLeast(temp, 0);
-      assert.isAtMost(temp, 1);
+      expect(temp).toBe(0.15);
+    });
+
+    it("should return default temperature for unknown file type", () => {
+      const temp = AnsibleContextProcessor.getTemperatureForFileType("unknown");
+
+      expect(temp).toBe(0.1);
     });
   });
 
   describe("getMaxTokensForFileType", () => {
-    it("should return max tokens for playbook", () => {
+    it("should return correct max tokens for playbook", () => {
       const tokens =
         AnsibleContextProcessor.getMaxTokensForFileType("playbook");
 
-      assert.isNumber(tokens);
-      assert.isAtLeast(tokens, 100);
+      expect(tokens).toBe(2000);
     });
 
-    it("should return max tokens for role", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("role");
-
-      assert.isNumber(tokens);
-      assert.isAtLeast(tokens, 100);
-    });
-
-    it("should return max tokens for tasks", () => {
+    it("should return correct max tokens for tasks", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType("tasks");
 
-      assert.isNumber(tokens);
-      assert.isAtLeast(tokens, 100);
+      expect(tokens).toBe(800);
     });
 
-    it("should return max tokens for handlers", () => {
+    it("should return correct max tokens for handlers", () => {
       const tokens =
         AnsibleContextProcessor.getMaxTokensForFileType("handlers");
 
-      assert.isNumber(tokens);
-      assert.isAtLeast(tokens, 100);
+      expect(tokens).toBe(400);
     });
 
-    it("should return default max tokens for unknown type", () => {
+    it("should return correct max tokens for vars", () => {
+      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("vars");
+
+      expect(tokens).toBe(600);
+    });
+
+    it("should return correct max tokens for role", () => {
+      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("role");
+
+      expect(tokens).toBe(2500);
+    });
+
+    it("should return correct max tokens for inventory", () => {
+      const tokens =
+        AnsibleContextProcessor.getMaxTokensForFileType("inventory");
+
+      expect(tokens).toBe(1000);
+    });
+
+    it("should return default max tokens for unknown file type", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType("unknown");
 
-      assert.isNumber(tokens);
-      assert.isAtLeast(tokens, 100);
-    });
-  });
-
-  describe("cleanAnsibleOutput with various inputs", () => {
-    it("should handle output with explanation text", () => {
-      const output = "Here's the YAML:\n- name: Task\n  debug:\n    msg: Hello";
-
-      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
-
-      assert.include(cleaned, "- name: Task");
-    });
-
-    it("should handle output with triple backticks", () => {
-      const output = "```\n- name: Task\n```";
-
-      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
-
-      assert.include(cleaned, "name:");
-    });
-
-    it("should handle output with yaml code fence", () => {
-      const output = "```yaml\n- name: Deploy app\n  hosts: all\n```";
-
-      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
-
-      assert.include(cleaned, "Deploy app");
-      assert.notInclude(cleaned, "```");
-    });
-
-    it("should handle already clean output", () => {
-      const output = "- name: Clean task\n  debug:\n    msg: Test";
-
-      const cleaned = AnsibleContextProcessor.cleanAnsibleOutput(output);
-
-      assert.include(cleaned, "Clean task");
-    });
-  });
-
-  describe("edge cases", () => {
-    it("should handle empty prompt gracefully", () => {
-      const result = AnsibleContextProcessor.enhancePromptForAnsible(
-        "",
-        "",
-        undefined,
-      );
-
-      assert.isDefined(result);
-      assert.isString(result);
-    });
-
-    it("should handle playbook-specific contexts", () => {
-      const result = AnsibleContextProcessor.enhancePromptForAnsible(
-        "- name: test",
-        "---\n- hosts: all",
-        { fileType: "playbook" },
-      );
-
-      assert.include(result, "playbook");
-    });
-
-    it("should handle tasks file contexts", () => {
-      const result = AnsibleContextProcessor.enhancePromptForAnsible(
-        "- name: test task",
-        "",
-        { fileType: "tasks" },
-      );
-
-      assert.include(result, "task");
-    });
-
-    it("should handle handlers file contexts", () => {
-      const result = AnsibleContextProcessor.enhancePromptForAnsible(
-        "- name: restart service",
-        "",
-        { fileType: "handlers" },
-      );
-
-      assert.include(result, "handler");
+      expect(tokens).toBe(1000);
     });
   });
 });

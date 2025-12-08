@@ -13,7 +13,6 @@
   ],
   "github-actions": {
     "branchTopic": "build",
-    "commitMessageTopic": "github actions",
     "enabled": true,
     "groupName": "github actions",
     "groupSlug": "actions",
@@ -22,6 +21,7 @@
       {
         "matchPackageNames": [
           "*",
+          "!/ansible/actions/",
           "!/ansible/team-devtools/",
           "!/Actions-R-Us/actions-tagger/",
           "!/re-actors/alls-green/"
@@ -57,7 +57,6 @@
     },
     {
       "branchTopic": "npm-dev",
-      "commitMessageTopic": "npm dev",
       "groupSlug": "npm-dev",
       "matchDepTypes": ["devDependencies"],
       "matchManagers": ["npm"],
@@ -65,7 +64,6 @@
     },
     {
       "branchTopic": "npm",
-      "commitMessageTopic": "npm",
       "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "major"]
@@ -76,7 +74,6 @@
     },
     {
       "branchTopic": "npm-lock",
-      "commitMessageTopic": "npm lockfile",
       "description": "Separate lockfile maintenance for npm",
       "groupName": "npm lockfile",
       "groupSlug": "npm-lockfile",
@@ -85,7 +82,6 @@
     },
     {
       "branchTopic": "pep621",
-      "commitMessageTopic": "pep621 lockfile",
       "description": "Separate lockfile maintenance for Python",
       "groupName": "python lockfile",
       "groupSlug": "python-lockfile",

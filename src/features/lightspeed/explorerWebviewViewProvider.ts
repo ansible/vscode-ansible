@@ -18,16 +18,14 @@ import { getLightspeedLogger, Log } from "../../utils/logger";
 
 import { isPlaybook, isDocumentInRole } from "./utils/explanationUtils";
 
-export class LightspeedExplorerWebviewViewProvider
-  implements WebviewViewProvider
-{
+export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "lightspeed-explorer-webview";
 
   //sessionInfo: LightspeedSessionInfo = {};
   //sessionData: LightspeedAuthSession = {} as LightspeedAuthSession;
   private lightspeedAuthenticatedUser: LightspeedUser;
-  private settingsManager: SettingsManager;
-  private logger: Log;
+  private readonly settingsManager: SettingsManager;
+  private readonly logger: Log;
   public webviewView: WebviewView | undefined;
   public lightspeedExperimentalEnabled: boolean = false;
 

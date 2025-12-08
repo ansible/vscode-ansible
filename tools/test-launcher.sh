@@ -20,6 +20,7 @@ cleanup()
     # prevents CI issues (git-leaks), also we do not need the html report
     rm -rf out/coverage/*/lcov-report/out
     stop_server
+    stop_llm_provider_server
 
     if [[ -f out/log/.failed ]]; then
          EXIT_CODE=3
@@ -42,8 +43,11 @@ trap "cleanup EXIT" EXIT
 CODE_VERSION="${CODE_VERSION:-max}"
 TEST_LIGHTSPEED_PORT=3000
 TEST_LIGHTSPEED_URL="${TEST_LIGHTSPEED_URL:-}"
+TEST_LLM_PROVIDER_PORT=3001
+TEST_LLM_PROVIDER_URL="${TEST_LLM_PROVIDER_URL:-}"
 COVERAGE="${COVERAGE:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
+MOCK_LLM_PROVIDER_API="${MOCK_LLM_PROVIDER_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
 UI_TARGET="${UI_TARGET:-*Test.js}"
@@ -72,6 +76,23 @@ function start_server() {
     export TEST_LIGHTSPEED_URL
 }
 
+function start_llm_provider_server() {
+    log notice "Starting the LLM Provider Mock Server"
+    if [[ -n "${TEST_LLM_PROVIDER_URL}" ]]; then
+        log notice "MOCK_LLM_PROVIDER_API is true, the existing TEST_LLM_PROVIDER_URL envvar will be ignored!"
+    fi
+    mkdir -p out/log
+    truncate -s 0 "out/log/${TEST_ID}-llm-provider-server.log"
+    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedLLMProviderServer/server.js >"out/log/${TEST_ID}-llm-provider-server.log" 2>&1 ) &
+    while ! grep -i 'listening on port' "out/log/${TEST_ID}-llm-provider-server.log"; do
+	sleep 1
+    done
+
+    TEST_LLM_PROVIDER_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)$,http://\2:\1,p' "out/log/${TEST_ID}-llm-provider-server.log" | tail -n1)
+
+    export TEST_LLM_PROVIDER_URL
+}
+
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
         pid=$(lsof -ti :${TEST_LIGHTSPEED_PORT} || true)
@@ -82,6 +103,19 @@ function stop_server() {
             log debug "No process is using port ${TEST_LIGHTSPEED_PORT}"
         fi
         TEST_LIGHTSPEED_URL=0
+    fi
+}
+
+function stop_llm_provider_server() {
+    if [[ "$MOCK_LLM_PROVIDER_API" == "1" ]]; then
+        pid=$(lsof -ti :${TEST_LLM_PROVIDER_PORT} || true)
+        if [ -n "$pid" ]; then
+            kill -9 "$pid"
+            log debug "Killed LLM provider mock server process $pid using port ${TEST_LLM_PROVIDER_PORT}"
+        else
+            log debug "No process is using port ${TEST_LLM_PROVIDER_PORT}"
+        fi
+        TEST_LLM_PROVIDER_URL=0
     fi
 }
 
@@ -153,10 +187,10 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
 log notice "Downloading ChromeDriver..."
-retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 
 # Pre-pull ansible-navigator container image for UI tests (non-macOS only)
 if [[ "$OSTYPE" != "darwin"* ]]; then
@@ -189,9 +223,9 @@ if [[ "$COVERAGE" == "" ]]; then
     fi
     yarn compile
 
-    npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
+    extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
-npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
+extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
 export COVERAGE
 
@@ -214,7 +248,12 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 stop_server
                 start_server
             fi
+            if [[ "$MOCK_LLM_PROVIDER_API" == "1" ]]; then
+                stop_llm_provider_server
+                start_llm_provider_server
+            fi
             refresh_settings "${test_file}" "${TEST_ID}"
+            export TEST_LLM_PROVIDER_URL
             timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
@@ -244,19 +283,4 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     done
     ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
     touch out/junit/ui/.passed
-fi
-if [[ "${TEST_TYPE}" == "e2e" ]]; then
-    export NODE_NO_WARNINGS=1
-    export DONT_PROMPT_WSL_INSTALL=1
-    export SKIP_PODMAN=${SKIP_PODMAN:-0}
-    export SKIP_DOCKER=${SKIP_DOCKER:-0}
-
-    mkdir -p out/userdata/User/
-    mkdir -p out/junit/e2e
-    rm -f out/junit/e2e/*.*
-    cp -f test/testFixtures/settings.json out/userdata/User/settings.json
-    # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    npm exec -- vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
-    touch out/junit/e2e/.passed
-    rm -f test/testFixtures/.vscode/settings.json
 fi

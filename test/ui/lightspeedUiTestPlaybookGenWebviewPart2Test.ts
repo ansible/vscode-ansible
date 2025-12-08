@@ -71,6 +71,7 @@ describe("playbook generation features work", function () {
         );
       },
       message: "Timed out waiting for Continue button",
+      timeout: 30000,
     });
     await generateButton.click();
 

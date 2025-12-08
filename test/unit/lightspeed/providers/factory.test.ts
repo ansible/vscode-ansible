@@ -1,159 +1,235 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { assert } from "chai";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { LLMProviderFactory } from "../../../../src/features/lightspeed/providers/factory.js";
+import { ProviderType } from "../../../../src/definitions/lightspeed.js";
+import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "../testConstants.js";
 
-// Test the provider factory in isolation
-describe("LLMProviderFactory", () => {
-  let LLMProviderFactory: any;
+// Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
+const mockEnhancePromptForAnsible = vi.fn(
+  (prompt: string, context?: string) => {
+    return `enhanced: ${prompt} with context: ${context || "none"}`;
+  },
+);
 
-  before(async () => {
-    try {
-      const module = await import(
-        "../../../../src/features/lightspeed/providers/factory.js"
-      );
-      LLMProviderFactory = module.LLMProviderFactory;
-    } catch {
-      console.log("Could not import LLMProviderFactory, skipping tests");
-      return;
-    }
+const mockCleanAnsibleOutput = vi.fn((output: string) => {
+  return output
+    .trim()
+    .replace(/^```ya?ml\s*/i, "")
+    .replace(/```\s*$/, "");
+});
+
+// Use vi.mock for ES modules - these are hoisted
+vi.mock("../../../../../src/features/lightspeed/ansibleContext", () => ({
+  AnsibleContextProcessor: {
+    enhancePromptForAnsible: mockEnhancePromptForAnsible,
+    cleanAnsibleOutput: mockCleanAnsibleOutput,
+  },
+}));
+
+// Reset mocks before each test
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockEnhancePromptForAnsible.mockImplementation(
+    (prompt: string, context?: string) => {
+      return `enhanced: ${prompt} with context: ${context || "none"}`;
+    },
+  );
+  mockCleanAnsibleOutput.mockImplementation((output: string) => {
+    return output
+      .trim()
+      .replace(/^```ya?ml\s*/i, "")
+      .replace(/```\s*$/, "");
   });
+});
 
+describe("LLMProviderFactory", () => {
   describe("Singleton pattern", () => {
-    it("should return singleton instance", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
-
+    it("should return the same instance on multiple calls", () => {
       const instance1 = LLMProviderFactory.getInstance();
       const instance2 = LLMProviderFactory.getInstance();
-      assert.equal(instance1, instance2);
+      expect(instance1).toBe(instance2);
+    });
+
+    it("should return an instance of LLMProviderFactory", () => {
+      const instance = LLMProviderFactory.getInstance();
+      expect(instance).toBeInstanceOf(LLMProviderFactory);
     });
   });
 
-  describe("Supported providers", () => {
-    it("should return list of supported providers", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+  describe("createProvider", () => {
+    describe("Google provider", () => {
+      it("should create Google provider with full config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_FULL;
 
-      const factory = LLMProviderFactory.getInstance();
-      const providers = factory.getSupportedProviders();
+        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
 
-      assert.isArray(providers);
-      assert.isAtLeast(providers.length, 2); // wca, google
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("google");
+      });
 
-      const providerTypes = providers.map((p: any) => p.type);
-      assert.include(providerTypes, "wca");
-      assert.include(providerTypes, "google");
-    });
+      it("should throw error when API key is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_EMPTY_API_KEY;
 
-    it("should include required provider information", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        }).toThrow("API Key is required for Google Gemini");
+      });
 
-      const factory = LLMProviderFactory.getInstance();
-      const providers = factory.getSupportedProviders();
+      it("should throw error when custom API endpoint is provided", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL,
+          apiEndpoint: "https://custom-endpoint.example.com",
+        };
 
-      providers.forEach((provider: any) => {
-        assert.property(provider, "type");
-        assert.property(provider, "name");
-        assert.property(provider, "displayName");
-        assert.property(provider, "description");
-        assert.property(provider, "configSchema");
-        assert.isArray(provider.configSchema);
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        }).toThrow(
+          "Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.",
+        );
       });
     });
 
-    it("should include proper config schema for each provider", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+    describe("WCA provider", () => {
+      it("should throw error when trying to create WCA provider", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
 
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.WCA, config);
+        }).toThrow("WCA provider should be handled by existing LightSpeedAPI");
+      });
+    });
+
+    describe("Unsupported provider", () => {
+      it("should throw error for unsupported provider type", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.UNSUPPORTED;
+
+        expect(() => {
+          factory.createProvider("unsupported" as ProviderType, config);
+        }).toThrow("Unsupported provider type: unsupported");
+      });
+    });
+  });
+
+  describe("getSupportedProviders", () => {
+    it("should return array of supported providers", () => {
       const factory = LLMProviderFactory.getInstance();
       const providers = factory.getSupportedProviders();
 
-      providers.forEach((provider: any) => {
-        provider.configSchema.forEach((field: any) => {
-          assert.property(field, "key");
-          assert.property(field, "label");
-          assert.property(field, "type");
-          assert.property(field, "required");
-          assert.include(
-            ["string", "password", "number", "boolean"],
-            field.type,
-          );
+      expect(providers).toBeInstanceOf(Array);
+      expect(providers.length).toBeGreaterThan(0);
+    });
+
+    it("should include WCA provider", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+      const wcaProvider = providers.find((p) => p.type === PROVIDER_TYPES.WCA);
+
+      expect(wcaProvider).toBeDefined();
+      expect(wcaProvider?.type).toBe(PROVIDER_TYPES.WCA);
+      expect(wcaProvider?.name).toBe("wca");
+      expect(wcaProvider?.displayName).toContain("Red Hat Ansible Lightspeed");
+    });
+
+    it("should include Google provider", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+      const googleProvider = providers.find(
+        (p) => p.type === PROVIDER_TYPES.GOOGLE,
+      );
+
+      expect(googleProvider).toBeDefined();
+      expect(googleProvider?.type).toBe(PROVIDER_TYPES.GOOGLE);
+      expect(googleProvider?.name).toBe("google");
+      expect(googleProvider?.displayName).toBe("Google Gemini");
+    });
+
+    it("should have correct structure for each provider", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+
+      providers.forEach((provider) => {
+        expect(provider).toHaveProperty("type");
+        expect(provider).toHaveProperty("name");
+        expect(provider).toHaveProperty("displayName");
+        expect(provider).toHaveProperty("description");
+        expect(provider).toHaveProperty("configSchema");
+        expect(Array.isArray(provider.configSchema)).toBe(true);
+      });
+    });
+
+    it("should have config schema with required fields", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+
+      providers.forEach((provider) => {
+        provider.configSchema.forEach((field) => {
+          expect(field).toHaveProperty("key");
+          expect(field).toHaveProperty("label");
+          expect(field).toHaveProperty("type");
+          expect(field).toHaveProperty("required");
+          expect(typeof field.required).toBe("boolean");
         });
       });
     });
   });
 
-  describe("Configuration validation", () => {
-    it("should validate Google config", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+  describe("validateProviderConfig", () => {
+    describe("Google provider validation", () => {
+      it("should return true for valid Google config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
 
-      const factory = LLMProviderFactory.getInstance();
-      const validConfig = {
-        enabled: true,
-        provider: "google",
-        apiEndpoint: "https://generativelanguage.googleapis.com/v1beta",
-        apiKey: "AIza-test-key",
-        modelName: "gemini-2.5-flash",
-        timeout: 30000,
-        customHeaders: {},
-      };
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+        );
 
-      const result = factory.validateProviderConfig("google", validConfig);
-      assert.isBoolean(result);
+        expect(isValid).toBe(true);
+      });
+
+      it("should return false when API key is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_EMPTY_API_KEY;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
     });
 
-    it("should reject config with missing required fields", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+    describe("WCA provider validation", () => {
+      it("should return true for valid WCA config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
 
-      const factory = LLMProviderFactory.getInstance();
-      const invalidConfig = {
-        enabled: true,
-        provider: "google",
-        apiEndpoint: "",
-        apiKey: "", // Missing required field
-        modelName: "gemini-2.5-flash",
-        timeout: 30000,
-        customHeaders: {},
-      };
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
 
-      const result = factory.validateProviderConfig("google", invalidConfig);
-      assert.isFalse(result);
+        expect(isValid).toBe(true);
+      });
     });
-  });
 
-  describe("Provider creation", () => {
-    it("should handle provider creation errors gracefully", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
+    describe("Unsupported provider validation", () => {
+      it("should return false for unsupported provider type", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.UNSUPPORTED;
 
-      const factory = LLMProviderFactory.getInstance();
+        const isValid = factory.validateProviderConfig(
+          "unsupported" as ProviderType,
+          config,
+        );
 
-      try {
-        const config = {
-          enabled: true,
-          provider: "unsupported",
-          apiEndpoint: "",
-          apiKey: "test-key",
-          modelName: "test-model",
-          timeout: 30000,
-          customHeaders: {},
-        };
-
-        factory.createProvider("unsupported" as any, config);
-        assert.fail("Should have thrown an error");
-      } catch (error) {
-        assert.instanceOf(error, Error);
-        assert.include(error.message, "Unsupported provider type");
-      }
+        expect(isValid).toBe(false);
+      });
     });
   });
 });

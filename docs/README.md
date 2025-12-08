@@ -363,6 +363,23 @@ which you can learn more about at
   block structures, is not yet implemented. Basic YAML highlighting will apply
   within these blocks.
 
+## Model Context Protocol (MCP) Server
+
+The extension includes an MCP server that enables AI assistants and LLM-powered tools to interact with Ansible development workflows. The MCP server provides 11 specialized tools (across multiple branches) for:
+
+- Ansible playbook linting with automatic fixes
+- Development environment setup and management
+- Project scaffolding (playbooks and collections)
+- Execution environment generation with schema validation
+- Environment diagnostics and information
+- Playbook execution with ansible-navigator (auto-detection, Podman handling)
+- Ansible content best practices and guidelines
+
+### Learn More
+
+- **[MCP Server Overview](mcp/README.md)** - Features, architecture, and getting started guide
+- **[API Reference](mcp/api.md)** - Complete technical API documentation for all tools and resources
+
 ## Contact
 
 We welcome your feedback, questions and ideas. Learn how to

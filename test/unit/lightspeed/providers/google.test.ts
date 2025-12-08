@@ -66,7 +66,7 @@ vi.mock("@google/genai", () => {
   };
 });
 
-vi.mock("../../../../../src/utils/logger", () => {
+vi.mock("../../../../src/utils/logger", () => {
   // Create a shared logger mock inside the factory
   const loggerMock = {
     info: vi.fn(),
@@ -82,17 +82,14 @@ vi.mock("../../../../../src/utils/logger", () => {
   };
 });
 
-vi.mock(
-  "../../../../../src/features/lightspeed/utils/outlineGenerator",
-  () => ({
-    generateOutlineFromPlaybook: vi.fn(() => {
-      return "1. Task one\n2. Task two";
-    }),
-    generateOutlineFromRole: vi.fn(() => {
-      return "1. Setup task\n2. Configure task";
-    }),
+vi.mock("../../../../src/features/lightspeed/utils/outlineGenerator", () => ({
+  generateOutlineFromPlaybook: vi.fn(() => {
+    return "1. Task one\n2. Task two";
   }),
-);
+  generateOutlineFromRole: vi.fn(() => {
+    return "1. Setup task\n2. Configure task";
+  }),
+}));
 
 // Reset mocks before each test
 beforeEach(() => {
@@ -120,12 +117,12 @@ beforeEach(() => {
   );
 });
 
-import { GoogleProvider } from "../../../../../src/features/lightspeed/providers/google.js";
-import type { CompletionRequestParams } from "../../../../../src/interfaces/lightspeed.js";
+import { GoogleProvider } from "../../../../src/features/lightspeed/providers/google.js";
+import type { CompletionRequestParams } from "../../../../src/interfaces/lightspeed.js";
 import type {
   ChatRequestParams,
   GenerationRequestParams,
-} from "../../../../../src/features/lightspeed/providers/base.js";
+} from "../../../../src/features/lightspeed/providers/base.js";
 import {
   TEST_API_KEYS,
   MODEL_NAMES,
@@ -137,11 +134,11 @@ import {
 
 // Get the mocked modules
 import { GoogleGenAI } from "@google/genai";
-import { getLightspeedLogger } from "../../../../../src/utils/logger.js";
+import { getLightspeedLogger } from "../../../../src/utils/logger.js";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "../../../../../src/features/lightspeed/utils/outlineGenerator.js";
+} from "../../../../src/features/lightspeed/utils/outlineGenerator.js";
 
 // Access the actual mocks from the mocked modules using vi.mocked
 const mockedGenerateOutlineFromPlaybook = vi.mocked(
@@ -423,6 +420,37 @@ describe("GoogleProvider", () => {
         createOutline: false,
       });
       expect(resultWithoutOutline.outline).toBe("");
+    });
+
+    it("should incorporate outline into prompt when provided", async () => {
+      const outline = "1. Setup\n2. Configure";
+      const mockPlaybook = "---\n- name: Install nginx\n  hosts: all";
+      sharedGenerateContent.mockResolvedValue({
+        text: mockPlaybook,
+      });
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_PRO,
+      });
+      const params: GenerationRequestParams = {
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        outline: outline,
+      };
+
+      await provider.generatePlaybook(params);
+
+      expect(mockEnhancePromptForAnsible).toHaveBeenCalledWith(
+        expect.stringContaining(outline),
+        expect.any(String),
+        expect.objectContaining({
+          fileType: "playbook",
+        }),
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining(outline),
+      );
     });
 
     it("should handle errors and throw with proper message", async () => {

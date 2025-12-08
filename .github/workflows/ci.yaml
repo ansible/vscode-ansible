@@ -49,7 +49,7 @@ jobs:
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -66,10 +66,6 @@ jobs:
           mise exec -- which python3
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
-
-      - name: Install ansible-dev-tools
-        run: |
-          pip install ansible-dev-tools
 
       - name: Extract commit context from conventional commit
         id: extract_context
@@ -115,6 +111,10 @@ jobs:
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
+      - name: task dry
+        run: |
+          task dry
+
       - name: task lint
         timeout-minutes: 4
         run: |
@@ -129,6 +129,24 @@ jobs:
         timeout-minutes: 2
         run: |
           task package && task package --status
+
+      - name: Upload vsix artifact
+        uses: ansible/actions/upload-artifact@main
+        with:
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          path: ansible-*.vsix
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload ansible-language-server npm package
+        uses: ansible/actions/upload-artifact@main
+        with:
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
+          path: packages/ansible-language-server/*.tgz
+          if-no-files-found: error
+          retention-days: 90
 
   build:
     name: ${{ matrix.name }}
@@ -162,11 +180,14 @@ jobs:
         os:
           - ubuntu-24.04
         task-name:
-          - test (linux)
+          - test
         name:
           - test (linux)
+        id:
+          - test-linux
         include:
           - name: test (macos)
+            id: test-macos
             task-name: test
             os: macos-15-large
             env:
@@ -177,6 +198,7 @@ jobs:
             continue-on-error: true
 
           - name: test (wsl)
+            id: test-wsl
             task-name: test
             os: wsl-runner
             runs-on: self-hosted
@@ -184,7 +206,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -239,7 +261,7 @@ jobs:
       - name: Configure yarn cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          path: ~/.config/yarn/berry/cache
+          path: ~/.config/yarn
           key: ${{ runner.os }}-${{ hashFiles('**/package.json', '**/yarn.lock') }}
 
       - name: Enable caching for vscode resources
@@ -264,37 +286,19 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: Setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version-file: .python-version
-
-      - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
-        run: |
-          if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
-            pipx install ansible-dev-tools
-          else
-            pip install ansible-dev-tools
-          fi
-
       - name: Ensure .env file is automatically loaded (mise)
         run: |
-          set -ex
-          mise doctor || true
+          set -exuo pipefail
+          mise reshim
+          mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
             echo "VIRTUAL_ENV mismatch"
             exit 99
           }
           test "$(mise exec -- which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
-            echo "::warning::python3 mismatch"
-            # exit 98
+            echo "::warning::python3 mismatch $(mise exec -- which python3) != ${HOME}/.local/share/virtualenvs/vsa/bin/python3"
+            exit 98
           }
-
-      - name: Install dependencies
-        uses: coactions/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # fix/install
-        # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
-        with:
-          cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
@@ -366,38 +370,19 @@ jobs:
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: Upload vsix artifact
-        if: ${{ matrix.name == 'test (linux)' }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
-          path: ansible-*.vsix
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-language-server npm package
-        if: ${{ matrix.name == 'test (linux)' }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
-          path: packages/ansible-language-server/*.tgz
-          if-no-files-found: error
-          retention-days: 90
-
       - name: Remove invalid files
         if: ${{ always() }}
         run: |
           find out -name '*\?*' -exec rm -r {} \; || true
           find out -name '*"*' -exec rm -r {} \; || true
           find out -name '*:*' -exec rm -r {} \; || true
+          rm -rf out/vitebuild
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
-        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
+        uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
+          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}.zip
           path: |
             out/coverage
             out/junit
@@ -416,7 +401,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/als
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -428,7 +413,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/mcp
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},mcp
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -440,7 +425,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/e2e
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -452,7 +437,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/unit
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -464,7 +449,7 @@ jobs:
           fail_ci_if_error: true
           directory: out/junit/ui
           handle_no_reports_found: true
-          name: ${{ matrix.name }}
+          name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
@@ -503,7 +488,7 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
 
@@ -625,7 +610,7 @@ jobs:
       - check
     steps:
       - name: Checkout Source
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0
 
@@ -643,19 +628,14 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
 
       - run: |
-          npm exec -- yarn install --immutable
+          yarn install --immutable
           ls -la *.vsix
-
-      - name: Setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version-file: .python-version
 
       - name: Publish extension to marketplaces
         run: |

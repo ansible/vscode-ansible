@@ -3,7 +3,7 @@ import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
   parseOutlineToTaskList,
-} from "../../../../../src/features/lightspeed/utils/outlineGenerator.js";
+} from "../../../../src/features/lightspeed/utils/outlineGenerator.js";
 import { ANSIBLE_CONTENT } from "../testConstants.js";
 
 describe("outlineGenerator", () => {

@@ -18,7 +18,6 @@ CHANGELOG.html
 !.yarn/sdks
 !.yarn/versions
 .DS_Store
-coverage
 .nyc_output
 .idea
 *.pyc
@@ -41,3 +40,4 @@ xunit.xml
 *-artifact-*.json
 ansible-navigator.log
 resources
+test/testFixtures/.vscode/settings.json

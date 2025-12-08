@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { LightspeedExplorerWebviewViewProvider } from "../../../../src/features/lightspeed/explorerWebviewViewProvider";
-import type { LightspeedUser } from "../../../../src/features/lightspeed/lightspeedUser";
-import type { SettingsManager } from "../../../../src/settings";
+import { LightspeedExplorerWebviewViewProvider } from "../../../src/features/lightspeed/explorerWebviewViewProvider";
+import type { LightspeedUser } from "../../../src/features/lightspeed/lightspeedUser";
+import type { SettingsManager } from "../../../src/settings";
 import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "./testConstants";
 
 // Mock vscode module
@@ -20,7 +20,7 @@ vi.mock("vscode", () => {
 });
 
 // Mock logger
-vi.mock("../../../../src/utils/logger", () => ({
+vi.mock("../../../src/utils/logger", () => ({
   getLightspeedLogger: vi.fn(() => ({
     info: vi.fn(),
     error: vi.fn(),
@@ -30,7 +30,7 @@ vi.mock("../../../../src/utils/logger", () => ({
 }));
 
 // Mock explorerView utilities
-vi.mock("../../../../src/features/lightspeed/utils/explorerView", () => ({
+vi.mock("../../../src/features/lightspeed/utils/explorerView", () => ({
   getWebviewContentWithLoginForm: vi.fn(() => "<html>Login Form</html>"),
   getWebviewContentWithActiveSession: vi.fn(
     () => "<html>Active Session</html>",
@@ -39,7 +39,7 @@ vi.mock("../../../../src/features/lightspeed/utils/explorerView", () => ({
 }));
 
 // Mock explanationUtils
-vi.mock("../../../../src/features/lightspeed/utils/explanationUtils", () => ({
+vi.mock("../../../src/features/lightspeed/utils/explanationUtils", () => ({
   isPlaybook: vi.fn(() => false),
   isDocumentInRole: vi.fn(() => Promise.resolve(false)),
 }));
@@ -49,11 +49,11 @@ import {
   getWebviewContentWithLoginForm,
   getWebviewContentWithActiveSession,
   setWebviewMessageListener,
-} from "../../../../src/features/lightspeed/utils/explorerView";
+} from "../../../src/features/lightspeed/utils/explorerView";
 import {
   isPlaybook,
   isDocumentInRole,
-} from "../../../../src/features/lightspeed/utils/explanationUtils";
+} from "../../../src/features/lightspeed/utils/explanationUtils";
 
 describe("LightspeedExplorerWebviewViewProvider", () => {
   let provider: LightspeedExplorerWebviewViewProvider;

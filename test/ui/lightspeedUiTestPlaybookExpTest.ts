@@ -186,7 +186,7 @@ describe(__filename, function () {
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
       // Locate the playbook explanation webview
       const webView = (await editorView.openEditor(
-        "Ansible Lightspeed Feedback",
+        "Ansible Lightspeed WCA Provider Feedback",
       )) as WebView;
       expect(webView, "webView should not be undefined").not.to.be.undefined;
       // Issuing the Lightspeed feedback command should not open a new tab
