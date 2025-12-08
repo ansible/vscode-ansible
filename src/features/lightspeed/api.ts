@@ -347,14 +347,6 @@ export class LightSpeedAPI {
 
       const data = await response.json();
 
-      this.logger.info(
-        `[ansible-lightspeed] Playbook generation response: ${JSON.stringify(
-          data,
-          null,
-          2,
-        )}`,
-      );
-
       if (!response.ok) {
         throw new HTTPError(response, response.status, data);
       }
@@ -385,14 +377,6 @@ export class LightSpeedAPI {
       );
 
       const data = await response.json();
-
-      this.logger.info(
-        `[ansible-lightspeed] Role generation response: ${JSON.stringify(
-          data,
-          null,
-          2,
-        )}`,
-      );
 
       // to remove after roleGen GA
       if (data.role && !data.name) {
