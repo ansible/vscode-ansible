@@ -161,6 +161,10 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
+    # For Google provider tests, set the apiEndpoint to the mock server URL
+    if [ "${TEST_LLM_PROVIDER_URL}" != "" ]; then
+        sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LLM_PROVIDER_URL," out/settings.json
+    fi
     rm -rf out/test-resources/settings/ >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"
 }
