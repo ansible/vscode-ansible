@@ -669,7 +669,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // Register MCP server provider
-  const mcpProvider = new AnsibleMcpServerProvider();
+  const mcpProvider = new AnsibleMcpServerProvider(context.extensionPath);
   const mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider(
     "ansibleMcpProvider",
     {

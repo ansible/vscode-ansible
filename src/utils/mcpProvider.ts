@@ -5,12 +5,20 @@ import * as fs from "fs";
 export class AnsibleMcpServerProvider {
   private static readonly MCP_SERVER_NAME =
     "Ansible Developer Tools MCP Server";
-  private static readonly CLI_PATH =
+  // Development path (relative to project root)
+  private static readonly CLI_PATH_DEV =
     "packages/ansible-mcp-server/out/server/src/cli.js";
+  // Packaged extension path (relative to extension path)
+  private static readonly CLI_PATH_PACKAGED = "out/mcp/cli.js";
 
+  private extensionPath: string;
   private didChangeEmitter = new vscode.EventEmitter<void>();
 
   public readonly onDidChangeMcpServerDefinitions = this.didChangeEmitter.event;
+
+  constructor(extensionPath: string) {
+    this.extensionPath = extensionPath;
+  }
 
   /**
    * Provide MCP server definitions
@@ -48,15 +56,19 @@ export class AnsibleMcpServerProvider {
         return servers;
       }
 
-      // Find project root
-      const projectRoot = this.findProjectRoot(workspaceRoot);
-      const cliPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH);
+      // Find the CLI path - check both packaged and development locations
+      const cliPath = this.findCliPath();
+      if (!cliPath) {
+        console.log("MCP server CLI file not found, skipping registration");
+        return servers;
+      }
 
       // Use process.execPath which points to the Node.js executable that VS Code is using
       // This ensures we can find Node.js even if it's not in the system PATH
       const nodeExecutable = process.execPath;
 
       // Create stdio server definition
+      // Use extension path as the cwd for the server process
       const stdioServer = new vscode.McpStdioServerDefinition(
         AnsibleMcpServerProvider.MCP_SERVER_NAME,
         nodeExecutable,
@@ -64,7 +76,7 @@ export class AnsibleMcpServerProvider {
         {
           WORKSPACE_ROOT: workspaceRoot,
         },
-        projectRoot,
+        path.dirname(cliPath),
       );
 
       servers.push(stdioServer);
@@ -118,15 +130,8 @@ export class AnsibleMcpServerProvider {
    */
   private async isMcpServerAvailable(): Promise<boolean> {
     try {
-      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-      if (!workspaceRoot) {
-        return false;
-      }
-
-      const projectRoot = this.findProjectRoot(workspaceRoot);
-      const cliPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH);
-
-      if (!fs.existsSync(cliPath)) {
+      const cliPath = this.findCliPath();
+      if (!cliPath) {
         return false;
       }
 
@@ -142,6 +147,39 @@ export class AnsibleMcpServerProvider {
       console.error(`Failed to check MCP server availability: ${error}`);
       return false;
     }
+  }
+
+  /**
+   * Find the CLI path - checks both packaged and development locations
+   */
+  private findCliPath(): string | undefined {
+    // First, check if we're in a packaged extension (out/mcp/cli.js)
+    const packagedPath = path.join(
+      this.extensionPath,
+      AnsibleMcpServerProvider.CLI_PATH_PACKAGED,
+    );
+    if (fs.existsSync(packagedPath)) {
+      console.log(`Found MCP server CLI at packaged path: ${packagedPath}`);
+      return packagedPath;
+    }
+
+    // If not found, check development path (packages/ansible-mcp-server/out/server/src/cli.js)
+    // We need to find the project root first
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    let devPath: string | undefined;
+    if (workspaceRoot) {
+      const projectRoot = this.findProjectRoot(workspaceRoot);
+      devPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH_DEV);
+      if (fs.existsSync(devPath)) {
+        console.log(`Found MCP server CLI at development path: ${devPath}`);
+        return devPath;
+      }
+    }
+
+    console.error(
+      `MCP server CLI not found at either location:\n  - Packaged: ${packagedPath}\n  - Development: ${devPath || "N/A"}`,
+    );
+    return undefined;
   }
 
   /**

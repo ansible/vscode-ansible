@@ -6,6 +6,7 @@ import argparse
 import glob
 import logging
 import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -143,7 +144,19 @@ def cli() -> None:
         run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
         run("task build")
-        run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
+        run("mkdir -p out/mcp")
+        run("cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
+        # Copy package.json to out/mcp/ for proper Node.js ESM module resolution
+        run("cp packages/ansible-mcp-server/package.json out/mcp/")
+        # Clean up any existing node_modules to ensure fresh install
+        if os.path.exists("out/mcp/node_modules"):
+            shutil.rmtree("out/mcp/node_modules")
+        # Install production dependencies
+        subprocess.run(
+            ["npm", "install", "--production", "--no-audit", "--no-fund", "--loglevel=error"],
+            cwd="out/mcp",
+            check=True,
+        )
 
         run(
             "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
