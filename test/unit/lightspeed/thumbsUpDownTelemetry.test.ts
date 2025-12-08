@@ -32,21 +32,17 @@ describe("Playbook Thumbs Up/Down Telemetry", () => {
     };
 
     // Create mock telemetry service
+    const mockSend = vi.fn().mockResolvedValue(undefined);
     const mockTelemetryService = {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mockSend,
     } as unknown as TelemetryService;
 
     // Call sendTelemetry function
-    await sendTelemetry(
-      mockTelemetryService,
-      true,
-      eventName,
-      telemetryData,
-    );
+    await sendTelemetry(mockTelemetryService, true, eventName, telemetryData);
 
     // Verify the sendTelemetry function called
-    expect(mockTelemetryService.send).toHaveBeenCalledTimes(1);
-    expect(mockTelemetryService.send).toHaveBeenCalledWith({
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith({
       name: "lightspeed.playbookExplanationFeedback",
       properties: {
         provider: PROVIDER_TYPES.GOOGLE,
@@ -79,14 +75,15 @@ describe("Playbook Thumbs Up/Down Telemetry", () => {
       model: modelName || undefined,
     };
 
+    const mockSend = vi.fn().mockResolvedValue(undefined);
     const mockTelemetryService = {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mockSend,
     } as unknown as TelemetryService;
 
     await sendTelemetry(mockTelemetryService, true, eventName, telemetryData);
 
-    expect(mockTelemetryService.send).toHaveBeenCalledTimes(1);
-    expect(mockTelemetryService.send).toHaveBeenCalledWith({
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith({
       name: "lightspeed.playbookExplanationFeedback",
       properties: {
         provider: PROVIDER_TYPES.WCA,
@@ -109,8 +106,7 @@ describe("Role Thumbs Up/Down Telemetry", () => {
     };
 
     // Build telemetry data
-    const isExplanation = !!param.explanationId;
-    const eventName = "lightspeed.roleExplanationFeedback"
+    const eventName = "lightspeed.roleExplanationFeedback";
 
     const telemetryData = {
       provider: provider,
@@ -120,14 +116,15 @@ describe("Role Thumbs Up/Down Telemetry", () => {
       model: modelName || undefined,
     };
 
+    const mockSend = vi.fn().mockResolvedValue(undefined);
     const mockTelemetryService = {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mockSend,
     } as unknown as TelemetryService;
 
     await sendTelemetry(mockTelemetryService, true, eventName, telemetryData);
 
-    expect(mockTelemetryService.send).toHaveBeenCalledTimes(1);
-    expect(mockTelemetryService.send).toHaveBeenCalledWith({
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith({
       name: "lightspeed.roleExplanationFeedback",
       properties: {
         provider: PROVIDER_TYPES.GOOGLE,
@@ -147,8 +144,7 @@ describe("Role Thumbs Up/Down Telemetry", () => {
       explanationId: "role-exp-456",
     };
 
-    const isExplanation = !!param.explanationId;
-    const eventName = "lightspeed.roleExplanationFeedback"
+    const eventName = "lightspeed.roleExplanationFeedback";
 
     const telemetryData = {
       provider: provider,
@@ -158,14 +154,15 @@ describe("Role Thumbs Up/Down Telemetry", () => {
       model: modelName || undefined,
     };
 
+    const mockSend = vi.fn().mockResolvedValue(undefined);
     const mockTelemetryService = {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mockSend,
     } as unknown as TelemetryService;
 
     await sendTelemetry(mockTelemetryService, true, eventName, telemetryData);
 
-    expect(mockTelemetryService.send).toHaveBeenCalledTimes(1);
-    expect(mockTelemetryService.send).toHaveBeenCalledWith({
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalledWith({
       name: "lightspeed.roleExplanationFeedback",
       properties: {
         provider: PROVIDER_TYPES.WCA,

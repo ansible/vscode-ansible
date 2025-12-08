@@ -240,9 +240,10 @@ export async function thumbsUpDown(
   explanationId: string,
   explanationType: "playbook" | "role" = "playbook",
 ) {
-    const commandName = explanationType === "role"
-    ? "ansible.lightspeed.roleThumbsUpDown"
-    : "ansible.lightspeed.thumbsUpDown";
+  const commandName =
+    explanationType === "role"
+      ? "ansible.lightspeed.roleThumbsUpDown"
+      : "ansible.lightspeed.thumbsUpDown";
 
   commands.executeCommand(commandName, {
     action: action,
