@@ -665,6 +665,7 @@ describe("WebviewMessageHandlers", () => {
         data: {
           action: ThumbsUpDownAction.UP,
           explanationId: "test-explanation-id",
+          explanationType: "playbook",
         },
       };
 
@@ -673,6 +674,7 @@ describe("WebviewMessageHandlers", () => {
       expect(vi.mocked(thumbsUpDown)).toHaveBeenCalledWith(
         ThumbsUpDownAction.UP,
         "test-explanation-id",
+        "playbook",
       );
     });
 
@@ -682,6 +684,7 @@ describe("WebviewMessageHandlers", () => {
         data: {
           action: ThumbsUpDownAction.DOWN,
           explanationId: "test-explanation-id",
+          explanationType: "playbook",
         },
       };
 
@@ -690,6 +693,7 @@ describe("WebviewMessageHandlers", () => {
       expect(vi.mocked(thumbsUpDown)).toHaveBeenCalledWith(
         ThumbsUpDownAction.DOWN,
         "test-explanation-id",
+        "playbook",
       );
     });
 
