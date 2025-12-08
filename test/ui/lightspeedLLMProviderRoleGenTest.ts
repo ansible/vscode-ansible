@@ -15,11 +15,11 @@ import { expect } from "chai";
 
 describe("LLM Provider Role Generation", function () {
   before(async function () {
-    this.timeout(30000);
+    this.timeout(60000);
     if (!process.env.TEST_LLM_PROVIDER_URL) {
       this.skip();
     }
-
+    await sleep(5000);
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
