@@ -102,8 +102,7 @@ tasks:
     desc: Update node dependencies
     cmds:
       - yarn ncu -u --workspaces -i
-      # check deps
-      - yarn dlx depcheck
+      - yarn knip --exclude=exports
   "deps:python":
     desc: Update python dependencies
     cmds:

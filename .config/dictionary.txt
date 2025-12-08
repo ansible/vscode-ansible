@@ -45,7 +45,6 @@ contentmatches
 coreutils
 cpython
 dedupe
-depcheck
 devfile
 devspaces
 docsite
@@ -61,6 +60,7 @@ hostsvars
 hostvars
 icontent
 johndoe
+knip
 konflux
 lcovonly
 lextudio
