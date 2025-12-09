@@ -7,7 +7,7 @@ ci:
   skip:
     - codecov
     - codespell # missing uv
-    - depcheck
+    - knip
     - eslint
     - md # missing uv
     - ruff # missing uv
@@ -67,9 +67,9 @@ repos:
           - SC1091
   - repo: local
     hooks:
-      - id: depcheck
-        name: depcheck
-        entry: npx --yes yarn dlx depcheck
+      - id: knip
+        name: knip (node dependency checks)
+        entry: yarn knip --exclude=exports,types,files
         language: system
         pass_filenames: false
         always_run: true
