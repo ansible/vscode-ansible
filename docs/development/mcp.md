@@ -120,7 +120,7 @@ registerToolWithDeps(
 );
 ```
 
-**Important: Tool Metadata for AI Inference**
+#### Important: Tool Metadata for AI Inference
 
 The `description`, `keywords`, and `useCases` fields are critical for AI assistants to infer which tool to use when a user's prompt doesn't explicitly name the tool. AI assistants analyze these fields to match user intent with the appropriate tool.
 
