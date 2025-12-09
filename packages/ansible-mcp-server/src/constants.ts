@@ -1,5 +1,5 @@
 /**
- * Constants used throughout the Ansible MCP Server
+ * Constants used throughout the Ansible Development Tools MCP server
  */
 
 export const ZEN_OF_ANSIBLE = [
