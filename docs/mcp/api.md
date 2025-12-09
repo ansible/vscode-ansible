@@ -9,7 +9,7 @@
 
 1. [API Reference Summary](#api-reference-summary)
 2. [API Overview](#api-overview)
-3. [Authentication & Security](#authentication--security)
+3. [Authentication & Security](#authentication-security)
 4. [Resources](#resources)
 5. [Tool Endpoints](#tool-endpoints)
 6. [Error Responses](#error-responses)
@@ -443,7 +443,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "Available \"Ansible Development Tools MCP Server\" tools\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
+        "text": "Available Ansible Development Tools MCP Server tools\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
       }
     ]
   }

@@ -22,7 +22,7 @@ describe("MCP Server Setting Tests", function () {
     it("should show success message when MCP server is enabled", function () {
       // Test the message that should be shown when MCP is enabled
       const enableMessage =
-        "Ansible Development ToolsMCP Server has been enabled successfully and is now available for AI assistants.";
+        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.";
 
       // Simulate what happens when we enable MCP
       const isEnabled = true;
@@ -37,7 +37,8 @@ describe("MCP Server Setting Tests", function () {
 
     it("should show message when MCP server is already enabled", function () {
       // Test the message for when it's already enabled
-      const alreadyEnabledMessage = "Ansible Development Tools MCP Server is already enabled.";
+      const alreadyEnabledMessage =
+        "Ansible Development Tools MCP Server is already enabled.";
 
       // Simulate checking if already enabled
       const currentlyEnabled = true;
@@ -54,7 +55,8 @@ describe("MCP Server Setting Tests", function () {
   describe("Disable Message", function () {
     it("should show success message when MCP server is disabled", function () {
       // Test the message that should be shown when MCP is disabled
-      const disableMessage = "Ansible Development ToolsMCP Server has been disabled.";
+      const disableMessage =
+        "Ansible Development Tools MCP Server has been disabled.";
 
       // Simulate what happens when we disable MCP
       const isDisabled = true;
@@ -69,7 +71,8 @@ describe("MCP Server Setting Tests", function () {
 
     it("should show message when MCP server is already disabled", function () {
       // Test the message for when it's already disabled
-      const alreadyDisabledMessage = "Ansible Development Tools MCP Server is already disabled.";
+      const alreadyDisabledMessage =
+        "Ansible Development Tools MCP Server is already disabled.";
 
       // Simulate checking if already disabled
       const currentlyDisabled = true;

@@ -96,7 +96,7 @@ export class AnsibleMcpServerProvider {
         return undefined;
       }
 
-      // Check if this is our Ansible Development ToolsMCP server
+      // Check if this is our Ansible Development Tools MCP server
       if (server.label === AnsibleMcpServerProvider.MCP_SERVER_NAME) {
         // For now, we don't require authentication, but this is where we could add it
         // if needed in the future
