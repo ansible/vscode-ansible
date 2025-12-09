@@ -26,6 +26,7 @@ ignorePaths:
   - ./vscode-ansible.Containerfile
   - uv.lock
   - "*.svg"
+  - "**/*-artifact-*.json"
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"
