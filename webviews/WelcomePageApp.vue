@@ -135,6 +135,15 @@ onMounted(() => {
 
             <div class="catalogue">
               <h3>
+                <a href="#" @click.prevent="handleCommandClick('ansible.mcpServer.enabled')">
+                  <span class="codicon codicon-wand"></span> Ansible Development Tools MCP Server (AI)
+                </a>
+              </h3>
+              <p>Provides native VS Code AI integration, enabling AI assistants to interact with Ansible content and developer tools.</p>
+            </div>
+
+            <div class="catalogue">
+              <h3>
                 <a href="#" @click.prevent="handleCommandClick('ansible.lightspeed.playbookGeneration')">
                   <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
                 </a>

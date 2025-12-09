@@ -1,4 +1,5 @@
 {
+  "cooldown": 3,
   "reject": ["@types/vscode", "vscode-languageclient"],
   "upgrade": true
 }

@@ -78,6 +78,14 @@ onMounted(() => {
       </div>
       <div class="catalogue">
         <h3>
+          <a href="command:ansible.mcpServer.enabled" title="Activate Ansible Development Tools MCP Server for AI assistants">
+            <span class="codicon codicon-wand"></span> Activate MCP Server (AI)
+            <span class="new-badge">NEW</span>
+          </a>
+        </h3>
+      </div>
+      <div class="catalogue">
+        <h3>
           <a href="https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide" title="Ansible code bot documentation">
             <span class="codicon codicon-rocket"></span> Ansible code bot
           </a>

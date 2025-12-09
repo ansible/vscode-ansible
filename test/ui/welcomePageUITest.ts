@@ -198,12 +198,38 @@ describe("welcome page is displayed", function () {
 
     expect(startSection).not.to.be.undefined;
 
-    const playbookWithLightspeedOption = await startSection.findElement(
-      By.css("h3"),
+    // Verify the MCP Server option is the first item in the Start section
+    const mcpServerCatalogue = await startSection.findElement(
+      By.xpath(".//div[@class='catalogue'][1]"),
+    );
+    expect(mcpServerCatalogue).not.to.be.undefined;
+
+    // Verify the MCP Server option link is present
+    const mcpServerOption = await mcpServerCatalogue.findElement(
+      By.css("h3 a"),
+    );
+    expect(mcpServerOption).not.to.be.undefined;
+
+    // Get the full text content
+    const mcpServerText = await mcpServerOption.getText();
+    expect(mcpServerText).to.include(
+      "Ansible Development Tools MCP Server (AI)",
     );
 
-    expect(await playbookWithLightspeedOption.getText()).to.equal(
-      "Playbook with Ansible Lightspeed",
+    // Verify the MCP Server option has the correct icon
+    const mcpServerIcon = await mcpServerOption.findElement(
+      By.css("span.codicon-wand"),
+    );
+    expect(mcpServerIcon).not.to.be.undefined;
+
+    // Verify the MCP Server description is present
+    const mcpServerDescription = await mcpServerCatalogue.findElement(
+      By.css("p"),
+    );
+    expect(mcpServerDescription).not.to.be.undefined;
+    const descriptionText = await mcpServerDescription.getText();
+    expect(descriptionText).to.include(
+      "Provides native VS Code AI integration",
     );
 
     // Wait for walkthroughs to load before checking them
