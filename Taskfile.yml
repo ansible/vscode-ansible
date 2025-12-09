@@ -162,11 +162,12 @@ tasks:
     desc: "Run all tests: unit, ui, e2e, als, mcp"
     cmds:
       - task: setup
-      - task: unit
-      - task: ui
-      - task: e2e
-      - task: als:test
-      - task: mcp:test
+      # keep test types ordered by their durations, faster tests first
+      - task: unit # 10s
+      - task: mcp:test # 13s
+      - task: als:test # 20s
+      - task: e2e # 1min
+      - task: ui # 10min
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
