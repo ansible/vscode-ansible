@@ -68,6 +68,7 @@ libonig
 libssh
 lightspeed
 lineinfile
+lintables
 maxlength
 microdnf
 mocharc
