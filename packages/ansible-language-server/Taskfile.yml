@@ -101,14 +101,14 @@ tasks:
       - ../../docs/als/changelog.md
       - README.md
       - package.json
-      - out/server/
+      - out/als/
     generates:
       - "*.tgz"
     deps:
       - build
     cmds:
-      - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - rm -f {{ .TASKFILE_DIR }}/../../out/ship/@ansible-ansible-language-server-*.tgz
+      - yarn pack --out '{{ .TASKFILE_DIR }}/../../out/ship/%s-%v.tgz'
     silent: false
   release:
     desc: Create a new release (used by CI)

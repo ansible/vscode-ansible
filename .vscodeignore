@@ -48,7 +48,7 @@
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js
 !out/mcp/**/*
-!out/server/src/server.js
+!out/als/src/server.js
 !out/vitebuild/extension/**/*
 !out/vitebuild/webview/style.css
 !out/vitebuild/webview/assets/**/*

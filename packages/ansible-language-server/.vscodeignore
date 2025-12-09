@@ -11,4 +11,4 @@
 **/webpack.config.js
 
 server/**
-!out/server/src/server.js
+!out/als/src/server.js

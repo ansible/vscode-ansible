@@ -6,8 +6,8 @@
   "configurations": [
     // An attach configuration that attaches the debugger to a running server
     {
-      "name": "Attach to Server",
-      "outFiles": ["${workspaceRoot}/out/server/**/*.ts"],
+      "name": "Attach to ALS",
+      "outFiles": ["${workspaceRoot}/out/als/**/*.ts"],
       "port": 6009,
       "protocol": "inspector",
       "request": "attach",

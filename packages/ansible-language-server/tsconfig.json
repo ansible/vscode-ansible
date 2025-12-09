@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "./out/server",
+    "outDir": "../../out/als",
     "resolveJsonModule": true
   },
-  "exclude": ["node_modules", "out", "vscode-ansible"],
+  "exclude": ["node_modules", "vscode-ansible"],
   "extends": "../../tsconfig.base.json"
 }

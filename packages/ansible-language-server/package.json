@@ -59,7 +59,7 @@
   },
   "files": [
     "icon.png",
-    "./out/server/src/**/*"
+    "./out/als/src/**/*"
   ],
   "icon": "icon.png",
   "keywords": [
@@ -67,7 +67,7 @@
     "LSP"
   ],
   "license": "MIT",
-  "main": "./out/server/src/server.js",
+  "main": "./out/als/src/server.js",
   "name": "@ansible/ansible-language-server",
   "publisher": "RedHat Inc.",
   "repository": {
@@ -85,6 +85,6 @@
     "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
     "watch": "tsc --watch -p ."
   },
-  "types": "./out/server/src/server.d.ts",
+  "types": "./out/als/src/server.d.ts",
   "version": "1.2.4"
 }
