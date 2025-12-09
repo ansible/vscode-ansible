@@ -39,7 +39,7 @@ nav:
       - index: als/README.md
       - Settings: als/settings.md
       - Changelog: als/changelog.md
-  - Ansible MCP Server:
+  - Ansible Development Tools MCP Server:
       - index: mcp/README.md
       - API Reference: mcp/api.md
   - Configuration: configuration.md

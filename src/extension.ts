@@ -695,7 +695,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         if (isEnabled) {
           vscode.window.showInformationMessage(
-            "Ansible MCP Server is already enabled and available.",
+            "Ansible Development Tools MCP Server is already enabled and available.",
           );
           return;
         }
@@ -712,7 +712,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         mcpProvider.refresh();
 
         vscode.window.showInformationMessage(
-          "Ansible MCP Server has been enabled successfully and is now available for AI assistants.",
+          "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.",
         );
       } catch (error) {
         const errorMessage =
@@ -736,7 +736,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         if (!isEnabled) {
           vscode.window.showInformationMessage(
-            "Ansible MCP Server is already disabled.",
+            "Ansible Development Tools MCP Server is already disabled.",
           );
           return;
         }
@@ -753,7 +753,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         mcpProvider.refresh();
 
         vscode.window.showInformationMessage(
-          "Ansible MCP Server has been disabled.",
+          "Ansible Development Tools MCP Server has been disabled.",
         );
       } catch (error) {
         const errorMessage =
@@ -1133,7 +1133,7 @@ const handleMcpServerConfigurationChange = async (
 
       // Show success message
       vscode.window.showInformationMessage(
-        "Ansible MCP Server has been enabled successfully and is now available for AI assistants.",
+        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.",
       );
     } else {
       // MCP server was disabled - refresh the provider to unregister the server
@@ -1142,7 +1142,7 @@ const handleMcpServerConfigurationChange = async (
 
       // Show success message
       vscode.window.showInformationMessage(
-        "Ansible MCP Server has been disabled.",
+        "Ansible Development Tools MCP Server has been disabled.",
       );
     }
   } catch (error) {
