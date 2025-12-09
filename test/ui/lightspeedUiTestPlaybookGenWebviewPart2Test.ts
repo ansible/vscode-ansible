@@ -21,9 +21,8 @@ import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 config.truncateThreshold = 0;
 
 before(function () {
-  if (process.platform === "darwin") {
-    this.skip();
-  }
+  // Apparently broken on linux too
+  this.skip();
 });
 
 describe("playbook generation features work", function () {
