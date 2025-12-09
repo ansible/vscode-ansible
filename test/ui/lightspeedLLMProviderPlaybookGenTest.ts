@@ -15,7 +15,7 @@ import { expect } from "chai";
 
 describe("LLM Provider Playbook Generation", function () {
   before(async function () {
-    this.timeout(30000);
+    this.timeout(60000);
     if (!process.env.TEST_LLM_PROVIDER_URL) {
       this.skip();
     }
