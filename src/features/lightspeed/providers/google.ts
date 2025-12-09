@@ -30,6 +30,7 @@ export interface GoogleConfig {
   apiKey: string;
   modelName: string;
   timeout?: number;
+  baseUrl?: string;
 }
 
 export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
@@ -49,16 +50,14 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       `[Google Provider] Initializing with model: ${this.modelName}`,
     );
 
-    const testMockUrl = process.env.TEST_LLM_PROVIDER_URL;
-    console.log("testMockUrl: ", testMockUrl);
-    if (testMockUrl) {
+    if (config.baseUrl) {
       this.logger.info(
-        `[Google Provider] Test mode enabled - using mock server: ${testMockUrl}`,
+        `[Google Provider] Using custom base URL: ${config.baseUrl}`,
       );
       this.client = new GoogleGenAI({
-        apiKey: config.apiKey || "dummy-key-for-tests",
+        apiKey: config.apiKey,
         httpOptions: {
-          baseUrl: testMockUrl,
+          baseUrl: config.baseUrl,
         },
       });
     } else {
