@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
 import { readFileSync, rmSync } from "fs";
@@ -192,26 +191,7 @@ export function createTestValidationManager(): ValidationManager {
   return validationManager;
 }
 
-type LogFunction = (...args: unknown[]) => void;
-
-function logWrapper(
-  originalLog: (...args: unknown[]) => void,
-  wrapper: chalk.ChalkFunction,
-): (...args: unknown[]) => void {
-  return function (...args: unknown[]): void {
-    wrapper(originalLog(...args));
-  };
-}
-
 type CustomConsole = Console;
 const customConsole: CustomConsole = Object.create(console);
-
-customConsole.info = logWrapper(console.info as LogFunction, chalk.blue);
-customConsole.error = logWrapper(console.error as LogFunction, chalk.red);
-customConsole.warn = logWrapper(
-  console.warn as LogFunction,
-  chalk.yellowBright,
-);
-customConsole.log = logWrapper(console.log as LogFunction, chalk.gray);
 
 export { customConsole as console };
