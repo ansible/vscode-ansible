@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createTestServer } from "./testWrapper";
 import { TOOL_COUNT } from "../src/constants.js";
 
-describe("Ansible MCP Server Performance", () => {
+describe("Ansible Development Tools MCP Server Performance", () => {
   let server: ReturnType<typeof createTestServer>;
   const workspaceRoot = "/test/workspace";
 

@@ -282,7 +282,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "List Available Tools",
       description:
-        "Shows all available Ansible MCP tools. Use this to discover what tools you can use. " +
+        "Shows all available Ansible Development Tools MCP Server tools. Use this to discover what tools you can use. " +
         "Perfect for exploring capabilities and finding the right tool for your task.",
       annotations: {
         keywords: [
@@ -297,7 +297,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           "search ansible tools",
         ],
         useCases: [
-          "Discover available Ansible MCP tools",
+          "Discover available Ansible Development Tools MCP tools",
           "Get overview of Ansible tools",
           "Find the right Ansible tool for a task",
           "Explore Ansible tool capabilities",

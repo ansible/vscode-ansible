@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createTestServer } from "./testWrapper";
 import { ZEN_OF_ANSIBLE, TOOL_COUNT } from "../src/constants.js";
 
-describe("Ansible MCP Server", () => {
+describe("Ansible Development Tools MCP Server", () => {
   let server: ReturnType<typeof createTestServer>;
   const workspaceRoot = "/test/workspace";
 
