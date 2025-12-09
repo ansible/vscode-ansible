@@ -28,10 +28,7 @@ describe("AnsibleMcpServerProvider", function () {
   // Make workspaceRoot a subdirectory of projectRoot so findProjectRoot can traverse up
   const mockProjectRoot = "/mock/project/root";
   const mockWorkspaceRoot = path.join(mockProjectRoot, "workspace");
-  const mockPackagedCliPath = path.join(
-    mockExtensionPath,
-    "out/mcp/cli.js",
-  );
+  const mockPackagedCliPath = path.join(mockExtensionPath, "out/mcp/cli.js");
   const mockDevCliPath = path.join(
     mockProjectRoot,
     "packages/ansible-mcp-server/out/server/src/cli.js",
@@ -57,8 +54,9 @@ describe("AnsibleMcpServerProvider", function () {
     // Mock vscode.workspace
     (vscode.workspace.getConfiguration as ReturnType<typeof vi.fn>) =
       mockGetConfiguration;
-    (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) =
-      mockWorkspaceFolders;
+    (vscode.workspace.workspaceFolders as
+      | vscode.WorkspaceFolder[]
+      | undefined) = mockWorkspaceFolders;
 
     // Mock fs.existsSync to return false by default
     (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
@@ -112,12 +110,12 @@ describe("AnsibleMcpServerProvider", function () {
       );
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBe(mockPackagedCliPath);
-      expect(consoleLogSpy!).toHaveBeenCalledWith(
+      expect(consoleLogSpy).toHaveBeenCalledWith(
         `Found MCP server CLI at packaged path: ${mockPackagedCliPath}`,
       );
-      expect(consoleErrorSpy!).not.toHaveBeenCalled();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
     it("should find CLI at development path when packaged path doesn't exist", function () {
@@ -144,11 +142,12 @@ describe("AnsibleMcpServerProvider", function () {
       );
 
       // Ensure workspace folders are set
-      (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) =
-        mockWorkspaceFolders;
+      (vscode.workspace.workspaceFolders as
+        | vscode.WorkspaceFolder[]
+        | undefined) = mockWorkspaceFolders;
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBe(mockDevCliPath);
       expect(consoleLogSpy).toHaveBeenCalledWith(
         `Found MCP server CLI at development path: ${mockDevCliPath}`,
@@ -159,15 +158,16 @@ describe("AnsibleMcpServerProvider", function () {
     it("should return undefined when neither path exists (no workspace)", function () {
       // Mock both paths don't exist
       (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
-      
+
       // Clear workspace folders to simulate no workspace scenario
-      (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) =
-        undefined;
+      (vscode.workspace.workspaceFolders as
+        | vscode.WorkspaceFolder[]
+        | undefined) = undefined;
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBeUndefined();
-      expect(consoleErrorSpy!).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
         `MCP server CLI not found at either location:\n  - Packaged: ${mockPackagedCliPath}\n  - Development: N/A`,
       );
     });
@@ -191,13 +191,14 @@ describe("AnsibleMcpServerProvider", function () {
           return false;
         },
       );
-      
+
       // Ensure workspace folders are set
-      (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) =
-        mockWorkspaceFolders;
+      (vscode.workspace.workspaceFolders as
+        | vscode.WorkspaceFolder[]
+        | undefined) = mockWorkspaceFolders;
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBeUndefined();
       // Should log error with both paths (packaged and development)
       // The devPath will be calculated from projectRoot (via findProjectRoot)
@@ -223,13 +224,13 @@ describe("AnsibleMcpServerProvider", function () {
       );
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBe(mockPackagedCliPath);
       // Should log packaged path, not dev path
-      expect(consoleLogSpy!).toHaveBeenCalledWith(
+      expect(consoleLogSpy).toHaveBeenCalledWith(
         `Found MCP server CLI at packaged path: ${mockPackagedCliPath}`,
       );
-      expect(consoleLogSpy!).not.toHaveBeenCalledWith(
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
         expect.stringContaining("development path"),
       );
     });
@@ -245,7 +246,7 @@ describe("AnsibleMcpServerProvider", function () {
       );
 
       const result = (provider as any).findCliPath();
-      
+
       expect(result).toBe(mockPackagedCliPath);
       // Verify packaged path is checked first
       expect(callOrder[0]).toBe(mockPackagedCliPath);
@@ -266,7 +267,7 @@ describe("AnsibleMcpServerProvider", function () {
       );
 
       const result = (customProvider as any).findCliPath();
-      
+
       expect(result).toBe(expectedPackagedPath);
       expect(consoleLogSpy).toHaveBeenCalledWith(
         `Found MCP server CLI at packaged path: ${expectedPackagedPath}`,
@@ -351,8 +352,9 @@ describe("AnsibleMcpServerProvider", function () {
       mockGetConfiguration.mockReturnValue(mockConfig);
 
       // Mock no workspace folders
-      (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) =
-        undefined;
+      (vscode.workspace.workspaceFolders as
+        | vscode.WorkspaceFolder[]
+        | undefined) = undefined;
 
       const result = await provider.provideMcpServerDefinitions();
       expect(result).toEqual([]);
@@ -447,7 +449,7 @@ describe("AnsibleMcpServerProvider", function () {
   // describe("refresh", function () {
   //   it("should fire didChange event", function () {
   //     let eventFired = false;
-  //     
+  //
   //     // Register the event listener directly using the event property
   //     const disposable = provider.onDidChangeMcpServerDefinitions(() => {
   //       eventFired = true;
@@ -456,11 +458,11 @@ describe("AnsibleMcpServerProvider", function () {
   //     // Verify the event listener was registered
   //     expect(disposable).toBeDefined();
   //     expect(typeof disposable.dispose).toBe("function");
-  //     
+  //
   //     // Call refresh which should fire the event
   //     provider.refresh();
   //     expect(eventFired).toBe(true);
-  //     
+  //
   //     // Clean up
   //     disposable.dispose();
   //   });

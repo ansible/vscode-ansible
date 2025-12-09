@@ -5,11 +5,11 @@ import { vi } from "vitest";
 vi.mock("vscode", () => {
   class MockEventEmitter<T> {
     public listeners: Array<(value: T) => void>;
-    
+
     constructor() {
       this.listeners = [];
     }
-    
+
     event(listener: (value: T) => void): { dispose: () => void } {
       if (!this.listeners) {
         this.listeners = [];
@@ -26,13 +26,13 @@ vi.mock("vscode", () => {
         },
       };
     }
-    
+
     fire(value: T): void {
       if (this.listeners && this.listeners.length > 0) {
         this.listeners.forEach((listener) => listener(value));
       }
     }
-    
+
     dispose(): void {
       this.listeners = [];
     }
@@ -47,27 +47,29 @@ vi.mock("vscode", () => {
     window: {
       showErrorMessage: vi.fn(),
       showInformationMessage: vi.fn(),
-      createOutputChannel: vi.fn((name: string, options?: { log?: boolean }) => {
-        // If log option is true, return LogOutputChannel with logging methods
-        if (options?.log) {
+      createOutputChannel: vi.fn(
+        (name: string, options?: { log?: boolean }) => {
+          // If log option is true, return LogOutputChannel with logging methods
+          if (options?.log) {
+            return {
+              appendLine: vi.fn(),
+              show: vi.fn(),
+              dispose: vi.fn(),
+              info: vi.fn(),
+              error: vi.fn(),
+              warn: vi.fn(),
+              debug: vi.fn(),
+              trace: vi.fn(),
+            };
+          }
+          // Otherwise return regular OutputChannel
           return {
             appendLine: vi.fn(),
             show: vi.fn(),
             dispose: vi.fn(),
-            info: vi.fn(),
-            error: vi.fn(),
-            warn: vi.fn(),
-            debug: vi.fn(),
-            trace: vi.fn(),
           };
-        }
-        // Otherwise return regular OutputChannel
-        return {
-          appendLine: vi.fn(),
-          show: vi.fn(),
-          dispose: vi.fn(),
-        };
-      }),
+        },
+      ),
     },
     workspace: {
       workspaceFolders: [],
@@ -89,12 +91,14 @@ vi.mock("vscode", () => {
     lm: {
       registerMcpServerDefinitionProvider: vi.fn(),
     },
-    McpStdioServerDefinition: vi.fn().mockImplementation((label, command, args, env, cwd) => ({
-      label,
-      command,
-      args,
-      env,
-      cwd,
-    })),
+    McpStdioServerDefinition: vi
+      .fn()
+      .mockImplementation((label, command, args, env, cwd) => ({
+        label,
+        command,
+        args,
+        env,
+        cwd,
+      })),
   };
 });

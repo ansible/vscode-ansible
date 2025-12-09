@@ -48,7 +48,9 @@ describe("Extension Activation - MCP Provider Integration", function () {
       // This test documents the expected usage pattern:
       // const mcpProvider = new AnsibleMcpServerProvider(context.extensionPath);
       const mockContextExtensionPath = "/mock/context/extension/path";
-      const mcpProvider = new AnsibleMcpServerProvider(mockContextExtensionPath);
+      const mcpProvider = new AnsibleMcpServerProvider(
+        mockContextExtensionPath,
+      );
 
       expect(mcpProvider).toBeInstanceOf(AnsibleMcpServerProvider);
       // Verify the provider has the expected interface
