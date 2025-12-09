@@ -1,4 +1,4 @@
-# Ansible MCP Server - API Endpoint Documentation
+# Ansible Development Tools MCP Server - API Endpoint Documentation
 
 **Version:** 0.1.0
 **Protocol:** Model Context Protocol (MCP) 1.0
@@ -443,7 +443,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "Available Ansible MCP Tools:\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
+        "text": "Available \"Ansible Development Tools MCP Server\" tools\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
       }
     ]
   }

@@ -472,7 +472,7 @@
         "properties": {
           "ansible.mcpServer.enabled": {
             "default": false,
-            "markdownDescription": "Enable the Ansible MCP (Model Context Protocol) server for AI assistant integration.",
+            "markdownDescription": "Enable the Ansible Development Tools MCP (Model Context Protocol) server for AI assistant integration.",
             "order": 0,
             "scope": "resource",
             "type": "boolean"
@@ -653,7 +653,7 @@
     "mcpServerDefinitionProviders": [
       {
         "id": "ansibleMcpProvider",
-        "label": "Ansible MCP Server Provider"
+        "label": "Ansible Development Tools MCP Server Provider"
       }
     ],
     "menus": {
