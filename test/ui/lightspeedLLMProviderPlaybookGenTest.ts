@@ -15,11 +15,10 @@ import { expect } from "chai";
 
 describe("LLM Provider Playbook Generation", function () {
   before(async function () {
-    this.timeout(60000);
+    this.timeout(30000);
     if (!process.env.TEST_LLM_PROVIDER_URL) {
       this.skip();
     }
-    await sleep(5000);
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
@@ -44,7 +43,7 @@ describe("LLM Provider Playbook Generation", function () {
   });
 
   it("Should generate playbook using Google Gemini provider", async function () {
-    this.timeout(120000);
+    this.timeout(100000);
 
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
 

@@ -15,11 +15,10 @@ import { expect } from "chai";
 
 describe("LLM Provider Role Generation", function () {
   before(async function () {
-    this.timeout(60000);
+    this.timeout(30000);
     if (!process.env.TEST_LLM_PROVIDER_URL) {
       this.skip();
     }
-    await sleep(5000);
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
@@ -43,7 +42,7 @@ describe("LLM Provider Role Generation", function () {
   });
 
   it("Should generate role using Google Gemini provider", async function () {
-    this.timeout(150000);
+    this.timeout(100000);
 
     await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
 
@@ -75,7 +74,7 @@ describe("LLM Provider Role Generation", function () {
           return undefined;
         }
       },
-      timeout: 60000,
+      timeout: 30000,
       message: "Continue button should appear on step 2 (outline review)",
     });
     expect(continueButton).not.to.be.undefined;
