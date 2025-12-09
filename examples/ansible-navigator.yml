@@ -1,0 +1,8 @@
+# Used for testing purposes to isolated from user configured one
+# https://github.com/ansible/ansible-navigator/issues/1732
+ansible-navigator:
+  logging:
+    level: debug
+    file: /dev/null
+  playbook-artifact:
+    enable: false
