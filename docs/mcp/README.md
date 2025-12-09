@@ -1,14 +1,14 @@
-# Ansible MCP Server
+# Ansible Development Tools MCP Server
 
-The Ansible MCP (Model Context Protocol) Server enables AI assistants and language models to interact with Ansible tooling through a standardized protocol. It provides intelligent automation capabilities for Ansible development workflows.
+The Ansible Development Tools MCP (Model Context Protocol) Server enables AI assistants and language models to interact with Ansible tooling through a standardized protocol. It provides intelligent automation capabilities for Ansible development workflows.
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is an open protocol that standardizes how AI applications interact with external tools and data sources. The Ansible MCP Server implements this protocol to expose Ansible development tools to AI assistants.
+The Model Context Protocol (MCP) is an open protocol that standardizes how AI applications interact with external tools and data sources. The Ansible Development Tools MCP Server implements this protocol to expose Ansible development tools to AI assistants.
 
 ## Features
 
-The Ansible MCP Server provides the following capabilities:
+The MCP server provides the following capabilities:
 
 ### Information & Documentation
 
@@ -38,7 +38,7 @@ The Ansible MCP Server provides the following capabilities:
 
 ## Getting Started
 
-The Ansible MCP Server is currently available as a technical preview.
+The MCP server is currently available as a technical preview.
 
 The server runs as a child process and communicates via stdio transport.
 
@@ -84,10 +84,10 @@ Add the following configuration to your Claude Desktop settings:
 └────────┬────────┘
          │ MCP Protocol
          │ (JSON-RPC 2.0)
-┌────────▼────────┐
-│  Ansible MCP    │
-│     Server      │
-└────────┬────────┘
+┌────────▼────────────────────┐
+│  Ansible Development Tools  │
+│         MCP Server          │
+└────────┬────────────────────┘
          │
     ┌────┴────┐
     │         │

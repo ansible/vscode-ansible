@@ -150,7 +150,7 @@ export function createListToolsHandler(getToolNames: () => string[]) {
       content: [
         {
           type: "text" as const,
-          text: `Available Ansible MCP Tools:\n\n- ${toolList}\n\nUse any of these tools by asking me to use them by name.`,
+          text: `Available Ansible Development Tools MCP Server tools:\n\n- ${toolList}\n\nUse any of these tools by asking me to use them by name.`,
         },
       ],
     };

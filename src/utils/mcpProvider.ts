@@ -4,7 +4,7 @@ import * as fs from "fs";
 
 export class AnsibleMcpServerProvider {
   private static readonly MCP_SERVER_NAME =
-    "Ansible Developer Tools MCP Server";
+    "Ansible Development Tools MCP Server";
   private static readonly CLI_PATH =
     "packages/ansible-mcp-server/out/server/src/cli.js";
 
@@ -96,7 +96,7 @@ export class AnsibleMcpServerProvider {
         return undefined;
       }
 
-      // Check if this is our Ansible MCP server
+      // Check if this is our Ansible Development Tools MCP server
       if (server.label === AnsibleMcpServerProvider.MCP_SERVER_NAME) {
         // For now, we don't require authentication, but this is where we could add it
         // if needed in the future

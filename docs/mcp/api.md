@@ -1,15 +1,18 @@
-# Ansible MCP Server - API Endpoint Documentation
+# Ansible Development Tools MCP Server - API Endpoint Documentation
 
 **Version:** 0.1.0
+
 **Protocol:** Model Context Protocol (MCP) 1.0
+
 **Base URL:** stdio transport (no HTTP endpoint)
+
 **Transport:** stdio
 
 ## Table of Contents
 
 1. [API Reference Summary](#api-reference-summary)
 2. [API Overview](#api-overview)
-3. [Authentication & Security](#authentication--security)
+3. [Authentication and Security](#authentication-and-security)
 4. [Resources](#resources)
 5. [Tool Endpoints](#tool-endpoints)
 6. [Error Responses](#error-responses)
@@ -64,7 +67,7 @@
 
 ### Transport Protocol
 
-stdio (standard input/output)
+**stdio** (standard input/output)
 
 - No network endpoint
 - Process-based communication
@@ -127,9 +130,9 @@ All requests follow the JSON-RPC 2.0 format:
 
 ---
 
-## Authentication & Security
+## Authentication and Security
 
-### Current Implementation (v0.1.0)
+### Current Implementation
 
 **stdio Transport:**
 
@@ -443,7 +446,7 @@ The server provides 11 tools organized into the following categories:
     "content": [
       {
         "type": "text",
-        "text": "Available Ansible MCP Tools:\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
+        "text": "Available Ansible Development Tools MCP Server tools\n\n- zen_of_ansible\n- ansible_content_best_practices\n- list_available_tools\n- ansible_lint\n..."
       }
     ]
   }
