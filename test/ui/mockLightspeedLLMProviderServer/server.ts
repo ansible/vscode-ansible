@@ -83,10 +83,13 @@ export default class LLMProviderServer {
       });
     });
 
-    app.post(/\/v1beta\/models\/.*:generateContent/, async (req, res) => {
-      logger.info("Incoming request to mock Gemini endpoint:");
-      logger.info(JSON.stringify(req.body, null, 2));
-      return res.status(200).json(mockResponse);
+    app.use((req, res, next) => {
+      if (req.method === "POST" && req.path.includes("/v1beta/models/")) {
+        logger.info(`Incoming POST request to: ${req.path}`);
+        logger.info(JSON.stringify(req.body, null, 2));
+        return res.status(200).json(mockResponse);
+      }
+      next();
     });
 
     app.get("/__debug__/status", (req, res) => {
