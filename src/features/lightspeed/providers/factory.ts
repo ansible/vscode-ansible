@@ -30,30 +30,23 @@ export class LLMProviderFactory implements ProviderFactory {
           "WCA provider should be handled by existing LightSpeedAPI, not factory",
         );
 
-      case "google": {
+      case "google":
         if (!config.apiKey) {
           throw new Error(
             "API Key is required for Google Gemini. Please set 'ansible.lightspeed.apiKey' in your settings.",
           );
         }
         // Google doesn't support custom endpoints - uses SDK
-        const isLocalhost = config.apiEndpoint?.startsWith("http://localhost");
-        const isDefaultOrEmpty =
-          !config.apiEndpoint || config.apiEndpoint === GOOGLE_API_ENDPOINT;
-
-        if (!isDefaultOrEmpty && !isLocalhost) {
+        if (config.apiEndpoint && config.apiEndpoint !== GOOGLE_API_ENDPOINT) {
           throw new Error(
             `Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.`,
           );
         }
-
         return new GoogleProvider({
           apiKey: config.apiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
-          baseUrl: isLocalhost ? config.apiEndpoint : undefined,
         } as GoogleConfig);
-      }
 
       default:
         throw new Error(`Unsupported provider type: ${type}`);
