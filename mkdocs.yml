@@ -42,7 +42,6 @@ nav:
   - Ansible MCP Server:
       - index: mcp/README.md
       - API Reference: mcp/api.md
-      - Developer Guide: mcp/development.md
   - Configuration: configuration.md
   - LLM Providers: llm-providers.md
   - Developer Guide:
@@ -54,6 +53,7 @@ nav:
       - development/test_code.md
       - development/debug_extension.md
       - development/webview_guide.md
+      - development/mcp.md
       - development/additional_resources.md
       - development/vite.md
   - FAQ:
