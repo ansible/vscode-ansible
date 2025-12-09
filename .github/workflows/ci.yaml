@@ -130,6 +130,9 @@ jobs:
         run: |
           task package && task package --status
 
+      - name: task finish
+        run: task finish
+
       - name: Upload vsix artifact
         uses: ansible/actions/upload-artifact@main
         with:
@@ -369,6 +372,9 @@ jobs:
           set -e
           task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
           task ui ${{ matrix.env.TASKFILE_ARGS }} --status
+
+      - name: task finish
+        run: task finish
 
       - name: Remove invalid files
         if: ${{ always() }}
