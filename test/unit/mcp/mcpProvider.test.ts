@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { assert } from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -86,8 +85,12 @@ describe("AnsibleMcpServerProvider", function () {
     let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
 
     beforeEach(() => {
-      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
+      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+        // Mock implementation - no-op
+      });
     });
 
     afterEach(() => {
@@ -109,6 +112,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBe(mockPackagedCliPath);
@@ -146,6 +150,7 @@ describe("AnsibleMcpServerProvider", function () {
         | vscode.WorkspaceFolder[]
         | undefined) = mockWorkspaceFolders;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBe(mockDevCliPath);
@@ -164,6 +169,7 @@ describe("AnsibleMcpServerProvider", function () {
         | vscode.WorkspaceFolder[]
         | undefined) = undefined;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBeUndefined();
@@ -197,6 +203,7 @@ describe("AnsibleMcpServerProvider", function () {
         | vscode.WorkspaceFolder[]
         | undefined) = mockWorkspaceFolders;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBeUndefined();
@@ -223,6 +230,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBe(mockPackagedCliPath);
@@ -245,6 +253,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findCliPath();
 
       expect(result).toBe(mockPackagedCliPath);
@@ -266,6 +275,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (customProvider as any).findCliPath();
 
       expect(result).toBe(expectedPackagedPath);
@@ -281,6 +291,7 @@ describe("AnsibleMcpServerProvider", function () {
       (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
       (fs.accessSync as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (provider as any).isMcpServerAvailable();
       expect(result).toBe(true);
     });
@@ -289,6 +300,7 @@ describe("AnsibleMcpServerProvider", function () {
       // Mock findCliPath to return undefined
       (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (provider as any).isMcpServerAvailable();
       expect(result).toBe(false);
     });
@@ -300,6 +312,7 @@ describe("AnsibleMcpServerProvider", function () {
         throw new Error("Permission denied");
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (provider as any).isMcpServerAvailable();
       expect(result).toBe(false);
     });
@@ -497,6 +510,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (provider as any).findProjectRoot(startPath);
       expect(result).toBe(projectRoot);
     });
@@ -506,6 +520,7 @@ describe("AnsibleMcpServerProvider", function () {
 
       (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (provider as any).findProjectRoot(startPath);
       expect(result).toBe(startPath);
     });
@@ -520,6 +535,7 @@ describe("AnsibleMcpServerProvider", function () {
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findProjectRoot(workspaceRoot);
       expect(result).toBe(projectRoot);
     });
