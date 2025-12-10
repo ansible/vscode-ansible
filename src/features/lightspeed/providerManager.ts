@@ -25,7 +25,11 @@ export class ProviderManager {
   constructor(settingsManager: SettingsManager, wcaApi: LightSpeedAPI) {
     this.settingsManager = settingsManager;
     this.wcaApi = wcaApi;
-    this.initializeLlmProvider();
+    // Don't await in constructor - let it initialize asynchronously
+    // WCA doesn't need this, and other providers will initialize in the background
+    this.initializeLlmProvider().catch((error) => {
+      console.error("Failed to initialize LLM provider:", error);
+    });
   }
 
   /**
