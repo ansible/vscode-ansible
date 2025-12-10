@@ -53,6 +53,7 @@ nav:
       - development/test_code.md
       - development/debug_extension.md
       - development/webview_guide.md
+      - development/mcp.md
       - development/additional_resources.md
       - development/vite.md
   - FAQ:
