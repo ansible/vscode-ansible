@@ -24,7 +24,6 @@ vi.mock("fs", () => ({
 
 describe("AnsibleMcpServerProvider", function () {
   const mockExtensionPath = "/mock/extension/path";
-  // Make workspaceRoot a subdirectory of projectRoot so findProjectRoot can traverse up
   const mockProjectRoot = "/mock/project/root";
   const mockWorkspaceRoot = path.join(mockProjectRoot, "workspace");
   const mockPackagedCliPath = path.join(mockExtensionPath, "out/mcp/cli.js");
@@ -68,7 +67,7 @@ describe("AnsibleMcpServerProvider", function () {
     vi.restoreAllMocks();
   });
 
-  describe("constructor", function () {
+  describe("constructor with extensionPath parameter", function () {
     it("should store extensionPath correctly", function () {
       const testPath = "/test/extension/path";
       const testProvider = new AnsibleMcpServerProvider(testPath);
@@ -78,9 +77,37 @@ describe("AnsibleMcpServerProvider", function () {
     it("should initialize with provided extensionPath", function () {
       expect(provider).toBeInstanceOf(AnsibleMcpServerProvider);
     });
+
+    it("should handle different extension path formats", function () {
+      const testPaths = [
+        "/path/to/extension",
+        "/another/path",
+        "C:\\Windows\\Path\\To\\Extension",
+        "/usr/local/share/vscode/extensions/ansible.ansible",
+      ];
+
+      for (const testPath of testPaths) {
+        const testProvider = new AnsibleMcpServerProvider(testPath);
+        expect(testProvider).toBeInstanceOf(AnsibleMcpServerProvider);
+      }
+    });
+
+    it("should match the usage pattern in extension.ts", function () {
+      const mockContextExtensionPath = "/mock/context/extension/path";
+      const mcpProvider = new AnsibleMcpServerProvider(
+        mockContextExtensionPath,
+      );
+
+      expect(mcpProvider).toBeInstanceOf(AnsibleMcpServerProvider);
+      // Verify the provider has the expected interface for extension integration
+      expect(mcpProvider.onDidChangeMcpServerDefinitions).toBeDefined();
+      expect(typeof mcpProvider.provideMcpServerDefinitions).toBe("function");
+      expect(typeof mcpProvider.resolveMcpServerDefinition).toBe("function");
+      expect(typeof mcpProvider.dispose).toBe("function");
+    });
   });
 
-  describe("findCliPath", function () {
+  describe("findCliPath - CLI path resolution for packaged and development environments", function () {
     let consoleLogSpy: ReturnType<typeof vi.spyOn> | null = null;
     let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
 
@@ -457,29 +484,6 @@ describe("AnsibleMcpServerProvider", function () {
       expect(result).toBeUndefined();
     });
   });
-
-  // TODO: Fix refresh test - EventEmitter mock needs to be properly configured
-  // describe("refresh", function () {
-  //   it("should fire didChange event", function () {
-  //     let eventFired = false;
-  //
-  //     // Register the event listener directly using the event property
-  //     const disposable = provider.onDidChangeMcpServerDefinitions(() => {
-  //       eventFired = true;
-  //     });
-
-  //     // Verify the event listener was registered
-  //     expect(disposable).toBeDefined();
-  //     expect(typeof disposable.dispose).toBe("function");
-  //
-  //     // Call refresh which should fire the event
-  //     provider.refresh();
-  //     expect(eventFired).toBe(true);
-  //
-  //     // Clean up
-  //     disposable.dispose();
-  //   });
-  // });
 
   describe("dispose", function () {
     it("should dispose of the event emitter", function () {
