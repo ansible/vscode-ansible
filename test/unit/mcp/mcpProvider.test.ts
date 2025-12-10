@@ -312,7 +312,7 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("isMcpServerAvailable", function () {
+  describe("isMcpServerAvailable - checking CLI file existence and accessibility", function () {
     it("should return true when CLI path exists and is accessible", async function () {
       // Mock findCliPath to return a path
       (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
@@ -345,7 +345,7 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("provideMcpServerDefinitions", function () {
+  describe("provideMcpServerDefinitions - MCP server registration with conditional checks", function () {
     it("should return empty array when MCP server is disabled", async function () {
       const mockConfig = {
         get: vi.fn((key: string) => {
@@ -431,10 +431,10 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("resolveMcpServerDefinition", function () {
+  describe("resolveMcpServerDefinition - server validation and startup resolution", function () {
     it("should return undefined when MCP server is not available", async function () {
       const mockServer = {
-        label: "Ansible Developer Tools MCP Server",
+        label: "Ansible Development Tools MCP Server",
       } as vscode.McpServerDefinition;
 
       // Mock isMcpServerAvailable to return false
@@ -446,7 +446,7 @@ describe("AnsibleMcpServerProvider", function () {
 
     it("should return server when it is available and matches our server", async function () {
       const mockServer = {
-        label: "Ansible Developer Tools MCP Server",
+        label: "Ansible Development Tools MCP Server",
       } as vscode.McpServerDefinition;
 
       // Mock isMcpServerAvailable to return true
@@ -472,7 +472,7 @@ describe("AnsibleMcpServerProvider", function () {
 
     it("should handle errors gracefully", async function () {
       const mockServer = {
-        label: "Ansible Developer Tools MCP Server",
+        label: "Ansible Development Tools MCP Server",
       } as vscode.McpServerDefinition;
 
       // Mock isMcpServerAvailable to throw
@@ -485,7 +485,7 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("dispose", function () {
+  describe("dispose - cleanup and resource management", function () {
     it("should dispose of the event emitter", function () {
       provider.dispose();
       // After dispose, the provider should be cleaned up
@@ -495,7 +495,7 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("findProjectRoot", function () {
+  describe("findProjectRoot - locating project root by traversing up directory tree", function () {
     it("should find project root when package.json exists", function () {
       const startPath = "/some/nested/path";
       const projectRoot = "/some";
