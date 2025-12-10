@@ -137,6 +137,9 @@ export class LightSpeedManager {
 
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
+
+    // Refresh explorer panel when settings change (especially provider)
+    await this.lightspeedExplorerProvider.refreshWebView();
   }
 
   private resetContext(): void {
