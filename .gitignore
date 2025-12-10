@@ -30,3 +30,5 @@ xunit.xml
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+resources/contentCreator/createDevcontainer/.devcontainer
+resources/contentCreator/createDevfile/devfile-template.txt
