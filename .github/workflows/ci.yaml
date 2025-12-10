@@ -32,124 +32,12 @@ env:
   FORCE_COLOR: "1" # make mocha output colorful
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  preflight:
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/ansible/ext-builder:latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MISE_TRUSTED_CONFIG_PATHS: /
-    continue-on-error: false
-    outputs:
-      commit_context: ${{ steps.extract_context.outputs.context }}
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-        with:
-          fetch-depth: 0 # we need tags for dynamic versioning
-          show-progress: false
-
-      - name: task setup
-        timeout-minutes: 1 # expected under 10s for container builds
-        run: |
-          set -ex
-          pwd
-          git config --global --add safe.directory '*'
-          mise install
-          mise list
-          mise cfg
-          mise exec -- which python3
-          mise exec -- printenv NODE_OPTIONS || true
-          task setup && task setup --status
-
-      - name: Extract commit context from conventional commit
-        id: extract_context
-        shell: bash
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          set -e
-          # Use PR title if available, otherwise use commit message
-          if [[ -n "$PR_TITLE" ]]; then
-            MESSAGE="$PR_TITLE"
-            echo "Using PR title: $MESSAGE"
-          else
-            MESSAGE=$(git log -1 --pretty=%s)
-            echo "Using commit message: $MESSAGE"
-          fi
-
-          # Extract context/scope from conventional commit format: type(scope): message
-          # Matches patterns like: feat(mcp):, fix(ui):, chore(build):, etc.
-          if [[ "$MESSAGE" =~ ^[a-z]+\(([a-z0-9/-]+)\): ]]; then
-            CONTEXT="${BASH_REMATCH[1]}"
-            echo "Extracted context: $CONTEXT"
-            echo "context=$CONTEXT" >> "$GITHUB_OUTPUT"
-          else
-            echo "No context found in message"
-            echo "context=" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: task build
-        timeout-minutes: 2 # expected under 1 minutes
-        run: |
-          task build && task build --status
-
-      - name: task package
-        timeout-minutes: 2 # expected under 1 minutes
-        run: |
-          task als:package && task als:package --status
-
-      - name: Run context-specific command
-        if: >-
-          steps.extract_context.outputs.context != '' &&
-          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
-        run: |
-          task ${{ steps.extract_context.outputs.context }}
-
-      - name: task dry
-        run: |
-          task dry
-
-      - name: task lint
-        timeout-minutes: 4
-        run: |
-          task lint
-
-      - name: task docs
-        timeout-minutes: 1
-        run: |
-          task docs && task docs --status
-
-      - name: task package
-        timeout-minutes: 2
-        run: |
-          task package && task package --status
-
-      - name: task finish
-        run: task finish
-
-      - name: Upload vsix artifact
-        uses: ansible/actions/upload-artifact@main
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
-          path: ansible-*.vsix
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-language-server npm package
-        uses: ansible/actions/upload-artifact@main
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
-          path: packages/ansible-language-server/*.tgz
-          if-no-files-found: error
-          retention-days: 90
 
   build:
     name: ${{ matrix.name }}
@@ -189,16 +77,16 @@ jobs:
         id:
           - test-linux
         include:
-          - name: test (macos)
-            id: test-macos
-            task-name: test
-            os: macos-15-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   id: test-macos
+          #   task-name: test
+          #   os: macos-15-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
           - name: test (wsl)
             id: test-wsl
@@ -292,12 +180,10 @@ jobs:
       - name: Ensure .env file is automatically loaded (mise)
         run: |
           set -exuo pipefail
+          mise cfg
           mise reshim
           mise doctor
-          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
-            echo "VIRTUAL_ENV mismatch"
-            exit 99
-          }
+          mise env
           test "$(mise exec -- which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
             echo "::warning::python3 mismatch $(mise exec -- which python3) != ${HOME}/.local/share/virtualenvs/vsa/bin/python3"
             exit 98

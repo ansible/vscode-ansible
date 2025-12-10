@@ -8,11 +8,29 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Check mise setup
+      id: check_mise
+      run: |
+        set -euo pipefail
+        mise install
+        mise reshim
+        mise doctor
+        mise env
+      shell: bash
+      continue-on-error: true
+
+    - name: Debug
+      run: |
+        echo "steps.check_mise.outcome: ${{ steps.check_mise.outcome }}"
+        echo "steps.check_mise.conclusion: ${{ steps.check_mise.conclusion }}"
+      shell: bash
+
     - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
+      if: steps.check_mise.outcome != 'success'
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2025.11.11
+        version: 2025.12.1
         # https://github.com/jdx/mise-action/issues/165
         mise_dir: ~/.local/bin
         reshim: true
