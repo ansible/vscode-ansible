@@ -261,34 +261,6 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Configure yarn cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.config/yarn
-          key: ${{ runner.os }}-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-
-      - name: Enable caching for vscode resources
-        if: "${{ contains(matrix.name, 'test') }}"
-        # left out due to having their own caching: yarn, node_modules, mise
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: |
-            .vscode-test
-            out/ext
-            out/test-resources*/chromedriver*
-            out/test-resources*/driverVersion
-            out/test-resources*/stable.zip
-            out/test-resources*/manifest.json
-          key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
-      # - name: Enable caching for podman-machine
-      #   if: "contains(matrix.os, 'macos')"
-      #   uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
-      #   with:
-      #     path: |
-      #       ~/.local/share/containers
-      #       ~/.config/containers
-      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
-
       - name: Ensure .env file is automatically loaded (mise)
         run: |
           set -exuo pipefail
