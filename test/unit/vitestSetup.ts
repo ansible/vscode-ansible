@@ -4,14 +4,40 @@ import { vi } from "vitest";
 
 // Mock vscode first so it's available when other packages try to require it
 vi.mock("vscode", () => {
-  // Create a mock EventEmitter class
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters, @typescript-eslint/no-unused-vars
   class MockEventEmitter<T> {
-    event = vi.fn();
-    fire = vi.fn();
-    dispose = vi.fn();
-  }
+    public listeners: Array<(value: T) => void>;
 
+    constructor() {
+      this.listeners = [];
+    }
+
+    event(listener: (value: T) => void): { dispose: () => void } {
+      if (!this.listeners) {
+        this.listeners = [];
+      }
+      this.listeners.push(listener);
+      return {
+        dispose: () => {
+          if (this.listeners) {
+            const index = this.listeners.indexOf(listener);
+            if (index > -1) {
+              this.listeners.splice(index, 1);
+            }
+          }
+        },
+      };
+    }
+
+    fire(value: T): void {
+      if (this.listeners && this.listeners.length > 0) {
+        this.listeners.forEach((listener) => listener(value));
+      }
+    }
+
+    dispose(): void {
+      this.listeners = [];
+    }
+  }
   // Create a mock Disposable class
   class MockDisposable {
     dispose = vi.fn();
@@ -30,6 +56,7 @@ vi.mock("vscode", () => {
       registerCommand: vi.fn(),
     },
     ExtensionContext: vi.fn(),
+    EventEmitter: MockEventEmitter,
     window: {
       showErrorMessage: vi.fn(),
       showInformationMessage: vi.fn(),
@@ -82,7 +109,9 @@ vi.mock("vscode", () => {
       machineId: "test-machine-id",
       sessionId: "test-session-id",
     },
-    EventEmitter: MockEventEmitter,
+    lm: {
+      registerMcpServerDefinitionProvider: vi.fn(),
+    },
     Disposable: MockDisposable,
     Event: vi.fn(),
     UriHandler: vi.fn(),
@@ -102,6 +131,15 @@ vi.mock("vscode", () => {
       Global: 2,
       WorkspaceFolder: 3,
     },
+    McpStdioServerDefinition: vi
+      .fn()
+      .mockImplementation((label, command, args, env, cwd) => ({
+        label,
+        command,
+        args,
+        env,
+        cwd,
+      })),
   };
 });
 
