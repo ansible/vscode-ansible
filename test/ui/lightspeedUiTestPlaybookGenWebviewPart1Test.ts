@@ -22,10 +22,9 @@ describe("playbook generation features work", function () {
   let adtView: ViewSection;
 
   beforeEach(function () {
-    this.skip();
-    // if (!process.env.TEST_LIGHTSPEED_URL) {
-    //   this.skip();
-    // }
+    if (!process.env.TEST_LIGHTSPEED_URL) {
+      this.skip();
+    }
   });
 
   before(async function () {
