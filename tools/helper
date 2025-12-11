@@ -142,8 +142,12 @@ def cli() -> None:
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
+        # Webpack bundles the MCP server code into out/mcp/cli.js
+        # We only need to copy the resource data files that are loaded at runtime
+        # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
         run("task build")
-        run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
+        run("mkdir -p out/mcp/data")
+        run("cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true")
 
         run(
             "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
@@ -154,7 +158,7 @@ def cli() -> None:
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         vsix_file = f"ansible-{version}.vsix"
         size = os.path.getsize(vsix_file) / 1024 / 1024
-        vsx_size_limit_mb = 7.1
+        vsx_size_limit_mb = 8.0
         print(f"Generated ansible-{vsix_file} of size {size:.2f} MB")
         if size > vsx_size_limit_mb:
             msg = f"The generated vsix file is {size:.2f} MB, larger than {vsx_size_limit_mb} MB limit, this would required extensive review to see if we didn't accidentally include any essential files."

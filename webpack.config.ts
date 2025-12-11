@@ -5,10 +5,12 @@ const webpack = require("webpack");
 
 type EntryType = {
   server?: string;
+  "mcp/cli"?: string;
 };
 
 const entry: EntryType = {
   server: "./packages/ansible-language-server/src/server.ts",
+  "mcp/cli": "./packages/ansible-mcp-server/src/cli.ts",
 };
 
 const config = {
@@ -50,7 +52,26 @@ const config = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        include: /packages/,
+        include: /packages\/ansible-mcp-server/,
+        use: [
+          {
+            // configure TypeScript loader for MCP server:
+            // * enable sources maps for end-to-end source maps
+            // * uses ESNext modules (different from language server)
+            loader: "ts-loader",
+            options: {
+              compilerOptions: {
+                configFile: "./packages/ansible-mcp-server/tsconfig.json",
+                sourceMap: true,
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        include: /packages\/ansible-language-server/,
         use: [
           {
             // configure TypeScript loader:
@@ -95,9 +116,14 @@ const config = {
   ],
   output: {
     filename: (pathData: { chunk: { name: string } }) => {
-      return pathData.chunk.name === "client"
-        ? "[name]/src/extension.js"
-        : "[name]/src/[name].js";
+      if (pathData.chunk.name === "client") {
+        return "[name]/src/extension.js";
+      }
+      // MCP server should output to out/mcp/cli.js
+      if (pathData.chunk.name === "mcp/cli") {
+        return "mcp/cli.js";
+      }
+      return "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs2",
@@ -110,6 +136,11 @@ const config = {
   resolve: {
     // support reading TypeScript and JavaScript files
     extensions: [".ts", ".js"],
+    // Handle ESM imports with .js extension in TypeScript files
+    // When TypeScript files import with .js extension, resolve to .ts files
+    extensionAlias: {
+      ".js": [".ts", ".js"],
+    },
   },
   stats: {
     errorDetails: true,
@@ -150,6 +181,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
+    delete config.entry["mcp/cli"];
   }
   return [config, webviewConfig, playbookExplorerWebviewConfig];
 };
