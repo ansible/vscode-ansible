@@ -554,7 +554,7 @@ jobs:
           (github.event_name == 'pull_request' ||
           (github.event_name == 'push' && github.ref_name =='main')
           )}}
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.CICD_ORG_SONAR_TOKEN_CICD_BOT || secrets.AAP_ORG_SONAR_TOKEN_ANSIBLE_CICD_BOT }}
         with:
