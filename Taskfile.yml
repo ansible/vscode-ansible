@@ -55,6 +55,7 @@ tasks:
     cmds:
       - yarn workspaces foreach --all -tv run clean
       - yarn run build
+      - yarn run vite-build
     sources:
       - Taskfile.yml
       - package.json
