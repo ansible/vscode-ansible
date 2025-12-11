@@ -15,43 +15,11 @@ reliability by investing in comprehensive testing practices.
 
 ### Installing Dependencies
 
-#### Installing Node and Npm
-
-The first thing you'll need to do to execute our automated test suites is to
-clone the code repository, but since you're reading this README file, chances
-are you've already done that :)
-
-First and foremost, make sure that you have `node` and `npm` installed on your
-system. It is recommend to use a Node version manager like
-[nvm](https://github.com/nvm-sh/nvm) to install `npm`. Follow their
-documentation to run their
-[install script](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
-according to your operating system. Come back here when you're done and don't
-forget to install `node`.
-
-| :memo: Cheat Sheet |
-| :----------------- |
-| nvm install node   |
-
-#### Installing Yarn
-
-Once you have `npm` installed you can run the following both to install and
-upgrade `Yarn`:
-
-| :memo: Cheat Sheet        |
-| :------------------------ |
-| npm install --global yarn |
-
-#### Installing Remaining Dependencies
-
-Now that you have `yarn` installed, all we have to do is run the following
-commands to ensure that you have all other remaining dependencies installed
-locally:
+Ensure that you have [mise](https://mise.jdx.dev) install and working as we
+make use of it to install the entire build chain.
 
 ```shell
-    yarn install
-    yarn clean
-    yarn webpack-dev
+task install
 ```
 
 ### Running Test Suites
@@ -63,7 +31,7 @@ There are a few different test suites to choose from:
 Run the following command:
 
 ```shell
-    yarn unit
+task unit
 ```
 
 #### End to End
@@ -71,7 +39,7 @@ Run the following command:
 Run the following command:
 
 ```shell
-    MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh
+task e2e
 ```
 
 #### UI Tests
@@ -79,5 +47,5 @@ Run the following command:
 Run the following command:
 
 ```shell
-    COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh
+task ui
 ```
