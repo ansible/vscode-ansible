@@ -1,6 +1,86 @@
 // https://github.com/microsoft/vscode-test-cli
 // Used by e2e tests
 import { defineConfig } from "@vscode/test-cli";
+import { spawnSync } from "node:child_process";
+
+// import { exec } from "node:child_process";
+import { readdirSync, copyFileSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+
+// Wrapper for spawnSync that displays the command being executed
+function exec(command, args, options) {
+  const fullCommand = [command, ...args].join(" ");
+  globalThis.console.log(`Executing: ${fullCommand}`);
+  return spawnSync(command, args, options);
+}
+
+// process.chdir(dirname(import.meta.dirname));
+
+const userDataDir = ".vscode-test/user-data";
+const extensionsDir = "out/ext";
+const testResourcesDir = "out/test-resources";
+const settingsSource = "test/testFixtures/settings.json";
+const settingsDest = join(userDataDir, "User", "settings.json");
+
+let extPath;
+for (const filename of readdirSync(".")) {
+  if (filename.endsWith(".vsix")) {
+    extPath = `${filename}`;
+    break;
+  }
+}
+
+if (!extPath) {
+  throw new Error("No .vsix file found");
+}
+/* Apparently vscode-test silently fails to install any extensions when we
+configure extensionDevelopmentPath: [], which is the only way to prevent it
+from loading current extension in development mode.
+
+Using development mode during testing fails to test packaging problems and
+we had at least two serious situations where the vsix file was fully broken.
+
+Instead we make use of extest ability to install both local vsix and remote
+ones as it also have good caching support.
+*/
+
+// Copy settings.json to user data directory
+globalThis.console.log(`Copying ${settingsSource} to ${settingsDest}`);
+mkdirSync(join(userDataDir, "User"), { recursive: true });
+copyFileSync(settingsSource, settingsDest);
+
+globalThis.console.log("install other extensions");
+const result1 = exec(
+  "extest",
+  [
+    "install-from-marketplace",
+    "ms-python.python",
+    `--extensions_dir=${extensionsDir}`,
+    `--storage=${testResourcesDir}`,
+  ],
+  { stdio: "inherit" },
+);
+if (result1.status !== 0) {
+  throw new Error(
+    `extest install-from-marketplace failed with exit code ${result1.status}`,
+  );
+}
+globalThis.console.log("install local vsix file");
+const result2 = exec(
+  "extest",
+  [
+    "install-vsix",
+    `--vsix_file=${extPath}`,
+    `--extensions_dir=${extensionsDir}`,
+    `--storage=${testResourcesDir}`,
+  ],
+  { stdio: "inherit" },
+);
+if (result2.status !== 0) {
+  throw new Error(
+    `extest install-vsix failed with exit code ${result2.status}`,
+  );
+}
 
 export default defineConfig({
   files: "out/client/test/e2e/*.test.js",
