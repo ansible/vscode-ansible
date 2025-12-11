@@ -42,10 +42,15 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch() {
   try {
-    return require("electron")?.net?.fetch;
+    const electronFetch = require("electron")?.net?.fetch;
+    if (electronFetch) {
+      return electronFetch;
+    }
   } catch {
-    return globalThis.fetch;
+    // electron not available (e.g., in tests or web environment)
   }
+  // Fallback to global fetch
+  return globalThis.fetch;
 }
 
 export class LightSpeedAPI {
