@@ -42,7 +42,6 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch() {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const electronFetch = require("electron")?.net?.fetch;
     if (electronFetch) {
       return electronFetch;
