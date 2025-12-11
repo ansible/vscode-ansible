@@ -112,7 +112,7 @@ export class ProviderCommands {
       const selectedProvider = await vscode.window.showQuickPick(
         providerItems,
         {
-          placeHolder: "Select a LLM LLM provider",
+          placeHolder: "Select a LLM provider",
           ignoreFocusOut: true,
         },
       );

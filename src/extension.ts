@@ -871,7 +871,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             );
           } catch (error) {
             console.error(
-              `[Lightspeed Feedback] Telemetry failed: ${error}`,
+              `[Lightspeed Playbook Feedback] Telemetry failed: ${error}`,
               error,
             );
           }
@@ -920,8 +920,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
               },
             );
           } catch (error) {
-            console.log(
-              `[Lightspeed Role Feedback] Telemetry not sent: ${error}`,
+            console.error(
+              `[Lightspeed Role Feedback] Telemetry failed: ${error}`,
+              error,
             );
           }
 
