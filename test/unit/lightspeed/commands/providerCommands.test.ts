@@ -301,7 +301,7 @@ describe("ProviderCommands", () => {
           }),
         ]),
         {
-          placeHolder: "Select a LLM LLM provider",
+          placeHolder: "Select a LLM provider",
           ignoreFocusOut: true,
         },
       );
