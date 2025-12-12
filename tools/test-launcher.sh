@@ -161,8 +161,8 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
-    # For Google provider tests, set the apiEndpoint to the mock server URL
-    if [ "${TEST_LLM_PROVIDER_URL}" != "" ]; then
+    # For Google/LLM provider tests, set the apiEndpoint to the LLM mock server URL
+    if [ "${TEST_LLM_PROVIDER_URL}" != "" ] && grep -q "USE_LLM_PROVIDER_MOCK: true" "${test_path}"; then
         sed -i.bak "s,\"ansible.lightspeed.apiEndpoint\": \"[^\"]*\",\"ansible.lightspeed.apiEndpoint\": \"$TEST_LLM_PROVIDER_URL\"," out/settings.json
     fi
     rm -rf out/test-resources/settings/ >/dev/null

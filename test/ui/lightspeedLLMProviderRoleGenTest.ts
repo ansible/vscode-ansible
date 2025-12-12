@@ -1,4 +1,5 @@
 // BEFORE: ansible.lightspeed.enabled: true
+// USE_LLM_PROVIDER_MOCK: true
 // UI Test for LLM Provider Role Generation (Google Gemini)
 // Uses TEST_LLM_PROVIDER_URL environment variable to route SDK calls to mock server
 
