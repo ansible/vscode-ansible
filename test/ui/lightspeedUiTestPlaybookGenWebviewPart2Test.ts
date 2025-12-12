@@ -41,7 +41,7 @@ describe("playbook generation features work", function () {
 
   it("Playbook generation webview works (full path) - part 2", async function () {
     this.timeout(60000); // Set timeout to 60 seconds for this test
-    
+
     // just to cleanup any previous feedbacks that might pollute the test
     await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`, {
       method: "GET",

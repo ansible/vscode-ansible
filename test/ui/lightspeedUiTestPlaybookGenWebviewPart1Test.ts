@@ -74,7 +74,7 @@ describe("playbook generation features work", function () {
 
   it("Playbook generation webview works (full path) - part 1", async function () {
     this.timeout(60000); // Set timeout to 60 seconds for this test
-    
+
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
 
     // Start operations on Playbook Generation UI
