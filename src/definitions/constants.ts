@@ -93,7 +93,7 @@ Write one paragraph per Ansible task.
 Markdown title starts with the '#' character.
 Write a title before every paragraph.
 Do not return any YAML or Ansible in the output.
-Give a lot of details regarding the parameters of each Ansible plugin.`;
+Give details regarding the parameters of each Ansible plugin.`;
 
 // Template for playbook generation
 export const ANSIBLE_PLAYBOOK_GENERATION_TEMPLATE = `This is what the playbook should do: {PROMPT}`;

@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { vscodeApi } from "../../utils";
+import { ThumbsUpDownAction } from "../../../../../src/definitions/lightspeed";
 
 const props = defineProps({
   explanationId: {
     type: String,
     required: true,
+  },
+  explanationType: {
+    type: String as () => "playbook" | "role",
+    default: "playbook",
   },
 });
 
@@ -13,14 +18,18 @@ const selectedFeedback = ref<"thumbsUp" | "thumbsDown" | null>(null);
 
 function handleThumbsUp() {
   vscodeApi.post("explanationThumbsUp", {
+    action: ThumbsUpDownAction.UP,
     explanationId: props.explanationId,
+    explanationType: props.explanationType,
   });
   selectedFeedback.value = "thumbsUp";
 }
 
 function handleThumbsDown() {
   vscodeApi.post("explanationThumbsDown", {
+    action: ThumbsUpDownAction.DOWN,
     explanationId: props.explanationId,
+    explanationType: props.explanationType,
   });
   selectedFeedback.value = "thumbsDown";
 }

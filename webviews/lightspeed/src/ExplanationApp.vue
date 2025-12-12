@@ -154,7 +154,7 @@ watch(() => playbookData.value, (newValue) => {
   </div>
   <div v-else-if="explanationHtml">
     <div class="explanation" v-html="explanationHtml"></div>
-    <FeedbackBox :explanationId="explanationId" />
+    <FeedbackBox :explanationId="explanationId" :explanationType="explanationType || 'playbook'" />
   </div>
   <div class="explanation" v-else>
     <p>No explanation available.</p>

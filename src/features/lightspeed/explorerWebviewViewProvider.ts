@@ -13,6 +13,8 @@ import {
   setWebviewMessageListener,
 } from "./utils/explorerView";
 import { LightspeedUser } from "./lightspeedUser";
+import { SettingsManager } from "../../settings";
+import { getLightspeedLogger, Log } from "../../utils/logger";
 
 import { isPlaybook, isDocumentInRole } from "./utils/explanationUtils";
 
@@ -22,24 +24,30 @@ export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvide
   //sessionInfo: LightspeedSessionInfo = {};
   //sessionData: LightspeedAuthSession = {} as LightspeedAuthSession;
   private lightspeedAuthenticatedUser: LightspeedUser;
+  private readonly settingsManager: SettingsManager;
+  private readonly logger: Log;
   public webviewView: WebviewView | undefined;
   public lightspeedExperimentalEnabled: boolean = false;
 
   constructor(
     private readonly _extensionUri: Uri,
     lightspeedAuthenticatedUser: LightspeedUser,
+    settingsManager: SettingsManager,
   ) {
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
+    this.settingsManager = settingsManager;
+    this.logger = getLightspeedLogger(); // Use singleton logger
   }
 
   public async refreshWebView() {
     if (!this.webviewView) {
       return;
     }
-    this.webviewView.webview.html = await this._getWebviewContent(
+    const newContent = await this._getWebviewContent(
       this.webviewView.webview,
       this._extensionUri,
     );
+    this.webviewView.webview.html = newContent;
   }
 
   public async resolveWebviewView(
@@ -60,12 +68,26 @@ export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvide
       ],
     };
     this.webviewView = webviewView;
-    this.refreshWebView();
+    await this.refreshWebView();
 
     this._setWebviewMessageListener(webviewView.webview);
   }
 
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
+    const provider = this.settingsManager.settings.lightSpeedService.provider;
+
+    // For LLM providers (not WCA), skip OAuth check and show active session
+    if (provider && provider !== "wca") {
+      return getWebviewContentWithActiveSession(
+        webview,
+        extensionUri,
+        `Using ${provider} provider`, // Provider-specific message
+        this.hasPlaybookOpened(),
+        await this.hasRoleOpened(),
+      );
+    }
+
+    // For WCA, check OAuth session
     const content =
       await this.lightspeedAuthenticatedUser.getLightspeedUserContent();
 
@@ -78,6 +100,9 @@ export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvide
         await this.hasRoleOpened(),
       );
     } else {
+      this.logger.info(
+        `[Lightspeed Explorer] No OAuth session, showing login form`,
+      );
       return getWebviewContentWithLoginForm(webview, extensionUri);
     }
   }

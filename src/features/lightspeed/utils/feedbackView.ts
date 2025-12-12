@@ -24,7 +24,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link rel="stylesheet" href="${styleUri}">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-      <title>Ansible Lightspeed Feedback!</title>
+      <title>Ansible Lightspeed WCA Provider Feedback</title>
     </head>
     <body>
       <form id="feedback-form">
@@ -80,7 +80,7 @@ export function setWebviewMessageListener(
 ) {
   webview.onDidReceiveMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (message: any) => {
+    async (message: any) => {
       console.log(
         `User feedback message received: ${JSON.stringify(message)}}`,
       );
@@ -131,6 +131,19 @@ export function setWebviewMessageListener(
         }
       }
       if (userFeedback && lightSpeedManager) {
+        // Check if WCA provider is active
+        const provider =
+          lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+        if (provider !== "wca") {
+          // For non-WCA providers, show message that feedback requires WCA
+          window.showInformationMessage(
+            "Feedback can only be submitted when using Red Hat Ansible Lightspeed with WCA provider.",
+          );
+          return;
+        }
+
+        // WCA provider - submit feedback
         lightSpeedManager.apiInstance.feedbackRequest(userFeedback, true, true);
       }
     },

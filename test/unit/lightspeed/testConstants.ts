@@ -112,14 +112,10 @@ export const BASE_LIGHTSPEED_SETTINGS: Omit<
   "provider" | "apiKey" | "apiEndpoint"
 > = {
   enabled: true,
-  URL: "",
   modelName: undefined,
-  model: undefined,
   timeout: DEFAULT_TIMEOUTS.DEFAULT,
   customHeaders: {},
   suggestions: { enabled: true, waitWindow: 0 },
-  playbookGenerationCustomPrompt: undefined,
-  playbookExplanationCustomPrompt: undefined,
 };
 
 // Complete LightSpeedServiceSettings for common test scenarios

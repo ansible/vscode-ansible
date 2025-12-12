@@ -2,6 +2,7 @@ import * as chai from "chai";
 chai.config.truncateThreshold = 0; // disable truncating
 import { vi } from "vitest";
 
+// Mock vscode first so it's available when other packages try to require it
 vi.mock("vscode", () => {
   class MockEventEmitter<T> {
     public listeners: Array<(value: T) => void>;
@@ -37,16 +38,33 @@ vi.mock("vscode", () => {
       this.listeners = [];
     }
   }
+  // Create a mock Disposable class
+  class MockDisposable {
+    dispose = vi.fn();
+    static from(...disposables: MockDisposable[]): MockDisposable {
+      return {
+        dispose: vi.fn(() => {
+          disposables.forEach((d) => d.dispose());
+        }),
+      } as MockDisposable;
+    }
+  }
 
   return {
     commands: {
       executeCommand: vi.fn(),
+      registerCommand: vi.fn(),
     },
     ExtensionContext: vi.fn(),
     EventEmitter: MockEventEmitter,
     window: {
       showErrorMessage: vi.fn(),
       showInformationMessage: vi.fn(),
+      showWarningMessage: vi.fn(),
+      showQuickPick: vi.fn(),
+      showInputBox: vi.fn(),
+      withProgress: vi.fn(),
+      showTextDocument: vi.fn(),
       createOutputChannel: vi.fn(
         (name: string, options?: { log?: boolean }) => {
           // If log option is true, return LogOutputChannel with logging methods
@@ -70,10 +88,13 @@ vi.mock("vscode", () => {
           };
         },
       ),
+      registerUriHandler: vi.fn(),
+      createWebviewPanel: vi.fn(),
     },
     workspace: {
       workspaceFolders: [],
       getConfiguration: vi.fn(),
+      openTextDocument: vi.fn(),
     },
     Uri: {
       file: vi.fn(),
@@ -91,6 +112,25 @@ vi.mock("vscode", () => {
     lm: {
       registerMcpServerDefinitionProvider: vi.fn(),
     },
+    Disposable: MockDisposable,
+    Event: vi.fn(),
+    UriHandler: vi.fn(),
+    Webview: vi.fn(),
+    WebviewPanel: vi.fn(),
+    authentication: {
+      registerAuthenticationProvider: vi.fn(),
+      getSession: vi.fn(),
+    },
+    ProgressLocation: {
+      Notification: 15,
+      SourceControl: 1,
+      Window: 10,
+    },
+    ConfigurationTarget: {
+      Workspace: 1,
+      Global: 2,
+      WorkspaceFolder: 3,
+    },
     McpStdioServerDefinition: vi
       .fn()
       .mockImplementation((label, command, args, env, cwd) => ({
@@ -102,3 +142,52 @@ vi.mock("vscode", () => {
       })),
   };
 });
+
+// Mock vscode-languageclient packages to prevent them from trying to require vscode
+vi.mock("vscode-languageclient", () => ({
+  LanguageClient: vi.fn(),
+  LanguageClientOptions: {},
+  NotificationType: vi.fn(),
+  ServerOptions: {},
+  TransportKind: {
+    stdio: "stdio",
+    ipc: "ipc",
+    pipe: "pipe",
+    socket: "socket",
+  },
+  RevealOutputChannelOn: {
+    Never: 0,
+    Info: 1,
+    Warn: 2,
+    Error: 3,
+  },
+}));
+
+vi.mock("vscode-languageclient/node", () => ({
+  LanguageClient: vi.fn(),
+  LanguageClientOptions: {},
+  NotificationType: vi.fn(),
+  ServerOptions: {},
+  TransportKind: {
+    stdio: "stdio",
+    ipc: "ipc",
+    pipe: "pipe",
+    socket: "socket",
+  },
+  RevealOutputChannelOn: {
+    Never: 0,
+    Info: 1,
+    Warn: 2,
+    Error: 3,
+  },
+}));
+
+// Mock vscode-redhat-telemetry to prevent it from trying to require vscode
+vi.mock("@redhat-developer/vscode-redhat-telemetry", () => ({
+  RedHatService: vi.fn(),
+}));
+
+vi.mock("@redhat-developer/vscode-redhat-telemetry/lib", () => ({
+  getRedHatService: vi.fn(),
+  TelemetryService: vi.fn(),
+}));
