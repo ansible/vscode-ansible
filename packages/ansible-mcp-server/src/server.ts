@@ -417,7 +417,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Ansible Navigator",
       description:
-        "Runs Ansible playbooks using ansible-navigator with smart features and provides information about available modes and options. " +
+        "Runs Ansible playbook using ansible-navigator with smart features and provides information about available modes and options. " +
         "\n\n" +
         "**TWO MODES OF OPERATION:** " +
         "\n" +
