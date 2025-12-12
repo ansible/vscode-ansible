@@ -40,8 +40,6 @@ describe("playbook generation features work", function () {
   });
 
   it("Playbook generation webview works (full path) - part 2", async function () {
-    this.timeout(60000); // Set timeout to 60 seconds for this test
-
     // just to cleanup any previous feedbacks that might pollute the test
     await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`, {
       method: "GET",
@@ -85,7 +83,6 @@ describe("playbook generation features work", function () {
         );
       },
       message: "Timed out waiting for Open editor button",
-      timeout: 30000,
     });
     expect(openEditorButton, "openEditorButton should not be undefined").not.to
       .be.undefined;
@@ -143,10 +140,6 @@ describe("playbook generation features work", function () {
     const folder = "lightspeed";
     const file = "playbook_4.yml";
     const filePath = getFixturePath(folder, file);
-
-    // Ensure clean state - close any open editors
-    await new EditorView().closeAllEditors();
-    await sleep(1000); // Give workbench time to stabilize
 
     // Open file in the editor
     await VSBrowser.instance.openResources(filePath);
