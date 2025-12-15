@@ -35,8 +35,8 @@ describe("LLM Provider Role Generation", function () {
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
       settingsEditor,
-      "ansible.lightspeed.provider",
-      "google",
+      "ansible.lightspeed.apiEndpoint",
+      serverUrl,
     );
     await updateSettings(
       settingsEditor,
@@ -50,8 +50,8 @@ describe("LLM Provider Role Generation", function () {
     );
     await updateSettings(
       settingsEditor,
-      "ansible.lightspeed.apiEndpoint",
-      serverUrl,
+      "ansible.lightspeed.provider",
+      "google",
     );
 
     await new EditorView().closeAllEditors();
