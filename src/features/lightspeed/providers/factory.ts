@@ -52,9 +52,7 @@ export class LLMProviderFactory implements ProviderFactory {
           apiKey: config.apiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
-          baseUrl: isLocalhostUrl
-            ? process.env.TEST_LLM_PROVIDER_URL
-            : undefined,
+          baseUrl: isLocalhostUrl ? config.apiEndpoint : undefined,
         } as GoogleConfig);
       }
 
