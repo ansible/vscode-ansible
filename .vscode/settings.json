@@ -47,6 +47,7 @@
   "editor.formatOnSave": true,
   "eslint.useESLintClass": true,
   "explorer.fileNesting.enabled": true,
+  "extesterRunner.testFileGlob": "test/ui/**/*.test.ts",
   "files.exclude": {
     ".task": true,
     ".vscode-test": true,
