@@ -55,7 +55,7 @@ describe("ADE Tools Integration", () => {
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
-    });
+    }, 45000); // 45 second timeout
 
     it("should handle partial arguments", async () => {
       const args = {

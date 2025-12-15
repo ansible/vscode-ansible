@@ -733,8 +733,9 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // Collections install fails
-              if (command === "ansible-galaxy") {
+                command === "bash" &&
+                args?.[1]?.includes("ansible-galaxy")
+              ) {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);

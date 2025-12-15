@@ -190,6 +190,95 @@ export async function getEnvironmentInfo(
 }
 
 /**
+ * Check if a specific Python version is available on the system.
+ *
+ * @param pythonVersion - The Python version to check (e.g., "3.11").
+ * @returns A promise that resolves to true if the version is available, false otherwise.
+ */
+export async function checkPythonVersionAvailable(
+  pythonVersion?: string,
+): Promise<boolean> {
+  const pythonCmd = pythonVersion ? `python${pythonVersion}` : "python3";
+  const result = await executeCommand(pythonCmd, ["--version"]);
+  return result.success;
+}
+
+ */
+export async function installPythonVersion(
+  pythonVersion: string,
+): Promise<ADECommandResult> {
+  const results: string[] = [];
+  results.push(`Attempting to install Python ${pythonVersion}...`);
+
+  const uvCheck = await executeCommand("uv", ["--version"]);
+  if (uvCheck.success) {
+    results.push("Found uv, attempting installation...");
+    const uvInstall = await executeCommand("uv", [
+      "python",
+      "install",
+      pythonVersion,
+    ]);
+    if (uvInstall.success) {
+      results.push(`✅ Python ${pythonVersion} installed via uv`);
+      return {
+        success: true,
+        output: results.join("\n"),
+      };
+    } else {
+      results.push(`⚠️ uv install failed: ${uvInstall.error}`);
+    }
+  }
+
+  const pyenvCheck = await executeCommand("pyenv", ["--version"]);
+  if (pyenvCheck.success) {
+    results.push("Found pyenv, attempting installation...");
+    const pyenvInstall = await executeCommand("pyenv", [
+      "install",
+      "-s",
+      pythonVersion,
+    ]);
+    if (pyenvInstall.success) {
+      await executeCommand("pyenv", ["local", pythonVersion]);
+      results.push(`✅ Python ${pythonVersion} installed via pyenv`);
+      results.push(
+        "   Note: You may need to run 'eval \"$(pyenv init -)\"' to use it",
+      );
+      return {
+        success: true,
+        output: results.join("\n"),
+      };
+    } else {
+      results.push(`⚠️ pyenv install failed: ${pyenvInstall.error}`);
+    }
+  }
+
+  results.push("");
+  results.push(`❌ Could not automatically install Python ${pythonVersion}`);
+  results.push("");
+  results.push("Please install Python manually using one of these methods:");
+  results.push("");
+  results.push("  Option 1 - Using uv (fastest, recommended):");
+  results.push("    curl -LsSf https://astral.sh/uv/install.sh | sh");
+  results.push(`    uv python install ${pythonVersion}`);
+  results.push("");
+  results.push("  Option 2 - Using pyenv:");
+  results.push("    curl https://pyenv.run | bash");
+  results.push(`    pyenv install ${pythonVersion}`);
+  results.push(`    pyenv local ${pythonVersion}`);
+  results.push("");
+  results.push("  Option 3 - Using Homebrew (macOS):");
+  results.push(`    brew install python@${pythonVersion}`);
+  results.push("");
+  results.push("After installation, run this tool again.");
+
+  return {
+    success: false,
+    output: results.join("\n"),
+    error: `Python ${pythonVersion} not available and automatic installation failed`,
+  };
+}
+
+/**
  * Create a virtual environment using Python's venv module.
  *
  * @param workspaceRoot - The root directory where the virtual environment will be created.
@@ -500,6 +589,38 @@ export async function setupDevelopmentEnvironment(
   const venvPath = options.envName
     ? path.join(workspaceRoot, options.envName)
     : path.join(workspaceRoot, "venv");
+
+  if (options.pythonVersion) {
+    results.push(`Checking if Python ${options.pythonVersion} is available...`);
+    const pythonAvailable = await checkPythonVersionAvailable(
+      options.pythonVersion,
+    );
+
+    if (!pythonAvailable) {
+      results.push(
+        `⚠️ Python ${options.pythonVersion} is not available, attempting to install...`,
+      );
+      const installResult = await installPythonVersion(options.pythonVersion);
+      results.push(installResult.output);
+
+      if (!installResult.success) {
+        return {
+          success: false,
+          output: results.join("\n"),
+          error:
+            installResult.error ||
+            `Python ${options.pythonVersion} not available`,
+        };
+      }
+    } else {
+      results.push(`✅ Python ${options.pythonVersion} is available`);
+    }
+  }
+
+  results.push(
+    `Creating virtual environment at ${venvPath}${options.pythonVersion ? ` with Python ${options.pythonVersion}` : ""}...`,
+  );
+
   const venvResult = await createVirtualEnvironment(
     workspaceRoot,
     options.envName,
@@ -507,7 +628,24 @@ export async function setupDevelopmentEnvironment(
   );
 
   if (!venvResult.success) {
-    return venvResult;
+    results.push(`❌ Failed to create virtual environment`);
+    if (venvResult.error) {
+      results.push(`   Error: ${venvResult.error}`);
+    }
+    results.push("");
+    results.push("💡 Possible solutions:");
+    results.push("   - Ensure Python is properly installed and in PATH");
+    if (options.pythonVersion) {
+      results.push(
+        `   - Try: pyenv install ${options.pythonVersion} && pyenv local ${options.pythonVersion}`,
+      );
+    }
+    results.push("   - Or try without specifying a Python version");
+    return {
+      success: false,
+      output: results.join("\n"),
+      error: venvResult.error || "Failed to create virtual environment",
+    };
   }
   results.push("✅ Virtual environment created successfully");
 
@@ -530,11 +668,15 @@ export async function setupDevelopmentEnvironment(
     );
   }
 
-  // Install collections if specified
   if (options.collections && options.collections.length > 0) {
-    const collectionsResult = await installCollections(
+    results.push(
+      "Installing collections using virtual environment's ansible-galaxy...",
+    );
+    const collectionsResult = await executeInVirtualEnvironment(
+      venvPath,
+      "ansible-galaxy",
+      ["collection", "install", ...options.collections],
       workspaceRoot,
-      options.collections,
     );
 
     if (!collectionsResult.success) {
