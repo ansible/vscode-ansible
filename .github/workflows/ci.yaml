@@ -472,7 +472,7 @@ jobs:
 
       - name: Merge logs into a single archive
         if: ${{ !failure() }}
-        uses: actions/upload-artifact/merge@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact/merge@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: logs.zip
           pattern: logs-*.zip
@@ -480,7 +480,7 @@ jobs:
           delete-merged: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           path: .
 
@@ -493,7 +493,7 @@ jobs:
 
       - name: Upload als test coverage data [1/5]
         if: ${{ always() }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: als
           files: ./**/coverage/als/cobertura-coverage.xml
@@ -504,7 +504,7 @@ jobs:
 
       - name: Upload unit test coverage data [2/5]
         if: ${{ always() }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: unit
           files: ./**/coverage/unit/*cobertura-coverage.xml
@@ -515,7 +515,7 @@ jobs:
 
       - name: Upload ui test coverage data [3/5]
         if: ${{ always() }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: ui
           files: ./**/coverage/ui/*cobertura-coverage.xml
@@ -526,7 +526,7 @@ jobs:
 
       - name: Upload e2e test coverage data [4/5]
         if: ${{ always() }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: e2e
           files: ./**/coverage/e2e/*cobertura-coverage.xml
@@ -537,7 +537,7 @@ jobs:
 
       - name: Upload mcp test coverage data [5/5]
         if: ${{ always() }}
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: mcp
           files: ./**/coverage/mcp/*cobertura-coverage.xml
@@ -600,7 +600,7 @@ jobs:
       - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
 
       - name: Download the artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
 
@@ -631,7 +631,7 @@ jobs:
       - check
     steps:
       - name: Download the artifact
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
