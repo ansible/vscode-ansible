@@ -18,6 +18,7 @@ const roleData = ref<{ files: GenerationListEntry[] | []; roleName: string | nul
 const errorMessage = ref<string | null>(null);
 const explanationHtml = ref<string | null>(null);
 const explanationId = uuidv4();
+const telemetryEnabled = ref(true);
 
 function hasTasks(content: string): boolean {
   const taskKeywords = ["tasks", "pre_tasks", "post_tasks", "handlers"];
@@ -114,6 +115,13 @@ vscodeApi.on("errorMessage", (message: string) => {
   errorMessage.value = message;
 });
 
+vscodeApi.on("telemetryStatus", (data: { enabled: boolean }) => {
+  telemetryEnabled.value = data.enabled;
+});
+
+// Request feedback status on component load
+vscodeApi.post("getTelemetryStatus", {});
+
 watch(() => roleData.value, (newValue) => {
   if (newValue && newValue.files && newValue.files.length > 0 && newValue.roleName) {
     loadingExplanation.value = true;
@@ -154,7 +162,7 @@ watch(() => playbookData.value, (newValue) => {
   </div>
   <div v-else-if="explanationHtml">
     <div class="explanation" v-html="explanationHtml"></div>
-    <FeedbackBox :explanationId="explanationId" :explanationType="explanationType || 'playbook'" />
+    <FeedbackBox :explanationId="explanationId" :explanationType="explanationType || 'playbook'" :telemetryEnabled="telemetryEnabled" />
   </div>
   <div class="explanation" v-else>
     <p>No explanation available.</p>

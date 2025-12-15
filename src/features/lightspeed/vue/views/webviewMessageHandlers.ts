@@ -123,6 +123,7 @@ export class WebviewMessageHandlers {
       getCollectionList: this.handleGetCollectionList.bind(this),
       writeRoleInWorkspace: this.handleWriteRoleInWorkspace.bind(this),
       feedback: this.handleFeedback.bind(this),
+      getTelemetryStatus: this.handleGetTelemetryStatus.bind(this),
     };
   }
 
@@ -496,6 +497,21 @@ export class WebviewMessageHandlers {
     webview.postMessage({
       type: message.type,
       data: message.data,
+    });
+  }
+
+  private handleGetTelemetryStatus(message: any, webview: vscode.Webview) {
+    const telemetryEnabled = vscode.workspace
+      .getConfiguration("redhat")
+      .get<boolean>("telemetry.enabled", true);
+
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    const feedbackEnabled = provider === "wca" || telemetryEnabled;
+    webview.postMessage({
+      type: "telemetryStatus",
+      data: { enabled: feedbackEnabled },
     });
   }
 
