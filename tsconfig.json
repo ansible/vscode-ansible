@@ -15,7 +15,6 @@
     "src/**/*.ts",
     "webviews/lightspeed/src/utils/*.ts",
     "test",
-    "packages/*/test/consoleOutput.ts",
     "*.js",
     "*.ts"
   ],
