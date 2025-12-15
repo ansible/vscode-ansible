@@ -85,8 +85,7 @@ export default class LLMProviderServer {
 
     app.use((req, res, next) => {
       if (req.method === "POST" && req.path.includes("/v1beta/models/")) {
-        logger.info(`Incoming POST request to: ${req.path}`);
-        logger.info(JSON.stringify(req.body, null, 2));
+        logger.info(`POST ${req.path} - returning mock response`);
         return res.status(200).json(mockResponse);
       }
       next();
