@@ -1114,7 +1114,7 @@
   },
   "scripts": {
     "build": "yarn workspaces foreach --all -tvv run compile",
-    "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
+    "clean": "rimraf dist out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "knip": "knip",
     "package": "./tools/helper --package",

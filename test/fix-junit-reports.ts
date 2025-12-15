@@ -41,7 +41,7 @@ function fixJunitPathsInFolder(folder: string) {
   for (const file of files) {
     const content = fs.readFileSync(file, "utf-8");
     const updated = makePathsRelative(content, basePath).replace(
-      /"out\/client\/(.*)\.js"/g,
+      /"dist\/(.*)\.js"/g,
       '"$1.ts"',
     );
     fs.writeFileSync(file, updated, "utf-8");

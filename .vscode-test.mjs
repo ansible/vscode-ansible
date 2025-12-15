@@ -3,7 +3,7 @@
 import { defineConfig } from "@vscode/test-cli";
 
 export default defineConfig({
-  files: "out/client/test/e2e/*.test.js",
+  files: "dist/test/e2e/*.test.js",
   extensionDevelopmentPath: ".", // package.json location
   workspaceFolder: "test/testFixtures",
   launchArgs: [

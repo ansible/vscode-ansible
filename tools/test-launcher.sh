@@ -61,7 +61,7 @@ function start_server() {
     TEST_LIGHTSPEED_ACCESS_TOKEN=dummy
     truncate -s 0 "out/log/${TEST_ID}-express.log"
     truncate -s 0 "out/log/${TEST_ID}-mock-server.log"
-    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedServer/server.js >"out/log/${TEST_ID}-express.log" 2>&1 ) &
+    (DEBUG='express:*' node ./dist/test/ui/mockLightspeedServer/server.js >"out/log/${TEST_ID}-express.log" 2>&1 ) &
     while ! grep 'Listening on port' "out/log/${TEST_ID}-express.log"; do
 	sleep 1
     done
@@ -200,7 +200,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     rm -f out/junit/ui/*.* >/dev/null
     mkdir -p out/log/ui
 
-    find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
+    find dist/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
         basename="${test_file##*/}"
         TEST_ID="ui-${basename%.*}"
         TEST_JUNIT_FILE="./out/junit/ui/${TEST_ID}-test-results.xml"

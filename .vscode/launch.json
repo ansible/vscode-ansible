@@ -41,7 +41,7 @@
         "${workspaceFolder}/examples"
       ],
       "name": "Launch Extension",
-      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/src/**/*.js"],
       "preLaunchTask": "npm: watch",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -56,7 +56,7 @@
         "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
       },
       "name": "Launch Extension (webpacked)",
-      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/src/**/*.js"],
       "preLaunchTask": "Webpack Watch",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -75,7 +75,7 @@
     {
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/client/test/index"
+        "--extensionTestsPath=${workspaceFolder}/dist/test/index"
       ],
       "name": "Extension Tests",
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
