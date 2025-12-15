@@ -393,14 +393,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const config = workspace.getConfiguration("ansible.lightspeed");
         const provider = config.get<string>("provider");
 
-        // Determine the configuration target (workspace takes precedence over global)
+        // Determine the configuration target (folder takes precedence over workspace, which takes precedence over global)
         const providerInspect = config.inspect<string>("provider");
         let configTarget: vscode.ConfigurationTarget | undefined;
 
-        if (providerInspect?.workspaceValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.Workspace;
-        } else if (providerInspect?.workspaceFolderValue !== undefined) {
+        if (providerInspect?.workspaceFolderValue !== undefined) {
           configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+        } else if (providerInspect?.workspaceValue !== undefined) {
+          configTarget = vscode.ConfigurationTarget.Workspace;
         } else {
           configTarget = vscode.ConfigurationTarget.Global;
         }

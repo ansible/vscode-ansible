@@ -164,10 +164,22 @@ export class ProviderCommands {
         selectedProvider.provider.defaultEndpoint &&
         !lightspeedConfig.get("apiEndpoint")
       ) {
+        // Determine the configuration target (folder takes precedence over workspace, which takes precedence over global)
+        const providerInspect = lightspeedConfig.inspect<string>("provider");
+        let configTarget: vscode.ConfigurationTarget;
+
+        if (providerInspect?.workspaceFolderValue !== undefined) {
+          configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
+        } else if (providerInspect?.workspaceValue !== undefined) {
+          configTarget = vscode.ConfigurationTarget.Workspace;
+        } else {
+          configTarget = vscode.ConfigurationTarget.Global;
+        }
+
         await lightspeedConfig.update(
           "apiEndpoint",
           selectedProvider.provider.defaultEndpoint,
-          vscode.ConfigurationTarget.Workspace,
+          configTarget,
         );
       }
 

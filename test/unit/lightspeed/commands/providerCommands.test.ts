@@ -265,9 +265,18 @@ describe("ProviderCommands", () => {
       const mockConfig = {
         get: vi.fn((key: string) => {
           if (key === "apiKey") return "";
+          if (key === "apiEndpoint") return undefined;
           return undefined;
         }),
         update: vi.fn(),
+        inspect: vi.fn((key: string) => {
+          if (key === "provider") {
+            return {
+              workspaceValue: PROVIDER_TYPES.GOOGLE,
+            };
+          }
+          return undefined;
+        }),
       };
 
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
@@ -426,10 +435,18 @@ describe("ProviderCommands", () => {
       const mockConfig = {
         get: vi.fn((key: string) => {
           if (key === "apiKey") return "";
-          if (key === "apiEndpoint") return ""; // Not set
+          if (key === "apiEndpoint") return undefined; // Not set
           return undefined;
         }),
         update: vi.fn(),
+        inspect: vi.fn((key: string) => {
+          if (key === "provider") {
+            return {
+              workspaceValue: PROVIDER_TYPES.GOOGLE,
+            };
+          }
+          return undefined;
+        }),
       };
 
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
