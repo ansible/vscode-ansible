@@ -114,8 +114,9 @@ export default class LLMProviderServer {
 }
 
 function shutdown(code: number) {
-  logger.info(`Emergency shutdown (${code})!`);
+  logger.info(`Shutdown (${code})`);
   logger.end();
+  process.exit(0);
 }
 
 process.on("SIGTERM", shutdown);

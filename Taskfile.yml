@@ -207,7 +207,7 @@ tasks:
     generates:
       - out/junit/ui/.passed
     cmds:
-      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 MOCK_LLM_PROVIDER_API=1 ./tools/test-launcher.sh'''
+      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   ui-oldest:
     desc: Run UI tests (CODE_VERSION='min')

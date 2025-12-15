@@ -20,7 +20,6 @@ cleanup()
     # prevents CI issues (git-leaks), also we do not need the html report
     rm -rf out/coverage/*/lcov-report/out
     stop_server
-    stop_llm_provider_server
 
     if [[ -f out/log/.failed ]]; then
          EXIT_CODE=3
@@ -43,11 +42,8 @@ trap "cleanup EXIT" EXIT
 CODE_VERSION="${CODE_VERSION:-max}"
 TEST_LIGHTSPEED_PORT=3000
 TEST_LIGHTSPEED_URL="${TEST_LIGHTSPEED_URL:-}"
-TEST_LLM_PROVIDER_PORT=3001
-TEST_LLM_PROVIDER_URL="${TEST_LLM_PROVIDER_URL:-}"
 COVERAGE="${COVERAGE:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
-MOCK_LLM_PROVIDER_API="${MOCK_LLM_PROVIDER_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
 UI_TARGET="${UI_TARGET:-*Test.js}"
@@ -76,23 +72,6 @@ function start_server() {
     export TEST_LIGHTSPEED_URL
 }
 
-function start_llm_provider_server() {
-    log notice "Starting the LLM Provider Mock Server"
-    if [[ -n "${TEST_LLM_PROVIDER_URL}" ]]; then
-        log notice "MOCK_LLM_PROVIDER_API is true, the existing TEST_LLM_PROVIDER_URL envvar will be ignored!"
-    fi
-    mkdir -p out/log
-    truncate -s 0 "out/log/${TEST_ID}-llm-provider-server.log"
-    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedLLMProviderServer/server.js >"out/log/${TEST_ID}-llm-provider-server.log" 2>&1 ) &
-    while ! grep -i 'listening on port' "out/log/${TEST_ID}-llm-provider-server.log"; do
-	sleep 1
-    done
-
-    TEST_LLM_PROVIDER_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)$,http://\2:\1,p' "out/log/${TEST_ID}-llm-provider-server.log" | tail -n1)
-
-    export TEST_LLM_PROVIDER_URL
-}
-
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
         pid=$(lsof -ti :${TEST_LIGHTSPEED_PORT} || true)
@@ -103,19 +82,6 @@ function stop_server() {
             log debug "No process is using port ${TEST_LIGHTSPEED_PORT}"
         fi
         TEST_LIGHTSPEED_URL=0
-    fi
-}
-
-function stop_llm_provider_server() {
-    if [[ "$MOCK_LLM_PROVIDER_API" == "1" ]]; then
-        pid=$(lsof -ti :${TEST_LLM_PROVIDER_PORT} || true)
-        if [ -n "$pid" ]; then
-            kill -9 "$pid"
-            log debug "Killed LLM provider mock server process $pid using port ${TEST_LLM_PROVIDER_PORT}"
-        else
-            log debug "No process is using port ${TEST_LLM_PROVIDER_PORT}"
-        fi
-        TEST_LLM_PROVIDER_URL=0
     fi
 }
 
@@ -160,10 +126,6 @@ function refresh_settings() {
 
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
-    fi
-    # For Google/LLM provider tests, set the apiEndpoint to the LLM mock server URL
-    if [ "${TEST_LLM_PROVIDER_URL}" != "" ] && grep -q "USE_LLM_PROVIDER_MOCK: true" "${test_path}"; then
-        sed -i.bak "s,\"ansible.lightspeed.apiEndpoint\": \"[^\"]*\",\"ansible.lightspeed.apiEndpoint\": \"$TEST_LLM_PROVIDER_URL\"," out/settings.json
     fi
     rm -rf out/test-resources/settings/ >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"
@@ -252,12 +214,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 stop_server
                 start_server
             fi
-            if [[ "$MOCK_LLM_PROVIDER_API" == "1" ]]; then
-                stop_llm_provider_server
-                start_llm_provider_server
-            fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            export TEST_LLM_PROVIDER_URL
             timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \

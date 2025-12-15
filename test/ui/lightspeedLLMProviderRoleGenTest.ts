@@ -1,7 +1,6 @@
 // BEFORE: ansible.lightspeed.enabled: true
-// USE_LLM_PROVIDER_MOCK: true
 // UI Test for LLM Provider Role Generation (Google Gemini)
-// Uses TEST_LLM_PROVIDER_URL environment variable to route SDK calls to mock server
+// Uses Mocha hooks to start/stop the mock server
 
 import { By, Key, EditorView } from "vscode-extension-tester";
 import {
@@ -13,13 +12,25 @@ import {
   updateSettings,
 } from "./uiTestHelper";
 import { expect } from "chai";
+import {
+  startLLMProviderServer,
+  stopLLMProviderServer,
+} from "./mockLightspeedLLMProviderServer/serverManager";
 
 describe("LLM Provider Role Generation", function () {
+  let serverUrl: string;
+
   before(async function () {
     this.timeout(60000);
-    if (!process.env.TEST_LLM_PROVIDER_URL) {
+    try {
+      serverUrl = await startLLMProviderServer();
+      console.log(`[Test] Mock server started at: ${serverUrl}`);
+    } catch (err) {
+      console.error("[Test] Failed to start mock server:", err);
       this.skip();
+      return;
     }
+
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
@@ -37,9 +48,18 @@ describe("LLM Provider Role Generation", function () {
       "ansible.lightspeed.modelName",
       "gemini-2.5-flash",
     );
+    await updateSettings(
+      settingsEditor,
+      "ansible.lightspeed.apiEndpoint",
+      serverUrl,
+    );
 
     await new EditorView().closeAllEditors();
     await sleep(2000);
+  });
+
+  after(async function () {
+    await stopLLMProviderServer();
   });
 
   it("Should generate role using Google Gemini provider", async function () {
@@ -75,7 +95,7 @@ describe("LLM Provider Role Generation", function () {
           return undefined;
         }
       },
-      timeout: 30000,
+      timeout: 15000,
       message: "Continue button should appear on step 2 (outline review)",
     });
     expect(continueButton).not.to.be.undefined;
@@ -97,7 +117,7 @@ describe("LLM Provider Role Generation", function () {
           return undefined;
         }
       },
-      timeout: 30000,
+      timeout: 15000,
       message: "Generated role should contain nginx",
     });
     expect(roleContent).not.to.be.undefined;
