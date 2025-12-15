@@ -847,18 +847,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const provider = extSettings.settings.lightSpeedService.provider;
         // For LLM providers, send telemetry via Segment instead of WCA API
         if (provider && provider !== "wca") {
-          // Check if telemetry is enabled
-          const telemetryEnabled = vscode.workspace
-            .getConfiguration("redhat")
-            .get<boolean>("telemetry.enabled", true);
-
-          if (!telemetryEnabled) {
-            vscode.window.showWarningMessage(
-              "Feedback will not be sent. Please enable telemetry in settings (redhat.telemetry.enabled) to submit feedback.",
-            );
-            return;
-          }
-
           const isExplanation = !!param.explanationId;
           const eventName = isExplanation
             ? "lightspeed.playbookExplanationFeedback"
@@ -918,18 +906,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         // For LLM providers, send telemetry via Segment
         if (provider && provider !== "wca") {
-          // Check if telemetry is enabled
-          const telemetryEnabled = vscode.workspace
-            .getConfiguration("redhat")
-            .get<boolean>("telemetry.enabled", true);
-
-          if (!telemetryEnabled) {
-            vscode.window.showWarningMessage(
-              "Feedback will not be sent. Please enable telemetry in settings (redhat.telemetry.enabled) to submit feedback.",
-            );
-            return;
-          }
-
           // Send telemetry event with same payload structure as WCA
           try {
             await sendTelemetry(
