@@ -1,12 +1,13 @@
-// ui tests
+// Loaded only by extest when runing `test/ui`
 "use strict";
 
 module.exports = {
+  // bail: true,
   color: true, // needed to keep colors inside vscode terminal
   recursive: true,
   extension: ["ts"],
   require: ["ts-node/register"],
-  package: "../../package.json",
+  package: "package.json",
   timeout: 30003, // default is 2000
   // most UI tests are >22s due to our current wait times and we do not want
   // red slow marker to distract us until we sort that part yet. Red is expected

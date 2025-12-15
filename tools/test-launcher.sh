@@ -39,18 +39,19 @@ trap "cleanup OTHER" HUP INT ABRT BUS TERM
 trap "cleanup EXIT" EXIT
 
 
-CODE_VERSION="${CODE_VERSION:-max}"
 TEST_LIGHTSPEED_PORT=3000
 TEST_LIGHTSPEED_URL="${TEST_LIGHTSPEED_URL:-}"
 COVERAGE="${COVERAGE:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
-TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
 UI_TARGET="${UI_TARGET:-*Test.js}"
 OPTSTRING=":c"
 
+set -x
+TEST_SETTINGS_JSON="${TEST_RESOURCES}/settings/User/settings.json"
+
 # https://github.com/microsoft/vscode/issues/204005
-rm -f out/log/.failed >/dev/null
+rm -f out/log/.failed out/log/ui/* >/dev/null
 
 function start_server() {
     log notice "Starting the mockLightspeedServer"
@@ -116,21 +117,23 @@ function retry_command() {
 function refresh_settings() {
     local test_path=$1
     local test_id=$2
-    cp test/testFixtures/settings.json out/settings.json
-    sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
-    sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
+    mkdir -p "$(dirname "$TEST_SETTINGS_JSON")"
+    cp test/testFixtures/settings.json "$TEST_SETTINGS_JSON"
+    sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' "$TEST_SETTINGS_JSON"
+    sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' "$TEST_SETTINGS_JSON"
     if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_path}"; then
-        sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
-        sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' out/settings.json
+        sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' "$TEST_SETTINGS_JSON"
+        sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' "$TEST_SETTINGS_JSON"
     fi
 
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
-        sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
+        sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," "$TEST_SETTINGS_JSON"
     fi
-    rm -rf out/test-resources/settings/ >/dev/null
-    cp -f out/settings.json "out/log/${test_id}-settings.json"
-}
+    # rm -rf out/test-resources/settings/ >/dev/null
+    mkdir -p "$(dirname "$TEST_SETTINGS_JSON")"
 
+    cp -f "$TEST_SETTINGS_JSON" "out/log/${test_id}-settings.json"
+}
 
 while getopts ${OPTSTRING} opt; do
     case ${opt} in
@@ -150,13 +153,11 @@ if [[ "${COVERAGE}" == "1" ]]; then
 fi
 
 
-
 # Start the mock Lightspeed server and run UI tests with the new VS Code
-
-retry_command 3 2 extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-vscode -s out/test-resources
 
 log notice "Downloading ChromeDriver..."
-retry_command 3 2 extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 extest get-chromedriver -s out/test-resources
 
 # Pre-pull ansible-navigator container image for UI tests (non-macOS only)
 if [[ "$OSTYPE" != "darwin"* ]]; then
@@ -195,53 +196,46 @@ extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -
 
 export COVERAGE
 
-if [[ "${TEST_TYPE}" == "ui" ]]; then
-    # shellcheck disable=SC2044
-    rm -f out/junit/ui/*.* >/dev/null
-    mkdir -p out/log/ui
+# shellcheck disable=SC2044
+rm -f out/junit/ui/*.* >/dev/null
+mkdir -p out/log/ui
 
-    find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
-        basename="${test_file##*/}"
-        TEST_ID="ui-${basename%.*}"
-        TEST_JUNIT_FILE="./out/junit/ui/${TEST_ID}-test-results.xml"
-        export TEST_ID
-        {
-            log notice "Testing ${test_file}"
-            log notice "Cleaning existing User settings..."
-            rm -rfv ./out/test-resources/settings/User/ > /dev/null
+find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
+    basename="${test_file##*/}"
+    TEST_ID="ui-${basename%.*}"
+    TEST_JUNIT_FILE="./out/junit/ui/${TEST_ID}-test-results.xml"
+    export TEST_ID
+    {
+        log notice "Testing ${test_file}"
+        log notice "Cleaning existing User settings..."
+        rm -rfv ./out/test-resources/settings/User/ > /dev/null
 
-            if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-                stop_server
-                start_server
-            fi
-            refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --kill-after=15 --preserve-status 150s extest run-tests "${COVERAGE_ARG}" \
-                --mocha_config test/ui/.mocharc.js \
-                -s out/test-resources \
-                -e out/ext \
-                --code_settings out/settings.json \
-                -c "${CODE_VERSION}" \
-                "${test_file}" || {
-                    if [[ -f $TEST_JUNIT_FILE ]] && ! grep -o 'failures="[1-9][0-9]*"' "$TEST_JUNIT_FILE"; then
-                        log warning "Apparently extest got stuck closing after running test ${TEST_ID} but reported success."
-                    else
-                        echo "${TEST_ID}" >> out/log/.failed;
-                    fi
-                }
-            if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
-                mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${TEST_ID}-cobertura-coverage.xml"
-            fi
-            src_dir="out/test-resources/screenshots"
-            if [ -d "$src_dir" ]; then
-                shopt -s nullglob
-                files=("$src_dir"/*.png)
-                shopt -u nullglob
-                if [ ${#files[@]} -gt 0 ]; then
-                    mv "${files[@]}" "out/log/"
+        if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
+            stop_server
+            start_server
+        fi
+        refresh_settings "${test_file}" "${TEST_ID}"
+        timeout --kill-after=15 --preserve-status 150s extest run-tests "${COVERAGE_ARG}" \
+            "${test_file}" || {
+                if [[ -f $TEST_JUNIT_FILE ]] && ! grep -o 'failures="[1-9][0-9]*"' "$TEST_JUNIT_FILE"; then
+                    log warning "Apparently extest got stuck closing after running test ${TEST_ID} but reported success."
+                else
+                    echo "${TEST_ID}" >> out/log/.failed;
                 fi
+            }
+        if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
+            mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${TEST_ID}-cobertura-coverage.xml"
+        fi
+        src_dir="out/test-resources/screenshots"
+        if [ -d "$src_dir" ]; then
+            shopt -s nullglob
+            files=("$src_dir"/*.png)
+            shopt -u nullglob
+            if [ ${#files[@]} -gt 0 ]; then
+                mv "${files[@]}" "out/log/"
             fi
-        } | tee >(sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/ui/${TEST_ID}.log") 2>&1
-    done
-    ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
-    touch out/junit/ui/.passed
-fi
+        fi
+    } | tee >(sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/${TEST_ID}.log") 2>&1
+done
+ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
+touch out/junit/ui/.passed
