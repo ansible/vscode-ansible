@@ -5,13 +5,33 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Get the directory where resources are located
+// In bundled output (out/mcp/cli.js), resources are at out/mcp/data/
+// In source/dev/test mode, resources are at src/resources/data/
+function getResourceDir(): string {
+  // In bundled mode, process.argv[1] points to the entry script (out/mcp/cli.js)
+  // Check if process.argv[1] exists and looks like our bundled CLI script
+  if (
+    typeof process !== "undefined" &&
+    process.argv &&
+    process.argv[1] &&
+    (process.argv[1].includes("mcp") || process.argv[1].includes("out"))
+  ) {
+    return path.dirname(process.argv[1]);
+  }
+
+  // Fall back to import.meta.url for dev mode, test mode, and other scenarios
+  // This works correctly when code is not bundled (dev/test with ts-node/vitest)
+  const __filename = fileURLToPath(import.meta.url);
+  return path.dirname(__filename);
+}
+
+const resourceDir = getResourceDir();
 
 // Agents guidelines file packaged with the extension
-// In compiled output, files are in out/server/src/resources/data/
+// In compiled output, files are in out/mcp/data/
 // In source, files are in src/resources/data/
-const AGENTS_FILE = path.join(__dirname, "data/agents.md");
+const AGENTS_FILE = path.join(resourceDir, "data/agents.md");
 
 /**
  * Get the agents.md file content from the packaged file.
