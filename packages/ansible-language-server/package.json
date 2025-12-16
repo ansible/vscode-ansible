@@ -80,9 +80,9 @@
     "compile": "tsc -p .",
     "prepack": "yarn compile",
     "prepare": "yarn run compile",
-    "test": "sh -c \"c8 mocha ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
-    "test-with-ee": "sh -c \"c8 mocha --grep @ee ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts \"",
-    "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
+    "test": "c8 mocha ${MOCHA_OPTS:-}",
+    "test-with-ee": "c8 mocha --grep @ee ${MOCHA_OPTS:-}",
+    "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-}",
     "watch": "tsc --watch -p ."
   },
   "types": "./out/server/src/server.d.ts",
