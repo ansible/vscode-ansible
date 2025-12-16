@@ -46,6 +46,16 @@ export class LightspeedStatusBar {
   }
 
   public async getLightSpeedStatusBarText(): Promise<string> {
+    const provider = this.settingsManager.settings.lightSpeedService.provider;
+
+    // For LLM providers (not WCA), show provider name instead of login status
+    if (provider && provider !== "wca") {
+      // Capitalize first letter for display
+      const displayName = provider.charAt(0).toUpperCase() + provider.slice(1);
+      return `Lightspeed (${displayName})`;
+    }
+
+    // For WCA, show login status
     const userDetails =
       await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
     if (!userDetails) {
@@ -132,7 +142,7 @@ export class LightspeedStatusBar {
       mdString += `</ul>\n`;
     }
     const modelName =
-      lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+      lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
     mdString += `<h4>Model Details:</h4>
                   <hr>
                   <ul>
