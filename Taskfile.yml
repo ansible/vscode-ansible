@@ -276,6 +276,7 @@ tasks:
   flush:
     desc: Cleans cached files that sometimes can affect the build negatively, not a full clean
     cmds:
+      - rm -rf out/test-resources/screenshots/* out/test-resources/settings/logs/* || true
       - rm -rf .vscode-test/ out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
       - rm -f out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
   dry:

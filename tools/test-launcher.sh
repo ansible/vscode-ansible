@@ -46,7 +46,7 @@ COVERAGE="${COVERAGE:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
-UI_TARGET="${UI_TARGET:-*Test.js}"
+UI_TARGET="${UI_TARGET:-*.test.js}"
 OPTSTRING=":c"
 
 # https://github.com/microsoft/vscode/issues/204005
