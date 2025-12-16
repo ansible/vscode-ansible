@@ -37,6 +37,7 @@ import {
 } from "./utils/oneClickTrial";
 import { mapError } from "./handleApiError";
 import { Log } from "../../utils/logger";
+import { ProviderStatus } from "./providers/base";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
@@ -429,6 +430,38 @@ export class LightSpeedAPI {
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;
+    }
+  }
+
+  /**
+   * Get WCA provider connection status
+   */
+  public async getStatus(): Promise<ProviderStatus> {
+    try {
+      // Test WCA connection by making a simple API call
+      const testParams = {
+        prompt: "# Test connection",
+        suggestionId: "test",
+      };
+      await this.completionRequest(testParams);
+      return {
+        connected: true,
+        modelInfo: {
+          name: "WCA",
+          capabilities: [
+            "completion",
+            "chat",
+            "generation",
+            "contentmatching",
+          ],
+        },
+      };
+    } catch (error) {
+      return {
+        connected: false,
+        error:
+          error instanceof Error ? error.message : "WCA connection failed",
+      };
     }
   }
 }

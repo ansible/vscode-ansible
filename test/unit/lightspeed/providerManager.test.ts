@@ -92,6 +92,7 @@ describe("ProviderManager", () => {
       completionRequest: vi.fn(),
       playbookGenerationRequest: vi.fn(),
       roleGenerationRequest: vi.fn(),
+      getStatus: vi.fn(),
     } as unknown as LightSpeedAPI;
 
     // Get the mock provider from the factory
@@ -778,14 +779,16 @@ describe("ProviderManager", () => {
 
   describe("testProviderConnection", () => {
     it("should test WCA connection successfully", async () => {
-      const completionRequest = vi.mocked(
+      const getStatus = vi.mocked(
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.completionRequest,
+        mockWcaApi.getStatus,
       );
-      completionRequest.mockResolvedValue({
-        predictions: ["test"],
-        model: "wca",
-        suggestionId: "test",
+      getStatus.mockResolvedValue({
+        connected: true,
+        modelInfo: {
+          name: "WCA",
+          capabilities: ["completion", "chat", "generation", "contentmatching"],
+        },
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -793,10 +796,7 @@ describe("ProviderManager", () => {
 
       const status = await providerManager.testProviderConnection("wca");
 
-      expect(completionRequest).toHaveBeenCalledWith({
-        prompt: "# Test connection",
-        suggestionId: "test",
-      });
+      expect(getStatus).toHaveBeenCalled();
       expect(status).toEqual({
         connected: true,
         modelInfo: {
@@ -807,17 +807,21 @@ describe("ProviderManager", () => {
     });
 
     it("should handle WCA connection failure", async () => {
-      const completionRequest = vi.mocked(
+      const getStatus = vi.mocked(
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.completionRequest,
+        mockWcaApi.getStatus,
       );
-      completionRequest.mockRejectedValue(new Error("Connection failed"));
+      getStatus.mockResolvedValue({
+        connected: false,
+        error: "Connection failed",
+      });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       const status = await providerManager.testProviderConnection("wca");
 
+      expect(getStatus).toHaveBeenCalled();
       expect(status).toEqual({
         connected: false,
         error: "Connection failed",

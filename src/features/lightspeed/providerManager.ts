@@ -260,32 +260,7 @@ export class ProviderManager {
     providerType: "wca" | "llmprovider",
   ): Promise<ProviderStatus> {
     if (providerType === "wca") {
-      try {
-        // Test WCA connection by making a simple API call
-        const testParams = {
-          prompt: "# Test connection",
-          suggestionId: "test",
-        };
-        await this.wcaApi.completionRequest(testParams);
-        return {
-          connected: true,
-          modelInfo: {
-            name: "WCA",
-            capabilities: [
-              "completion",
-              "chat",
-              "generation",
-              "contentmatching",
-            ],
-          },
-        };
-      } catch (error) {
-        return {
-          connected: false,
-          error:
-            error instanceof Error ? error.message : "WCA connection failed",
-        };
-      }
+      return await this.wcaApi.getStatus();
     }
 
     if (providerType === "llmprovider" && this.llmProvider) {

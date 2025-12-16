@@ -92,11 +92,6 @@ export class LightspeedUser {
     this._logger.info(
       `[ansible-lightspeed-user] Initializing LightspeedUser with provider: ${provider}, URI: ${lightspeedUri || "(none)"}, extension host: ${this._extensionHost}`,
     );
-    if (provider === "wca") {
-      this._logger.info(
-        `[ansible-lightspeed-user] Red Hat authentication extension is${vscode.extensions.getExtension("redhat.vscode-redhat-account") ? "" : " not"} installed.`,
-      );
-    }
   }
 
   public static isLightspeedUserAuthProviderType(providerId: string) {
