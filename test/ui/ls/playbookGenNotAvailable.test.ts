@@ -2,7 +2,11 @@
 
 import { expect, config } from "chai";
 import { VSBrowser, Workbench, EditorView } from "vscode-extension-tester";
-import { getFixturePath, sleep, workbenchExecuteCommand } from "./uiTestHelper";
+import {
+  getFixturePath,
+  sleep,
+  workbenchExecuteCommand,
+} from "../uiTestHelper";
 
 config.truncateThreshold = 0;
 

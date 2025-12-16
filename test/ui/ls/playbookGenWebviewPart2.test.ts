@@ -14,9 +14,9 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   waitForCondition,
-} from "./uiTestHelper";
-import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
-import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
+} from "../uiTestHelper";
+import { WizardGenerationActionType } from "../../../src/definitions/lightspeed";
+import { PlaybookGenerationActionEvent } from "../../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 

@@ -16,7 +16,7 @@ import {
   sleep,
   updateSettings,
   getAnsibleViewControl,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 import { expect } from "chai";
 
 before(function () {

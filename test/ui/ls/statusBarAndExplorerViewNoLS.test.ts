@@ -10,7 +10,7 @@ import {
   SideBarView,
   ViewSection,
 } from "vscode-extension-tester";
-import { getFixturePath, getAnsibleViewControl } from "./uiTestHelper";
+import { getFixturePath, getAnsibleViewControl } from "../uiTestHelper";
 
 config.truncateThreshold = 0;
 

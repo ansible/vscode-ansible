@@ -1,5 +1,5 @@
 // BEFORE: ansible.lightspeed.enabled: true
-// UI Test for LLM Provider Playbook Generation (Google Gemini)
+// UI Test for LLM Provider Role Generation (Google Gemini)
 // Uses Mocha hooks to start/stop the mock server
 
 import { By, Key, EditorView } from "vscode-extension-tester";
@@ -10,19 +10,18 @@ import {
   waitForCondition,
   openSettings,
   updateSettings,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 import { expect } from "chai";
 import {
   startLLMProviderServer,
   stopLLMProviderServer,
-} from "./mockLightspeedLLMProviderServer/serverManager";
+} from "../mockLightspeedLLMProviderServer/serverManager";
 
-describe("LLM Provider Playbook Generation", function () {
+describe("LLM Provider Role Generation", function () {
   let serverUrl: string;
 
   before(async function () {
     this.timeout(60000);
-
     try {
       serverUrl = await startLLMProviderServer();
       console.log(`[Test] Mock server started at: ${serverUrl}`);
@@ -31,6 +30,7 @@ describe("LLM Provider Playbook Generation", function () {
       this.skip();
       return;
     }
+
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
@@ -55,28 +55,27 @@ describe("LLM Provider Playbook Generation", function () {
     );
 
     await new EditorView().closeAllEditors();
-
-    await sleep(3000);
+    await sleep(2000);
   });
 
   after(async function () {
     await stopLLMProviderServer();
   });
 
-  it("Should generate playbook using Google Gemini provider", async function () {
+  it("Should generate role using Google Gemini provider", async function () {
     this.timeout(100000);
 
-    await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
+    await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
 
     const webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
+      By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
     expect(webView).not.to.be.undefined;
 
     const promptInput = await webView.findWebElement(
       By.xpath('//*[@id="PromptTextField"]/input'),
     );
-    await promptInput.sendKeys("Create a playbook to install nginx web server");
+    await promptInput.sendKeys("Install and configure nginx");
     await promptInput.sendKeys(Key.ESCAPE);
     await promptInput.click();
 
@@ -108,7 +107,7 @@ describe("LLM Provider Playbook Generation", function () {
 
     await continueButton.click();
 
-    const playbookContent = await waitForCondition({
+    const roleContent = await waitForCondition({
       condition: async () => {
         try {
           return await webView.findWebElement(
@@ -119,11 +118,11 @@ describe("LLM Provider Playbook Generation", function () {
         }
       },
       timeout: 15000,
-      message: "Generated playbook should contain nginx",
+      message: "Generated role should contain nginx",
     });
-    expect(playbookContent).not.to.be.undefined;
+    expect(roleContent).not.to.be.undefined;
 
-    const content = await playbookContent.getText();
+    const content = await roleContent.getText();
     expect(content).to.include("nginx");
 
     await webView.switchBack();

@@ -7,7 +7,7 @@ import {
   updateSettings,
   openSettings,
   waitForCondition,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 
 config.truncateThreshold = 0;
 

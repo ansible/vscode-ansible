@@ -24,7 +24,7 @@ import {
   waitForCondition,
   workbenchExecuteCommand,
   getAnsibleViewControl,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
 
