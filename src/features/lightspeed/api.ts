@@ -448,19 +448,13 @@ export class LightSpeedAPI {
         connected: true,
         modelInfo: {
           name: "WCA",
-          capabilities: [
-            "completion",
-            "chat",
-            "generation",
-            "contentmatching",
-          ],
+          capabilities: ["completion", "chat", "generation", "contentmatching"],
         },
       };
     } catch (error) {
       return {
         connected: false,
-        error:
-          error instanceof Error ? error.message : "WCA connection failed",
+        error: error instanceof Error ? error.message : "WCA connection failed",
       };
     }
   }
