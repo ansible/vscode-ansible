@@ -11,7 +11,7 @@ import {
   getWebviewByLocator,
   openSettings,
   getAnsibleViewControl,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 
 config.truncateThreshold = 0;
 
