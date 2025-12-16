@@ -215,7 +215,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --kill-after=15 --preserve-status 150s extest run-tests "${COVERAGE_ARG}" \
+            timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
                 -e out/ext \

@@ -42,9 +42,9 @@ export async function sendTelemetry(
   if (!eventName) {
     throw new Error("Event name is required");
   }
-  // TODO: Temporary enable only ansibleMetadata event and pause all the other telemetry,
+  // TODO: Temporary enable only ansibleMetadata and lightspeed events,
   //       other events will be enabled in future as per requirements.
-  if (eventName !== "ansibleMetadata") {
+  if (eventName !== "ansibleMetadata" && !eventName.startsWith("lightspeed.")) {
     return;
   }
 

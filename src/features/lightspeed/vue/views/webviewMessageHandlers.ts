@@ -54,6 +54,7 @@ import {
   DevcontainerRecommendedExtensions,
   DevfileImages,
 } from "../../../../definitions/constants";
+import { sendTelemetry } from "../../../../utils/telemetryUtils";
 
 interface WebviewMessage {
   type: string;
@@ -122,6 +123,7 @@ export class WebviewMessageHandlers {
       getCollectionList: this.handleGetCollectionList.bind(this),
       writeRoleInWorkspace: this.handleWriteRoleInWorkspace.bind(this),
       feedback: this.handleFeedback.bind(this),
+      getTelemetryStatus: this.handleGetTelemetryStatus.bind(this),
     };
   }
 
@@ -132,6 +134,7 @@ export class WebviewMessageHandlers {
   ) {
     // Support both 'type' and 'command' fields for message routing
     const messageKey = message.type || (message as any).command;
+
     const handler = this.handlers[messageKey];
     if (handler) {
       await handler(message, webview, context);
@@ -405,6 +408,7 @@ export class WebviewMessageHandlers {
   ) {
     const { data } = message;
     const generationId = uuidv4();
+
     const response = await generateRole(
       lightSpeedManager.apiInstance,
       data.name,
@@ -429,7 +433,6 @@ export class WebviewMessageHandlers {
     const task_files = response.files.filter(
       (file) => file.file_type === "task",
     );
-    console.log(task_files);
     if (task_files.length > 0) {
       contentMatch(generationId, task_files[0].content);
     }
@@ -467,11 +470,19 @@ export class WebviewMessageHandlers {
   }
 
   private async handleExplanationThumbsUp(message: any) {
-    await thumbsUpDown(ThumbsUpDownAction.UP, message.data.explanationId);
+    await thumbsUpDown(
+      message.data.action ?? ThumbsUpDownAction.UP,
+      message.data.explanationId,
+      message.data.explanationType ?? "playbook",
+    );
   }
 
   private async handleExplanationThumbsDown(message: any) {
-    await thumbsUpDown(ThumbsUpDownAction.DOWN, message.data.explanationId);
+    await thumbsUpDown(
+      message.data.action ?? ThumbsUpDownAction.DOWN,
+      message.data.explanationId,
+      message.data.explanationType ?? "playbook",
+    );
   }
 
   // Data Handlers
@@ -486,6 +497,21 @@ export class WebviewMessageHandlers {
     webview.postMessage({
       type: message.type,
       data: message.data,
+    });
+  }
+
+  private handleGetTelemetryStatus(message: any, webview: vscode.Webview) {
+    const telemetryEnabled = vscode.workspace
+      .getConfiguration("redhat")
+      .get<boolean>("telemetry.enabled", true);
+
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    const feedbackEnabled = provider === "wca" || telemetryEnabled;
+    webview.postMessage({
+      type: "telemetryStatus",
+      data: { enabled: feedbackEnabled },
     });
   }
 
@@ -512,8 +538,44 @@ export class WebviewMessageHandlers {
     });
   }
 
-  private handleFeedback(message: any) {
+  private async handleFeedback(message: any) {
     const request = message.data.request as FeedbackRequestParams;
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    // For LLM providers, send telemetry via Segment with same payload structure as WCA
+    if (provider && provider !== "wca") {
+      try {
+        const telemetry = lightSpeedManager.telemetry;
+
+        // Prepare telemetry data - exclude inlineSuggestion (WCA-only feature)
+        const telemetryData: any = {
+          provider: provider,
+          model:
+            lightSpeedManager.settingsManager.settings.lightSpeedService
+              .modelName,
+        };
+
+        // Copy all fields except inlineSuggestion
+        for (const key in request) {
+          if (key !== "inlineSuggestion" && Object.hasOwn(request, key)) {
+            telemetryData[key] = (request as any)[key];
+          }
+        }
+
+        await sendTelemetry(
+          telemetry.telemetryService,
+          telemetry.isTelemetryInit,
+          "lightspeed.feedback",
+          telemetryData,
+        );
+      } catch (error) {
+        console.error(`[Lightspeed Feedback] Telemetry failed:`, error);
+      }
+      return;
+    }
+
+    // WCA provider - send to API
     lightSpeedManager.apiInstance.feedbackRequest(
       request,
       process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
@@ -542,7 +604,13 @@ export class WebviewMessageHandlers {
 
       await workspace.fs.createDirectory(dirUri);
       if (await fileExists(fileUri)) {
-        this.sendErrorMessage(webview, `File already exists (${fileUri})!`);
+        // Show both relative and absolute paths to help user find the file
+        const relativePath = `${collectionName.replace(".", "/")}/roles/${roleName}/${f.file_type}s/main.yml`;
+        const absolutePath = fileUri.fsPath;
+        this.sendErrorMessage(
+          webview,
+          `File already exists:\n\n${relativePath}\n\nFull path:\n${absolutePath}\n\nPlease go back and choose a different role name or collection.`,
+        );
         webview.postMessage({
           type: message.type,
           data: [],
@@ -563,13 +631,16 @@ export class WebviewMessageHandlers {
 
       savedFilesEntries.push({
         longPath: `${collectionName.replace(".", "/")}/roles/${roleName}/${f.file_type}s/main.yml`,
+        absolutePath: fileUri.fsPath,
         command: `command:vscode.open?${encodeURIComponent(JSON.stringify(linkUri))}`,
       });
     }
 
+    // Include role base directory in response for display
     webview.postMessage({
       type: message.type,
       data: savedFilesEntries,
+      roleLocation: roleBaseDirUri.fsPath,
     });
   }
 

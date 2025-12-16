@@ -43,7 +43,7 @@ describe(__filename, function () {
       await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
       await updateSettings(
         settingsEditor,
-        "ansible.lightspeed.URL",
+        "ansible.lightspeed.apiEndpoint",
         process.env.TEST_LIGHTSPEED_URL,
       );
 
@@ -71,7 +71,7 @@ describe(__filename, function () {
 
       alfView = await sideBar
         .getContent()
-        .getSection("Ansible Lightspeed Feedback");
+        .getSection("Ansible Lightspeed WCA Provider Feedback");
       await alfView.collapse();
     });
 
