@@ -10,14 +10,18 @@ import { fileURLToPath } from "node:url";
 // In source/dev/test mode, resources are at src/resources/data/
 function getResourceDir(): string {
   // In bundled mode, process.argv[1] points to the entry script (out/mcp/cli.js)
-  // Check if process.argv[1] exists and looks like our bundled CLI script
+  // Check if process.argv[1] exists, is a non-empty string, and matches our bundled CLI script pattern
   if (
     typeof process !== "undefined" &&
     process.argv &&
     process.argv[1] &&
-    (process.argv[1].includes("mcp") || process.argv[1].includes("out"))
+    typeof process.argv[1] === "string" &&
+    process.argv[1].length > 0
   ) {
-    return path.dirname(process.argv[1]);
+    const cliPath = process.argv[1];
+    if (cliPath.endsWith("mcp/cli.js") || cliPath.includes("out/mcp/cli.js")) {
+      return path.dirname(cliPath);
+    }
   }
 
   // Fall back to import.meta.url for dev mode, test mode, and other scenarios
