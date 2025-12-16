@@ -4,7 +4,7 @@
     "moduleResolution": "node",
     "outDir": "./out/server",
     "resolveJsonModule": true,
-    "target": "ES2022"
+    "target": "esnext"
   },
   "exclude": ["node_modules", "out", "coverage"],
   "extends": "../../tsconfig.base.json"

@@ -4,6 +4,7 @@
 module.exports = {
   color: true, // needed to keep colors inside vscode terminal
   recursive: true,
+  spec: "test/**/*.ts",
   extension: ["ts"],
   require: ["ts-node/register"],
   package: "../../package.json",

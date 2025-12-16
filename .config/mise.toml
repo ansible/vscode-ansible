@@ -35,7 +35,7 @@ mise_version = "2025.6.2"
 [tools]
 gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn
-node = "22.20.0"
+node = "25.2.1"
 python = "3.13"
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"

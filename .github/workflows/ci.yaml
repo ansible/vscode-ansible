@@ -324,7 +324,7 @@ jobs:
         run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task mcp
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e
