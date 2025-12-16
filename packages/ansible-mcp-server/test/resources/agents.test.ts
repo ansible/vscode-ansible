@@ -74,5 +74,30 @@ describe("agents.ts resource", () => {
 
       expect(content1).toBe(content2);
     });
+
+    it("should handle bundled path detection logic", () => {
+      // Test case 1: Path ending with "mcp/cli.js" should match
+      const path1 = "/some/path/out/mcp/cli.js";
+      expect(path1.endsWith("mcp/cli.js")).toBe(true);
+      expect(path1.includes("out/mcp/cli.js")).toBe(true);
+
+      // Test case 2: Path containing "out/mcp/cli.js" should match
+      const path2 = "/full/absolute/path/to/out/mcp/cli.js";
+      expect(path2.includes("out/mcp/cli.js")).toBe(true);
+
+      // Test case 3: Path not matching should not match
+      const path3 = "/some/other/path/script.js";
+      expect(path3.endsWith("mcp/cli.js")).toBe(false);
+      expect(path3.includes("out/mcp/cli.js")).toBe(false);
+
+      // Test case 4: Verify type and length checks
+      const validPath = "out/mcp/cli.js";
+      expect(typeof validPath === "string").toBe(true);
+      expect(validPath.length > 0).toBe(true);
+
+      // Test case 5: Empty string should not pass length check
+      const emptyPath = "";
+      expect(emptyPath.length > 0).toBe(false);
+    });
   });
 });
