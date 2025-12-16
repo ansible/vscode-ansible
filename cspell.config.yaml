@@ -15,18 +15,20 @@ dictionaries:
 enabled: true
 useGitignore: true
 ignorePaths:
+  - "**/*-artifact-*.json"
+  - "*.svg"
+  - ./vscode-ansible.Containerfile
+  - .tekton/
   - .yarn/
+  - dist/
   - media
+  - out/
   - package.json
-  - tsconfig*.json
   - syntaxes
   - syntaxes/external/*.*
   - test/testFixtures/lightspeed/*.yml
-  - .tekton/
-  - ./vscode-ansible.Containerfile
+  - tsconfig*.json
   - uv.lock
-  - "*.svg"
-  - "**/*-artifact-*.json"
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

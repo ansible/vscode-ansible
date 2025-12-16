@@ -66,9 +66,9 @@ tasks:
       - yarn.lock.json
       - exclude: "**/.ansible/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
-      - exclude; "test/testFixtures/.vscode/settings.json"
+      - exclude: "test/testFixtures/.vscode/settings.json"
     generates:
-      - out/client/**/*
+      - dist/**/*
       - out/server/**/*
   code:
     env:
