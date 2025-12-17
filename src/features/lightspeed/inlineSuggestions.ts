@@ -171,7 +171,12 @@ function getCompletionState(
     return CompletionState.LightspeedIsDisabled;
   }
 
-  if (!lightSpeedSetting.URL.trim()) {
+  // Only check API endpoint for WCA provider
+  // LLM providers (google) don't use apiEndpoint setting
+  if (
+    lightSpeedSetting.provider === "wca" &&
+    !lightSpeedSetting.apiEndpoint.trim()
+  ) {
     return CompletionState.LightspeedURLMisconfigured;
   }
 
@@ -685,7 +690,7 @@ async function requestInlineSuggest(
   };
 
   const userProvidedModel =
-    lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+    lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
   if (userProvidedModel && userProvidedModel !== "") {
     completionData.model = userProvidedModel;
   }
@@ -701,7 +706,7 @@ async function requestInlineSuggest(
     )}\n`,
   );
   const outputData: CompletionResponseParams =
-    await lightSpeedManager.apiInstance.completionRequest(completionData);
+    await lightSpeedManager.providerManager.completionRequest(completionData);
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`,
   );

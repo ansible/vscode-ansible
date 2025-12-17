@@ -30,6 +30,7 @@ export interface GoogleConfig {
   apiKey: string;
   modelName: string;
   timeout?: number;
+  baseUrl?: string;
 }
 
 export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
@@ -49,7 +50,19 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       `[Google Provider] Initializing with model: ${this.modelName}`,
     );
 
-    this.client = new GoogleGenAI({ apiKey: config.apiKey });
+    if (config.baseUrl) {
+      this.logger.info(
+        `[Google Provider] Using custom base URL: ${config.baseUrl}`,
+      );
+      this.client = new GoogleGenAI({
+        apiKey: config.apiKey,
+        httpOptions: {
+          baseUrl: config.baseUrl,
+        },
+      });
+    } else {
+      this.client = new GoogleGenAI({ apiKey: config.apiKey });
+    }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleGeminiError(error: any, operation: string): Error {

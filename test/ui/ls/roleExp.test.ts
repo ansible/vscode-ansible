@@ -9,7 +9,7 @@ import {
   workbenchExecuteCommand,
   dismissNotifications,
   waitForCondition,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 
 config.truncateThreshold = 0;
 
