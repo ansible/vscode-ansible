@@ -14,7 +14,7 @@ import {
 import {
   getModalDialogAndMessage,
   sleep,
-  updateSettings,
+  ensureSettings,
   getAnsibleViewControl,
 } from "../uiTestHelper";
 import { expect } from "chai";
@@ -27,7 +27,6 @@ before(function () {
 
 describe(__filename, function () {
   describe("Login to Lightspeed", function () {
-    let workbench: Workbench;
     let explorerView: WebviewView;
     let modalDialog: ModalDialog;
     let dialogMessage: string;
@@ -38,14 +37,10 @@ describe(__filename, function () {
 
     before(async function () {
       // Enable Lightspeed and open Ansible Light view on sidebar
-      workbench = new Workbench();
-      const settingsEditor = await workbench.openSettings();
-      await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
-      await updateSettings(
-        settingsEditor,
-        "ansible.lightspeed.apiEndpoint",
-        process.env.TEST_LIGHTSPEED_URL,
-      );
+      ensureSettings({
+        "ansible.lightspeed.enabled": true,
+        "ansible.lightspeed.apiEndpoint": process.env.TEST_LIGHTSPEED_URL,
+      });
 
       try {
         await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {

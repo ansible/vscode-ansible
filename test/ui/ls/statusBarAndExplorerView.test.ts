@@ -4,8 +4,7 @@ import { expect, config } from "chai";
 import { By, StatusBar, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
   getFixturePath,
-  updateSettings,
-  openSettings,
+  ensureSettings,
   waitForCondition,
 } from "../uiTestHelper";
 
@@ -51,12 +50,9 @@ describe("presence of lightspeed element in the status bar and the explorer view
   it.skip("Ansible Lightspeed status bar item present when lightspeed suggestions are not enabled (with warning color)", async function () {
     const statusBar = new StatusBar();
     const editorView = new EditorView();
-    const settingsEditor = await openSettings();
-    await updateSettings(
-      settingsEditor,
-      "ansible.lightspeed.suggestions.enabled",
-      false,
-    );
+    ensureSettings({
+      "ansible.lightspeed.suggestions.enabled": false,
+    });
     await editorView.openEditor(file);
 
     const lightspeedStatusBarItem = await waitForCondition({

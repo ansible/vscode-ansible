@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "chai";
 import path from "path";
+import * as fs from "fs";
 import { PROJECT_ROOT } from "../setup";
 import {
   By,
@@ -63,6 +64,112 @@ export async function updateSettings(
   });
 
   await settingInUI.setValue(value);
+}
+
+/**
+ * Deep equality check for objects (handles nested objects and arrays)
+ */
+function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) {
+    return true;
+  }
+
+  if (
+    obj1 == null ||
+    obj2 == null ||
+    typeof obj1 !== "object" ||
+    typeof obj2 !== "object"
+  ) {
+    return false;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  for (const key of keys1) {
+    if (!keys2.includes(key)) {
+      return false;
+    }
+
+    if (!deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Recursively sorts object keys alphabetically
+ */
+function sortObjectKeys(obj: any): any {
+  if (obj == null || typeof obj !== "object") {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => sortObjectKeys(item));
+  }
+
+  const sorted: Record<string, any> = {};
+  const keys = Object.keys(obj).sort();
+  for (const key of keys) {
+    sorted[key] = sortObjectKeys(obj[key]);
+  }
+  return sorted;
+}
+
+/**
+ * Updates the settings.json file directly by merging provided settings
+ * with existing settings and writing to $TEST_RESOURCES/settings/User/settings.json
+ * This function is idempotent - it only writes to the file if the content has changed.
+ * @param settings - Object containing settings to override (e.g., \{ "ansible.lightspeed.enabled": true \})
+ */
+export function ensureSettings(settings: Record<string, any>): void {
+  if (!process.env.TEST_RESOURCES) {
+    throw new Error(
+      "TEST_RESOURCES is not set, cannot locate settings.json location.",
+    );
+  }
+  const settingsPath = path.join(
+    process.env.TEST_RESOURCES,
+    "settings",
+    "User",
+    "settings.json",
+  );
+
+  // Ensure directory exists
+  const settingsDir = path.dirname(settingsPath);
+  if (!fs.existsSync(settingsDir)) {
+    fs.mkdirSync(settingsDir, { recursive: true });
+  }
+
+  // Read existing settings or create new object
+  let existingSettings: Record<string, any> = {};
+  if (fs.existsSync(settingsPath)) {
+    const settingsContent = fs.readFileSync(settingsPath, "utf-8");
+    existingSettings = JSON.parse(settingsContent);
+  }
+
+  // Merge provided settings with existing settings
+  const mergedSettings = { ...existingSettings, ...settings };
+
+  // Sort keys alphabetically
+  const sortedSettings = sortObjectKeys(mergedSettings);
+  const sortedExistingSettings = sortObjectKeys(existingSettings);
+
+  // Only write if content has changed (idempotent)
+  if (!deepEqual(sortedExistingSettings, sortedSettings)) {
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify(sortedSettings, null, 2),
+      "utf-8",
+    );
+  }
 }
 
 // In the redirection occurs in the login flow, getting message from a modal dialog

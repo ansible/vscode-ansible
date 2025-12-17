@@ -2,15 +2,17 @@
 import { spawn } from "child_process";
 import { logger, options } from "./server";
 
+const TEST_RESOURCES = process.env.TEST_RESOURCES || "out/test-resources";
+
 export function openUrl(url: string) {
   let command: string;
   if (process.platform === "darwin") {
     command = options.uiTest
-      ? "./out/test-resources/Visual Studio Code.app/Contents/MacOS/Electron"
+      ? `./${TEST_RESOURCES}/Visual Studio Code.app/Contents/MacOS/Electron`
       : "open";
   } else {
     command = options.uiTest
-      ? "./out/test-resources/VSCode-linux-x64/bin/code"
+      ? `./${TEST_RESOURCES}/VSCode-linux-x64/bin/code`
       : "xdg-open";
   }
 
@@ -19,7 +21,7 @@ export function openUrl(url: string) {
   const child = spawn(
     command,
     options.uiTest
-      ? ["--open-url", url, "--user-data-dir", "./out/test-resources/settings"]
+      ? ["--open-url", url, "--user-data-dir", `./${TEST_RESOURCES}/settings`]
       : [url],
   );
   let errorText = "";

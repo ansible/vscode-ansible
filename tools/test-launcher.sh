@@ -89,7 +89,7 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
-    rm -rf out/test-resources/settings/ >/dev/null
+    rm -rf "${TEST_RESOURCES}/settings/" >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"
 }
 
@@ -102,7 +102,7 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
     {
         log notice "Testing ${test_file}"
         log notice "Cleaning existing User settings..."
-        rm -rfv ./out/test-resources/settings/User/ > /dev/null
+        rm -rfv "./${TEST_RESOURCES}/settings/User/" > /dev/null
 
         if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
             stop_server
@@ -113,7 +113,7 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
         # and likely will fail to use our python tools from our own testing virtualenv.
         timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests \
             --mocha_config test/ui/.mocharc.js \
-            -s out/test-resources \
+            -s "${TEST_RESOURCES}" \
             -e out/ext \
             --code_settings out/settings.json \
             -c "${CODE_VERSION}" \

@@ -1,23 +1,16 @@
 import { expect, config } from "chai";
 import fs from "fs";
-import {
-  BottomBarPanel,
-  VSBrowser,
-  SettingsEditor,
-  EditorView,
-} from "vscode-extension-tester";
+import { BottomBarPanel, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
   getFixturePath,
-  updateSettings,
+  ensureSettings,
   waitForCondition,
-  openSettings,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 describe("terminal", function () {
   describe("execution of playbook using ansible-playbook command", function () {
-    let settingsEditor: SettingsEditor;
     const folder = "terminal";
     const file = "playbook.yml";
     const playbookFile = getFixturePath(folder, file);
@@ -25,12 +18,9 @@ describe("terminal", function () {
     it.skip("Execute ansible-playbook command with arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
-      settingsEditor = await openSettings();
-      await updateSettings(
-        settingsEditor,
-        "ansible.playbook.arguments",
-        "--syntax-check",
-      );
+      ensureSettings({
+        "ansible.playbook.arguments": "--syntax-check",
+      });
 
       await new EditorView().closeAllEditors();
 
@@ -58,8 +48,9 @@ describe("terminal", function () {
     it.skip("Execute ansible-playbook command without arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
-      settingsEditor = await openSettings();
-      await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
+      ensureSettings({
+        "ansible.playbook.arguments": " ",
+      });
 
       await new EditorView().closeAllEditors();
 
@@ -87,7 +78,6 @@ describe("terminal", function () {
   });
 
   describe("execution of playbook using ansible-navigator command", function () {
-    let settingsEditor: SettingsEditor;
     const folder = "terminal";
     const file = "playbook.yml";
     const playbookFile = getFixturePath(folder, file);
@@ -107,23 +97,12 @@ describe("terminal", function () {
         await VSBrowser.instance.driver.switchTo().defaultContent();
         await new EditorView().closeAllEditors();
 
-        // Open settings once and update all settings sequentially
-        settingsEditor = await openSettings();
-        await updateSettings(
-          settingsEditor,
-          "ansible.executionEnvironment.enabled",
-          true,
-        );
-        await updateSettings(
-          settingsEditor,
-          "ansible.executionEnvironment.containerEngine",
-          "podman",
-        );
-        await updateSettings(
-          settingsEditor,
-          "ansible.executionEnvironment.pull.policy",
-          "missing",
-        );
+        // Update all settings at once
+        ensureSettings({
+          "ansible.executionEnvironment.enabled": true,
+          "ansible.executionEnvironment.containerEngine": "podman",
+          "ansible.executionEnvironment.pull.policy": "missing",
+        });
 
         // Close settings before running command
         await new EditorView().closeAllEditors();
@@ -167,13 +146,10 @@ describe("terminal", function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
       await new EditorView().closeAllEditors();
 
-      // Open settings and update
-      settingsEditor = await openSettings();
-      await updateSettings(
-        settingsEditor,
-        "ansible.executionEnvironment.enabled",
-        false,
-      );
+      // Update settings
+      ensureSettings({
+        "ansible.executionEnvironment.enabled": false,
+      });
 
       // Close settings before running command
       await new EditorView().closeAllEditors();
@@ -216,18 +192,11 @@ describe("terminal", function () {
       // Ensure clean state
       await new EditorView().closeAllEditors();
 
-      // Update both settings sequentially
-      settingsEditor = await openSettings();
-      await updateSettings(
-        settingsEditor,
-        "ansible.executionEnvironment.containerEngine",
-        "docker",
-      );
-      await updateSettings(
-        settingsEditor,
-        "ansible.executionEnvironment.pull.policy",
-        "missing",
-      );
+      // Update both settings at once
+      ensureSettings({
+        "ansible.executionEnvironment.containerEngine": "docker",
+        "ansible.executionEnvironment.pull.policy": "missing",
+      });
       fs.readdirSync(fixtureFolder).forEach((file) => {
         if (file.includes("playbook-artifact")) {
           fs.unlinkSync(fixtureFolder + file);
