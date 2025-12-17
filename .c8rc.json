@@ -17,7 +17,7 @@
     "test{,s}/**"
   ],
   "exclude-after-remap": true,
-  "reporter": ["cobertura", "lcovonly", "text-summary"],
+  "reporter": ["cobertura", "lcovonly"],
   "reports-dir": "./out/coverage/ui",
   "temp-directory": "./out/tmp/.c8-tmp-ui"
 }

@@ -15,7 +15,7 @@ import {
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
-describe(__filename, function () {
+describe("terminal", function () {
   describe("execution of playbook using ansible-playbook command", function () {
     let settingsEditor: SettingsEditor;
     const folder = "terminal";
@@ -98,7 +98,7 @@ describe(__filename, function () {
     });
 
     // Skip this test on macOS due to CI container settings
-    it("Execute playbook with ansible-navigator EE mode", async function () {
+    it("Execute playbook with ansible-navigator @ee", async function () {
       // CI timeout: settings (3×8.5s=25.5s) + container startup (30s) = ~56s + buffer
       this.timeout(60000);
 
@@ -159,7 +159,7 @@ describe(__filename, function () {
       }
     });
 
-    it("Execute playbook with ansible-navigator without EE mode", async function () {
+    it("Execute playbook with ansible-navigator @noee", async function () {
       // CI timeout: settings (8.5s) + execution (20s) = ~29s + buffer
       this.timeout(35000);
 

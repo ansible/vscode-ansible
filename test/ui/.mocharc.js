@@ -2,6 +2,7 @@
 "use strict";
 
 module.exports = {
+  bail: true,
   color: true, // needed to keep colors inside vscode terminal
   recursive: true,
   extension: ["ts"],
