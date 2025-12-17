@@ -114,7 +114,6 @@ export const BASE_LIGHTSPEED_SETTINGS: Omit<
   enabled: true,
   modelName: undefined,
   timeout: DEFAULT_TIMEOUTS.DEFAULT,
-  customHeaders: {},
   suggestions: { enabled: true, waitWindow: 0 },
 };
 
