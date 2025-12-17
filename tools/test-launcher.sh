@@ -109,12 +109,15 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
             start_server
         fi
         refresh_settings "${test_file}" "${TEST_ID}"
+        # Keep --open_resource here as it is essential as otherwise it will default to use home directory
+        # and likely will fail to use our python tools from our own testing virtualenv.
         timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests \
             --mocha_config test/ui/.mocharc.js \
             -s out/test-resources \
             -e out/ext \
             --code_settings out/settings.json \
             -c "${CODE_VERSION}" \
+            --open_resource . \
             "${EXTEST_ARGS:-}" \
             "${test_file}" || {
                 if [[ -f $TEST_JUNIT_FILE ]] && ! grep -o 'failures="[1-9][0-9]*"' "$TEST_JUNIT_FILE"; then
