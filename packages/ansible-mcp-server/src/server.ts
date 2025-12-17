@@ -545,9 +545,10 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       title: "ADE Setup Development Environment",
       description:
         "Set up a complete Ansible development environment. " +
-        "IMPORTANT: To install Ansible collections (like amazon.aws, ansible.posix, community.general), use the 'collections' parameter as an array. " +
-        "Creates virtual environments, installs Ansible tools, and manages dependencies. " +
-        "Example: {pythonVersion: '3.11', collections: ['amazon.aws', 'ansible.posix']}",
+        "CRITICAL: For Ansible collections (amazon.aws, ansible.posix, etc.), you MUST use the 'collections' parameter. " +
+        "DO NOT put collection names in 'requirementsFile' - that is ONLY for pip packages. " +
+        "Correct: {collections: ['amazon.aws', 'ansible.posix']}. " +
+        "Wrong: {requirementsFile: 'amazon.aws'}.",
       annotations: {
         keywords: [
           "setup ansible environment",
@@ -615,7 +616,8 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           .string()
           .optional()
           .describe(
-            "Path to a pip requirements file (e.g., 'requirements.txt'). Only for Python packages, NOT for collections.",
+            "Path to pip requirements.txt file ONLY. NOT for Ansible collections! " +
+              "For collections like amazon.aws, use the 'collections' parameter instead.",
           ),
       },
     },

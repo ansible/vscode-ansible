@@ -200,7 +200,8 @@ describe("MCP Handlers", () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("Setup failed");
+      // Output includes info note about collections when none specified
+      expect(result.content[0].text).toContain("Setup failed");
       expect(result.isError).toBe(true);
     });
 

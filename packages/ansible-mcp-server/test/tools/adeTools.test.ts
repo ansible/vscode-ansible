@@ -732,9 +732,7 @@ describe("ADE Tools", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.output).toContain(
-        "Virtual environment created successfully",
-      );
+      expect(result.output).toContain("Virtual environment created at");
     });
 
     it("should install ADT and setup environment when ADT is not available", async () => {
@@ -781,9 +779,7 @@ describe("ADE Tools", () => {
 
       const result = await setupDevelopmentEnvironment("/test/workspace");
       expect(result.success).toBe(true);
-      expect(result.output).toContain(
-        "Virtual environment created successfully",
-      );
+      expect(result.output).toContain("Virtual environment created at");
     });
 
     it("should handle venv creation failure", async () => {
@@ -1387,6 +1383,7 @@ describe("ADE Tools", () => {
 
       const result = await createVirtualEnvironment("/test/workspace");
       expect(result.success).toBe(true);
+      expect(result.venvPath).toContain("venv");
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
         "python3",
         ["-m", "venv", expect.stringContaining("venv")],
@@ -1413,6 +1410,7 @@ describe("ADE Tools", () => {
         "custom-env",
       );
       expect(result.success).toBe(true);
+      expect(result.venvPath).toContain("custom-env");
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
         "python3",
         ["-m", "venv", expect.stringContaining("custom-env")],

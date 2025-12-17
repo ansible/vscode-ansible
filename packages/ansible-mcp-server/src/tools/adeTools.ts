@@ -18,6 +18,7 @@ export interface ADECommandResult {
   output: string;
   error?: string;
   exitCode?: number;
+  pythonPath?: string;
 }
 
 /**
@@ -218,11 +219,50 @@ export async function installPythonVersion(
       pythonVersion,
     ]);
     if (uvInstall.success) {
-      results.push(`✅ Python ${pythonVersion} installed via uv`);
-      return {
-        success: true,
-        output: results.join("\n"),
-      };
+      // Verify the Python is actually available after uv install
+      const verifyResult = await executeCommand(`python${pythonVersion}`, [
+        "--version",
+      ]);
+      if (verifyResult.success) {
+        results.push(
+          `✅ Python ${pythonVersion} installed via uv and available in PATH`,
+        );
+        return {
+          success: true,
+          output: results.join("\n"),
+        };
+      } else {
+        // uv installed but not in PATH - try to find it
+        const homeDir = process.env.HOME || "";
+        const uvPythonBase = `${homeDir}/.local/share/uv/python`;
+
+        // Try to find the installed Python
+        const findResult = await executeCommand("find", [
+          uvPythonBase,
+          "-name",
+          `python${pythonVersion}`,
+          "-type",
+          "f",
+        ]);
+
+        if (findResult.success && findResult.output.trim()) {
+          const pythonPath = findResult.output.trim().split("\n")[0];
+          results.push(`✅ Python ${pythonVersion} installed via uv`);
+          results.push(`   Location: ${pythonPath}`);
+          results.push(`   Note: Add to PATH or use full path: ${pythonPath}`);
+          // Return the path so caller can use it
+          return {
+            success: true,
+            output: results.join("\n"),
+            pythonPath: pythonPath,
+          };
+        } else {
+          results.push(
+            `⚠️ uv installed Python ${pythonVersion} but couldn't locate it`,
+          );
+          results.push("   You may need to restart your terminal");
+        }
+      }
     } else {
       results.push(`⚠️ uv install failed: ${uvInstall.error}`);
     }
@@ -286,19 +326,58 @@ export async function installPythonVersion(
  * @returns A promise that resolves with an ADECommandResult containing the creation status and output.
  * @throws No direct throws, but returns error information in the result if the virtual environment creation fails.
  */
+export interface VenvCreationResult extends ADECommandResult {
+  venvPath?: string;
+}
+
 export async function createVirtualEnvironment(
   workspaceRoot: string,
   envName?: string,
   pythonVersion?: string,
-): Promise<ADECommandResult> {
-  const venvPath = envName
-    ? path.join(workspaceRoot, envName)
-    : path.join(workspaceRoot, "venv");
-  const pythonCmd = pythonVersion ? `python${pythonVersion}` : "python3";
+  pythonCommand?: string,
+): Promise<VenvCreationResult> {
+  // Use provided pythonCommand, or construct from version, or default to python3
+  const pythonCmd =
+    pythonCommand || (pythonVersion ? `python${pythonVersion}` : "python3");
 
-  const args = ["-m", "venv", venvPath];
+  // Determine venv name - use provided name or generate based on Python version
+  const venvName = envName || "venv";
+  const venvPath = path.join(workspaceRoot, venvName);
 
-  return await executeCommand(pythonCmd, args, workspaceRoot);
+  // Try creating the venv
+  let result = await executeCommand(
+    pythonCmd,
+    ["-m", "venv", venvPath],
+    workspaceRoot,
+  );
+
+  if (result.success) {
+    return { ...result, venvPath };
+  }
+
+  // If failed and no custom name was provided, try with versioned name
+  if (!envName) {
+    const versionedName = pythonVersion ? `venv-${pythonVersion}` : "venv-new";
+    const versionedPath = path.join(workspaceRoot, versionedName);
+
+    result = await executeCommand(
+      pythonCmd,
+      ["-m", "venv", versionedPath],
+      workspaceRoot,
+    );
+
+    if (result.success) {
+      return {
+        ...result,
+        venvPath: versionedPath,
+        output:
+          `Note: Existing venv found, created new environment at '${versionedName}' instead.\n` +
+          result.output,
+      };
+    }
+  }
+
+  return { ...result, venvPath: undefined };
 }
 
 /**
@@ -578,27 +657,8 @@ export async function setupDevelopmentEnvironment(
     );
   }
 
-  // Check ansible-lint status
-  results.push("Checking ansible-lint status...");
-  const lintCheckResult = await checkAnsibleLint();
-  if (!lintCheckResult.success) {
-    /* v8 ignore next */
-    success = false;
-    results.push(lintCheckResult.output);
-    results.push("");
-    results.push(
-      "⚠️ ansible-lint issues detected. See suggestions above to resolve.",
-    );
-  } else {
-    /* v8 ignore next */
-    results.push(lintCheckResult.output);
-  }
-
-  // Create virtual environment
-  const venvPath = options.envName
-    ? path.join(workspaceRoot, options.envName)
-    : path.join(workspaceRoot, "venv");
-
+  // Check Python version availability
+  let pythonCommand: string | undefined;
   if (options.pythonVersion) {
     results.push(`Checking if Python ${options.pythonVersion} is available...`);
     const pythonAvailable = await checkPythonVersionAvailable(
@@ -621,22 +681,31 @@ export async function setupDevelopmentEnvironment(
             `Python ${options.pythonVersion} not available`,
         };
       }
+
+      // If uv installed Python to a custom path, use it
+      if (installResult.pythonPath) {
+        pythonCommand = installResult.pythonPath;
+        results.push(`Using Python at: ${pythonCommand}`);
+      }
     } else {
       results.push(`✅ Python ${options.pythonVersion} is available`);
     }
   }
 
+  // Create virtual environment
+  const expectedVenvName = options.envName || "venv";
   results.push(
-    `Creating virtual environment at ${venvPath}${options.pythonVersion ? ` with Python ${options.pythonVersion}` : ""}...`,
+    `Creating virtual environment '${expectedVenvName}'${options.pythonVersion ? ` with Python ${options.pythonVersion}` : ""}...`,
   );
 
   const venvResult = await createVirtualEnvironment(
     workspaceRoot,
     options.envName,
     options.pythonVersion,
+    pythonCommand,
   );
 
-  if (!venvResult.success) {
+  if (!venvResult.success || !venvResult.venvPath) {
     results.push(`❌ Failed to create virtual environment`);
     if (venvResult.error) {
       results.push(`   Error: ${venvResult.error}`);
@@ -656,7 +725,13 @@ export async function setupDevelopmentEnvironment(
       error: venvResult.error || "Failed to create virtual environment",
     };
   }
-  results.push("✅ Virtual environment created successfully");
+
+  // Use the actual venv path (might be different if fallback was used)
+  const venvPath = venvResult.venvPath;
+  if (venvResult.output) {
+    results.push(venvResult.output);
+  }
+  results.push(`✅ Virtual environment created at ${venvPath}`);
 
   // Install ansible-lint and ansible-core in the virtual environment
   results.push("Installing Ansible tools in virtual environment...");
