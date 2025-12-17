@@ -588,27 +588,35 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         envName: z
           .string()
           .optional()
-          .describe("Name for the virtual environment directory (default: 'venv')"),
+          .describe(
+            "Name for the virtual environment directory (default: 'venv')",
+          ),
         pythonVersion: z
           .string()
           .optional()
-          .describe("Python version to use (e.g., '3.11', '3.12'). Will auto-install if not available."),
+          .describe(
+            "Python version to use (e.g., '3.11', '3.12'). Will auto-install if not available.",
+          ),
         collections: z
           .array(z.string())
           .optional()
           .describe(
             "Ansible collections to install via ansible-galaxy. " +
-            "Examples: ['amazon.aws', 'ansible.posix', 'community.general']. " +
-            "Use this for any collection names like namespace.collection format.",
+              "Examples: ['amazon.aws', 'ansible.posix', 'community.general']. " +
+              "Use this for any collection names like namespace.collection format.",
           ),
         installRequirements: z
           .boolean()
           .optional()
-          .describe("Set to true to install Python packages from requirements.txt"),
+          .describe(
+            "Set to true to install Python packages from requirements.txt",
+          ),
         requirementsFile: z
           .string()
           .optional()
-          .describe("Path to a pip requirements file (e.g., 'requirements.txt'). Only for Python packages, NOT for collections."),
+          .describe(
+            "Path to a pip requirements file (e.g., 'requirements.txt'). Only for Python packages, NOT for collections.",
+          ),
       },
     },
     createADESetupEnvironmentHandler(workspaceRoot),

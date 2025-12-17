@@ -733,10 +733,7 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              if (
-                command === "bash" &&
-                args?.[1]?.includes("ansible-galaxy")
-              ) {
+              if (command === "bash" && args?.[1]?.includes("ansible-galaxy")) {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);
