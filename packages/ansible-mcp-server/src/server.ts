@@ -544,9 +544,10 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "ADE Setup Development Environment",
       description:
-        "Set up a complete Ansible development environment using ADE. Creates virtual environments, installs collections, and manages dependencies. " +
-        "Use this tool when you need to setup, install, configure, initialize, or create a development environment. " +
-        "Automatically handles missing Ansible tools, Python environments, virtual environments, collections, and requirements.",
+        "Set up a complete Ansible development environment. " +
+        "IMPORTANT: To install Ansible collections (like amazon.aws, ansible.posix, community.general), use the 'collections' parameter as an array. " +
+        "Creates virtual environments, installs Ansible tools, and manages dependencies. " +
+        "Example: {pythonVersion: '3.11', collections: ['amazon.aws', 'ansible.posix']}",
       annotations: {
         keywords: [
           "setup ansible environment",
@@ -587,25 +588,27 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         envName: z
           .string()
           .optional()
-          .describe("Name for the virtual environment (optional)"),
+          .describe("Name for the virtual environment directory (default: 'venv')"),
         pythonVersion: z
           .string()
           .optional()
-          .describe("Python version to use (e.g., '3.11', '3.12') (optional)"),
+          .describe("Python version to use (e.g., '3.11', '3.12'). Will auto-install if not available."),
         collections: z
           .array(z.string())
           .optional()
-          .describe("List of Ansible collections to install (optional)"),
+          .describe(
+            "Ansible collections to install via ansible-galaxy. " +
+            "Examples: ['amazon.aws', 'ansible.posix', 'community.general']. " +
+            "Use this for any collection names like namespace.collection format.",
+          ),
         installRequirements: z
           .boolean()
           .optional()
-          .describe(
-            "Whether to install requirements from requirements files (optional)",
-          ),
+          .describe("Set to true to install Python packages from requirements.txt"),
         requirementsFile: z
           .string()
           .optional()
-          .describe("Path to specific requirements file (optional)"),
+          .describe("Path to a pip requirements file (e.g., 'requirements.txt'). Only for Python packages, NOT for collections."),
       },
     },
     createADESetupEnvironmentHandler(workspaceRoot),

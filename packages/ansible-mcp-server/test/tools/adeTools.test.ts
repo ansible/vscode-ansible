@@ -733,6 +733,7 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
+              if (
                 command === "bash" &&
                 args?.[1]?.includes("ansible-galaxy")
               ) {

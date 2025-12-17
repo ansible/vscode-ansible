@@ -203,7 +203,6 @@ export async function checkPythonVersionAvailable(
   return result.success;
 }
 
- */
 export async function installPythonVersion(
   pythonVersion: string,
 ): Promise<ADECommandResult> {
@@ -543,6 +542,16 @@ export async function setupDevelopmentEnvironment(
 ): Promise<ADECommandResult> {
   const results: string[] = [];
   let success = true;
+
+  results.push("Starting Ansible development environment setup...");
+  results.push(`   Workspace: ${workspaceRoot}`);
+  if (options.pythonVersion) {
+    results.push(`   Python version: ${options.pythonVersion}`);
+  }
+  if (options.collections && options.collections.length > 0) {
+    results.push(`   Collections: ${options.collections.join(", ")}`);
+  }
+  results.push("");
 
   // Check if ADT is installed, if not, try to install it
   if (!(await checkADTInstalled())) {
