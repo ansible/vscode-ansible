@@ -196,10 +196,32 @@ tasks:
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
     interactive: true
+  ui-prepare:
+    deps:
+      - package
+    generates:
+      - out/test-resources/driverVersion
+      - out/test-resources/manifest.json
+      - out/test-resources/*.zip
+      - out/test-resources/*.tar.gz
+      - out/ext/**/*
+    sources:
+      - tools/test-launcher.sh
+      - "*.vsix"
+    env:
+      CODE_VERSION: max
+    cmds:
+      - extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+      - extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+      - extest install-vsix -f "$( find . -maxdepth 1 -name '*.vsix' )" -e out/ext -s out/test-resources
+      - extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
+      - rimraf out/log/.failed out/log/ui* out/junit/ui/ out/coverage/ui/ out/test-resources/test.log out/test-resources/screenshots/ out/test-resources/settings/logs/*
   ui:
     desc: Run UI tests with extest {{.XVFB}}
     deps:
-      - package
+      - ui-prepare
+    env:
+      TEST_PREFIX: "ui"
     sources:
       - src/**/*
       - test/**/*
@@ -207,12 +229,24 @@ tasks:
     generates:
       - out/junit/ui/.passed
     cmds:
-      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && EXTEST_ARGS="--coverage" MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+    interactive: true
+  ui-smoke:
+    desc: Run UI test with extest but no coverage in order to detect packaging issues
+    env:
+      TEST_PREFIX: "ui-smoke"
+    deps:
+      - ui-prepare
+    cmds:
+      # essential cleanup to avoid accidental loading of files from disk instead of from within the package
+      - rimraf out/client/src out/vitebuild
+      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   ui-oldest:
     desc: Run UI tests (CODE_VERSION='min')
     env:
       CODE_VERSION: min
+      TEST_PREFIX: "ui-oldest"
     deps:
       - ui
   unit:
