@@ -57,7 +57,6 @@ tasks:
       - yarn run build
       - yarn run vite-build
     sources:
-      - Taskfile.yml
       - package.json
       - src/**/*
       - test/**/*
@@ -66,7 +65,8 @@ tasks:
       - yarn.lock.json
       - exclude: "**/.ansible/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
-      - exclude; "test/testFixtures/.vscode/settings.json"
+      - exclude: "test/testFixtures/.vscode/settings.json"
+      - exclude: "**/None/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -202,9 +202,7 @@ tasks:
     generates:
       - out/test-resources/driverVersion
       - out/test-resources/manifest.json
-      - out/test-resources/*.zip
-      - out/test-resources/*.tar.gz
-      - out/ext/**/*
+      # do not put out/ext here as it is modified on each run
     sources:
       - tools/test-launcher.sh
       - "*.vsix"
@@ -221,6 +219,8 @@ tasks:
     deps:
       - ui-prepare
     env:
+      EXTEST_ARGS: "--coverage"
+      MOCK_LIGHTSPEED_API: "1"
       TEST_PREFIX: "ui"
     sources:
       - src/**/*
@@ -229,18 +229,19 @@ tasks:
     generates:
       - out/junit/ui/.passed
     cmds:
-      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && EXTEST_ARGS="--coverage" MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
     env:
       TEST_PREFIX: "ui-smoke"
+      MOCK_LIGHTSPEED_API: "1"
     deps:
       - ui-prepare
     cmds:
       # essential cleanup to avoid accidental loading of files from disk instead of from within the package
       - rimraf out/client/src out/vitebuild
-      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
     interactive: true
   ui-oldest:
     desc: Run UI tests (CODE_VERSION='min')
