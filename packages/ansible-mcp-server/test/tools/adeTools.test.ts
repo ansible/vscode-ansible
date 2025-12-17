@@ -28,6 +28,8 @@ import {
   installRequirements,
   checkConflictingPackages,
   checkAnsibleLint,
+  checkPythonVersionAvailable,
+  installPythonVersion,
   type ADEEnvironmentInfo,
 } from "../../src/tools/adeTools.js";
 import * as fs from "node:fs/promises";
@@ -175,6 +177,245 @@ describe("ADE Tools", () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe("Cannot spawn");
       expect(result.exitCode).toBe(1);
+    });
+  });
+
+  describe("checkPythonVersionAvailable", () => {
+    it("should return true when Python version is available", async () => {
+      const mockChild = {
+        stdout: {
+          on: vi.fn((event, callback) => {
+            if (event === "data") {
+              setTimeout(() => callback("Python 3.11.0"), 5);
+            }
+          }),
+        },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable("3.11");
+      expect(result).toBe(true);
+      expect(vi.mocked(spawn)).toHaveBeenCalledWith(
+        "python3.11",
+        ["--version"],
+        expect.anything(),
+      );
+    });
+
+    it("should return false when Python version is not available", async () => {
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(1), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable("3.15");
+      expect(result).toBe(false);
+    });
+
+    it("should use python3 when no version specified", async () => {
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable();
+      expect(result).toBe(true);
+      expect(vi.mocked(spawn)).toHaveBeenCalledWith(
+        "python3",
+        ["--version"],
+        expect.anything(),
+      );
+    });
+  });
+
+  describe("installPythonVersion", () => {
+    it("should install Python using uv when available", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // uv --version succeeds
+              if (command === "uv" && args?.includes("--version")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // uv python install succeeds
+              else if (command === "uv" && args?.includes("install")) {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await installPythonVersion("3.11");
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("Python 3.11 installed via uv");
+    });
+
+    it("should fall back to pyenv when uv fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // uv --version fails (not installed)
+              if (command === "uv") {
+                setTimeout(() => callback(1), 10);
+              }
+              // pyenv --version succeeds
+              else if (command === "pyenv" && args?.includes("--version")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // pyenv install succeeds
+              else if (command === "pyenv" && args?.includes("install")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // pyenv local succeeds
+              else if (command === "pyenv" && args?.includes("local")) {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await installPythonVersion("3.11");
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("Python 3.11 installed via pyenv");
+    });
+
+    it("should return manual instructions when both uv and pyenv fail", async () => {
+      vi.mocked(spawn).mockImplementation((command) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // All tools fail
+              if (command === "uv" || command === "pyenv") {
+                setTimeout(() => callback(1), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await installPythonVersion("3.11");
+      expect(result.success).toBe(false);
+      expect(result.output).toContain(
+        "Could not automatically install Python 3.11",
+      );
+      expect(result.output).toContain("Please install Python manually");
+      expect(result.output).toContain("Option 1 - Using uv");
+      expect(result.output).toContain("Option 2 - Using pyenv");
+      expect(result.output).toContain("Option 3 - Using Homebrew");
+    });
+
+    it("should handle uv available but install fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // uv --version succeeds
+              if (command === "uv" && args?.includes("--version")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // uv python install fails
+              else if (command === "uv" && args?.includes("install")) {
+                setTimeout(() => callback(1), 10);
+              }
+              // pyenv not available
+              else if (command === "pyenv") {
+                setTimeout(() => callback(1), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await installPythonVersion("3.11");
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("uv install failed");
+      expect(result.output).toContain("Please install Python manually");
+    });
+
+    it("should handle pyenv available but install fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // uv not available
+              if (command === "uv") {
+                setTimeout(() => callback(1), 10);
+              }
+              // pyenv --version succeeds
+              else if (command === "pyenv" && args?.includes("--version")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // pyenv install fails
+              else if (command === "pyenv" && args?.includes("install")) {
+                setTimeout(() => callback(1), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await installPythonVersion("3.11");
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("pyenv install failed");
+      expect(result.output).toContain("Please install Python manually");
     });
   });
 
@@ -797,6 +1038,176 @@ describe("ADE Tools", () => {
       const result = await setupDevelopmentEnvironment("/test/workspace");
       expect(result.success).toBe(false);
       expect(result.error).toContain("Failed to install ADT");
+    });
+
+    it("should check Python version availability before creating venv", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        if (command === "python3.11" && args?.includes("--version")) {
+          mockChild.stdout.on = vi.fn((event, callback) => {
+            if (event === "data") {
+              setTimeout(() => callback("Python 3.11.0"), 5);
+            }
+          });
+        }
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.11",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("Python 3.11 is available");
+    });
+
+    it("should attempt to install Python when version not available", async () => {
+      let uvCalled = false;
+
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // Python version check fails
+              if (command === "python3.11" && args?.includes("--version")) {
+                setTimeout(() => callback(1), 10);
+              }
+              // uv is available
+              else if (command === "uv" && args?.includes("--version")) {
+                setTimeout(() => callback(0), 10);
+              }
+              // uv python install succeeds
+              else if (command === "uv" && args?.includes("install")) {
+                uvCalled = true;
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.11",
+      });
+
+      expect(uvCalled).toBe(true);
+      expect(result.output).toContain("attempting to install");
+    });
+
+    it("should fail with helpful message when Python install fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // Python version check fails
+              if (command === "python3.11" && args?.includes("--version")) {
+                setTimeout(() => callback(1), 10);
+              }
+              // uv and pyenv both fail
+              else if (command === "uv" || command === "pyenv") {
+                setTimeout(() => callback(1), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.11",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("Please install Python manually");
+      expect(result.error).toContain("Python 3.11 not available");
+    });
+
+    it("should provide detailed error when venv creation fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: {
+            on: vi.fn((event, callback) => {
+              if (
+                event === "data" &&
+                command === "python3" &&
+                args?.includes("venv")
+              ) {
+                setTimeout(() => callback("Error: No module named venv"), 5);
+              }
+            }),
+          },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // venv creation fails
+              if (command === "python3" && args?.includes("venv")) {
+                setTimeout(() => callback(1), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace");
+
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("Failed to create virtual environment");
+      expect(result.output).toContain("Possible solutions");
+    });
+
+    it("should include setup parameters in output header", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.12",
+        collections: ["amazon.aws", "ansible.posix"],
+      });
+
+      expect(result.output).toContain("Workspace: /test/workspace");
+      expect(result.output).toContain("Python version: 3.12");
+      expect(result.output).toContain("Collections: amazon.aws, ansible.posix");
     });
   });
 
