@@ -38,7 +38,7 @@ export const logger = winston.createLogger({
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({
-      filename: `out/log/${process.env.TEST_ID ?? ""}-mock-server.log`,
+      filename: `out/log/${process.env.TEST_ID ?? "ui"}-mock-server.log`,
     }),
   ],
 });
