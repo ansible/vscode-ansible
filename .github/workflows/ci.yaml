@@ -374,7 +374,7 @@ jobs:
 
       - name: Upload test results to Codecov (als)
         if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
-        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true
           directory: out/junit/als
@@ -386,7 +386,7 @@ jobs:
 
       - name: Upload test results to Codecov (mcp)
         if: ${{ !cancelled() && hashFiles('out/junit/mcp/*.xml') != '' }}
-        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true
           directory: out/junit/mcp
@@ -398,7 +398,7 @@ jobs:
 
       - name: Upload test results to Codecov (e2e)
         if: ${{ !cancelled() && hashFiles('out/junit/e2e/*.xml') != '' }}
-        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true
           directory: out/junit/e2e
@@ -410,7 +410,7 @@ jobs:
 
       - name: Upload test results to Codecov (unit)
         if: ${{ !cancelled() && hashFiles('out/junit/unit/*.xml') != '' }}
-        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true
           directory: out/junit/unit
@@ -422,7 +422,7 @@ jobs:
 
       - name: Upload test results to Codecov (ui)
         if: ${{ !cancelled() && hashFiles('out/junit/ui/*.xml') != '' }}
-        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
         with:
           fail_ci_if_error: true
           directory: out/junit/ui
