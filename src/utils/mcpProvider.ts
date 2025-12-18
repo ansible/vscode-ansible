@@ -61,6 +61,9 @@ export class AnsibleMcpServerProvider {
         return servers;
       }
 
+      // Determine resource directory path
+      const resourceDir = this.findResourceDir(cliPath);
+
       // Use process.execPath which points to the Node.js executable that VS Code is using
       // This ensures we can find Node.js even if it's not in the system PATH
       const nodeExecutable = process.execPath;
@@ -72,6 +75,7 @@ export class AnsibleMcpServerProvider {
         [cliPath, "--stdio"],
         {
           WORKSPACE_ROOT: workspaceRoot,
+          MCP_RESOURCE_DIR: resourceDir,
         },
         path.dirname(cliPath),
       );
@@ -194,6 +198,38 @@ export class AnsibleMcpServerProvider {
 
     // If not found, return the original path
     return startPath;
+  }
+
+  private findResourceDir(cliPath: string): string {
+    // Check if we're in packaged mode (cliPath contains out/mcp/cli.js)
+    if (cliPath.includes("out/mcp/cli.js") || cliPath.endsWith("mcp/cli.js")) {
+      // In packaged mode, resources are at out/mcp/data/
+      return path.join(path.dirname(cliPath), "data");
+    }
+
+    // In dev mode, find the source resources directory
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    let projectRoot: string;
+
+    if (workspaceRoot) {
+      projectRoot = this.findProjectRoot(workspaceRoot);
+    } else {
+      const cliDir = path.dirname(cliPath);
+      if (cliDir.includes("packages/ansible-mcp-server")) {
+        projectRoot = path.resolve(cliDir, "../../../..");
+      } else {
+        return path.join(path.dirname(cliPath), "data");
+      }
+    }
+
+    return path.join(
+      projectRoot,
+      "packages",
+      "ansible-mcp-server",
+      "src",
+      "resources",
+      "data",
+    );
   }
 
   /**

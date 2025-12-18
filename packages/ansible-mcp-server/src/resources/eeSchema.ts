@@ -5,45 +5,31 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Get the directory where resources are located
-// In bundled output (out/mcp/cli.js), resources are at out/mcp/data/
-// In source/dev/test mode, resources are at src/resources/data/
 function getResourceDir(): string {
-  // In bundled mode, process.argv[1] points to the entry script (out/mcp/cli.js)
-  // Check if process.argv[1] exists, is a non-empty string, and matches our bundled CLI script pattern
+  // Check for MCP_RESOURCE_DIR environment variable set by the extension
   if (
     typeof process !== "undefined" &&
-    process.argv &&
-    process.argv[1] &&
-    typeof process.argv[1] === "string" &&
-    process.argv[1].length > 0
+    process.env &&
+    process.env.MCP_RESOURCE_DIR &&
+    typeof process.env.MCP_RESOURCE_DIR === "string" &&
+    process.env.MCP_RESOURCE_DIR.length > 0
   ) {
-    const cliPath = process.argv[1];
-    if (cliPath.endsWith("mcp/cli.js") || cliPath.includes("out/mcp/cli.js")) {
-      return path.dirname(cliPath);
-    }
+    return process.env.MCP_RESOURCE_DIR;
   }
 
-  // Fall back to import.meta.url for dev mode, test mode, and other scenarios
-  // This works correctly when code is not bundled (dev/test with ts-node/vitest)
+  // Fallback: This works correctly when code is not bundled (dev/test/standalone)
   const __filename = fileURLToPath(import.meta.url);
-  return path.dirname(__filename);
+  return path.join(path.dirname(__filename), "data");
 }
 
 const resourceDir = getResourceDir();
 
-// Schema file packaged with the extension
-// In compiled output, files are in out/mcp/data/
-// In source, files are in src/resources/data/
-const SCHEMA_FILE = path.join(
-  resourceDir,
-  "data/execution-environment-schema.json",
-);
-const RULES_FILE = path.join(resourceDir, "data/ee-rules.md");
-// Sample EE file packaged with the extension
+const SCHEMA_FILE = path.join(resourceDir, "execution-environment-schema.json");
+const RULES_FILE = path.join(resourceDir, "ee-rules.md");
+
 export const SAMPLE_EE_FILE = path.join(
   resourceDir,
-  "data/execution-environment-sample.yml",
+  "execution-environment-sample.yml",
 );
 
 export interface ExecutionEnvironmentSchema {
