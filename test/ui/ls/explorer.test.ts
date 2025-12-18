@@ -23,9 +23,9 @@ import {
   sleep,
   workbenchExecuteCommand,
   getAnsibleViewControl,
-} from "./uiTestHelper";
-import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
-import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
+} from "../uiTestHelper";
+import { WizardGenerationActionType } from "../../../src/definitions/lightspeed";
+import { PlaybookGenerationActionEvent } from "../../../src/interfaces/lightspeed";
 import { expect } from "chai";
 
 describe("Lightspeed Explorer features", function () {

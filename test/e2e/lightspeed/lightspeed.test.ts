@@ -14,15 +14,15 @@ import {
   testInlineSuggestionCursorPositions,
   testValidJinjaBrackets,
 } from "../../helper";
-import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
-import { testLightspeedUser } from "./testLightspeedUser.test";
+import { testLightspeedFunctions } from "./lightspeedFunctions.test";
+import { testLightspeedUser } from "./lightspeedUser.test";
 import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
   testInlineSuggestionProviderCoExistence,
   testIgnorePendingSuggestion,
   testTriggerTaskSuggestion,
-} from "./e2eInlineSuggestion.test";
+} from "./inlineSuggestion.test";
 import {
   UserAction,
   LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,

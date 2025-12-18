@@ -34,7 +34,7 @@ check-filenames = true
 check-hidden = true
 ignore-words-list = ["als", "ro", "stdio", "isPlay", "afterAll"]
 ignore-words = ".config/dictionary.txt"
-skip = ".cache,.yarn,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media"
+skip = ".cache,.yarn,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible"
 
 [tool.distutils.egg_info]
 egg_base = "out"

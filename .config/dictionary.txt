@@ -5,6 +5,7 @@ Containerfile
 Customizer
 Devfile
 Devfiles
+EXTEST
 Elio’s
 FQCN
 FQCNs
@@ -21,7 +22,6 @@ Maciążek
 Modeline
 Modelines
 Npmjs
-OPTSTRING
 PKGMGR
 PYCMD
 PYTHONBREAKPOINT
@@ -99,6 +99,7 @@ pydoclint
 pyvenv
 relogin
 rhsso
+rimraf
 seealso
 servernum
 shiki

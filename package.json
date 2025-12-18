@@ -444,12 +444,6 @@
             "scope": "resource",
             "type": "string"
           },
-          "ansible.lightspeed.customHeaders": {
-            "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
-            "order": 6,
-            "scope": "resource",
-            "type": "object"
-          },
           "ansible.lightspeed.enabled": {
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",

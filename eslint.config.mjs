@@ -21,6 +21,7 @@ export default defineConfig(
       "**/.mocharc.js",
       "**/.vscode-test/*",
       "**/coverage/**",
+      "**/dist/",
       "**/out/",
       ".cache/*",
       ".trunk/*",

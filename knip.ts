@@ -45,7 +45,7 @@ const config: KnipConfig = {
         "test/**/*.ts",
         ".vscode-test.mjs",
       ],
-      project: ["**/*.{mjs,js,json,ts,tsx}"],
+      project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },
     "packages/ansible-language-server": {
       entry: ["src/server.ts", "test/**/*.ts"],
