@@ -24,7 +24,7 @@ import {
   waitForCondition,
   workbenchExecuteCommand,
   getAnsibleViewControl,
-} from "./uiTestHelper";
+} from "../uiTestHelper";
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
 
@@ -93,7 +93,7 @@ describe("One Click Trial feature", function () {
 
     alfView = await sideBar
       .getContent()
-      .getSection("Ansible Lightspeed Feedback");
+      .getSection("Ansible Lightspeed WCA Provider Feedback");
     await alfView.collapse();
 
     explorerView = new WebviewView(new SideBarView());

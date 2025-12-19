@@ -101,7 +101,6 @@ Add to your workspace `.vscode/settings.json`:
 | `ansible.lightspeed.modelName`       | Model name/ID to use                | `""`                                  | All providers           |
 | `ansible.lightspeed.apiKey`          | API key for authentication          | `""`                                  | Google only (not WCA)   |
 | `ansible.lightspeed.timeout`         | Request timeout in milliseconds     | `30000`                               | All providers           |
-| `ansible.lightspeed.customHeaders`   | Custom HTTP headers (JSON object)   | `{}`                                  | Third-party only        |
 
 ## Usage
 

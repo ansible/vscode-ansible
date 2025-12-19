@@ -21,6 +21,8 @@ interface ansibleMetadataEvent {
   eeEnabled: boolean;
   lightSpeedEnabled: boolean;
   lightSpeedCodeAssistEnabled: boolean;
+  lightSpeedProvider?: string;
+  lightSpeedModelName?: string;
 }
 
 export class MetadataManager {
@@ -160,6 +162,10 @@ export class MetadataManager {
         this.extensionSettings.settings.lightSpeedService.enabled,
       lightSpeedCodeAssistEnabled:
         this.extensionSettings.settings.lightSpeedService.suggestions.enabled,
+      lightSpeedProvider:
+        this.extensionSettings.settings.lightSpeedService.provider,
+      lightSpeedModelName:
+        this.extensionSettings.settings.lightSpeedService.modelName || "",
     };
     if (this.ansibleMetaData.ansibleLintPresent) {
       this.currentAnsibleMetaEventData["ansibleLintVersion"] =

@@ -44,27 +44,30 @@ export class SettingsManager {
       lightSpeedService: {
         enabled: lightSpeedSettings.get("enabled", true),
         provider: lightSpeedSettings.get("provider", "wca"),
-        URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
-        apiEndpoint: lightSpeedSettings.get("apiEndpoint", ""),
-        modelName: lightSpeedSettings.get("modelName", undefined),
-        model: lightSpeedSettings.get("modelIdOverride", undefined),
+        apiEndpoint: (() => {
+          const provider = lightSpeedSettings.get("provider", "wca");
+          const endpoint = lightSpeedSettings.get(
+            "apiEndpoint",
+            lightSpeedSettings.get("URL", ""),
+          );
+          // Default to WCA endpoint if provider is WCA and no endpoint set
+          if (provider === "wca" && !endpoint) {
+            return "https://c.ai.ansible.redhat.com";
+          }
+          return endpoint;
+        })(),
+        modelName: lightSpeedSettings.get(
+          "modelName",
+          lightSpeedSettings.get("modelIdOverride", undefined),
+        ), // Backward compatibility
         apiKey: lightSpeedSettings.get("apiKey", ""),
         timeout: lightSpeedSettings.get("timeout", 30000),
-        customHeaders: lightSpeedSettings.get("customHeaders", {}),
         suggestions: {
           enabled:
             lightSpeedSettings.get("enabled") === true &&
             lightSpeedSettings.get("suggestions.enabled", true),
           waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
-        playbookGenerationCustomPrompt: lightSpeedSettings.get(
-          "playbookGenerationCustomPrompt",
-          undefined,
-        ),
-        playbookExplanationCustomPrompt: lightSpeedSettings.get(
-          "playbookExplanationCustomPrompt",
-          undefined,
-        ),
       },
       playbook: {
         arguments: playbookSettings.get("arguments", ""),
@@ -76,13 +79,13 @@ export class SettingsManager {
 
     // Remove whitespace before and after the model ID and if it is empty, set it to undefined
     if (
-      typeof this.settings.lightSpeedService.model === "string" &&
-      this.settings.lightSpeedService.model.trim()
+      typeof this.settings.lightSpeedService.modelName === "string" &&
+      this.settings.lightSpeedService.modelName.trim()
     ) {
-      this.settings.lightSpeedService.model =
-        this.settings.lightSpeedService.model.trim();
+      this.settings.lightSpeedService.modelName =
+        this.settings.lightSpeedService.modelName.trim();
     } else {
-      this.settings.lightSpeedService.model = undefined;
+      this.settings.lightSpeedService.modelName = undefined;
     }
     return;
   }

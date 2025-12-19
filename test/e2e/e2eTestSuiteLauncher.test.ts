@@ -1,8 +1,8 @@
 // This file is loaded by `vscode-test` cli tool.
-import { testDiagnosticsAnsibleWithoutEE } from "./diagnostics/testAnsibleWithoutEE.test";
-import { testDiagnosticsYAMLWithoutEE } from "./diagnostics/testYamlWithoutEE.test";
-import { testHoverEE } from "./hover/testWithEE.test";
-import { testHoverWithoutEE } from "./hover/testWithoutEE.test";
+import { testDiagnosticsAnsibleWithoutEE } from "./diagnostics/ansibleWithoutEE.test";
+import { testDiagnosticsYAMLWithoutEE } from "./diagnostics/yamlWithoutEE.test";
+import { testHoverEE } from "./hover/withEE.test";
+import { testHoverWithoutEE } from "./hover/withoutEE.test";
 import {
   updateSettings,
   setFixtureAnsibleCollectionPathEnv,
@@ -11,8 +11,8 @@ import {
   disableExecutionEnvironmentSettings,
   deleteAlsCache,
 } from "../helper";
-import { testLightspeed } from "./lightspeed/testLightspeed.test";
-import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
+import { testLightspeed } from "./lightspeed/lightspeed.test";
+import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/extensionForFilesOutsideWorkspace.test";
 
 describe("e2e", function () {
   const run_lightspeed_tests_only =

@@ -5,6 +5,7 @@ Containerfile
 Customizer
 Devfile
 Devfiles
+EXTEST
 Elio’s
 FQCN
 FQCNs
@@ -14,13 +15,13 @@ Infiles
 KUBEDOCK
 Konflux
 LIGHTSPEED
+LLMPROVIDER
 Lightspeed
 Lightspeed's
 Maciążek
 Modeline
 Modelines
 Npmjs
-OPTSTRING
 PKGMGR
 PYCMD
 PYTHONBREAKPOINT
@@ -42,6 +43,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 cpython
 dedupe
@@ -68,6 +70,7 @@ libonig
 libssh
 lightspeed
 lineinfile
+llmprovider
 maxlength
 microdnf
 mocharc
@@ -78,6 +81,7 @@ mymodule
 mynamespace
 myorg
 myproject
+myrole
 nocolor
 noheading
 norecursedirs
@@ -95,6 +99,7 @@ pydoclint
 pyvenv
 relogin
 rhsso
+rimraf
 seealso
 servernum
 shiki

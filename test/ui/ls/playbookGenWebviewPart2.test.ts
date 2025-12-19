@@ -14,9 +14,9 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   waitForCondition,
-} from "./uiTestHelper";
-import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
-import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
+} from "../uiTestHelper";
+import { WizardGenerationActionType } from "../../../src/definitions/lightspeed";
+import { PlaybookGenerationActionEvent } from "../../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 
@@ -71,6 +71,7 @@ describe("playbook generation features work", function () {
         );
       },
       message: "Timed out waiting for Continue button",
+      timeout: 30000,
     });
     await generateButton.click();
 
