@@ -3623,7 +3623,7 @@ __metadata:
     electron: "npm:^39.2.6"
     eslint: "npm:^9.39.1"
     eslint-config-prettier: "npm:^10.1.8"
-    eslint-formatter-gha: "npm:^1.6.0"
+    eslint-formatter-gha: "npm:^2.0.0"
     eslint-formatter-unix: "npm:^9.0.1"
     eslint-plugin-chai-friendly: "npm:^1.1.0"
     eslint-plugin-prettier: "npm:^5.5.4"
@@ -5370,31 +5370,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-formatter-gha@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "eslint-formatter-gha@npm:1.6.0"
+"eslint-formatter-gha@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "eslint-formatter-gha@npm:2.0.1"
   dependencies:
-    eslint-formatter-json: "npm:^8.40.0"
-    eslint-formatter-stylish: "npm:^8.40.0"
-  checksum: 10/8b8cf708f0ab031ea0062d6b30e9671b237ee76d7a66eaa56b315baa424407e4a73ab8e2850695a6d1b06f143e5dd28b43752e42eb6b2c9b75f014709767a3b3
+    eslint-formatter-json: "npm:^9.0.0"
+    eslint-formatter-stylish: "npm:^9.0.0"
+  checksum: 10/50868da1e4aa742448bc87edb5ca9a582642cffcebbe517d2f303391d0ae47d16be88ee8d0dea0b8123945abeb608aeadd2cd066a9333181d14dd6495f9ddf96
   languageName: node
   linkType: hard
 
-"eslint-formatter-json@npm:^8.40.0":
-  version: 8.40.0
-  resolution: "eslint-formatter-json@npm:8.40.0"
-  checksum: 10/79fc86f4102308e99a9b02b75175fb2aca2230ad2f5d48c6db0bc4e14ccb5c5ec86ec5c3c0169dfa1824168f9048e729e3078cf19b7008043bd0acd6fd6a9f73
+"eslint-formatter-json@npm:^9.0.0":
+  version: 9.0.1
+  resolution: "eslint-formatter-json@npm:9.0.1"
+  checksum: 10/1ad6ba14f6342603d3d95d4b41be9bc42be6acb31c2430e9607483c4e2ed79b84c759e0f00347154ac84d7da48bb86c7ff6133e929c0f42b5788c02719ab64df
   languageName: node
   linkType: hard
 
-"eslint-formatter-stylish@npm:^8.40.0":
-  version: 8.40.0
-  resolution: "eslint-formatter-stylish@npm:8.40.0"
+"eslint-formatter-stylish@npm:^9.0.0":
+  version: 9.0.1
+  resolution: "eslint-formatter-stylish@npm:9.0.1"
   dependencies:
     chalk: "npm:^4.0.0"
     strip-ansi: "npm:^6.0.1"
     text-table: "npm:^0.2.0"
-  checksum: 10/a79a4414811999ce36c2f4e41ba25fdad75a8b71a1062f81f5b1b1015ba9775dd349a040b1d8061163ee1f077b5593b1b0df51f1b62d8cf8c13f8b640d5f8e7b
+  checksum: 10/69a173d97e2600b1ca671f057c91aaa712c2eba6f38ec5e52b3ce6f6aee7517b344e49f8da65c1901b62f514c05a83b70defc1606fb074691d939da779f8f29c
   languageName: node
   linkType: hard
 

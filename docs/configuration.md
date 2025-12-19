@@ -93,12 +93,6 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
   sending an inline suggestion request.
 
-### Advanced Settings
-
-- `ansible.lightspeed.customHeaders`: Custom HTTP headers for LLM providers (JSON object).
-  - Example: `{"Custom-Header": "value"}`
-  - Not used for WCA
-
 ### Backward Compatibility
 
 The following legacy settings are still supported for backward compatibility:
