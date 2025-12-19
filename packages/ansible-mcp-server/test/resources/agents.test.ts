@@ -109,7 +109,7 @@ describe("agents.ts resource", () => {
     });
 
     it("should return helpful message when no results found", async () => {
-      const result = await searchGuidelines("xyznonexistent123");
+      const result = await searchGuidelines("123");
 
       expect(result).toContain("No specific guidelines found");
       expect(result).toContain("Try asking about");

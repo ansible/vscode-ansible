@@ -25,7 +25,8 @@ export interface GuidelineSection {
   keywords: string[];
 }
 
-// Cache for parsed sections
+// Cache for parsed sections.
+// No cache invalidation needed - agents.md is a packaged file that doesn't change at runtime.
 let sectionsCache: GuidelineSection[] | null = null;
 
 /**
@@ -57,12 +58,12 @@ async function parseGuidelines(): Promise<GuidelineSection[]> {
       const level = headerMatch[1].length;
       const title = headerMatch[2].trim();
 
-      // Generate keywords from title
+      // Generate keywords from title (allow 2+ char words for terms like "EE")
       const keywords = title
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, "")
         .split(/\s+/)
-        .filter((word) => word.length > 2);
+        .filter((word) => word.length > 1);
 
       currentSection = {
         title,
@@ -118,19 +119,28 @@ export async function getAvailableTopics(): Promise<string> {
 export async function searchGuidelines(query: string): Promise<string> {
   const sections = await parseGuidelines();
 
-  // Normalize query for matching
+  // Normalize query for matching (allow 2+ char words for terms like "EE")
   const queryWords = query
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, "")
     .split(/\s+/)
-    .filter((word) => word.length > 2);
+    .filter((word) => word.length > 1);
 
   // Score sections based on relevance
   const scoredSections = sections.map((section) => {
     let score = 0;
+    const titleLower = section.title.toLowerCase();
+
+    // Skip TOC and navigation sections - they just contain links, not actual content
+    if (
+      titleLower.includes("table of contents") ||
+      titleLower.includes("toc") ||
+      titleLower === "contents"
+    ) {
+      return { section, score: 0 };
+    }
 
     // Check title match (high weight)
-    const titleLower = section.title.toLowerCase();
     for (const word of queryWords) {
       if (titleLower.includes(word)) {
         score += 10;
@@ -144,11 +154,16 @@ export async function searchGuidelines(query: string): Promise<string> {
       }
     }
 
-    // Check content match (low weight)
+    // Check content match (low weight, but skip if content is mostly links)
     const contentLower = section.content.toLowerCase();
-    for (const word of queryWords) {
-      if (contentLower.includes(word)) {
-        score += 1;
+    const linkCount = (section.content.match(/\]\(#/g) || []).length;
+    const isNavigationSection = linkCount > 5; // If more than 5 internal links, likely a navigation section
+
+    if (!isNavigationSection) {
+      for (const word of queryWords) {
+        if (contentLower.includes(word)) {
+          score += 1;
+        }
       }
     }
 
