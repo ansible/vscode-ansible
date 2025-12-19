@@ -248,7 +248,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         "\n\n" +
         "**Examples:** " +
         "\n" +
-        '- `{}` → Returns list of available topics ' +
+        "- `{}` → Returns list of available topics " +
         '- `{"topic": "yaml formatting"}` → Returns YAML formatting guidelines ' +
         '- `{"topic": "naming conventions"}` → Returns naming convention rules ' +
         '- `{"topic": "roles"}` → Returns role structure and best practices ' +
