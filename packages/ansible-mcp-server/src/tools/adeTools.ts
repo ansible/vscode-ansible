@@ -204,116 +204,30 @@ export async function checkPythonVersionAvailable(
   return result.success;
 }
 
-export async function installPythonVersion(
-  pythonVersion: string,
-): Promise<ADECommandResult> {
+/**
+ * Report missing Python version to user without attempting installation.
+ * Following Microsoft Python extension pattern: detect and inform, don't try to fix.
+ *
+ * @param pythonVersion - The Python version that was requested but not found.
+ * @returns An ADECommandResult with success: false and information about the missing Python.
+ */
+export function reportMissingPython(pythonVersion: string): ADECommandResult {
   const results: string[] = [];
-  results.push(`Attempting to install Python ${pythonVersion}...`);
-
-  const uvCheck = await executeCommand("uv", ["--version"]);
-  if (uvCheck.success) {
-    results.push("Found uv, attempting installation...");
-    const uvInstall = await executeCommand("uv", [
-      "python",
-      "install",
-      pythonVersion,
-    ]);
-    if (uvInstall.success) {
-      // Verify the Python is actually available after uv install
-      const verifyResult = await executeCommand(`python${pythonVersion}`, [
-        "--version",
-      ]);
-      if (verifyResult.success) {
-        results.push(
-          `✅ Python ${pythonVersion} installed via uv and available in PATH`,
-        );
-        return {
-          success: true,
-          output: results.join("\n"),
-        };
-      } else {
-        // uv installed but not in PATH - try to find it
-        const homeDir = process.env.HOME || "";
-        const uvPythonBase = `${homeDir}/.local/share/uv/python`;
-
-        // Try to find the installed Python
-        const findResult = await executeCommand("find", [
-          uvPythonBase,
-          "-name",
-          `python${pythonVersion}`,
-          "-type",
-          "f",
-        ]);
-
-        if (findResult.success && findResult.output.trim()) {
-          const pythonPath = findResult.output.trim().split("\n")[0];
-          results.push(`✅ Python ${pythonVersion} installed via uv`);
-          results.push(`   Location: ${pythonPath}`);
-          results.push(`   Note: Add to PATH or use full path: ${pythonPath}`);
-          // Return the path so caller can use it
-          return {
-            success: true,
-            output: results.join("\n"),
-            pythonPath: pythonPath,
-          };
-        } else {
-          results.push(
-            `⚠️ uv installed Python ${pythonVersion} but couldn't locate it`,
-          );
-          results.push("   You may need to restart your terminal");
-        }
-      }
-    } else {
-      results.push(`⚠️ uv install failed: ${uvInstall.error}`);
-    }
-  }
-
-  const pyenvCheck = await executeCommand("pyenv", ["--version"]);
-  if (pyenvCheck.success) {
-    results.push("Found pyenv, attempting installation...");
-    const pyenvInstall = await executeCommand("pyenv", [
-      "install",
-      "-s",
-      pythonVersion,
-    ]);
-    if (pyenvInstall.success) {
-      await executeCommand("pyenv", ["local", pythonVersion]);
-      results.push(`✅ Python ${pythonVersion} installed via pyenv`);
-      results.push(
-        "   Note: You may need to run 'eval \"$(pyenv init -)\"' to use it",
-      );
-      return {
-        success: true,
-        output: results.join("\n"),
-      };
-    } else {
-      results.push(`⚠️ pyenv install failed: ${pyenvInstall.error}`);
-    }
-  }
-
+  results.push(`Python ${pythonVersion} is not available on this system.`);
   results.push("");
-  results.push(`❌ Could not automatically install Python ${pythonVersion}`);
+  results.push("Requirements:");
+  results.push(
+    `  - Python ${pythonVersion} must be installed and available in PATH`,
+  );
   results.push("");
-  results.push("Please install Python manually using one of these methods:");
-  results.push("");
-  results.push("  Option 1 - Using uv (fastest, recommended):");
-  results.push("    curl -LsSf https://astral.sh/uv/install.sh | sh");
-  results.push(`    uv python install ${pythonVersion}`);
-  results.push("");
-  results.push("  Option 2 - Using pyenv:");
-  results.push("    curl https://pyenv.run | bash");
-  results.push(`    pyenv install ${pythonVersion}`);
-  results.push(`    pyenv local ${pythonVersion}`);
-  results.push("");
-  results.push("  Option 3 - Using Homebrew (macOS):");
-  results.push(`    brew install python@${pythonVersion}`);
-  results.push("");
-  results.push("After installation, run this tool again.");
+  results.push(
+    "Please install the required Python version and run this tool again.",
+  );
 
   return {
     success: false,
     output: results.join("\n"),
-    error: `Python ${pythonVersion} not available and automatic installation failed`,
+    error: `Python ${pythonVersion} is not available`,
   };
 }
 
@@ -498,7 +412,7 @@ export async function checkConflictingPackages(): Promise<ADECommandResult> {
       if (oldAnsible) {
         hasConflict = true;
         results.push(
-          `⚠️ Found conflicting ansible package (${oldAnsible.version})`,
+          `Found conflicting ansible package (${oldAnsible.version})`,
         );
         results.push("");
         results.push(
@@ -517,14 +431,14 @@ export async function checkConflictingPackages(): Promise<ADECommandResult> {
         results.push("  Option 3 (if managing packages via requirements.txt):");
         results.push("    Remove 'ansible' from your requirements file");
       } else {
-        results.push("✅ No conflicting packages detected");
+        results.push("No conflicting packages detected");
       }
     } catch {
-      results.push("⚠️ Could not parse pip list output");
+      results.push("Could not parse pip list output");
       results.push("Unable to check for conflicting packages");
     }
   } else {
-    results.push("⚠️ Could not check for conflicting packages");
+    results.push("Could not check for conflicting packages");
     results.push("Please ensure 'pip' is available and try again");
   }
 
@@ -548,12 +462,12 @@ export async function checkAnsibleLint(): Promise<ADECommandResult> {
   if (result.success) {
     return {
       success: true,
-      output: `✅ ansible-lint is working properly\nVersion: ${result.output.trim()}`,
+      output: `ansible-lint is working properly\nVersion: ${result.output.trim()}`,
     };
   } else {
     // Diagnose the issue and provide suggestions
     const results: string[] = [];
-    results.push("❌ ansible-lint is not working properly");
+    results.push("ansible-lint is not working properly");
     results.push("");
     results.push(`Error: ${result.error || "ansible-lint command failed"}`);
     results.push("");
@@ -588,7 +502,7 @@ export async function checkAnsibleLint(): Promise<ADECommandResult> {
     if (!ansibleCheck.success) {
       results.push("");
       results.push(
-        "⚠️ Note: ansible-core also appears to be missing or not working",
+        "Note: ansible-core also appears to be missing or not working",
       );
       results.push("   Consider installing: pip install ansible-core");
     }
@@ -653,11 +567,11 @@ export async function setupDevelopmentEnvironment(
   if (!conflictCheckResult.success) {
     results.push("");
     results.push(
-      "⚠️ Please resolve package conflicts before proceeding with setup",
+      "Please resolve package conflicts before proceeding with setup",
     );
   }
 
-  // Check Python version availability
+  // Check Python version availability (detect and inform, don't try to fix)
   let pythonCommand: string | undefined;
   if (options.pythonVersion) {
     results.push(`Checking if Python ${options.pythonVersion} is available...`);
@@ -666,29 +580,16 @@ export async function setupDevelopmentEnvironment(
     );
 
     if (!pythonAvailable) {
-      results.push(
-        `⚠️ Python ${options.pythonVersion} is not available, attempting to install...`,
-      );
-      const installResult = await installPythonVersion(options.pythonVersion);
-      results.push(installResult.output);
-
-      if (!installResult.success) {
-        return {
-          success: false,
-          output: results.join("\n"),
-          error:
-            installResult.error ||
-            `Python ${options.pythonVersion} not available`,
-        };
-      }
-
-      // If uv installed Python to a custom path, use it
-      if (installResult.pythonPath) {
-        pythonCommand = installResult.pythonPath;
-        results.push(`Using Python at: ${pythonCommand}`);
-      }
+      // Report the issue and let user resolve it
+      const missingPythonReport = reportMissingPython(options.pythonVersion);
+      results.push(missingPythonReport.output);
+      return {
+        success: false,
+        output: results.join("\n"),
+        error: missingPythonReport.error,
+      };
     } else {
-      results.push(`✅ Python ${options.pythonVersion} is available`);
+      results.push(`Python ${options.pythonVersion} is available`);
     }
   }
 
@@ -706,19 +607,18 @@ export async function setupDevelopmentEnvironment(
   );
 
   if (!venvResult.success || !venvResult.venvPath) {
-    results.push(`❌ Failed to create virtual environment`);
+    results.push(`Failed to create virtual environment`);
     if (venvResult.error) {
       results.push(`   Error: ${venvResult.error}`);
     }
     results.push("");
-    results.push("💡 Possible solutions:");
-    results.push("   - Ensure Python is properly installed and in PATH");
-    if (options.pythonVersion) {
-      results.push(
-        `   - Try: pyenv install ${options.pythonVersion} && pyenv local ${options.pythonVersion}`,
-      );
-    }
-    results.push("   - Or try without specifying a Python version");
+    results.push("Requirements:");
+    results.push(
+      "   - Python must be properly installed and available in PATH",
+    );
+    results.push("   - The 'venv' module must be available");
+    results.push("");
+    results.push("Please resolve the issue and run this tool again.");
     return {
       success: false,
       output: results.join("\n"),
@@ -731,7 +631,7 @@ export async function setupDevelopmentEnvironment(
   if (venvResult.output) {
     results.push(venvResult.output);
   }
-  results.push(`✅ Virtual environment created at ${venvPath}`);
+  results.push(`Virtual environment created at ${venvPath}`);
 
   // Install ansible-lint and ansible-core in the virtual environment
   results.push("Installing Ansible tools in virtual environment...");
@@ -743,12 +643,12 @@ export async function setupDevelopmentEnvironment(
   if (installAnsibleLint.success) {
     /* v8 ignore next 2 */
     results.push(
-      "✅ ansible-lint and ansible-core installed in virtual environment",
+      "ansible-lint and ansible-core installed in virtual environment",
     );
   } else {
     success = false;
     results.push(
-      `❌ Failed to install Ansible tools: ${installAnsibleLint.error}`,
+      `Failed to install Ansible tools: ${installAnsibleLint.error}`,
     );
   }
 
@@ -765,12 +665,10 @@ export async function setupDevelopmentEnvironment(
 
     if (!collectionsResult.success) {
       success = false;
-      results.push(
-        `❌ Failed to install collections: ${collectionsResult.error}`,
-      );
+      results.push(`Failed to install collections: ${collectionsResult.error}`);
     } else {
       /* v8 ignore next */
-      results.push("✅ Collections installed successfully");
+      results.push("Collections installed successfully");
     }
   }
 
@@ -784,20 +682,20 @@ export async function setupDevelopmentEnvironment(
     if (!requirementsResult.success) {
       success = false;
       results.push(
-        `❌ Failed to install requirements: ${requirementsResult.error}`,
+        `Failed to install requirements: ${requirementsResult.error}`,
       );
     } else {
       /* v8 ignore next */
-      results.push("✅ Requirements installed successfully");
+      results.push("Requirements installed successfully");
     }
   }
 
   // Add activation instructions
   results.push("");
-  results.push("🔧 To activate the virtual environment, run:");
+  results.push("To activate the virtual environment, run:");
   results.push(`   source ${venvPath}/bin/activate`);
   results.push("");
-  results.push("🔧 To deactivate the virtual environment, run:");
+  results.push("To deactivate the virtual environment, run:");
   results.push("   deactivate");
 
   // Final verification - check ansible-lint in the virtual environment
@@ -810,12 +708,12 @@ export async function setupDevelopmentEnvironment(
   if (!finalLintCheck.success) {
     success = false;
     results.push(
-      `❌ Final verification failed: ansible-lint not working in virtual environment`,
+      `Final verification failed: ansible-lint not working in virtual environment`,
     );
   } else {
     /* v8 ignore next 2 */
     results.push(
-      "✅ Final verification passed - ansible-lint is working in virtual environment",
+      "Final verification passed - ansible-lint is working in virtual environment",
     );
   }
 
@@ -838,7 +736,7 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   if (adtInstalled) {
     return {
       success: true,
-      output: "✅ ADT (ansible-dev-tools) is already installed",
+      output: "ADT (ansible-dev-tools) is already installed",
     };
   }
 
@@ -851,7 +749,7 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   if (installResult.success) {
     return {
       success: true,
-      output: "✅ ADT (ansible-dev-tools) installed successfully",
+      output: "ADT (ansible-dev-tools) installed successfully",
     };
   }
 
@@ -864,7 +762,7 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   if (pipxResult.success) {
     return {
       success: true,
-      output: "✅ ADT (ansible-dev-tools) installed successfully via pipx",
+      output: "ADT (ansible-dev-tools) installed successfully via pipx",
     };
   }
 
@@ -883,25 +781,25 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
  */
 export function formatEnvironmentInfo(info: ADEEnvironmentInfo): string {
   const sections = [
-    "🔍 Environment Information",
+    "Environment Information",
     "=".repeat(50),
     "",
-    `📁 Workspace: ${info.workspacePath}`,
-    `🐍 Python: ${info.pythonVersion}`,
-    `🔧 Virtual Environment: ${info.virtualEnv || "Not set"}`,
+    `Workspace: ${info.workspacePath}`,
+    `Python: ${info.pythonVersion}`,
+    `Virtual Environment: ${info.virtualEnv || "Not set"}`,
     "",
-    "📦 Ansible Tools:",
-    `  • Ansible: ${info.ansibleVersion || "Not installed"}`,
-    `  • Ansible Lint: ${info.ansibleLintVersion || "Not installed"}`,
+    "Ansible Tools:",
+    `  - Ansible: ${info.ansibleVersion || "Not installed"}`,
+    `  - Ansible Lint: ${info.ansibleLintVersion || "Not installed"}`,
     "",
-    "🛠️ Development Tools:",
-    `  • ADE: ${info.adeInstalled ? "✅ Installed" : "❌ Not installed"}`,
-    `  • ADT: ${info.adtInstalled ? "✅ Installed" : "❌ Not installed"}`,
+    "Development Tools:",
+    `  - ADE: ${info.adeInstalled ? "Installed" : "Not installed"}`,
+    `  - ADT: ${info.adtInstalled ? "Installed" : "Not installed"}`,
     "",
-    "📚 Installed Collections:",
+    "Installed Collections:",
     ...(info.installedCollections.length > 0
-      ? info.installedCollections.map((col) => `  • ${col}`)
-      : ["  • None"]),
+      ? info.installedCollections.map((col) => `  - ${col}`)
+      : ["  - None"]),
   ];
 
   return sections.join("\n");
