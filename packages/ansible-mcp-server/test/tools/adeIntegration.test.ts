@@ -21,7 +21,7 @@ describe("ADE Tools Integration", () => {
         (c: { type: string }) => c.type === "text",
       );
       expect(textContent).toBeDefined();
-      expect(textContent?.text).toContain("🔍 Environment Information");
+      expect(textContent?.text).toContain("Environment Information");
     });
 
     it("should handle errors gracefully", async () => {
