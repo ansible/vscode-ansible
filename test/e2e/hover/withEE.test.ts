@@ -4,9 +4,32 @@ import {
   activate,
   testHover,
   setFixtureAnsibleCollectionPathEnv,
-} from "../../helper";
+  skip_ee,
+  run_lightspeed_tests_only,
+  deleteAlsCache,
+  enableExecutionEnvironmentSettings,
+  disableExecutionEnvironmentSettings,
+  unSetFixtureAnsibleCollectionPathEnv,
+} from "../e2e.utils";
 
-export function testHoverEE(): void {
+describe("ee", function () {
+  before(async function () {
+    if (skip_ee || run_lightspeed_tests_only) {
+      this.skip();
+    }
+    deleteAlsCache();
+    setFixtureAnsibleCollectionPathEnv(
+      "/home/runner/.ansible/collections:/usr/share/ansible/collections",
+    );
+    await enableExecutionEnvironmentSettings();
+  });
+
+  after(async function () {
+    await disableExecutionEnvironmentSettings(); // Revert back the default settings
+    unSetFixtureAnsibleCollectionPathEnv();
+    deleteAlsCache();
+  });
+
   describe("hover-ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
@@ -104,4 +127,4 @@ export function testHoverEE(): void {
       });
     });
   });
-}
+});

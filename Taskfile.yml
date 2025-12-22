@@ -1,5 +1,6 @@
 ---
 # see https://taskfile.dev/#/
+# cspell: ignore unshallow
 version: "3"
 includes:
   base:
@@ -58,8 +59,7 @@ tasks:
       - yarn run vite-build
     sources:
       - package.json
-      - src/**/*
-      - test/**/*
+      - "{src,test}/**/*"
       - tsconfig*.json
       - webpack.config.ts
       - yarn.lock.json
@@ -97,7 +97,6 @@ tasks:
       - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - task: shared:install
-      - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -139,7 +138,6 @@ tasks:
   lint:
     desc: Lint the project
     cmds:
-      - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
       - defer: { task: finish }
     silent: true
@@ -189,10 +187,15 @@ tasks:
       - out/coverage/e2e/cobertura-coverage.xml
       - out/coverage/e2e/lcov.info
     sources:
-      - src/**/*
-      - test/**/*
+      - "{src,test}/**/*"
       - .vscode-test.mjs
+      - exclude: "**/.ansible/**/*"
+      - exclude: test/testFixtures/.vscode/settings.json
+      - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+      - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
+      # dry run to fail fast if we misconfigure it
+      - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
     interactive: true
@@ -273,9 +276,8 @@ tasks:
       - .vscodeignore
       - webpack.config.ts
       - tools/helper
-      - src/**/*
-      - test/**/*
-      - media/**/*
+      - "{src,test,media}/**/*"
+      - exclude: "**/.ansible/**/*"
     generates:
       - "*.vsix"
       - "packages/*/*.tgz"
