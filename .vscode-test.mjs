@@ -1,6 +1,7 @@
 // https://github.com/microsoft/vscode-test-cli
 // Used by e2e tests
 import { defineConfig } from "@vscode/test-cli";
+import process from "process";
 
 export default defineConfig({
   files: "out/client/test/e2e/**/*.test.js",
@@ -25,7 +26,7 @@ export default defineConfig({
     "--disable-extension=streetsidesoftware.code-spell-checker",
   ],
   mocha: {
-    color: true,
+    color: (process.env.TERM ?? "") != "dumb",
     ui: "bdd",
     slow: 25_000,
     timeout: 50_000,

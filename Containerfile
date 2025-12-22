@@ -19,11 +19,6 @@ WORKDIR /context
 # adding multiple layers to the image.
 # cspell:disable
 RUN \
---mount=type=bind,target=. \
---mount=type=cache,target=/root/.local/share/mise,sharing=locked \
---mount=type=cache,target=/root/.cache/mise,sharing=locked \
---mount=type=cache,target=/var/cache/apt/archives/,sharing=locked \
---mount=type=cache,target=/var/lib/apt/lists/,sharing=locked \
 DEBIAN_FRONTEND=noninteractive apt-get -qq -o=Dpkg::Use-Pty=0 update 2> /dev/null && \
 apt-get -qq -o=Dpkg::Use-Pty=0 install --no-install-recommends \
 curl \
@@ -57,10 +52,24 @@ sudo \
 xauth \
 xvfb \
 2> /dev/null && \
-mkdir -p /root/.local/bin && \
+mkdir -p /root/.local/bin
+
+RUN \
+--mount=type=secret,id=github_token,env=GITHUB_TOKEN \
+--mount=type=bind,src=.config/mise.toml,target=.config/mise.toml \
+--mount=type=bind,src=pyproject.toml,target=pyproject.toml \
+--mount=type=bind,src=uv.lock,target=uv.lock \
+--mount=type=bind,src=.pre-commit-config.yaml,target=.pre-commit-config.yaml \
+--mount=type=cache,target=/root/.local/share/mise,sharing=locked \
+--mount=type=cache,target=/root/.cache/mise,sharing=locked \
+--mount=type=cache,target=/var/cache/apt/archives/,sharing=locked \
+--mount=type=cache,target=/var/lib/apt/lists/,sharing=locked \
+printenv && \
+find . && \
 mise install && \
 mise list && \
 mise exec -- uv sync --no-progress -q --active && \
 mise exec -- python --version && \
 mise exec -- pre-commit --version && \
+git init && \
 mise exec -- pre-commit install-hooks

@@ -173,10 +173,11 @@ tasks:
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
+      - defer: { task: coverage }
       - defer: { task: finish }
     interactive: true
   e2e:
-    desc: Run e2e tests with vscode-test {{.XVFB}}
+    desc: Run e2e tests with vscode-test (use '-- <test-name>' to filter) {{.XVFB}}
     deps:
       - package
     env:
@@ -189,15 +190,14 @@ tasks:
     sources:
       - "{src,test}/**/*"
       - .vscode-test.mjs
-      - exclude: "**/.ansible/**/*"
+      - exclude: "**/{.ansible,__pycache__}/**/*"
       - exclude: test/testFixtures/.vscode/settings.json
       - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
       - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
-      # dry run to fail fast if we misconfigure it
-      - "{{.XVFB}}vscode-test --dry-run --fail-zero"
-      # cannot put coverage option inside .vscode-test.mjs
-      - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      # cannot put coverage option inside .vscode-test.mjs and vscode-test does not allow passing any coverage filtering options
+      - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --fail-zero --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text-summary --coverage-reporter cobertura --coverage-reporter lcovonly -g '{{.CLI_ARGS}}'"
+      - defer: { task: coverage }
     interactive: true
   ui-prepare:
     deps:
@@ -218,7 +218,7 @@ tasks:
       - extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
       - rimraf out/log/.failed out/log/ui* out/junit/ui/ out/coverage/ui/ out/test-resources/test.log out/test-resources/screenshots/ out/test-resources/settings/logs/*
   ui:
-    desc: Run UI tests with extest {{.XVFB}}
+    desc: Run UI tests with extest (use '-- <test-name>' to filter) {{.XVFB}}
     deps:
       - ui-prepare
     env:
@@ -226,13 +226,17 @@ tasks:
       MOCK_LIGHTSPEED_API: "1"
       TEST_PREFIX: "ui"
     sources:
-      - src/**/*
-      - test/**/*
+      - "{src,test}/**/*"
       - ./tools/test-launcher.sh
+      - exclude: "**/{.ansible,__pycache__}/**/*"
+      - exclude: test/testFixtures/.vscode/settings.json
+      - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+      - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     generates:
       - out/junit/ui/.passed
     cmds:
       - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
+      - defer: { task: coverage }
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
@@ -258,12 +262,16 @@ tasks:
     deps:
       - build
     sources:
-      - src/**/*
-      - test/**/*
+      - "{src,test}/**/*"
+      - exclude: "**/{.ansible,__pycache__}/**/*"
+      - exclude: test/testFixtures/.vscode/settings.json
+      - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+      - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     generates:
       - out/coverage/unit/lcov.info
     cmds:
       - vitest run
+      - defer: { task: coverage }
     interactive: true
   package:
     desc: Package extension
@@ -305,7 +313,7 @@ tasks:
   builder:
     desc: Build container image used for building the extension
     cmds:
-      - ./tools/builder.sh
+      - ./tools/builder.sh {{.CLI_ARGS}}
   image-konflux:
     desc: Build container image used for building the extension for Konflux CI
     cmds:
@@ -320,5 +328,28 @@ tasks:
     desc: Pretend it does run tests, used to validate configuration of the test frameworks
     deps:
       - package
+    generates:
+      - out/log/dry-vitest.log
+      - out/log/dry-e2e.log
+    sources:
+      - "{src,test}/**/*"
+      - .vscode-test.mjs
+      - exclude: "**/{.ansible,__pycache__}/**/*"
+      - exclude: test/testFixtures/.vscode/settings.json
+      - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+      - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
-      - vitest list
+      - mkdir -p out/log
+      - vitest list --no-color > out/log/dry-vitest.log
+      - TERM=dumb vscode-test --dry-run > out/log/dry-e2e.log
+  coverage:
+    aliases: ["cover"]
+    desc: Generate consolidated coverage report based on previous test runs
+    interactive: true # disabled the prefix for output
+    generates:
+      - out/coverage/sonarqube.xml
+    sources:
+      - out/coverage/*/*cobertura-coverage.xml
+    cmds:
+      - mkdir -p out/coverage
+      - gcovr --exclude=out --cobertura-add-tracefile 'out/coverage/*/*cobertura-coverage.xml' --sort=filename --sonarqube=out/coverage/sonarqube.xml --txt --print-summary

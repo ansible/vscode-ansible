@@ -23,8 +23,7 @@ tasks:
       VERSION:
         sh: node -p "require('./package.json').version"
     sources:
-      - src/**/*.*
-      - test/**/*.*
+      - "{src,test}/**/*.*"
       - tsconfig.json
       - webpack.config.js
       - .c8rc.json
