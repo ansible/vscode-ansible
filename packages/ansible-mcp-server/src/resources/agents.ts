@@ -46,7 +46,8 @@ async function parseGuidelines(): Promise<GuidelineSection[]> {
 
   for (const line of lines) {
     // Match markdown headers (# to ######)
-    const headerMatch = line.match(/^(#{1,6})\s+(.+)$/);
+    // Using non-greedy match and explicit non-whitespace to avoid ReDoS
+    const headerMatch = line.match(/^(#{1,6})\s+(\S.*)$/);
 
     if (headerMatch) {
       // Save the previous section if exists
