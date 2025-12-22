@@ -21,22 +21,39 @@ describe("SchemaService", () => {
   const service = new SchemaService(mockConnection as any);
 
   it("matches meta/main.yml files", () => {
-    expect(service.getSchemaUrlForUri("file:///role/meta/main.yml")).to.include("meta.json");
-    expect(service.getSchemaUrlForUri("file:///role/meta/main.yaml")).to.include("meta.json");
+    expect(service.getSchemaUrlForUri("file:///role/meta/main.yml")).to.include(
+      "meta.json",
+    );
+    expect(
+      service.getSchemaUrlForUri("file:///role/meta/main.yaml"),
+    ).to.include("meta.json");
   });
 
   it("matches meta/runtime.yml files", () => {
-    expect(service.getSchemaUrlForUri("file:///coll/meta/runtime.yml")).to.include("meta-runtime.json");
+    expect(
+      service.getSchemaUrlForUri("file:///coll/meta/runtime.yml"),
+    ).to.include("meta-runtime.json");
   });
 
   it("ignores non-meta files", () => {
-    expect(service.getSchemaUrlForUri("file:///role/tasks/main.yml")).to.be.undefined;
+    expect(service.getSchemaUrlForUri("file:///role/tasks/main.yml")).to.be
+      .undefined;
     expect(service.getSchemaUrlForUri("file:///playbook.yml")).to.be.undefined;
   });
 
   it("shouldValidateWithSchema returns correct boolean", () => {
-    const metaDoc = TextDocument.create("file:///meta/main.yml", "ansible", 1, "");
-    const taskDoc = TextDocument.create("file:///tasks/main.yml", "ansible", 1, "");
+    const metaDoc = TextDocument.create(
+      "file:///meta/main.yml",
+      "ansible",
+      1,
+      "",
+    );
+    const taskDoc = TextDocument.create(
+      "file:///tasks/main.yml",
+      "ansible",
+      1,
+      "",
+    );
     expect(service.shouldValidateWithSchema(metaDoc)).to.be.true;
     expect(service.shouldValidateWithSchema(taskDoc)).to.be.false;
   });
@@ -56,7 +73,12 @@ describe("SchemaValidator", () => {
   };
 
   it("returns no errors for valid doc", () => {
-    const doc = TextDocument.create("file:///test.yml", "yaml", 1, "name: test\ncount: 5");
+    const doc = TextDocument.create(
+      "file:///test.yml",
+      "yaml",
+      1,
+      "name: test\ncount: 5",
+    );
     expect(validator.validate(doc, schema)).to.be.empty;
   });
 
@@ -69,7 +91,12 @@ describe("SchemaValidator", () => {
   });
 
   it("warns on unknown property", () => {
-    const doc = TextDocument.create("file:///test.yml", "yaml", 1, "name: test\nextra: bad");
+    const doc = TextDocument.create(
+      "file:///test.yml",
+      "yaml",
+      1,
+      "name: test\nextra: bad",
+    );
     const diags = validator.validate(doc, schema);
     expect(diags).to.have.lengthOf(1);
     expect(diags[0].message).to.include("extra");
@@ -104,7 +131,12 @@ describe("SchemaCompleter", () => {
   });
 
   it("excludes existing keys", () => {
-    const doc = TextDocument.create("file:///test.yml", "yaml", 1, "author: me\n");
+    const doc = TextDocument.create(
+      "file:///test.yml",
+      "yaml",
+      1,
+      "author: me\n",
+    );
     const items = completer.complete(doc, { line: 1, character: 0 }, schema);
     const labels = items.map((i) => i.label);
     expect(labels).to.not.include("author");

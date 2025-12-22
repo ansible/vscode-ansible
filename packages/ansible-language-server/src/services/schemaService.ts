@@ -48,7 +48,9 @@ export class SchemaService {
     return this.getSchemaUrlForUri(doc.uri) !== undefined;
   }
 
-  async getSchemaForDocument(doc: TextDocument): Promise<JSONSchema | undefined> {
+  async getSchemaForDocument(
+    doc: TextDocument,
+  ): Promise<JSONSchema | undefined> {
     const url = this.getSchemaUrlForUri(doc.uri);
     if (!url) return undefined;
     return this.cache.getSchema(url);

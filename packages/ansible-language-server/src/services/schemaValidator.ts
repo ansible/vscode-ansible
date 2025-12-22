@@ -87,12 +87,18 @@ export class SchemaValidator {
     }
   }
 
-  private getRange(err: ErrorObject, doc: TextDocument, yamlDoc: Document): Range {
+  private getRange(
+    err: ErrorObject,
+    doc: TextDocument,
+    yamlDoc: Document,
+  ): Range {
     const pathParts = err.instancePath.split("/").filter(Boolean);
 
     // For additionalProperties, append the extra property name
     if (err.keyword === "additionalProperties") {
-      pathParts.push((err.params as { additionalProperty: string }).additionalProperty);
+      pathParts.push(
+        (err.params as { additionalProperty: string }).additionalProperty,
+      );
     }
 
     const node = this.findNode(yamlDoc.contents, pathParts);
@@ -103,7 +109,10 @@ export class SchemaValidator {
       };
     }
 
-    return { start: { line: 0, character: 0 }, end: { line: 0, character: 80 } };
+    return {
+      start: { line: 0, character: 0 },
+      end: { line: 0, character: 80 },
+    };
   }
 
   private findNode(
@@ -118,7 +127,8 @@ export class SchemaValidator {
       if (isMap(current)) {
         const pair = current.items.find((p) => {
           const k = p.key;
-          if (k && typeof k === "object" && "value" in k) return k.value === key;
+          if (k && typeof k === "object" && "value" in k)
+            return k.value === key;
           return k === key;
         });
         current = pair?.value;
