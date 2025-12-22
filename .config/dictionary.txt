@@ -119,7 +119,6 @@ tomaciazek
 tomjs
 tomlsort
 towerhost
-unshallow
 uuidv
 virt
 vite

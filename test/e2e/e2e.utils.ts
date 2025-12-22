@@ -4,15 +4,20 @@ import sinon from "sinon";
 import { assert } from "chai";
 import findProcess from "find-process";
 
-import { LightSpeedCommands } from "../src/definitions/lightspeed";
+import { LightSpeedCommands } from "../../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
-import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
-import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
+import { LIGHTSPEED_ME_AUTH_URL } from "../../src/definitions/lightspeed";
+import { getInlineSuggestionItems } from "../../src/features/lightspeed/inlineSuggestions";
 import { rmSync } from "fs";
-import { PROJECT_ROOT } from "./setup";
+import { PROJECT_ROOT } from "../setup";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
+
+export const run_lightspeed_tests_only: boolean =
+  process.env.RUN_LIGHTSPEED_TESTS_ONLY === "1";
+export const skip_ee: boolean =
+  process.env.SKIP_PODMAN === "1" || process.env.SKIP_DOCKER === "1";
 
 // Cache for tracking activated documents to avoid redundant initialization
 const activatedDocuments = new Set<string>();

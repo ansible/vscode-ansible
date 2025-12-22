@@ -49,6 +49,29 @@ get_version () {
     fi
 }
 
+# Retry a command with configurable attempts and delay
+# Usage: retry <max_attempts> <delay_seconds> <command...>
+# On failure, outputs the last attempt's stderr/stdout
+retry() {
+    local max_attempts=$1
+    local delay=$2
+    shift 2
+    local attempt=1
+    local output
+    while true; do
+        if output=$("$@" 2>&1); then
+            return 0
+        fi
+        if [ "$attempt" -ge "$max_attempts" ]; then
+            echo "$output" >&2
+            return 1
+        fi
+        log warning "Command failed (attempt $attempt/$max_attempts), retrying in ${delay}s..."
+        sleep "$delay"
+        ((attempt++))
+    done
+}
+
 if [[ -z "${HOSTNAME:-}" ]]; then
    export HOSTNAME=${HOSTNAME:-${HOST:-$(hostname)}}
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
@@ -256,8 +279,8 @@ if [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     fi
     docker container prune -f >/dev/null 2>&1
     log notice "Pull our test container image with docker."
-    pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
-        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
+    retry 3 60 docker pull "${IMAGE}" || {
+        log error "Failed to pull image after 3 attempts, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it."
         exit 1
     }
     # without running we will never be sure it works (no arm64 image yet)
@@ -322,8 +345,8 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     PODMAN_VERSION="$(get_version podman 2>/dev/null || echo null)"
     podman container prune -f
     log notice "Pull our test container image with podman."
-    pull_output=$(podman pull --quiet "${IMAGE}" 2>&1 >/dev/null) || {
-        log error "Failed to pull image.\n${pull_output}"
+    retry 3 60 podman pull --quiet "${IMAGE}" || {
+        log error "Failed to pull image after 3 attempts."
         exit 1
     }
     # without running we will never be sure it works

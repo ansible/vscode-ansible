@@ -7,149 +7,137 @@ import {
   updateSettings,
   waitForDiagnosisCompletion,
   clearActivationCache,
-} from "../../helper";
+  run_lightspeed_tests_only,
+} from "../e2e.utils";
 
-export function testDiagnosticsAnsibleWithoutEE(): void {
-  describe("ansible-diag-no-ee", function () {
-    const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
-    const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
+describe("ansible-diag-no-ee", function () {
+  const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
+  const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
 
+  before(async function () {
+    if (run_lightspeed_tests_only) {
+      this.skip();
+    }
+    await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+  });
+
+  describe("Diagnostic test with ansible-lint", function () {
     before(async function () {
+      await updateSettings("validation.lint.enabled", true);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      // Give language server time to process document close and settings change
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      clearActivationCache(); // Clear cache after editors closed
     });
 
-    describe("Diagnostic test with ansible-lint", function () {
-      before(async function () {
-        await updateSettings("validation.lint.enabled", true);
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        // Give language server time to process document close and settings change
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        clearActivationCache(); // Clear cache after editors closed
-      });
-
-      after(async function () {
-        await updateSettings("validation.lint.enabled", true); // Keep enabled for other tests
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        clearActivationCache(); // Clear cache after editors closed
-      });
-
-      it("should complain about no task names", async function () {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
-        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, [
-          {
-            severity: 0,
-            message: "All tasks should be named",
-            range: new vscode.Range(
-              new vscode.Position(3, 0),
-              new vscode.Position(3, integer.MAX_VALUE),
-            ),
-            source: "ansible-lint",
-          },
-        ]);
-      });
-
-      it("should complain about command syntax-check failed", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
-        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, [
-          {
-            severity: 0,
-            message:
-              "Error processing keyword 'hosts': 'my_hosts' is undefined",
-            range: new vscode.Range(
-              new vscode.Position(1, 9),
-              new vscode.Position(1, integer.MAX_VALUE),
-            ),
-            source: "ansible-lint",
-          },
-        ]);
-      });
+    after(async function () {
+      await updateSettings("validation.lint.enabled", true); // Keep enabled for other tests
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      clearActivationCache(); // Clear cache after editors closed
     });
 
-    describe("Diagnostic test with ansible-syntax-check", function () {
-      before(async function () {
-        await updateSettings("validation.lint.enabled", false);
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        // Give language server time to process document close and settings change
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        clearActivationCache(); // Clear cache after editors closed
-      });
+    it("should complain about no task names", async function () {
+      await activate(docUri1);
+      await vscode.commands.executeCommand("workbench.action.files.save");
+      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+      await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
-      after(async function () {
-        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        clearActivationCache(); // Clear cache after editors closed
-      });
-
-      it("should return no diagnostics", async function () {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, []);
-      });
-
-      it("should complain about invalid `hosts` key", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, [
-          {
-            severity: 0,
-            message:
-              "Error processing keyword 'hosts': 'my_hosts' is undefined",
-            range: new vscode.Range(
-              new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE),
-            ),
-            source: "Ansible",
-          },
-        ]);
-      });
+      await testDiagnostics(docUri1, [
+        {
+          severity: 0,
+          message: "All tasks should be named",
+          range: new vscode.Range(
+            new vscode.Position(3, 0),
+            new vscode.Position(3, integer.MAX_VALUE),
+          ),
+          source: "ansible-lint",
+        },
+      ]);
     });
 
-    describe("no diagnostics", function () {
-      before(async function () {
-        await updateSettings("validation.enabled", false);
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        // Give language server time to process document close and settings change
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        clearActivationCache(); // Clear cache after editors closed
-      });
+    it("should complain about command syntax-check failed", async function () {
+      await activate(docUri2);
+      await vscode.commands.executeCommand("workbench.action.files.save");
+      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+      await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
-      after(async function () {
-        await updateSettings("validation.enabled", true); // Revert back the setting to default
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        clearActivationCache(); // Clear cache after editors closed
-      });
-
-      it("should return no diagnostics even when `hosts` key is missing", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, []);
-      });
+      await testDiagnostics(docUri2, [
+        {
+          severity: 0,
+          message: "Error processing keyword 'hosts': 'my_hosts' is undefined",
+          range: new vscode.Range(
+            new vscode.Position(1, 9),
+            new vscode.Position(1, integer.MAX_VALUE),
+          ),
+          source: "ansible-lint",
+        },
+      ]);
     });
   });
-}
+
+  describe("Diagnostic test with ansible-syntax-check", function () {
+    before(async function () {
+      await updateSettings("validation.lint.enabled", false);
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      // Give language server time to process document close and settings change
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      clearActivationCache(); // Clear cache after editors closed
+    });
+
+    after(async function () {
+      await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      clearActivationCache(); // Clear cache after editors closed
+    });
+
+    it("should return no diagnostics", async function () {
+      await activate(docUri1);
+      await vscode.commands.executeCommand("workbench.action.files.save");
+      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+
+      await testDiagnostics(docUri1, []);
+    });
+
+    it("should complain about invalid `hosts` key", async function () {
+      await activate(docUri2);
+      await vscode.commands.executeCommand("workbench.action.files.save");
+      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+
+      await testDiagnostics(docUri2, [
+        {
+          severity: 0,
+          message: "Error processing keyword 'hosts': 'my_hosts' is undefined",
+          range: new vscode.Range(
+            new vscode.Position(0, 0),
+            new vscode.Position(0, integer.MAX_VALUE),
+          ),
+          source: "Ansible",
+        },
+      ]);
+    });
+  });
+
+  describe("no diagnostics", function () {
+    before(async function () {
+      await updateSettings("validation.enabled", false);
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      // Give language server time to process document close and settings change
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      clearActivationCache(); // Clear cache after editors closed
+    });
+
+    after(async function () {
+      await updateSettings("validation.enabled", true); // Revert back the setting to default
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      clearActivationCache(); // Clear cache after editors closed
+    });
+
+    it("should return no diagnostics even when `hosts` key is missing", async function () {
+      await activate(docUri2);
+      await vscode.commands.executeCommand("workbench.action.files.save");
+      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+
+      await testDiagnostics(docUri2, []);
+    });
+  });
+});

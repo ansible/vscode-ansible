@@ -22,7 +22,7 @@ runs:
       shell: bash
 
     - name: Runner image version
-      run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}" >> "$GITHUB_ENV"
+      run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}-$(uname -m)" >> "$GITHUB_ENV"
       shell: bash
 
     - name: Enable caching for python
@@ -65,6 +65,8 @@ runs:
           .vscode-test
           out/ext
           out/test-resources*/chromedriver*
+          out/test-resources*/VSCode-*
+          out/test-resources*/Visual*
           out/test-resources*/driverVersion
           out/test-resources*/stable.zip
           out/test-resources*/manifest.json
