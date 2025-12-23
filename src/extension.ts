@@ -65,6 +65,7 @@ import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
+import { LlmProviderWebviewViewProvider } from "./features/lightspeed/llmProviderWebviewViewProvider";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
@@ -481,6 +482,30 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(quickLinksDisposable);
+
+  // Register LLM Provider webview
+  const llmProviderViewProvider = new LlmProviderWebviewViewProvider(
+    context.extensionUri,
+    context,
+    extSettings,
+    lightSpeedManager.providerManager,
+  );
+
+  const llmProviderDisposable = window.registerWebviewViewProvider(
+    LlmProviderWebviewViewProvider.viewType,
+    llmProviderViewProvider,
+  );
+
+  context.subscriptions.push(llmProviderDisposable);
+
+  // Listen for configuration changes to refresh the LLM Provider view
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(async (event) => {
+      if (event.affectsConfiguration("ansible.lightspeed")) {
+        await llmProviderViewProvider.refreshWebView();
+      }
+    }),
+  );
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(

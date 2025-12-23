@@ -777,6 +777,13 @@
           "type": "webview"
         },
         {
+          "icon": "$(hubot)",
+          "id": "llm-provider-webview",
+          "name": "LLM Provider",
+          "type": "webview",
+          "when": "config.ansible.lightspeed.enabled"
+        },
+        {
           "icon": "images/ansible.svg",
           "id": "lightspeed-explorer-webview",
           "name": "Ansible Lightspeed",
