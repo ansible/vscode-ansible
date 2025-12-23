@@ -22,7 +22,7 @@ import { lightSpeedManager } from "../../../src/extension";
 import { ignorePendingSuggestion } from "../../../src/features/lightspeed/inlineSuggestions";
 import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
-import { activate, getDocUri, sleep } from "../../helper";
+import { activate, getDocUri, sleep } from "../e2e.utils";
 import { integer } from "vscode-languageclient";
 import { shouldTriggerMultiTaskSuggestion } from "../../../src/features/lightspeed/utils/data";
 
