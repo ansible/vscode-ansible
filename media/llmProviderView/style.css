@@ -1,0 +1,102 @@
+/* LLM Provider View Styles */
+#llmProviderView {
+  padding: 12px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.provider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vscode-foreground);
+  margin-bottom: 4px;
+}
+
+.provider-select {
+  width: 100%;
+  padding: 6px 10px;
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.provider-select:hover {
+  border-color: var(--vscode-focusBorder);
+}
+
+.provider-select:focus {
+  border-color: var(--vscode-focusBorder);
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 6px 10px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.text-input:hover {
+  border-color: var(--vscode-focusBorder);
+}
+
+.text-input:focus {
+  border-color: var(--vscode-focusBorder);
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.text-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.description {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Codicon animations */
+.codicon-modifier-spin {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
