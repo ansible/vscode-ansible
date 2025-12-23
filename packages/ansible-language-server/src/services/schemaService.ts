@@ -29,12 +29,7 @@ export class SchemaService {
   }
 
   getSchemaUrlForUri(uri: string): string | undefined {
-    let filePath: string;
-    try {
-      filePath = URI.parse(uri).fsPath;
-    } catch {
-      filePath = uri;
-    }
+    const filePath = URI.parse(uri).fsPath || uri;
 
     for (const { pattern, url } of SCHEMA_MAPPINGS) {
       if (pattern.test(filePath)) {
