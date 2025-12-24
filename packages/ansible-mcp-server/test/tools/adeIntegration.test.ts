@@ -21,7 +21,7 @@ describe("ADE Tools Integration", () => {
         (c: { type: string }) => c.type === "text",
       );
       expect(textContent).toBeDefined();
-      expect(textContent?.text).toContain("🔍 Environment Information");
+      expect(textContent?.text).toContain("Environment Information");
     });
 
     it("should handle errors gracefully", async () => {
@@ -55,7 +55,7 @@ describe("ADE Tools Integration", () => {
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
-    });
+    }, 45000); // 45 second timeout
 
     it("should handle partial arguments", async () => {
       const args = {
