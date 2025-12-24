@@ -73,6 +73,10 @@ export class AnsibleLint {
     this._ansibleLintConfigFilePath = ansibleLintConfigPath;
     linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
+    if (settings.validation.lint.autoFixOnSave) {
+      linterArguments = `${linterArguments} --fix`;
+    }
+
     const docPath = URI.parse(textDocument.uri).path;
     mountPaths.add(path.dirname(docPath));
 

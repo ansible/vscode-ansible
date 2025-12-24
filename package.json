@@ -331,6 +331,13 @@
             "scope": "resource",
             "type": "string"
           },
+          "ansible.validation.lint.autoFixOnSave": {
+            "default": false,
+            "markdownDescription": "Specifies whether `ansible-lint --fix` should run automatically when you save a file. [Learn more](https://ansible.readthedocs.io/projects/lint/autofix/)",
+            "order": 4,
+            "scope": "resource",
+            "type": "boolean"
+          },
           "ansible.validation.lint.enabled": {
             "default": true,
             "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
