@@ -110,6 +110,11 @@ export class SettingsManager {
           description:
             "Optional command line arguments to be appended to ansible-lint invocation",
         },
+        autoFixOnSave: {
+          default: false,
+          description:
+            "Specifies whether `ansible-lint --fix` should run automatically when you save a file.",
+        },
       },
     },
   };
