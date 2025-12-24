@@ -491,6 +491,34 @@ describe("doValidate()", function () {
         });
       });
 
+      describe("Auto-fix on save", function () {
+        describe("@noee", function () {
+          const currentSettings = context?.documentSettings.get(textDoc.uri);
+
+          it("should execute ansible-lint with --fix branch when enabled", async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = true;
+            }
+            expect(context).is.not.undefined;
+            await doValidate(textDoc, validationManager, false, context);
+          });
+
+          it("should NOT execute ansible-lint with --fix branch when disabled", async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = false;
+            }
+            expect(context).is.not.undefined;
+            await doValidate(textDoc, validationManager, false, context);
+          });
+
+          after(async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = false;
+            }
+          });
+        });
+      });
+
       describe("Diagnostics using ansible-playbook --syntax-check", function () {
         describe("no specific ansible lint errors", function () {
           fixtureFilePath = "diagnostics/lint_errors.yml";

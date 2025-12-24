@@ -157,7 +157,10 @@ export class SettingsManager {
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings = _.merge(this.globalSettings, clientSettings);
+      const mergedSettings = _.merge(
+        _.cloneDeep(this.globalSettings),
+        clientSettings,
+      );
       result = Promise.resolve(mergedSettings);
       this.documentSettings.set(uri, result);
     }
