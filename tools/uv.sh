@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null

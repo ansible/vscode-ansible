@@ -55,6 +55,7 @@ equalto
 eslintcache
 extest
 fqcn
+gcovr
 genai
 haaaad
 highlightjs
@@ -106,6 +107,7 @@ servernum
 shiki
 showformat
 sonarcloud
+sonarqube
 suboption
 suboptions
 sysninja
@@ -120,6 +122,7 @@ tomaciazek
 tomjs
 tomlsort
 towerhost
+tracefile
 uuidv
 virt
 vite
