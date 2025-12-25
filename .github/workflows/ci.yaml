@@ -147,7 +147,7 @@ jobs:
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
-          path: packages/ansible-language-server/*.tgz
+          path: out/ship/@ansible-ansible-language-server-*.tgz
           if-no-files-found: error
           retention-days: 90
 
