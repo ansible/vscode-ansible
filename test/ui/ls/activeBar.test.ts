@@ -7,9 +7,8 @@ import {
   ViewSection,
 } from "vscode-extension-tester";
 import {
-  updateSettings,
+  ensureSettings,
   getWebviewByLocator,
-  openSettings,
   getAnsibleViewControl,
 } from "../uiTestHelper";
 
@@ -23,8 +22,9 @@ describe("presence of lightspeed login button in the activity bar", function () 
 
   before(async function () {
     this.timeout(30000); // Increase timeout for extension loading
-    const settingsEditor = await openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
+    ensureSettings({
+      "ansible.lightspeed.enabled": true,
+    });
     view = await getAnsibleViewControl();
     sideBar = await view.openView();
 
@@ -44,8 +44,9 @@ describe("presence of lightspeed login button in the activity bar", function () 
     if (webviewView) {
       await webviewView.switchBack();
     }
-    const settingsEditor = await openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
+    ensureSettings({
+      "ansible.lightspeed.enabled": false,
+    });
   });
 
   it("Ansible Lightspeed welcome message is present", async function () {
