@@ -117,8 +117,8 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- Model Name -->
-      <div class="section">
+      <!-- Model Name (for non-WCA providers) -->
+      <div v-if="needsApiKey" class="section">
         <label for="model-name" class="section-label">Model Name</label>
         <input 
           id="model-name" 
