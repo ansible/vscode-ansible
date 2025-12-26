@@ -200,7 +200,8 @@ describe("MCP Handlers", () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("Setup failed");
+      // Output includes info note about collections when none specified
+      expect(result.content[0].text).toContain("Setup failed");
       expect(result.isError).toBe(true);
     });
 
@@ -219,6 +220,135 @@ describe("MCP Handlers", () => {
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toContain(
         "Error setting up development environment: Setup exception",
+      );
+      expect(result.isError).toBe(true);
+    });
+
+    it("should auto-detect collections from requirementsFile parameter", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "amazon.aws ansible.posix",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Auto-detected collections");
+      expect(result.content[0].text).toContain("amazon.aws");
+      expect(result.isError).toBe(false);
+
+      // Verify setupDevelopmentEnvironment was called with collections moved
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          collections: ["amazon.aws", "ansible.posix"],
+        }),
+      );
+    });
+
+    it("should not auto-detect when requirementsFile has file extension", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "requirements.txt",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).not.toContain("Auto-detected collections");
+      expect(result.isError).toBe(false);
+
+      // Verify requirementsFile was passed through unchanged
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          requirementsFile: "requirements.txt",
+        }),
+      );
+    });
+
+    it("should handle empty requirementsFile", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.isError).toBe(false);
+
+      // Verify empty requirementsFile was removed
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.not.objectContaining({
+          requirementsFile: "",
+        }),
+      );
+    });
+
+    it("should merge auto-detected collections with existing collections", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        collections: ["community.general"],
+        requirementsFile: "amazon.aws",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Auto-detected collections");
+      expect(result.isError).toBe(false);
+
+      // Verify both existing and auto-detected collections are included
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          collections: ["community.general", "amazon.aws"],
+        }),
+      );
+    });
+
+    it("should handle non-Error exceptions during setup", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockRejectedValue("String error");
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({});
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain(
+        "Error setting up development environment: String error",
       );
       expect(result.isError).toBe(true);
     });

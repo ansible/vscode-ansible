@@ -196,13 +196,57 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
     requirementsFile?: string;
   }) => {
     try {
+      const notes: string[] = [];
+
+      // Auto-detect: If requirementsFile looks like collection names, move them to collections
+      // Collection format: namespace.collection (e.g., amazon.aws, ansible.posix)
+      // NOT file extensions like .txt, .yml, .yaml, .json, .cfg
+      if (args.requirementsFile) {
+        const fileExtensions = /\.(txt|yml|yaml|json|cfg|ini|req|in)$/i;
+        const collectionPattern = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/i;
+
+        // Skip if it looks like a file path
+        if (!fileExtensions.test(args.requirementsFile)) {
+          const potentialCollections = args.requirementsFile
+            .split(/[,\s]+/)
+            .filter((s) => s.trim());
+
+          const detectedCollections = potentialCollections.filter((name) =>
+            collectionPattern.test(name.trim()),
+          );
+
+          if (detectedCollections.length > 0) {
+            // Auto-correct: Move to collections parameter
+            args.collections = [
+              ...(args.collections || []),
+              ...detectedCollections,
+            ];
+            notes.push(
+              `Auto-detected collections: ${detectedCollections.join(", ")}`,
+            );
+            // Clear requirementsFile since we moved the collections
+            delete args.requirementsFile;
+          }
+        }
+      }
+
+      // Remove empty requirementsFile
+      if (args.requirementsFile === "") {
+        delete args.requirementsFile;
+      }
+
       const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+
+      // Prepend notes to output
+      const output = notes.length
+        ? notes.join("\n") + "\n" + result.output
+        : result.output;
 
       return {
         content: [
           {
             type: "text" as const,
-            text: result.output,
+            text: output,
           },
         ],
         isError: !result.success,
@@ -279,7 +323,7 @@ export function createAnsibleNavigatorHandler() {
               "- **VM/Podman** (default) - Runs in isolated container environment\n" +
               "- **Local Ansible** - Runs directly on your system (use `--ee false`)\n" +
               "- **Virtual Environment** - Runs from specific Python venv\n\n" +
-              "## 🔍 Environment Detection (Default Order)\n" +
+              "## Environment Detection (Default Order)\n" +
               "When running ansible-navigator, we auto-detect the installation in this order:\n" +
               "1. **System PATH** - First checks if ansible-navigator is in your PATH (e.g., `/usr/local/bin/ansible-navigator`)\n" +
               "2. **Virtual Environments** - Then checks common venv locations (`ansible-dev/bin/`, `venv/bin/`, `.venv/bin/`)\n" +
@@ -296,7 +340,7 @@ export function createAnsibleNavigatorHandler() {
               "# Use specific Python venv\n" +
               "source venv/bin/activate && ansible-navigator run playbooks/play1.yml\n" +
               "```\n\n" +
-              "## 💡 Tips\n" +
+              "## Tips\n" +
               "- **This tool uses**: stdout mode by default (direct output, best for chat/scripting)\n" +
               "- **For exploration**: Use `-m interactive` (TUI - press ESC to navigate)\n" +
               "- **Podman/Docker**: Required for execution environment (EE), auto-retries with `--ee false` if not available\n" +
@@ -356,7 +400,7 @@ export function createAnsibleNavigatorHandler() {
           {
             type: "text" as const,
             text:
-              "❌ **Could not determine which playbook to run.**\n\n" +
+              "**Could not determine which playbook to run.**\n\n" +
               "Please specify the playbook name more clearly. Examples:\n" +
               "- 'run play1.yml'\n" +
               "- 'run playbooks/deploy.yml'\n" +
@@ -433,7 +477,7 @@ export function createAnsibleNavigatorHandler() {
       // If it's a container engine error and we haven't already disabled EE, automatically retry
       if (isContainerEngineError && !disableExecutionEnvironment) {
         // Inform the user we're automatically retrying
-        const retryMessage = `⚠️  Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
+        const retryMessage = `Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
 
         try {
           // Retry with execution environment disabled
