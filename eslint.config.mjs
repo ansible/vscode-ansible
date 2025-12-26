@@ -11,6 +11,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
+import noUnsafeSpawnRule from "./test/eslint/no-unsafe-spawn.ts";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -33,6 +34,32 @@ export default defineConfig(
       "site/*",
       "webviews/**",
     ],
+  },
+  {
+    // Configuration for ESLint rule files (TypeScript)
+    // Must come before TypeScript configs to override parser
+    files: ["test/eslint/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2017,
+      },
+      // Use TypeScript parser for rule files, but without project for type checking
+      // since rule files don't need full type checking
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+      },
+    },
+    rules: {
+      // Allow some TypeScript-specific rules for rule files, but disable strict ones
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+    },
   },
   eslint.configs.recommended,
   prettierRecommendedConfig,
@@ -68,6 +95,7 @@ export default defineConfig(
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
       tsdoc: tsdocPlugin,
+      "custom-rules": noUnsafeSpawnRule,
     },
     rules: {
       eqeqeq: ["error", "smart"],
@@ -97,6 +125,7 @@ export default defineConfig(
       "@typescript-eslint/await-thenable": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
       "@typescript-eslint/only-throw-error": "off",
+      "custom-rules/no-unsafe-spawn": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
       "no-control-regex": "error",

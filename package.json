@@ -1011,7 +1011,7 @@
           "rulebooks/*.yaml",
           "rulebooks/*.yml"
         ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
+        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/ansible_rulebook/schema/ruleset_schema.json"
       }
     ]
   },
