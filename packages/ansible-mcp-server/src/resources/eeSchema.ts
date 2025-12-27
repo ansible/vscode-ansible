@@ -5,21 +5,31 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+function getResourceDir(): string {
+  // Check for MCP_RESOURCE_DIR environment variable set by the extension
+  if (
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.MCP_RESOURCE_DIR &&
+    typeof process.env.MCP_RESOURCE_DIR === "string" &&
+    process.env.MCP_RESOURCE_DIR.length > 0
+  ) {
+    return process.env.MCP_RESOURCE_DIR;
+  }
 
-// Schema file packaged with the extension
-// In compiled output, files are in out/server/src/resources/data/
-// In source, files are in src/resources/data/
-const SCHEMA_FILE = path.join(
-  __dirname,
-  "data/execution-environment-schema.json",
-);
-const RULES_FILE = path.join(__dirname, "data/ee-rules.md");
-// Sample EE file packaged with the extension
+  // Fallback: This works correctly when code is not bundled (dev/test/standalone)
+  const __filename = fileURLToPath(import.meta.url);
+  return path.join(path.dirname(__filename), "data");
+}
+
+const resourceDir = getResourceDir();
+
+const SCHEMA_FILE = path.join(resourceDir, "execution-environment-schema.json");
+const RULES_FILE = path.join(resourceDir, "ee-rules.md");
+
 export const SAMPLE_EE_FILE = path.join(
-  __dirname,
-  "data/execution-environment-sample.yml",
+  resourceDir,
+  "execution-environment-sample.yml",
 );
 
 export interface ExecutionEnvironmentSchema {
