@@ -25,6 +25,7 @@ const providers = ref<ProviderInfo[]>([]);
 const currentProvider = ref<string>('wca');
 const apiKey = ref<string>('');
 const modelName = ref<string>('');
+const apiEndpoint = ref<string>('');
 const isLoading = ref<boolean>(true);
 
 // Computed
@@ -34,6 +35,13 @@ const selectedProviderInfo = computed(() => {
 
 const needsApiKey = computed(() => {
   return currentProvider.value !== 'wca';
+});
+
+const showApiEndpoint = computed(() => {
+  // Show API endpoint for all providers
+  // WCA: for on-prem deployments
+  // Google: for localhost testing
+  return true;
 });
 
 // Methods
@@ -49,7 +57,19 @@ const saveProviderSettings = () => {
     provider: currentProvider.value,
     apiKey: apiKey.value,
     modelName: modelName.value,
+    apiEndpoint: apiEndpoint.value,
   });
+};
+
+// Handle provider change - reset fields to defaults
+const onProviderChange = () => {
+  // Clear provider-specific fields
+  apiKey.value = '';
+  modelName.value = '';
+  apiEndpoint.value = '';
+  
+  // Save with cleared fields (backend will apply defaults)
+  saveProviderSettings();
 };
 
 // Message handler
@@ -62,6 +82,7 @@ const handleMessage = (event: MessageEvent) => {
       currentProvider.value = message.currentProvider || 'wca';
       apiKey.value = message.apiKey || '';
       modelName.value = message.modelName || '';
+      apiEndpoint.value = message.apiEndpoint || '';
       isLoading.value = false;
       break;
   }
@@ -88,7 +109,7 @@ onMounted(() => {
           id="provider-select" 
           v-model="currentProvider" 
           class="provider-select"
-          @change="saveProviderSettings"
+          @change="onProviderChange"
         >
           <option 
             v-for="provider in providers" 
@@ -99,6 +120,22 @@ onMounted(() => {
           </option>
         </select>
         <p class="description">{{ selectedProviderInfo?.description }}</p>
+      </div>
+
+      <!-- API Endpoint -->
+      <div v-if="showApiEndpoint" class="section">
+        <label for="api-endpoint" class="section-label">API Endpoint</label>
+        <input 
+          id="api-endpoint" 
+          v-model="apiEndpoint" 
+          type="text" 
+          class="text-input"
+          :placeholder="selectedProviderInfo?.defaultEndpoint || 'Leave empty for default'"
+          @blur="saveProviderSettings"
+        />
+        <p class="description">
+          {{ selectedProviderInfo?.configSchema.find(c => c.key === 'apiEndpoint')?.description || 'API endpoint URL. Leave empty to use default.' }}
+        </p>
       </div>
 
       <!-- API Key (for non-WCA providers) -->

@@ -6,12 +6,11 @@ import {
   WebviewView,
   WebviewViewProvider,
   WebviewViewResolveContext,
-  workspace,
-  ConfigurationTarget,
 } from "vscode";
 import { SettingsManager } from "../../settings";
 import { providerFactory } from "./providers/factory";
 import { ProviderManager } from "./providerManager";
+import { LlmProviderSettings } from "./llmProviderSettings";
 
 export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "llm-provider-webview";
@@ -19,15 +18,18 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
   private webviewView: WebviewView | undefined;
   private readonly settingsManager: SettingsManager;
   private readonly providerManager: ProviderManager;
+  private readonly llmProviderSettings: LlmProviderSettings;
 
   constructor(
     private readonly _extensionUri: Uri,
     private readonly _context: ExtensionContext,
     settingsManager: SettingsManager,
     providerManager: ProviderManager,
+    llmProviderSettings: LlmProviderSettings,
   ) {
     this.settingsManager = settingsManager;
     this.providerManager = providerManager;
+    this.llmProviderSettings = llmProviderSettings;
   }
 
   public async refreshWebView() {
@@ -80,18 +82,15 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
 
   private async sendProviderSettings(webview: Webview) {
     const providers = providerFactory.getSupportedProviders();
-    const lightspeedConfig = workspace.getConfiguration("ansible.lightspeed");
-
-    const currentProvider = lightspeedConfig.get<string>("provider", "wca");
-    const apiKey = lightspeedConfig.get<string>("apiKey", "");
-    const modelName = lightspeedConfig.get<string>("modelName", "");
+    const settings = await this.llmProviderSettings.getAllSettings();
 
     webview.postMessage({
       command: "providerSettings",
       providers: providers,
-      currentProvider: currentProvider,
-      apiKey: apiKey,
-      modelName: modelName,
+      currentProvider: settings.provider,
+      apiKey: settings.apiKey,
+      modelName: settings.modelName ?? "",
+      apiEndpoint: settings.apiEndpoint,
     });
   }
 
@@ -115,41 +114,40 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
     provider: string;
     apiKey: string;
     modelName: string;
+    apiEndpoint: string;
   }) {
     try {
-      const lightspeedConfig =
-        workspace.getConfiguration("ansible.lightspeed");
-
       // Update provider
-      await lightspeedConfig.update(
-        "provider",
-        message.provider,
-        ConfigurationTarget.Workspace,
-      );
+      await this.llmProviderSettings.setProvider(message.provider);
 
       // Update API key if provided (for non-WCA providers)
-      if (message.provider !== "wca" && message.apiKey) {
-        await lightspeedConfig.update(
-          "apiKey",
-          message.apiKey,
-          ConfigurationTarget.Workspace,
-        );
+      if (message.provider !== "wca") {
+        await this.llmProviderSettings.setApiKey(message.apiKey || undefined);
+      } else {
+        // Clear API key when switching to WCA (uses OAuth)
+        await this.llmProviderSettings.setApiKey(undefined);
       }
 
       // Update model name if provided
-      if (message.modelName) {
-        await lightspeedConfig.update(
-          "modelName",
-          message.modelName,
-          ConfigurationTarget.Workspace,
-        );
-      }
+      await this.llmProviderSettings.setModelName(
+        message.modelName || undefined,
+      );
+
+      // Update API endpoint if provided
+      await this.llmProviderSettings.setApiEndpoint(
+        message.apiEndpoint || undefined,
+      );
 
       // Reinitialize settings
       await this.settingsManager.reinitialize();
 
       // Refresh provider manager
       await this.providerManager.refreshProviders();
+
+      // Send updated settings back to webview (with defaults applied)
+      if (this.webviewView) {
+        await this.sendProviderSettings(this.webviewView.webview);
+      }
     } catch (error) {
       console.error("Failed to save provider settings:", error);
     }

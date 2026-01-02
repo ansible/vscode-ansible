@@ -4,12 +4,7 @@ import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
-import {
-  LightSpeedCommands,
-  UserAction,
-  GOOGLE_API_ENDPOINT,
-  WCA_API_ENDPOINT_DEFAULT,
-} from "./definitions/lightspeed";
+import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -88,6 +83,7 @@ import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { ProviderCommands } from "./features/lightspeed/commands/providerCommands";
+import { LlmProviderSettings } from "./features/lightspeed/llmProviderSettings";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
@@ -117,8 +113,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const telemetry = new TelemetryManager(context);
   await telemetry.initTelemetryService();
 
+  // Initialize LLM provider settings (uses globalState and secrets)
+  const llmProviderSettings = new LlmProviderSettings(context);
+
   // Initialize settings
   const extSettings = new SettingsManager();
+  extSettings.setLlmProviderSettings(llmProviderSettings);
   await extSettings.initialize();
 
   // Vault encrypt/decrypt handler
@@ -185,7 +185,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
   lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
 
   // Register provider management commands
-  const providerCommands = new ProviderCommands(context, lightSpeedManager);
+  const providerCommands = new ProviderCommands(
+    context,
+    lightSpeedManager,
+    llmProviderSettings,
+  );
   providerCommands.registerCommands();
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
@@ -388,41 +392,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
         );
       }
 
-      // Check if Lightspeed provider changed - refresh explorer panel and set apiEndpoint
-      if (event.affectsConfiguration("ansible.lightspeed.provider")) {
-        const config = workspace.getConfiguration("ansible.lightspeed");
-        const provider = config.get<string>("provider");
-
-        // Determine the configuration target (folder takes precedence over workspace, which takes precedence over global)
-        const providerInspect = config.inspect<string>("provider");
-        let configTarget: vscode.ConfigurationTarget | undefined;
-
-        if (providerInspect?.workspaceFolderValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
-        } else if (providerInspect?.workspaceValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.Workspace;
-        } else {
-          configTarget = vscode.ConfigurationTarget.Global;
-        }
-
-        // Auto-set apiEndpoint based on provider type
-        if (provider === "google") {
-          await config.update("apiEndpoint", GOOGLE_API_ENDPOINT, configTarget);
-        } else if (provider === "wca") {
-          // For WCA, use default if not set; otherwise keep user's value (for on-prem)
-          const currentEndpoint = config.get<string>("apiEndpoint");
-          if (!currentEndpoint || currentEndpoint.trim() === "") {
-            await config.update(
-              "apiEndpoint",
-              WCA_API_ENDPOINT_DEFAULT,
-              configTarget,
-            );
-          }
-          // If endpoint is already set, keep it (user's custom on-prem WCA deployment)
-        }
-        await updateExplorerState(lightSpeedManager);
-      }
-
       await updateConfigurationChanges(
         metaData,
         pythonInterpreterManager,
@@ -485,6 +454,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     extSettings,
     lightSpeedManager.providerManager,
+    llmProviderSettings,
   );
 
   const llmProviderDisposable = window.registerWebviewViewProvider(
@@ -493,15 +463,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(llmProviderDisposable);
-
-  // Listen for configuration changes to refresh the LLM Provider view
-  context.subscriptions.push(
-    workspace.onDidChangeConfiguration(async (event) => {
-      if (event.affectsConfiguration("ansible.lightspeed")) {
-        await llmProviderViewProvider.refreshWebView();
-      }
-    }),
-  );
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
