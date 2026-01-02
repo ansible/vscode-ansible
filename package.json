@@ -431,19 +431,6 @@
       },
       {
         "properties": {
-          "ansible.lightspeed.apiEndpoint": {
-            "default": "",
-            "markdownDescription": "API endpoint URL. **Only configurable for WCA provider.** For Google, the endpoint is automatically set and cannot be changed. Default for WCA: https://c.ai.ansible.redhat.com",
-            "order": 4,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.apiKey": {
-            "markdownDescription": "API key for Google provider. Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
-            "order": 3,
-            "scope": "resource",
-            "type": "string"
-          },
           "ansible.lightspeed.enabled": {
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",
@@ -451,45 +438,24 @@
             "scope": "resource",
             "type": "boolean"
           },
-          "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
-            "order": 2,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.provider": {
-            "default": "wca",
-            "enum": [
-              "wca",
-              "google"
-            ],
-            "enumDescriptions": [
-              "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
-              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
-            ],
-            "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
-            "order": 1,
-            "scope": "resource",
-            "type": "string"
-          },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
             "markdownDescription": "Enable inline suggestions. Note: Currently only supported with WCA provider.",
-            "order": 7,
+            "order": 1,
             "scope": "resource",
             "type": "boolean"
           },
           "ansible.lightspeed.suggestions.waitWindow": {
             "default": 0,
             "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request.",
-            "order": 8,
+            "order": 2,
             "scope": "resource",
             "type": "number"
           },
           "ansible.lightspeed.timeout": {
             "default": 3000,
             "markdownDescription": "Request timeout in milliseconds for API calls.",
-            "order": 5,
+            "order": 3,
             "scope": "resource",
             "type": "number"
           }

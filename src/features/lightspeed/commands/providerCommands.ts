@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 import { LightSpeedManager } from "../base";
 import { providerFactory } from "../providers/factory";
+import { LlmProviderSettings } from "../llmProviderSettings";
 
 export class ProviderCommands {
   constructor(
     private readonly context: vscode.ExtensionContext,
     private readonly lightSpeedManager: LightSpeedManager,
+    private readonly llmProviderSettings: LlmProviderSettings,
   ) {}
 
   /**
@@ -121,23 +123,28 @@ export class ProviderCommands {
         return;
       }
 
-      // Step 2: Configure provider settings
-      const lightspeedConfig =
-        vscode.workspace.getConfiguration("ansible.lightspeed");
-      await lightspeedConfig.update(
-        "provider",
+      // Step 2: Configure provider settings using LlmProviderSettings
+      await this.llmProviderSettings.setProvider(
         selectedProvider.provider.type,
-        vscode.ConfigurationTarget.Workspace,
       );
 
-      // Configure required fields using the main lightspeed config
+      // Configure required fields
       for (const field of selectedProvider.provider.configSchema) {
         if (field.required) {
-          const currentValue = lightspeedConfig.get(field.key, "");
+          // Get current value from LlmProviderSettings
+          let currentValue = "";
+          if (field.key === "apiKey") {
+            currentValue = await this.llmProviderSettings.getApiKey();
+          } else if (field.key === "modelName") {
+            currentValue = this.llmProviderSettings.getModelName() ?? "";
+          } else if (field.key === "apiEndpoint") {
+            currentValue = this.llmProviderSettings.getApiEndpoint();
+          }
+
           const inputOptions: vscode.InputBoxOptions = {
             prompt: field.label,
             placeHolder: field.placeholder,
-            value: currentValue as string,
+            value: currentValue,
             ignoreFocusOut: true,
           };
 
@@ -151,36 +158,28 @@ export class ProviderCommands {
             return; // User cancelled
           }
 
-          await lightspeedConfig.update(
-            field.key,
-            value,
-            vscode.ConfigurationTarget.Workspace,
-          );
+          // Save to LlmProviderSettings
+          if (field.key === "apiKey") {
+            await this.llmProviderSettings.setApiKey(value || undefined);
+          } else if (field.key === "modelName") {
+            await this.llmProviderSettings.setModelName(value || undefined);
+          } else if (field.key === "apiEndpoint") {
+            await this.llmProviderSettings.setApiEndpoint(value || undefined);
+          }
         }
       }
 
       // Set default endpoint if available and not already set
-      if (
-        selectedProvider.provider.defaultEndpoint &&
-        !lightspeedConfig.get("apiEndpoint")
-      ) {
-        // Determine the configuration target (folder takes precedence over workspace, which takes precedence over global)
-        const providerInspect = lightspeedConfig.inspect<string>("provider");
-        let configTarget: vscode.ConfigurationTarget;
-
-        if (providerInspect?.workspaceFolderValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
-        } else if (providerInspect?.workspaceValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.Workspace;
-        } else {
-          configTarget = vscode.ConfigurationTarget.Global;
+      if (selectedProvider.provider.defaultEndpoint) {
+        const currentEndpoint = this.llmProviderSettings.getApiEndpoint();
+        if (
+          !currentEndpoint ||
+          currentEndpoint === "https://c.ai.ansible.redhat.com"
+        ) {
+          await this.llmProviderSettings.setApiEndpoint(
+            selectedProvider.provider.defaultEndpoint,
+          );
         }
-
-        await lightspeedConfig.update(
-          "apiEndpoint",
-          selectedProvider.provider.defaultEndpoint,
-          configTarget,
-        );
       }
 
       // Refresh provider manager
@@ -276,14 +275,13 @@ export class ProviderCommands {
     }
 
     try {
-      const config = vscode.workspace.getConfiguration("ansible.lightspeed");
-
-      // Switch to selected provider
-      await config.update(
-        "provider",
+      // Switch to selected provider using LlmProviderSettings
+      await this.llmProviderSettings.setProvider(
         selectedProvider.provider.type,
-        vscode.ConfigurationTarget.Workspace,
       );
+
+      // Enable lightspeed in VS Code settings
+      const config = vscode.workspace.getConfiguration("ansible.lightspeed");
       await config.update(
         "enabled",
         true,
