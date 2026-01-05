@@ -11,6 +11,7 @@ import {
   ANSIBLE_TOX_RUN_COMMAND,
 } from "./constants";
 import path from "path";
+import { resolveInterpreterPath } from "../utils/interpreterPathResolver";
 
 const exec = util.promisify(child_process.exec);
 
@@ -23,9 +24,11 @@ export async function getToxEnvs(
   const activationScript = (await ansibleSettings.get(
     "python.activationScript",
   )) as string;
-  const interpreterPath = (await ansibleSettings.get(
+  const rawInterpreterPath = (await ansibleSettings.get(
     "python.interpreterPath",
   )) as string;
+  // Resolve ${workspaceFolder} and relative paths
+  const interpreterPath = resolveInterpreterPath(rawInterpreterPath);
 
   if (activationScript) {
     command = `sh -c '. ${activationScript} && ${command}'`;
