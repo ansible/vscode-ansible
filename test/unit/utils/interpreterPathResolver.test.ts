@@ -64,14 +64,16 @@ describe("interpreterPathResolver", () => {
     it("should resolve relative paths starting with ./", () => {
       const relativePath = "./venv/bin/python";
       const result = resolveInterpreterPath(relativePath);
-      expect(path.isAbsolute(result!)).toBe(true);
+      expect(result).toBeDefined();
+      expect(path.isAbsolute(result as string)).toBe(true);
       expect(result).toBe(path.resolve(mockWorkspacePath, relativePath));
     });
 
     it("should resolve relative paths starting with ../", () => {
       const relativePath = "../other-project/venv/bin/python";
       const result = resolveInterpreterPath(relativePath);
-      expect(path.isAbsolute(result!)).toBe(true);
+      expect(result).toBeDefined();
+      expect(path.isAbsolute(result as string)).toBe(true);
       expect(result).toBe(path.resolve(mockWorkspacePath, relativePath));
     });
 
