@@ -370,64 +370,18 @@ jobs:
           if-no-files-found: ignore
           retention-days: 90
 
-      - name: Upload test results to Codecov (als)
-        if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
+          directory: out/junit
           fail_ci_if_error: true
-          directory: out/junit/als
           handle_no_reports_found: true
+          plugins: noop
+          report_type: test_results
           name: ${{ matrix.id }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
-
-      - name: Upload test results to Codecov (mcp)
-        if: ${{ !cancelled() && hashFiles('out/junit/mcp/*.xml') != '' }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/mcp
-          handle_no_reports_found: true
-          name: ${{ matrix.id }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},mcp
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
-
-      - name: Upload test results to Codecov (e2e)
-        if: ${{ !cancelled() && hashFiles('out/junit/e2e/*.xml') != '' }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/e2e
-          handle_no_reports_found: true
-          name: ${{ matrix.id }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
-
-      - name: Upload test results to Codecov (unit)
-        if: ${{ !cancelled() && hashFiles('out/junit/unit/*.xml') != '' }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/unit
-          handle_no_reports_found: true
-          name: ${{ matrix.id }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
-
-      - name: Upload test results to Codecov (ui)
-        if: ${{ !cancelled() && hashFiles('out/junit/ui/*.xml') != '' }}
-        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1.2.1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/ui
-          handle_no_reports_found: true
-          name: ${{ matrix.id }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services

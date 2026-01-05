@@ -98,6 +98,7 @@ progressspinner
 projectuser
 pydoclint
 pyvenv
+quasis
 relogin
 rhsso
 rimraf
