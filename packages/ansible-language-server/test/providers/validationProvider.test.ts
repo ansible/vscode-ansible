@@ -519,6 +519,43 @@ describe("doValidate()", function () {
         });
       });
 
+      describe("When validation is disabled", function () {
+        it("should return empty diagnostics", async function () {
+          const currentSettings = await context?.documentSettings.get(
+            textDoc.uri,
+          );
+          if (currentSettings) {
+            currentSettings.validation.enabled = false;
+          }
+
+          const freshUri = `${textDoc.uri}.unique.yml`;
+          const freshDoc = {
+            ...textDoc,
+            uri: freshUri,
+            getText: () => "",
+          } as TextDocument;
+
+          const result = await doValidate(
+            freshDoc,
+            validationManager,
+            false,
+            context,
+          );
+
+          const totalDiagnostics = Array.from(result.values()).flat().length;
+          expect(totalDiagnostics).to.equal(0);
+        });
+
+        after(async function () {
+          const currentSettings = await context?.documentSettings.get(
+            textDoc.uri,
+          );
+          if (currentSettings) {
+            currentSettings.validation.enabled = true;
+          }
+        });
+      });
+
       describe("Diagnostics using ansible-playbook --syntax-check", function () {
         describe("no specific ansible lint errors", function () {
           fixtureFilePath = "diagnostics/lint_errors.yml";
