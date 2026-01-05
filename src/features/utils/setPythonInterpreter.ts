@@ -62,8 +62,6 @@ export async function setPythonInterpreter() {
     return;
   }
 
-    if (pythonExtensionDetails.path) {
-      const interpreter = pythonExtensionDetails.path;
 
   if (pythonExtensionDetails.path) {
     const interpreter = pythonExtensionDetails.path;
