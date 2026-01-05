@@ -281,7 +281,7 @@ export class LightspeedUser {
 
   private async setLightspeedUser(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
@@ -406,7 +406,7 @@ export class LightspeedUser {
 
   public async getLightspeedUserDetails(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
@@ -432,7 +432,7 @@ export class LightspeedUser {
 
   public async getMarkdownLightspeedUserDetails(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
