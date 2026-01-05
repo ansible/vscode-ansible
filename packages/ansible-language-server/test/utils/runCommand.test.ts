@@ -89,7 +89,7 @@ describe("commandRunner", function () {
         this.timeout(10000);
 
         // try to enforce ansible to output ANSI in order to check if we are
-        // still able to disable it at runtime in order to keep output parseable.
+        // still able to disable it at runtime in order to keep output parsable.
         process.env.ANSIBLE_FORCE_COLOR = "1";
 
         process.argv.push("--node-ipc");

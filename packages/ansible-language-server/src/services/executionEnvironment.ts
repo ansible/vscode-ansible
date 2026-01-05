@@ -246,7 +246,7 @@ export class ExecutionEnvironment {
         containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
       }
     }
-    // ensure output is parseable (no ANSI)
+    // ensure output is parsable (no ANSI)
     containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
 
     if (this._container_engine === "podman") {
@@ -513,7 +513,7 @@ export class ExecutionEnvironment {
           command += ` -e ${envVarKey}=${envVarValue} `;
         }
       }
-      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parseable (no ANSI)
+      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parsable (no ANSI)
       if (
         this.settingsContainerOptions &&
         this.settingsContainerOptions !== ""
