@@ -1062,7 +1062,7 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@html-eslint/eslint-plugin": "^0.51.0",
+    "@html-eslint/eslint-plugin": "^0.52.0",
     "@types/chai": "^5.2.3",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
@@ -1096,7 +1096,7 @@
     "express": "^5.2.1",
     "find-process": "^2.0.0",
     "glob": "^13.0.0",
-    "globals": "^16.5.0",
+    "globals": "^17.0.0",
     "jsdom": "^27.3.0",
     "knip": "^5.72.0",
     "lodash": "^4.17.21",
