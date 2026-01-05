@@ -89,7 +89,6 @@ npmjs
 nqry
 openshiftapps
 ovsx
-parseable
 precheck
 primevue
 priyamsahoo
@@ -97,6 +96,7 @@ progressspinner
 projectuser
 pydoclint
 pyvenv
+quasis
 relogin
 rhsso
 rimraf
@@ -110,7 +110,6 @@ suboptions
 sysninja
 taskfile
 tasklist
-tekton
 testhost
 testorg
 thumbsdown

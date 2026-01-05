@@ -14,13 +14,14 @@ process.env = {
 };
 
 // display ansible-lint version and exit testing if ansible-lint is absent
-const command = "ansible-lint --version --offline";
+const command = "ansible-lint";
+const args = ["--version", "--offline"];
 try {
   // ALWAYS use 'shell: true' when we execute external commands inside the
   // extension because some of the tools may be installed in a way that does
   // not make them available without a shell, common examples tools that may
   // do this are: mise, asdf, pyenv.
-  const result = cp.spawnSync(command, { shell: true });
+  const result = cp.spawnSync(command, args, { shell: true });
   if (result.status === 0) {
     console.info(`Detected: ${result.stdout}`);
   } else {
@@ -33,7 +34,7 @@ try {
     .map(([k, v]) => `${k}=${v}`)
     .join("\n");
   console.error(
-    `error: test requisites not met, '${command}' returned ${err}\n${env}`,
+    `error: test requisites not met, '${command} ${args.join(" ")}' returned ${err}\n${env}`,
   );
   process.exit(PRETEST_ERR_RC);
 }
