@@ -1,4 +1,5 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
+import { getWebviewHtml } from "virtual:vscode";
 import { WebviewMessageHandlers } from "../../../lightspeed/vue/views/webviewMessageHandlers";
 
 export function setupHtml(
@@ -6,7 +7,7 @@ export function setupHtml(
   context: ExtensionContext,
   name: string,
 ) {
-  return __getWebviewHtml__({
+  return getWebviewHtml({
     // vite dev mode
     serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/${name}.html`,
     // vite prod mode
