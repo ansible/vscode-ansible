@@ -89,7 +89,6 @@ npmjs
 nqry
 openshiftapps
 ovsx
-parseable
 precheck
 primevue
 priyamsahoo
@@ -111,7 +110,6 @@ suboptions
 sysninja
 taskfile
 tasklist
-tekton
 testhost
 testorg
 thumbsdown
