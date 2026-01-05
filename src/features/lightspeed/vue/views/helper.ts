@@ -1,4 +1,5 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
+import { getWebviewHtml } from "virtual:vscode";
 import { WebviewMessageHandlers } from "./webviewMessageHandlers";
 
 // Re-export commonly used functions for backward compatibility
@@ -9,7 +10,7 @@ export function setupHtml(
   context: ExtensionContext,
   name: string,
 ) {
-  return __getWebviewHtml__({
+  return getWebviewHtml({
     // vite dev mode
     serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
     // vite prod mode

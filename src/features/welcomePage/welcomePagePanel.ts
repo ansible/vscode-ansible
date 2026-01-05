@@ -1,6 +1,7 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import * as vscode from "vscode";
 import { ViewColumn, window } from "vscode";
+import { getWebviewHtml } from "virtual:vscode";
 import { getSystemDetails } from "../utils/getSystemDetails";
 
 interface WebviewMessage {
@@ -67,7 +68,7 @@ export class WelcomePagePanel {
   }
 
   private getWebviewHtml(context: ExtensionContext): string {
-    return __getWebviewHtml__({
+    return getWebviewHtml({
       serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/welcome-page.html`,
       webview: this._panel.webview,
       context,
