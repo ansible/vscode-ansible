@@ -51,6 +51,10 @@ export class AnsibleLint {
     const mountPaths = new Set([workingDirectory]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
+    if (!settings.validation?.enabled) {
+      return diagnostics;
+    }
+
     let linterArguments = settings.validation.lint.arguments ?? "";
 
     // Determine linter config file
