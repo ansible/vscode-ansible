@@ -28,7 +28,7 @@ import {
   getExecutionEnvironmentSchema,
   getSampleExecutionEnvironment,
 } from "./resources/eeSchema.js";
-import { getAgentsGuidelines } from "./resources/agents.js";
+import { getFullAgentsGuidelines } from "./resources/agents.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -156,7 +156,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     },
   );
 
-  // Register agents.md file as a resource
+  // Register agents.md file as a resource (full content for direct access)
   server.registerResource(
     "ansible-content-best-practices",
     "guidelines://ansible-content-best-practices",
@@ -173,7 +173,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     },
     async () => {
       try {
-        const guidelinesContent = await getAgentsGuidelines();
+        const guidelinesContent = await getFullAgentsGuidelines();
         return {
           contents: [
             {
@@ -239,10 +239,33 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       title: "Ansible Content Best Practices",
       description:
         "Get best practices and guidelines for writing Ansible content. " +
-        "This tool returns comprehensive guidelines covering standards, best practices, and recommendations for creating maintainable Ansible automation. " +
-        "Use this tool to answer questions like 'What are best practices for writing ansible content?' or 'How do I write a good playbook?'. " +
-        "The tool returns the full guidelines document which can be summarized or referenced. " +
-        "Once the content is in context, you can use it to write playbooks and other Ansible content following best practices.",
+        "This tool returns relevant guidelines based on the topic you ask about. " +
+        "\n\n" +
+        "**How to use:** " +
+        "\n" +
+        "- Call with no topic to see available topics " +
+        "- Call with a specific topic to get detailed guidelines for that area " +
+        "\n\n" +
+        "**Examples:** " +
+        "\n" +
+        "- `{}` → Returns list of available topics " +
+        '- `{"topic": "yaml formatting"}` → Returns YAML formatting guidelines ' +
+        '- `{"topic": "naming conventions"}` → Returns naming convention rules ' +
+        '- `{"topic": "roles"}` → Returns role structure and best practices ' +
+        '- `{"topic": "playbooks"}` → Returns playbook guidelines ' +
+        "\n\n" +
+        "Available topics include: Guiding Principles, Development Workflow, " +
+        "Coding Standards, Formatting, Naming Conventions, Collections, Roles, " +
+        "Inventories, Variables, Playbooks, Jinja2 Templates, and more.",
+      inputSchema: {
+        topic: z
+          .string()
+          .optional()
+          .describe(
+            "The topic to get guidelines for (e.g., 'yaml formatting', 'naming conventions', 'roles', 'playbooks'). " +
+              "Leave empty to see all available topics.",
+          ),
+      },
       annotations: {
         keywords: [
           "ansible best practices",
