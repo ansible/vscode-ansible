@@ -33,9 +33,9 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAgentsGuidelinesHandler() {
-  return async () => {
+  return async (args?: { topic?: string }) => {
     try {
-      const guidelines = await getAgentsGuidelines();
+      const guidelines = await getAgentsGuidelines(args?.topic);
       return {
         content: [
           {

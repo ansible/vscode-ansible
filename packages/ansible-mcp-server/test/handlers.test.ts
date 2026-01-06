@@ -435,21 +435,40 @@ describe("MCP Handlers", () => {
       vi.clearAllMocks();
     });
 
-    it("should return best practices content successfully", async () => {
+    it("should return available topics when called without arguments", async () => {
       const { getAgentsGuidelines } =
         await import("../src/resources/agents.js");
 
-      const mockGuidelines =
-        "# Ansible Coding Guidelines for AI Agents\n\n## Best Practices\n\nTest content.";
-      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockGuidelines);
+      const mockTopics =
+        "# Available Topics\n\n- Guiding Principles\n- Coding Standards";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockTopics);
 
       const handler = createAgentsGuidelinesHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe(mockGuidelines);
+      expect(result.content[0].text).toBe(mockTopics);
       expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith(undefined);
+    });
+
+    it("should return relevant sections when called with a topic", async () => {
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
+
+      const mockContent =
+        "## YAML Formatting\n\n- Indent at two spaces\n- Use .yml extension";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockContent);
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler({ topic: "yaml formatting" });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe(mockContent);
+      expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("yaml formatting");
     });
 
     it("should handle file reading errors gracefully", async () => {
@@ -503,19 +522,28 @@ describe("MCP Handlers", () => {
       expect(getAgentsGuidelines).toHaveBeenCalledTimes(2);
     });
 
-    it("should handle empty content", async () => {
+    it("should pass topic to getAgentsGuidelines", async () => {
       const { getAgentsGuidelines } =
         await import("../src/resources/agents.js");
 
-      vi.mocked(getAgentsGuidelines).mockResolvedValue("");
+      vi.mocked(getAgentsGuidelines).mockResolvedValue("Roles content");
 
       const handler = createAgentsGuidelinesHandler();
-      const result = await handler();
+      await handler({ topic: "roles" });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("");
-      expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("roles");
+    });
+
+    it("should handle empty topic as undefined", async () => {
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
+
+      vi.mocked(getAgentsGuidelines).mockResolvedValue("Available topics");
+
+      const handler = createAgentsGuidelinesHandler();
+      await handler({ topic: "" });
+
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("");
     });
   });
 });
