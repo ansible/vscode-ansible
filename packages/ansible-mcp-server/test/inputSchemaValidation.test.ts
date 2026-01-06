@@ -9,6 +9,18 @@ import { z } from "zod";
  * This is important for catching issues when Zod versions are updated, as the MCP SDK
  * relies on Zod schemas being correctly converted to JSON Schema for input validation.
  */
+
+/**
+ * IMPORTANT: When adding a new tool with inputSchema, update this list.
+ */
+const TOOLS_WITH_INPUT_SCHEMA = [
+  "ansible_lint",
+  "ansible_navigator",
+  "ade_setup_environment",
+  "create_ansible_projects",
+  "define_and_build_execution_env",
+] as const;
+
 describe("MCP Tool InputSchema Validation", () => {
   let server: ReturnType<typeof createAnsibleMcpServer>;
   const workspaceRoot = "/test/workspace";
@@ -409,15 +421,7 @@ describe("MCP Tool InputSchema Validation", () => {
      * If Zod version changes break compatibility, this test will catch it.
      */
     it("should be able to access and validate all tool schemas", () => {
-      const toolsWithSchema = [
-        "ansible_lint",
-        "ansible_navigator",
-        "ade_setup_environment",
-        "create_ansible_projects",
-        "define_and_build_execution_env",
-      ];
-
-      for (const toolName of toolsWithSchema) {
+      for (const toolName of TOOLS_WITH_INPUT_SCHEMA) {
         const tool = getTool(toolName);
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
@@ -436,17 +440,9 @@ describe("MCP Tool InputSchema Validation", () => {
      * that the Zod-to-JSON Schema conversion worked correctly.
      */
     it("should successfully register tools with Zod schemas", () => {
-      const toolsWithSchema = [
-        "ansible_lint",
-        "ansible_navigator",
-        "ade_setup_environment",
-        "create_ansible_projects",
-        "define_and_build_execution_env",
-      ];
-
       // By verifying all tools are registered and accessible, we confirm
       // the conversion succeeded.
-      for (const toolName of toolsWithSchema) {
+      for (const toolName of TOOLS_WITH_INPUT_SCHEMA) {
         const tool = getTool(toolName);
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
@@ -466,7 +462,11 @@ describe("MCP Tool InputSchema Validation", () => {
      * This is critical because the MCP SDK relies on Zod's parsing capabilities.
      */
     it("should successfully parse valid arguments for all tools with inputSchema", () => {
-      const testCases = [
+      // Test cases with valid arguments for each tool with inputSchema
+      const testCases: Array<{
+        toolName: (typeof TOOLS_WITH_INPUT_SCHEMA)[number];
+        validArgs: Record<string, unknown>;
+      }> = [
         {
           toolName: "ansible_lint",
           validArgs: { filePath: "/test/playbook.yml" },
@@ -495,6 +495,9 @@ describe("MCP Tool InputSchema Validation", () => {
           },
         },
       ];
+
+      // Ensure all tools with schemas have test cases
+      expect(testCases.length).toBe(TOOLS_WITH_INPUT_SCHEMA.length);
 
       for (const testCase of testCases) {
         const tool = getTool(testCase.toolName);
