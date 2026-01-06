@@ -181,7 +181,7 @@ describe("Ansible Development Tools MCP Server Performance", () => {
 
       // CI environments (especially macOS and WSL) can be slower than local development
       // Allow more time for CI while still catching real performance regressions
-      expect(duration).toBeLessThan(400); // 1000 listings in less than this
+      expect(duration).toBeLessThan(500); // 1000 listings in less than this
     });
   });
 });

@@ -110,6 +110,11 @@ export class SettingsManager {
           description:
             "Optional command line arguments to be appended to ansible-lint invocation",
         },
+        autoFixOnSave: {
+          default: false,
+          description:
+            "Specifies whether `ansible-lint --fix` should run automatically when you save a file.",
+        },
       },
     },
   };
@@ -152,7 +157,10 @@ export class SettingsManager {
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings = _.merge(this.globalSettings, clientSettings);
+      const mergedSettings = _.merge(
+        _.cloneDeep(this.globalSettings),
+        clientSettings,
+      );
       result = Promise.resolve(mergedSettings);
       this.documentSettings.set(uri, result);
     }

@@ -72,4 +72,23 @@ describe("get()", function () {
       });
     });
   });
+
+  describe("When client provides autoFixOnSave setting", function () {
+    let mergedSettings: ExtensionSettings;
+
+    before(async function () {
+      const workspaceManager = createTestWorkspaceManager();
+      simulateClientSettings(workspaceManager, {
+        validation: { lint: { autoFixOnSave: true } },
+      });
+      const context = workspaceManager.getContext("");
+      if (typeof context !== "undefined") {
+        mergedSettings = await context.documentSettings.get("");
+      }
+    });
+
+    it("should return autoFixOnSave value from client", function () {
+      expect(mergedSettings.validation.lint.autoFixOnSave).to.equal(true);
+    });
+  });
 });

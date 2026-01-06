@@ -44,7 +44,12 @@ export interface ExtensionSettings extends ExtensionSettingsType {
   };
   validation: {
     enabled: boolean;
-    lint: { enabled: boolean; path: string; arguments: string };
+    lint: {
+      enabled: boolean;
+      path: string;
+      arguments: string;
+      autoFixOnSave: boolean;
+    };
   };
   executionEnvironment: {
     enabled: boolean;
@@ -154,6 +159,10 @@ interface ValidationSettingsWithDescription extends SettingsEntry {
     };
     arguments: {
       default: string;
+      description: string;
+    };
+    autoFixOnSave: {
+      default: boolean;
       description: string;
     };
   };
