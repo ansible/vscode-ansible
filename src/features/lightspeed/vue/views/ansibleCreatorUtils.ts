@@ -24,6 +24,20 @@ import {
 } from "../../../../definitions/constants";
 
 export class AnsibleCreatorOperations {
+  private checkVersionWithError(
+    currentVersion: string,
+    requiredVersion: string,
+  ): { isGte: boolean; userMessage?: string } {
+    try {
+      return { isGte: semver.gte(currentVersion, requiredVersion) };
+    } catch {
+      return {
+        isGte: false,
+        userMessage: `Invalid version format: ${currentVersion}. This appears to be a development version.\n`,
+      };
+    }
+  }
+
   public async getRoleCreatorCommand(
     roleName: string,
     url: string,
@@ -101,14 +115,24 @@ export class AnsibleCreatorOperations {
 
     commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
 
-    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+    const versionCheck = this.checkVersionWithError(
+      creatorVersion,
+      requiredCreatorVersion,
+    );
+    if (versionCheck.userMessage) {
+      commandOutput += versionCheck.userMessage;
+    }
+
+    if (versionCheck.isGte) {
       const ansibleCreatorExecutionResult = await runCommand(command, env);
       commandOutput += ansibleCreatorExecutionResult.output;
       commandResult = ansibleCreatorExecutionResult.status;
     } else {
-      commandOutput += `Minimum ansible-creator version needed to add the role resource is ${requiredCreatorVersion}\n`;
-      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
-      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      if (!versionCheck.userMessage) {
+        commandOutput += `Minimum ansible-creator version needed to add the role resource is ${requiredCreatorVersion}\n`;
+        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      }
       commandResult = "failed";
     }
 
@@ -193,15 +217,24 @@ export class AnsibleCreatorOperations {
     const requiredCreatorVersion =
       minRequiredCreatorVersion[pluginType.toLowerCase()];
     commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    const versionCheck = this.checkVersionWithError(
+      creatorVersion,
+      requiredCreatorVersion,
+    );
+    if (versionCheck.userMessage) {
+      commandOutput += versionCheck.userMessage;
+    }
 
-    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+    if (versionCheck.isGte) {
       const ansibleCreatorExecutionResult = await runCommand(command, env);
       commandOutput += ansibleCreatorExecutionResult.output;
       commandResult = ansibleCreatorExecutionResult.status;
     } else {
-      commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
-      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
-      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      if (!versionCheck.userMessage) {
+        commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
+        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      }
       commandResult = "failed";
     }
 
@@ -275,10 +308,15 @@ export class AnsibleCreatorOperations {
       } as PostMessageEvent);
       return;
     }
-    const exceedMinVersion = semver.gte(
+    let commandOutput = "";
+    const versionCheck = this.checkVersionWithError(
       creatorVersion,
       ANSIBLE_CREATOR_VERSION_MIN,
     );
+    const exceedMinVersion = versionCheck.isGte;
+    if (versionCheck.userMessage) {
+      commandOutput += versionCheck.userMessage;
+    }
 
     if (exceedMinVersion && payload.isOverwritten) {
       ansibleCreatorInitCommand += " --overwrite";
@@ -323,8 +361,6 @@ export class AnsibleCreatorOperations {
       "",
     );
 
-    let commandOutput = "";
-
     // Execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
@@ -364,7 +400,11 @@ export class AnsibleCreatorOperations {
         },
       } as PostMessageEvent);
       const adeVersion = await getADEVersion();
-      const exceedADEImVersion = semver.gte(adeVersion, ADE_ISOLATION_MODE_MIN);
+      const adeVersionCheck = this.checkVersionWithError(
+        adeVersion,
+        ADE_ISOLATION_MODE_MIN,
+      );
+      const exceedADEImVersion = adeVersionCheck.isGte;
 
       if (exceedADEImVersion) {
         adeCommand += " --im=cfg";
@@ -425,7 +465,12 @@ export class AnsibleCreatorOperations {
     let command = "";
     const creatorVersion = await getCreatorVersion();
 
-    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_COLLECTION_VERSION_MIN)) {
+    const versionCheck = this.checkVersionWithError(
+      creatorVersion,
+      ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
+    );
+
+    if (versionCheck.isGte || versionCheck.userMessage) {
       command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
     } else {
       command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
@@ -451,7 +496,12 @@ export class AnsibleCreatorOperations {
   ): Promise<string> {
     const creatorVersion = await getCreatorVersion();
 
-    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+    const versionCheck = this.checkVersionWithError(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+
+    if (versionCheck.isGte || versionCheck.userMessage) {
       return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
     } else {
       return `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
