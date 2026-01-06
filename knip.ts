@@ -52,7 +52,7 @@ const config: KnipConfig = {
       project: ["**/*.{mjs,js,json,ts,tsx}"],
     },
     "packages/ansible-mcp-server": {
-      entry: ["src/cli.ts", "test/**/*.ts"],
+      entry: ["test/**/*.ts"],
       project: ["**/*.{mjs,js,json,ts,tsx}"],
     },
   },

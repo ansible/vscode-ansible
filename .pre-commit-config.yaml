@@ -34,14 +34,14 @@ repos:
       - id: yamllint
       - id: md
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.3.8"
+    rev: "v2.3.10"
     hooks:
       - id: biome-check
         name: biome
         alias: biome
         args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.3.3
+    rev: v9.4.0
     hooks:
       - id: cspell
         entry: bash
