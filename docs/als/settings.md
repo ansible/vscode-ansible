@@ -89,3 +89,8 @@ Optional command line arguments to be appended to ansible-lint invocation
 . Default value:
 ``""``
 
+## [`ansible.validation.lint.autoFixOnSave`](#validation.lint.autoFixOnSave) { #validation.lint.autoFixOnSave data-toc-label=validation.lint.autoFixOnSave }
+Specifies whether &#x60;ansible-lint --fix&#x60; should run automatically when you save a file.
+. Default value:
+``false``
+
