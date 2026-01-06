@@ -163,9 +163,7 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
-export function setFixtureAnsibleCollectionPathEnv(
-  prePendPath: string | undefined = undefined,
-): void {
+export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {

@@ -59,7 +59,7 @@ export type AnsibleVaultConfig = {
 };
 
 export async function scanAnsibleCfg(
-  rootPath: string | undefined = undefined,
+  rootPath?: string,
 ): Promise<AnsibleVaultConfig | undefined> {
   /*
    * Reading order (based on the documentation: https://docs.ansible.com/projects/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
