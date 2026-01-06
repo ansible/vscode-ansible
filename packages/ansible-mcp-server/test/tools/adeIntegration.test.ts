@@ -1,11 +1,28 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { createTestServer } from "../testWrapper.js";
+
+vi.mock("../../src/tools/adeTools.js", async (importOriginal) => {
+  const original =
+    await importOriginal<typeof import("../../src/tools/adeTools.js")>();
+  return {
+    ...original,
+    setupDevelopmentEnvironment: vi.fn().mockResolvedValue({
+      success: true,
+      output: "Mocked: Development environment setup complete",
+    }),
+  };
+});
 
 describe("ADE Tools Integration", () => {
   let server: ReturnType<typeof createTestServer>;
 
   beforeEach(() => {
     server = createTestServer("/test/workspace");
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe("ade_environment_info tool", () => {
@@ -21,7 +38,7 @@ describe("ADE Tools Integration", () => {
         (c: { type: string }) => c.type === "text",
       );
       expect(textContent).toBeDefined();
-      expect(textContent?.text).toContain("🔍 Environment Information");
+      expect(textContent?.text).toContain("Environment Information");
     });
 
     it("should handle errors gracefully", async () => {
@@ -39,7 +56,7 @@ describe("ADE Tools Integration", () => {
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
-    }, 45000); // 45 second timeout for macOS slowness
+    });
 
     it("should be callable with all optional arguments", async () => {
       const args = {

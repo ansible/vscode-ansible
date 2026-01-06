@@ -51,6 +51,10 @@ export class AnsibleLint {
     const mountPaths = new Set([workingDirectory]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
+    if (!settings.validation?.enabled) {
+      return diagnostics;
+    }
+
     let linterArguments = settings.validation.lint.arguments ?? "";
 
     // Determine linter config file
@@ -72,6 +76,10 @@ export class AnsibleLint {
 
     this._ansibleLintConfigFilePath = ansibleLintConfigPath;
     linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
+
+    if (settings.validation.lint.autoFixOnSave) {
+      linterArguments = `${linterArguments} --fix`;
+    }
 
     const docPath = URI.parse(textDocument.uri).path;
     mountPaths.add(path.dirname(docPath));

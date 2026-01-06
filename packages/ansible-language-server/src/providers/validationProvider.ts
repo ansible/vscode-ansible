@@ -92,9 +92,12 @@ export async function doValidate(
   }
 
   // attach quick validation for the inspected file
-  for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
-    if (textDocument.uri === fileUri) {
-      fileDiagnostics.push(...getYamlValidation(textDocument));
+  const settings = await context?.documentSettings.get(textDocument.uri);
+  if (settings?.validation.enabled) {
+    for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
+      if (textDocument.uri === fileUri) {
+        fileDiagnostics.push(...getYamlValidation(textDocument));
+      }
     }
   }
   validationManager.processDiagnostics(textDocument.uri, diagnosticsByFile);

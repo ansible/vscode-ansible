@@ -200,7 +200,8 @@ describe("MCP Handlers", () => {
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("Setup failed");
+      // Output includes info note about collections when none specified
+      expect(result.content[0].text).toContain("Setup failed");
       expect(result.isError).toBe(true);
     });
 
@@ -219,6 +220,135 @@ describe("MCP Handlers", () => {
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toContain(
         "Error setting up development environment: Setup exception",
+      );
+      expect(result.isError).toBe(true);
+    });
+
+    it("should auto-detect collections from requirementsFile parameter", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "amazon.aws ansible.posix",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Auto-detected collections");
+      expect(result.content[0].text).toContain("amazon.aws");
+      expect(result.isError).toBe(false);
+
+      // Verify setupDevelopmentEnvironment was called with collections moved
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          collections: ["amazon.aws", "ansible.posix"],
+        }),
+      );
+    });
+
+    it("should not auto-detect when requirementsFile has file extension", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "requirements.txt",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).not.toContain("Auto-detected collections");
+      expect(result.isError).toBe(false);
+
+      // Verify requirementsFile was passed through unchanged
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          requirementsFile: "requirements.txt",
+        }),
+      );
+    });
+
+    it("should handle empty requirementsFile", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        requirementsFile: "",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.isError).toBe(false);
+
+      // Verify empty requirementsFile was removed
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.not.objectContaining({
+          requirementsFile: "",
+        }),
+      );
+    });
+
+    it("should merge auto-detected collections with existing collections", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        collections: ["community.general"],
+        requirementsFile: "amazon.aws",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Auto-detected collections");
+      expect(result.isError).toBe(false);
+
+      // Verify both existing and auto-detected collections are included
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          collections: ["community.general", "amazon.aws"],
+        }),
+      );
+    });
+
+    it("should handle non-Error exceptions during setup", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockRejectedValue("String error");
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({});
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain(
+        "Error setting up development environment: String error",
       );
       expect(result.isError).toBe(true);
     });
@@ -305,21 +435,40 @@ describe("MCP Handlers", () => {
       vi.clearAllMocks();
     });
 
-    it("should return best practices content successfully", async () => {
+    it("should return available topics when called without arguments", async () => {
       const { getAgentsGuidelines } =
         await import("../src/resources/agents.js");
 
-      const mockGuidelines =
-        "# Ansible Coding Guidelines for AI Agents\n\n## Best Practices\n\nTest content.";
-      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockGuidelines);
+      const mockTopics =
+        "# Available Topics\n\n- Guiding Principles\n- Coding Standards";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockTopics);
 
       const handler = createAgentsGuidelinesHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe(mockGuidelines);
+      expect(result.content[0].text).toBe(mockTopics);
       expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith(undefined);
+    });
+
+    it("should return relevant sections when called with a topic", async () => {
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
+
+      const mockContent =
+        "## YAML Formatting\n\n- Indent at two spaces\n- Use .yml extension";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockContent);
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler({ topic: "yaml formatting" });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe(mockContent);
+      expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("yaml formatting");
     });
 
     it("should handle file reading errors gracefully", async () => {
@@ -373,19 +522,28 @@ describe("MCP Handlers", () => {
       expect(getAgentsGuidelines).toHaveBeenCalledTimes(2);
     });
 
-    it("should handle empty content", async () => {
+    it("should pass topic to getAgentsGuidelines", async () => {
       const { getAgentsGuidelines } =
         await import("../src/resources/agents.js");
 
-      vi.mocked(getAgentsGuidelines).mockResolvedValue("");
+      vi.mocked(getAgentsGuidelines).mockResolvedValue("Roles content");
 
       const handler = createAgentsGuidelinesHandler();
-      const result = await handler();
+      await handler({ topic: "roles" });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("");
-      expect(result.isError).toBeUndefined();
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("roles");
+    });
+
+    it("should handle empty topic as undefined", async () => {
+      const { getAgentsGuidelines } =
+        await import("../src/resources/agents.js");
+
+      vi.mocked(getAgentsGuidelines).mockResolvedValue("Available topics");
+
+      const handler = createAgentsGuidelinesHandler();
+      await handler({ topic: "" });
+
+      expect(getAgentsGuidelines).toHaveBeenCalledWith("");
     });
   });
 });
