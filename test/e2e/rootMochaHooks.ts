@@ -70,8 +70,8 @@ const overrideConsole = (method: ConsoleMethod) => {
 (["log", "info", "warn", "error"] as ConsoleMethod[]).forEach(overrideConsole);
 
 export const mochaHooks = {
-  beforeEach() {
-    fs.rmSync("out/junit/e2e", { recursive: true });
+  beforeAll() {
+    fs.rmSync("out/junit/e2e", { recursive: true, force: true });
     fs.mkdirSync("out/userdata/User/", { recursive: true });
     fs.mkdirSync("out/junit/e2e", { recursive: true });
     fs.cpSync(
@@ -81,7 +81,7 @@ export const mochaHooks = {
   },
 
   // Delete test fixture settings.json after all tests complete
-  afterEach() {
+  afterAll() {
     const settingsPath = path.join("test/testFixtures/.vscode/settings.json");
     try {
       if (fs.existsSync(settingsPath)) {
