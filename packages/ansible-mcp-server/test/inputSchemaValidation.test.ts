@@ -10,18 +10,6 @@ import { z } from "zod";
  * relies on Zod schemas being correctly converted to JSON Schema for input validation.
  */
 
-/**
- * IMPORTANT: When adding a new tool with inputSchema, update this list.
- */
-const TOOLS_WITH_INPUT_SCHEMA = [
-  "ansible_lint",
-  "ansible_navigator",
-  "ade_setup_environment",
-  "create_ansible_projects",
-  "define_and_build_execution_env",
-  "ansible_content_best_practices",
-] as const;
-
 describe("MCP Tool InputSchema Validation", () => {
   let server: ReturnType<typeof createAnsibleMcpServer>;
   const workspaceRoot = "/test/workspace";
@@ -40,6 +28,26 @@ describe("MCP Tool InputSchema Validation", () => {
       return null;
     }
     return registeredTools[toolName];
+  }
+
+  /**
+   * Programmatically discover all tools that have an inputSchema defined.
+   */
+  function getToolsWithInputSchema(): string[] {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const registeredTools = (server as any)._registeredTools;
+    if (!registeredTools) {
+      return [];
+    }
+
+    const toolsWithSchema: string[] = [];
+    for (const toolName of Object.keys(registeredTools)) {
+      const tool = registeredTools[toolName];
+      if (tool && tool.inputSchema) {
+        toolsWithSchema.push(toolName);
+      }
+    }
+    return toolsWithSchema.sort();
   }
 
   /**
@@ -433,7 +441,10 @@ describe("MCP Tool InputSchema Validation", () => {
     it("should successfully register tools with Zod schemas", () => {
       // By verifying all tools are registered and accessible, we confirm
       // the conversion succeeded.
-      for (const toolName of TOOLS_WITH_INPUT_SCHEMA) {
+      const toolsWithSchema = getToolsWithInputSchema();
+      expect(toolsWithSchema.length).toBeGreaterThan(0);
+
+      for (const toolName of toolsWithSchema) {
         const tool = getTool(toolName);
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
@@ -451,11 +462,16 @@ describe("MCP Tool InputSchema Validation", () => {
     /**
      * This test ensures that Zod's parse method works correctly with the schemas.
      * This is critical because the MCP SDK relies on Zod's parsing capabilities.
+     *
+     * IMPORTANT: This test will fail if a new tool with inputSchema is discovered but has
+     * no corresponding test case.
      */
     it("should successfully parse valid arguments for all tools with inputSchema", () => {
+      const toolsWithSchema = getToolsWithInputSchema();
+
       // Test cases with valid arguments for each tool with inputSchema
       const testCases: Array<{
-        toolName: (typeof TOOLS_WITH_INPUT_SCHEMA)[number];
+        toolName: string;
         validArgs: Record<string, unknown>;
       }> = [
         {
@@ -491,9 +507,32 @@ describe("MCP Tool InputSchema Validation", () => {
         },
       ];
 
-      // Ensure all tools with schemas have test cases
-      expect(testCases.length).toBe(TOOLS_WITH_INPUT_SCHEMA.length);
+      // Ensure all discovered tools with schemas have test cases
+      // This will fail if a new tool with inputSchema is added without a test case
+      const testCaseToolNames = new Set(testCases.map((tc) => tc.toolName));
+      const missingTestCases = toolsWithSchema.filter(
+        (toolName) => !testCaseToolNames.has(toolName),
+      );
 
+      if (missingTestCases.length > 0) {
+        throw new Error(
+          `Tools with inputSchema are missing test cases: ${missingTestCases.join(", ")}. ` +
+            `Please add test cases for these tools in the testCases array above.`,
+        );
+      }
+
+      // Also ensure we don't have test cases for non-existent tools
+      const testCasesForNonExistentTools = testCases.filter(
+        (tc) => !toolsWithSchema.includes(tc.toolName),
+      );
+      if (testCasesForNonExistentTools.length > 0) {
+        throw new Error(
+          `Test cases exist for tools without inputSchema: ${testCasesForNonExistentTools.map((tc) => tc.toolName).join(", ")}. ` +
+            `These test cases should be removed or the tools should have inputSchema added.`,
+        );
+      }
+
+      // Run validation tests for all test cases
       for (const testCase of testCases) {
         testToolValidation(testCase.toolName, testCase.validArgs, true);
       }
