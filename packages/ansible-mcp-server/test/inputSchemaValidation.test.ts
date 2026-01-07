@@ -19,6 +19,7 @@ const TOOLS_WITH_INPUT_SCHEMA = [
   "ade_setup_environment",
   "create_ansible_projects",
   "define_and_build_execution_env",
+  "ansible_content_best_practices",
 ] as const;
 
 describe("MCP Tool InputSchema Validation", () => {
@@ -379,6 +380,46 @@ describe("MCP Tool InputSchema Validation", () => {
     });
   });
 
+  describe("ansible_content_best_practices tool inputSchema", () => {
+    it("should have inputSchema defined", () => {
+      expectToolHasInputSchema("ansible_content_best_practices");
+    });
+
+    it("should parse valid arguments with empty object (all optional)", () => {
+      testToolValidation("ansible_content_best_practices", {}, true);
+    });
+
+    it("should parse valid arguments with topic parameter", () => {
+      testToolValidation(
+        "ansible_content_best_practices",
+        {
+          topic: "yaml formatting",
+        },
+        true,
+      );
+    });
+
+    it("should parse valid arguments with different topic values", () => {
+      testToolValidation(
+        "ansible_content_best_practices",
+        {
+          topic: "naming conventions",
+        },
+        true,
+      );
+    });
+
+    it("should reject invalid arguments - wrong type for topic", () => {
+      testToolValidation(
+        "ansible_content_best_practices",
+        {
+          topic: 123, // Should be string
+        },
+        false,
+      );
+    });
+  });
+
   describe("Zod schema compatibility with MCP SDK", () => {
     /**
      * This test verifies that the MCP SDK can successfully convert Zod schemas to JSON Schema
@@ -443,6 +484,10 @@ describe("MCP Tool InputSchema Validation", () => {
             baseImage: "quay.io/fedora/fedora-minimal:41",
             tag: "test:latest",
           },
+        },
+        {
+          toolName: "ansible_content_best_practices",
+          validArgs: {},
         },
       ];
 
