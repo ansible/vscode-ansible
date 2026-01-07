@@ -491,6 +491,71 @@ describe("doValidate()", function () {
         });
       });
 
+      describe("Auto-fix on save", function () {
+        describe("@noee", function () {
+          const currentSettings = context?.documentSettings.get(textDoc.uri);
+
+          it("should execute ansible-lint with --fix branch when enabled", async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = true;
+            }
+            expect(context).is.not.undefined;
+            await doValidate(textDoc, validationManager, false, context);
+          });
+
+          it("should NOT execute ansible-lint with --fix branch when disabled", async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = false;
+            }
+            expect(context).is.not.undefined;
+            await doValidate(textDoc, validationManager, false, context);
+          });
+
+          after(async function () {
+            if (currentSettings) {
+              (await currentSettings).validation.lint.autoFixOnSave = false;
+            }
+          });
+        });
+      });
+
+      describe("When validation is disabled", function () {
+        it("should return empty diagnostics", async function () {
+          const currentSettings = await context?.documentSettings.get(
+            textDoc.uri,
+          );
+          if (currentSettings) {
+            currentSettings.validation.enabled = false;
+          }
+
+          const freshUri = `${textDoc.uri}.unique.yml`;
+          const freshDoc = {
+            ...textDoc,
+            uri: freshUri,
+            getText: () => "",
+          } as TextDocument;
+
+          const result = await doValidate(
+            freshDoc,
+            validationManager,
+            false,
+            context,
+          );
+
+          const totalDiagnostics = Array.from(result.values()).flat().length;
+          expect(totalDiagnostics).to.equal(0);
+        });
+
+        after(async function () {
+          const currentSettings = await context?.documentSettings.get(
+            textDoc.uri,
+          );
+          if (currentSettings) {
+            currentSettings.validation.enabled = true;
+          }
+        });
+      });
+
       describe("Diagnostics using ansible-playbook --syntax-check", function () {
         describe("no specific ansible lint errors", function () {
           fixtureFilePath = "diagnostics/lint_errors.yml";
