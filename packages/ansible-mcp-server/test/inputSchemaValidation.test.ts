@@ -417,27 +417,13 @@ describe("MCP Tool InputSchema Validation", () => {
 
   describe("Zod schema compatibility with MCP SDK", () => {
     /**
-     * This test verifies that Zod schemas can be properly accessed and validated.
-     * If Zod version changes break compatibility, this test will catch it.
-     */
-    it("should be able to access and validate all tool schemas", () => {
-      for (const toolName of TOOLS_WITH_INPUT_SCHEMA) {
-        const tool = getTool(toolName);
-        expect(tool).toBeDefined();
-        expect(tool.inputSchema).toBeDefined();
-
-        // Verify the schema is a Zod object
-        const schema = tool.inputSchema;
-        expect(schema).toBeInstanceOf(z.ZodObject);
-      }
-    });
-
-    /**
      * This test verifies that the MCP SDK can successfully convert Zod schemas to JSON Schema
      * during tool registration.
      *
      * By successfully creating the server and accessing all tools with schemas, we verify
-     * that the Zod-to-JSON Schema conversion worked correctly.
+     * that the Zod-to-JSON Schema conversion worked correctly. This also verifies that Zod
+     * schemas can be properly accessed and validated. If Zod version changes break compatibility,
+     * this test will catch it.
      */
     it("should successfully register tools with Zod schemas", () => {
       // By verifying all tools are registered and accessible, we confirm
@@ -447,7 +433,7 @@ describe("MCP Tool InputSchema Validation", () => {
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
 
-        // Verify the schema is still a Zod object
+        // Verify the schema is a Zod object
         const schema = tool.inputSchema;
         expect(schema).toBeInstanceOf(z.ZodObject);
 
