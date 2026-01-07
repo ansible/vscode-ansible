@@ -59,359 +59,323 @@ describe("MCP Tool InputSchema Validation", () => {
     }
   }
 
+  /**
+   * Helper to verify that a tool has inputSchema defined
+   */
+  function expectToolHasInputSchema(toolName: string) {
+    const tool = getTool(toolName);
+    expect(tool).toBeDefined();
+    expect(tool.inputSchema).toBeDefined();
+  }
+
+  /**
+   * Helper to test tool validation with given arguments
+   * @param toolName - Name of the tool to test
+   * @param args - Arguments to validate
+   * @param expectedSuccess - Whether validation should succeed
+   * @param expectError - Whether to expect an error object when validation fails (default: true for invalid cases)
+   */
+  function testToolValidation(
+    toolName: string,
+    args: Record<string, unknown>,
+    expectedSuccess: boolean,
+    expectError = !expectedSuccess,
+  ) {
+    const tool = getTool(toolName);
+    expect(tool).toBeDefined();
+    expect(tool.inputSchema).toBeDefined();
+
+    const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
+    const result = validateWithZodSchema(schema, args);
+
+    expect(result.success).toBe(expectedSuccess);
+    if (expectError && !expectedSuccess) {
+      expect(result.error).toBeDefined();
+    }
+  }
+
   describe("ansible_lint tool inputSchema", () => {
     it("should have inputSchema defined", () => {
-      const tool = getTool("ansible_lint");
-      expect(tool).toBeDefined();
-      expect(tool.inputSchema).toBeDefined();
+      expectToolHasInputSchema("ansible_lint");
     });
 
     it("should parse valid arguments correctly", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        filePath: "/path/to/playbook.yml",
-        fix: false,
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_lint",
+        {
+          filePath: "/path/to/playbook.yml",
+          fix: false,
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with optional fix parameter", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        filePath: "/path/to/playbook.yml",
-        fix: true,
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_lint",
+        {
+          filePath: "/path/to/playbook.yml",
+          fix: true,
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments without optional fix parameter", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        filePath: "/path/to/playbook.yml",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_lint",
+        {
+          filePath: "/path/to/playbook.yml",
+        },
+        true,
+      );
     });
 
     it("should reject invalid arguments - missing required filePath", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        fix: false,
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ansible_lint",
+        {
+          fix: false,
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - wrong type for filePath", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        filePath: 123, // Should be string
-        fix: false,
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ansible_lint",
+        {
+          filePath: 123, // Should be string
+          fix: false,
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - wrong type for fix", () => {
-      const tool = getTool("ansible_lint");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        filePath: "/path/to/playbook.yml",
-        fix: "yes", // Should be boolean
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ansible_lint",
+        {
+          filePath: "/path/to/playbook.yml",
+          fix: "yes", // Should be boolean
+        },
+        false,
+      );
     });
   });
 
   describe("ansible_navigator tool inputSchema", () => {
     it("should have inputSchema defined", () => {
-      const tool = getTool("ansible_navigator");
-      expect(tool).toBeDefined();
-      expect(tool.inputSchema).toBeDefined();
+      expectToolHasInputSchema("ansible_navigator");
     });
 
     it("should parse valid arguments with required userMessage", () => {
-      const tool = getTool("ansible_navigator");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        userMessage: "run playbook.yml",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_navigator",
+        {
+          userMessage: "run playbook.yml",
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with all optional parameters", () => {
-      const tool = getTool("ansible_navigator");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        userMessage: "run playbook.yml",
-        filePath: "/path/to/playbook.yml",
-        mode: "stdout" as const,
-        environment: "auto",
-        disableExecutionEnvironment: false,
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_navigator",
+        {
+          userMessage: "run playbook.yml",
+          filePath: "/path/to/playbook.yml",
+          mode: "stdout" as const,
+          environment: "auto",
+          disableExecutionEnvironment: false,
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with enum values", () => {
-      const tool = getTool("ansible_navigator");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        userMessage: "run playbook.yml",
-        mode: "interactive" as const,
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ansible_navigator",
+        {
+          userMessage: "run playbook.yml",
+          mode: "interactive" as const,
+        },
+        true,
+      );
     });
 
     it("should reject invalid arguments - missing required userMessage", () => {
-      const tool = getTool("ansible_navigator");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        filePath: "/path/to/playbook.yml",
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ansible_navigator",
+        {
+          filePath: "/path/to/playbook.yml",
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - invalid enum value for mode", () => {
-      const tool = getTool("ansible_navigator");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        userMessage: "run playbook.yml",
-        mode: "invalid_mode", // Should be "stdout" or "interactive"
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ansible_navigator",
+        {
+          userMessage: "run playbook.yml",
+          mode: "invalid_mode", // Should be "stdout" or "interactive"
+        },
+        false,
+      );
     });
   });
 
   describe("ade_setup_environment tool inputSchema", () => {
     it("should have inputSchema defined", () => {
-      const tool = getTool("ade_setup_environment");
-      expect(tool).toBeDefined();
-      expect(tool.inputSchema).toBeDefined();
+      expectToolHasInputSchema("ade_setup_environment");
     });
 
     it("should parse valid arguments with all optional parameters", () => {
-      const tool = getTool("ade_setup_environment");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        envName: "test-env",
-        pythonVersion: "3.11",
-        collections: ["ansible.builtin", "community.general"],
-        installRequirements: true,
-        requirementsFile: "/path/to/requirements.txt",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "ade_setup_environment",
+        {
+          envName: "test-env",
+          pythonVersion: "3.11",
+          collections: ["ansible.builtin", "community.general"],
+          installRequirements: true,
+          requirementsFile: "/path/to/requirements.txt",
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with empty object (all optional)", () => {
-      const tool = getTool("ade_setup_environment");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {};
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation("ade_setup_environment", {}, true);
     });
 
     it("should reject invalid arguments - wrong type for collections", () => {
-      const tool = getTool("ade_setup_environment");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        collections: "not-an-array", // Should be array of strings
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ade_setup_environment",
+        {
+          collections: "not-an-array", // Should be array of strings
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - wrong type for installRequirements", () => {
-      const tool = getTool("ade_setup_environment");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        installRequirements: "yes", // Should be boolean
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "ade_setup_environment",
+        {
+          installRequirements: "yes", // Should be boolean
+        },
+        false,
+      );
     });
   });
 
   describe("create_ansible_projects tool inputSchema", () => {
     it("should have inputSchema defined", () => {
-      const tool = getTool("create_ansible_projects");
-      expect(tool).toBeDefined();
-      expect(tool.inputSchema).toBeDefined();
+      expectToolHasInputSchema("create_ansible_projects");
     });
 
     it("should parse valid arguments with union type for projectType", () => {
-      const tool = getTool("create_ansible_projects");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        projectType: "collection" as const,
-        namespace: "test_org",
-        collectionName: "test_coll",
-        projectDirectory: "my_collection_project",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "create_ansible_projects",
+        {
+          projectType: "collection" as const,
+          namespace: "test_org",
+          collectionName: "test_coll",
+          projectDirectory: "my_collection_project",
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with playbook projectType", () => {
-      const tool = getTool("create_ansible_projects");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        projectType: "playbook" as const,
-        namespace: "test_org",
-        collectionName: "test_coll",
-        projectDirectory: "my_playbook_project",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "create_ansible_projects",
+        {
+          projectType: "playbook" as const,
+          namespace: "test_org",
+          collectionName: "test_coll",
+          projectDirectory: "my_playbook_project",
+        },
+        true,
+      );
     });
 
     it("should reject invalid arguments - invalid union value for projectType", () => {
-      const tool = getTool("create_ansible_projects");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        projectType: "invalid_type", // Should be "collection" or "playbook"
-        namespace: "test_org",
-        collectionName: "test_coll",
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "create_ansible_projects",
+        {
+          projectType: "invalid_type", // Should be "collection" or "playbook"
+          namespace: "test_org",
+          collectionName: "test_coll",
+        },
+        false,
+      );
     });
   });
 
   describe("define_and_build_execution_env tool inputSchema", () => {
     it("should have inputSchema defined", () => {
-      const tool = getTool("define_and_build_execution_env");
-      expect(tool).toBeDefined();
-      expect(tool.inputSchema).toBeDefined();
+      expectToolHasInputSchema("define_and_build_execution_env");
     });
 
     it("should parse valid arguments with required parameters", () => {
-      const tool = getTool("define_and_build_execution_env");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        baseImage: "quay.io/fedora/fedora-minimal:41",
-        tag: "my-ee:latest",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "define_and_build_execution_env",
+        {
+          baseImage: "quay.io/fedora/fedora-minimal:41",
+          tag: "my-ee:latest",
+        },
+        true,
+      );
     });
 
     it("should parse valid arguments with all optional parameters", () => {
-      const tool = getTool("define_and_build_execution_env");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const validArgs = {
-        baseImage: "quay.io/fedora/fedora-minimal:41",
-        tag: "my-ee:latest",
-        destinationPath: "/path/to/dest",
-        collections: ["amazon.aws", "ansible.utils"],
-        systemPackages: ["git", "vim"],
-        pythonPackages: ["boto3", "requests"],
-        generatedYaml: "---\nversion: 3",
-      };
-
-      const result = validateWithZodSchema(schema, validArgs);
-      expect(result.success).toBe(true);
+      testToolValidation(
+        "define_and_build_execution_env",
+        {
+          baseImage: "quay.io/fedora/fedora-minimal:41",
+          tag: "my-ee:latest",
+          destinationPath: "/path/to/dest",
+          collections: ["amazon.aws", "ansible.utils"],
+          systemPackages: ["git", "vim"],
+          pythonPackages: ["boto3", "requests"],
+          generatedYaml: "---\nversion: 3",
+        },
+        true,
+      );
     });
 
     it("should reject invalid arguments - missing required baseImage", () => {
-      const tool = getTool("define_and_build_execution_env");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        tag: "my-ee:latest",
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "define_and_build_execution_env",
+        {
+          tag: "my-ee:latest",
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - missing required tag", () => {
-      const tool = getTool("define_and_build_execution_env");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        baseImage: "quay.io/fedora/fedora-minimal:41",
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "define_and_build_execution_env",
+        {
+          baseImage: "quay.io/fedora/fedora-minimal:41",
+        },
+        false,
+      );
     });
 
     it("should reject invalid arguments - wrong type for collections array", () => {
-      const tool = getTool("define_and_build_execution_env");
-      const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-      const invalidArgs = {
-        baseImage: "quay.io/fedora/fedora-minimal:41",
-        tag: "my-ee:latest",
-        collections: "not-an-array", // Should be array of strings
-      };
-
-      const result = validateWithZodSchema(schema, invalidArgs);
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      testToolValidation(
+        "define_and_build_execution_env",
+        {
+          baseImage: "quay.io/fedora/fedora-minimal:41",
+          tag: "my-ee:latest",
+          collections: "not-an-array", // Should be array of strings
+        },
+        false,
+      );
     });
   });
 
@@ -486,11 +450,7 @@ describe("MCP Tool InputSchema Validation", () => {
       expect(testCases.length).toBe(TOOLS_WITH_INPUT_SCHEMA.length);
 
       for (const testCase of testCases) {
-        const tool = getTool(testCase.toolName);
-        const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
-
-        const result = validateWithZodSchema(schema, testCase.validArgs);
-        expect(result.success).toBe(true);
+        testToolValidation(testCase.toolName, testCase.validArgs, true);
       }
     });
   });
