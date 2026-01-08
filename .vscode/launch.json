@@ -63,8 +63,8 @@
       "type": "extensionHost"
     },
     {
-      "name": "Attach to Server",
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
+      "name": "Attach to ALS",
+      "outFiles": ["${workspaceRoot}/out/als/src/**/*.js"],
       "port": 6010,
       "request": "attach",
       "restart": true,

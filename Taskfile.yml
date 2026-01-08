@@ -69,7 +69,7 @@ tasks:
       - exclude: "**/None/**/*"
     generates:
       - out/client/**/*
-      - out/server/**/*
+      - out/als/**/*
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756

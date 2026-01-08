@@ -11,7 +11,7 @@
     "**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}",
     "**/jest.config.{js,cjs,mjs,ts}",
     "coverage/**",
-    "out/server/src/**",
+    "out/als/src/**",
     "packages/*/test{,s}/**",
     "test{,-*}.{js,cjs,mjs,ts,tsx,jsx}",
     "test{,s}/**"
