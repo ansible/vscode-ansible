@@ -17,7 +17,6 @@ import {
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
-import * as marked from "marked";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { getFetch } from "./api";
 
@@ -207,8 +206,7 @@ export class LightspeedUser {
 
       if (response.ok) {
         const data = await response.json();
-        const markdownData = marked.parseInline(data.content) as string;
-        return markdownData;
+        return data.content;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info from markdown returned non-2xx response. Status: ${response.status}`,
