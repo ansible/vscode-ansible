@@ -57,6 +57,16 @@
     "node": ">=20.0",
     "npm": ">=7.11.2"
   },
+  "exports": {
+    ".": {
+      "default": "./out/server/src/server.js",
+      "types": "./out/server/src/server.d.ts"
+    },
+    "./interfaces/extensionSettings": {
+      "default": "./out/server/src/interfaces/extensionSettings.js",
+      "types": "./out/server/src/interfaces/extensionSettings.d.ts"
+    }
+  },
   "files": [
     "icon.png",
     "./out/server/src/**/*"

@@ -9,7 +9,6 @@
 .nyc_output
 .pytest_cache
 .task
-.venv
 .vscode-test
 CHANGELOG.html
 docs/als/settings.md
