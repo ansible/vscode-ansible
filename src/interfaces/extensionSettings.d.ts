@@ -1,8 +1,7 @@
-export type IPullPolicy = "always" | "missing" | "never" | "tag";
-
-export type IContainerEngine = "auto" | "podman" | "docker";
-
-export type ProviderType = "wca" | "google";
+import type {
+  IPullPolicy,
+  IContainerEngine,
+} from "@ansible/ansible-language-server/src/interfaces/extensionSettings";
 
 export interface ExtensionSettings {
   activationScript: string | undefined;
@@ -30,15 +29,6 @@ export interface ExecutionEnvironmentSettings {
 
 export interface PlaybookSettings {
   arguments: string;
-}
-
-export interface UserResponse {
-  rh_org_has_subscription: boolean;
-  rh_user_has_seat: boolean;
-  rh_user_is_org_admin: boolean;
-  external_username: string;
-  username: string;
-  org_telemetry_opt_out: boolean;
 }
 
 // Settings appear on VS Code Settings UI

@@ -204,11 +204,11 @@
       },
       {
         "command": "ansible.mcpServer.enabled",
-        "title": "Enable Ansible Development Tools MCP Server"
+        "title": "Ansible: Enable Ansible Development Tools MCP Server"
       },
       {
         "command": "ansible.mcpServer.disable",
-        "title": "Disable Ansible Development Tools MCP Server"
+        "title": "Ansible: Disable Ansible Development Tools MCP Server"
       },
       {
         "command": "ansible.lightspeed.testProviderConnection",

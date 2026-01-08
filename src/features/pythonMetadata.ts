@@ -5,12 +5,12 @@ import {
   StatusBarItem,
   StatusBarAlignment,
   ThemeColor,
-  workspace,
 } from "vscode";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
 import { execSync } from "child_process";
+import { resolveInterpreterPath } from "./utils/interpreterPathResolver";
 
 export class PythonInterpreterManager {
   private context;
@@ -64,44 +64,49 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    let interpreterPath = this.extensionSettings.settings.interpreterPath;
-    if (interpreterPath) {
+    const rawInterpreterPath = this.extensionSettings.settings.interpreterPath;
+    if (rawInterpreterPath) {
       const activeURI = window.activeTextEditor?.document.uri;
-      if (
-        interpreterPath.includes("${workspaceFolder}") &&
-        activeURI !== undefined
-      ) {
-        const workspaceFolder =
-          workspace.getWorkspaceFolder(activeURI)?.uri.path;
-        if (workspaceFolder !== undefined) {
-          interpreterPath = interpreterPath.replace(
-            "${workspaceFolder}",
-            workspaceFolder,
-          );
-        } else {
-          console.error(
-            `Error getting workspace folder for ${activeURI.toString()} `,
-          );
-        }
-      }
-      const label = this.makeLabelFromPath(interpreterPath);
-      if (label) {
-        this.pythonInterpreterStatusBarItem.text = label;
-        this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
-          `#### Change environment\nCurrent python path: ${interpreterPath}`,
-          true,
-        );
-        this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-          "statusBar.background",
-        );
-      } else {
+      // Use the centralized resolver to handle ${workspaceFolder} and relative paths
+      const resolvedPath = resolveInterpreterPath(
+        rawInterpreterPath,
+        activeURI,
+      );
+
+      if (!resolvedPath) {
         this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
         this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
           "statusBarItem.warningBackground",
         );
         console.error(
-          `The specified python interpreter path in settings does not exist: ${interpreterPath} `,
+          `Could not resolve interpreter path: ${rawInterpreterPath}`,
         );
+      } else {
+        const label = this.makeLabelFromPath(resolvedPath);
+        if (label) {
+          this.pythonInterpreterStatusBarItem.text = label;
+          // Show both the configured path and resolved path in tooltip for clarity
+          const tooltipText =
+            rawInterpreterPath !== resolvedPath
+              ? `#### Change environment\nConfigured: ${rawInterpreterPath}\nResolved: ${resolvedPath}`
+              : `#### Change environment\nCurrent python path: ${resolvedPath}`;
+          this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
+            tooltipText,
+            true,
+          );
+          this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+            "statusBar.background",
+          );
+        } else {
+          this.pythonInterpreterStatusBarItem.text =
+            "Invalid python environment";
+          this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+            "statusBarItem.warningBackground",
+          );
+          console.error(
+            `The specified python interpreter path in settings does not exist: ${resolvedPath} (configured: ${rawInterpreterPath})`,
+          );
+        }
       }
     } else {
       this.pythonInterpreterStatusBarItem.text = "Select python environment";

@@ -1,18 +1,3 @@
-export interface CompletionResponseParams {
-  predictions: string[];
-}
-
-export interface MetadataParams {
-  documentUri: string;
-  activityId: string;
-}
-export interface CompletionRequestParams {
-  prompt: string;
-  suggestionId?: string;
-  metadata?: MetadataParams;
-  model?: string;
-}
-
 export enum UserAction {
   ACCEPTED = 0, // accepted the suggestion
   REJECTED = 1, // rejected the suggestion

@@ -3,6 +3,7 @@ import * as path from "path";
 
 /* local */
 import { ExtensionSettings } from "../../interfaces/extensionSettings";
+import { resolveInterpreterPath } from "./interpreterPathResolver";
 
 /**
  * A helper method to get interpreter path related settings to
@@ -32,7 +33,9 @@ export function withInterpreter(
     return { command: command, env: process.env };
   }
 
-  const interpreterPath = settings.interpreterPath;
+  const rawInterpreterPath = settings.interpreterPath;
+  // Resolve ${workspaceFolder} and relative paths
+  const interpreterPath = resolveInterpreterPath(rawInterpreterPath);
   if (interpreterPath && interpreterPath !== "") {
     const virtualEnv = path.resolve(interpreterPath, "../..");
 
