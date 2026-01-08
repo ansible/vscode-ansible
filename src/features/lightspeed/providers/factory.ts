@@ -1,5 +1,6 @@
 import { LLMProvider } from "./base";
 import { GoogleProvider, GoogleConfig } from "./google";
+import { RHCustomProvider, RHCustomConfig } from "./rhcustom";
 import { LightSpeedServiceSettings } from "../../../interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,
@@ -54,6 +55,58 @@ export class LLMProviderFactory implements ProviderFactory {
           timeout: config.timeout || 30000,
           baseUrl: isLocalhostUrl ? config.apiEndpoint : undefined,
         } as GoogleConfig);
+      }
+
+      case "rhcustom": {
+        if (!config.apiKey || config.apiKey.trim() === "") {
+          throw new Error(
+            "API Key is required for Red Hat Custom provider. Please set 'ansible.lightspeed.apiKey' in your settings.",
+          );
+        }
+        if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
+          throw new Error(
+            "Base URL is required for Red Hat Custom provider. Please set 'ansible.lightspeed.apiEndpoint' in your settings.",
+          );
+        }
+        if (!config.modelName || config.modelName.trim() === "") {
+          throw new Error(
+            "Model name is required for Red Hat Custom provider. Please set 'ansible.lightspeed.modelName' in your settings.",
+          );
+        }
+        
+        // Validate that apiEndpoint is a valid URL
+        try {
+          const url = new URL(config.apiEndpoint);
+          if (!url.protocol.startsWith("http")) {
+            throw new Error("Base URL must use http:// or https:// protocol");
+          }
+        } catch (error) {
+          if (error instanceof TypeError) {
+            throw new Error(
+              `Invalid base URL format: ${config.apiEndpoint}. Please provide a valid URL (e.g., https://example.com).`,
+            );
+          }
+          throw error;
+        }
+        
+        // Ensure we're using apiEndpoint as baseURL, not apiKey
+        const baseURL = config.apiEndpoint.trim();
+        const apiKey = config.apiKey.trim();
+        
+        console.log("[RHCustom Factory] Creating provider with:", {
+          baseURL: baseURL,
+          modelName: config.modelName,
+          hasApiKey: !!apiKey,
+          apiKeyLength: apiKey.length,
+          timeout: config.timeout || 30000,
+        });
+        
+        return new RHCustomProvider({
+          apiKey: apiKey,
+          modelName: config.modelName.trim(),
+          baseURL: baseURL,
+          timeout: config.timeout || 30000,
+        } as RHCustomConfig);
       }
 
       default:
@@ -114,6 +167,41 @@ export class LLMProviderFactory implements ProviderFactory {
             placeholder: "gemini-2.5-flash",
             description:
               "The Gemini model to use (optional, defaults to gemini-2.5-flash)",
+          },
+        ],
+      },
+      {
+        type: "rhcustom",
+        name: "rhcustom",
+        displayName: "Red Hat Custom",
+        description:
+          "Custom OpenAI-compatible API endpoint for Red Hat AI Services",
+        defaultEndpoint: "",
+        configSchema: [
+          {
+            key: "apiKey",
+            label: "API Key",
+            type: "password",
+            required: true,
+            placeholder: "sk-api-token",
+            description: "Your API key for authentication",
+          },
+          {
+            key: "apiEndpoint",
+            label: "Base URL",
+            type: "string",
+            required: true,
+            placeholder: "https://litellm-litemaas.apps.prod.rhoai.rh-aiservices-bu.com",
+            description:
+              "The base URL of the OpenAI-compatible API endpoint (must support /v1/chat/completions)",
+          },
+          {
+            key: "modelName",
+            label: "Model Name/ID",
+            type: "string",
+            required: true,
+            placeholder: "DeepSeek-R1-Distill-Qwen-14B-W4A16",
+            description: "The model name or ID to use",
           },
         ],
       },

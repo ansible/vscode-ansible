@@ -440,13 +440,13 @@
         "properties": {
           "ansible.lightspeed.apiEndpoint": {
             "default": "",
-            "markdownDescription": "API endpoint URL. **Only configurable for WCA provider.** For Google, the endpoint is automatically set and cannot be changed. Default for WCA: https://c.ai.ansible.redhat.com",
+            "markdownDescription": "API endpoint URL. **Required for WCA and rhcustom providers.** For WCA: Default is https://c.ai.ansible.redhat.com. For rhcustom: Base URL of the OpenAI-compatible API endpoint (must support /v1/chat/completions). For Google, the endpoint is automatically set and cannot be changed.",
             "order": 4,
             "scope": "resource",
             "type": "string"
           },
           "ansible.lightspeed.apiKey": {
-            "markdownDescription": "API key for Google provider. Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
+            "markdownDescription": "API key for Google and rhcustom providers. Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
             "order": 3,
             "scope": "resource",
             "type": "string"
@@ -459,7 +459,7 @@
             "type": "boolean"
           },
           "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
+            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). **Required for rhcustom.** For WCA: Model ID to override your organization's default model (commercial users only).",
             "order": 2,
             "scope": "resource",
             "type": "string"
@@ -468,11 +468,13 @@
             "default": "wca",
             "enum": [
               "wca",
-              "google"
+              "google",
+              "rhcustom"
             ],
             "enumDescriptions": [
               "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
-              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
+              "Google Gemini - Direct access to Google Gemini models (use your Google API key)",
+              "Red Hat Custom - Custom OpenAI-compatible API endpoint for Red Hat AI Services"
             ],
             "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
             "order": 1,
@@ -494,8 +496,8 @@
             "type": "number"
           },
           "ansible.lightspeed.timeout": {
-            "default": 3000,
-            "markdownDescription": "Request timeout in milliseconds for API calls.",
+            "default": 30000,
+            "markdownDescription": "Request timeout in milliseconds for API calls. Recommended: 30000 (30 seconds) or higher for LLM providers like Google and rhcustom.",
             "order": 5,
             "scope": "resource",
             "type": "number"
