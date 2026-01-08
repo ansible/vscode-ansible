@@ -1056,6 +1056,7 @@ __metadata:
   checksum: 10/1eaad3605234dc7e44898c15d1ba3c97fb968af1117025400cba572ce268da05afc36634d1fb9e779457af3ff7f13330aee07a962510a4d9c6612c13f71ee41e
   languageName: node
   linkType: hard
+
 "@modelcontextprotocol/sdk@npm:1.25.2":
   version: 1.25.2
   resolution: "@modelcontextprotocol/sdk@npm:1.25.2"
