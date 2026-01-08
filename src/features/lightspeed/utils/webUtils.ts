@@ -23,14 +23,6 @@ export interface OAuthAccount {
   expiresAtTimestampInSeconds: number;
 }
 
-export interface LoggedInUserInfo {
-  username?: string;
-  external_username: string;
-  rh_user_has_seat: boolean;
-  rh_org_has_subscription: boolean;
-  rh_user_is_org_admin: boolean;
-}
-
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
   public handleUri(uri: Uri) {
     this.fire(uri);

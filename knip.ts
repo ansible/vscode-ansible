@@ -12,7 +12,6 @@ const config: KnipConfig = {
   },
   includeEntryExports: true,
   ignoreDependencies: [
-    "@ansible/ansible-language-server",
     "@ansible/ansible-mcp-server",
     "@tomjs/vite-plugin-vue",
     "@types/mocha",
@@ -44,6 +43,7 @@ const config: KnipConfig = {
         "webviews/**/*.{ts,tsx}",
         "test/**/*.ts",
         ".vscode-test.mjs",
+        "test/ui/.mocharc.js",
       ],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },
