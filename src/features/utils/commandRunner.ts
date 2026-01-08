@@ -21,7 +21,7 @@ export function withInterpreter(
   let command = `${runExecutable} ${cmdArgs}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
-    ANSIBLE_FORCE_COLOR: "0", // ensure output is parseable (no ANSI)
+    ANSIBLE_FORCE_COLOR: "0", // ensure output is parsable (no ANSI)
     PYTHONBREAKPOINT: "0", // We want to be sure that python debugger is never
     // triggered, even if we mistakenly left a breakpoint() there while
     // debugging ansible- lint, or another tool we call.
