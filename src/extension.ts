@@ -69,7 +69,6 @@ import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/fee
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
-import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "node:child_process";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -97,9 +96,8 @@ import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleName
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
 
-export let client: LanguageClient;
+let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
-export const globalFileSystemWatcher: IFileSystemWatchers = {};
 
 const lsName = "Ansible Support";
 let lsOutputChannel: vscode.OutputChannel;

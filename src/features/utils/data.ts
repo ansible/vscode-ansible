@@ -1,6 +1,3 @@
-import * as fs from "fs";
-import * as yaml from "yaml";
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function compareObjects(baseObject: any, newObject: any): boolean {
   if (!isObject(baseObject) || !isObject(newObject)) {
@@ -28,24 +25,6 @@ export function compareObjects(baseObject: any, newObject: any): boolean {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isObject(object: any): boolean {
   return object != null && typeof object === "object";
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseYamlFile(filePath: string): any {
-  const stats = fs.statSync(filePath);
-  if (!stats.isFile()) {
-    return undefined;
-  }
-  try {
-    const fileContents = fs.readFileSync(filePath, "utf8");
-    const parsedAnsibleDocument = yaml.parse(fileContents, {
-      keepSourceTokens: true,
-    });
-    return parsedAnsibleDocument;
-  } catch (error) {
-    console.error(`Error parsing YAML file ${filePath}: ${error}`);
-    return undefined;
-  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

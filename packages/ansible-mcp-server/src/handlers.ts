@@ -1,5 +1,3 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
 import {
@@ -127,18 +125,6 @@ export function createAnsibleLintHandler() {
         isError: true,
       };
     }
-  };
-}
-
-export function createWorkspaceFileHandler(workspaceRoot: string) {
-  return async (uri: URL, variables: Record<string, string | string[]>) => {
-    const raw = variables["relPath"];
-    const rel = Array.isArray(raw) ? raw.join("/") : (raw ?? "");
-    const abs = path.resolve(workspaceRoot, rel);
-    const data = await fs.readFile(abs, "utf8");
-    return {
-      contents: [{ uri: uri.href, mimeType: "text/plain", text: data }],
-    };
   };
 }
 

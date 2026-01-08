@@ -17,7 +17,7 @@ const SCHEMA_FILE = path.join(
 );
 const RULES_FILE = path.join(__dirname, "data/ee-rules.md");
 // Sample EE file packaged with the extension
-export const SAMPLE_EE_FILE = path.join(
+const SAMPLE_EE_FILE = path.join(
   __dirname,
   "data/execution-environment-sample.yml",
 );

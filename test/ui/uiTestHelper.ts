@@ -11,8 +11,6 @@ import {
   WebView,
   ViewControl,
   ActivityBar,
-  WebviewView,
-  InputBox,
   VSBrowser,
 } from "vscode-extension-tester";
 import { until } from "selenium-webdriver";
@@ -279,76 +277,6 @@ export async function getAnsibleViewControl(): Promise<ViewControl> {
     timeout: 20000,
     pollTimeout: 500,
   });
-}
-
-export async function connectLightspeed() {
-  const explorerView = new WebviewView();
-  let modalDialog: ModalDialog;
-  let dialogMessage: string;
-  const view = await getAnsibleViewControl();
-  const sideBar = await view.openView();
-  const adtView = await sideBar
-    .getContent()
-    .getSection("Ansible Development Tools");
-
-  // Set "UI Test" and "One Click" options for mock server
-  try {
-    await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(["--ui-test"]),
-    });
-  } catch (error) {
-    console.error(
-      "Failed to set ui-test and one-click options for lightspeed mock server",
-      error,
-    );
-    expect.fail(
-      "Failed to set ui-test and one-click options for lightspeed mock server",
-    );
-  }
-
-  await adtView.collapse();
-
-  const alfView = await sideBar
-    .getContent()
-    .getSection("Ansible Lightspeed WCA Provider Feedback");
-  await alfView.collapse();
-
-  await explorerView.switchToFrame(5000);
-
-  const connectButton = await explorerView.findWebElement(
-    By.id("lightspeed-explorer-connect"),
-  );
-  expect(connectButton).not.to.be.undefined;
-  if (connectButton) {
-    await connectButton.click();
-  }
-  await explorerView.switchBack();
-
-  // Click Allow to use Lightspeed
-  const { dialog } = await getModalDialogAndMessage(true);
-  await dialog.pushButton("Allow");
-
-  const { dialog: dialog2, message: message2 } =
-    await getModalDialogAndMessage();
-  modalDialog = dialog2;
-  dialogMessage = message2;
-
-  // If the dialog to open the external website is not suppressed, click Open
-  if (dialogMessage === "Do you want Code to open the external website?") {
-    await modalDialog.pushButton("Configure Trusted Domains");
-    const input = await InputBox.create();
-    input.confirm();
-
-    const d = await getModalDialogAndMessage();
-    modalDialog = d.dialog;
-    dialogMessage = d.message;
-  }
-
-  // Click Open to allow Ansible extension to open the callback URI
-  await modalDialog.pushButton("Open");
-  await sleep(2000);
 }
 
 export async function waitForCondition({
