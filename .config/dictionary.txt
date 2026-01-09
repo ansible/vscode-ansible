@@ -46,6 +46,7 @@ contentmatches
 contentmatching
 coreutils
 cpython
+customizer
 dedupe
 devfile
 devspaces

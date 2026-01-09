@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { URI } from "vscode-uri";
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import _ from "lodash";
+import { isDeepStrictEqual } from "node:util";
 import * as yaml from "yaml";
 import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
@@ -230,7 +230,7 @@ export class LightSpeedInlineSuggestionProvider
         document.languageId,
       token.isCancellationRequested,
       lightSpeedSetting,
-      !_.isEqual(position, previousTriggerPosition),
+      !isDeepStrictEqual(position, previousTriggerPosition),
     );
     return state(suggestionDisplayed, {
       document: document,

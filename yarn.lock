@@ -19,7 +19,6 @@ __metadata:
     "@flatten-js/interval-tree": "npm:^2.0.3"
     "@types/chai": "npm:^5.2.3"
     "@types/ini": "npm:^4.1.1"
-    "@types/lodash": "npm:^4.17.21"
     "@types/mocha": "npm:^10.0.10"
     "@types/node": "npm:^24.10.2"
     "@types/vscode": "npm:^1.85.0"
@@ -29,7 +28,6 @@ __metadata:
     glob: "npm:^13.0.0"
     handlebars: "npm:^4.7.8"
     ini: "npm:^6.0.0"
-    lodash: "npm:^4.17.21"
     mocha: "npm:^11.7.5"
     mocha-junit-reporter: "npm:^2.2.1"
     rimraf: "npm:^6.1.2"
@@ -2117,13 +2115,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.17.21":
-  version: 4.17.21
-  resolution: "@types/lodash@npm:4.17.21"
-  checksum: 10/34920830a3bc82ba619cda05e606fef00c148a69b4f19f770645d2587ccdb8e42ef3ddfc174b7884c0c709fc0a1aeb48f7326da969bad12a1464a03efbbe414c
-  languageName: node
-  linkType: hard
-
 "@types/mocha@npm:^10.0.10":
   version: 10.0.10
   resolution: "@types/mocha@npm:10.0.10"
@@ -3434,7 +3425,6 @@ __metadata:
     "@types/ini": "npm:^4.1.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^27.0.0"
-    "@types/lodash": "npm:^4.17.21"
     "@types/mocha": "npm:^10.0.10"
     "@types/morgan": "npm:^1.9.10"
     "@types/node": "npm:^24.10.2"
@@ -3473,7 +3463,6 @@ __metadata:
     js-yaml: "npm:^4.1.1"
     jsdom: "npm:^27.3.0"
     knip: "npm:^5.72.0"
-    lodash: "npm:^4.17.21"
     marked: "npm:^17.0.1"
     minimatch: "npm:^10.1.1"
     mocha: "npm:^11.7.5"

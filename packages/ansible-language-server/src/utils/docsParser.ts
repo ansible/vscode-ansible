@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import * as fs from "fs";
 import { parseDocument, YAMLError } from "yaml";
 import {
@@ -50,16 +49,19 @@ export function processDocumentationFragments(
         docFragment.rawDocumentationFragments.has(fragmentPartName)
       ) {
         module.fragments.push(docFragment); // currently used only as indicator
-        _.mergeWith(
+        mergeWith(
           resultContents,
-          docFragment.rawDocumentationFragments.get(fragmentPartName),
+          docFragment.rawDocumentationFragments.get(fragmentPartName) as Record<
+            string,
+            unknown
+          >,
           docFragmentMergeCustomizer,
         );
       }
     }
-    _.mergeWith(
+    mergeWith(
       resultContents,
-      mainDocumentationFragment,
+      mainDocumentationFragment as Record<string, unknown>,
       docFragmentMergeCustomizer,
     );
     module.rawDocumentationFragments.set(DOCUMENTATION, resultContents);
@@ -73,10 +75,48 @@ function docFragmentMergeCustomizer(
 ): Record<string, unknown>[] | undefined {
   if (
     ["notes", "requirements", "seealso"].includes(key) &&
-    _.isArray(objValue)
+    Array.isArray(objValue)
   ) {
     return objValue.concat(srcValue);
   }
+}
+
+/**
+ * Deep merge two objects with a customizer function
+ * Similar to lodash.mergeWith
+ */
+function mergeWith(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>,
+  customizer: (
+    objValue: unknown,
+    srcValue: unknown,
+    key: string,
+  ) => unknown | undefined,
+): Record<string, unknown> {
+  const result = { ...target };
+  for (const key in source) {
+    if (hasOwnProperty(source, key)) {
+      const customValue = customizer(result[key], source[key], key);
+      if (customValue !== undefined) {
+        result[key] = customValue;
+      } else if (
+        isObject(result[key]) &&
+        isObject(source[key]) &&
+        !Array.isArray(result[key]) &&
+        !Array.isArray(source[key])
+      ) {
+        result[key] = mergeWith(
+          result[key] as Record<string, unknown>,
+          source[key] as Record<string, unknown>,
+          customizer,
+        );
+      } else {
+        result[key] = source[key];
+      }
+    }
+  }
+  return result;
 }
 
 export function processRawDocumentation(

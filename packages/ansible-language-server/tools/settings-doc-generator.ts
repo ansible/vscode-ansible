@@ -2,7 +2,6 @@ import * as Handlebars from "handlebars";
 import * as fs from "fs";
 import { SettingsManager } from "../src/services/settingsManager";
 import * as path from "path";
-import * as _ from "lodash";
 import { ExtensionSettingsWithDescriptionBase } from "../src/interfaces/extensionSettings";
 
 // Get the default settings values from settingsManager class
@@ -109,9 +108,9 @@ export function toDotNotation(
     const value = obj[key];
     const newKey = current ? `${current}.${key}` : key; // joined key with dot
     if (value && typeof value === "object") {
-      if (_.isArray(value) && value[0]) {
+      if (Array.isArray(value) && value[0]) {
         toDotNotation(value[0], res, `${newKey}._array`); // it's an array object, so do it again (to identify array '._array' is added)
-      } else if (_.isArray(value) && !value[0]) {
+      } else if (Array.isArray(value) && !value[0]) {
         res[newKey] = value; // empty array
       } else {
         toDotNotation(
@@ -213,10 +212,18 @@ export function structureSettings(
   }
 
   // group the array elements based on their parent key
-  const arrayObjFinal = _.groupBy(
-    makeSettingsUnique(objWithArrayValues),
-    (obj) => obj.parent,
-  );
+  const arrayObjFinal = makeSettingsUnique(objWithArrayValues).reduce<
+    Record<string, SettingEntry[]>
+  >((acc, obj) => {
+    const key = (obj.parent ?? "") as string;
+    if (key && !acc[key]) {
+      acc[key] = [];
+    }
+    if (key) {
+      acc[key].push(obj);
+    }
+    return acc;
+  }, {});
 
   // add them back to the settingsArray with appropriate structure and value
   for (const k in arrayObjFinal) {

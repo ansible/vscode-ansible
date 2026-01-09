@@ -25,7 +25,6 @@
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.0",
     "ini": "^6.0.0",
-    "lodash": "^4.17.21",
     "uuid": "^13.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -38,7 +37,6 @@
   "devDependencies": {
     "@types/chai": "^5.2.3",
     "@types/ini": "^4.1.1",
-    "@types/lodash": "^4.17.21",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.2",
     "@types/vscode": "^1.85.0",
