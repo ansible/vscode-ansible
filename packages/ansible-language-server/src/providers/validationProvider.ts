@@ -1,4 +1,3 @@
-import { IntervalTree, IntervalBase } from "@flatten-js/interval-tree";
 import {
   Connection,
   Diagnostic,
@@ -6,7 +5,10 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { ValidationManager } from "../services/validationManager";
+import {
+  DiagnosticTree,
+  ValidationManager,
+} from "../services/validationManager";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { isPlaybook, parseAllDocuments } from "../utils/yaml";
 import { CommandRunner } from "../utils/commandRunner";
@@ -107,7 +109,7 @@ export async function doValidate(
 export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const yDocuments = parseAllDocuments(textDocument.getText());
-  const rangeTree = new IntervalTree<Diagnostic>();
+  const rangeTree = new DiagnosticTree();
   yDocuments.forEach((yDoc) => {
     yDoc.errors.forEach((error) => {
       const [errStart, errEnd] = error.pos;
@@ -146,7 +148,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
       }
     });
   });
-  rangeTree.forEach((_range: IntervalBase, diag: Diagnostic) => {
+  rangeTree.forEach((_range: [number, number], diag: Diagnostic) => {
     diagnostics.push(diag);
   });
 

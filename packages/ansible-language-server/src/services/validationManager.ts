@@ -1,4 +1,3 @@
-import IntervalTree from "@flatten-js/interval-tree";
 import {
   Connection,
   Diagnostic,
@@ -7,6 +6,70 @@ import {
   TextDocuments,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+
+/**
+ * Simple replacement for IntervalTree that stores diagnostics by line range.
+ * Uses an array-based approach suitable for typical diagnostic counts.
+ */
+export class DiagnosticTree {
+  private items: Array<{ range: [number, number]; diagnostic: Diagnostic }> =
+    [];
+
+  /**
+   * Insert a diagnostic with the given line range [startLine, endLine]
+   */
+  insert(range: [number, number], diagnostic: Diagnostic): void {
+    this.items.push({ range, diagnostic });
+  }
+
+  /**
+   * Search for diagnostics that overlap with the given range [startLine, endLine]
+   */
+  search(range: [number, number]): Diagnostic[] | undefined {
+    const [searchStart, searchEnd] = range;
+    const results: Diagnostic[] = [];
+
+    for (const item of this.items) {
+      const [itemStart, itemEnd] = item.range;
+      // Check if ranges overlap: itemStart <= searchEnd && itemEnd >= searchStart
+      if (itemStart <= searchEnd && itemEnd >= searchStart) {
+        results.push(item.diagnostic);
+      }
+    }
+
+    return results.length > 0 ? results : undefined;
+  }
+
+  /**
+   * Remove a specific diagnostic with the given range
+   */
+  remove(range: [number, number], diagnostic: Diagnostic): void {
+    this.items = this.items.filter(
+      (item) =>
+        item.range[0] !== range[0] ||
+        item.range[1] !== range[1] ||
+        item.diagnostic !== diagnostic,
+    );
+  }
+
+  /**
+   * Get all diagnostics as an array
+   */
+  get values(): Diagnostic[] {
+    return this.items.map((item) => item.diagnostic);
+  }
+
+  /**
+   * Iterate over all diagnostics
+   */
+  forEach(
+    callback: (range: [number, number], diagnostic: Diagnostic) => void,
+  ): void {
+    for (const item of this.items) {
+      callback(item.range, item.diagnostic);
+    }
+  }
+}
 
 /**
  * Provides cache for selected diagnostics.
@@ -20,7 +83,7 @@ export class ValidationManager {
   private connection: Connection;
   private documents: TextDocuments<TextDocument>;
 
-  private validationCache: Map<string, IntervalTree<Diagnostic>> = new Map();
+  private validationCache: Map<string, DiagnosticTree> = new Map();
 
   /**
    * Mapping from file that generated diagnostics (origin), to files included in
@@ -96,7 +159,7 @@ export class ValidationManager {
     }
     for (const [fileUri, fileDiagnostics] of cacheableDiagnostics) {
       // save validation cache for each impacted file
-      const diagnosticTree = new IntervalTree<Diagnostic>();
+      const diagnosticTree = new DiagnosticTree();
       this.validationCache.set(fileUri, diagnosticTree);
 
       for (const diagnostic of fileDiagnostics) {
