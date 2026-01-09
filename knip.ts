@@ -28,6 +28,7 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "ovsx",
   ],
+  ignoreFiles: ["**/.ansible/**"],
   ignoreExportsUsedInFile: {
     function: true,
     interface: true,

@@ -8,8 +8,7 @@ import {
   sleep,
   workbenchExecuteCommand,
   waitForCondition,
-  openSettings,
-  updateSettings,
+  ensureSettings,
 } from "../uiTestHelper";
 import { expect } from "chai";
 import {
@@ -31,28 +30,15 @@ describe("LLM Provider Playbook Generation", function () {
       this.skip();
       return;
     }
-    const settingsEditor = await openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
-    await updateSettings(
-      settingsEditor,
-      "ansible.lightspeed.apiEndpoint",
-      serverUrl,
-    );
-    await updateSettings(
-      settingsEditor,
-      "ansible.lightspeed.apiKey",
-      "dummy-key-for-tests",
-    );
-    await updateSettings(
-      settingsEditor,
-      "ansible.lightspeed.modelName",
-      "gemini-2.5-flash",
-    );
-    await updateSettings(
-      settingsEditor,
-      "ansible.lightspeed.provider",
-      "google",
-    );
+
+    // Directly modify settings.json file
+    ensureSettings({
+      "ansible.lightspeed.enabled": true,
+      "ansible.lightspeed.apiEndpoint": serverUrl,
+      "ansible.lightspeed.apiKey": "dummy-key-for-tests",
+      "ansible.lightspeed.modelName": "gemini-2.5-flash",
+      "ansible.lightspeed.provider": "google",
+    });
 
     await new EditorView().closeAllEditors();
 
