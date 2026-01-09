@@ -15,11 +15,11 @@ import {
   window,
 } from "vscode";
 import { v4 as uuid } from "uuid";
+import crypto from "crypto";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
 import { SettingsManager } from "../../settings";
 import {
   generateCodeVerifier,
-  generateCodeChallengeFromVerifier,
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
@@ -39,8 +39,23 @@ import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { Log } from "../../utils/logger";
 import { getFetch } from "./api";
 
-const CODE_VERIFIER = generateCodeVerifier();
-const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
+// Lazy initialization to avoid module loading order issues
+let _codeVerifier: string | undefined;
+
+function getCodeVerifier(): string {
+  return (_codeVerifier ??= generateCodeVerifier());
+}
+
+function getCodeChallenge(): string {
+  const verifier = getCodeVerifier();
+  return crypto
+    .createHash("sha256")
+    .update(new TextEncoder().encode(verifier))
+    .digest("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
 
 // Grace time for sending request to refresh token
 const GRACE_TIME = 10;
@@ -268,7 +283,7 @@ export class LightSpeedAuthenticationProvider
 
     const searchParams = new URLSearchParams([
       ["response_type", "code"],
-      ["code_challenge", CODE_CHALLENGE],
+      ["code_challenge", getCodeChallenge()],
       ["code_challenge_method", "S256"],
       ["client_id", LIGHTSPEED_CLIENT_ID],
       ["redirect_uri", this._externalRedirectUri],
@@ -371,7 +386,7 @@ export class LightSpeedAuthenticationProvider
         {
           method: "POST",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
-          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(CODE_VERIFIER)}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
           headers,
         },
       );
