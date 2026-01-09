@@ -66,10 +66,7 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
     webviewView.webview.html = this._getWebviewContent(webviewView.webview);
   }
 
-  private _getWebviewContent(
-    webview: Webview,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ) {
+  private _getWebviewContent(webview: Webview) {
     return __getWebviewHtml__({
       // vite dev mode
       serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/llm-provider.html`,
@@ -120,12 +117,13 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
       // Update provider
       await this.llmProviderSettings.setProvider(message.provider);
 
-      // Update API key if provided (for non-WCA providers)
-      if (message.provider !== "wca") {
-        await this.llmProviderSettings.setApiKey(message.apiKey || undefined);
-      } else {
-        // Clear API key when switching to WCA (uses OAuth)
-        await this.llmProviderSettings.setApiKey(undefined);
+      // Update API key for the specific provider (stored per-provider)
+      // Only update if a key is provided - don't clear existing keys
+      if (message.provider !== "wca" && message.apiKey) {
+        await this.llmProviderSettings.setApiKey(
+          message.apiKey,
+          message.provider,
+        );
       }
 
       // Update model name if provided
@@ -138,16 +136,17 @@ export class LlmProviderWebviewViewProvider implements WebviewViewProvider {
         message.apiEndpoint || undefined,
       );
 
-      // Reinitialize settings
-      await this.settingsManager.reinitialize();
-
-      // Refresh provider manager
-      await this.providerManager.refreshProviders();
-
-      // Send updated settings back to webview (with defaults applied)
+      // Send updated settings back to webview immediately for fast UI response
       if (this.webviewView) {
         await this.sendProviderSettings(this.webviewView.webview);
       }
+
+      // Run heavy operations in background (don't block UI)
+      this.settingsManager.reinitialize().then(() => {
+        this.providerManager.refreshProviders().catch((error) => {
+          console.error("Failed to refresh providers:", error);
+        });
+      });
     } catch (error) {
       console.error("Failed to save provider settings:", error);
     }
