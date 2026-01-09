@@ -61,14 +61,14 @@ const saveProviderSettings = () => {
   });
 };
 
-// Handle provider change - reset fields to defaults
+// Handle provider change - let backend load stored settings for new provider
 const onProviderChange = () => {
-  // Clear provider-specific fields
-  apiKey.value = '';
+  // Clear endpoint and model (these are provider-specific defaults)
+  // API key is NOT cleared - backend stores keys per-provider and will return the saved key
   modelName.value = '';
   apiEndpoint.value = '';
   
-  // Save with cleared fields (backend will apply defaults)
+  // Save provider change - backend will return stored API key for this provider
   saveProviderSettings();
 };
 

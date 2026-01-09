@@ -9,7 +9,7 @@ export class LlmProviderSettings {
   private static readonly PROVIDER_KEY = "lightspeed.provider";
   private static readonly MODEL_NAME_KEY = "lightspeed.modelName";
   private static readonly API_ENDPOINT_KEY = "lightspeed.apiEndpoint";
-  private static readonly API_KEY_SECRET = "lightspeed.apiKey";
+  private static readonly API_KEY_SECRET_PREFIX = "lightspeed.apiKey.";
 
   private static readonly DEFAULT_PROVIDER = "wca";
   private static readonly DEFAULT_WCA_ENDPOINT =
@@ -93,21 +93,21 @@ export class LlmProviderSettings {
     );
   }
 
-  // API Key (stored securely in secrets)
-  async getApiKey(): Promise<string> {
-    return (
-      (await this.context.secrets.get(LlmProviderSettings.API_KEY_SECRET)) ?? ""
-    );
+  // API Key (stored securely in secrets, per-provider)
+  async getApiKey(provider?: string): Promise<string> {
+    const targetProvider = provider ?? this.getProvider();
+    const secretKey = `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${targetProvider}`;
+    return (await this.context.secrets.get(secretKey)) ?? "";
   }
 
-  async setApiKey(value: string | undefined): Promise<void> {
+  async setApiKey(value: string | undefined, provider?: string): Promise<void> {
+    const targetProvider = provider ?? this.getProvider();
+    const secretKey = `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${targetProvider}`;
+
     if (value) {
-      await this.context.secrets.store(
-        LlmProviderSettings.API_KEY_SECRET,
-        value,
-      );
+      await this.context.secrets.store(secretKey, value);
     } else {
-      await this.context.secrets.delete(LlmProviderSettings.API_KEY_SECRET);
+      await this.context.secrets.delete(secretKey);
     }
   }
 
@@ -161,6 +161,12 @@ export class LlmProviderSettings {
       LlmProviderSettings.API_ENDPOINT_KEY,
       undefined,
     );
-    await this.context.secrets.delete(LlmProviderSettings.API_KEY_SECRET);
+    // Clear API keys for all known providers
+    const providers = ["wca", "google"];
+    for (const provider of providers) {
+      await this.context.secrets.delete(
+        `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${provider}`,
+      );
+    }
   }
 }
