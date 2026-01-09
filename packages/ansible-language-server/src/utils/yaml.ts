@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   Document,
@@ -154,7 +153,7 @@ export function getPathAt(
   inclusive = false,
 ): Node[] | null {
   const offset = document.offsetAt(position);
-  const doc = _.find(docs, (d) => contains(d.contents, offset, inclusive));
+  const doc = docs.find((d) => contains(d.contents, offset, inclusive));
   if (doc && doc.contents) {
     return getPathAtOffset([doc.contents], offset, inclusive, doc);
   }
@@ -183,7 +182,7 @@ function getPathAtOffset(
   if (path) {
     const currentNode = path[path.length - 1];
     if (isMap(currentNode)) {
-      let pair = _.find(currentNode.items, (p) =>
+      let pair = currentNode.items.find((p) =>
         contains(p.key as Node, offset, inclusive),
       );
       if (pair) {
@@ -194,7 +193,7 @@ function getPathAtOffset(
           doc,
         );
       }
-      pair = _.find(currentNode.items, (p) =>
+      pair = currentNode.items.find((p) =>
         contains(p.value as Node, offset, inclusive),
       );
       if (pair) {
@@ -205,7 +204,7 @@ function getPathAtOffset(
           doc,
         );
       }
-      pair = _.find(currentNode.items, (p) => {
+      pair = currentNode.items.find((p) => {
         const inBetweenNode = doc.createNode(null);
         const start = getOrigRange(p.key as Node)?.[1];
         const end = getOrigRange(p.value as Node)?.[0];
@@ -218,7 +217,7 @@ function getPathAtOffset(
         return path.concat(pair as unknown as Node, doc.createNode(null));
       }
     } else if (isSeq(currentNode)) {
-      const item = _.find(currentNode.items, (n) =>
+      const item = currentNode.items.find((n) =>
         contains(n as Node, offset, inclusive),
       );
       if (item) {
@@ -302,8 +301,7 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
 
 function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
   const declaredCollections: string[] = [];
-  const collectionsPair = _.find(
-    playNode?.items,
+  const collectionsPair = playNode?.items?.find(
     (pair) => isScalar(pair.key) && pair.key.value === "collections",
   );
 

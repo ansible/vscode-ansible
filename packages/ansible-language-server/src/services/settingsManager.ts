@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import { Connection } from "vscode-languageserver";
 import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
 import {
@@ -6,6 +5,100 @@ import {
   ExtensionSettings,
   SettingsEntry,
 } from "../interfaces/extensionSettings";
+
+/**
+ * Deep clone an object
+ */
+function cloneDeep<T>(obj: T): T {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  if (obj instanceof Date) {
+    return new Date(obj.getTime()) as unknown as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item) => cloneDeep(item)) as unknown as T;
+  }
+  const cloned = {} as T;
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      cloned[key] = cloneDeep(obj[key]);
+    }
+  }
+  return cloned;
+}
+
+/**
+ * Deep merge two objects, similar to lodash.merge
+ */
+function merge<T extends Record<string, unknown>>(
+  target: T,
+  ...sources: Partial<T>[]
+): T {
+  if (!sources.length) return target;
+  const source = sources.shift();
+  if (source) {
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        const sourceValue = source[key];
+        const targetValue = target[key];
+        if (
+          sourceValue &&
+          typeof sourceValue === "object" &&
+          !Array.isArray(sourceValue) &&
+          targetValue &&
+          typeof targetValue === "object" &&
+          !Array.isArray(targetValue)
+        ) {
+          target[key] = merge(
+            targetValue as Record<string, unknown>,
+            sourceValue as Record<string, unknown>,
+          ) as T[Extract<keyof T, string>];
+        } else {
+          target[key] = sourceValue as T[Extract<keyof T, string>];
+        }
+      }
+    }
+  }
+  return merge(target, ...sources);
+}
+
+/**
+ * Deep equality check, similar to lodash.isEqual
+ */
+function isEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== "object") return false;
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!isEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  if (Array.isArray(a) || Array.isArray(b)) return false;
+
+  const keysA = Object.keys(a as Record<string, unknown>);
+  const keysB = Object.keys(b as Record<string, unknown>);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!keysB.includes(key)) return false;
+    if (
+      !isEqual(
+        (a as Record<string, unknown>)[key],
+        (b as Record<string, unknown>)[key],
+      )
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 export class SettingsManager {
   private connection: Connection | null;
@@ -121,7 +214,7 @@ export class SettingsManager {
 
   // Structure the settings similar to the ExtensionSettings interface for usage in the code
   private defaultSettings: ExtensionSettings = this._settingsAdjustment(
-    _.cloneDeep(this.defaultSettingsWithDescription),
+    cloneDeep(this.defaultSettingsWithDescription),
   ) as unknown as ExtensionSettings;
 
   public globalSettings: ExtensionSettings = this.defaultSettings;
@@ -157,8 +250,8 @@ export class SettingsManager {
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings = _.merge(
-        _.cloneDeep(this.globalSettings),
+      const mergedSettings = merge(
+        cloneDeep(this.globalSettings),
         clientSettings,
       );
       result = Promise.resolve(mergedSettings);
@@ -197,7 +290,7 @@ export class SettingsManager {
           });
           newDocumentSettings.set(uri, newConfigPromise);
 
-          if (!_.isEqual(config, await newConfigPromise)) {
+          if (!isEqual(config, await newConfigPromise)) {
             // handlers may need to read config, so can't fire them until the
             // cache is purged
             handlersToFire.push(handler);

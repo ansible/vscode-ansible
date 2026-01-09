@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import {
   ClientCapabilities,
   Connection,
@@ -61,7 +60,7 @@ export class WorkspaceManager {
     callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
   ): Promise<void> {
     await Promise.all(
-      _.map(Array.from(this.folderContexts.values()), (folder) =>
+      Array.from(this.folderContexts.values()).map((folder) =>
         callbackfn(folder),
       ),
     );

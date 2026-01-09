@@ -1,5 +1,4 @@
 import * as ini from "ini";
-import * as _ from "lodash";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
@@ -42,10 +41,12 @@ export class AnsibleConfig {
         mountPaths,
       );
       let config = ini.parse(ansibleConfigResult.stdout);
-      config = _.mapKeys(
-        config,
-        (_, key) => key.substring(0, key.indexOf("(")), // remove config source in parenthesis
-      );
+      config = Object.fromEntries(
+        Object.entries(config).map(([key]) => [
+          key.substring(0, key.indexOf("(")), // remove config source in parenthesis
+          config[key],
+        ]),
+      ) as typeof config;
       if (typeof config.COLLECTIONS_PATHS === "string") {
         this._collection_paths = parsePythonStringArray(
           config.COLLECTIONS_PATHS,
