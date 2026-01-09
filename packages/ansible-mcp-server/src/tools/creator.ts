@@ -10,7 +10,7 @@ import { join } from "node:path";
  * @returns A promise that resolves with the output from ansible-creator.
  * @throws An error if the process fails or returns an error.
  */
-export async function runCreator(
+async function runCreator(
   args: string[] = [],
 ): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ export async function runCreator(
 /**
  * Formats the ansible-creator result into a user-friendly message
  */
-export function formatCreatorResult(
+function formatCreatorResult(
   command: string,
   result: { stdout: string; stderr: string },
 ): string {

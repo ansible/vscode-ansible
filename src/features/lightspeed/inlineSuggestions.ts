@@ -65,7 +65,7 @@ interface InlinePosition {
   context: vscode.InlineCompletionContext;
 }
 
-export interface CallbackEntry {
+interface CallbackEntry {
   (
     suggestionDisplayed: SuggestionDisplayed,
     inlinePosition: InlinePosition,
@@ -852,7 +852,7 @@ export async function inlineSuggestionHideHandler(
   await inlineSuggestionUserActionHandler(suggestionId, action);
 }
 
-export async function inlineSuggestionUserActionHandler(
+async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted: UserAction = UserAction.REJECTED,
 ) {

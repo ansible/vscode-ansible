@@ -18,7 +18,7 @@ const AGENTS_FILE = path.join(__dirname, "data/agents.md");
 /**
  * Represents a section from the agents.md file
  */
-export interface GuidelineSection {
+interface GuidelineSection {
   title: string;
   level: number;
   content: string;

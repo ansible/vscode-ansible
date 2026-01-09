@@ -28,16 +28,8 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "ovsx",
   ],
-  ignoreExportsUsedInFile: {
-    function: true,
-    interface: true,
-    type: false,
-  },
   mocha: {
-    entry: [
-      // "test/e2e/.mocharc.js",
-      "test/e2e/rootMochaHooks.ts",
-    ],
+    entry: ["test/e2e/rootMochaHooks.ts"],
   },
   typescript: {
     config: ["**/tsconfig*.json"],

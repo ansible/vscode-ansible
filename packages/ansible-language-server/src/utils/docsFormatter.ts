@@ -102,7 +102,7 @@ export function formatOption(
   };
 }
 
-export function formatDescription(doc?: IDescription, asList = true): string {
+function formatDescription(doc?: IDescription, asList = true): string {
   let result = "";
   if (doc instanceof Array) {
     const lines: string[] = [];
