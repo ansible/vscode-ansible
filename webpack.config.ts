@@ -163,19 +163,6 @@ const webviewConfig = {
   },
 };
 
-const playbookExplorerWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/explorer/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/explorer/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -183,5 +170,5 @@ module.exports = (_env: any, argv: { mode: string }) => {
     delete config.entry.server;
     delete config.entry["mcp/cli"];
   }
-  return [config, webviewConfig, playbookExplorerWebviewConfig];
+  return [config, webviewConfig];
 };

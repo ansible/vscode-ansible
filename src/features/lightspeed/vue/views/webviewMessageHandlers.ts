@@ -55,6 +55,7 @@ import {
   DevfileImages,
 } from "../../../../definitions/constants";
 import { sendTelemetry } from "../../../../utils/telemetryUtils";
+import { isPlaybook, isDocumentInRole } from "../../utils/explanationUtils";
 
 interface WebviewMessage {
   type: string;
@@ -115,6 +116,14 @@ export class WebviewMessageHandlers {
       generatePlaybook: this.handleGeneratePlaybook.bind(this),
       explanationThumbsUp: this.handleExplanationThumbsUp.bind(this),
       explanationThumbsDown: this.handleExplanationThumbsDown.bind(this),
+
+      // LightSpeed - Explorer handlers
+      getExplorerState: this.handleGetExplorerState.bind(this),
+      explorerConnect: this.handleExplorerConnect.bind(this),
+      explorerGeneratePlaybook: this.handleExplorerGeneratePlaybook.bind(this),
+      explorerExplainPlaybook: this.handleExplorerExplainPlaybook.bind(this),
+      explorerGenerateRole: this.handleExplorerGenerateRole.bind(this),
+      explorerExplainRole: this.handleExplorerExplainRole.bind(this),
 
       // Data handlers
       setPlaybookData: this.handleSetPlaybookData.bind(this),
@@ -1184,5 +1193,70 @@ export class WebviewMessageHandlers {
       folder = vscode.workspace.workspaceFolders[0].uri.path;
     }
     return folder;
+  }
+
+  // Explorer Handlers
+  private async handleGetExplorerState(message: any, webview: vscode.Webview) {
+    const hasPlaybookOpened = this.hasPlaybookOpened();
+    const hasRoleOpened = await this.hasRoleOpened();
+    const isAuthenticated =
+      await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+    const userContent =
+      await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserContent();
+
+    const reply = {
+      type: "explorerStateUpdate",
+      data: {
+        isAuthenticated,
+        userContent,
+        hasPlaybookOpened,
+        hasRoleOpened,
+      },
+    };
+    webview.postMessage(reply);
+  }
+
+  private handleExplorerConnect() {
+    vscode.commands.executeCommand("ansible.lightspeed.oauth");
+  }
+
+  private handleExplorerGeneratePlaybook() {
+    vscode.commands.executeCommand("ansible.lightspeed.playbookGeneration");
+  }
+
+  private handleExplorerExplainPlaybook() {
+    vscode.commands.executeCommand("ansible.lightspeed.playbookExplanation");
+  }
+
+  private handleExplorerGenerateRole() {
+    vscode.commands.executeCommand("ansible.lightspeed.roleGeneration");
+  }
+
+  private handleExplorerExplainRole() {
+    vscode.commands.executeCommand("ansible.lightspeed.roleExplanation");
+  }
+
+  private hasPlaybookOpened(): boolean {
+    const document = vscode.window.activeTextEditor?.document;
+    if (document !== undefined && document.languageId === "ansible") {
+      try {
+        return isPlaybook(document.getText());
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  private async hasRoleOpened(): Promise<boolean> {
+    const document = vscode.window.activeTextEditor?.document;
+    if (document !== undefined) {
+      try {
+        return await isDocumentInRole(document);
+      } catch {
+        return false;
+      }
+    }
+    return false;
   }
 }
