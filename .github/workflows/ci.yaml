@@ -111,10 +111,6 @@ jobs:
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
-      - name: task dry
-        run: |
-          task dry
-
       - name: task lint
         timeout-minutes: 4
         run: |
@@ -129,6 +125,10 @@ jobs:
         timeout-minutes: 2
         run: |
           task package && task package --status
+
+      - name: task dry
+        run: |
+          task dry && task dry --status
 
       - name: task finish
         run: task finish
@@ -330,12 +330,7 @@ jobs:
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: |
-          set -e
-          task e2e ${{ matrix.env.TASKFILE_ARGS }}
-        # Add these once e2e is fixed:
-        #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
-        #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
+        run: task e2e ${{ matrix.env.TASKFILE_ARGS }} && task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
@@ -344,6 +339,9 @@ jobs:
           set -e
           task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
           task ui ${{ matrix.env.TASKFILE_ARGS }} --status
+
+      - name: task coverage
+        run: task coverage
 
       - name: task finish
         run: task finish

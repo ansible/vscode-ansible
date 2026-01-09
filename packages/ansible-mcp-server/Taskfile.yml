@@ -5,9 +5,6 @@ env:
   # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
-vars:
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 includes:
   base:
     taskfile: ../../Taskfile.base.yml
@@ -37,8 +34,7 @@ tasks:
     sources:
       - package-lock.json
       - package.json
-      - src/**/*.*
-      - test/**/*.*
+      - "{src,test}/**/*.*"
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
@@ -52,8 +48,7 @@ tasks:
       - test -f ../../out/junit/mcp/.passed
     sources:
       - package.json
-      - test/**/*.*
-      - src/**/*.*
+      - "{src,test}/**/*.*"
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
