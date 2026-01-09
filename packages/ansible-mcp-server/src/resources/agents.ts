@@ -7,13 +7,25 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+function getResourceDir(): string {
+  // Check for MCP_RESOURCE_DIR environment variable set by the extension
+  if (
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.MCP_RESOURCE_DIR &&
+    typeof process.env.MCP_RESOURCE_DIR === "string" &&
+    process.env.MCP_RESOURCE_DIR.length > 0
+  ) {
+    return process.env.MCP_RESOURCE_DIR;
+  }
 
-// Agents guidelines file packaged with the extension
-// In compiled output, files are in out/server/src/resources/data/
-// In source, files are in src/resources/data/
-const AGENTS_FILE = path.join(__dirname, "data/agents.md");
+  // Fallback: This works correctly when code is not bundled (dev/test/standalone)
+  const __filename = fileURLToPath(import.meta.url);
+  return path.join(path.dirname(__filename), "data");
+}
+
+const resourceDir = getResourceDir();
+const AGENTS_FILE = path.join(resourceDir, "agents.md");
 
 /**
  * Represents a section from the agents.md file
