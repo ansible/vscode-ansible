@@ -38,20 +38,6 @@ export const generateCodeVerifier = (): string => {
     : generateCodeVerifier();
 };
 
-/** Generates challenge code using the code verifier */
-export const generateCodeChallengeFromVerifier = (v: string) => {
-  const sha256 = (plain: string) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return crypto.createHash("sha256").update(data);
-  };
-  return sha256(v)
-    .digest("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-};
-
 // A function to return the expiry date and time in epoch
 export function calculateTokenExpiryTime(expiresIn: number) {
   const now = Math.floor(new Date().getTime() / 1000);
