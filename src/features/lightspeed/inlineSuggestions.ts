@@ -72,7 +72,7 @@ export interface CallbackEntry {
   ): Promise<vscode.InlineCompletionItem[]>;
 }
 
-export const onTextEditorNotActive: CallbackEntry = async function (
+const onTextEditorNotActive: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
 ) {
   suggestionDisplayed.reset();

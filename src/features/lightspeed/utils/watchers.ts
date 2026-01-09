@@ -1,65 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { globalFileSystemWatcher } from "../../../extension";
 import { LightSpeedManager } from "../base";
-import { IAnsibleType } from "../../../interfaces/watchers";
 import { getRoleNamePathFromFilePath } from "./getRoleNamePathFromFilePath";
-import { readVarFiles } from "./readVarFiles";
 import { updateRoleContext, updateRolesContext } from "./updateRolesContext";
 
-import { isFile } from "../../../utils/fileUtils";
 import { StandardRolePaths } from "../../../definitions/constants";
-
-export async function watchAnsibleFile(
-  lightSpeedManager: LightSpeedManager,
-  filePath: string,
-  ansibleType: IAnsibleType,
-) {
-  try {
-    if (!isFile(filePath)) {
-      console.error(`${filePath} is not a file`);
-      return;
-    }
-    if (globalFileSystemWatcher[filePath] !== undefined) {
-      console.log(`File ${filePath} is already being watched`);
-      return;
-    }
-
-    const fileWatcher = vscode.workspace.createFileSystemWatcher(filePath);
-
-    fileWatcher.onDidChange(() => {
-      console.log(`File ${filePath} watcher has been changed`);
-      if (ansibleType === "vars_files") {
-        console.log(`File ${filePath} is a vars_file`);
-        const updatedFileContents = readVarFiles(filePath);
-        if (!updatedFileContents) {
-          return;
-        }
-        lightSpeedManager.ansibleVarFilesCache[filePath] = updatedFileContents;
-      }
-    });
-
-    fileWatcher.onDidDelete(() => {
-      console.log(`File ${filePath} watcher has been deleted`);
-      if (filePath in lightSpeedManager.ansibleVarFilesCache) {
-        delete lightSpeedManager.ansibleVarFilesCache[filePath];
-      }
-    });
-
-    fileWatcher.onDidCreate(() => {
-      console.log(`File ${filePath} watcher has been created`);
-    });
-
-    globalFileSystemWatcher.filePath.watcher = fileWatcher;
-    globalFileSystemWatcher.filePath.type = ansibleType;
-
-    console.log(`Watching file ${filePath}`);
-  } catch (err) {
-    console.error(`Failed to watch file ${filePath} with error ${err}`);
-    return;
-  }
-}
 
 export function watchRolesDirectory(
   lightSpeedManager: LightSpeedManager,

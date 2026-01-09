@@ -11,8 +11,7 @@ import { getInlineSuggestionItems } from "../../src/features/lightspeed/inlineSu
 import { rmSync } from "fs";
 import { PROJECT_ROOT } from "../setup";
 
-export let doc: vscode.TextDocument;
-export let editor: vscode.TextEditor;
+let doc: vscode.TextDocument;
 
 export const run_lightspeed_tests_only: boolean =
   process.env.RUN_LIGHTSPEED_TESTS_ONLY === "1";
@@ -34,8 +33,8 @@ export function clearActivationCache(): void {
   // which ensures the language server also clears its cache
 }
 
-export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
-export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
+const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   PROJECT_ROOT,
   FIXTURES_BASE_PATH,
   "common",
@@ -71,7 +70,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
     // Skip reinitialization if document was recently activated
     const needsFullInit = !activatedDocuments.has(docKey);
 
-    editor = await vscode.window.showTextDocument(doc, {
+    await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
     });
@@ -130,7 +129,7 @@ export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export const getDocPath = (p: string): string => {
+const getDocPath = (p: string): string => {
   return path.resolve(PROJECT_ROOT, "test", "testFixtures", p);
 };
 

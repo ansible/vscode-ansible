@@ -80,7 +80,3 @@ export async function stopLLMProviderServer(): Promise<void> {
   serverUrl = null;
   console.log("[LLM Mock] Server stopped");
 }
-
-export function getLLMProviderServerUrl(): string | null {
-  return serverUrl;
-}

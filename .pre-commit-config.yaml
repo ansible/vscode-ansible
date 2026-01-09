@@ -68,8 +68,8 @@ repos:
   - repo: local
     hooks:
       - id: knip
-        name: knip (node dependency checks)
-        entry: yarn knip --exclude=exports
+        name: knip (typescript declutter)
+        entry: yarn knip --fix
         language: system
         pass_filenames: false
         always_run: true

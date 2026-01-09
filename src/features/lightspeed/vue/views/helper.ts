@@ -2,8 +2,6 @@ import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { WebviewMessageHandlers } from "./webviewMessageHandlers";
 
 // Re-export commonly used functions for backward compatibility
-export { getCollectionsFromWorkspace } from "./fileOperations";
-
 export function setupHtml(
   webview: Webview,
   context: ExtensionContext,

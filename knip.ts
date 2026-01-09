@@ -33,6 +33,12 @@ const config: KnipConfig = {
     interface: true,
     type: false,
   },
+  mocha: {
+    entry: [
+      // "test/e2e/.mocharc.js",
+      "test/e2e/rootMochaHooks.ts",
+    ],
+  },
   typescript: {
     config: ["**/tsconfig*.json"],
   },
@@ -40,7 +46,7 @@ const config: KnipConfig = {
     ".": {
       entry: [
         "src/extension.ts",
-        "webviews/**/*.{ts,tsx}",
+        "webviews/**/*.{ts,tsx,vue}",
         "test/**/*.ts",
         ".vscode-test.mjs",
         "test/ui/.mocharc.js",

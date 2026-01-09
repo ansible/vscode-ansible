@@ -19,7 +19,7 @@ export const PROVIDER_TYPES = {
 } as const;
 
 // API endpoints
-export const API_ENDPOINTS = {
+const API_ENDPOINTS = {
   GOOGLE: "https://generativelanguage.googleapis.com/v1beta",
   WCA_DEFAULT: "https://c.ai.ansible.redhat.com",
 } as const;
@@ -107,7 +107,7 @@ export const TEST_CONFIGS = {
 } as const;
 
 // Base LightSpeedServiceSettings with all required common properties
-export const BASE_LIGHTSPEED_SETTINGS: Omit<
+const BASE_LIGHTSPEED_SETTINGS: Omit<
   LightSpeedServiceSettings,
   "provider" | "apiKey" | "apiEndpoint"
 > = {

@@ -15,7 +15,7 @@ import {
 } from "vscode-languageclient";
 import * as vscode from "vscode";
 
-export const CMD_SUCCEED_VALUE = "succeeded";
+const CMD_SUCCEED_VALUE = "succeeded";
 const CMD_FAIL_VALUE = "failed";
 
 /**

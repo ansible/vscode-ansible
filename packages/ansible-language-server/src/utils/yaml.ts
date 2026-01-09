@@ -237,8 +237,7 @@ export function getPathAtOffset(
   return null;
 }
 
-export const tasksKey =
-  /^(tasks|pre_tasks|post_tasks|block|rescue|always|handlers)$/;
+const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always|handlers)$/;
 
 /**
  * Determines whether the path points at a parameter key of an Ansible task.

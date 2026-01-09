@@ -21,7 +21,7 @@ import * as marked from "marked";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { getFetch } from "./api";
 
-export class LightspeedAccessDenied extends Error {
+class LightspeedAccessDenied extends Error {
   constructor(message: string) {
     super(message);
     this.name = "LightspeedAccessDenied";
@@ -33,7 +33,7 @@ export enum AuthProviderType {
   lightspeed = ANSIBLE_LIGHTSPEED_AUTH_ID,
 }
 
-export const ExtensionHost = {
+const ExtensionHost = {
   WebWorker: "WebWorker",
   Remote: "Remote",
   Local: "Local",
