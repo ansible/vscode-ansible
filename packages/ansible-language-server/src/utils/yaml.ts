@@ -161,7 +161,7 @@ export function getPathAt(
   return null;
 }
 
-export function contains(
+function contains(
   node: Node | null,
   offset: number,
   inclusive: boolean,
@@ -174,7 +174,7 @@ export function contains(
   );
 }
 
-export function getPathAtOffset(
+function getPathAtOffset(
   path: Node[],
   offset: number,
   inclusive: boolean,
@@ -438,7 +438,7 @@ export async function getPossibleOptionsForPath(
  * the values hold a 'list' or a 'dict' is preserved along the way and returned
  * alongside.
  */
-export function getTaskParamPathWithTrace(
+function getTaskParamPathWithTrace(
   path: Node[],
 ): [Node[], [string, "list" | "dict"][]] {
   const trace: [string, "list" | "dict"][] = [];

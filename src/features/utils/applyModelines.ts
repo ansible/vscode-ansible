@@ -56,7 +56,7 @@ export async function configureModelines(
  *
  * @param editor - textEditor
  */
-export async function applyModeLines(
+async function applyModeLines(
   editor: vscode.TextEditor | undefined,
 ): Promise<void> {
   if (!editor || !editor.document || editor.document.isUntitled) {

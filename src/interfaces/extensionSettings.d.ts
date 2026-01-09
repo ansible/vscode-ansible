@@ -12,7 +12,7 @@ export interface ExtensionSettings {
   mcpServer: McpServerSettings;
 }
 
-export interface IVolumeMounts {
+interface IVolumeMounts {
   src: string;
   dest: string;
   options: string | undefined;

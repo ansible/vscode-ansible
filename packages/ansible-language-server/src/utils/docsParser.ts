@@ -106,7 +106,7 @@ export function processRawDocumentation(
   }
 }
 
-export function processRawOptions(rawOptions: unknown): Map<string, IOption> {
+function processRawOptions(rawOptions: unknown): Map<string, IOption> {
   const options = new Map<string, IOption>();
   if (isObject(rawOptions)) {
     for (const [optionName, rawOption] of Object.entries(rawOptions)) {

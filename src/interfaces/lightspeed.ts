@@ -240,12 +240,12 @@ export interface IVarsFileContext {
   [key: string]: string;
 }
 
-export interface IRoleVarsContext {
+interface IRoleVarsContext {
   defaults: IVarsFileContext;
   vars: IVarsFileContext;
 }
 
-export interface IRoleContext {
+interface IRoleContext {
   name?: string;
   tasks?: string[];
   roleVars?: IRoleVarsContext;
@@ -256,7 +256,7 @@ export interface IRolesContext {
   [rolePath: string]: IRoleContext;
 }
 
-export interface IStandaloneTaskContext {
+interface IStandaloneTaskContext {
   includeVars?: IIncludeVarsContext;
 }
 
@@ -264,14 +264,14 @@ export interface IWorkSpaceRolesContext {
   [workSpaceRoot: string]: IRolesContext;
 }
 
-export interface IPlaybookContext {
+interface IPlaybookContext {
   varInfiles?: IVarsFileContext;
   roles?: IRolesContext;
   taskFileNames?: string[];
   includeVars?: IIncludeVarsContext;
 }
 
-export interface IAdditionalContext {
+interface IAdditionalContext {
   playbookContext?: IPlaybookContext;
   roleContext?: IRoleContext;
   standaloneTaskContext?: IStandaloneTaskContext;

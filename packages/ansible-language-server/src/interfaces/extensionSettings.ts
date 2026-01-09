@@ -22,7 +22,7 @@ export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithD
   python: PythonSettingsWithDescription;
 }
 
-export interface ExtensionSettingsType {
+interface ExtensionSettingsType {
   [name: string]:
     | ExtensionSettingsType
     | string
