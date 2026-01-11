@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect } from "chai";
+import { expect, beforeAll, afterAll } from "vitest";
 import {
   Position,
   CompletionItemKind,
@@ -42,7 +42,7 @@ function testPlayKeywords(
     },
   ];
 
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -83,7 +83,7 @@ function testRoleKeywords(
     },
   ];
 
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -123,7 +123,7 @@ function testBlockKeywords(
       completion: "become",
     },
   ];
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -163,7 +163,7 @@ function testTaskKeywords(
       completion: "debugger",
     },
   ];
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -242,7 +242,7 @@ function testModuleNames(
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
     it(`should provide completion for ${name}`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         const actualCompletion = await doCompletion(textDoc, position, context);
 
@@ -309,7 +309,7 @@ function testModuleOptions(
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
     it(`should provide completion for ${name}`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         const actualCompletion = await doCompletion(textDoc, position, context);
 
@@ -368,7 +368,7 @@ function testModuleOptionsValues(
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
     it(`should provide completion for ${name}`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         const actualCompletion = await doCompletion(textDoc, position, context);
 
@@ -433,7 +433,7 @@ function testModuleNamesWithoutFQCN(
     },
   ];
 
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -489,7 +489,7 @@ function testPlaybookAdjacentCollection(
       completion: "sub_opt_1",
     },
   ];
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
@@ -529,7 +529,7 @@ function testNonPlaybookAdjacentCollection(
       completion: "",
     },
   ];
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should not provide completion for ${name}`, async function () {
@@ -584,7 +584,7 @@ function testHostValues(
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
     it(`should provide completion for ${name} as hosts value`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         const actualCompletion = await doCompletion(textDoc, position, context);
 
@@ -644,7 +644,7 @@ function testVarsCompletionInsideJinja(
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
     it(`should provide completion for ${name}`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         const actualCompletion = await doCompletion(textDoc, position, context);
 
@@ -700,9 +700,9 @@ function testModuleKindAndDocumentation(
     let resolvedItem: CompletionItem;
     const position = { line: 34, character: 19 } as Position;
 
-    expect(context).is.not.undefined;
+    expect(context).toBeDefined();
     if (context) {
-      before(async function () {
+      beforeAll(async () => {
         const completion = await doCompletion(textDoc, position, context);
         const filteredCompletion = completion.filter(
           (item) => item.label === moduleName,
@@ -737,13 +737,13 @@ describe("doCompletion()", function () {
   let context = workspaceManager.getContext(fixtureFileUri);
 
   let textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Completion for host values with static inventory file", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -752,14 +752,14 @@ describe("doCompletion()", function () {
 
         testHostValues(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
 
@@ -768,7 +768,7 @@ describe("doCompletion()", function () {
 
         testHostValues(context, textDoc);
 
-        after(function () {
+        afterAll(function () {
           unsetAnsibleConfigEnv();
         });
       });
@@ -776,7 +776,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for play keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -785,14 +785,14 @@ describe("doCompletion()", function () {
 
         testPlayKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -806,13 +806,13 @@ describe("doCompletion()", function () {
   context = workspaceManager.getContext(fixtureFileUri);
 
   textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Completion for role keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -821,14 +821,14 @@ describe("doCompletion()", function () {
 
         testRoleKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -846,7 +846,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for block keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -855,14 +855,14 @@ describe("doCompletion()", function () {
 
         testBlockKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -875,13 +875,13 @@ describe("doCompletion()", function () {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Completion for task keywords", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -890,14 +890,14 @@ describe("doCompletion()", function () {
 
         testTaskKeywords(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -908,7 +908,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for module names (with different trigger scenarios)", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -917,14 +917,14 @@ describe("doCompletion()", function () {
 
         testModuleNames(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -935,7 +935,7 @@ describe("doCompletion()", function () {
 
     describe("module kind and documentation of completion item", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -944,14 +944,14 @@ describe("doCompletion()", function () {
 
         testModuleKindAndDocumentation(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -962,7 +962,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for module options and suboptions", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -971,14 +971,14 @@ describe("doCompletion()", function () {
 
         testModuleOptions(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -989,7 +989,7 @@ describe("doCompletion()", function () {
 
     describe("Completion for option and suboption values", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -998,14 +998,14 @@ describe("doCompletion()", function () {
 
         testModuleOptionsValues(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1018,13 +1018,13 @@ describe("doCompletion()", function () {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     let docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Completion for module name without FQCN", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1033,14 +1033,14 @@ describe("doCompletion()", function () {
 
         testModuleNamesWithoutFQCN(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1054,12 +1054,12 @@ describe("doCompletion()", function () {
       fixtureFileUri = resolveDocUri(fixtureFilePath);
       context = workspaceManager.getContext(fixtureFileUri);
       textDoc = getDoc(fixtureFilePath);
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         docSettings = context.documentSettings.get(textDoc.uri);
 
         describe("@ee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -1068,14 +1068,14 @@ describe("doCompletion()", function () {
 
           testVarsCompletionInsideJinja(context, textDoc);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
@@ -1089,13 +1089,13 @@ describe("doCompletion()", function () {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Completion for playbook adjacent collection", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1104,14 +1104,14 @@ describe("doCompletion()", function () {
 
         testPlaybookAdjacentCollection(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -1125,13 +1125,13 @@ describe("doCompletion()", function () {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  expect(context).is.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Negate completion for non playbook adjacent collection", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -1140,14 +1140,14 @@ describe("doCompletion()", function () {
 
         testNonPlaybookAdjacentCollection(context, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });

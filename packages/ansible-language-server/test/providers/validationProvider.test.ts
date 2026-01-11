@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect } from "chai";
+import { expect, beforeAll, afterAll } from "vitest";
 import { Diagnostic, Position, integer } from "vscode-languageserver";
 import {
   doValidate,
@@ -24,7 +24,7 @@ function testValidationFromCache(
   it("should provide no diagnostics", async function () {
     const actualDiagnostics = await doValidate(textDoc, validationManager);
 
-    expect(actualDiagnostics.size).to.equal(0);
+    expect(actualDiagnostics.size).toBe(0);
   });
 }
 
@@ -37,7 +37,7 @@ function assertValidateTests(
 ) {
   tests.forEach((test) => {
     it(`should provide diagnostics for ${test.name}`, async function () {
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       const actualDiagnostics: Map<string, Diagnostic[]> = await doValidate(
         textDoc,
         validationManager,
@@ -46,27 +46,27 @@ function assertValidateTests(
       );
 
       if (!validationEnabled) {
-        expect(actualDiagnostics.has(`file://${textDoc.uri}`)).to.be.false;
+        expect(actualDiagnostics.has(`file://${textDoc.uri}`)).toBe(false);
         return;
       }
 
       if (test.diagnosticReport.length === 0) {
-        expect(actualDiagnostics.has(`file://${textDoc.uri}`)).to.be.false;
+        expect(actualDiagnostics.has(`file://${textDoc.uri}`)).toBe(false);
       } else {
         const diags = actualDiagnostics.get(`file://${textDoc.uri}`);
         if (diags) {
-          expect(diags.length).to.equal(test.diagnosticReport.length);
+          expect(diags.length).toBe(test.diagnosticReport.length);
           diags.forEach((diag, i) => {
             const actDiag = diag;
             const expDiag = test.diagnosticReport[i];
 
-            expect(actDiag.message).include(expDiag.message);
-            expect(actDiag.range).to.deep.equal(expDiag.range);
-            expect(actDiag.severity).to.equal(expDiag.severity);
-            expect(actDiag.source).to.equal(expDiag.source);
+            expect(actDiag.message).toContain(expDiag.message);
+            expect(actDiag.range).toEqual(expDiag.range);
+            expect(actDiag.severity).toBe(expDiag.severity);
+            expect(actDiag.source).toBe(expDiag.source);
           });
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       }
     });
@@ -351,16 +351,16 @@ function testInvalidYamlFile(textDoc: TextDocument) {
   tests.forEach(({ name, diagnosticReport }) => {
     it(`should provide diagnostic for ${name}`, async function () {
       const actualDiagnostics = getYamlValidation(textDoc);
-      expect(actualDiagnostics.length).to.equal(diagnosticReport.length);
+      expect(actualDiagnostics.length).toBe(diagnosticReport.length);
 
       actualDiagnostics.forEach((diag, i) => {
         const actDiag = diag;
         const expDiag = diagnosticReport[i];
 
-        expect(actDiag.message).include(expDiag.message);
-        expect(actDiag.range).to.deep.equal(expDiag.range);
-        expect(actDiag.severity).to.equal(expDiag.severity);
-        expect(actDiag.source).to.equal(expDiag.source);
+        expect(actDiag.message).toContain(expDiag.message);
+        expect(actDiag.range).toEqual(expDiag.range);
+        expect(actDiag.severity).toBe(expDiag.severity);
+        expect(actDiag.source).toBe(expDiag.source);
       });
     });
   });
@@ -379,7 +379,7 @@ describe("doValidate()", function () {
 
     describe("Get validation only from cache", function () {
       describe("@ee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -388,14 +388,14 @@ describe("doValidate()", function () {
 
         testValidationFromCache(validationManager, textDoc);
 
-        after(async function () {
+        afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
       describe("@noee", function () {
-        before(async function () {
+        beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
@@ -407,7 +407,7 @@ describe("doValidate()", function () {
     describe("Ansible diagnostics", function () {
       describe("Diagnostics using ansible-lint", function () {
         describe.skip("@ee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -418,14 +418,14 @@ describe("doValidate()", function () {
             testAnsibleLintErrors(context, validationManager, textDoc, true);
           }
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
@@ -440,12 +440,12 @@ describe("doValidate()", function () {
           context = workspaceManager.getContext(fixtureFileUri);
 
           textDoc = getDoc(fixtureFilePath);
-          expect(context).is.not.undefined;
+          expect(context).toBeDefined();
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe.skip("@ee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
                   "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -460,7 +460,7 @@ describe("doValidate()", function () {
                 true,
               );
 
-              after(async function () {
+              afterAll(async function () {
                 (await docSettings).validation.lint.enabled = true;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -468,7 +468,7 @@ describe("doValidate()", function () {
             });
 
             describe("@noee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -482,7 +482,7 @@ describe("doValidate()", function () {
               );
             });
 
-            after(async function () {
+            afterAll(async function () {
               (await docSettings).validation.lint.enabled = true;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
@@ -499,7 +499,7 @@ describe("doValidate()", function () {
             if (currentSettings) {
               (await currentSettings).validation.lint.autoFixOnSave = true;
             }
-            expect(context).is.not.undefined;
+            expect(context).toBeDefined();
             await doValidate(textDoc, validationManager, false, context);
           });
 
@@ -507,11 +507,11 @@ describe("doValidate()", function () {
             if (currentSettings) {
               (await currentSettings).validation.lint.autoFixOnSave = false;
             }
-            expect(context).is.not.undefined;
+            expect(context).toBeDefined();
             await doValidate(textDoc, validationManager, false, context);
           });
 
-          after(async function () {
+          afterAll(async function () {
             if (currentSettings) {
               (await currentSettings).validation.lint.autoFixOnSave = false;
             }
@@ -543,10 +543,10 @@ describe("doValidate()", function () {
           );
 
           const totalDiagnostics = Array.from(result.values()).flat().length;
-          expect(totalDiagnostics).to.equal(0);
+          expect(totalDiagnostics).toBe(0);
         });
 
-        after(async function () {
+        afterAll(async function () {
           const currentSettings = await context?.documentSettings.get(
             textDoc.uri,
           );
@@ -563,13 +563,13 @@ describe("doValidate()", function () {
           context = workspaceManager.getContext(fixtureFileUri);
 
           textDoc = getDoc(fixtureFilePath);
-          expect(context).is.not.undefined;
+          expect(context).toBeDefined();
 
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
                   "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -584,7 +584,7 @@ describe("doValidate()", function () {
                 true,
               );
 
-              after(async function () {
+              afterAll(async function () {
                 (await docSettings).validation.lint.enabled = true;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -592,7 +592,7 @@ describe("doValidate()", function () {
             });
 
             describe("@noee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -606,7 +606,7 @@ describe("doValidate()", function () {
               );
             });
 
-            after(async function () {
+            afterAll(async function () {
               (await docSettings).validation.lint.enabled = true;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
@@ -620,12 +620,12 @@ describe("doValidate()", function () {
           context = workspaceManager.getContext(fixtureFileUri);
 
           textDoc = getDoc(fixtureFilePath);
-          expect(context).is.not.undefined;
+          expect(context).toBeDefined();
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
                   "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -640,7 +640,7 @@ describe("doValidate()", function () {
                 true,
               );
 
-              after(async function () {
+              afterAll(async function () {
                 (await docSettings).validation.lint.enabled = true;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -648,7 +648,7 @@ describe("doValidate()", function () {
             });
 
             describe("@noee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings);
@@ -662,7 +662,7 @@ describe("doValidate()", function () {
               );
             });
 
-            after(async function () {
+            afterAll(async function () {
               (await docSettings).validation.lint.enabled = true;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
@@ -682,7 +682,7 @@ describe("doValidate()", function () {
           // Skipping this EE test temporarily because of incompatibilities
           // with container version of lint vs upstream version of lint
           describe.skip("@ee", function () {
-            before(async function () {
+            beforeAll(async () => {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv(
                 "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -697,7 +697,7 @@ describe("doValidate()", function () {
               true,
             );
 
-            after(async function () {
+            afterAll(async function () {
               (await docSettings).validation.lint.enabled = true;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
@@ -705,7 +705,7 @@ describe("doValidate()", function () {
           });
 
           describe("@noee", function () {
-            before(async function () {
+            beforeAll(async () => {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
@@ -719,7 +719,7 @@ describe("doValidate()", function () {
             );
           });
 
-          after(async function () {
+          afterAll(async function () {
             (await docSettings).validation.lint.enabled = true;
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
@@ -734,12 +734,12 @@ describe("doValidate()", function () {
           context = workspaceManager.getContext(fixtureFileUri);
 
           textDoc = getDoc(fixtureFilePath);
-          expect(context).is.not.undefined;
+          expect(context).toBeDefined();
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
                 //   "invalid-ansible-lint-path";
@@ -757,7 +757,7 @@ describe("doValidate()", function () {
                 false,
               );
 
-              after(async function () {
+              afterAll(async function () {
                 // (await docSettings).validation.lint.enabled = true;
                 // (await docSettings).validation.lint.path = "ansible-lint";
                 (await docSettings).validation.enabled = true;
@@ -767,7 +767,7 @@ describe("doValidate()", function () {
             });
 
             describe("@noee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
                 // "invalid-ansible-lint-path";
@@ -784,7 +784,7 @@ describe("doValidate()", function () {
               );
             });
 
-            after(async function () {
+            afterAll(async function () {
               // (await docSettings).validation.lint.enabled = true;
               // (await docSettings).validation.lint.path = "ansible-lint";
               (await docSettings).validation.enabled = true;
@@ -800,12 +800,12 @@ describe("doValidate()", function () {
           context = workspaceManager.getContext(fixtureFileUri);
 
           textDoc = getDoc(fixtureFilePath);
-          expect(context).is.not.undefined;
+          expect(context).toBeDefined();
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
                 //   "invalid-ansible-lint-path";
@@ -823,7 +823,7 @@ describe("doValidate()", function () {
                 false,
               );
 
-              after(async function () {
+              afterAll(async function () {
                 // (await docSettings).validation.lint.enabled = true;
                 // (await docSettings).validation.lint.path = "ansible-lint";
                 (await docSettings).validation.enabled = true;
@@ -833,7 +833,7 @@ describe("doValidate()", function () {
             });
 
             describe("@noee", function () {
-              before(async function () {
+              beforeAll(async () => {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
                 //   "invalid-ansible-lint-path";
@@ -850,7 +850,7 @@ describe("doValidate()", function () {
               );
             });
 
-            after(async function () {
+            afterAll(async function () {
               // (await docSettings).validation.lint.enabled = true;
               // (await docSettings).validation.lint.path = "ansible-lint";
               (await docSettings).validation.enabled = true;
@@ -868,12 +868,12 @@ describe("doValidate()", function () {
       context = workspaceManager.getContext(fixtureFileUri);
 
       textDoc = getDoc(fixtureFilePath);
-      expect(context).is.not.undefined;
+      expect(context).toBeDefined();
       if (context) {
         docSettings = context.documentSettings.get(textDoc.uri);
 
         describe("@ee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -882,14 +882,14 @@ describe("doValidate()", function () {
 
           testInvalidYamlFile(textDoc);
 
-          after(async function () {
+          afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
         describe("@noee", function () {
-          before(async function () {
+          beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });

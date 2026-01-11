@@ -12,18 +12,18 @@ import { ExtensionSettings } from "../src/interfaces/extensionSettings";
 
 import Fuse from "fuse.js";
 
-export const FIXTURES_BASE_PATH = path.join("test", "fixtures");
-export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
   "collections",
 );
-export const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
+const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "playbook_adjacent_collection",
   "collections",
 );
-export const ANSIBLE_CONFIG_FILE = path.resolve(
+const ANSIBLE_CONFIG_FILE = path.resolve(
   FIXTURES_BASE_PATH,
   "completion",
   "ansible.cfg",
@@ -43,10 +43,6 @@ export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
     process.env.ANSIBLE_COLLECTIONS_PATH =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
-}
-
-export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
 }
 
 export function setAnsibleConfigEnv(): void {

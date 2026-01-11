@@ -27,8 +27,7 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - .c8rc.json
-      - .mocharc.json
+      - vitest.config.ts
       - package.json
       - yarn.lock
       - pyproject.toml
@@ -68,8 +67,7 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - .c8rc.json
-      - .mocharc.json
+      - vitest.config.ts
     generates:
       - ../../out/junit/als/.passed
     cmds:
