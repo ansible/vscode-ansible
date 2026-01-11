@@ -211,6 +211,13 @@ export class WorkspaceFolderContext {
     this._ansibleInventory = undefined;
   }
 
+  public clearCachedServices(): void {
+    this._executionEnvironment = undefined;
+    this._ansibleConfig = undefined;
+    this._docsLibrary = undefined;
+    this._ansibleInventory = undefined;
+  }
+
   public get ansibleLint(): AnsibleLint {
     if (!this._ansibleLint) {
       this._ansibleLint = new AnsibleLint(this.connection, this);
