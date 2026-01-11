@@ -67,14 +67,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   constructor(config: RHCustomConfig) {
     super(config, config.timeout || 30000);
     
-    console.log("[RHCustom Provider] Constructor called with config:", {
-      hasApiKey: !!config.apiKey,
-      hasModelName: !!config.modelName,
-      hasBaseURL: !!config.baseURL,
-      baseURL: config.baseURL,
-      timeout: config.timeout,
-    });
-    
     // Validate required fields
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
@@ -123,13 +115,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       apiKeyLength: this.apiKey.length,
       timeout: this.timeout,
     });
-    
-    this.logger.info(
-      `[RHCustom Provider] Initializing with model: ${this.modelName}, baseURL: ${this.baseURL.substring(0, 50)}...`,
-    );
-    this.logger.debug(
-      `[RHCustom Provider] Config - apiKey length: ${this.apiKey.length}, baseURL: ${this.baseURL}`,
-    );
+
   }
 
   /**
@@ -189,15 +175,11 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Find where YAML likely ends (look for closing ``` or explanatory text patterns)
       const yamlSection = content.substring(yamlStart);
       const codeBlockEndIndex = yamlSection.search(/\n```/);
-      // const explanatoryTextIndex = yamlSection.search(/\n\n(?:This|Here|The|Note|Explanation)/i);
       
       let endIndex = yamlSection.length;
       if (codeBlockEndIndex >= 0) {
         endIndex = Math.min(endIndex, codeBlockEndIndex);
       }
-      // if (explanatoryTextIndex >= 0) {
-      //   endIndex = Math.min(endIndex, explanatoryTextIndex);
-      // }
       
       return yamlSection.substring(0, endIndex).trim();
     }
@@ -247,13 +229,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       timeout: requestTimeout,
       messageCount: messages.length,
     });
-    
-    this.logger.info(
-      `[RHCustom Provider] Making request to ${endpoint}`,
-    );
-    this.logger.debug(
-      `[RHCustom Provider] Request body: ${JSON.stringify(requestBody, null, 2)}`,
-    );
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
