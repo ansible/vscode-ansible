@@ -416,6 +416,43 @@ describe("ADE Tools", () => {
       const result = await checkADTInstalled();
       expect(result).toBe(false);
     });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const mockChild = {
+        stdout: {
+          on: vi.fn((event, callback) => {
+            if (event === "data") {
+              callback(
+                JSON.stringify([
+                  { name: "ansible-dev-tools", version: "1.0.0" },
+                ]),
+              );
+            }
+          }),
+        },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(spawn).mockReturnValue(mockChild as any);
+
+      await checkADTInstalled(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to executeCommand
+      expect(spawn).toHaveBeenCalledWith(
+        "pip",
+        ["list", "--format=json"],
+        expect.objectContaining({
+          cwd: workspaceRoot,
+        }),
+      );
+    });
   });
 
   describe("getEnvironmentInfo", () => {
@@ -1175,6 +1212,56 @@ describe("ADE Tools", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("pip error");
       expect(result.error).toContain("pipx error");
+    });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        // Track all spawn calls to verify workspaceRoot is passed
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              if (command === "pip" && args?.includes("list")) {
+                setTimeout(() => callback(0), 10);
+              } else if (command === "pip" && args?.includes("install")) {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      await checkAndInstallADT(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to all executeCommand calls
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(workspaceRoot);
+      });
     });
   });
 
