@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import {
   By,
@@ -17,10 +15,12 @@ import {
 } from "../uiTestHelper";
 import { WizardGenerationActionType } from "../../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../../src/interfaces/lightspeed";
+import { enableLightspeed } from "../../utils";
 
 config.truncateThreshold = 0;
 
 before(function () {
+  enableLightspeed(true);
   if (process.platform === "darwin") {
     this.skip();
   }

@@ -1,4 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
 // UI Test for LLM Provider Playbook Generation (Google Gemini)
 // Uses Mocha hooks to start/stop the mock server
 
@@ -16,13 +15,14 @@ import {
   startLLMProviderServer,
   stopLLMProviderServer,
 } from "../mockLightspeedLLMProviderServer/serverManager";
+import { enableLightspeed } from "../../utils";
 
 describe("LLM Provider Playbook Generation", function () {
   let serverUrl: string;
 
   before(async function () {
     this.timeout(60000);
-
+    enableLightspeed(true);
     try {
       serverUrl = await startLLMProviderServer();
       console.log(`[Test] Mock server started at: ${serverUrl}`);

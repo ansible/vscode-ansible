@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import { By, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
@@ -8,12 +6,14 @@ import {
   workbenchExecuteCommand,
   waitForCondition,
 } from "../uiTestHelper";
-
+import { enableLightspeed } from "../../utils";
 config.truncateThreshold = 0;
 
 describe.skip("Verify playbook explanation features when no explanation is returned", function () {
   let editorView: EditorView;
-
+  before(function () {
+    enableLightspeed(true);
+  });
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();

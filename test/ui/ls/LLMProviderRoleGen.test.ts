@@ -1,4 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
 // UI Test for LLM Provider Role Generation (Google Gemini)
 // Uses Mocha hooks to start/stop the mock server
 
@@ -16,11 +15,13 @@ import {
   startLLMProviderServer,
   stopLLMProviderServer,
 } from "../mockLightspeedLLMProviderServer/serverManager";
+import { enableLightspeed } from "../../utils";
 
 describe("LLM Provider Role Generation", function () {
   let serverUrl: string;
 
   before(async function () {
+    enableLightspeed(true);
     this.timeout(60000);
     try {
       serverUrl = await startLLMProviderServer();
@@ -55,7 +56,7 @@ describe("LLM Provider Role Generation", function () {
     );
 
     await new EditorView().closeAllEditors();
-    await sleep(2000);
+    await sleep(4000);
   });
 
   after(async function () {

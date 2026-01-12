@@ -1,4 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
 import {
   ActionsControl,
   ActivityBar,
@@ -26,12 +25,14 @@ import {
   getAnsibleViewControl,
 } from "../uiTestHelper";
 import { Key } from "selenium-webdriver";
+import { enableLightspeed } from "../../utils";
 import { expect } from "chai";
 
 const trialNotificationMessage =
   "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
 
 before(function () {
+  enableLightspeed(true);
   if (process.platform !== "darwin") {
     this.skip();
   }
