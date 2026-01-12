@@ -8,7 +8,6 @@ DIR="$(dirname "$(realpath "$0")")"
 . "$DIR/_utils.sh"
 
 CODE_VERSION="${CODE_VERSION:-max}"
-TEST_LIGHTSPEED_PORT=3000
 TEST_LIGHTSPEED_URL="${TEST_LIGHTSPEED_URL:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
 UI_TARGET="${UI_TARGET:-*${1:-}.test.js}"
@@ -23,7 +22,8 @@ cleanup()
     log notice "Final clean up"
     # prevents CI issues (git-leaks), also we do not need the html report
     rm -rf out/coverage/*/lcov-report/out
-    stop_server
+    # Note: Server management is now handled by Mocha hooks in test files
+    # or by rootMochaHooks.ts for e2e tests
 
     if [[ -f out/log/.failed ]]; then
          EXIT_CODE=3
@@ -41,39 +41,6 @@ cleanup()
 
 trap "cleanup OTHER" HUP INT ABRT BUS TERM
 trap "cleanup EXIT" EXIT
-
-function start_server() {
-    log notice "Starting the mockLightspeedServer"
-    if [[ -n "${TEST_LIGHTSPEED_URL}" ]]; then
-        log notice "MOCK_LIGHTSPEED_API is true, the existing TEST_LIGHTSPEED_URL envvar will be ignored!"
-    fi
-    mkdir -p out/log
-    TEST_LIGHTSPEED_ACCESS_TOKEN=dummy
-    truncate -s 0 "out/log/${TEST_ID}-express.log"
-    truncate -s 0 "out/log/${TEST_ID}-mock-server.log"
-    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedServer/server.js >"out/log/${TEST_ID}-express.log" 2>&1 ) &
-    while ! grep 'Listening on port' "out/log/${TEST_ID}-express.log"; do
-	sleep 1
-    done
-
-    TEST_LIGHTSPEED_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)".*,http://\2:\1,p' "out/log/${TEST_ID}-express.log" | tail -n1)
-
-    export TEST_LIGHTSPEED_ACCESS_TOKEN
-    export TEST_LIGHTSPEED_URL
-}
-
-function stop_server() {
-    if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-        pid=$(lsof -ti :${TEST_LIGHTSPEED_PORT} || true)
-        if [ -n "$pid" ]; then
-            kill -9 "$pid"
-            log debug "Killed process $pid using port ${TEST_LIGHTSPEED_PORT}"
-        else
-            log debug "No process is using port ${TEST_LIGHTSPEED_PORT}"
-        fi
-        TEST_LIGHTSPEED_URL=0
-    fi
-}
 
 function refresh_settings() {
     local test_path=$1
@@ -104,10 +71,9 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
         log notice "Cleaning existing User settings..."
         rm -rfv ./out/test-resources/settings/User/ > /dev/null
 
-        if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-            stop_server
-            start_server
-        fi
+        # Note: Server management is now handled by Mocha hooks in test files
+        # UI tests that need the mock server should use the serverManager
+        # from test/ui/mockLightspeedServer/serverManager.ts
         refresh_settings "${test_file}" "${TEST_ID}"
         # Keep --open_resource here as it is essential as otherwise it will default to use home directory
         # and likely will fail to use our python tools from our own testing virtualenv.
