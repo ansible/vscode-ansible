@@ -82,7 +82,7 @@ function main() {
       feedbackForm.appendChild(featureRequestSection);
     } else if (selectedValue === "suggestion-feedback") {
       suggestionFeedbackSection.innerHTML = `
-        <section class="component-section" class="issue-dropdown">
+        <section class="component-section issue-dropdown">
           <p class="required">Prompt</p>
           <vscode-text-area id="suggestion-prompt" cols="29" class="m-b-10" placeholder="The contents of the playbook until the name of the task used for a recommendation." resize="both" />
         </section>

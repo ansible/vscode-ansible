@@ -71,7 +71,7 @@ Run the following command:
 Run the following command:
 
 ```shell
-    MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh
+    task e2e
 ```
 
 #### UI Tests
@@ -79,5 +79,5 @@ Run the following command:
 Run the following command:
 
 ```shell
-    MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh
+    task ui
 ```

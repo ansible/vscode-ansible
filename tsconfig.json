@@ -12,6 +12,7 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "src/**/*.ts",
+    "test/**/*.ts",
     "webviews/lightspeed/src/utils/*.ts",
     "test",
     "*.js",
