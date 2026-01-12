@@ -232,6 +232,7 @@ tasks:
     generates:
       - out/junit/ui/.passed
     cmds:
+      - rm -f out/junit/ui/${TEST_PREFIX}-*-test-results.xml
       - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
     interactive: true
   ui-smoke:
