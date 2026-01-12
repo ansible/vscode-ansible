@@ -253,10 +253,10 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
   };
 }
 
-export function createADTCheckEnvHandler() {
+export function createADTCheckEnvHandler(workspaceRoot: string) {
   return async () => {
     try {
-      const result = await checkAndInstallADT();
+      const result = await checkAndInstallADT(workspaceRoot);
 
       return {
         content: [

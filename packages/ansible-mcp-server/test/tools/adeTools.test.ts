@@ -416,6 +416,43 @@ describe("ADE Tools", () => {
       const result = await checkADTInstalled();
       expect(result).toBe(false);
     });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const mockChild = {
+        stdout: {
+          on: vi.fn((event, callback) => {
+            if (event === "data") {
+              callback(
+                JSON.stringify([
+                  { name: "ansible-dev-tools", version: "1.0.0" },
+                ]),
+              );
+            }
+          }),
+        },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(spawn).mockReturnValue(mockChild as any);
+
+      await checkADTInstalled(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to executeCommand
+      expect(spawn).toHaveBeenCalledWith(
+        "pip",
+        ["list", "--format=json"],
+        expect.objectContaining({
+          cwd: workspaceRoot,
+        }),
+      );
+    });
   });
 
   describe("getEnvironmentInfo", () => {
@@ -1175,6 +1212,181 @@ describe("ADE Tools", () => {
       expect(result.success).toBe(false);
       expect(result.error).toContain("pip error");
       expect(result.error).toContain("pipx error");
+    });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        // Track all spawn calls to verify workspaceRoot is passed
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              if (command === "pip" && args?.includes("list")) {
+                setTimeout(() => callback(0), 10);
+              } else if (command === "pip" && args?.includes("install")) {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      await checkAndInstallADT(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to all executeCommand calls
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(workspaceRoot);
+      });
+    });
+  });
+
+  describe("multiple workspace folders scenario", () => {
+    it("should execute commands in workspaceRoot instead of process.cwd()", async () => {
+      const ansibleWorkspace = "/path/to/ansible-project";
+      const currentCwd = process.cwd(); // This could be any workspace folder
+
+      // Verify that workspaceRoot is different from process.cwd()
+      // In real scenario, VS Code might have process.cwd() pointing to a different workspace
+      expect(ansibleWorkspace).not.toBe(currentCwd);
+
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        // Track all spawn calls to verify workspaceRoot is used
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed initially
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // All commands succeed
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      // Test checkADTInstalled with workspaceRoot
+      // Command should execute in ansibleWorkspace, not process.cwd()
+      await checkADTInstalled(ansibleWorkspace);
+
+      // Verify the command was called with ansibleWorkspace, not process.cwd()
+      const pipListCalls = calls.filter(
+        (c) => c.command === "pip" && c.args?.includes("list"),
+      );
+      expect(pipListCalls.length).toBeGreaterThan(0);
+      pipListCalls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd); // Should not use process.cwd()
+      });
+
+      // Clear calls for next test
+      calls.length = 0;
+
+      // Test checkAndInstallADT with workspaceRoot
+      await checkAndInstallADT(ansibleWorkspace);
+
+      // Verify all commands (pip list, pip install) were called with ansibleWorkspace
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd); // Should not use process.cwd()
+      });
+    });
+
+    it("should handle adt_check_env tool correctly with workspaceRoot from MCP server", async () => {
+      const ansibleWorkspace = "/path/to/ansible-project";
+      const currentCwd = process.cwd();
+
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      // Simulate the handler being called with workspaceRoot from MCP server
+      // (This is what happens when VS Code passes workspaceRoot to MCP server)
+      const result = await checkAndInstallADT(ansibleWorkspace);
+
+      // Verify success
+      expect(result.success).toBe(true);
+
+      // Verify all commands executed in ansibleWorkspace, not process.cwd()
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd);
+      });
     });
   });
 

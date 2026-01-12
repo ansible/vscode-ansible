@@ -361,6 +361,7 @@ describe("MCP Handlers", () => {
 
     it("should check and install ADT successfully", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockResolvedValue({
         success: true,
@@ -368,17 +369,19 @@ describe("MCP Handlers", () => {
         error: undefined,
       });
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toBe("ADT is installed");
       expect(result.isError).toBe(false);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle ADT check failures", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockResolvedValue({
         success: false,
@@ -386,23 +389,25 @@ describe("MCP Handlers", () => {
         error: "Installation failed",
       });
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toBe("Failed to install ADT");
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle exceptions during ADT check", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockRejectedValue(
         new Error("Check exception"),
       );
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -411,14 +416,16 @@ describe("MCP Handlers", () => {
         "Error checking/installing ADT: Check exception",
       );
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle non-Error exceptions during ADT check", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockRejectedValue("String exception");
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -427,6 +434,7 @@ describe("MCP Handlers", () => {
         "Error checking/installing ADT: String exception",
       );
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
   });
 
