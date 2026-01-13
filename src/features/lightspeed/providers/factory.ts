@@ -183,7 +183,7 @@ export class LLMProviderFactory implements ProviderFactory {
             label: "API Key",
             type: "password",
             required: true,
-            placeholder: "sk-api-token",
+            placeholder: "api-key",
             description: "Your API key for authentication",
           },
           {
@@ -191,7 +191,7 @@ export class LLMProviderFactory implements ProviderFactory {
             label: "Base URL",
             type: "string",
             required: true,
-            placeholder: "https://litellm-litemaas.apps.prod.rhoai.rh-aiservices-bu.com",
+            placeholder: "https://...",
             description:
               "The base URL of the OpenAI-compatible API endpoint (must support /v1/chat/completions)",
           },
@@ -200,7 +200,7 @@ export class LLMProviderFactory implements ProviderFactory {
             label: "Model Name/ID",
             type: "string",
             required: true,
-            placeholder: "DeepSeek-R1-Distill-Qwen-14B-W4A16",
+            placeholder: "model-name",
             description: "The model name or ID to use",
           },
         ],

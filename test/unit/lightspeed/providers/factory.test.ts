@@ -25,6 +25,22 @@ vi.mock("../../../../../src/features/lightspeed/ansibleContext", () => ({
   },
 }));
 
+// Mock webUtils to prevent OAuth provider from trying to generate code verifier at module load
+vi.mock("../../../../src/features/lightspeed/utils/webUtils", () => ({
+  generateCodeVerifier: () => "mock-code-verifier",
+  generateCodeChallengeFromVerifier: () => "mock-code-challenge",
+  UriEventHandler: class {},
+  OAuthAccount: {},
+  calculateTokenExpiryTime: () => 0,
+  SESSIONS_SECRET_KEY: "mock-sessions-key",
+  ACCOUNT_SECRET_KEY: "mock-account-key",
+  ANSIBLE_LIGHTSPEED_AUTH_ID: "auth-lightspeed",
+  ANSIBLE_LIGHTSPEED_AUTH_NAME: "Ansible Lightspeed",
+  RHSSO_AUTH_ID: "redhat-account-auth",
+  getBaseUri: () => "https://mock-base-uri.com",
+  getUserTypeLabel: () => "",
+}));
+
 // Reset mocks before each test
 beforeEach(() => {
   vi.clearAllMocks();
