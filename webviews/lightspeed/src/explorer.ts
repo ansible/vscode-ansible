@@ -96,4 +96,3 @@ vscodeApi.on('generateRole', () => {
 vscodeApi.on('explainRole', () => {
   vscodeApi.post('command', { command: 'explainRole' });
 });
-
