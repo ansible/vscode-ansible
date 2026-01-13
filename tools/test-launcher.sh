@@ -116,6 +116,7 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
             -c "${CODE_VERSION}" \
             --open_resource . \
             "${EXTEST_ARGS:-}" \
+            -- \
             "${test_file}" || echo "${TEST_ID}" >> out/log/.failed
 
         if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
