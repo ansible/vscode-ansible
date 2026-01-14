@@ -82,7 +82,7 @@ const handleExplainRole = () => {
         <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank">Learn more</a>
       </p>
       <div class="button-container">
-        <vscode-button @click="handleConnect" class="lightspeedExplorerButton">
+        <vscode-button @click="handleConnect" id="lightspeed-explorer-connect" class="lightspeedExplorerButton">
           Connect
         </vscode-button>
       </div>
@@ -93,26 +93,30 @@ const handleExplainRole = () => {
       </p>
 
       <div class="button-container">
-        <vscode-button @click="handleGeneratePlaybook" class="lightspeedExplorerButton">
+        <vscode-button @click="handleGeneratePlaybook" id="lightspeed-explorer-playbook-generation-submit"
+          class="lightspeedExplorerButton">
           Generate a playbook
         </vscode-button>
       </div>
 
       <div class="button-container">
-        <vscode-button @click="handleExplainPlaybook" class="lightspeedExplorerButton" :disabled="!hasPlaybookOpened"
+        <vscode-button @click="handleExplainPlaybook" id="lightspeed-explorer-playbook-explanation-submit"
+          class="lightspeedExplorerButton" :disabled="!hasPlaybookOpened"
           :title="!hasPlaybookOpened ? 'The file in the active editor view is not an Ansible playbook' : ''">
           Explain the current playbook
         </vscode-button>
       </div>
 
       <div class="button-container">
-        <vscode-button @click="handleGenerateRole" class="lightspeedExplorerButton">
+        <vscode-button @click="handleGenerateRole" id="lightspeed-explorer-role-generation-submit"
+          class="lightspeedExplorerButton">
           Generate a role
         </vscode-button>
       </div>
 
       <div class="button-container">
-        <vscode-button @click="handleExplainRole" class="lightspeedExplorerButton" :disabled="!hasRoleOpened"
+        <vscode-button @click="handleExplainRole" id="lightspeed-explorer-role-explanation-submit"
+          class="lightspeedExplorerButton" :disabled="!hasRoleOpened"
           :title="!hasRoleOpened ? 'The file in the active editor view is not part of an Ansible role' : ''">
           Explain the current role
         </vscode-button>
