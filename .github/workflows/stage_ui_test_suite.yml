@@ -1,0 +1,123 @@
+name: Stage UI test suite
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    # 'closed' is missing to avoid double triggering on PR merge
+    # 'edited' is missing to allow us to edit PR title/description without triggering
+    types: [synchronize, opened, reopened]
+    branches: ["main", "devel/*"]
+  schedule:
+    - cron:  '0 */12 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'branch to run tests from, default: main'
+        required: false
+        type: string
+      test_context:
+        description: 'Context to run tests for, default: general context'
+        type: choice
+        options:
+          - ''
+          - chatbot
+        default: ''
+
+env:
+  branch: ${{ inputs.branch || 'main' }}
+  test_context_text:  ${{ inputs.test_context && format('(context="{0}")', inputs.test_context)  || '' }}
+
+jobs:
+  ui-test-suite:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    services:
+      selenium-vscode:
+        image: quay.io/tshinhar/selenium-vscode
+        ports:
+          - 4444:4444
+          - 5999:5999
+        options: -it --shm-size=2g
+
+    steps:
+      - name: Checkout ${{ env.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.branch }}
+
+      - name: Set up python3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: check service status
+        run: |
+          docker ps
+          docker ps -a
+
+      - name: Test ui
+        run: ENV_FOR_DYNACONF=stage pytest -v -m 'ui${{ env.test_context_text }}' --doctest-modules --junitxml=junit/sanity-test-results.xml
+        env:
+          LIGHTSPEED_USER: lightspeed-test-user
+          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          WISDOM_TOKEN: ${{ secrets.WISDOM_TOKEN }}
+          LIGHTSPEED_ADMIN_TOKEN: ${{ secrets.LIGHTSPEED_ADMIN_TOKEN }}
+          NO_SEAT_USER: ${{ secrets.NO_SEAT_USER }}
+          NO_WCA_USER: ${{ secrets.NO_WCA_USER }}
+          NO_WCA_ADMIN: ${{ secrets.NO_WCA_ADMIN }}
+          NO_WCA_PASSWORD: ${{ secrets.NO_WCA_PASSWORD }}
+          NO_SUB_USER: ${{ secrets.NO_SUB_USER }}
+          NO_SUB_ADMIN: ${{ secrets.NO_SUB_ADMIN }}
+          WCA_API_KEY_1: ${{ secrets.WCA_API_KEY_1 }}
+          WCA_API_KEY_2: ${{ secrets.WCA_API_KEY_2 }}
+          WCA_API_KEY_3: ${{ secrets.WCA_API_KEY_3 }}
+          WCA_MODEL_ID_1: ${{ secrets.WCA_MODEL_ID_1 }}
+          WCA_MODEL_ID_2: ${{ secrets.WCA_MODEL_ID_2 }}
+          WCA_MODEL_ID_3: ${{ secrets.WCA_MODEL_ID_3 }}
+
+      - name: Upload pytest test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-results
+          path: |
+            junit/sanity-test-results.xml
+            ./*.png
+        # Use always() to always run this step to publish test results when there are test failures
+        if: ${{ always() }}
+
+      - name: Report to slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          # For posting a rich message using Block Kit
+          payload: |
+            {
+              "text": "STAGE UI (login) Tests Results: ${{ job.status }}\nLink: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        if: ${{ always() }}
+
+      - name: Report failure to team-wisdom-eng slack channel
+        id: slack_failure
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "STAGE UI (login) Tests Results: ${{ job.status }}\nLink: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.TEAM_WISDOM_ENG_SLACK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        if: ${{ failure() && env.branch == 'main' }}
