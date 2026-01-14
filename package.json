@@ -1123,7 +1123,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.51.0",
     "vitest": "^4.0.15",
-    "vscode-extension-tester": "^8.19.0",
+    "vscode-extension-tester": "^8.21.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
