@@ -68,6 +68,7 @@ tasks:
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/testFixtures/.vscode/settings.json"
       - exclude: "**/None/**/*"
+      - exclude: "test/selenium/ui/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -259,6 +260,16 @@ tasks:
       TEST_PREFIX: "ui-oldest"
     deps:
       - ui
+  ui-selenium:
+    desc: Run UI tests (Selenium)
+    deps:
+      - package
+    cmds:
+      - VSX_FILE=${PWD}/$(ls -1 ansible-*.vsix) && podman run --pull=missing --replace --detach --rm --shm-size=10g --name selenium-vscode -p 4444:4444 -p 5999:5999 --volume $VSX_FILE:/ansible-latest.vsix quay.io/tshinhar/selenium-vscode-multi:latest
+      - curl -sS --retry 10 --retry-all-errors http://localhost:4444
+      - pytest
+      - podman stop selenium-vscode
+    interactive: true
   unit:
     desc: Run unit tests with coverage report
     deps:
@@ -280,10 +291,10 @@ tasks:
       - README.md
       - package*.json
       - .vscodeignore
-      - webpack.config.ts
       - tools/helper
       - "{src,test,media}/**/*"
       - exclude: "**/.ansible/**/*"
+      - exclude: "test/selenium/ui/**/*"
     generates:
       - "*.vsix"
       - "packages/*/*.tgz"
