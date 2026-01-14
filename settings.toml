@@ -1,0 +1,4 @@
+[stage]
+service = "https://stage.ai.ansible.redhat.com"
+login = "https://stage.ai.ansible.redhat.com/login"
+ansible_ai_enable_one_click_trial = "True"

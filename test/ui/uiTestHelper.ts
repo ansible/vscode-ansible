@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from "chai";
 import path from "path";
 import { PROJECT_ROOT } from "../setup";
 import {
   By,
   Locator,
-  ModalDialog,
   SettingsEditor,
   Workbench,
   WebView,
@@ -63,74 +61,8 @@ export async function updateSettings(
   await settingInUI.setValue(value);
 }
 
-// In the redirection occurs in the login flow, getting message from a modal dialog
-// may throw NoSuchElementError. This function is for dealing with those errors.
-export async function getModalDialogAndMessage(details = false): Promise<{
-  dialog: ModalDialog;
-  message: string;
-}> {
-  for (let i = 0; i < 30; i++) {
-    try {
-      const dialog = await new ModalDialog().wait();
-      const message = details
-        ? await dialog.getDetails()
-        : await dialog.getMessage();
-      if (message !== undefined) {
-        return { dialog, message };
-      }
-    } catch {
-      await sleep(1000);
-    }
-  }
-  throw new Error("Could not retrieve a message from a modal dialog");
-}
-
 function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-export async function expectNotification(
-  expected: string,
-  clickButton = false,
-): Promise<void> {
-  const workbench = new Workbench();
-
-  const matchingNotification = await waitForCondition({
-    condition: async () => {
-      const notifications = await workbench.getNotifications();
-      for (const notification of notifications) {
-        const message = await notification.getMessage();
-        if (message === expected) {
-          return notification;
-        }
-      }
-      return false;
-    },
-    message: `Timed out waiting for notification with message: "${expected}"`,
-    timeout: 15000,
-  });
-
-  expect(matchingNotification).not.to.be.false;
-
-  if (clickButton) {
-    const button = await VSBrowser.instance.driver.wait(
-      until.elementLocated(By.xpath(".//a[@role='button']")),
-      5000,
-      "Timed out waiting for button to be located",
-    );
-    await VSBrowser.instance.driver.wait(
-      until.elementIsEnabled(button as any),
-      5000,
-      "Timed out waiting for button to be clickable",
-    );
-
-    expect(button).not.to.be.undefined;
-    await button.click();
-    await sleep(500);
-  } else {
-    const center = await workbench.openNotificationsCenter();
-    await center.clearAllNotifications();
-  }
 }
 
 export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
