@@ -80,7 +80,7 @@ describe("ansible-diag-no-ee", function () {
       await updateSettings("validation.lint.enabled", false);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       // Give language server time to process document close and settings change
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 2500));
       clearActivationCache(); // Clear cache after editors closed
     });
 

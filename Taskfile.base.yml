@@ -40,6 +40,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - bash ./tools/test-setup.sh
+      - ./tools/precheck.sh
     sources:
       - ./tools/precheck.sh
       - pyproject.toml
