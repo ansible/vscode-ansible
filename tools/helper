@@ -13,6 +13,7 @@ from datetime import datetime
 
 def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
     """Helper to easy calling subprocess."""
+    logging.info("run: %s", cmd)
     return subprocess.run(cmd, shell=True, check=True)
 
 
@@ -147,15 +148,18 @@ def cli() -> None:
         # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
         run("task build")
         run("mkdir -p out/mcp/data")
-        run("cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true")
-
         run(
-            "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
-            f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
+            "cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true"
         )
-        # Using zipinfo instead of `vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+
+        # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
+        run(f"vsce package --no-update-package-json {pre_release_arg} {version}")
+
+        # running `vsce ls` is a must as it is also executed by extester so we need
+        # to be sure that the command succeeds.
+        # --yarn needed to avoid a warning message as package.json config does not prevent it
+        run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
-        run("zipinfo -1 ./*.vsix > out/log/package.log")
         vsix_file = f"ansible-{version}.vsix"
         size = os.path.getsize(vsix_file) / 1024 / 1024
         vsx_size_limit_mb = 8.0
