@@ -15,7 +15,6 @@ import {
   ANSIBLE_SYSTEM_PROMPT_ROLE,
   ANSIBLE_SYSTEM_PROMPT_CHAT,
   ANSIBLE_SYSTEM_PROMPT_EXPLANATION,
-  ANSIBLE_SYSTEM_PROMPT_COMPLETION,
   ANSIBLE_PLAYBOOK_GENERATION_TEMPLATE,
   ANSIBLE_ROLE_GENERATION_TEMPLATE,
 } from "../../../definitions/constants";
@@ -259,52 +258,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   async completionRequest(
     params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
-    try {
-      this.logger.info(
-        `[RHCustom Provider] Request params: ${JSON.stringify(params, null, 2)}`,
-      );
-      this.logger.info(`[RHCustom Provider] Model: ${this.modelName}`);
-      this.logger.info(`[RHCustom Provider] Prompt:\n${params.prompt}`);
-
-      const messages: ChatMessage[] = [
-        {
-          role: "system",
-          content: ANSIBLE_SYSTEM_PROMPT_COMPLETION,
-        },
-        {
-          role: "user",
-          content: params.prompt,
-        },
-      ];
-
-      const result = await this.client.chatCompletion(messages);
-
-      const text = result.choices?.[0]?.message?.content || "";
-
-      this.logger.info(`[RHCustom Provider] Raw response:\n${text}`);
-
-      // For inline completion, keep the response as-is to preserve indentation
-      // Only remove common markdown code fences if present
-      let suggestion = text.trim();
-      suggestion = suggestion.replace(/^```ya?ml\s*/i, "");
-      suggestion = suggestion.replace(/```\s*$/, "");
-
-      const result_data = {
-        predictions: [suggestion],
-        model: this.modelName,
-        suggestionId: params.suggestionId || "rhcustom-" + Date.now().toString(),
-      };
-
-      return result_data;
-    } catch (error) {
-      this.logger.error(
-        `[RHCustom Provider] Completion request failed: ${error}`,
-      );
-      this.logger.error(
-        `[RHCustom Provider] Error stack: ${error instanceof Error ? error.stack : "No stack trace"}`,
-      );
-      throw this.handleRHCustomError(error, "completion");
-    }
+    // Inline suggestions are out of scope for the Red Hat Custom provider currently
+    throw new Error(
+      "Inline suggestions are not supported for the Red Hat Custom provider.",
+    );
   }
 
   async chatRequest(params: ChatRequestParams): Promise<ChatResponseParams> {
