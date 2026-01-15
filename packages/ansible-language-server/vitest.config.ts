@@ -12,6 +12,7 @@ export default defineConfig({
     setupFiles: ["./test/vitestSetup.ts"],
     globalSetup: ["./test/globalSetup.ts"],
     isolate: false,
+    fileParallelism: false, // Run test files sequentially like Mocha did - needed for container tests
     sequence: {
       concurrent: false,
     },
