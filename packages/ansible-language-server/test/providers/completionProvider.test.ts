@@ -21,6 +21,7 @@ import {
   setFixtureAnsibleCollectionPathEnv,
   setAnsibleConfigEnv,
   unsetAnsibleConfigEnv,
+  skipEE,
 } from "../helper";
 
 function testPlayKeywords(
@@ -668,6 +669,7 @@ function testVarsCompletionInsideJinja(
 function testModuleKindAndDocumentation(
   context: WorkspaceFolderContext | undefined,
   textDoc: TextDocument,
+  isEE: boolean = false,
 ) {
   const tests = [
     {
@@ -703,6 +705,10 @@ function testModuleKindAndDocumentation(
     expect(context).toBeDefined();
     if (context) {
       beforeAll(async () => {
+        // Skip if EE tests should be skipped (no container runtime available)
+        if (isEE && skipEE()) {
+          return;
+        }
         const completion = await doCompletion(textDoc, position, context);
         const filteredCompletion = completion.filter(
           (item) => item.label === moduleName,
@@ -943,7 +949,7 @@ describe("doCompletion()", function () {
           await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc);
+        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc, true);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
@@ -957,7 +963,7 @@ describe("doCompletion()", function () {
           await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc);
+        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc, false);
       });
     });
 
