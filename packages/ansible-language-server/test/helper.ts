@@ -1,7 +1,10 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
 import { readFileSync, rmSync } from "fs";
-import { WorkspaceManager } from "../src/services/workspaceManager";
+import {
+  WorkspaceManager,
+  WorkspaceFolderContext,
+} from "../src/services/workspaceManager";
 import {
   CompletionItem,
   createConnection,
@@ -55,6 +58,7 @@ export function unsetAnsibleConfigEnv(): void {
 
 export async function enableExecutionEnvironmentSettings(
   docSettings: Thenable<ExtensionSettings>,
+  context?: WorkspaceFolderContext,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = true;
   (await docSettings).executionEnvironment.volumeMounts = [
@@ -69,13 +73,20 @@ export async function enableExecutionEnvironmentSettings(
       options: "ro", // read-only option for volume mounts
     },
   ];
+  if (context) {
+    context.clearCachedServices();
+  }
 }
 
 export async function disableExecutionEnvironmentSettings(
   docSettings: Thenable<ExtensionSettings>,
+  context?: WorkspaceFolderContext,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = false;
   (await docSettings).executionEnvironment.volumeMounts = [];
+  if (context) {
+    context.clearCachedServices();
+  }
 }
 
 export function resolveDocUri(filename: string): string {

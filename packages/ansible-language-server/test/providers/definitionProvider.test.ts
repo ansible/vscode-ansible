@@ -97,7 +97,7 @@ describe("getDefinition()", function () {
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(docSettings, context);
         }
       });
 
@@ -108,7 +108,7 @@ describe("getDefinition()", function () {
       afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });
@@ -117,7 +117,7 @@ describe("getDefinition()", function () {
       beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {

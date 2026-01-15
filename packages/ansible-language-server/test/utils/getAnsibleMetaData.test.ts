@@ -298,7 +298,7 @@ describe("getAnsibleMetaData()", function () {
   describe("@ee", function () {
     beforeAll(async () => {
       if (docSettings) {
-        await enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings, context);
       }
 
       if (context) {
@@ -337,7 +337,7 @@ describe("getAnsibleMetaData()", function () {
 
       afterAll(async function () {
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });

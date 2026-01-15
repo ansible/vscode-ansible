@@ -747,21 +747,21 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(docSettings, context);
         });
 
         testHostValues(context, textDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
 
           setAnsibleConfigEnv();
         });
@@ -780,35 +780,35 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(docSettings, context);
         });
 
         testPlayKeywords(context, textDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         });
 
         testPlayKeywords(context, textDoc);
       });
     });
   }
-  fixtureFilePath = "completion/with_roles.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-
-  textDoc = getDoc(fixtureFilePath);
-  expect(context).toBeDefined();
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+  // Capture variables for role keywords tests
+  const rolesFixturePath = "completion/with_roles.yml";
+  const rolesFixtureUri = resolveDocUri(rolesFixturePath);
+  const rolesContext = workspaceManager.getContext(rolesFixtureUri);
+  const rolesTextDoc = getDoc(rolesFixturePath);
+  expect(rolesContext).toBeDefined();
+  if (rolesContext) {
+    const rolesDocSettings = rolesContext.documentSettings.get(rolesTextDoc.uri);
 
     describe("Completion for role keywords", function () {
       describe("@ee", function () {
@@ -816,33 +816,34 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(rolesDocSettings, rolesContext);
         });
 
-        testRoleKeywords(context, textDoc);
+        testRoleKeywords(rolesContext, rolesTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(rolesDocSettings, rolesContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(rolesDocSettings, rolesContext);
         });
 
-        testRoleKeywords(context, textDoc);
+        testRoleKeywords(rolesContext, rolesTextDoc);
       });
     });
   }
-  fixtureFilePath = "completion/with_blocks.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+
+  const blocksFixturePath = "completion/with_blocks.yml";
+  const blocksFixtureUri = resolveDocUri(blocksFixturePath);
+  const blocksContext = workspaceManager.getContext(blocksFixtureUri);
+  const blocksTextDoc = getDoc(blocksFixturePath);
+  if (blocksContext) {
+    const blocksDocSettings = blocksContext.documentSettings.get(blocksTextDoc.uri);
 
     describe("Completion for block keywords", function () {
       describe("@ee", function () {
@@ -850,34 +851,34 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(blocksDocSettings, blocksContext);
         });
 
-        testBlockKeywords(context, textDoc);
+        testBlockKeywords(blocksContext, blocksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(blocksDocSettings, blocksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(blocksDocSettings, blocksContext);
         });
 
-        testBlockKeywords(context, textDoc);
+        testBlockKeywords(blocksContext, blocksTextDoc);
       });
     });
   }
-  fixtureFilePath = "completion/simple_tasks.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  expect(context).toBeDefined();
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+  const simpleTasksFixturePath = "completion/simple_tasks.yml";
+  const simpleTasksFixtureUri = resolveDocUri(simpleTasksFixturePath);
+  const simpleTasksContext = workspaceManager.getContext(simpleTasksFixtureUri);
+  const simpleTasksTextDoc = getDoc(simpleTasksFixturePath);
+  expect(simpleTasksContext).toBeDefined();
+  if (simpleTasksContext) {
+    const simpleTasksDocSettings = simpleTasksContext.documentSettings.get(simpleTasksTextDoc.uri);
 
     describe("Completion for task keywords", function () {
       describe("@ee", function () {
@@ -885,24 +886,24 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testTaskKeywords(context, textDoc);
+        testTaskKeywords(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testTaskKeywords(context, textDoc);
+        testTaskKeywords(simpleTasksContext, simpleTasksTextDoc);
       });
     });
 
@@ -912,24 +913,24 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleNames(context, textDoc);
+        testModuleNames(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleNames(context, textDoc);
+        testModuleNames(simpleTasksContext, simpleTasksTextDoc);
       });
     });
 
@@ -939,24 +940,24 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleKindAndDocumentation(context, textDoc);
+        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleKindAndDocumentation(context, textDoc);
+        testModuleKindAndDocumentation(simpleTasksContext, simpleTasksTextDoc);
       });
     });
 
@@ -966,24 +967,24 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleOptions(context, textDoc);
+        testModuleOptions(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleOptions(context, textDoc);
+        testModuleOptions(simpleTasksContext, simpleTasksTextDoc);
       });
     });
 
@@ -993,34 +994,36 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleOptionsValues(context, textDoc);
+        testModuleOptionsValues(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(simpleTasksDocSettings, simpleTasksContext);
         });
 
-        testModuleOptionsValues(context, textDoc);
+        testModuleOptionsValues(simpleTasksContext, simpleTasksTextDoc);
       });
     });
   }
-  fixtureFilePath = "completion/tasks_without_fqcn.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  expect(context).toBeDefined();
-  if (context) {
-    let docSettings = context.documentSettings.get(textDoc.uri);
+
+  // Capture variables for tasks_without_fqcn tests
+  const noFqcnFixturePath = "completion/tasks_without_fqcn.yml";
+  const noFqcnFixtureUri = resolveDocUri(noFqcnFixturePath);
+  const noFqcnContext = workspaceManager.getContext(noFqcnFixtureUri);
+  const noFqcnTextDoc = getDoc(noFqcnFixturePath);
+  expect(noFqcnContext).toBeDefined();
+  if (noFqcnContext) {
+    const noFqcnDocSettings = noFqcnContext.documentSettings.get(noFqcnTextDoc.uri);
 
     describe("Completion for module name without FQCN", function () {
       describe("@ee", function () {
@@ -1028,70 +1031,72 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(noFqcnDocSettings, noFqcnContext);
         });
 
-        testModuleNamesWithoutFQCN(context, textDoc);
+        testModuleNamesWithoutFQCN(noFqcnContext, noFqcnTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(noFqcnDocSettings, noFqcnContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(noFqcnDocSettings, noFqcnContext);
         });
 
-        testModuleNamesWithoutFQCN(context, textDoc);
+        testModuleNamesWithoutFQCN(noFqcnContext, noFqcnTextDoc);
       });
     });
+  }
+
+  // Capture variables for jinja vars completion tests
+  const jinjaVarsFixturePath = "completion/playbook_with_vars.yml";
+  const jinjaVarsFixtureUri = resolveDocUri(jinjaVarsFixturePath);
+  const jinjaVarsContext = workspaceManager.getContext(jinjaVarsFixtureUri);
+  const jinjaVarsTextDoc = getDoc(jinjaVarsFixturePath);
+  expect(jinjaVarsContext).toBeDefined();
+  if (jinjaVarsContext) {
+    const jinjaVarsDocSettings = jinjaVarsContext.documentSettings.get(jinjaVarsTextDoc.uri);
 
     describe("Completion for variables inside jinja inline brackets", function () {
-      fixtureFilePath = "completion/playbook_with_vars.yml";
-      fixtureFileUri = resolveDocUri(fixtureFilePath);
-      context = workspaceManager.getContext(fixtureFileUri);
-      textDoc = getDoc(fixtureFilePath);
-      expect(context).toBeDefined();
-      if (context) {
-        docSettings = context.documentSettings.get(textDoc.uri);
-
-        describe("@ee", function () {
-          beforeAll(async () => {
-            setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-            );
-            await enableExecutionEnvironmentSettings(docSettings);
-          });
-
-          testVarsCompletionInsideJinja(context, textDoc);
-
-          afterAll(async function () {
-            setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
-          });
+      describe("@ee", function () {
+        beforeAll(async () => {
+          setFixtureAnsibleCollectionPathEnv(
+            "/home/runner/.ansible/collections:/usr/share/ansible/collections",
+          );
+          await enableExecutionEnvironmentSettings(jinjaVarsDocSettings, jinjaVarsContext);
         });
 
-        describe("@noee", function () {
-          beforeAll(async () => {
-            setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
-          });
+        testVarsCompletionInsideJinja(jinjaVarsContext, jinjaVarsTextDoc);
 
-          testVarsCompletionInsideJinja(context, textDoc);
+        afterAll(async function () {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(jinjaVarsDocSettings, jinjaVarsContext);
         });
-      }
+      });
+
+      describe("@noee", function () {
+        beforeAll(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(jinjaVarsDocSettings, jinjaVarsContext);
+        });
+
+        testVarsCompletionInsideJinja(jinjaVarsContext, jinjaVarsTextDoc);
+      });
     });
   }
-  fixtureFilePath = "playbook_adjacent_collection/playbook.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  expect(context).toBeDefined();
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+  // Capture variables for playbook adjacent collection tests
+  const pacFixturePath = "playbook_adjacent_collection/playbook.yml";
+  const pacFixtureUri = resolveDocUri(pacFixturePath);
+  const pacContext = workspaceManager.getContext(pacFixtureUri);
+  const pacTextDoc = getDoc(pacFixturePath);
+  expect(pacContext).toBeDefined();
+  if (pacContext) {
+    const pacDocSettings = pacContext.documentSettings.get(pacTextDoc.uri);
 
     describe("Completion for playbook adjacent collection", function () {
       describe("@ee", function () {
@@ -1099,35 +1104,39 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         });
 
-        testPlaybookAdjacentCollection(context, textDoc);
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         });
 
-        testPlaybookAdjacentCollection(context, textDoc);
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
       });
     });
   }
-  fixtureFilePath =
+
+  // Capture variables for non-adjacent playbook tests
+  const nonAdjacentFixturePath =
     "playbook_adjacent_collection/non_adjacent_playbooks/playbook2.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  expect(context).toBeDefined();
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+  const nonAdjacentFixtureUri = resolveDocUri(nonAdjacentFixturePath);
+  const nonAdjacentContext = workspaceManager.getContext(nonAdjacentFixtureUri);
+  const nonAdjacentTextDoc = getDoc(nonAdjacentFixturePath);
+  expect(nonAdjacentContext).toBeDefined();
+  if (nonAdjacentContext) {
+    const nonAdjacentDocSettings = nonAdjacentContext.documentSettings.get(
+      nonAdjacentTextDoc.uri,
+    );
 
     describe("Negate completion for non playbook adjacent collection", function () {
       describe("@ee", function () {
@@ -1135,24 +1144,33 @@ describe("doCompletion()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         });
 
-        testNonPlaybookAdjacentCollection(context, textDoc);
+        testNonPlaybookAdjacentCollection(nonAdjacentContext, nonAdjacentTextDoc);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         });
 
-        testNonPlaybookAdjacentCollection(context, textDoc);
+        testNonPlaybookAdjacentCollection(nonAdjacentContext, nonAdjacentTextDoc);
       });
     });
   }

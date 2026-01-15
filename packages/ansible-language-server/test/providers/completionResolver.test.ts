@@ -227,20 +227,20 @@ describe("doCompletionResolve()", function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
-            await enableExecutionEnvironmentSettings(docSettings);
+            await enableExecutionEnvironmentSettings(docSettings, context);
           });
           testFQCNEnabled(context);
 
           afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
+            await disableExecutionEnvironmentSettings(docSettings, context);
           });
         });
 
         describe("@noee", function () {
           beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
+            await disableExecutionEnvironmentSettings(docSettings, context);
           });
           testFQCNEnabled(context);
         });
@@ -252,7 +252,7 @@ describe("doCompletionResolve()", function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
-            await enableExecutionEnvironmentSettings(docSettings);
+            await enableExecutionEnvironmentSettings(docSettings, context);
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
               false;
           });
@@ -260,7 +260,7 @@ describe("doCompletionResolve()", function () {
 
           afterAll(async function () {
             setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
+            await disableExecutionEnvironmentSettings(docSettings, context);
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
           });
         });
@@ -268,7 +268,7 @@ describe("doCompletionResolve()", function () {
         describe("@noee", function () {
           beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
+            await disableExecutionEnvironmentSettings(docSettings, context);
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
               false;
           });
@@ -288,21 +288,21 @@ describe("doCompletionResolve()", function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(docSettings, context);
         });
 
         testResolveModuleOptionCompletion(context);
 
         afterAll(async function () {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         });
       });
 
       describe("@noee", function () {
         beforeAll(async () => {
           setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         });
 
         testResolveModuleOptionCompletion(context);
