@@ -8,6 +8,7 @@ import {
   waitForDiagnosisCompletion,
   clearActivationCache,
   run_lightspeed_tests_only,
+  sleep,
 } from "../e2e.utils";
 
 describe("ansible-diag-no-ee", function () {
@@ -25,6 +26,7 @@ describe("ansible-diag-no-ee", function () {
     before(async function () {
       await updateSettings("validation.lint.enabled", true);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+      await sleep(2000);
       // Give language server time to process document close and settings change
       await new Promise((resolve) => setTimeout(resolve, 500));
       clearActivationCache(); // Clear cache after editors closed
