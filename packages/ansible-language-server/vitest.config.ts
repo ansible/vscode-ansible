@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   define: {
-    global: 'globalThis',
+    global: "globalThis",
   },
   test: {
     globals: true,
