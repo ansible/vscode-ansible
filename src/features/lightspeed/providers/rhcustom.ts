@@ -195,11 +195,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       return this.handleHttpError(httpError, operation, "Red Hat Custom");
     }
     
-    // Handle other errors with status property
-    if (error && typeof error === "object" && "status" in error) {
-      return this.handleHttpError(error, operation, "Red Hat Custom");
-    }
-    
     // Fallback for other errors
     return this.handleHttpError(
       { message: error instanceof Error ? error.message : "Unknown error" },
