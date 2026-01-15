@@ -24,7 +24,11 @@ import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
 } from "../utils/outlineGenerator";
-import { getFetch } from "../api";
+import {
+  OpenAICompatibleClient,
+  ChatMessage,
+} from "../clients/openaiCompatibleClient";
+
 
 export interface RHCustomConfig {
   apiKey: string;
@@ -33,34 +37,12 @@ export interface RHCustomConfig {
   timeout?: number;
 }
 
-interface OpenAICompatibleMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
-
-interface OpenAICompatibleRequest {
-  model: string;
-  messages: OpenAICompatibleMessage[];
-  temperature?: number;
-  max_tokens?: number;
-}
-
-interface OpenAICompatibleResponse {
-  choices: Array<{
-    message: {
-      role: string;
-      content: string;
-    };
-  }>;
-}
-
 export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   readonly name = "rhcustom";
   readonly displayName = "Red Hat Custom";
 
-  private readonly apiKey: string;
+  private readonly client: OpenAICompatibleClient;
   private readonly modelName: string;
-  private readonly baseURL: string;
   private readonly logger = getLightspeedLogger();
   private lastValidationError?: string;
 
@@ -100,22 +82,21 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     }
 
     // Explicitly assign values to ensure apiKey and baseURL are not swapped
-    this.apiKey = config.apiKey.trim();
+    const apiKey = config.apiKey.trim();
     this.modelName = config.modelName.trim();
-    this.baseURL = config.baseURL.trim();
-    
-    // Remove trailing slash if present
-    if (this.baseURL.endsWith("/")) {
-      this.baseURL = this.baseURL.slice(0, -1);
-    }
+    const baseURL = config.baseURL.trim().replace(/\/+$/, "");
 
-    console.log("[RHCustom Provider] Initialized:", {
+    // Initialize the OpenAI-compatible client
+    this.client = new OpenAICompatibleClient({
+      baseUrl: baseURL,
+      apiKey: apiKey,
       model: this.modelName,
-      baseURL: this.baseURL,
-      apiKeyLength: this.apiKey.length,
       timeout: this.timeout,
     });
 
+    this.logger.info(
+      `[RHCustom Provider] Initialized with model: ${this.modelName}, baseURL: ${baseURL}`,
+    );
   }
 
   /**
@@ -188,108 +169,22 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     return content.trim();
   }
 
-  private getEndpoint(): string {
-    const endpoint = `${this.baseURL}/v1/chat/completions`;
-    // Validate the endpoint URL is valid
-    try {
-      new URL(endpoint);
-    } catch (error) {
-      this.logger.error(
-        `[RHCustom Provider] Invalid endpoint URL: ${endpoint}, baseURL: ${this.baseURL}`,
-      );
-      throw new Error(
-        `Invalid endpoint URL constructed from baseURL: ${this.baseURL}. Please check your apiEndpoint setting.`,
-      );
-    }
-    return endpoint;
+  /**
+   * Fixes Windows path escape sequences in YAML double-quoted strings.
+   */
+  private fixWindowsPathEscapes(yamlContent: string): string {
+    // Find all double-quoted strings and fix unescaped backslashes
+    return yamlContent.replace(
+      /"([^"]*)"/g,
+      (match, content) => {
+        // Escape backslashes that aren't already escaped or part of valid escape sequences
+        // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
+        const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
+        return `"${fixed}"`;
+      },
+    );
   }
 
-  private async makeOpenAIRequest(
-    messages: OpenAICompatibleMessage[],
-    options?: {
-      temperature?: number;
-      max_tokens?: number;
-      timeout?: number;
-    },
-  ): Promise<OpenAICompatibleResponse> {
-    const fetch = getFetch();
-    const endpoint = this.getEndpoint();
-    const requestBody: OpenAICompatibleRequest = {
-      model: this.modelName,
-      messages: messages,
-      ...(options?.temperature !== undefined && { temperature: options.temperature }),
-      ...(options?.max_tokens !== undefined && { max_tokens: options.max_tokens }),
-    };
-
-    const requestTimeout = options?.timeout || this.timeout;
-    
-    console.log("[RHCustom Provider] Making request:", {
-      endpoint: endpoint,
-      model: this.modelName,
-      timeout: requestTimeout,
-      messageCount: messages.length,
-    });
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      console.log("[RHCustom Provider] Request timeout triggered after", requestTimeout, "ms");
-      controller.abort();
-    }, requestTimeout);
-
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      
-      console.log("[RHCustom Provider] Response received:", {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log("[RHCustom Provider] Error response:", {
-          status: response.status,
-          errorText: errorText.substring(0, 200),
-        });
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText };
-        }
-
-        const error: Error & { status?: number } = new Error(
-          errorData.message || errorData.error?.message || `HTTP ${response.status}`,
-        );
-        error.status = response.status;
-        throw error;
-      }
-
-      const data = await response.json();
-      console.log("[RHCustom Provider] Success response received");
-      return data as OpenAICompatibleResponse;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === "AbortError") {
-        console.log("[RHCustom Provider] Request aborted - likely timeout");
-        throw new Error(`Request timeout after ${this.timeout}ms`);
-      }
-      throw error;
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleRHCustomError(error: any, operation: string): Error {
     // Use the reusable HTTP error handler from base class
     return this.handleHttpError(error, operation, "Red Hat Custom");
@@ -300,21 +195,12 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Use minimum 30 seconds timeout for validation (LLM calls can take time)
       const validationTimeout = Math.max(this.timeout, 30000);
       
-      console.log("[RHCustom Provider] Starting config validation:", {
-        baseURL: this.baseURL,
-        model: this.modelName,
-        hasApiKey: !!this.apiKey,
-        configuredTimeout: this.timeout,
-        validationTimeout: validationTimeout,
-      });
-      
-      // Log configuration for debugging
       this.logger.info(
-        `[RHCustom Provider] Validating config - baseURL: ${this.baseURL}, model: ${this.modelName}, hasApiKey: ${!!this.apiKey}, timeout: ${validationTimeout}ms`,
+        `[RHCustom Provider] Validating config - model: ${this.modelName}, timeout: ${validationTimeout}ms`,
       );
       
       // Try a minimal chat request to validate with extended timeout
-      await this.makeOpenAIRequest(
+      await this.client.chatCompletion(
         [
           {
             role: "user",
@@ -326,7 +212,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       );
       
-      console.log("[RHCustom Provider] Config validation successful");
+      this.logger.info("[RHCustom Provider] Config validation successful");
       this.lastValidationError = undefined; // Clear any previous error
       return true;
     } catch (error) {
@@ -380,7 +266,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       this.logger.info(`[RHCustom Provider] Model: ${this.modelName}`);
       this.logger.info(`[RHCustom Provider] Prompt:\n${params.prompt}`);
 
-      const messages: OpenAICompatibleMessage[] = [
+      const messages: ChatMessage[] = [
         {
           role: "system",
           content: ANSIBLE_SYSTEM_PROMPT_COMPLETION,
@@ -391,10 +277,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       ];
 
-      const result = await this.makeOpenAIRequest(messages);
+      const result = await this.client.chatCompletion(messages);
 
-      const text =
-        result.choices?.[0]?.message?.content || "";
+      const text = result.choices?.[0]?.message?.content || "";
 
       this.logger.info(`[RHCustom Provider] Raw response:\n${text}`);
 
@@ -444,7 +329,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         `[RHCustom Provider] Using system prompt: ${isExplanation ? "EXPLANATION" : "CHAT"}`,
       );
 
-      const messages: OpenAICompatibleMessage[] = [
+      const messages: ChatMessage[] = [
         {
           role: "system",
           content: systemPrompt,
@@ -455,7 +340,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       ];
 
-      const result = await this.makeOpenAIRequest(messages);
+      const result = await this.client.chatCompletion(messages);
 
       const message = result.choices?.[0]?.message?.content || "";
 
@@ -501,7 +386,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         ansibleFileType: "playbook",
       });
 
-      const messages: OpenAICompatibleMessage[] = [
+      const messages: ChatMessage[] = [
         {
           role: "system",
           content: ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
@@ -512,7 +397,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       ];
 
-      const result = await this.makeOpenAIRequest(messages, {
+      const result = await this.client.chatCompletion(messages, {
         temperature: 0.3,
         max_tokens: 4000,
       });
@@ -522,6 +407,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Extract YAML from code blocks first, then clean
       let cleanedContent = this.extractYamlFromCodeBlock(content);
       const originalCleaned = cleanedContent;
+      
+      // Fix Windows path escape sequences before cleaning
+      cleanedContent = this.fixWindowsPathEscapes(cleanedContent);
+      
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
 
       console.log("[RHCustom Provider] Cleaned playbook content length:", cleanedContent.length);
@@ -586,7 +475,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         ansibleFileType: "tasks",
       });
 
-      const messages: OpenAICompatibleMessage[] = [
+      const messages: ChatMessage[] = [
         {
           role: "system",
           content: ANSIBLE_SYSTEM_PROMPT_ROLE,
@@ -597,7 +486,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       ];
 
-      const result = await this.makeOpenAIRequest(messages, {
+      const result = await this.client.chatCompletion(messages, {
         temperature: 0.3,
         max_tokens: 4000,
       });
@@ -608,6 +497,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Extract YAML from code blocks, stopping at the closing ```
       let cleanedContent = this.extractYamlFromCodeBlock(content);
       console.log("[RHCustom Provider] Extracted YAML (first 500 chars):", cleanedContent.substring(0, 500));
+      
+      // Fix Windows path escape sequences before cleaning
+      cleanedContent = this.fixWindowsPathEscapes(cleanedContent);
       
       // Further clean using the base method
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
