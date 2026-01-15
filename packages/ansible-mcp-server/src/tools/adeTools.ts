@@ -99,11 +99,18 @@ export async function checkADEInstalled(): Promise<boolean> {
 /**
  * Check if ADT (ansible-dev-tools) package is installed using pip.
  *
+ * @param workspaceRoot - Workspace root directory where the command should be executed.
  * @returns A promise that resolves to true if ansible-dev-tools is installed, false otherwise.
  */
-export async function checkADTInstalled(): Promise<boolean> {
+export async function checkADTInstalled(
+  workspaceRoot?: string,
+): Promise<boolean> {
   // Check if ansible-dev-tools package is installed
-  const result = await executeCommand("pip", ["list", "--format=json"]);
+  const result = await executeCommand(
+    "pip",
+    ["list", "--format=json"],
+    workspaceRoot,
+  );
   if (result.success) {
     try {
       const packages = JSON.parse(result.output);
@@ -128,7 +135,7 @@ export async function getEnvironmentInfo(
 ): Promise<ADEEnvironmentInfo> {
   const [adeInstalled, adtInstalled] = await Promise.all([
     checkADEInstalled(),
-    checkADTInstalled(),
+    checkADTInstalled(workspaceRoot),
   ]);
 
   // Check for virtual environments in the workspace
@@ -547,9 +554,9 @@ export async function setupDevelopmentEnvironment(
   results.push("");
 
   // Check if ADT is installed, if not, try to install it
-  if (!(await checkADTInstalled())) {
+  if (!(await checkADTInstalled(workspaceRoot))) {
     results.push("ADT (ansible-dev-tools) not found, attempting to install...");
-    const adtInstallResult = await checkAndInstallADT();
+    const adtInstallResult = await checkAndInstallADT(workspaceRoot);
     if (!adtInstallResult.success) {
       return {
         success: false,
@@ -728,10 +735,13 @@ export async function setupDevelopmentEnvironment(
  * Check if ADT (ansible-dev-tools) is installed and attempt to install it if missing.
  * Tries pip first, then falls back to pipx if pip installation fails.
  *
+ * @param workspaceRoot - Workspace root directory where the command should be executed.
  * @returns A promise that resolves with an ADECommandResult containing installation status and output. Returns success: true if already installed or successfully installed.
  */
-export async function checkAndInstallADT(): Promise<ADECommandResult> {
-  const adtInstalled = await checkADTInstalled();
+export async function checkAndInstallADT(
+  workspaceRoot?: string,
+): Promise<ADECommandResult> {
+  const adtInstalled = await checkADTInstalled(workspaceRoot);
 
   if (adtInstalled) {
     return {
@@ -741,10 +751,11 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   }
 
   // Try to install ADT
-  const installResult = await executeCommand("pip", [
-    "install",
-    "ansible-dev-tools",
-  ]);
+  const installResult = await executeCommand(
+    "pip",
+    ["install", "ansible-dev-tools"],
+    workspaceRoot,
+  );
 
   if (installResult.success) {
     return {
@@ -754,10 +765,11 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   }
 
   // Try with pipx as fallback
-  const pipxResult = await executeCommand("pipx", [
-    "install",
-    "ansible-dev-tools",
-  ]);
+  const pipxResult = await executeCommand(
+    "pipx",
+    ["install", "ansible-dev-tools"],
+    workspaceRoot,
+  );
 
   if (pipxResult.success) {
     return {

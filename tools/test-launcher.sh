@@ -77,7 +77,6 @@ function stop_server() {
 
 function refresh_settings() {
     local test_path=$1
-    local test_id=$2
     cp test/testFixtures/settings.json out/settings.json
     sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
@@ -90,14 +89,12 @@ function refresh_settings() {
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
     rm -rf out/test-resources/settings/ >/dev/null
-    cp -f out/settings.json "out/log/${test_id}-settings.json"
 }
 
 # shellcheck disable=SC2044
 find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
     basename="${test_file##*/}"
     TEST_ID="${TEST_PREFIX:-ui}-${basename%.*}"
-    TEST_JUNIT_FILE="./out/junit/ui/${TEST_ID}-test-results.xml"
     export TEST_ID
     {
         log notice "Testing ${test_file}"
@@ -108,7 +105,7 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
             stop_server
             start_server
         fi
-        refresh_settings "${test_file}" "${TEST_ID}"
+        refresh_settings "${test_file}"
         # Keep --open_resource here as it is essential as otherwise it will default to use home directory
         # and likely will fail to use our python tools from our own testing virtualenv.
         timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests \
@@ -119,13 +116,8 @@ find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d ''
             -c "${CODE_VERSION}" \
             --open_resource . \
             "${EXTEST_ARGS:-}" \
-            "${test_file}" || {
-                if [[ -f $TEST_JUNIT_FILE ]] && ! grep -o 'failures="[1-9][0-9]*"' "$TEST_JUNIT_FILE"; then
-                    log warning "Apparently extest got stuck closing after running test ${TEST_ID} but reported success."
-                else
-                    echo "${TEST_ID}" >> out/log/.failed;
-                fi
-            }
+            "${test_file}" || echo "${TEST_ID}" >> out/log/.failed
+
         if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
             mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${TEST_ID}-cobertura-coverage.xml"
         fi

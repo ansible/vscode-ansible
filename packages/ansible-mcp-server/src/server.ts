@@ -685,7 +685,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         ],
       },
     },
-    createADTCheckEnvHandler(),
+    createADTCheckEnvHandler(workspaceRoot),
     [],
   );
 
