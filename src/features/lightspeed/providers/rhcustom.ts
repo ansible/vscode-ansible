@@ -26,6 +26,7 @@ import {
 import {
   OpenAICompatibleClient,
   ChatMessage,
+  OpenAIClientError,
 } from "../clients/openaiCompatibleClient";
 
 
@@ -185,20 +186,36 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   private handleRHCustomError(error: any, operation: string): Error {
-    // Use the reusable HTTP error handler from base class
-    return this.handleHttpError(error, operation, "Red Hat Custom");
+    // Handle OpenAIClientError from the client
+    if (error instanceof OpenAIClientError) {
+      const httpError = {
+        status: error.status,
+        message: error.message,
+      };
+      return this.handleHttpError(httpError, operation, "Red Hat Custom");
+    }
+    
+    // Handle other errors with status property
+    if (error && typeof error === "object" && "status" in error) {
+      return this.handleHttpError(error, operation, "Red Hat Custom");
+    }
+    
+    // Fallback for other errors
+    return this.handleHttpError(
+      { message: error instanceof Error ? error.message : "Unknown error" },
+      operation,
+      "Red Hat Custom",
+    );
   }
 
   async validateConfig(): Promise<boolean> {
     try {
-      // Use minimum 30 seconds timeout for validation (LLM calls can take time)
       const validationTimeout = Math.max(this.timeout, 30000);
       
       this.logger.info(
         `[RHCustom Provider] Validating config - model: ${this.modelName}, timeout: ${validationTimeout}ms`,
       );
       
-      // Try a minimal chat request to validate with extended timeout
       await this.client.chatCompletion(
         [
           {
@@ -212,7 +229,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       );
       
       this.logger.info("[RHCustom Provider] Config validation successful");
-      this.lastValidationError = undefined; // Clear any previous error
+      this.lastValidationError = undefined;
       return true;
     } catch (error) {
       const errorMsg = `Config validation failed: ${error instanceof Error ? error.message : "Unknown error"}`;
