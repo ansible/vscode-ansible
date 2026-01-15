@@ -160,6 +160,16 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "OS_VERSION=$OS_VERSION" >> "$GITHUB_OUTPUT"
 fi
 
+if command -v pipx >/dev/null 2>&1; then
+    pipx list 2> /dev/null
+    for pkg in ansible-core ansible-creator ansible-dev-tools ansible-lint ansible-navigator molecule; do
+        if pipx list 2> /dev/null | grep -q "$pkg"; then
+            pipx uninstall -q "$pkg"
+        fi
+    done
+    pipx list 2> /dev/null
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     DEBS=(curl file git gcc libonig-dev)

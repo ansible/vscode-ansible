@@ -47,6 +47,8 @@ tasks:
       # clean up uv cache, important for CI especially for caching size reduction
       - uv cache prune --ci
       - find `python3 -m pip cache dir`/wheels -type f -atime +30 -delete || true
+      # we also need to be sure that at the end of build and test we do not produce undesired side effects
+      - ./tools/precheck.sh
       - tools/dirty.sh
 
   build:
