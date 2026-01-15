@@ -1,9 +1,17 @@
 /** OpenAI-compatible API client for Red Hat AI Platform and other providers **/
 
 import { getFetch } from "../api";
-import { mapError } from "../handleApiError";
-import { HTTPError, IError } from "../utils/errors";
 import { getLightspeedLogger } from "../../../utils/logger";
+
+export class OpenAIClientError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "OpenAIClientError";
+    this.status = status;
+  }
+}
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -15,6 +23,7 @@ export interface ChatCompletionOptions {
   max_tokens?: number;
   top_p?: number;
   stop?: string | string[];
+  timeout?: number; // Per-request timeout override (ms)
 }
 
 export interface ChatCompletionResponse {
@@ -68,7 +77,8 @@ export class OpenAICompatibleClient {
     const fetchFn = getFetch();
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    const requestTimeout = options?.timeout ?? this.timeout;
+    const timeoutId = setTimeout(() => controller.abort(), requestTimeout);
 
     try {
       const response = await fetchFn(endpoint, {
@@ -81,7 +91,14 @@ export class OpenAICompatibleClient {
           model: this.model,
           messages,
           stream: false,
-          ...options,
+          ...(options?.temperature !== undefined && {
+            temperature: options.temperature,
+          }),
+          ...(options?.max_tokens !== undefined && {
+            max_tokens: options.max_tokens,
+          }),
+          ...(options?.top_p !== undefined && { top_p: options.top_p }),
+          ...(options?.stop !== undefined && { stop: options.stop }),
         }),
         signal: controller.signal,
       });
@@ -91,23 +108,26 @@ export class OpenAICompatibleClient {
       const body = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, body);
+        const errorMessage =
+          body?.error?.message ||
+          body?.message ||
+          `HTTP ${response.status} error`;
+        throw new OpenAIClientError(errorMessage, response.status);
       }
 
       return body;
     } catch (error) {
       clearTimeout(timeoutId);
 
-      if (error instanceof HTTPError) {
-        const mapped: IError = mapError(error);
-        throw new Error(mapped.message || mapped.code);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new OpenAIClientError("Request timed out", 408);
+      }
+
+      if (error instanceof OpenAIClientError) {
+        throw error;
       }
 
       if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          const mapped = mapError(error);
-          throw new Error(mapped.message || "Request timed out");
-        }
         throw error;
       }
 

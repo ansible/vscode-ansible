@@ -175,6 +175,17 @@ export abstract class BaseLLMProvider<
           `Bad request - invalid or malformed request parameters. Please verify your request. Operation: ${operation}. Details: ${error?.message || "Unknown error"}`,
         );
 
+      case 401: {
+        let sanitizedMessage = error?.message || "Authentication failed";
+        sanitizedMessage = sanitizedMessage.replace(
+          /,?\s*Key Hash\s*\(Token\)\s*=\s*[a-f0-9]+/gi,
+          "",
+        );
+        return new Error(
+          `Authentication failed - ${sanitizedMessage}. Operation: ${operation} and status code: ${statusCode}`,
+        );
+      }
+
       case 403:
         return new Error(
           `Forbidden - ${providerName} API key does not have permission to access this resource. Please check your API key permissions. Operation: ${operation} and status code: ${statusCode}`,
