@@ -336,7 +336,7 @@ jobs:
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task e2e
+      - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
@@ -346,7 +346,7 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui
+      - name: task ui (extest)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
         run: |
