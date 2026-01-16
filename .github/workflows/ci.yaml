@@ -263,7 +263,13 @@ jobs:
 
       - name: Ensure .env file is automatically loaded (mise)
         run: |
+          # Fallback: if HOME is unbound, set it to the standard WSL user path
+          export HOME="${HOME:-/home/devtools}"
+
           set -exuo pipefail
+
+          export MISE_CHECK__UPDATES=false
+
           mise reshim
           mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
