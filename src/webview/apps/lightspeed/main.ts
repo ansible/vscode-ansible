@@ -1,14 +1,19 @@
-import {
-  allComponents,
-  provideVSCodeDesignSystem,
-  Button,
-  Dropdown,
-  TextArea,
-  TextField,
-  Checkbox,
-} from "@vscode/webview-ui-toolkit";
+// Type definitions for @vscode-elements web components
+interface VSCodeButton extends HTMLElement {
+  disabled: boolean;
+}
 
-provideVSCodeDesignSystem().register(allComponents);
+interface VSCodeTextField extends HTMLElement {
+  value: string;
+}
+
+interface VSCodeTextArea extends HTMLElement {
+  value: string;
+}
+
+interface VSCodeSingleSelect extends HTMLElement {
+  value: string;
+}
 
 // Get access to the VS Code API from within the webview context
 const vscode = acquireVsCodeApi();
@@ -25,7 +30,7 @@ function main() {
   ) as HTMLFormElement;
   const issueTypeDropdown = document.getElementById(
     "issue-type-dropdown",
-  ) as Dropdown;
+  ) as VSCodeSingleSelect | null;
 
   const bugReportSection = document.createElement("section");
   bugReportSection.classList.add("component-row");
@@ -35,6 +40,10 @@ function main() {
 
   const suggestionFeedbackSection = document.createElement("section");
   suggestionFeedbackSection.classList.add("component-row");
+
+  if (!issueTypeDropdown) {
+    return;
+  }
 
   issueTypeDropdown.addEventListener("change", () => {
     const selectedValue = issueTypeDropdown.value;
@@ -82,7 +91,7 @@ function main() {
       feedbackForm.appendChild(featureRequestSection);
     } else if (selectedValue === "suggestion-feedback") {
       suggestionFeedbackSection.innerHTML = `
-        <section class="component-section" class="issue-dropdown">
+        <section class="component-section issue-dropdown">
           <p class="required">Prompt</p>
           <vscode-text-area id="suggestion-prompt" cols="29" class="m-b-10" placeholder="The contents of the playbook until the name of the task used for a recommendation." resize="both" />
         </section>
@@ -123,15 +132,23 @@ function handleSentimentFeedback() {
 
   const sentimentCommentTextArea = document.getElementById(
     "sentiment-comment",
-  ) as TextArea;
+  ) as VSCodeTextArea | null;
 
   const sentimentSendButton = document.getElementById(
     "sentiment-submit",
-  ) as Button;
+  ) as VSCodeButton | null;
+
+  if (!sentimentCommentTextArea || !sentimentSendButton) {
+    return;
+  }
 
   const sentimentDataSharingCheckbox = document.getElementById(
     "sentiment-data-sharing-checkbox",
-  ) as Checkbox;
+  ) as HTMLInputElement | null;
+
+  if (!sentimentDataSharingCheckbox) {
+    return;
+  }
 
   sentimentDataSharingCheckbox.addEventListener("change", () => {
     sentimentSendButton.disabled = !sentimentDataSharingCheckbox.checked;
@@ -175,23 +192,36 @@ function handleSentimentFeedback() {
 function handleIssueFeedback() {
   const issueSubmitButton = document.getElementById(
     "issue-submit-button",
-  ) as Button;
+  ) as VSCodeButton | null;
 
   const issueTypeDropdown = document.getElementById(
     "issue-type-dropdown",
-  ) as Dropdown;
+  ) as VSCodeSingleSelect | null;
 
   const issueTitleTextArea = document.getElementById(
     "issue-title",
-  ) as TextField;
+  ) as VSCodeTextField | null;
 
   const issueDescriptionTextArea = document.getElementById(
     "issue-description",
-  ) as TextArea;
+  ) as VSCodeTextArea | null;
+
+  if (
+    !issueSubmitButton ||
+    !issueTypeDropdown ||
+    !issueTitleTextArea ||
+    !issueDescriptionTextArea
+  ) {
+    return;
+  }
 
   const feedbackDataSharingCheckbox = document.getElementById(
     "feedback-data-sharing-checkbox",
-  ) as Checkbox;
+  ) as HTMLInputElement | null;
+
+  if (!feedbackDataSharingCheckbox) {
+    return;
+  }
 
   feedbackDataSharingCheckbox.addEventListener("change", () => {
     issueSubmitButton.disabled = !feedbackDataSharingCheckbox.checked;
@@ -229,19 +259,28 @@ function handleIssueFeedback() {
     } else if (issueTypeDropdown.value === "suggestion-feedback") {
       const suggestionPromptTextArea = document.getElementById(
         "suggestion-prompt",
-      ) as TextArea;
+      ) as VSCodeTextArea | null;
 
       const suggestionProvidedTextArea = document.getElementById(
         "suggestion-provided",
-      ) as TextArea;
+      ) as VSCodeTextArea | null;
 
       const suggestionExpectedTextArea = document.getElementById(
         "suggestion-expected",
-      ) as TextArea;
+      ) as VSCodeTextArea | null;
 
       const suggestionAdditionalCommentTextArea = document.getElementById(
         "suggestion-additional-comment",
-      ) as TextArea;
+      ) as VSCodeTextArea | null;
+
+      if (
+        !suggestionPromptTextArea ||
+        !suggestionProvidedTextArea ||
+        !suggestionExpectedTextArea ||
+        !suggestionAdditionalCommentTextArea
+      ) {
+        return;
+      }
 
       if (suggestionPromptTextArea.value === "") {
         vscode.postMessage({

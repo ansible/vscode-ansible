@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
-import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
 import { PlaybookGenerationResponseParams, RoleFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
@@ -13,8 +12,6 @@ import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/lightspeed/PromptExampleBox.vue';
 import PromptField from './components/lightspeed/PromptField.vue';
 import StatusBoxPrompt from './components/lightspeed/StatusBoxPrompt.vue';
-
-provideVSCodeDesignSystem().register(allComponents);
 
 const page = ref(1);
 const prompt = ref('');

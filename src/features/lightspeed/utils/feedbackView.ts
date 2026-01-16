@@ -25,6 +25,13 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
       <link rel="stylesheet" href="${styleUri}">
       <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
       <title>Ansible Lightspeed WCA Provider Feedback</title>
+      <script type="module">
+        import "@vscode-elements/elements/dist/vscode-button/index.js";
+        import "@vscode-elements/elements/dist/vscode-textarea/index.js";
+        import "@vscode-elements/elements/dist/vscode-divider/index.js";
+        import "@vscode-elements/elements/dist/vscode-single-select/index.js";
+        import "@vscode-elements/elements/dist/vscode-option/index.js";
+      </script>
     </head>
     <body>
       <form id="feedback-form">
@@ -60,12 +67,12 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
         <section class="component-container">
             <h3>Tell us more</h3>
               <section class="component-section">
-                <vscode-dropdown id="issue-type-dropdown" class="issue-dropdown">
+                <vscode-single-select id="issue-type-dropdown" class="issue-dropdown">
                   <vscode-option selected value="select-issue-type">Select Issue type</vscode-option>
                   <vscode-option value="bug-report">Bug report</vscode-option>
                   <vscode-option value="feature-request">Feature request</vscode-option>
                   <vscode-option value="suggestion-feedback">Suggestion feedback</vscode-option>
-                </vscode-dropdown>
+                </vscode-single-select>
               </section>
                 <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
           </form>
