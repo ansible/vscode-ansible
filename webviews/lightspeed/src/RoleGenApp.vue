@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
-import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
 import { FeedbackRequestParams, RoleGenerationResponseParams } from "../../../src/interfaces/lightspeed";
 import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
@@ -15,8 +14,6 @@ import CollectionSelector from "./components/CollectionSelector.vue";
 import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/lightspeed/PromptExampleBox.vue';
 import PromptField from './components/lightspeed/PromptField.vue';
-
-provideVSCodeDesignSystem().register(allComponents);
 
 const page = ref(1);
 const prompt = ref('');
