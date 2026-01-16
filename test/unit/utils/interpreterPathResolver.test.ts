@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as path from "path";
+import * as os from "os";
 
-// Mock vscode module
 vi.mock("vscode", () => ({
   workspace: {
     getWorkspaceFolder: vi.fn(),
@@ -12,11 +12,20 @@ vi.mock("vscode", () => ({
   },
 }));
 
+vi.mock("os", async () => {
+  const actual = await vi.importActual("os");
+  return {
+    ...actual,
+    homedir: vi.fn(() => "/home/testuser"),
+  };
+});
+
 import { workspace, Uri } from "vscode";
 import {
   resolveInterpreterPath,
   getWorkspaceFolderPath,
   isUserConfiguredPath,
+  expandTilde,
 } from "../../../src/features/utils/interpreterPathResolver";
 
 describe("interpreterPathResolver", () => {
@@ -24,7 +33,6 @@ describe("interpreterPathResolver", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    // Set up default workspace folders
     (
       workspace as unknown as {
         workspaceFolders: { uri: { fsPath: string } }[];
@@ -92,13 +100,48 @@ describe("interpreterPathResolver", () => {
     });
 
     it("should return original path when ${workspaceFolder} cannot be resolved", () => {
-      // Clear workspace folders
       (
         workspace as unknown as { workspaceFolders: undefined }
       ).workspaceFolders = undefined;
 
       const pathWithVar = "${workspaceFolder}/venv/bin/python";
       expect(resolveInterpreterPath(pathWithVar)).toBe(pathWithVar);
+    });
+
+    it("should expand tilde (~) to home directory", () => {
+      const tildePath = "~/venv/ansible/bin/python";
+      const result = resolveInterpreterPath(tildePath);
+      expect(result).toBe("/home/testuser/venv/ansible/bin/python");
+    });
+
+    it("should expand standalone tilde (~)", () => {
+      const tildePath = "~";
+      const result = resolveInterpreterPath(tildePath);
+      expect(result).toBe("/home/testuser");
+    });
+  });
+
+  describe("expandTilde", () => {
+    it("should expand ~/path to home directory path", () => {
+      expect(expandTilde("~/venv/bin/python")).toBe(
+        "/home/testuser/venv/bin/python",
+      );
+    });
+
+    it("should expand standalone ~ to home directory", () => {
+      expect(expandTilde("~")).toBe("/home/testuser");
+    });
+
+    it("should return absolute paths unchanged", () => {
+      expect(expandTilde("/usr/bin/python")).toBe("/usr/bin/python");
+    });
+
+    it("should return relative paths unchanged", () => {
+      expect(expandTilde("./venv/bin/python")).toBe("./venv/bin/python");
+    });
+
+    it("should return empty string for empty input", () => {
+      expect(expandTilde("")).toBe("");
     });
   });
 
@@ -147,9 +190,35 @@ describe("interpreterPathResolver", () => {
       expect(isUserConfiguredPath("../venv/bin/python")).toBe(true);
     });
 
+    it("should return true for tilde paths (~)", () => {
+      expect(isUserConfiguredPath("~/venv/ansible/bin/python")).toBe(true);
+      expect(isUserConfiguredPath("~")).toBe(true);
+      expect(isUserConfiguredPath("~/.pyenv/versions/3.11/bin/python")).toBe(
+        true,
+      );
+    });
+
+    it("should return true for all portable path formats", () => {
+      expect(isUserConfiguredPath("${workspaceFolder}/venv/bin/python")).toBe(
+        true,
+      );
+      expect(
+        isUserConfiguredPath("${workspaceFolder}/.venv/bin/python3"),
+      ).toBe(true);
+      expect(isUserConfiguredPath("~/venv/ansible/bin/python")).toBe(true);
+      expect(isUserConfiguredPath("~/.local/venv/bin/python")).toBe(true);
+      expect(isUserConfiguredPath("./venv/bin/python")).toBe(true);
+      expect(isUserConfiguredPath("../shared-venv/bin/python")).toBe(true);
+      expect(isUserConfiguredPath("./.venv/bin/python3")).toBe(true);
+    });
+
     it("should return false for absolute paths", () => {
       expect(isUserConfiguredPath("/usr/bin/python3")).toBe(false);
       expect(isUserConfiguredPath("/home/user/.venv/bin/python")).toBe(false);
+      expect(isUserConfiguredPath("/usr/local/bin/python3.11")).toBe(false);
+      expect(
+        isUserConfiguredPath("/Users/john/.pyenv/versions/3.11.0/bin/python"),
+      ).toBe(false);
     });
 
     it("should return false for simple executable names", () => {
