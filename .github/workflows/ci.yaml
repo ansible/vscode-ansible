@@ -354,6 +354,12 @@ jobs:
           task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
           task ui ${{ matrix.env.TASKFILE_ARGS }} --status
 
+      - name: task ui (selenium)
+        run: task ui-selenium
+        env:
+          LIGHTSPEED_USER: lightspeed-test-user
+          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
+
       - name: task finish
         run: task finish
 

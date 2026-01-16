@@ -259,6 +259,18 @@ tasks:
       TEST_PREFIX: "ui-oldest"
     deps:
       - ui
+  ui-selenium:
+    desc: Run UI tests (Selenium)
+    deps:
+      - package
+    cmds:
+      - podman pull quay.io/tshinhar/selenium-vscode-multi:latest
+      - podman run --replace --detach --rm --shm-size=10g --name selenium-vscode -p 4444:4444 -p 5999:5999 quay.io/tshinhar/selenium-vscode-multi:latest
+      - podman cp ansible-*.vsix selenium-vscode:ansible-latest.vsix
+      - curl --retry 10 --retry-all-errors http://localhost:4444
+      - uv pip install -r tests/requirements.txt
+      - pytest -v -rs -m 'vscode' tests/ui/
+      - podman stop selenium-vscode
   unit:
     desc: Run unit tests with coverage report
     deps:

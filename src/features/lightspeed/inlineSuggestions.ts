@@ -39,7 +39,7 @@ let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 let insertTexts: string[] = [];
 let _documentChanged = false;
-export const suggestionDisplayed = new SuggestionDisplayed();
+const suggestionDisplayed = new SuggestionDisplayed();
 
 interface DocumentInfo {
   ansibleFileType: IAnsibleFileType;
@@ -341,7 +341,7 @@ async function requestSuggestion(
   }
 }
 
-export function setInProgressSuggestionId(suggestionId?: string) {
+function setInProgressSuggestionId(suggestionId?: string) {
   inlineSuggestionData["suggestionId"] = suggestionId;
 }
 
@@ -659,7 +659,7 @@ async function getInlineSuggestionState(
   return InlineSuggestionState.ShouldNotTriggerSuggestion;
 }
 
-export async function getInlineSuggestionItems(
+async function getInlineSuggestionItems(
   inlinePosition: InlinePosition,
 ): Promise<vscode.InlineCompletionItem[]> {
   const state = await getInlineSuggestionState(inlinePosition);
