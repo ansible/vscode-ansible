@@ -261,9 +261,18 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Ensure .env file is automatically loaded (mise)
+      # Workaround for: https://github.com/actions/runner/issues/1864
+      - name: Ensure HOME is defined
         run: |
           set -exuo pipefail
+          if [ -z "${HOME:-}" ]; then
+            HOME=$(getent passwd "$(id -u)" | cut -d: -f6)
+            export HOME
+          fi
+          echo "HOME=$HOME" >> $GITHUB_ENV
+
+      - name: Ensure .env file is automatically loaded (mise)
+        run: |
           mise reshim
           mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
