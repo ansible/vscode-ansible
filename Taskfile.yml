@@ -279,8 +279,10 @@ tasks:
       - test/**/*
     generates:
       - out/coverage/unit/lcov.info
+      - out/coverage/vue/lcov.info
     cmds:
       - vitest run
+      - vitest run --config vitest.config.vue.ts
     interactive: true
   package:
     desc: Package extension
