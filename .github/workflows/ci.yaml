@@ -263,8 +263,13 @@ jobs:
 
       - name: Ensure .env file is automatically loaded (mise)
         run: |
-          # 1. Detect the home directory
-          CURRENT_HOME=$(getent passwd $(whoami) | cut -d: -f6)
+          # 1. Detect the home directory cross-platform
+          if command -v getent > /dev/null; then
+            CURRENT_HOME=$(getent passwd $(whoami) | cut -d: -f6)
+          else
+            # macOS fallback
+            CURRENT_HOME="${HOME:-$(eval echo ~$(whoami))}"
+          fi
 
           # 2. Export it for the current shell session
           export HOME="$CURRENT_HOME"
