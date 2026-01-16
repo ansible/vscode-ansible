@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from "chai";
+import { expect } from "vitest";
 import sinon from "sinon";
 import { ExecutionEnvironment } from "../../src/services/executionEnvironment";
 
@@ -36,7 +36,7 @@ const mockSettings = {
   },
 };
 
-describe("ExecutionEnvironment", () => {
+describe("@ee", () => {
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe("ExecutionEnvironment", () => {
         mockConnection as any,
         mockContext as any,
       );
-      expect(ee.isServiceInitialized).to.be.false;
+      expect(ee.isServiceInitialized).toBe(false);
     });
   });
 
@@ -74,7 +74,7 @@ describe("ExecutionEnvironment", () => {
         mockContext as any,
       );
       await ee.initialize();
-      expect(ee.isServiceInitialized).to.be.true;
+      expect(ee.isServiceInitialized).toBe(true);
     });
 
     it("should set isServiceInitialized false if setContainerEngine fails", async () => {
@@ -85,7 +85,7 @@ describe("ExecutionEnvironment", () => {
       );
       sandbox.stub(ee as any, "setContainerEngine").returns(false);
       await ee.initialize();
-      expect(ee.isServiceInitialized).to.be.false;
+      expect(ee.isServiceInitialized).toBe(false);
     });
 
     it("should set isServiceInitialized false if pullContainerImage fails", async () => {
@@ -97,7 +97,7 @@ describe("ExecutionEnvironment", () => {
       sandbox.stub(ee as any, "setContainerEngine").returns(true);
       sandbox.stub(ee as any, "pullContainerImage").resolves(false);
       await ee.initialize();
-      expect(ee.isServiceInitialized).to.be.false;
+      expect(ee.isServiceInitialized).toBe(false);
     });
 
     it("should set isServiceInitialized true if all steps succeed", async () => {
@@ -109,7 +109,7 @@ describe("ExecutionEnvironment", () => {
       sandbox.stub(ee as any, "setContainerEngine").returns(true);
       sandbox.stub(ee as any, "pullContainerImage").resolves(true);
       await ee.initialize();
-      expect(ee.isServiceInitialized).to.be.true;
+      expect(ee.isServiceInitialized).toBe(true);
     });
 
     it("should handle errors and set isServiceInitialized false", async () => {
@@ -119,8 +119,8 @@ describe("ExecutionEnvironment", () => {
         mockContext as any,
       );
       await ee.initialize();
-      expect(ee.isServiceInitialized).to.be.false;
-      expect(mockConnection.window.showErrorMessage.called).to.be.true;
+      expect(ee.isServiceInitialized).toBe(false);
+      expect(mockConnection.window.showErrorMessage.called).toBe(true);
     });
   });
 
@@ -131,7 +131,7 @@ describe("ExecutionEnvironment", () => {
         mockContext as any,
       );
       const result = ee.wrapContainerArgs("echo hello");
-      expect(result).to.be.undefined;
+      expect(result).toBeUndefined();
     });
 
     it("should generate a container command string", () => {
@@ -145,9 +145,9 @@ describe("ExecutionEnvironment", () => {
       (ee as any).settingsVolumeMounts = [];
       (ee as any).settingsContainerOptions = "";
       const result = ee.wrapContainerArgs("echo hello", new Set(["/tmp"]));
-      expect(result).to.include("docker run --rm");
-      expect(result).to.include("test-image");
-      expect(result).to.include("echo hello");
+      expect(result).toContain("docker run --rm");
+      expect(result).toContain("test-image");
+      expect(result).toContain("echo hello");
     });
   });
 
@@ -161,9 +161,9 @@ describe("ExecutionEnvironment", () => {
       (ee as any)._container_image = "test-image";
       (ee as any)._container_volume_mounts = [];
       const details = ee.getBasicContainerAndImageDetails;
-      expect(details.containerEngine).to.equal("docker");
-      expect(details.containerImage).to.equal("test-image");
-      expect(details.containerVolumeMounts).to.deep.equal([]);
+      expect(details.containerEngine).toBe("docker");
+      expect(details.containerImage).toBe("test-image");
+      expect(details.containerVolumeMounts).toEqual([]);
     });
   });
 });

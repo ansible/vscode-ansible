@@ -41,9 +41,10 @@ egg_base = "out"
 
 # We have no python tests in this project, but we keep this config to prevent
 # vscode python extension from showing errors while trying to collect tests.
-[tool.pytest.ini_options]
+[tool.pytest]
 norecursedirs = [
   "*.egg",
+  ".ansible",
   ".cache",
   ".eggs",
   ".git",
@@ -51,12 +52,13 @@ norecursedirs = [
   ".mypy_cache",
   ".projects",
   ".tox",
+  ".vscode-test",
   "build",
   "collections",
   "dist",
   "docs",
-  "out",
   "node_modules",
+  "out",
 ]
 
 [tool.ruff]

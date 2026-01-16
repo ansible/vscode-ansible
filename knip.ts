@@ -14,7 +14,6 @@ const config: KnipConfig = {
   ignoreDependencies: [
     "@ansible/ansible-mcp-server",
     "@tomjs/vite-plugin-vue",
-    "@types/mocha",
     "@types/vscode",
     "@types/vscode-webview", // provides acquireVsCodeApi
     "@typescript-eslint/eslint-plugin",
@@ -23,9 +22,8 @@ const config: KnipConfig = {
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
-    "mocha",
-    "mocha-junit-reporter",
     "mocha-multi-reporters",
+    "mocha-junit-reporter",
     "ovsx",
   ],
   mocha: {
