@@ -233,5 +233,3 @@ panel.webview.onDidReceiveMessage(
    - [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
 
    - [Microsoft's webview sample extension](https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/README.md)
-
-   - [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)

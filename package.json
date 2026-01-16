@@ -1040,7 +1040,6 @@
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vscode-elements/elements": "^2.0.0",
-    "@vscode/webview-ui-toolkit": "^1.4.0",
     "electron": "^39.2.6",
     "highlight.js": "^11.11.1",
     "ini": "^6.0.0",

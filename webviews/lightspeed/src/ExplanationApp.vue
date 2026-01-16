@@ -4,11 +4,8 @@ import * as marked from "marked";
 import { v4 as uuidv4 } from "uuid";
 import { vscodeApi } from "./utils";
 import { getObjectKeys } from "../../../src/features/lightspeed/utils/explanationUtils";
-import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 import { ExplanationRequestParams, ExplanationResponseParams, FeedbackRequestParams, GenerationListEntry, RoleExplanationRequestParams } from "../../../src/interfaces/lightspeed";
 import FeedbackBox from "./components/lightspeed/FeedbackBox.vue";
-
-provideVSCodeDesignSystem().register(allComponents);
 
 const loadingExplanation = ref(true);
 const noTasksInPlaybook = ref(false);
