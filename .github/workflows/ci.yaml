@@ -263,15 +263,17 @@ jobs:
 
       - name: Ensure .env file is automatically loaded (mise)
         run: |
-          # Dynamically set HOME if it's missing
-          if [ -z "${HOME:-}" ]; then
-            export HOME=$(getent passwd $(whoami) | cut -d: -f6)
-          fi
+          # 1. Detect the home directory
+          CURRENT_HOME=$(getent passwd $(whoami) | cut -d: -f6)
+
+          # 2. Export it for the current shell session
+          export HOME="$CURRENT_HOME"
+
+          # 3. PERSIST it for all subsequent steps (like task setup and uv.sh)
+          echo "HOME=$CURRENT_HOME" >> "$GITHUB_ENV"
+          echo "MISE_CHECK__UPDATES=false" >> "$GITHUB_ENV"
 
           set -exuo pipefail
-
-          export MISE_CHECK__UPDATES=false
-
           mise reshim
           mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
