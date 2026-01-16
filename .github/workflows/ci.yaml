@@ -55,7 +55,7 @@ jobs:
           show-progress: false
 
       - name: task setup
-        timeout-minutes: 1 # expected under 10s for container builds
+        timeout-minutes: 2 # expected under 10s for container builds
         run: |
           set -ex
           pwd
@@ -365,7 +365,7 @@ jobs:
             out/coverage
             out/junit
             out/log
-            out/test-resources/screenshots
+            out/test-resources/screenshots/**/*
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs

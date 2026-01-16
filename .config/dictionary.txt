@@ -54,6 +54,7 @@ docstrings
 equalto
 eslintcache
 extest
+extester
 fqcn
 genai
 haaaad
