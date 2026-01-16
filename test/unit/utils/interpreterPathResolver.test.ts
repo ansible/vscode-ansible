@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as path from "path";
-import * as os from "os";
 
 vi.mock("vscode", () => ({
   workspace: {
@@ -16,7 +15,7 @@ vi.mock("os", async () => {
   const actual = await vi.importActual("os");
   return {
     ...actual,
-    homedir: vi.fn(() => "/home/testuser"),
+    homedir: vi.fn(() => "/home/user"),
   };
 });
 
@@ -111,25 +110,25 @@ describe("interpreterPathResolver", () => {
     it("should expand tilde (~) to home directory", () => {
       const tildePath = "~/venv/ansible/bin/python";
       const result = resolveInterpreterPath(tildePath);
-      expect(result).toBe("/home/testuser/venv/ansible/bin/python");
+      expect(result).toBe("/home/user/venv/ansible/bin/python");
     });
 
     it("should expand standalone tilde (~)", () => {
       const tildePath = "~";
       const result = resolveInterpreterPath(tildePath);
-      expect(result).toBe("/home/testuser");
+      expect(result).toBe("/home/user");
     });
   });
 
   describe("expandTilde", () => {
     it("should expand ~/path to home directory path", () => {
       expect(expandTilde("~/venv/bin/python")).toBe(
-        "/home/testuser/venv/bin/python",
+        "/home/user/venv/bin/python",
       );
     });
 
     it("should expand standalone ~ to home directory", () => {
-      expect(expandTilde("~")).toBe("/home/testuser");
+      expect(expandTilde("~")).toBe("/home/user");
     });
 
     it("should return absolute paths unchanged", () => {
@@ -202,9 +201,9 @@ describe("interpreterPathResolver", () => {
       expect(isUserConfiguredPath("${workspaceFolder}/venv/bin/python")).toBe(
         true,
       );
-      expect(
-        isUserConfiguredPath("${workspaceFolder}/.venv/bin/python3"),
-      ).toBe(true);
+      expect(isUserConfiguredPath("${workspaceFolder}/.venv/bin/python3")).toBe(
+        true,
+      );
       expect(isUserConfiguredPath("~/venv/ansible/bin/python")).toBe(true);
       expect(isUserConfiguredPath("~/.local/venv/bin/python")).toBe(true);
       expect(isUserConfiguredPath("./venv/bin/python")).toBe(true);
