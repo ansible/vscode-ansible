@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import { VSBrowser, Workbench, EditorView } from "vscode-extension-tester";
 import {
@@ -7,10 +5,14 @@ import {
   sleep,
   workbenchExecuteCommand,
 } from "../uiTestHelper";
+import { enableLightspeed } from "../../utils";
 
 config.truncateThreshold = 0;
 
 describe("playbook generation features work", function () {
+  before(function () {
+    enableLightspeed(true);
+  });
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();

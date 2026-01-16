@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import {
   By,
@@ -14,7 +12,7 @@ import {
   workbenchExecuteCommand,
   waitForCondition,
 } from "../uiTestHelper";
-
+import { enableLightspeed } from "../../utils";
 config.truncateThreshold = 0;
 
 async function testThumbsButtonInteraction(buttonToClick: string) {
@@ -100,6 +98,10 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
 }
 
 describe(__filename, function () {
+  before(function () {
+    enableLightspeed(true);
+  });
+
   describe("playbook explanation features work", function () {
     beforeEach(function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {

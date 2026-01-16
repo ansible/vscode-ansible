@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import fs from "fs";
 
@@ -16,7 +14,7 @@ import {
   dismissNotifications,
   waitForCondition,
 } from "../uiTestHelper";
-
+import { enableLightspeed } from "../../utils";
 config.truncateThreshold = 0;
 
 async function cleanUpTmpfile(): Promise<void> {
@@ -36,6 +34,7 @@ async function cleanUpTmpfile(): Promise<void> {
 }
 
 before(function () {
+  enableLightspeed(true);
   if (process.platform === "darwin") {
     this.skip();
   }

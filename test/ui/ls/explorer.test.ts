@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import {
   ActionsControl,
   ActivityBar,
@@ -27,6 +25,7 @@ import {
 import { WizardGenerationActionType } from "../../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../../src/interfaces/lightspeed";
 import { expect } from "chai";
+import { enableLightspeed } from "../../utils";
 
 describe("Lightspeed Explorer features", function () {
   let workbench: Workbench;
@@ -44,6 +43,7 @@ describe("Lightspeed Explorer features", function () {
   });
 
   before(async function () {
+    enableLightspeed(true);
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }

@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import { By, StatusBar, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
@@ -8,6 +6,7 @@ import {
   openSettings,
   waitForCondition,
 } from "../uiTestHelper";
+import { enableLightspeed } from "../../utils";
 
 config.truncateThreshold = 0;
 
@@ -17,6 +16,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
   const filePath = getFixturePath(folder, file);
 
   before(async function () {
+    enableLightspeed(true);
     // open file in the editor
     await VSBrowser.instance.openResources(filePath);
   });

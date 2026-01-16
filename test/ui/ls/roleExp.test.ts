@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+import { enableLightspeed } from "../../utils";
 
 import { expect, config } from "chai";
 import { By, VSBrowser, EditorView, Workbench } from "vscode-extension-tester";
@@ -109,6 +109,7 @@ describe.skip("role explanation features work", function () {
   });
 
   before(async function () {
+    enableLightspeed(true);
     workbench = new Workbench();
     await workbenchExecuteCommand(
       "Ansible Lightspeed: Enable experimental features",

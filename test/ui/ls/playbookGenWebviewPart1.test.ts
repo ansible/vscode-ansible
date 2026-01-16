@@ -1,5 +1,3 @@
-// BEFORE: ansible.lightspeed.enabled: true
-
 import { expect, config } from "chai";
 import {
   ActivityBar,
@@ -14,6 +12,7 @@ import {
   workbenchExecuteCommand,
   waitForCondition,
 } from "../uiTestHelper";
+import { enableLightspeed } from "../../utils";
 
 config.truncateThreshold = 0;
 
@@ -31,6 +30,7 @@ describe("playbook generation features work", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
+    enableLightspeed(true);
   });
 
   it.skip("Ensures we can go from DevTools to Playbook generation https://github.com/ansible/vscode-ansible/issues/2235", async function () {
