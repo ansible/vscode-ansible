@@ -1,5 +1,27 @@
+import * as os from "os";
 import * as path from "path";
 import { Uri, workspace } from "vscode";
+
+/**
+ * Expands tilde (~) in a path to the user's home directory.
+ * Handles both ~ alone and ~/path formats.
+ */
+export function expandTilde(filePath: string): string {
+  if (!filePath) {
+    return filePath;
+  }
+
+  if (filePath === "~") {
+    return os.homedir();
+  }
+
+  if (filePath.startsWith("~/")) {
+    return path.join(os.homedir(), filePath.slice(2));
+  }
+
+  return filePath;
+}
+
 export function resolveInterpreterPath(
   interpreterPath: string | undefined,
   documentUri?: Uri,
@@ -9,6 +31,10 @@ export function resolveInterpreterPath(
   }
 
   let resolvedPath = interpreterPath;
+
+  if (resolvedPath.startsWith("~")) {
+    resolvedPath = expandTilde(resolvedPath);
+  }
 
   if (resolvedPath.includes("${workspaceFolder}")) {
     const workspaceFolder = getWorkspaceFolderPath(documentUri);
@@ -21,7 +47,7 @@ export function resolveInterpreterPath(
       console.warn(
         `Cannot resolve \${workspaceFolder} in interpreter path: ${interpreterPath}`,
       );
-      return interpreterPath; // Return original if we can't resolve
+      return interpreterPath;
     }
   }
 
@@ -59,6 +85,10 @@ export function isUserConfiguredPath(
   }
 
   if (interpreterPath.includes("${workspaceFolder}")) {
+    return true;
+  }
+
+  if (interpreterPath.startsWith("~")) {
     return true;
   }
 
