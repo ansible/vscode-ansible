@@ -10,24 +10,30 @@ export const MODEL_NAMES = {
   GEMINI_FLASH: "gemini-1.5-flash",
   GEMINI_25_FLASH: "gemini-2.5-flash",
   TEST_MODEL: "test-model",
+  RHCUSTOM_DEEPSEEK: "DeepSeek-R1-Distill-Qwen-14B-W4A16",
+  RHCUSTOM_GRANITE: "Granite-3.3-8B-Instruct",
 } as const;
 
 // Provider types (only WCA and Google are supported in factory)
 export const PROVIDER_TYPES = {
   GOOGLE: "google",
   WCA: "wca",
+  RHCUSTOM: "rhcustom",
 } as const;
 
 // API endpoints
-const API_ENDPOINTS = {
+export const API_ENDPOINTS = {
   GOOGLE: "https://generativelanguage.googleapis.com/v1beta",
   WCA_DEFAULT: "https://c.ai.ansible.redhat.com",
+  RHCUSTOM: "https://litellm-litemaas.apps.prod.rhoai.rh-aiservices-bu.com",
+  RHCUSTOM_LOCAL: "http://localhost:8000",
 } as const;
 
 // Test API keys
 export const TEST_API_KEYS = {
   GOOGLE: "AIzaSyTest-google-key-12345",
   TEST_KEY: "test-key",
+  RHCUSTOM: "rh-test",
 } as const;
 
 // Test provider information
@@ -104,10 +110,21 @@ export const TEST_CONFIGS = {
   BASE_TEST: {
     apiKey: TEST_API_KEYS.TEST_KEY,
   },
+  RHCUSTOM_MINIMAL: {
+    apiKey: TEST_API_KEYS.RHCUSTOM,
+    modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+    baseURL: API_ENDPOINTS.RHCUSTOM,
+  },
+  RHCUSTOM_FULL: {
+    apiKey: TEST_API_KEYS.RHCUSTOM,
+    modelName: MODEL_NAMES.RHCUSTOM_GRANITE,
+    baseURL: API_ENDPOINTS.RHCUSTOM,
+    timeout: DEFAULT_TIMEOUTS.CUSTOM,
+  },
 } as const;
 
 // Base LightSpeedServiceSettings with all required common properties
-const BASE_LIGHTSPEED_SETTINGS: Omit<
+export const BASE_LIGHTSPEED_SETTINGS: Omit<
   LightSpeedServiceSettings,
   "provider" | "apiKey" | "apiEndpoint"
 > = {
@@ -151,6 +168,21 @@ export const TEST_LIGHTSPEED_SETTINGS = {
     apiKey: "",
     apiEndpoint: "",
   } as LightSpeedServiceSettings,
+  RHCUSTOM_MINIMAL: {
+    ...BASE_LIGHTSPEED_SETTINGS,
+    provider: PROVIDER_TYPES.RHCUSTOM,
+    apiKey: TEST_API_KEYS.RHCUSTOM,
+    modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+    apiEndpoint: API_ENDPOINTS.RHCUSTOM,
+  } as LightSpeedServiceSettings,
+  RHCUSTOM_FULL: {
+    ...BASE_LIGHTSPEED_SETTINGS,
+    provider: PROVIDER_TYPES.RHCUSTOM,
+    apiKey: TEST_API_KEYS.RHCUSTOM,
+    modelName: MODEL_NAMES.RHCUSTOM_GRANITE,
+    apiEndpoint: API_ENDPOINTS.RHCUSTOM,
+    timeout: DEFAULT_TIMEOUTS.CUSTOM,
+  } as LightSpeedServiceSettings,
 };
 
 // Google provider specific constants
@@ -158,6 +190,13 @@ export const GOOGLE_PROVIDER = {
   NAME: "google",
   DISPLAY_NAME: "Google Gemini",
   PROVIDER_NAME: "Google Gemini",
+} as const;
+
+// RHCustom provider specific constants
+export const RHCUSTOM_PROVIDER = {
+  NAME: "rhcustom",
+  DISPLAY_NAME: "Red Hat Custom",
+  PROVIDER_NAME: "Red Hat Custom",
 } as const;
 
 // Ansible test content
@@ -175,4 +214,6 @@ export const ANSIBLE_CONTENT = {
     "Here's the playbook:\n- name: Test task\n  ansible.builtin.debug:\n    msg: 'test'",
   EMPTY: "",
   NULL_YAML: "null",
+  YAML_WITH_CODE_BLOCK_AND_TEXT:
+    "```yaml\n- name: Install nginx\n  apt:\n    name: nginx\n```\n\nThis playbook installs nginx.",
 } as const;
