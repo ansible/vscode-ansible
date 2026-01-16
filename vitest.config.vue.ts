@@ -27,6 +27,7 @@ export default defineConfig({
       include: [
         "webviews/lightspeed/src/ExplorerApp.vue",
         "webviews/lightspeed/src/ExplanationApp.vue",
+        "webviews/lightspeed/src/FeedbackApp.vue",
         "webviews/lightspeed/src/PlaybookGenApp.vue",
         "webviews/lightspeed/src/RoleGenApp.vue",
         "webviews/lightspeed/src/components/*.vue",

@@ -480,7 +480,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
-    context.extensionUri,
+    context,
   );
 
   // Register the Lightspeed provider for a Webview View
@@ -495,7 +495,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const lightspeedFeedbackCommand = vscode.commands.registerCommand(
     LightSpeedCommands.LIGHTSPEED_FEEDBACK,
     () => {
-      LightspeedFeedbackWebviewProvider.render(context.extensionUri);
+      LightspeedFeedbackWebviewProvider.render(context);
     },
   );
 
