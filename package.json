@@ -1183,7 +1183,11 @@
   "version": "0.0.0",
   "vsce": {
     "dependencies": false,
-    "yarn": false
+    "followSymlinks": true,
+    "gitTagVersion": false,
+    "readmePath": "docs/README.md",
+    "updatePackageJson": false,
+    "yarn": true
   },
   "workspaces": [
     "packages/*"
