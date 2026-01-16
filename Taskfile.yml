@@ -105,6 +105,7 @@ tasks:
     interactive: true
   "deps:node":
     desc: Update node dependencies
+    interactive: true # needed for ncu prompts
     cmds:
       - yarn ncu -u --workspaces -i
       - yarn knip --exclude=exports
