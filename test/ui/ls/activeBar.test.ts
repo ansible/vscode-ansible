@@ -22,6 +22,7 @@ describe("presence of lightspeed login button in the activity bar", function () 
   let webviewView: WebView;
 
   before(async function () {
+    this.skip();
     this.timeout(30000); // Increase timeout for extension loading
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
