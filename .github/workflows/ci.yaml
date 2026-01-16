@@ -263,8 +263,10 @@ jobs:
 
       - name: Ensure .env file is automatically loaded (mise)
         run: |
-          # Fallback: if HOME is unbound, set it to the standard WSL user path
-          export HOME="${HOME:-/home/devtools}"
+          # Dynamically set HOME if it's missing
+          if [ -z "${HOME:-}" ]; then
+            export HOME=$(getent passwd $(whoami) | cut -d: -f6)
+          fi
 
           set -exuo pipefail
 
