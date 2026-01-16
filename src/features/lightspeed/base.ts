@@ -99,17 +99,15 @@ export class LightSpeedManager {
       settingsManager,
     );
 
+    // Register the Explorer webview view provider for the sidebar
     this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
-      context.extensionUri,
-      this.lightspeedAuthenticatedUser,
-      this.settingsManager,
+      this.context,
     );
-    const lightspeedExplorerDisposable =
-      vscode.window.registerWebviewViewProvider(
-        LightspeedExplorerWebviewViewProvider.viewType,
-        this.lightspeedExplorerProvider,
-      );
-    context.subscriptions.push(lightspeedExplorerDisposable);
+    const explorerDisposable = vscode.window.registerWebviewViewProvider(
+      LightspeedExplorerWebviewViewProvider.viewType,
+      this.lightspeedExplorerProvider,
+    );
+    context.subscriptions.push(explorerDisposable);
 
     // create workspace context for ansible roles
     this.setContext();
