@@ -15,7 +15,6 @@
 
 1. [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
 2. [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
-3. [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)
 
 ## Other useful blogs
 
