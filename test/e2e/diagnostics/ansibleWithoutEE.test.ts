@@ -41,8 +41,8 @@ describe("ansible-diag-no-ee", function () {
     it("should complain about no task names", async function () {
       await activate(docUri1);
       await vscode.commands.executeCommand("workbench.action.files.save");
-      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
-      await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
+      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start, especially on WSL
+      await waitForDiagnosisCompletion(150, 7000, 3000); // Wait for the diagnostics to compute on this file
 
       await testDiagnostics(docUri1, [
         {

@@ -184,6 +184,8 @@ tasks:
     env:
       NODE_NO_WARNINGS: "1"
       DONT_PROMPT_WSL_INSTALL: "1"
+      # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
+      TMP: out/tmp/e2e
     generates:
       - out/junit/e2e/test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
@@ -196,6 +198,7 @@ tasks:
       - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
       - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
+      - mkdir -p out/tmp/e2e
       # dry run to fail fast if we misconfigure it
       - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
