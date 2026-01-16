@@ -1106,7 +1106,6 @@
     "npm-check-updates": "^19.1.2",
     "ovsx": "^0.10.7",
     "prettier": "^3.7.4",
-    "react": "^19.2.1",
     "rimraf": "^6.1.2",
     "selenium-webdriver": "^4.36.0",
     "sinon": "^21.0.0",
