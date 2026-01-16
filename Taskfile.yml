@@ -45,8 +45,7 @@ tasks:
     desc: Commands to run at the end
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
-      - uv cache prune --ci
-      - find `python3 -m pip cache dir`/wheels -type f -atime +30 -delete || true
+      - task: ci_clean_cache
       # we also need to be sure that at the end of build and test we do not produce undesired side effects
       - ./tools/precheck.sh
       - tools/dirty.sh
@@ -113,7 +112,7 @@ tasks:
     cmds:
       - uv sync --upgrade
       # should prevent increasing cache size significantly on CI
-      - uv cache prune --ci
+      - task: ci_clean_cache
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -316,6 +315,13 @@ tasks:
     desc: Build container image used for building the extension for Konflux CI
     cmds:
       - podman build --build-arg GITHUB_TOKEN -f vscode-ansible.Containerfile --format=docker
+  ci_clean_cache:
+    desc: Clean up caches (only runs when CI=true)
+    status:
+      - '[ "$CI" != "true" ]'
+    cmds:
+      - uv cache prune --ci
+      - find `python3 -m pip cache dir`/wheels -type f -atime +30 -delete || true
   flush:
     desc: Cleans cached files that sometimes can affect the build negatively, not a full clean
     cmds:
