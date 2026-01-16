@@ -2,25 +2,34 @@
  * The schema is packaged with the extension for offline access.
  */
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolveResourcePath } from "../utils/resourcePath.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+/**
+ * Get the path to execution-environment-schema.json file.
+ */
+async function getSchemaFilePath(): Promise<string> {
+  return await resolveResourcePath(
+    "execution-environment-schema.json",
+    import.meta.url,
+  );
+}
 
-// Schema file packaged with the extension
-// In compiled output, files are in out/server/src/resources/data/
-// In source, files are in src/resources/data/
-const SCHEMA_FILE = path.join(
-  __dirname,
-  "data/execution-environment-schema.json",
-);
-const RULES_FILE = path.join(__dirname, "data/ee-rules.md");
-// Sample EE file packaged with the extension
-const SAMPLE_EE_FILE = path.join(
-  __dirname,
-  "data/execution-environment-sample.yml",
-);
+/**
+ * Get the path to ee-rules.md file.
+ */
+async function getRulesFilePath(): Promise<string> {
+  return await resolveResourcePath("ee-rules.md", import.meta.url);
+}
+
+/**
+ * Get the path to execution-environment-sample.yml file.
+ */
+async function getSampleEEFilePath(): Promise<string> {
+  return await resolveResourcePath(
+    "execution-environment-sample.yml",
+    import.meta.url,
+  );
+}
 
 export interface ExecutionEnvironmentSchema {
   $defs: {
@@ -42,7 +51,8 @@ export interface ExecutionEnvironmentSchema {
  */
 export async function getExecutionEnvironmentSchema(): Promise<ExecutionEnvironmentSchema> {
   try {
-    const schemaContent = await fs.readFile(SCHEMA_FILE, "utf8");
+    const schemaFile = await getSchemaFilePath();
+    const schemaContent = await fs.readFile(schemaFile, "utf8");
     const schema = JSON.parse(schemaContent) as ExecutionEnvironmentSchema;
 
     // Validate that it has the expected structure
@@ -65,7 +75,8 @@ export async function getExecutionEnvironmentSchema(): Promise<ExecutionEnvironm
  */
 export async function getSampleExecutionEnvironment(): Promise<string> {
   try {
-    const sampleContent = await fs.readFile(SAMPLE_EE_FILE, "utf8");
+    const sampleFile = await getSampleEEFilePath();
+    const sampleContent = await fs.readFile(sampleFile, "utf8");
     return sampleContent;
   } catch (error) {
     throw new Error(
@@ -79,7 +90,8 @@ export async function getSampleExecutionEnvironment(): Promise<string> {
  */
 export async function getEERules(): Promise<string> {
   try {
-    const rulesContent = await fs.readFile(RULES_FILE, "utf8");
+    const rulesFile = await getRulesFilePath();
+    const rulesContent = await fs.readFile(rulesFile, "utf8");
     return rulesContent;
   } catch (error) {
     throw new Error(
