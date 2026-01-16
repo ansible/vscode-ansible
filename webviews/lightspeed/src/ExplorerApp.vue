@@ -2,15 +2,12 @@
 import { ref, onMounted } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
-import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 import * as marked from "marked";
 
 import ErrorBox from './components/ErrorBox.vue';
 import LoadingState from './components/LoadingState.vue';
 import LoginPrompt from './components/LoginPrompt.vue';
 import ExplorerActions from './components/ExplorerActions.vue';
-
-provideVSCodeDesignSystem().register(allComponents);
 
 const errorMessages: Ref<string[]> = ref([])
 const isAuthenticated = ref(false);

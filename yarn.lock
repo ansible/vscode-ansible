@@ -996,46 +996,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/fast-element@npm:^1.12.0, @microsoft/fast-element@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "@microsoft/fast-element@npm:1.14.0"
-  checksum: 10/d558028e2333232e50fb8bc9228badedb02c23f34140ba34e20e76c02619b28e65bf4135daadf333f2659fdd5635fdb7f24ed96239f5acc123904700c69fe3d4
-  languageName: node
-  linkType: hard
-
-"@microsoft/fast-foundation@npm:^2.49.4, @microsoft/fast-foundation@npm:^2.50.0":
-  version: 2.50.0
-  resolution: "@microsoft/fast-foundation@npm:2.50.0"
-  dependencies:
-    "@microsoft/fast-element": "npm:^1.14.0"
-    "@microsoft/fast-web-utilities": "npm:^5.4.1"
-    tabbable: "npm:^5.2.0"
-    tslib: "npm:^1.13.0"
-  checksum: 10/0b3878f2d089d4016458141eca3bdba0a7f80ef1e3dfbbe670b759747acba23d62b8c3d664faa3115459faaded61165d0d29cad5e6ffc4d0ae0e9441064d6536
-  languageName: node
-  linkType: hard
-
-"@microsoft/fast-react-wrapper@npm:^0.3.22":
-  version: 0.3.25
-  resolution: "@microsoft/fast-react-wrapper@npm:0.3.25"
-  dependencies:
-    "@microsoft/fast-element": "npm:^1.14.0"
-    "@microsoft/fast-foundation": "npm:^2.50.0"
-  peerDependencies:
-    react: ">=16.9.0"
-  checksum: 10/335a82bb1b432c99a48e3c488622ae8ff13267039cb7d54fd3623199bad1401adea8999e867649845730615a57b4917c4259530f4f33193a2512391575904008
-  languageName: node
-  linkType: hard
-
-"@microsoft/fast-web-utilities@npm:^5.4.1":
-  version: 5.4.1
-  resolution: "@microsoft/fast-web-utilities@npm:5.4.1"
-  dependencies:
-    exenv-es6: "npm:^1.1.1"
-  checksum: 10/5a64aa8d7adb471bde35c073d0e90846e66f4f6d51917ee3bd0267eaed61befedd3c16ecff1e591e83e9609a1b286ff0f5c3239f4700d92918e7a39bd05b8208
-  languageName: node
-  linkType: hard
-
 "@microsoft/tsdoc-config@npm:0.18.0":
   version: 0.18.0
   resolution: "@microsoft/tsdoc-config@npm:0.18.0"
@@ -2984,20 +2944,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/webview-ui-toolkit@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@vscode/webview-ui-toolkit@npm:1.4.0"
-  dependencies:
-    "@microsoft/fast-element": "npm:^1.12.0"
-    "@microsoft/fast-foundation": "npm:^2.49.4"
-    "@microsoft/fast-react-wrapper": "npm:^0.3.22"
-    tslib: "npm:^2.6.2"
-  peerDependencies:
-    react: ">=16.9.0"
-  checksum: 10/d1b0e5fbf3db608573053ad498bf2f1fa6f728744200a58e93ca4c4b073a09aab41eea7f87c71749a09b2a0cec491223d198935ab5d4562d41b742abdc78ee59
-  languageName: node
-  linkType: hard
-
 "@vue/compiler-core@npm:3.5.27":
   version: 3.5.27
   resolution: "@vue/compiler-core@npm:3.5.27"
@@ -3547,7 +3493,6 @@ __metadata:
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.5.2"
     "@vscode/vsce": "npm:^3.7.1"
-    "@vscode/webview-ui-toolkit": "npm:^1.4.0"
     "@vue/test-utils": "npm:^2.4.6"
     chai: "npm:^6.2.2"
     copy-webpack-plugin: "npm:^13.0.1"
@@ -5586,13 +5531,6 @@ __metadata:
     strip-final-newline: "npm:^4.0.0"
     yoctocolors: "npm:^2.1.1"
   checksum: 10/d0f7a2185152379f8772f6d780b188f2728a95b9a68d1a897f58805d7ba6bd55eaa5e128cb66a274251a6b5e4d9388332b1417bd7d46c25e020e4e55725cf79e
-  languageName: node
-  linkType: hard
-
-"exenv-es6@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "exenv-es6@npm:1.1.1"
-  checksum: 10/7f2aa12025e6f06c48dc286f380cf3183bb19c6017b36d91695034a3e5124a7235c4f8ff24ca2eb88ae801322f0f99605cedfcfd996a5fcbba7669320e2a448e
   languageName: node
   linkType: hard
 
@@ -10359,13 +10297,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tabbable@npm:^5.2.0":
-  version: 5.3.3
-  resolution: "tabbable@npm:5.3.3"
-  checksum: 10/5da150c9ac7aaed95f901623214794ffac9472a86009a1762c7b436249d33b157b7d86d93610986090d0fb1ef152f5dec2c201552e0b67ca895ba00c145a51c5
-  languageName: node
-  linkType: hard
-
 "table@npm:^6.9.0":
   version: 6.9.0
   resolution: "table@npm:6.9.0"
@@ -10772,13 +10703,6 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10/a91a15b3c9f76ac462f006fa88b6bfa528130dcfb849dd7ef7f9d640832ab681e235b8a2bc58ecde42f72851cc1d5d4e22c901b0c11aa51001ea1d395074b794
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^1.13.0":
-  version: 1.14.1
-  resolution: "tslib@npm:1.14.1"
-  checksum: 10/7dbf34e6f55c6492637adb81b555af5e3b4f9cc6b998fb440dac82d3b42bdc91560a35a5fb75e20e24a076c651438234da6743d139e4feabf0783f3cdfe1dddb
   languageName: node
   linkType: hard
 

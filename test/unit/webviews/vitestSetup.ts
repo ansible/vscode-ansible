@@ -21,14 +21,6 @@ vi.mock("marked", () => ({
   parseInline: vi.fn((text: string) => text),
 }));
 
-// Mock @vscode/webview-ui-toolkit
-vi.mock("@vscode/webview-ui-toolkit", () => ({
-  allComponents: [],
-  provideVSCodeDesignSystem: vi.fn(() => ({
-    register: vi.fn(),
-  })),
-}));
-
 // Mock PrimeVue
 vi.mock("primevue/autocomplete", () => ({
   default: {
