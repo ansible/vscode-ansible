@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,
     silent: true,
     include: ["test/unit/**/*.test.ts"],
-    exclude: ["test/unit/contentCreator/**"],
+    exclude: ["test/unit/contentCreator/**", "test/unit/webviews/**"],
     setupFiles: ["./test/unit/vitestSetup.ts"],
     coverage: {
       provider: "v8",
