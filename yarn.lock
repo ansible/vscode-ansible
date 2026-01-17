@@ -23,6 +23,8 @@ __metadata:
     "@types/mocha": "npm:^10.0.10"
     "@types/node": "npm:^24.10.2"
     "@types/vscode": "npm:^1.85.0"
+    ajv: "npm:^8.17.1"
+    ajv-formats: "npm:^3.0.1"
     antsibull-docs: "npm:^1.1.4"
     chai: "npm:^6.2.2"
     fuse.js: "npm:^7.1.0"
