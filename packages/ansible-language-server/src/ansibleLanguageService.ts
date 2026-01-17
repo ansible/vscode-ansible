@@ -20,6 +20,7 @@ import {
   tokenTypes,
 } from "./providers/semanticTokenProvider";
 import { doValidate } from "./providers/validationProvider";
+import { SchemaService } from "./services/schemaService";
 import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
@@ -38,12 +39,14 @@ export class AnsibleLanguageService {
 
   private workspaceManager: WorkspaceManager;
   private validationManager: ValidationManager;
+  private schemaService: SchemaService;
 
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
     this.documents = documents;
     this.workspaceManager = new WorkspaceManager(connection);
     this.validationManager = new ValidationManager(connection, documents);
+    this.schemaService = new SchemaService(connection);
   }
 
   public initialize(): void {
@@ -150,6 +153,7 @@ export class AnsibleLanguageService {
             false,
             context,
             this.connection,
+            this.schemaService,
           );
         }
       } catch (error) {
@@ -190,6 +194,7 @@ export class AnsibleLanguageService {
             false,
             context,
             this.connection,
+            this.schemaService,
           );
         }
       } catch (error) {
@@ -216,6 +221,7 @@ export class AnsibleLanguageService {
           true,
           this.workspaceManager.getContext(e.document.uri),
           this.connection,
+          this.schemaService,
         );
       } catch (error) {
         this.handleError(error, "onDidChangeContent");
@@ -270,7 +276,12 @@ export class AnsibleLanguageService {
             params.textDocument.uri,
           );
           if (context) {
-            return await doCompletion(document, params.position, context);
+            return await doCompletion(
+              document,
+              params.position,
+              context,
+              this.schemaService,
+            );
           }
         }
       } catch (error) {

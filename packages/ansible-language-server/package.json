@@ -22,6 +22,8 @@
   ],
   "dependencies": {
     "@flatten-js/interval-tree": "^2.0.3",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.0",
     "ini": "^6.0.0",
