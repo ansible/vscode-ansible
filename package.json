@@ -1060,7 +1060,7 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@html-eslint/eslint-plugin": "^0.52.1",
+    "@html-eslint/eslint-plugin": "^0.53.0",
     "@types/chai": "^5.2.3",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
