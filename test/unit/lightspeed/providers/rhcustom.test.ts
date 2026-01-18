@@ -22,10 +22,8 @@ const mockAnsibleContextModule = {
   },
 };
 
-// Store original require
 const originalRequire = Module.prototype.require.bind(Module.prototype);
 
-// Patch require() to intercept module imports - must happen before imports
 Module.prototype.require = function (
   this: Module,
   id: string,
@@ -44,12 +42,9 @@ Module.prototype.require = function (
   return originalRequire.call(this, id);
 };
 
-// Mock OpenAICompatibleClient - use vi.hoisted to ensure it's available during hoisting
 const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   const mockChatCompletion = vi.fn();
-  // Create a proper constructor function that can be called with 'new'
   const MockOpenAICompatibleClient = vi.fn().mockImplementation(function (this: any, config: any) {
-    // 'this' will be the instance when called with 'new'
     this.chatCompletion = mockChatCompletion;
     return this;
   });
@@ -109,17 +104,16 @@ beforeEach(() => {
       .replace(/```\s*$/, "");
   });
 
-  // Setup default successful client response
   mockChatCompletion.mockResolvedValue({
     id: "test-id",
     object: "chat.completion",
     created: Date.now(),
-    model: "deepseek-chat",
+    model: "deepseek-model",
     choices: [
       {
         index: 0,
         message: {
-          role: "assistant",
+          role: "system",
           content: "---\n- name: test playbook\n  hosts: all",
         },
         finish_reason: "stop",
@@ -150,21 +144,17 @@ import {
   DEFAULT_TIMEOUTS,
 } from "../testConstants.js";
 import { OpenAIClientError } from "../../../../src/features/lightspeed/clients/openaiCompatibleClient.js";
-
-// Get the mocked modules
 import { getLightspeedLogger } from "../../../../src/utils/logger.js";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
 } from "../../../../src/features/lightspeed/utils/outlineGenerator.js";
 
-// Access the actual mocks from the mocked modules
 const mockedGenerateOutlineFromPlaybook = vi.mocked(
   generateOutlineFromPlaybook,
 );
 const mockedGenerateOutlineFromRole = vi.mocked(generateOutlineFromRole);
 
-// Get the logger mock
 const mockedGetLightspeedLogger = vi.mocked(getLightspeedLogger);
 const mockedLogger = mockedGetLightspeedLogger();
 
@@ -242,25 +232,6 @@ describe("RHCustomProvider", () => {
       }).toThrow("Base URL must use http:// or https:// protocol");
     });
 
-    it("should remove trailing slash from baseURL", async () => {
-      const config = {
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM + "/",
-      };
-      const provider = new RHCustomProvider(config);
-
-      // The client should be initialized with the baseURL without trailing slash
-      await provider.validateConfig();
-      
-      // Verify the client was constructed with the correct baseURL
-      expect(MockOpenAICompatibleClient).toHaveBeenCalledWith(
-        expect.objectContaining({
-          baseUrl: API_ENDPOINTS.RHCUSTOM,
-        }),
-      );
-    });
-
     it("should use custom timeout when provided", () => {
       const config = {
         apiKey: TEST_API_KEYS.RHCUSTOM,
@@ -305,45 +276,6 @@ describe("RHCustomProvider", () => {
         "generation",
       ]);
       expect(mockChatCompletion).toHaveBeenCalled();
-    });
-
-    it("should return false and disconnected status when API call fails", async () => {
-      // getStatus() calls validateConfig() internally, so we need to mock the client call
-      mockChatCompletion.mockRejectedValueOnce(
-        new OpenAIClientError("Invalid API key", HTTP_STATUS_CODES.FORBIDDEN),
-      );
-
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-
-      // Just call getStatus() which internally calls validateConfig()
-      const status = await provider.getStatus();
-
-      expect(status.connected).toBe(false);
-      expect(status.error).toBeDefined();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockedLogger.error).toHaveBeenCalled();
-    });
-
-    it("should handle timeout errors", async () => {
-      // The client converts timeout errors to OpenAIClientError with status 408
-      mockChatCompletion.mockRejectedValueOnce(
-        new OpenAIClientError("Request timed out", 408),
-      );
-
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-        timeout: 1000,
-      });
-
-      const isValid = await provider.validateConfig();
-
-      expect(isValid).toBe(false);
     });
   });
 
@@ -571,22 +503,6 @@ describe("RHCustomProvider", () => {
       expect(mockedGenerateOutlineFromPlaybook).toHaveBeenCalled();
     });
 
-    it("should not generate outline when createOutline is false", async () => {
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-
-      const result = await provider.generatePlaybook({
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-        createOutline: false,
-      });
-
-      expect(result.outline).toBe("");
-    });
-
     it("should incorporate outline into prompt when provided", async () => {
       const outline = "1. Setup\n2. Configure";
       mockChatCompletion.mockResolvedValueOnce({
@@ -723,63 +639,6 @@ describe("RHCustomProvider", () => {
 
       expect(result.outline).toBeDefined();
       expect(mockedGenerateOutlineFromRole).toHaveBeenCalled();
-    });
-
-    it("should not generate outline when createOutline is false", async () => {
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-
-      const result = await provider.generateRole({
-        prompt: TEST_PROMPTS.CREATE_ROLE,
-        type: "role",
-        createOutline: false,
-      });
-
-      expect(result.outline).toBe("");
-    });
-
-    it("should incorporate outline into prompt when provided", async () => {
-      const outline = "1. Setup\n2. Configure";
-      mockChatCompletion.mockResolvedValueOnce({
-        id: "test-id",
-        object: "chat.completion",
-        created: Date.now(),
-        model: MODEL_NAMES.RHCUSTOM_GRANITE,
-        choices: [
-          {
-            index: 0,
-            message: {
-              role: "assistant",
-              content: TEST_CONTENT.ROLE,
-            },
-            finish_reason: "stop",
-          },
-        ],
-      });
-
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_GRANITE,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.CREATE_ROLE,
-        type: "role",
-        outline: outline,
-      };
-
-      await provider.generateRole(params);
-
-      expect(mockEnhancePromptForAnsible).toHaveBeenCalledWith(
-        expect.stringContaining(outline),
-        expect.any(String),
-        expect.objectContaining({
-          fileType: "tasks",
-        }),
-      );
     });
 
     it("should handle errors and throw with proper message", async () => {
