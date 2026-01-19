@@ -124,7 +124,7 @@ export const TEST_CONFIGS = {
 } as const;
 
 // Base LightSpeedServiceSettings with all required common properties
-export const BASE_LIGHTSPEED_SETTINGS: Omit<
+const BASE_LIGHTSPEED_SETTINGS: Omit<
   LightSpeedServiceSettings,
   "provider" | "apiKey" | "apiEndpoint"
 > = {
