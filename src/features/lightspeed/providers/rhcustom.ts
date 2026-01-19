@@ -48,7 +48,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
   constructor(config: RHCustomConfig) {
     super(config, config.timeout || 30000);
-    
+
     // Validate required fields
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
@@ -104,11 +104,11 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
    */
   private extractTaskNamesFromYaml(yamlContent: string): string {
     const taskNames: string[] = [];
-    
+
     // Match task definitions: "- name: Task Name" or "  - name: Task Name"
     const taskNameRegex = /^\s*-\s+name:\s*(.+)$/gm;
     let match;
-    
+
     while ((match = taskNameRegex.exec(yamlContent)) !== null) {
       const taskName = match[1].trim();
       // Remove quotes if present
@@ -117,11 +117,11 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         taskNames.push(cleanName);
       }
     }
-    
+
     if (taskNames.length > 0) {
       return taskNames.map((task, index) => `${index + 1}. ${task}`).join("\n");
     }
-    
+
     return "";
   }
 
@@ -133,7 +133,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     // Look for code block markers
     const codeBlockStart = /```(?:ya?ml)?\s*\n?/i;
     const codeBlockEnd = /\n?```/;
-    
+
     // Find the first code block
     const startMatch = content.match(codeBlockStart);
     if (startMatch) {
@@ -141,7 +141,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Find the closing ``` after the start
       const remainingContent = content.substring(startIndex);
       const endMatch = remainingContent.match(codeBlockEnd);
-      
+
       if (endMatch) {
         // Extract only the content between the code blocks
         const yamlContent = remainingContent.substring(0, endMatch.index);
@@ -149,22 +149,22 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         return yamlContent.trim();
       }
     }
-    
+
     // If no code blocks found, try to find YAML start and stop at first non-YAML line after
     const yamlStart = content.search(/^\s*(-\s+name:|---|\w+:)/m);
     if (yamlStart >= 0) {
       // Find where YAML likely ends (look for closing ``` or explanatory text patterns)
       const yamlSection = content.substring(yamlStart);
       const codeBlockEndIndex = yamlSection.search(/\n```/);
-      
+
       let endIndex = yamlSection.length;
       if (codeBlockEndIndex >= 0) {
         endIndex = Math.min(endIndex, codeBlockEndIndex);
       }
-      
+
       return yamlSection.substring(0, endIndex).trim();
     }
-    
+
     // Fallback to original content
     return content.trim();
   }
@@ -194,7 +194,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       };
       return this.handleHttpError(httpError, operation, "Red Hat Custom");
     }
-    
+
     // Fallback for other errors
     return this.handleHttpError(
       { message: error instanceof Error ? error.message : "Unknown error" },
@@ -206,11 +206,11 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   async validateConfig(): Promise<boolean> {
     try {
       const validationTimeout = Math.max(this.timeout, 30000);
-      
+
       this.logger.info(
         `[RHCustom Provider] Validating config - model: ${this.modelName}, timeout: ${validationTimeout}ms`,
       );
-      
+
       await this.client.chatCompletion(
         [
           {
@@ -222,7 +222,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
           timeout: validationTimeout,
         },
       );
-      
+
       this.logger.info("[RHCustom Provider] Config validation successful");
       this.lastValidationError = undefined;
       return true;
@@ -230,7 +230,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       const errorMsg = `Config validation failed: ${error instanceof Error ? error.message : "Unknown error"}`;
       console.log("[RHCustom Provider] Config validation failed:", errorMsg);
       console.log("[RHCustom Provider] Error details:", error);
-      
+
       this.logger.error(`[RHCustom Provider] ${errorMsg}`);
       this.logger.error(
         `[RHCustom Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
@@ -372,14 +372,14 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       });
 
       const content = result.choices?.[0]?.message?.content || "";
-      
+
       // Extract YAML from code blocks first, then clean
       let cleanedContent = this.extractYamlFromCodeBlock(content);
       const originalCleaned = cleanedContent;
-      
+
       // Fix Windows path escape sequences before cleaning
       cleanedContent = this.fixWindowsPathEscapes(cleanedContent);
-      
+
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
 
       console.log("[RHCustom Provider] Cleaned playbook content length:", cleanedContent.length);
@@ -393,19 +393,19 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       if (params.createOutline) {
         // Try to generate outline from cleaned content
         outline = generateOutlineFromPlaybook(cleanedContent);
-        
+
         // If outline generation failed (empty result), try with original extracted content
         if (!outline && originalCleaned !== cleanedContent) {
           console.log("[RHCustom Provider] Outline generation failed with cleaned content, trying original extracted content");
           outline = generateOutlineFromPlaybook(originalCleaned);
         }
-        
+
         // If still empty, try to extract task names using regex as fallback
         if (!outline) {
           console.log("[RHCustom Provider] Trying regex-based task extraction as fallback");
           outline = this.extractTaskNamesFromYaml(cleanedContent || originalCleaned);
         }
-        
+
         console.log("[RHCustom Provider] Generated outline:", outline);
         console.log("[RHCustom Provider] Outline length:", outline.length);
         this.logger.info(`[RHCustom Provider] Generated outline: ${outline}`);
@@ -462,14 +462,14 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       const content = result.choices?.[0]?.message?.content || "";
       console.log("[RHCustom Provider] Raw role content (first 500 chars):", content.substring(0, 500));
-      
+
       // Extract YAML from code blocks, stopping at the closing ```
       let cleanedContent = this.extractYamlFromCodeBlock(content);
       console.log("[RHCustom Provider] Extracted YAML (first 500 chars):", cleanedContent.substring(0, 500));
-      
+
       // Fix Windows path escape sequences before cleaning
       cleanedContent = this.fixWindowsPathEscapes(cleanedContent);
-      
+
       // Further clean using the base method
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
       console.log("[RHCustom Provider] Cleaned role content (first 500 chars):", cleanedContent.substring(0, 500));
@@ -484,7 +484,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       if (params.createOutline) {
         console.log("[RHCustom Provider] Generating outline from role content, createOutline:", params.createOutline);
         console.log("[RHCustom Provider] Cleaned content to parse:", cleanedContent.substring(0, 1000));
-        
+
         // Try to parse and validate the structure before generating outline
         try {
           const yaml = require("js-yaml");
@@ -497,15 +497,15 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         } catch (parseError) {
           console.log("[RHCustom Provider] Failed to parse cleaned content:", parseError);
         }
-        
+
         outline = generateOutlineFromRole(cleanedContent);
         console.log("[RHCustom Provider] Generated outline:", outline);
         console.log("[RHCustom Provider] Outline length:", outline.length);
-        
+
         if (!outline) {
           console.log("[RHCustom Provider] WARNING: Outline is empty. This might mean the YAML structure is not an array of tasks.");
         }
-        
+
         this.logger.info(`[RHCustom Provider] Generated outline: ${outline}`);
       } else {
         console.log("[RHCustom Provider] Skipping outline generation, createOutline is false");
@@ -522,4 +522,3 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     }
   }
 }
-
