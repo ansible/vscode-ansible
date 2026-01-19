@@ -45,8 +45,7 @@ tasks:
     desc: Commands to run at the end
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
-      - uv cache prune --ci
-      - find `python3 -m pip cache dir`/wheels -type f -atime +30 -delete || true
+      - task: ci_clean_cache
       # we also need to be sure that at the end of build and test we do not produce undesired side effects
       - ./tools/precheck.sh
       - tools/dirty.sh
@@ -105,6 +104,7 @@ tasks:
     interactive: true
   "deps:node":
     desc: Update node dependencies
+    interactive: true # needed for ncu prompts
     cmds:
       - yarn ncu -u --workspaces -i
       - yarn knip --exclude=exports
@@ -113,7 +113,7 @@ tasks:
     cmds:
       - uv sync --upgrade
       # should prevent increasing cache size significantly on CI
-      - uv cache prune --ci
+      - task: ci_clean_cache
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -184,6 +184,8 @@ tasks:
     env:
       NODE_NO_WARNINGS: "1"
       DONT_PROMPT_WSL_INSTALL: "1"
+      # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
+      TMP: out/tmp/e2e
     generates:
       - out/junit/e2e/test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
@@ -196,6 +198,7 @@ tasks:
       - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
       - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
+      - mkdir -p out/tmp/e2e
       # dry run to fail fast if we misconfigure it
       - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
@@ -313,6 +316,13 @@ tasks:
     desc: Build container image used for building the extension for Konflux CI
     cmds:
       - podman build --build-arg GITHUB_TOKEN -f vscode-ansible.Containerfile --format=docker
+  ci_clean_cache:
+    desc: Clean up caches (only runs when CI=true)
+    status:
+      - '[ "$CI" != "true" ]'
+    cmds:
+      - uv cache prune --ci
+      - find `python3 -m pip cache dir`/wheels -type f -atime +30 -delete || true
   flush:
     desc: Cleans cached files that sometimes can affect the build negatively, not a full clean
     cmds:
