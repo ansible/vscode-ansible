@@ -175,7 +175,7 @@ export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
 }
 
 export function createADESetupEnvironmentHandler(workspaceRoot: string) {
-  return async (args: {
+  return async (args?: {
     envName?: string;
     pythonVersion?: string;
     collections?: string[];
@@ -189,8 +189,11 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
     try {
       const notes: string[] = [];
 
+      // Ensure args is defined
+      const safeArgs = args || {};
+
       // If OS info is not provided, ask the LLM to provide it
-      if (!args.osType) {
+      if (!safeArgs.osType) {
         return {
           content: [
             {
@@ -220,23 +223,23 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
         };
       }
 
-      // Build systemInfo from provided args
+      // Build systemInfo from provided args (osType is guaranteed to be defined here)
       const systemInfo: SystemInfo = {
-        osType: args.osType,
-        osDistro: args.osDistro,
-        packageManager: args.packageManager,
+        osType: safeArgs.osType,
+        osDistro: safeArgs.osDistro,
+        packageManager: safeArgs.packageManager,
       };
 
       // Auto-detect: If requirementsFile looks like collection names, move them to collections
       // Collection format: namespace.collection (e.g., amazon.aws, ansible.posix)
       // NOT file extensions like .txt, .yml, .yaml, .json, .cfg
-      if (args.requirementsFile) {
+      if (safeArgs.requirementsFile) {
         const fileExtensions = /\.(txt|yml|yaml|json|cfg|ini|req|in)$/i;
         const collectionPattern = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/i;
 
         // Skip if it looks like a file path
-        if (!fileExtensions.test(args.requirementsFile)) {
-          const potentialCollections = args.requirementsFile
+        if (!fileExtensions.test(safeArgs.requirementsFile)) {
+          const potentialCollections = safeArgs.requirementsFile
             .split(/[,\s]+/)
             .filter((s) => s.trim());
 
@@ -246,26 +249,26 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
 
           if (detectedCollections.length > 0) {
             // Auto-correct: Move to collections parameter
-            args.collections = [
-              ...(args.collections || []),
+            safeArgs.collections = [
+              ...(safeArgs.collections || []),
               ...detectedCollections,
             ];
             notes.push(
               `Auto-detected collections: ${detectedCollections.join(", ")}`,
             );
             // Clear requirementsFile since we moved the collections
-            delete args.requirementsFile;
+            delete safeArgs.requirementsFile;
           }
         }
       }
 
       // Remove empty requirementsFile
-      if (args.requirementsFile === "") {
-        delete args.requirementsFile;
+      if (safeArgs.requirementsFile === "") {
+        delete safeArgs.requirementsFile;
       }
 
       const result = await setupDevelopmentEnvironment(workspaceRoot, {
-        ...args,
+        ...safeArgs,
         systemInfo,
       });
 

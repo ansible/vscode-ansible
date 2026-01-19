@@ -822,13 +822,18 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // Ansible tools install in venv fails
-              if (
-                command === "bash" &&
-                args?.[1]?.includes("pip") &&
-                args?.[1]?.includes("ansible-lint")
-              ) {
-                setTimeout(() => callback(1), 10);
+              // Both ADT and fallback ansible-lint install fail
+              if (command === "bash" && args?.[1]?.includes("pip")) {
+                // Fail ADT install
+                if (args?.[1]?.includes("ansible-dev-tools")) {
+                  setTimeout(() => callback(1), 10);
+                }
+                // Also fail fallback ansible-lint install
+                else if (args?.[1]?.includes("ansible-lint")) {
+                  setTimeout(() => callback(1), 10);
+                } else {
+                  setTimeout(() => callback(0), 10);
+                }
               } else {
                 setTimeout(() => callback(0), 10);
               }
@@ -892,28 +897,41 @@ describe("ADE Tools", () => {
       expect(result.output).toContain("Failed to install collections");
     });
 
-    it("should handle ADT installation failure", async () => {
+    it("should fallback to individual tools when ADT installation fails", async () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         const mockChild = {
           stdout: { on: vi.fn() },
           stderr: {
             on: vi.fn((event, callback) => {
               if (event === "data") {
-                setTimeout(() => callback("error"), 5);
+                // ADT install fails with error (executed via bash -c)
+                if (
+                  command === "bash" &&
+                  args?.some(
+                    (arg) =>
+                      typeof arg === "string" &&
+                      arg.includes("pip install ansible-dev-tools"),
+                  )
+                ) {
+                  setTimeout(() => callback("error installing ADT"), 5);
+                }
               }
             }),
           },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // ADT check fails (pip list), pip install fails, pipx fails
-              if (command === "pip" && args?.includes("list")) {
-                setTimeout(() => callback(1), 10);
-              } else if (command === "pip" && args?.includes("install")) {
-                setTimeout(() => callback(1), 10);
-              } else if (command === "pipx") {
-                setTimeout(() => callback(1), 10);
+              // ADT pip install fails (via bash -c), but individual tools succeed
+              if (
+                command === "bash" &&
+                args?.some(
+                  (arg) =>
+                    typeof arg === "string" &&
+                    arg.includes("pip install ansible-dev-tools"),
+                )
+              ) {
+                setTimeout(() => callback(1), 10); // ADT fails
               } else {
-                setTimeout(() => callback(0), 10);
+                setTimeout(() => callback(0), 10); // Everything else succeeds
               }
             }
           }),
@@ -924,8 +942,10 @@ describe("ADE Tools", () => {
       });
 
       const result = await setupDevelopmentEnvironment("/test/workspace");
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Failed to install ADT");
+      // Should succeed because we fall back to individual tools
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("ADT installation failed");
+      expect(result.output).toContain("installing individual tools");
     });
 
     it("should check Python version availability before creating venv", async () => {
