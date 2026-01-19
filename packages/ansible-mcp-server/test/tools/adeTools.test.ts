@@ -1183,7 +1183,11 @@ describe("ADE Tools", () => {
       });
 
       const result = await setupDevelopmentEnvironment("/test/workspace", {
-        systemInfo: { osType: "linux", osDistro: "ubuntu", packageManager: "yum" },
+        systemInfo: {
+          osType: "linux",
+          osDistro: "ubuntu",
+          packageManager: "yum",
+        },
       });
 
       expect(result.output).toContain("Package Manager: yum");
