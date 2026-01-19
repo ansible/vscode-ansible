@@ -83,12 +83,14 @@ myorg
 myproject
 myrole
 nocolor
+noconfirm
 noheading
 norecursedirs
 npmjs
 nqry
 openshiftapps
 ovsx
+pacman
 precheck
 primevue
 priyamsahoo
