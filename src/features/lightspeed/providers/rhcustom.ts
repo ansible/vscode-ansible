@@ -29,7 +29,6 @@ import {
   OpenAIClientError,
 } from "../clients/openaiCompatibleClient";
 
-
 export interface RHCustomConfig {
   apiKey: string;
   modelName: string;
@@ -145,7 +144,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       if (endMatch) {
         // Extract only the content between the code blocks
         const yamlContent = remainingContent.substring(0, endMatch.index);
-        console.log("[RHCustom Provider] Extracted YAML from code block, length:", yamlContent.length);
+        console.log(
+          "[RHCustom Provider] Extracted YAML from code block, length:",
+          yamlContent.length,
+        );
         return yamlContent.trim();
       }
     }
@@ -174,15 +176,12 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
    */
   private fixWindowsPathEscapes(yamlContent: string): string {
     // Find all double-quoted strings and fix unescaped backslashes
-    return yamlContent.replace(
-      /"([^"]*)"/g,
-      (match, content) => {
-        // Escape backslashes that aren't already escaped or part of valid escape sequences
-        // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
-        const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
-        return `"${fixed}"`;
-      },
-    );
+    return yamlContent.replace(/"([^"]*)"/g, (match, content) => {
+      // Escape backslashes that aren't already escaped or part of valid escape sequences
+      // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
+      const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
+      return `"${fixed}"`;
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -269,6 +268,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   async completionRequest(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     // Inline suggestions are out of scope for the Red Hat Custom provider currently
@@ -383,7 +383,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
 
-      console.log("[RHCustom Provider] Cleaned playbook content length:", cleanedContent.length);
+      console.log(
+        "[RHCustom Provider] Cleaned playbook content length:",
+        cleanedContent.length,
+      );
 
       this.logger.info(
         `[RHCustom Provider] Generated playbook (full):\n${cleanedContent}`,
@@ -397,14 +400,20 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
         // If outline generation failed (empty result), try with original extracted content
         if (!outline && originalCleaned !== cleanedContent) {
-          console.log("[RHCustom Provider] Outline generation failed with cleaned content, trying original extracted content");
+          console.log(
+            "[RHCustom Provider] Outline generation failed with cleaned content, trying original extracted content",
+          );
           outline = generateOutlineFromPlaybook(originalCleaned);
         }
 
         // If still empty, try to extract task names using regex as fallback
         if (!outline) {
-          console.log("[RHCustom Provider] Trying regex-based task extraction as fallback");
-          outline = this.extractTaskNamesFromYaml(cleanedContent || originalCleaned);
+          console.log(
+            "[RHCustom Provider] Trying regex-based task extraction as fallback",
+          );
+          outline = this.extractTaskNamesFromYaml(
+            cleanedContent || originalCleaned,
+          );
         }
 
         console.log("[RHCustom Provider] Generated outline:", outline);
@@ -462,19 +471,31 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       });
 
       const content = result.choices?.[0]?.message?.content || "";
-      console.log("[RHCustom Provider] Raw role content (first 500 chars):", content.substring(0, 500));
+      console.log(
+        "[RHCustom Provider] Raw role content (first 500 chars):",
+        content.substring(0, 500),
+      );
 
       // Extract YAML from code blocks, stopping at the closing ```
       let cleanedContent = this.extractYamlFromCodeBlock(content);
-      console.log("[RHCustom Provider] Extracted YAML (first 500 chars):", cleanedContent.substring(0, 500));
+      console.log(
+        "[RHCustom Provider] Extracted YAML (first 500 chars):",
+        cleanedContent.substring(0, 500),
+      );
 
       // Fix Windows path escape sequences before cleaning
       cleanedContent = this.fixWindowsPathEscapes(cleanedContent);
 
       // Further clean using the base method
       cleanedContent = this.cleanAnsibleOutput(cleanedContent);
-      console.log("[RHCustom Provider] Cleaned role content (first 500 chars):", cleanedContent.substring(0, 500));
-      console.log("[RHCustom Provider] Cleaned role content length:", cleanedContent.length);
+      console.log(
+        "[RHCustom Provider] Cleaned role content (first 500 chars):",
+        cleanedContent.substring(0, 500),
+      );
+      console.log(
+        "[RHCustom Provider] Cleaned role content length:",
+        cleanedContent.length,
+      );
 
       this.logger.info(
         `[RHCustom Provider] Generated role (full):\n${cleanedContent}`,
@@ -483,20 +504,38 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       // Generate outline from the role if requested
       let outline = "";
       if (params.createOutline) {
-        console.log("[RHCustom Provider] Generating outline from role content, createOutline:", params.createOutline);
-        console.log("[RHCustom Provider] Cleaned content to parse:", cleanedContent.substring(0, 1000));
+        console.log(
+          "[RHCustom Provider] Generating outline from role content, createOutline:",
+          params.createOutline,
+        );
+        console.log(
+          "[RHCustom Provider] Cleaned content to parse:",
+          cleanedContent.substring(0, 1000),
+        );
 
         // Try to parse and validate the structure before generating outline
         try {
           const yaml = require("js-yaml");
           const parsed = yaml.load(cleanedContent);
-          console.log("[RHCustom Provider] Parsed YAML type:", Array.isArray(parsed) ? "array" : typeof parsed);
-          console.log("[RHCustom Provider] Parsed YAML is array:", Array.isArray(parsed));
+          console.log(
+            "[RHCustom Provider] Parsed YAML type:",
+            Array.isArray(parsed) ? "array" : typeof parsed,
+          );
+          console.log(
+            "[RHCustom Provider] Parsed YAML is array:",
+            Array.isArray(parsed),
+          );
           if (parsed && typeof parsed === "object") {
-            console.log("[RHCustom Provider] Parsed YAML keys:", Object.keys(parsed));
+            console.log(
+              "[RHCustom Provider] Parsed YAML keys:",
+              Object.keys(parsed),
+            );
           }
         } catch (parseError) {
-          console.log("[RHCustom Provider] Failed to parse cleaned content:", parseError);
+          console.log(
+            "[RHCustom Provider] Failed to parse cleaned content:",
+            parseError,
+          );
         }
 
         outline = generateOutlineFromRole(cleanedContent);
@@ -504,12 +543,16 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         console.log("[RHCustom Provider] Outline length:", outline.length);
 
         if (!outline) {
-          console.log("[RHCustom Provider] WARNING: Outline is empty. This might mean the YAML structure is not an array of tasks.");
+          console.log(
+            "[RHCustom Provider] WARNING: Outline is empty. This might mean the YAML structure is not an array of tasks.",
+          );
         }
 
         this.logger.info(`[RHCustom Provider] Generated outline: ${outline}`);
       } else {
-        console.log("[RHCustom Provider] Skipping outline generation, createOutline is false");
+        console.log(
+          "[RHCustom Provider] Skipping outline generation, createOutline is false",
+        );
       }
 
       return {

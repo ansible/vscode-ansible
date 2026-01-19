@@ -55,19 +55,22 @@ const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   return { mockChatCompletion, MockOpenAICompatibleClient };
 });
 
-vi.mock("../../../../src/features/lightspeed/clients/openaiCompatibleClient", () => {
-  return {
-    OpenAICompatibleClient: MockOpenAICompatibleClient,
-    OpenAIClientError: class OpenAIClientError extends Error {
-      status: number;
-      constructor(message: string, status: number) {
-        super(message);
-        this.name = "OpenAIClientError";
-        this.status = status;
-      }
-    },
-  };
-});
+vi.mock(
+  "../../../../src/features/lightspeed/clients/openaiCompatibleClient",
+  () => {
+    return {
+      OpenAICompatibleClient: MockOpenAICompatibleClient,
+      OpenAIClientError: class OpenAIClientError extends Error {
+        status: number;
+        constructor(message: string, status: number) {
+          super(message);
+          this.name = "OpenAIClientError";
+          this.status = status;
+        }
+      },
+    };
+  },
+);
 
 vi.mock("../../../../src/utils/logger", () => {
   const loggerMock = {
