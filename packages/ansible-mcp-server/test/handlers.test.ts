@@ -159,7 +159,17 @@ describe("MCP Handlers", () => {
       vi.clearAllMocks();
     });
 
-    it("should setup environment successfully", async () => {
+    it("should prompt for OS info when osType not provided", async () => {
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({});
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toContain("OS Information Required");
+      expect(result.isError).toBe(false);
+    });
+
+    it("should setup environment successfully with OS info", async () => {
       const { setupDevelopmentEnvironment } =
         await import("../src/tools/adeTools.js");
 
@@ -171,6 +181,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         envName: "test-env",
         pythonVersion: "3.11",
         collections: ["ansible.posix"],
@@ -196,7 +208,10 @@ describe("MCP Handlers", () => {
       });
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -214,7 +229,10 @@ describe("MCP Handlers", () => {
       );
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "darwin",
+        osDistro: "macos",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -236,6 +254,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         requirementsFile: "amazon.aws ansible.posix",
       });
 
@@ -265,6 +285,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
         requirementsFile: "requirements.txt",
       });
 
@@ -293,6 +315,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         requirementsFile: "",
       });
 
@@ -320,6 +344,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         collections: ["community.general"],
         requirementsFile: "amazon.aws",
       });
@@ -344,7 +370,10 @@ describe("MCP Handlers", () => {
       vi.mocked(setupDevelopmentEnvironment).mockRejectedValue("String error");
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toContain(

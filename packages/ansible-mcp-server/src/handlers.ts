@@ -9,6 +9,7 @@ import {
   setupDevelopmentEnvironment,
   checkAndInstallADT,
   formatEnvironmentInfo,
+  type SystemInfo,
 } from "./tools/adeTools.js";
 import {
   generateExecutionEnvironment,
@@ -180,9 +181,51 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
     collections?: string[];
     installRequirements?: boolean;
     requirementsFile?: string;
+    // OS info for correct package manager - LLM MUST provide these
+    osType?: string;
+    osDistro?: string;
+    packageManager?: string;
   }) => {
     try {
       const notes: string[] = [];
+
+      // If OS info is not provided, ask the LLM to provide it
+      if (!args.osType) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "**OS Information Required**\n\n" +
+                "To provide correct package manager commands, please specify the operating system.\n\n" +
+                "Please call this tool again with:\n" +
+                "- `osType`: 'linux' or 'darwin' (macOS)\n" +
+                "- `osDistro`: Distribution name (e.g., 'fedora', 'ubuntu', 'rhel', 'macos')\n\n" +
+                "**Examples:**\n" +
+                '- macOS: `{"osType": "darwin", "osDistro": "macos", ...}`\n' +
+                '- Fedora: `{"osType": "linux", "osDistro": "fedora", ...}`\n' +
+                '- Ubuntu: `{"osType": "linux", "osDistro": "ubuntu", ...}`\n' +
+                '- RHEL: `{"osType": "linux", "osDistro": "rhel", ...}`\n\n' +
+                "**Supported distributions:**\n" +
+                "- Debian-based (apt): ubuntu, debian, linux mint\n" +
+                "- Red Hat-based (dnf): fedora, rhel, centos, rocky, alma\n" +
+                "- Arch-based (pacman): arch, manjaro\n" +
+                "- SUSE-based (zypper): opensuse, suse\n" +
+                "- Other: alpine (apk), gentoo (emerge)\n" +
+                "- macOS (brew): darwin, macos\n\n" +
+                "Please ask the user what OS they are using if not already known.",
+            },
+          ],
+          isError: false,
+        };
+      }
+
+      // Build systemInfo from provided args
+      const systemInfo: SystemInfo = {
+        osType: args.osType,
+        osDistro: args.osDistro,
+        packageManager: args.packageManager,
+      };
 
       // Auto-detect: If requirementsFile looks like collection names, move them to collections
       // Collection format: namespace.collection (e.g., amazon.aws, ansible.posix)
@@ -221,7 +264,10 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
         delete args.requirementsFile;
       }
 
-      const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+      const result = await setupDevelopmentEnvironment(workspaceRoot, {
+        ...args,
+        systemInfo,
+      });
 
       // Prepend notes to output
       const output = notes.length

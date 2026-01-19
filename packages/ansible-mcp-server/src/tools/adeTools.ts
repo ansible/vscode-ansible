@@ -22,6 +22,143 @@ export interface ADECommandResult {
 }
 
 /**
+ * System information provided by the LLM for OS-specific package management.
+ * The LLM MUST provide osType and osDistro - no auto-detection fallback.
+ */
+export interface SystemInfo {
+  /** Operating system type (e.g., 'linux', 'darwin', 'windows') - REQUIRED */
+  osType: string;
+  /** OS distribution name (e.g., 'ubuntu', 'fedora', 'rhel', 'debian', 'macos') - REQUIRED for Linux */
+  osDistro?: string;
+  /** OS version (e.g., '22.04', '39', '14') */
+  osVersion?: string;
+  /** Override package manager (e.g., 'apt', 'dnf', 'yum', 'brew', 'pacman') */
+  packageManager?: string;
+}
+
+/**
+ * Follow-up task for the agent to perform.
+ */
+export interface FollowUpTask {
+  /** Type of task */
+  taskType:
+    | "install_system_packages"
+    | "install_python_packages"
+    | "run_command"
+    | "verify_installation";
+  /** Human-readable description of the task */
+  description: string;
+  /** The command to execute for this task */
+  command: string;
+  /** Packages to install (if applicable) */
+  packages?: string[];
+  /** Priority of the task (1 = highest) */
+  priority: number;
+  /** Whether this task is required for the environment to work */
+  required: boolean;
+}
+
+/**
+ * Result of setup development environment with follow-up tasks.
+ */
+export interface SetupEnvironmentResult extends ADECommandResult {
+  /** Follow-up tasks for system dependencies */
+  followUpTasks?: FollowUpTask[];
+  /** Detected package manager */
+  detectedPackageManager?: string;
+}
+
+/**
+ * Package manager mapping for different OS distributions.
+ */
+const PACKAGE_MANAGER_MAP: Record<string, string> = {
+  // Linux distributions
+  ubuntu: "apt",
+  debian: "apt",
+  "linux mint": "apt",
+  fedora: "dnf",
+  rhel: "dnf",
+  "red hat": "dnf",
+  centos: "dnf",
+  rocky: "dnf",
+  alma: "dnf",
+  arch: "pacman",
+  manjaro: "pacman",
+  opensuse: "zypper",
+  suse: "zypper",
+  alpine: "apk",
+  gentoo: "emerge",
+  // macOS
+  darwin: "brew",
+  macos: "brew",
+  mac: "brew",
+};
+
+/**
+ * Install command templates for different package managers.
+ */
+const INSTALL_COMMAND_MAP: Record<string, string> = {
+  apt: "sudo apt-get install -y",
+  dnf: "sudo dnf install -y",
+  yum: "sudo yum install -y",
+  pacman: "sudo pacman -S --noconfirm",
+  zypper: "sudo zypper install -y",
+  apk: "sudo apk add",
+  emerge: "sudo emerge",
+  brew: "brew install",
+};
+
+/**
+ * Determine the package manager based on system information.
+ * NO auto-detection fallback - LLM must provide OS info.
+ *
+ * @param systemInfo - System information provided by the LLM.
+ * @returns The package manager to use.
+ */
+export function getPackageManagerForOS(systemInfo: SystemInfo): string {
+  // If package manager is explicitly provided, use it
+  if (systemInfo.packageManager) {
+    return systemInfo.packageManager.toLowerCase();
+  }
+
+  // Try to detect from OS distro
+  if (systemInfo.osDistro) {
+    const distroLower = systemInfo.osDistro.toLowerCase();
+    for (const [key, manager] of Object.entries(PACKAGE_MANAGER_MAP)) {
+      if (distroLower.includes(key)) {
+        return manager;
+      }
+    }
+  }
+
+  // Fall back to OS type
+  const osTypeLower = systemInfo.osType.toLowerCase();
+  if (osTypeLower === "darwin" || osTypeLower === "macos") {
+    return "brew";
+  }
+
+  // For Linux without specific distro, default to dnf (enterprise common)
+  if (osTypeLower === "linux") {
+    return "dnf";
+  }
+
+  // Last resort default
+  return "apt";
+}
+
+/**
+ * Get the install command for a package manager.
+ *
+ * @param packageManager - The package manager name.
+ * @returns The full install command prefix.
+ */
+export function getInstallCommand(packageManager: string): string {
+  return (
+    INSTALL_COMMAND_MAP[packageManager] || `sudo ${packageManager} install`
+  );
+}
+
+/**
  * Execute a command using child_process.spawn and return the result.
  *
  * @param command - The command to execute.
@@ -538,13 +675,31 @@ export async function setupDevelopmentEnvironment(
     collections?: string[];
     installRequirements?: boolean;
     requirementsFile?: string;
+    /** System info for correct package manager - MUST be provided by LLM */
+    systemInfo?: SystemInfo;
   } = {},
-): Promise<ADECommandResult> {
+): Promise<SetupEnvironmentResult> {
   const results: string[] = [];
   let success = true;
+  const followUpTasks: FollowUpTask[] = [];
+
+  // Get package manager from provided system info (no auto-detection)
+  let packageManager = "apt"; // default if no system info
+  let installCmd = getInstallCommand(packageManager);
+
+  if (options.systemInfo) {
+    packageManager = getPackageManagerForOS(options.systemInfo);
+    installCmd = getInstallCommand(packageManager);
+  }
 
   results.push("Starting Ansible development environment setup...");
   results.push(`   Workspace: ${workspaceRoot}`);
+  if (options.systemInfo) {
+    results.push(
+      `   System: ${options.systemInfo.osType}${options.systemInfo.osDistro ? ` (${options.systemInfo.osDistro})` : ""}`,
+    );
+    results.push(`   Package Manager: ${packageManager}`);
+  }
   if (options.pythonVersion) {
     results.push(`   Python version: ${options.pythonVersion}`);
   }
@@ -724,10 +879,32 @@ export async function setupDevelopmentEnvironment(
     );
   }
 
+  // Generate follow-up tasks for system dependencies if system info is provided
+  if (options.systemInfo && options.collections && options.collections.length > 0) {
+    results.push("");
+    results.push("--- System Dependencies Info ---");
+    results.push(`Package Manager: ${packageManager}`);
+    results.push(`Install Command: ${installCmd} <package>`);
+    results.push("");
+    results.push("If you encounter missing system dependencies, use:");
+    results.push(`   ${installCmd} <package-name>`);
+
+    // Add a verification follow-up task
+    followUpTasks.push({
+      taskType: "verify_installation",
+      description: "Verify all dependencies are installed",
+      command: "ade check",
+      priority: 1,
+      required: true,
+    });
+  }
+
   return {
     success,
     output: results.join("\n"),
     error: success ? undefined : "Some operations failed",
+    followUpTasks: followUpTasks.length > 0 ? followUpTasks : undefined,
+    detectedPackageManager: options.systemInfo ? packageManager : undefined,
   };
 }
 
