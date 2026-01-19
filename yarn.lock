@@ -21,6 +21,8 @@ __metadata:
     "@types/lodash": "npm:^4.17.21"
     "@types/node": "npm:^24.10.2"
     "@types/vscode": "npm:^1.85.0"
+    ajv: "npm:^8.17.1"
+    ajv-formats: "npm:^3.0.1"
     antsibull-docs: "npm:^1.1.4"
     fuse.js: "npm:^7.1.0"
     glob: "npm:^13.0.0"
