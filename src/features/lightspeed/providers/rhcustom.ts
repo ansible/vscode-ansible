@@ -268,9 +268,8 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async completionRequest(
-    params: CompletionRequestParams,
+    _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     // Inline suggestions are out of scope for the Red Hat Custom provider currently
     throw new Error(
