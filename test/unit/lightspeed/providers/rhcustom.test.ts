@@ -46,6 +46,7 @@ const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   const mockChatCompletion = vi.fn();
   const MockOpenAICompatibleClient = vi.fn().mockImplementation(function (
     this: { chatCompletion: ReturnType<typeof vi.fn> },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _config: unknown,
   ) {
     this.chatCompletion = mockChatCompletion;
