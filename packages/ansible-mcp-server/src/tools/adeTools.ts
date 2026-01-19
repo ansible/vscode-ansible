@@ -115,7 +115,7 @@ const INSTALL_COMMAND_MAP: Record<string, string> = {
  * @param systemInfo - System information provided by the LLM.
  * @returns The package manager to use.
  */
-export function getPackageManagerForOS(systemInfo: SystemInfo): string {
+function getPackageManagerForOS(systemInfo: SystemInfo): string {
   // If package manager is explicitly provided, use it
   if (systemInfo.packageManager) {
     return systemInfo.packageManager.toLowerCase();
@@ -152,7 +152,7 @@ export function getPackageManagerForOS(systemInfo: SystemInfo): string {
  * @param packageManager - The package manager name.
  * @returns The full install command prefix.
  */
-export function getInstallCommand(packageManager: string): string {
+function getInstallCommand(packageManager: string): string {
   return (
     INSTALL_COMMAND_MAP[packageManager] || `sudo ${packageManager} install`
   );
