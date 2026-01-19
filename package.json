@@ -1083,6 +1083,7 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
     "chai": "^6.2.2",
+    "copy-webpack-plugin": "^13.0.1",
     "cypress-multi-reporters": "^2.0.5",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
