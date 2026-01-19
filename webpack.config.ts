@@ -1,4 +1,5 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
+import CopyPlugin from "copy-webpack-plugin";
 
 import path from "path";
 const webpack = require("webpack");
@@ -105,6 +106,14 @@ const config = {
     new WarningsToErrorsPlugin(),
     new webpack.IgnorePlugin({
       resourceRegExp: /^electron$/,
+    }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "packages/ansible-mcp-server/src/resources/data/*.{md,json,yml}",
+          to: "mcp/data/[name][ext]",
+        },
+      ],
     }),
   ],
   ignoreWarnings: [
