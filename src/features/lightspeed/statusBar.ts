@@ -9,6 +9,38 @@ import {
 import { getLoggedInUserDetails, getUserTypeLabel } from "./utils/webUtils";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import { LightspeedSessionUserInfo } from "../../interfaces/lightspeed";
+
+export interface StatusBarTooltipParams {
+  userInfo?: LightspeedSessionUserInfo;
+  provider?: string;
+  modelName?: string;
+}
+
+export function generateStatusBarTooltipMarkdown(
+  params: StatusBarTooltipParams,
+): string {
+  const { userInfo, provider, modelName } = params;
+  let mdString = "";
+
+  const userType = userInfo?.userType;
+  const role = userInfo?.role;
+
+  if (userType !== undefined || role !== undefined) {
+    mdString = `User Details:\n`;
+    if (userType) {
+      mdString += `- User Type: ${userType}\n`;
+    }
+    if (role) {
+      mdString += `- Role: ${role}\n`;
+    }
+  }
+
+  const effectiveModelName = provider !== "wca" && modelName ? modelName : null;
+  mdString += `Model Details:\n- Model: ${effectiveModelName || LIGHTSPEED_MODEL_DEFAULT}</li>`;
+
+  return mdString;
+}
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
@@ -128,30 +160,19 @@ export class LightspeedStatusBar {
       return undefined;
     }
     const statusBarInfo = getLoggedInUserDetails(userDetails);
-    const userType = statusBarInfo.userInfo?.userType;
-    const role = statusBarInfo.userInfo?.role;
-    let mdString = "";
-    if (userType !== undefined || role !== undefined) {
-      mdString = `<h4>User Details:</h4>\n<hr>\n<ul>`;
-      if (userType) {
-        mdString += `<li>User Type: ${userType}</li>\n`;
-      }
-      if (role) {
-        mdString += `<li>Role: ${role}</li>\n`;
-      }
-      mdString += `</ul>\n`;
-    }
+
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
     const modelName =
       lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
-    mdString += `<h4>Model Details:</h4>
-                  <hr>
-                  <ul>
-                    <li>Model: ${modelName || LIGHTSPEED_MODEL_DEFAULT}</li>
-                  </ul>\n`;
+
+    const mdString = generateStatusBarTooltipMarkdown({
+      userInfo: statusBarInfo.userInfo,
+      provider,
+      modelName,
+    });
 
     const mdStringObj = new vscode.MarkdownString(mdString, true);
-    mdStringObj.supportHtml = true;
-    mdStringObj.isTrusted = true;
 
     lightSpeedManager.statusBarProvider.statusBar.tooltip = mdStringObj;
   }

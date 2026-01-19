@@ -450,7 +450,7 @@
             "type": "boolean"
           },
           "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
+            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults).",
             "order": 2,
             "scope": "resource",
             "type": "string"
