@@ -54,6 +54,7 @@ docstrings
 equalto
 eslintcache
 extest
+extester
 fqcn
 genai
 haaaad
@@ -81,7 +82,6 @@ mymodule
 mynamespace
 myorg
 myproject
-myrole
 nocolor
 noheading
 norecursedirs
