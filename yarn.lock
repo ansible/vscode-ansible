@@ -21,6 +21,8 @@ __metadata:
     "@types/lodash": "npm:^4.17.21"
     "@types/node": "npm:^24.10.2"
     "@types/vscode": "npm:^1.85.0"
+    ajv: "npm:^8.17.1"
+    ajv-formats: "npm:^3.0.1"
     antsibull-docs: "npm:^1.1.4"
     fuse.js: "npm:^7.1.0"
     glob: "npm:^13.0.0"
@@ -3449,6 +3451,7 @@ __metadata:
     "@vscode/vsce": "npm:^3.7.1"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
     chai: "npm:^6.2.2"
+    copy-webpack-plugin: "npm:^13.0.1"
     cypress-multi-reporters: "npm:^2.0.5"
     electron: "npm:^39.2.6"
     eslint: "npm:^9.39.2"
@@ -4402,6 +4405,21 @@ __metadata:
   version: 0.7.2
   resolution: "cookie@npm:0.7.2"
   checksum: 10/24b286c556420d4ba4e9bc09120c9d3db7d28ace2bd0f8ccee82422ce42322f73c8312441271e5eefafbead725980e5996cc02766dbb89a90ac7f5636ede608f
+  languageName: node
+  linkType: hard
+
+"copy-webpack-plugin@npm:^13.0.1":
+  version: 13.0.1
+  resolution: "copy-webpack-plugin@npm:13.0.1"
+  dependencies:
+    glob-parent: "npm:^6.0.1"
+    normalize-path: "npm:^3.0.0"
+    schema-utils: "npm:^4.2.0"
+    serialize-javascript: "npm:^6.0.2"
+    tinyglobby: "npm:^0.2.12"
+  peerDependencies:
+    webpack: ^5.1.0
+  checksum: 10/2abf3b85c32556b1cb9ef47f2198f6497ef414505cf42d249e3b7e65185db738756bec85333b4a32865d1c6b09343ea63eb9e8d154c133ddcebb4c7f066be5af
   languageName: node
   linkType: hard
 
@@ -6074,7 +6092,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob-parent@npm:^6.0.2":
+"glob-parent@npm:^6.0.1, glob-parent@npm:^6.0.2":
   version: 6.0.2
   resolution: "glob-parent@npm:6.0.2"
   dependencies:
@@ -9472,7 +9490,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"schema-utils@npm:^4.3.0, schema-utils@npm:^4.3.3":
+"schema-utils@npm:^4.2.0, schema-utils@npm:^4.3.0, schema-utils@npm:^4.3.3":
   version: 4.3.3
   resolution: "schema-utils@npm:4.3.3"
   dependencies:
