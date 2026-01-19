@@ -132,6 +132,7 @@ export function setWebviewMessageListener(
       }
       if (userFeedback && lightSpeedManager) {
         // Check if WCA provider is active
+        // DO nothing, CI testing
         const provider =
           lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
 
