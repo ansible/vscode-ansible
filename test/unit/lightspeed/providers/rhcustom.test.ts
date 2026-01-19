@@ -44,7 +44,10 @@ Module.prototype.require = function (
 
 const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   const mockChatCompletion = vi.fn();
-  const MockOpenAICompatibleClient = vi.fn().mockImplementation(function (this: any, config: any) {
+  const MockOpenAICompatibleClient = vi.fn().mockImplementation(function (
+    this: { chatCompletion: ReturnType<typeof vi.fn> },
+    _config: unknown,
+  ) {
     this.chatCompletion = mockChatCompletion;
     return this;
   });
@@ -241,7 +244,9 @@ describe("RHCustomProvider", () => {
       };
       const provider = new RHCustomProvider(config);
 
-      expect((provider as any).timeout).toBe(DEFAULT_TIMEOUTS.CUSTOM);
+      expect((provider as unknown as { timeout: number }).timeout).toBe(
+        DEFAULT_TIMEOUTS.CUSTOM,
+      );
     });
 
     it("should use default timeout when not provided", () => {
@@ -252,7 +257,9 @@ describe("RHCustomProvider", () => {
       };
       const provider = new RHCustomProvider(config);
 
-      expect((provider as any).timeout).toBe(DEFAULT_TIMEOUTS.DEFAULT);
+      expect((provider as unknown as { timeout: number }).timeout).toBe(
+        DEFAULT_TIMEOUTS.DEFAULT,
+      );
     });
   });
 
@@ -667,7 +674,7 @@ describe("RHCustomProvider", () => {
 
   describe("Client integration", () => {
     it("should initialize client with correct configuration", () => {
-      const provider = new RHCustomProvider({
+      new RHCustomProvider({
         apiKey: TEST_API_KEYS.RHCUSTOM,
         modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
         baseURL: API_ENDPOINTS.RHCUSTOM,

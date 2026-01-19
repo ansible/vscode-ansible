@@ -126,7 +126,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   /**
-   * Extract YAML content from code blocks, stopping at the closing ```
+   * Extract YAML content from code blocks, stopping at the closing code fence
    * This handles cases where the API response includes explanatory text after the code block
    */
   private extractYamlFromCodeBlock(content: string): string {
@@ -136,8 +136,8 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
     // Find the first code block
     const startMatch = content.match(codeBlockStart);
-    if (startMatch) {
-      const startIndex = startMatch.index! + startMatch[0].length;
+    if (startMatch && startMatch.index !== undefined) {
+      const startIndex = startMatch.index + startMatch[0].length;
       // Find the closing ``` after the start
       const remainingContent = content.substring(startIndex);
       const endMatch = remainingContent.match(codeBlockEnd);
@@ -185,6 +185,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleRHCustomError(error: any, operation: string): Error {
     // Handle OpenAIClientError from the client
     if (error instanceof OpenAIClientError) {
@@ -268,7 +269,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   async completionRequest(
-    params: CompletionRequestParams,
+    _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     // Inline suggestions are out of scope for the Red Hat Custom provider currently
     throw new Error(
