@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent, Position } from "vscode-languageserver";
-import { expect } from "chai";
+import { expect, beforeAll, afterAll } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -54,9 +54,9 @@ function testPlayKeywords(
         await context.docsLibrary,
       );
       if (actualHover) {
-        expect(get_hover_value(actualHover)).includes(doc);
+        expect(get_hover_value(actualHover)).toContain(doc);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
   });
@@ -82,9 +82,9 @@ function testTaskKeywords(
         await context.docsLibrary,
       );
       if (actualHover) {
-        expect(get_hover_value(actualHover)).includes(doc);
+        expect(get_hover_value(actualHover)).toContain(doc);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
   });
@@ -110,9 +110,9 @@ function testBlockKeywords(
         await context.docsLibrary,
       );
       if (actualHover) {
-        expect(get_hover_value(actualHover)).includes(doc);
+        expect(get_hover_value(actualHover)).toContain(doc);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
   });
@@ -138,9 +138,9 @@ function testRoleKeywords(
         await context.docsLibrary,
       );
       if (actualHover) {
-        expect(get_hover_value(actualHover)).includes(doc);
+        expect(get_hover_value(actualHover)).toContain(doc);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
   });
@@ -170,7 +170,7 @@ function testModuleNames(
         position,
         await context.docsLibrary,
       );
-      expect(get_hover_value(actualHover)).includes(doc);
+      expect(get_hover_value(actualHover)).toContain(doc);
     });
   });
 }
@@ -182,7 +182,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
       { line: 13, character: 24 } as Position,
       await context.docsLibrary,
     );
-    expect(actualHover).to.be.null;
+    expect(actualHover).toBeNull();
   });
 
   it("should not provide hovering for improper module name and options", async function () {
@@ -191,7 +191,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
       { line: 13, character: 8 } as Position,
       await context.docsLibrary,
     );
-    expect(actualHover).to.be.null;
+    expect(actualHover).toBeNull();
   });
 
   it("should not provide hovering for improper module option", async function () {
@@ -200,7 +200,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
       { line: 14, character: 10 } as Position,
       await context.docsLibrary,
     );
-    expect(actualHover).to.be.null;
+    expect(actualHover).toBeNull();
   });
 }
 
@@ -233,7 +233,7 @@ function testPlaybookAdjacentCollection(
         position,
         await context.docsLibrary,
       );
-      expect(get_hover_value(actualHover)).includes(doc);
+      expect(get_hover_value(actualHover)).toContain(doc);
     });
   });
 }
@@ -264,12 +264,12 @@ function testNonPlaybookAdjacentCollection(
       );
 
       if (!doc) {
-        expect(actualHover).to.be.null;
+        expect(actualHover).toBeNull();
       } else {
         expect(
           get_hover_value(actualHover),
           `actual hover -> ${actualHover}`,
-        ).includes(doc);
+        ).toContain(doc);
       }
     });
   });
@@ -277,41 +277,41 @@ function testNonPlaybookAdjacentCollection(
 
 describe("doHover()", function () {
   const workspaceManager = createTestWorkspaceManager();
-  let fixtureFilePath = "hover/tasks.yml";
-  let fixtureFileUri = resolveDocUri(fixtureFilePath);
-  let context = workspaceManager.getContext(fixtureFileUri);
+  const fixtureFilePath = "hover/tasks.yml";
+  const fixtureFileUri = resolveDocUri(fixtureFilePath);
+  const context = workspaceManager.getContext(fixtureFileUri);
 
-  let textDoc = getDoc(fixtureFilePath);
-  let docSettings = context?.documentSettings.get(textDoc.uri);
+  const textDoc = getDoc(fixtureFilePath);
+  const docSettings = context?.documentSettings.get(textDoc.uri);
   expect(docSettings !== undefined);
 
   describe("Play keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await enableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {
         testPlayKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {
@@ -322,31 +322,31 @@ describe("doHover()", function () {
 
   describe("Task keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await enableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {
         testTaskKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {
@@ -357,12 +357,12 @@ describe("doHover()", function () {
 
   describe("Block keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await enableExecutionEnvironmentSettings(docSettings, context);
         }
       });
 
@@ -370,19 +370,19 @@ describe("doHover()", function () {
         testBlockKeywords(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings && context) {
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
 
@@ -391,214 +391,262 @@ describe("doHover()", function () {
       }
     });
   });
-  fixtureFilePath = "hover/roles.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-
-  textDoc = getDoc(fixtureFilePath);
-  docSettings = context?.documentSettings.get(textDoc.uri);
+  // Capture variables for role keywords tests
+  const roleFixturePath = "hover/roles.yml";
+  const roleFixtureUri = resolveDocUri(roleFixturePath);
+  const roleContext = workspaceManager.getContext(roleFixtureUri);
+  const roleTextDoc = getDoc(roleFixturePath);
+  const roleDocSettings = roleContext?.documentSettings.get(roleTextDoc.uri);
 
   describe("Role keywords hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (roleDocSettings && roleContext) {
+          await enableExecutionEnvironmentSettings(
+            roleDocSettings,
+            roleContext,
+          );
         }
       });
 
-      if (context) {
-        testRoleKeywords(context, textDoc);
+      if (roleContext) {
+        testRoleKeywords(roleContext, roleTextDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (roleDocSettings && roleContext) {
+          await disableExecutionEnvironmentSettings(
+            roleDocSettings,
+            roleContext,
+          );
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (roleDocSettings && roleContext) {
+          await disableExecutionEnvironmentSettings(
+            roleDocSettings,
+            roleContext,
+          );
         }
       });
 
-      if (context) {
-        testRoleKeywords(context, textDoc);
+      if (roleContext) {
+        testRoleKeywords(roleContext, roleTextDoc);
       }
     });
   });
 
-  fixtureFilePath = "hover/tasks.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-
-  textDoc = getDoc(fixtureFilePath);
-  docSettings = context?.documentSettings.get(textDoc.uri);
+  // Capture variables for module name and no hover tests
+  const moduleFixturePath = "hover/tasks.yml";
+  const moduleFixtureUri = resolveDocUri(moduleFixturePath);
+  const moduleContext = workspaceManager.getContext(moduleFixtureUri);
+  const moduleTextDoc = getDoc(moduleFixturePath);
+  const moduleDocSettings = moduleContext?.documentSettings.get(
+    moduleTextDoc.uri,
+  );
 
   describe("Module name and options hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await enableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
 
-      if (context) {
-        testModuleNames(context, textDoc);
+      if (moduleContext) {
+        testModuleNames(moduleContext, moduleTextDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await disableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await disableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
 
-      if (context) {
-        testModuleNames(context, textDoc);
+      if (moduleContext) {
+        testModuleNames(moduleContext, moduleTextDoc);
       }
     });
   });
 
   describe("No hover", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await enableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
 
-      if (context) {
-        testNoHover(context, textDoc);
+      if (moduleContext) {
+        testNoHover(moduleContext, moduleTextDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await disableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (moduleDocSettings && moduleContext) {
+          await disableExecutionEnvironmentSettings(
+            moduleDocSettings,
+            moduleContext,
+          );
         }
       });
 
-      if (context) {
-        testNoHover(context, textDoc);
+      if (moduleContext) {
+        testNoHover(moduleContext, moduleTextDoc);
       }
     });
   });
 
-  fixtureFilePath = "playbook_adjacent_collection/playbook.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  docSettings = context?.documentSettings.get(textDoc.uri);
+  // Capture variables for playbook adjacent collection tests
+  const pacFixturePath = "playbook_adjacent_collection/playbook.yml";
+  const pacFixtureUri = resolveDocUri(pacFixturePath);
+  const pacContext = workspaceManager.getContext(pacFixtureUri);
+  const pacTextDoc = getDoc(pacFixturePath);
+  const pacDocSettings = pacContext?.documentSettings.get(pacTextDoc.uri);
 
   describe("Hover for playbook adjacent collection", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (pacDocSettings && pacContext) {
+          await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         }
       });
 
-      if (context) {
-        testPlaybookAdjacentCollection(context, textDoc);
+      if (pacContext) {
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (pacDocSettings && pacContext) {
+          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (pacDocSettings && pacContext) {
+          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         }
       });
 
-      if (context) {
-        testPlaybookAdjacentCollection(context, textDoc);
+      if (pacContext) {
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
       }
     });
   });
 
-  fixtureFilePath =
+  // Capture variables for non-adjacent playbook tests
+  const nonAdjacentFixturePath =
     "playbook_adjacent_collection/non_adjacent_playbooks/playbook2.yml";
-  fixtureFileUri = resolveDocUri(fixtureFilePath);
-  context = workspaceManager.getContext(fixtureFileUri);
-  textDoc = getDoc(fixtureFilePath);
-  docSettings = context?.documentSettings.get(textDoc.uri);
+  const nonAdjacentFixtureUri = resolveDocUri(nonAdjacentFixturePath);
+  const nonAdjacentContext = workspaceManager.getContext(nonAdjacentFixtureUri);
+  const nonAdjacentTextDoc = getDoc(nonAdjacentFixturePath);
+  const nonAdjacentDocSettings = nonAdjacentContext?.documentSettings.get(
+    nonAdjacentTextDoc.uri,
+  );
 
   describe("Negate hover for non playbook adjacent collection", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
-        if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+        if (nonAdjacentDocSettings && nonAdjacentContext) {
+          await enableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         }
       });
 
-      if (context) {
-        testNonPlaybookAdjacentCollection(context, textDoc);
+      if (nonAdjacentContext) {
+        testNonPlaybookAdjacentCollection(
+          nonAdjacentContext,
+          nonAdjacentTextDoc,
+        );
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (nonAdjacentDocSettings && nonAdjacentContext) {
+          await disableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+        if (nonAdjacentDocSettings && nonAdjacentContext) {
+          await disableExecutionEnvironmentSettings(
+            nonAdjacentDocSettings,
+            nonAdjacentContext,
+          );
         }
       });
 
-      if (context) {
-        testNonPlaybookAdjacentCollection(context, textDoc);
+      if (nonAdjacentContext) {
+        testNonPlaybookAdjacentCollection(
+          nonAdjacentContext,
+          nonAdjacentTextDoc,
+        );
       }
     });
   });

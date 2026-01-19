@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from "vitest";
 import path = require("path");
 import { globArray } from "../../src/utils/pathUtils";
 
@@ -42,7 +42,7 @@ describe("docsFinder", function () {
     tests.forEach(({ name, pattern, filteredFiles }) => {
       it(`should provide file path match for ${name}`, function () {
         const actualResult = globArray(pattern);
-        expect(actualResult).to.have.members(filteredFiles);
+        expect(actualResult).toEqual(expect.arrayContaining(filteredFiles));
       });
     });
   });

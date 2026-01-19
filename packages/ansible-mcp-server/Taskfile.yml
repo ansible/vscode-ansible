@@ -52,8 +52,8 @@ tasks:
       - test -f ../../out/junit/mcp/.passed
     sources:
       - package.json
-      - test/**/*.*
       - src/**/*.*
+      - test/**/*.*
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"

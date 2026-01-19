@@ -1,7 +1,10 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
 import { readFileSync, rmSync } from "fs";
-import { WorkspaceManager } from "../src/services/workspaceManager";
+import {
+  WorkspaceManager,
+  WorkspaceFolderContext,
+} from "../src/services/workspaceManager";
 import {
   CompletionItem,
   createConnection,
@@ -12,18 +15,18 @@ import { ExtensionSettings } from "../src/interfaces/extensionSettings";
 
 import Fuse from "fuse.js";
 
-export const FIXTURES_BASE_PATH = path.join("test", "fixtures");
-export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
   "collections",
 );
-export const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
+const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "playbook_adjacent_collection",
   "collections",
 );
-export const ANSIBLE_CONFIG_FILE = path.resolve(
+const ANSIBLE_CONFIG_FILE = path.resolve(
   FIXTURES_BASE_PATH,
   "completion",
   "ansible.cfg",
@@ -45,10 +48,6 @@ export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   }
 }
 
-export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
-}
-
 export function setAnsibleConfigEnv(): void {
   process.env.ANSIBLE_CONFIG = ANSIBLE_CONFIG_FILE;
 }
@@ -59,6 +58,7 @@ export function unsetAnsibleConfigEnv(): void {
 
 export async function enableExecutionEnvironmentSettings(
   docSettings: Thenable<ExtensionSettings>,
+  context?: WorkspaceFolderContext,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = true;
   (await docSettings).executionEnvironment.volumeMounts = [
@@ -73,13 +73,20 @@ export async function enableExecutionEnvironmentSettings(
       options: "ro", // read-only option for volume mounts
     },
   ];
+  if (context) {
+    context.clearCachedServices();
+  }
 }
 
 export async function disableExecutionEnvironmentSettings(
   docSettings: Thenable<ExtensionSettings>,
+  context?: WorkspaceFolderContext,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = false;
   (await docSettings).executionEnvironment.volumeMounts = [];
+  if (context) {
+    context.clearCachedServices();
+  }
 }
 
 export function resolveDocUri(filename: string): string {

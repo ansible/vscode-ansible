@@ -42,6 +42,7 @@ export default defineConfig({
           __dirname,
           "webviews/lightspeed/explanation.html",
         ),
+        explorer: path.resolve(__dirname, "webviews/lightspeed/explorer.html"),
         "hello-world": path.resolve(
           __dirname,
           "webviews/lightspeed/hello-world.html",
