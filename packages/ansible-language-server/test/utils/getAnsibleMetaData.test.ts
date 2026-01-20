@@ -308,7 +308,7 @@ describe("getAnsibleMetaData()", function () {
       pythonInfoForTest = getPythonTestInfo();
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
-    }, 15000); // we seen failing on WSL with 10s implicit timeout
+    }, 60000); // EE operations (container pull/start) can be slow on CI
 
     describe("presence of execution environment details", function () {
       it("should have a valid container engine", function () {
