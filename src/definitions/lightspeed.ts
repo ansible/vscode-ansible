@@ -63,6 +63,8 @@ export namespace LightSpeedCommands {
   export const LIGHTSPEED_OPEN_TRIAL_PAGE = "ansible.lightspeed.openTrialPage";
   export const LIGHTSPEED_REFRESH_EXPLORER_VIEW =
     "ansible.lightspeed.explorer.refresh";
+  export const LIGHTSPEED_OPEN_LLM_PROVIDER_SETTINGS =
+    "ansible.lightspeed.openLlmProviderSettings";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";

@@ -225,6 +225,10 @@
       {
         "command": "ansible.lightspeed.switchProvider",
         "title": "Ansible Lightspeed: Switch Provider"
+      },
+      {
+        "command": "ansible.lightspeed.openLlmProviderSettings",
+        "title": "Ansible Lightspeed: Open LLM Provider Settings"
       }
     ],
     "configuration": [
@@ -741,13 +745,6 @@
           "id": "ansible-home",
           "name": "Ansible Development Tools",
           "type": "webview"
-        },
-        {
-          "icon": "$(hubot)",
-          "id": "llm-provider-webview",
-          "name": "LLM Provider",
-          "type": "webview",
-          "when": "config.ansible.lightspeed.enabled"
         },
         {
           "icon": "images/ansible.svg",
