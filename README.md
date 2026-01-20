@@ -8,7 +8,7 @@ display what it can do and display well inside:
 - vscode internal extension browser
 
 Full size of the page should not be more than two screens long. Use only
-one video on this page. -->
+one video on this page -->
 
 # Ansible VS Code Extension
 
