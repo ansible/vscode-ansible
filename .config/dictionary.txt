@@ -59,6 +59,7 @@ docstrings
 equalto
 eslintcache
 extest
+extester
 fqcn
 genai
 haaaad
@@ -87,14 +88,15 @@ mymodule
 mynamespace
 myorg
 myproject
-myrole
 nocolor
+noconfirm
 noheading
 norecursedirs
 npmjs
 nqry
 openshiftapps
 ovsx
+pacman
 precheck
 primevue
 priyamsahoo

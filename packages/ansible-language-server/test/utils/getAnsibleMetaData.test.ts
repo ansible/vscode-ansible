@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect, beforeAll, afterAll } from "vitest";
 import path = require("path");
 import {
   ansibleMetaDataEntryType,
@@ -12,6 +12,7 @@ import {
   enableExecutionEnvironmentSettings,
   getDoc,
   resolveDocUri,
+  setFixtureAnsibleCollectionPathEnv,
 } from "../helper";
 
 function getAnsibleTestInfo() {
@@ -98,9 +99,9 @@ function testCommands() {
       it(`should return result for '${args.join(" ")}'`, async function () {
         const output = await getResultsThroughCommandRunner(args[0], args[1]);
         if (result === undefined) {
-          expect(output).to.be.undefined;
+          expect(output).toBeUndefined();
         } else {
-          expect(output?.stdout).contains(result);
+          expect(output?.stdout).toContain(result);
         }
       });
     });
@@ -123,7 +124,8 @@ describe("getAnsibleMetaData()", function () {
   let executionEnvironmentInfoForTest: ansibleMetaDataEntryType = {};
 
   describe("@noee", function () {
-    before(async function () {
+    beforeAll(async () => {
+      setFixtureAnsibleCollectionPathEnv();
       if (context !== undefined) {
         actualAnsibleMetaData = await getAnsibleMetaData(context, undefined);
       }
@@ -135,11 +137,11 @@ describe("getAnsibleMetaData()", function () {
     describe("Verify ansible details", function () {
       it("should contain all the keys for ansible information", function () {
         if (actualAnsibleMetaData["ansible information"]) {
-          expect(Object.keys(ansibleInfoForTest).length).equals(
+          expect(Object.keys(ansibleInfoForTest).length).toBe(
             Object.keys(actualAnsibleMetaData["ansible information"]).length,
           );
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -147,9 +149,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["ansible information"]) {
           expect(
             actualAnsibleMetaData["ansible information"]["core version"],
-          ).includes(ansibleInfoForTest["core version"]);
+          ).toContain(ansibleInfoForTest["core version"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -157,9 +159,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["ansible information"]) {
           expect(
             actualAnsibleMetaData["ansible information"]["location"],
-          ).include(ansibleInfoForTest["location"]);
+          ).toContain(ansibleInfoForTest["location"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -167,9 +169,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["ansible information"]) {
           expect(
             actualAnsibleMetaData["ansible information"]["config file path"],
-          ).to.include(ansibleInfoForTest["config file path"]);
+          ).toContain(ansibleInfoForTest["config file path"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -183,7 +185,7 @@ describe("getAnsibleMetaData()", function () {
               ],
             ).to.include.members(x);
           } else {
-            expect(false);
+            expect(false).toBe(true);
           }
         }
       });
@@ -197,7 +199,7 @@ describe("getAnsibleMetaData()", function () {
             ],
           ).to.include.members(x);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
     });
@@ -205,11 +207,11 @@ describe("getAnsibleMetaData()", function () {
     describe("Verify python details", function () {
       it("should contain all the keys for python information", function () {
         if (actualAnsibleMetaData["python information"]) {
-          expect(Object.keys(pythonInfoForTest).length).equals(
+          expect(Object.keys(pythonInfoForTest).length).toBe(
             Object.keys(actualAnsibleMetaData["python information"]).length,
           );
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -217,9 +219,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["python information"]) {
           expect(
             actualAnsibleMetaData["python information"]["version"],
-          ).includes(pythonInfoForTest["version"]);
+          ).toContain(pythonInfoForTest["version"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -227,9 +229,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["python information"]) {
           expect(
             actualAnsibleMetaData["python information"]["location"],
-          ).include(pythonInfoForTest["location"]);
+          ).toContain(pythonInfoForTest["location"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
     });
@@ -251,14 +253,14 @@ describe("getAnsibleMetaData()", function () {
             (key) => !expectedKeys.includes(key),
           );
 
-          expect(missingKeys).to.deep.equal(
-            [],
-            `Missing keys: ${missingKeys.join(", ")}`,
-          );
-          expect(extraKeys).to.deep.equal(
-            [],
-            `Extra keys: ${extraKeys.join(", ")}`,
-          );
+          expect(missingKeys).toEqual([]);
+          if (missingKeys.length > 0) {
+            throw new Error(`Missing keys: ${missingKeys.join(", ")}`);
+          }
+          expect(extraKeys).toEqual([]);
+          if (extraKeys.length > 0) {
+            throw new Error(`Extra keys: ${extraKeys.join(", ")}`);
+          }
         }
       });
 
@@ -266,9 +268,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["ansible-lint information"]) {
           expect(
             actualAnsibleMetaData["ansible-lint information"]["version"],
-          ).includes(ansibleLintInfoForTest["version"]);
+          ).toContain(ansibleLintInfoForTest["version"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -276,9 +278,9 @@ describe("getAnsibleMetaData()", function () {
         if (actualAnsibleMetaData["ansible-lint information"]) {
           expect(
             actualAnsibleMetaData["ansible-lint information"]["location"],
-          ).include(ansibleLintInfoForTest["location"]);
+          ).toContain(ansibleLintInfoForTest["location"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
     });
@@ -294,9 +296,9 @@ describe("getAnsibleMetaData()", function () {
   });
 
   describe("@ee", function () {
-    before(async function () {
+    beforeAll(async () => {
       if (docSettings) {
-        await enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings, context);
       }
 
       if (context) {
@@ -306,20 +308,18 @@ describe("getAnsibleMetaData()", function () {
       pythonInfoForTest = getPythonTestInfo();
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
-    });
+    }, 60000); // EE operations (container pull/start) can be slow on CI
 
     describe("presence of execution environment details", function () {
       it("should have a valid container engine", function () {
         if (actualAnsibleMetaData["execution environment information"]) {
-          expect(
-            executionEnvironmentInfoForTest["container engine"],
-          ).to.include(
+          expect(executionEnvironmentInfoForTest["container engine"]).toContain(
             actualAnsibleMetaData["execution environment information"][
               "container engine"
             ],
           );
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
@@ -329,15 +329,15 @@ describe("getAnsibleMetaData()", function () {
             actualAnsibleMetaData["execution environment information"][
               "container image"
             ],
-          ).to.include(executionEnvironmentInfoForTest["container image"]);
+          ).toContain(executionEnvironmentInfoForTest["container image"]);
         } else {
-          expect(false);
+          expect(false).toBe(true);
         }
       });
 
-      after(async function () {
+      afterAll(async function () {
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });

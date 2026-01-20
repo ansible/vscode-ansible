@@ -27,8 +27,7 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - .c8rc.json
-      - .mocharc.json
+      - vitest.config.ts
       - package.json
       - yarn.lock
       - pyproject.toml
@@ -68,14 +67,11 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - .c8rc.json
-      - .mocharc.json
+      - vitest.config.ts
     generates:
-      - ../../out/junit/als/.passed
+      - ../../out/junit/als/als-test-results.xml
     cmds:
-      - rm -f ../../out/junit/als/.passed
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
-      - touch ../../out/junit/als/.passed
   test-with-ee:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Run only ee tests

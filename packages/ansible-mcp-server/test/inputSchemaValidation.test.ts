@@ -240,10 +240,12 @@ describe("MCP Tool InputSchema Validation", () => {
       expectToolHasInputSchema("ade_setup_environment");
     });
 
-    it("should parse valid arguments with all optional parameters", () => {
+    it("should parse valid arguments with all parameters including OS info", () => {
       testToolValidation(
         "ade_setup_environment",
         {
+          osType: "linux",
+          osDistro: "fedora",
           envName: "test-env",
           pythonVersion: "3.11",
           collections: ["ansible.builtin", "community.general"],
@@ -254,7 +256,7 @@ describe("MCP Tool InputSchema Validation", () => {
       );
     });
 
-    it("should parse valid arguments with empty object (all optional)", () => {
+    it("should parse valid arguments with empty object (prompts for OS)", () => {
       testToolValidation("ade_setup_environment", {}, true);
     });
 
@@ -484,7 +486,10 @@ describe("MCP Tool InputSchema Validation", () => {
         },
         {
           toolName: "ade_setup_environment",
-          validArgs: {},
+          validArgs: {
+            osType: "linux",
+            osDistro: "ubuntu",
+          },
         },
         {
           toolName: "create_ansible_projects",

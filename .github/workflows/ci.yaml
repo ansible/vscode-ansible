@@ -55,7 +55,7 @@ jobs:
           show-progress: false
 
       - name: task setup
-        timeout-minutes: 1 # expected under 10s for container builds
+        timeout-minutes: 2 # expected under 10s for container builds
         run: |
           set -ex
           pwd
@@ -261,9 +261,18 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Ensure .env file is automatically loaded (mise)
+      # Workaround for: https://github.com/actions/runner/issues/1864
+      - name: Ensure HOME is defined
         run: |
           set -exuo pipefail
+          if [ -z "${HOME:-}" ]; then
+            HOME=$(getent passwd "$(id -u)" | cut -d: -f6)
+            export HOME
+          fi
+          echo "HOME=$HOME" >> $GITHUB_ENV
+
+      - name: Ensure .env file is automatically loaded (mise)
+        run: |
           mise reshim
           mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
@@ -327,7 +336,7 @@ jobs:
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task e2e
+      - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
@@ -337,7 +346,7 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui
+      - name: task ui (extest)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
         run: |
@@ -365,7 +374,7 @@ jobs:
             out/coverage
             out/junit
             out/log
-            out/test-resources/screenshots
+            out/test-resources/screenshots/**/*
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs

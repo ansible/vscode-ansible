@@ -159,7 +159,17 @@ describe("MCP Handlers", () => {
       vi.clearAllMocks();
     });
 
-    it("should setup environment successfully", async () => {
+    it("should prompt for OS info when osType not provided", async () => {
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({});
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toContain("OS Information Required");
+      expect(result.isError).toBe(false);
+    });
+
+    it("should setup environment successfully with OS info", async () => {
       const { setupDevelopmentEnvironment } =
         await import("../src/tools/adeTools.js");
 
@@ -171,6 +181,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         envName: "test-env",
         pythonVersion: "3.11",
         collections: ["ansible.posix"],
@@ -196,7 +208,10 @@ describe("MCP Handlers", () => {
       });
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -214,7 +229,10 @@ describe("MCP Handlers", () => {
       );
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "darwin",
+        osDistro: "macos",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -236,6 +254,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         requirementsFile: "amazon.aws ansible.posix",
       });
 
@@ -265,6 +285,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
         requirementsFile: "requirements.txt",
       });
 
@@ -293,6 +315,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         requirementsFile: "",
       });
 
@@ -320,6 +344,8 @@ describe("MCP Handlers", () => {
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
       const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
         collections: ["community.general"],
         requirementsFile: "amazon.aws",
       });
@@ -344,7 +370,10 @@ describe("MCP Handlers", () => {
       vi.mocked(setupDevelopmentEnvironment).mockRejectedValue("String error");
 
       const handler = createADESetupEnvironmentHandler("/test/workspace");
-      const result = await handler({});
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+      });
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toContain(
@@ -361,6 +390,7 @@ describe("MCP Handlers", () => {
 
     it("should check and install ADT successfully", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockResolvedValue({
         success: true,
@@ -368,17 +398,19 @@ describe("MCP Handlers", () => {
         error: undefined,
       });
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toBe("ADT is installed");
       expect(result.isError).toBe(false);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle ADT check failures", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockResolvedValue({
         success: false,
@@ -386,23 +418,25 @@ describe("MCP Handlers", () => {
         error: "Installation failed",
       });
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toBe("Failed to install ADT");
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle exceptions during ADT check", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockRejectedValue(
         new Error("Check exception"),
       );
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -411,14 +445,16 @@ describe("MCP Handlers", () => {
         "Error checking/installing ADT: Check exception",
       );
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
 
     it("should handle non-Error exceptions during ADT check", async () => {
       const { checkAndInstallADT } = await import("../src/tools/adeTools.js");
+      const workspaceRoot = "/path/to/workspace";
 
       vi.mocked(checkAndInstallADT).mockRejectedValue("String exception");
 
-      const handler = createADTCheckEnvHandler();
+      const handler = createADTCheckEnvHandler(workspaceRoot);
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -427,6 +463,7 @@ describe("MCP Handlers", () => {
         "Error checking/installing ADT: String exception",
       );
       expect(result.isError).toBe(true);
+      expect(checkAndInstallADT).toHaveBeenCalledWith(workspaceRoot);
     });
   });
 
