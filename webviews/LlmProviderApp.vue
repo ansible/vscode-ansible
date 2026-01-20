@@ -20,30 +20,30 @@ interface ProviderInfo {
   }[];
 }
 
+interface ProviderConfig {
+  apiKey: string;
+  modelName: string;
+  apiEndpoint: string;
+}
+
 // State
 const providers = ref<ProviderInfo[]>([]);
-const currentProvider = ref<string>('wca');
-const apiKey = ref<string>('');
-const modelName = ref<string>('');
-const apiEndpoint = ref<string>('');
+const activeProvider = ref<string>('wca');
+const editingProvider = ref<string | null>(null);
 const isLoading = ref<boolean>(true);
 const saveIndicatorVisible = ref<boolean>(false);
 
+// Provider-specific configs (stored locally for editing)
+const providerConfigs = ref<Record<string, ProviderConfig>>({});
+
 // Computed
-const selectedProviderInfo = computed(() => {
-  return providers.value.find(p => p.type === currentProvider.value);
-});
+const getProviderInfo = (type: string) => {
+  return providers.value.find(p => p.type === type);
+};
 
-const needsApiKey = computed(() => {
-  return currentProvider.value !== 'wca';
-});
-
-const showApiEndpoint = computed(() => {
-  // Show API endpoint for all providers
-  // WCA: for on-prem deployments
-  // Google: for localhost testing
-  return true;
-});
+const needsApiKey = (providerType: string) => {
+  return providerType !== 'wca';
+};
 
 // Methods
 const loadProviderSettings = () => {
@@ -52,31 +52,59 @@ const loadProviderSettings = () => {
   });
 };
 
-const saveProviderSettings = () => {
+const setActiveProvider = (providerType: string) => {
+  activeProvider.value = providerType;
+  
+  // Save the active provider change
+  const config = providerConfigs.value[providerType] || { apiKey: '', modelName: '', apiEndpoint: '' };
   vscodeApi.postMessage({
     command: 'saveProviderSettings',
-    provider: currentProvider.value,
-    apiKey: apiKey.value,
-    modelName: modelName.value,
-    apiEndpoint: apiEndpoint.value,
+    provider: providerType,
+    apiKey: config.apiKey,
+    modelName: config.modelName,
+    apiEndpoint: config.apiEndpoint,
   });
   
-  // Show save indicator
+  showSaveIndicator();
+};
+
+const toggleEdit = (providerType: string) => {
+  if (editingProvider.value === providerType) {
+    editingProvider.value = null;
+  } else {
+    editingProvider.value = providerType;
+    // Load the config for this provider if not already loaded
+    if (!providerConfigs.value[providerType]) {
+      const providerInfo = getProviderInfo(providerType);
+      providerConfigs.value[providerType] = {
+        apiKey: '',
+        modelName: '',
+        apiEndpoint: providerInfo?.defaultEndpoint || '',
+      };
+    }
+  }
+};
+
+const saveProviderConfig = (providerType: string) => {
+  const config = providerConfigs.value[providerType];
+  if (!config) return;
+  
+  vscodeApi.postMessage({
+    command: 'saveProviderSettings',
+    provider: providerType,
+    apiKey: config.apiKey,
+    modelName: config.modelName,
+    apiEndpoint: config.apiEndpoint,
+  });
+  
+  showSaveIndicator();
+};
+
+const showSaveIndicator = () => {
   saveIndicatorVisible.value = true;
   setTimeout(() => {
     saveIndicatorVisible.value = false;
   }, 2000);
-};
-
-// Handle provider change - let backend load stored settings for new provider
-const onProviderChange = () => {
-  // Clear endpoint and model (these are provider-specific defaults)
-  // API key is NOT cleared - backend stores keys per-provider and will return the saved key
-  modelName.value = '';
-  apiEndpoint.value = '';
-  
-  // Save provider change - backend will return stored API key for this provider
-  saveProviderSettings();
 };
 
 // Message handler
@@ -86,10 +114,28 @@ const handleMessage = (event: MessageEvent) => {
   switch (message.command) {
     case 'providerSettings':
       providers.value = message.providers || [];
-      currentProvider.value = message.currentProvider || 'wca';
-      apiKey.value = message.apiKey || '';
-      modelName.value = message.modelName || '';
-      apiEndpoint.value = message.apiEndpoint || '';
+      activeProvider.value = message.currentProvider || 'wca';
+      
+      // Initialize configs for all providers
+      providers.value.forEach(provider => {
+        if (!providerConfigs.value[provider.type]) {
+          providerConfigs.value[provider.type] = {
+            apiKey: '',
+            modelName: '',
+            apiEndpoint: provider.defaultEndpoint || '',
+          };
+        }
+      });
+      
+      // Update the active provider's config with received values
+      if (providerConfigs.value[activeProvider.value]) {
+        providerConfigs.value[activeProvider.value] = {
+          apiKey: message.apiKey || '',
+          modelName: message.modelName || '',
+          apiEndpoint: message.apiEndpoint || '',
+        };
+      }
+      
       isLoading.value = false;
       break;
   }
@@ -114,77 +160,102 @@ onMounted(() => {
         Loading provider settings...
       </div>
 
-      <div v-else class="provider-container">
-        <!-- Provider Selection -->
-        <div class="section">
-          <label for="provider-select" class="section-label">LLM Provider</label>
-          <select 
-            id="provider-select" 
-            v-model="currentProvider" 
-            class="provider-select"
-            @change="onProviderChange"
-          >
-            <option 
-              v-for="provider in providers" 
-              :key="provider.type" 
-              :value="provider.type"
-            >
-              {{ provider.displayName }}
-            </option>
-          </select>
-          <p class="description">{{ selectedProviderInfo?.description }}</p>
-          <span class="provider-badge">
-            <span class="codicon codicon-check"></span>
-            Currently active
-          </span>
-        </div>
+      <div v-else class="provider-list">
+        <!-- Provider Rows -->
+        <div 
+          v-for="provider in providers" 
+          :key="provider.type" 
+          class="provider-row"
+          :class="{ 'is-active': activeProvider === provider.type, 'is-editing': editingProvider === provider.type }"
+        >
+          <!-- Provider Header Row -->
+          <div class="provider-header">
+            <div class="provider-info">
+              <div class="provider-name">
+                <span class="codicon codicon-server"></span>
+                {{ provider.displayName }}
+              </div>
+              <div class="provider-description">{{ provider.description }}</div>
+            </div>
+            
+            <div class="provider-actions">
+              <button 
+                class="action-btn edit-btn"
+                :class="{ 'active': editingProvider === provider.type }"
+                @click="toggleEdit(provider.type)"
+                title="Edit configuration"
+              >
+                <span class="codicon codicon-edit"></span>
+                Edit
+              </button>
+              
+              <button 
+                v-if="activeProvider !== provider.type"
+                class="action-btn activate-btn"
+                @click="setActiveProvider(provider.type)"
+                title="Set as active provider"
+              >
+                <span class="codicon codicon-check"></span>
+                Activate
+              </button>
+              
+              <span v-else class="active-badge">
+                <span class="codicon codicon-check-all"></span>
+                Active
+              </span>
+            </div>
+          </div>
+          
+          <!-- Provider Config Panel (shown when editing) -->
+          <div v-if="editingProvider === provider.type" class="provider-config">
+            <!-- API Endpoint -->
+            <div class="config-field">
+              <label :for="`api-endpoint-${provider.type}`" class="field-label">API Endpoint</label>
+              <input 
+                :id="`api-endpoint-${provider.type}`"
+                v-model="providerConfigs[provider.type].apiEndpoint" 
+                type="text" 
+                class="text-input"
+                :placeholder="provider.defaultEndpoint || 'Leave empty for default'"
+                @blur="saveProviderConfig(provider.type)"
+              />
+              <p class="field-description">
+                {{ provider.configSchema.find(c => c.key === 'apiEndpoint')?.description || 'API endpoint URL. Leave empty to use the default endpoint.' }}
+              </p>
+            </div>
 
-        <!-- API Endpoint -->
-        <div v-if="showApiEndpoint" class="section">
-          <label for="api-endpoint" class="section-label">API Endpoint</label>
-          <input 
-            id="api-endpoint" 
-            v-model="apiEndpoint" 
-            type="text" 
-            class="text-input"
-            :placeholder="selectedProviderInfo?.defaultEndpoint || 'Leave empty for default'"
-            @blur="saveProviderSettings"
-          />
-          <p class="description">
-            {{ selectedProviderInfo?.configSchema.find(c => c.key === 'apiEndpoint')?.description || 'API endpoint URL. Leave empty to use the default endpoint.' }}
-          </p>
-        </div>
+            <!-- API Key (for non-WCA providers) -->
+            <div v-if="needsApiKey(provider.type)" class="config-field">
+              <label :for="`api-key-${provider.type}`" class="field-label">API Key</label>
+              <input 
+                :id="`api-key-${provider.type}`"
+                v-model="providerConfigs[provider.type].apiKey" 
+                type="password" 
+                class="text-input"
+                :placeholder="provider.configSchema.find(c => c.key === 'apiKey')?.placeholder || 'Enter your API key'"
+                @blur="saveProviderConfig(provider.type)"
+              />
+              <p class="field-description">
+                {{ provider.configSchema.find(c => c.key === 'apiKey')?.description }}
+              </p>
+            </div>
 
-        <!-- API Key (for non-WCA providers) -->
-        <div v-if="needsApiKey" class="section">
-          <label for="api-key" class="section-label">API Key</label>
-          <input 
-            id="api-key" 
-            v-model="apiKey" 
-            type="password" 
-            class="text-input"
-            :placeholder="selectedProviderInfo?.configSchema.find(c => c.key === 'apiKey')?.placeholder || 'Enter your API key'"
-            @blur="saveProviderSettings"
-          />
-          <p class="description">
-            {{ selectedProviderInfo?.configSchema.find(c => c.key === 'apiKey')?.description }}
-          </p>
-        </div>
-
-        <!-- Model Name (for non-WCA providers) -->
-        <div v-if="needsApiKey" class="section">
-          <label for="model-name" class="section-label">Model Name</label>
-          <input 
-            id="model-name" 
-            v-model="modelName" 
-            type="text" 
-            class="text-input"
-            :placeholder="selectedProviderInfo?.configSchema.find(c => c.key === 'modelName')?.placeholder || 'Leave empty for default'"
-            @blur="saveProviderSettings"
-          />
-          <p class="description">
-            {{ selectedProviderInfo?.configSchema.find(c => c.key === 'modelName')?.description || 'Optional: Specify a model name to use. Leave empty to use the provider default.' }}
-          </p>
+            <!-- Model Name (for non-WCA providers) -->
+            <div v-if="needsApiKey(provider.type)" class="config-field">
+              <label :for="`model-name-${provider.type}`" class="field-label">Model Name</label>
+              <input 
+                :id="`model-name-${provider.type}`"
+                v-model="providerConfigs[provider.type].modelName" 
+                type="text" 
+                class="text-input"
+                :placeholder="provider.configSchema.find(c => c.key === 'modelName')?.placeholder || 'Leave empty for default'"
+                @blur="saveProviderConfig(provider.type)"
+              />
+              <p class="field-description">
+                {{ provider.configSchema.find(c => c.key === 'modelName')?.description || 'Optional: Specify a model name to use. Leave empty to use the provider default.' }}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
