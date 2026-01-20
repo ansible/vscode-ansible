@@ -60,7 +60,7 @@ import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
-import { LlmProviderWebviewViewProvider } from "./features/lightspeed/llmProviderWebviewViewProvider";
+import { LlmProviderPanel } from "./features/lightspeed/llmProviderPanel";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
@@ -448,21 +448,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(quickLinksDisposable);
 
-  // Register LLM Provider webview
-  const llmProviderViewProvider = new LlmProviderWebviewViewProvider(
-    context.extensionUri,
-    context,
-    extSettings,
-    lightSpeedManager.providerManager,
-    llmProviderSettings,
+  // Register LLM Provider Settings panel command
+  const openLlmProviderSettingsCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_OPEN_LLM_PROVIDER_SETTINGS,
+    () => {
+      LlmProviderPanel.render(
+        context,
+        extSettings,
+        lightSpeedManager.providerManager,
+        llmProviderSettings,
+      );
+    },
   );
 
-  const llmProviderDisposable = window.registerWebviewViewProvider(
-    LlmProviderWebviewViewProvider.viewType,
-    llmProviderViewProvider,
-  );
-
-  context.subscriptions.push(llmProviderDisposable);
+  context.subscriptions.push(openLlmProviderSettingsCommand);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(

@@ -1,50 +1,84 @@
-/* LLM Provider View Styles */
+/* LLM Provider Settings Panel Styles */
 #llmProviderView {
-  padding: 12px;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px;
   font-family: var(--vscode-font-family);
   font-size: var(--vscode-font-size);
   color: var(--vscode-foreground);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.settings-wrapper {
+  width: 100%;
+  max-width: 600px;
+}
+
+.settings-header {
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0 0 8px 0;
+  color: var(--vscode-foreground);
+}
+
+.settings-header p {
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .loading {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 20px;
   color: var(--vscode-descriptionForeground);
+  font-size: 14px;
 }
 
 .provider-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  padding: 16px;
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border);
+  border-radius: 6px;
 }
 
 .section-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   color: var(--vscode-foreground);
   margin-bottom: 4px;
 }
 
 .provider-select {
   width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px;
   background-color: var(--vscode-dropdown-background);
   color: var(--vscode-dropdown-foreground);
   border: 1px solid var(--vscode-dropdown-border);
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
 .provider-select:hover {
@@ -59,14 +93,15 @@
 
 .text-input {
   width: 100%;
-  padding: 6px 10px;
+  padding: 8px 12px;
   background-color: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
   border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   outline: none;
   box-sizing: border-box;
+  transition: border-color 0.15s ease;
 }
 
 .text-input:hover {
@@ -87,7 +122,31 @@
   font-size: 12px;
   color: var(--vscode-descriptionForeground);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
+}
+
+.provider-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.save-indicator {
+  font-size: 11px;
+  color: var(--vscode-charts-green);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.save-indicator.visible {
+  opacity: 1;
 }
 
 /* Codicon animations */
