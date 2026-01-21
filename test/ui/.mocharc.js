@@ -2,12 +2,21 @@
 "use strict";
 
 const fs = require("fs");
+const path = require("path");
+
 const testPrefix = process.env.TEST_PREFIX || "ui";
+// Configure settings.json ASAP when mocha starts to prevent a vscode prompt:
+// "A settings has changed that requires a restart to take effect."
+fs.mkdirSync("out/test-resources/settings/User/", { recursive: true });
+fs.cpSync(
+  "test/testFixtures/settings.json",
+  "out/test-resources/settings/User/settings.json",
+);
 
 function getNextMochaFile() {
   let counter = 0;
   const baseDir = "./out/junit/ui";
-  let filename = `./out/junit/ui/${testPrefix}-${counter}-test-results.xml`;
+  let filename = path.join(baseDir, `${testPrefix}-${counter}-test-results.xml`);
 
   // Ensure directory exists
   if (!fs.existsSync(baseDir)) {
@@ -16,7 +25,7 @@ function getNextMochaFile() {
 
   while (fs.existsSync(filename)) {
     counter++;
-    filename = `./out/junit/ui/${testPrefix}-${counter}-test-results.xml`;
+    filename = path.join(baseDir, `${testPrefix}-${counter}-test-results.xml`);
   }
   return filename;
 }
