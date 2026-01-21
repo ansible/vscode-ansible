@@ -346,6 +346,14 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
+      - name: task ui-selenium
+        if: ${{ contains(matrix.os, 'linux') }}
+        run: task ui-selenium
+        env:
+          LIGHTSPEED_USER: lightspeed-test-user
+          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
+        timeout-minutes: 30
+
       - name: task ui (extest)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
