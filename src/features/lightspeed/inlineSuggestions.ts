@@ -689,12 +689,6 @@ async function requestInlineSuggest(
     },
   };
 
-  const userProvidedModel =
-    lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
-  if (userProvidedModel && userProvidedModel !== "") {
-    completionData.model = userProvidedModel;
-  }
-
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`,
   );
@@ -713,23 +707,10 @@ async function requestInlineSuggest(
   if (outputData.model) {
     // If model name is returned by server is different from the one previously used
     // and it is not the user provided model, update the model name
-    if (
-      lightSpeedManager.currentModelValue !== outputData.model &&
-      outputData.model !== userProvidedModel
-    ) {
+    if (lightSpeedManager.currentModelValue !== outputData.model) {
       lightSpeedManager.currentModelValue = outputData.model;
       // update the Lightspeed status bar tooltip with the model name
       lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip();
-    }
-    // check if the model value provided by user is same as that is used by the server
-    if (userProvidedModel && userProvidedModel !== "") {
-      if (outputData.model !== userProvidedModel) {
-        vscode.window.showWarningMessage(
-          `Ansible Lightspeed is using the model ${outputData.model} ` +
-            `for suggestions instead of ${userProvidedModel}. ` +
-            `Please contact your administrator.`,
-        );
-      }
     }
   }
   return outputData;
