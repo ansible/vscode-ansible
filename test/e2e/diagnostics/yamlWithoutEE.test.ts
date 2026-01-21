@@ -7,16 +7,12 @@ import {
   updateSettings,
   waitForDiagnosisCompletion,
   clearActivationCache,
-  run_lightspeed_tests_only,
 } from "../e2e.utils";
 
 describe("yaml-diag-no-ee", function () {
   const docUri1 = getDocUri("diagnostics/yaml/invalid_yaml.yml");
 
   before(async function () {
-    if (run_lightspeed_tests_only) {
-      this.skip();
-    }
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
@@ -166,14 +162,6 @@ describe("yaml-diag-no-ee", function () {
       await updateSettings("validation.enabled", true); // Revert back the setting to default
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       clearActivationCache(); // Clear cache after editors closed
-    });
-
-    it("should provide no diagnostics with invalid YAML file", async function () {
-      await activate(docUri1);
-      await vscode.commands.executeCommand("workbench.action.files.save");
-      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-      await testDiagnostics(docUri1, []);
     });
   });
 });

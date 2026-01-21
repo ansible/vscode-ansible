@@ -7,7 +7,6 @@ import {
   updateSettings,
   waitForDiagnosisCompletion,
   clearActivationCache,
-  run_lightspeed_tests_only,
   sleep,
 } from "../e2e.utils";
 
@@ -16,9 +15,6 @@ describe("ansible-diag-no-ee", function () {
   const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
 
   before(async function () {
-    if (run_lightspeed_tests_only) {
-      this.skip();
-    }
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
