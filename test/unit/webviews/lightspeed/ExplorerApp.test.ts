@@ -62,7 +62,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: false });
+      explorerStateUpdateHandler?.({ isAuthenticated: false, provider: "wca" });
       await flushPromises();
 
       expect(wrapper.text()).toContain("Experience smarter automation");
@@ -77,7 +77,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: false });
+      explorerStateUpdateHandler?.({ isAuthenticated: false, provider: "wca" });
       await flushPromises();
 
       const connectButton = wrapper.find("#lightspeed-explorer-connect");

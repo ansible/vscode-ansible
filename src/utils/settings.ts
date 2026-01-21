@@ -15,4 +15,5 @@ export async function updateConfigurationChanges(
   await pythonInterpreter.updatePythonInfoInStatusbar();
   // Refresh LLM provider when settings change (API key, model, etc.)
   await lightSpeedManager.providerManager.refreshProviders();
+  lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
 }

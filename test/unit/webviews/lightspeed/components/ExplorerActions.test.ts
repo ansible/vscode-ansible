@@ -14,27 +14,8 @@ describe("ExplorerActions", () => {
     expect(wrapper.find(".active-session").exists()).toBe(true);
   });
 
-  it("displays user content when provided", () => {
-    const wrapper = mount(ExplorerActions, {
-      props: {
-        ...defaultProps,
-        userContent: "<strong>Logged in as: user@example.com</strong>",
-      },
-    });
-    const userContentEl = wrapper.find(".user-content");
-    expect(userContentEl.exists()).toBe(true);
-    expect(userContentEl.html()).toContain(
-      "<strong>Logged in as: user@example.com</strong>",
-    );
-  });
-
-  it("does not display user content paragraph when empty", () => {
-    const wrapper = mount(ExplorerActions, { props: defaultProps });
-    expect(wrapper.find(".user-content").exists()).toBe(false);
-  });
-
-  describe("Generate Playbook button", () => {
-    it("renders the button", () => {
+ describe("Generate Playbook button", () => {
+  it("renders the button", () => {
       const wrapper = mount(ExplorerActions, { props: defaultProps });
       const button = wrapper.find(
         "#lightspeed-explorer-playbook-generation-submit",

@@ -1204,6 +1204,10 @@ export class WebviewMessageHandlers {
   private async handleGetExplorerState(message: any, webview: vscode.Webview) {
     const hasPlaybookOpened = this.hasPlaybookOpened();
     const hasRoleOpened = await this.hasRoleOpened();
+
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
     const isAuthenticated =
       await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
     const userContent =
@@ -1212,6 +1216,7 @@ export class WebviewMessageHandlers {
     const reply = {
       type: "explorerStateUpdate",
       data: {
+        provider,
         isAuthenticated,
         userContent,
         hasPlaybookOpened,

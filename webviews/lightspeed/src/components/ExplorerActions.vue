@@ -1,6 +1,5 @@
 <script setup lang="ts">
 defineProps<{
-  userContent: string;
   hasPlaybookOpened: boolean;
   hasRoleOpened: boolean;
 }>();
@@ -15,9 +14,6 @@ const emit = defineEmits<{
 
 <template>
   <div class="active-session">
-    <p v-if="userContent" class="user-content" v-html="userContent">
-    </p>
-
     <div class="button-container">
       <vscode-button @click="emit('generatePlaybook')" id="lightspeed-explorer-playbook-generation-submit"
         class="lightspeedExplorerButton">
@@ -51,11 +47,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.active-session p.user-content {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
 .button-container {
   margin-bottom: 0.75rem;
   display: flex;
