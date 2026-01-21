@@ -34,6 +34,8 @@ export default defineConfig(
       "media/walkthroughs/**/*.html",
       "site/*",
       "webviews/**",
+      "test/unit/webviews/lightspeed/**",
+      "test/unit/webviews/vitestSetup.ts",
     ],
   },
   {
