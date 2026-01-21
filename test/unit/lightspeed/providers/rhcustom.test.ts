@@ -714,6 +714,10 @@ describe("RHCustomProvider", () => {
             role: "user",
           }),
         ]),
+        expect.objectContaining({
+          temperature: 0.3,
+          max_tokens: 1600,
+        }),
       );
     });
 
@@ -733,7 +737,7 @@ describe("RHCustomProvider", () => {
         expect.any(Array),
         expect.objectContaining({
           temperature: 0.3,
-          max_tokens: 4000,
+          max_tokens: 1600,
         }),
       );
     });

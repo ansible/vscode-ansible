@@ -34,6 +34,7 @@ export interface RHCustomConfig {
   modelName: string;
   baseURL: string;
   timeout?: number;
+  maxTokens?: number;
 }
 
 export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
@@ -42,6 +43,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
   private readonly client: OpenAICompatibleClient;
   private readonly modelName: string;
+  private readonly maxTokens: number;
   private readonly logger = getLightspeedLogger();
   private lastValidationError?: string;
 
@@ -84,6 +86,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     const apiKey = config.apiKey.trim();
     this.modelName = config.modelName.trim();
     const baseURL = config.baseURL.trim().replace(/\/+$/, "");
+    this.maxTokens = config.maxTokens ?? 1600;
 
     // Initialize the OpenAI-compatible client
     this.client = new OpenAICompatibleClient({
@@ -94,7 +97,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     });
 
     this.logger.info(
-      `[RHCustom Provider] Initialized with model: ${this.modelName}, baseURL: ${baseURL}`,
+      `[RHCustom Provider] Initialized with model: ${this.modelName}, baseURL: ${baseURL}, maxTokens: ${this.maxTokens}`,
     );
   }
 
@@ -310,7 +313,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         },
       ];
 
-      const result = await this.client.chatCompletion(messages);
+      const result = await this.client.chatCompletion(messages, {
+        temperature: 0.3,
+        max_tokens: this.maxTokens,
+      });
 
       const message = result.choices?.[0]?.message?.content || "";
 
@@ -369,7 +375,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       const result = await this.client.chatCompletion(messages, {
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: this.maxTokens,
       });
 
       const content = result.choices?.[0]?.message?.content || "";
@@ -467,7 +473,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       const result = await this.client.chatCompletion(messages, {
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: this.maxTokens,
       });
 
       const content = result.choices?.[0]?.message?.content || "";
