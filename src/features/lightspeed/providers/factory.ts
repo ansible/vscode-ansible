@@ -80,15 +80,6 @@ export class LLMProviderFactory implements ProviderFactory {
             placeholder: WCA_API_ENDPOINT_DEFAULT,
             description: "URL for Ansible Lightspeed service",
           },
-          {
-            key: "modelName",
-            label: "Model ID Override",
-            type: "string",
-            required: false,
-            placeholder: "Leave empty to use organization default",
-            description:
-              "Model ID to override your organization's default model (commercial users only)",
-          },
         ],
       },
       {

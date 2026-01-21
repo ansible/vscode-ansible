@@ -28,7 +28,6 @@ import {
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { HTTPError, IError } from "./utils/errors";
-import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
 import {
@@ -207,8 +206,7 @@ export class LightSpeedAPI {
     const orgOptOutTelemetry =
       await this.lightspeedAuthenticatedUser.orgOptOutTelemetry();
 
-    inputData.model =
-      lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
+    inputData.model = "";
 
     if (orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
