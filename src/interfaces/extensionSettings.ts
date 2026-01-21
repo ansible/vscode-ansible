@@ -49,6 +49,7 @@ export interface LightSpeedServiceSettings {
   modelName: string | undefined;
   apiKey: string; // For third-party providers like Google
   timeout: number; // Request timeout in milliseconds
+  maxTokens: number | undefined; // Maximum tokens for generation (rhcustom provider only)
   suggestions: { enabled: boolean; waitWindow: number };
 }
 

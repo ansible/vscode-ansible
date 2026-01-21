@@ -62,6 +62,7 @@ export class SettingsManager {
         ), // Backward compatibility
         apiKey: lightSpeedSettings.get("apiKey", ""),
         timeout: lightSpeedSettings.get("timeout", 30000),
+        maxTokens: lightSpeedSettings.get("maxTokens", undefined),
         suggestions: {
           enabled:
             lightSpeedSettings.get("enabled") === true &&

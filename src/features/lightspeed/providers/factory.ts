@@ -106,6 +106,7 @@ export class LLMProviderFactory implements ProviderFactory {
           modelName: config.modelName.trim(),
           baseURL: baseURL,
           timeout: config.timeout || 30000,
+          maxTokens: config.maxTokens,
         } as RHCustomConfig);
       }
 
@@ -202,6 +203,15 @@ export class LLMProviderFactory implements ProviderFactory {
             required: true,
             placeholder: "model-name",
             description: "The model name or ID to use",
+          },
+          {
+            key: "maxTokens",
+            label: "Max Tokens",
+            type: "number",
+            required: false,
+            placeholder: "4000",
+            description:
+              "Maximum tokens for generation. Default: 4000. Adjust based on your model's context length (e.g., 2048 for small models, 8000+ for larger models).",
           },
         ],
       },
