@@ -130,6 +130,8 @@ tasklist
 testhost
 testorg
 testpaths
+thumbsdown
+thumbsup
 tomaciazek
 tomjs
 tomlsort

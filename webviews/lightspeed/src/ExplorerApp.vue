@@ -6,6 +6,9 @@ import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-too
 import * as marked from "marked";
 
 import ErrorBox from './components/ErrorBox.vue';
+import LoadingState from './components/LoadingState.vue';
+import LoginPrompt from './components/LoginPrompt.vue';
+import ExplorerActions from './components/ExplorerActions.vue';
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -73,104 +76,18 @@ const handleExplainRole = () => {
   <div id="explorer-container">
     <ErrorBox v-model:error-messages="errorMessages" />
 
-    <div v-if="loading" class="loading">
-      <p>Loading...</p>
-    </div>
+    <LoadingState v-if="loading" />
 
-    <div v-else-if="!isAuthenticated" class="login-form">
-      <p>Experience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook.
-        <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank">Learn more</a>
-      </p>
-      <div class="button-container">
-        <vscode-button @click="handleConnect" id="lightspeed-explorer-connect" class="lightspeedExplorerButton">
-          Connect
-        </vscode-button>
-      </div>
-    </div>
+    <LoginPrompt v-else-if="!isAuthenticated" @connect="handleConnect" />
 
-    <div v-else class="active-session">
-      <p v-if="userContent" class="user-content" v-html="userContent">
-      </p>
-
-      <div class="button-container">
-        <vscode-button @click="handleGeneratePlaybook" id="lightspeed-explorer-playbook-generation-submit"
-          class="lightspeedExplorerButton">
-          Generate a playbook
-        </vscode-button>
-      </div>
-
-      <div class="button-container">
-        <vscode-button @click="handleExplainPlaybook" id="lightspeed-explorer-playbook-explanation-submit"
-          class="lightspeedExplorerButton" :disabled="!hasPlaybookOpened"
-          :title="!hasPlaybookOpened ? 'The file in the active editor view is not an Ansible playbook' : ''">
-          Explain the current playbook
-        </vscode-button>
-      </div>
-
-      <div class="button-container">
-        <vscode-button @click="handleGenerateRole" id="lightspeed-explorer-role-generation-submit"
-          class="lightspeedExplorerButton">
-          Generate a role
-        </vscode-button>
-      </div>
-
-      <div class="button-container">
-        <vscode-button @click="handleExplainRole" id="lightspeed-explorer-role-explanation-submit"
-          class="lightspeedExplorerButton" :disabled="!hasRoleOpened"
-          :title="!hasRoleOpened ? 'The file in the active editor view is not part of an Ansible role' : ''">
-          Explain the current role
-        </vscode-button>
-      </div>
-    </div>
+    <ExplorerActions v-else :user-content="userContent" :has-playbook-opened="hasPlaybookOpened"
+      :has-role-opened="hasRoleOpened" @generate-playbook="handleGeneratePlaybook"
+      @explain-playbook="handleExplainPlaybook" @generate-role="handleGenerateRole" @explain-role="handleExplainRole" />
   </div>
 </template>
 
 <style scoped>
 #explorer-container {
   padding: 1rem;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-}
-
-.login-form {
-  padding: 1rem 0;
-}
-
-.login-form p {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.login-form a {
-  color: var(--vscode-textLink-foreground);
-  text-decoration: none;
-}
-
-.login-form a:hover {
-  text-decoration: underline;
-}
-
-.active-session p.user-content {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.button-container {
-  margin-bottom: 0.75rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.lightspeedExplorerButton {
-  width: 100%;
-  padding: 0.5rem;
-}
-
-.lightspeedExplorerButton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 </style>
