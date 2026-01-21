@@ -24,6 +24,7 @@ export default defineConfig(
       "**/coverage/**",
       "**/dist/",
       "**/out/",
+      ".ansible/*",
       ".cache/*",
       ".trunk/*",
       ".venv/*",

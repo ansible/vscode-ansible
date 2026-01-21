@@ -229,7 +229,6 @@ tasks:
       - ui-prepare
     env:
       EXTEST_ARGS: "--coverage"
-      MOCK_LIGHTSPEED_API: "1"
       TEST_PREFIX: "ui"
     sources:
       - src/**/*
@@ -245,7 +244,6 @@ tasks:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
     env:
       TEST_PREFIX: "ui-smoke"
-      MOCK_LIGHTSPEED_API: "1"
     deps:
       - ui-prepare
     cmds:
@@ -292,7 +290,7 @@ tasks:
       - package*.json
       - .vscodeignore
       - tools/helper
-      - "{src,test,media}/**/*"
+      - "{src,media}/**/*" # do not include 'test' as they do not get into the package
       - exclude: "**/.ansible/**/*"
       - exclude: "test/selenium/ui/**/*"
     generates:
