@@ -347,7 +347,7 @@ jobs:
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task ui-selenium
-        if: ${{ contains(matrix.os, 'linux') }}
+        if: ${{ matrix.name == 'test (linux)' }}
         run: task ui-selenium
         env:
           LIGHTSPEED_USER: lightspeed-test-user
