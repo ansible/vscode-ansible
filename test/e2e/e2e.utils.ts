@@ -8,8 +8,6 @@ import { PROJECT_ROOT } from "../setup";
 
 let doc: vscode.TextDocument;
 
-export const run_lightspeed_tests_only: boolean =
-  process.env.RUN_LIGHTSPEED_TESTS_ONLY === "1";
 export const skip_ee: boolean =
   process.env.SKIP_PODMAN === "1" || process.env.SKIP_DOCKER === "1";
 
