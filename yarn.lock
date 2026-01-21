@@ -3580,7 +3580,6 @@ __metadata:
     ovsx: "npm:^0.10.7"
     prettier: "npm:^3.7.4"
     primevue: "npm:4.5.4"
-    react: "npm:^19.2.1"
     rimraf: "npm:^6.1.2"
     selenium-webdriver: "npm:^4.36.0"
     semver: "npm:^7.7.3"
@@ -9362,13 +9361,6 @@ __metadata:
   bin:
     rc: ./cli.js
   checksum: 10/5c4d72ae7eec44357171585938c85ce066da8ca79146b5635baf3d55d74584c92575fa4e2c9eac03efbed3b46a0b2e7c30634c012b4b4fa40d654353d3c163eb
-  languageName: node
-  linkType: hard
-
-"react@npm:^19.2.1":
-  version: 19.2.3
-  resolution: "react@npm:19.2.3"
-  checksum: 10/d16b7f35c0d35a56f63d9d1693819762e4abc479c57dd6310298920bed3820fcec7e17a99d44983416d8f5049143ea45b8005d3ab8324bae8973224400502b08
   languageName: node
   linkType: hard
 

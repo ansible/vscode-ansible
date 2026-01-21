@@ -97,6 +97,7 @@ noheading
 norecursedirs
 npmjs
 nqry
+ollama
 openshiftapps
 ovsx
 pacman
