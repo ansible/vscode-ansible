@@ -1,4 +1,3 @@
-ABRT
 CACHEDIR
 CMDB
 Containerfile
