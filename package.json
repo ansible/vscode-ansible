@@ -501,6 +501,13 @@
             "order": 5,
             "scope": "resource",
             "type": "number"
+          },
+          "ansible.lightspeed.maxTokens": {
+            "default": 4000,
+            "markdownDescription": "Maximum tokens for generation (rhcustom provider only). Default: 4000. Adjust based on your model's context length. For example: 1500-1800 for 2048-token models, 4000+ for larger models. Leave empty to use default.",
+            "order": 6,
+            "scope": "resource",
+            "type": "number"
           }
         },
         "title": "Ansible Lightspeed"
