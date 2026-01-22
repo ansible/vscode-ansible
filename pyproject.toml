@@ -1,4 +1,4 @@
-# cspell:ignore tombi
+# cspell:ignore tombi addopts minversion
 [project]
 name = "vscode-ansible"
 requires-python = ">=3.11,<3.14"
@@ -19,6 +19,7 @@ dev = [
   "pip>=22.3.1",
   "pre-commit>=4.0.1",
   "pre-commit-uv>=4.1.4",
+  "selenium>=4.40.0",
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
 ]
@@ -39,9 +40,32 @@ skip = ".cache,.yarn,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.
 [tool.distutils.egg_info]
 egg_base = "out"
 
+[tool.mypy]
+color_output = true
+exclude = "(.ansible|out|syntaxes).*"
+
 # We have no python tests in this project, but we keep this config to prevent
 # vscode python extension from showing errors while trying to collect tests.
 [tool.pytest]
+# do not add options here as this will likely break either console runs or IDE
+# integration like vscode or pycharm
+addopts = [
+  "--durations=10",
+  "--junit-xml=out/junit/ui/ui-selenium-test-results.xml",
+  "-m=vscode",
+  "-v"
+]
+filterwarnings = [
+  "error",
+]
+junit_logging = "all"
+log_cli = true
+log_cli_level = "INFO"
+markers = [
+  "vscode: mark tests for vscode extension",
+  "vscode_trial: mark tests related to lightspeed trial",
+]
+minversion = "9.0"  # toml config changes
 norecursedirs = [
   "*.egg",
   ".ansible",
@@ -60,12 +84,45 @@ norecursedirs = [
   "node_modules",
   "out",
 ]
+strict_markers = true
+strict_xfail = true
+testpaths = ["test/selenium/ui"]
 
 [tool.ruff]
-exclude = ["examples"]
+cache-dir = "./.cache/.ruff"
+exclude = ["examples", "packages", "test/testFixtures"]
 fix = true
-line-length = 100
+# Same as Black.
+line-length = 88
+preview = true
 target-version = "py310"
+
+[tool.ruff.lint]
+ignore = [
+  "COM812",  # conflicts with ISC001 on format
+  "CPY001",  # missing-copyright-notice
+  "D203",  # incompatible with D211
+  "D213",  # incompatible with D212
+  "E501",  # we use black
+  "ERA001",  # auto-removal of commented out code affects development and vscode integration
+  "INP001",  # "is part of an implicit namespace package", all false positives
+  "ISC001",  # conflicts with COM812 on format
+  "PLW2901",  # PLW2901: Redefined loop variable
+  "RET504",  # Unnecessary variable assignment before `return` statement
+  # temporary ignores:
+  "ANN401",
+  "B005",
+  "PERF203",
+  "PLR2004",
+  "ARG001",
+]
+select = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"test/**/*.py" = ["DOC201", "DOC501", "PLC2701", "S"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.tomlsort]
 in_place = true
@@ -74,6 +131,7 @@ sort_table_keys = true
 
 [tool.uv]
 package = false
+default-groups = "all"
 
 [tool.uv.pip]
 annotation-style = "line"

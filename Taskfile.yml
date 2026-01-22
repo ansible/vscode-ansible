@@ -68,6 +68,7 @@ tasks:
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/testFixtures/.vscode/settings.json"
       - exclude: "**/None/**/*"
+      - exclude: "test/selenium/ui/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -228,7 +229,6 @@ tasks:
       - ui-prepare
     env:
       EXTEST_ARGS: "--coverage"
-      MOCK_LIGHTSPEED_API: "1"
       TEST_PREFIX: "ui"
     sources:
       - src/**/*
@@ -244,7 +244,6 @@ tasks:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
     env:
       TEST_PREFIX: "ui-smoke"
-      MOCK_LIGHTSPEED_API: "1"
     deps:
       - ui-prepare
     cmds:
@@ -259,6 +258,16 @@ tasks:
       TEST_PREFIX: "ui-oldest"
     deps:
       - ui
+  ui-selenium:
+    desc: Run UI tests (Selenium)
+    deps:
+      - package
+    cmds:
+      - VSX_FILE=${PWD}/$(ls -1 ansible-*.vsix) && podman run --pull=missing --replace --detach --rm --shm-size=10g --name selenium-vscode -p 4444:4444 -p 5999:5999 --volume $VSX_FILE:/ansible-latest.vsix quay.io/tshinhar/selenium-vscode-multi:latest
+      - curl -sS --retry 10 --retry-all-errors http://localhost:4444
+      - pytest
+      - podman stop selenium-vscode
+    interactive: true
   unit:
     desc: Run unit tests with coverage report
     deps:
@@ -268,8 +277,10 @@ tasks:
       - test/**/*
     generates:
       - out/coverage/unit/lcov.info
+      - out/coverage/vue/lcov.info
     cmds:
       - vitest run
+      - vitest run --config vitest.config.vue.ts
     interactive: true
   package:
     desc: Package extension
@@ -280,10 +291,10 @@ tasks:
       - README.md
       - package*.json
       - .vscodeignore
-      - webpack.config.ts
       - tools/helper
-      - "{src,test,media}/**/*"
+      - "{src,media}/**/*" # do not include 'test' as they do not get into the package
       - exclude: "**/.ansible/**/*"
+      - exclude: "test/selenium/ui/**/*"
     generates:
       - "*.vsix"
       - "packages/*/*.tgz"

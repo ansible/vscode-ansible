@@ -39,6 +39,9 @@ vi.mock("../../../../src/extension", () => {
         telemetryService: {},
         isTelemetryInit: vi.fn().mockResolvedValue(true),
       },
+      lightspeedExplorerProvider: {
+        refreshWebView: vi.fn(),
+      },
     },
   };
 });

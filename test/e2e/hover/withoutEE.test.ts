@@ -1,18 +1,10 @@
 import * as vscode from "vscode";
-import {
-  getDocUri,
-  activate,
-  testHover,
-  run_lightspeed_tests_only,
-} from "../e2e.utils";
+import { getDocUri, activate, testHover } from "../e2e.utils";
 
 describe("hover-no-ee", function () {
   const docUri1 = getDocUri("hover/without_ee/1.yml");
 
   before(async function () {
-    if (run_lightspeed_tests_only) {
-      this.skip();
-    }
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     await activate(docUri1);
   });

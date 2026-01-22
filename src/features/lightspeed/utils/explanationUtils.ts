@@ -54,13 +54,3 @@ export function isPlaybook(content: string): boolean {
   }
   return false;
 }
-
-export function findTasks(content: string): boolean {
-  const tasksTags = ["tasks", "pre_tasks", "post_tasks", "handlers"];
-  for (const keyword of getObjectKeys(content)) {
-    if (tasksTags.includes(keyword)) {
-      return true;
-    }
-  }
-  return false;
-}

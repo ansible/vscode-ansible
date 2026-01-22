@@ -77,6 +77,9 @@ describe("ProviderCommands", () => {
     // Setup mock light speed manager
     mockLightSpeedManager = {
       providerManager: mockProviderManager,
+      lightspeedExplorerProvider: {
+        refreshWebView: vi.fn(),
+      },
     } as unknown as LightSpeedManager;
 
     // Setup mock workspace configuration

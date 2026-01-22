@@ -17,6 +17,7 @@ import path from "path";
 import fs from "fs";
 import { execFile } from "child_process";
 import os from "os";
+import { resetSettings } from "../utils";
 
 config.truncateThreshold = 0;
 
@@ -69,6 +70,7 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
 
 describe("Content Creator UI Tests", function () {
   before(async function () {
+    resetSettings();
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
     // This sleep is hard to get rid of because the installation takes time

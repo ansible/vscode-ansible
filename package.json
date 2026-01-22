@@ -450,7 +450,7 @@
             "type": "boolean"
           },
           "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
+            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults).",
             "order": 2,
             "scope": "resource",
             "type": "string"
@@ -1040,7 +1040,6 @@
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vscode-elements/elements": "^2.0.0",
-    "@vscode/webview-ui-toolkit": "^1.4.0",
     "electron": "^39.2.6",
     "highlight.js": "^11.11.1",
     "ini": "^6.0.0",
@@ -1060,7 +1059,7 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@html-eslint/eslint-plugin": "^0.52.1",
+    "@html-eslint/eslint-plugin": "^0.53.0",
     "@types/chai": "^5.2.3",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
@@ -1082,6 +1081,7 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
+    "@vue/test-utils": "^2.4.6",
     "chai": "^6.2.2",
     "copy-webpack-plugin": "^13.0.1",
     "cypress-multi-reporters": "^2.0.5",
@@ -1106,7 +1106,6 @@
     "npm-check-updates": "^19.1.2",
     "ovsx": "^0.10.7",
     "prettier": "^3.7.4",
-    "react": "^19.2.1",
     "rimraf": "^6.1.2",
     "selenium-webdriver": "^4.36.0",
     "sinon": "^21.0.0",
