@@ -14,6 +14,8 @@ includes:
     dir: ./packages/ansible-mcp-server
 output: prefixed # do not use "group" due to impact on CI
 env:
+  # Overridden by some specific jobs
+  CODE_VERSION: max
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
@@ -213,51 +215,79 @@ tasks:
       - out/test-resources/manifest.json
       # do not put out/ext here as it is modified on each run
     sources:
-      - tools/test-launcher.sh
       - "*.vsix"
-    env:
-      CODE_VERSION: max
     cmds:
       - extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
       - extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
       - extest install-vsix -f "$( find . -maxdepth 1 -name '*.vsix' )" -e out/ext -s out/test-resources
       - extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
-      - rimraf out/log/.failed out/log/ui* out/junit/ui/ out/coverage/ui/ out/test-resources/test.log out/test-resources/screenshots/ out/test-resources/settings/logs/*
   ui:
     desc: Run UI tests with extest {{.XVFB}}
     deps:
       - ui-prepare
     env:
+      DONT_PROMPT_WSL_INSTALL: "1"
       EXTEST_ARGS: "--coverage"
-      TEST_PREFIX: "ui"
+      MOCK_LIGHTSPEED_API: "1"
+    vars:
+      # allows us to run ui-smoke or ui-oldest:
+      TEST_PREFIX: "{{ coalesce .TEST_PREFIX .TASK }}"
     sources:
-      - src/**/*
-      - test/**/*
-      - ./tools/test-launcher.sh
+      - src/**/*.ts
+      - test/*.ts
+      - test/ui/**/*.{ts,js}
+      - webviews/**/*.vue
     generates:
-      - out/junit/ui/.passed
+      - out/junit/ui/{{.TEST_PREFIX}}-test-results.xml
+      # - out/coverage/ui/cobertura-coverage.xml
     cmds:
-      - rm -f out/junit/ui/${TEST_PREFIX}-*-test-results.xml
-      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
+      - rimraf out/junit/{{.TEST_PREFIX}}/ ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
+      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/
+      - cp -f test/testFixtures/settings.json out/test-resources/settings/User/settings.json
+      # {{.CLI_ARGS}}'
+      - >-
+        timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests
+        --mocha_config test/ui/.mocharc.js
+        -s out/test-resources
+        -e out/ext
+        --code_settings out/test-resources/settings/User/settings.json
+        -c "${CODE_VERSION}"
+        --open_resource .
+        "${EXTEST_ARGS:-}"
+        --
+        out/client/test/ui/**/*.test.js | tee >(sed -r 's/\x1B\[[0-9;]*[mK]//g' > "out/{{.TEST_PREFIX}}/{{.TEST_PREFIX}}.log") 2>&1
+      # we move the logs and screenshots to a location safe for collection but
+      # we do not remove them because they are needed for local debugging, cleaning happens before new runs instead
+      - |
+        mkdir -p out/log/{{.TEST_PREFIX}}/
+        find out/test-resources/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+        find out/test-resources/settings/logs out/test-resources/screenshots -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
     env:
       TEST_PREFIX: "ui-smoke"
+      # this is removing the --coverage option from extest which enables smoke testing
+      EXTEST_ARGS: ""
     deps:
       - ui-prepare
     cmds:
       # essential cleanup to avoid accidental loading of files from disk instead of from within the package
       - rimraf out/client/src out/vitebuild
-      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
+      - task: ui
+        vars:
+          TEST_PREFIX: "{{ .TASK }}"
     interactive: true
   ui-oldest:
     desc: Run UI tests (CODE_VERSION='min')
     env:
       CODE_VERSION: min
       TEST_PREFIX: "ui-oldest"
-    deps:
-      - ui
+      EXTEST_ARGS: "" # disable coverage because it would override 'ui' report (extest does not allow customization)
+    cmds:
+      - task: ui
+        vars:
+          TEST_PREFIX: "{{ .TASK }}"
   ui-selenium:
     desc: Run UI tests (Selenium)
     deps:
