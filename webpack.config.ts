@@ -6,12 +6,10 @@ const webpack = require("webpack");
 
 type EntryType = {
   server?: string;
-  "mcp/cli"?: string;
 };
 
 const entry: EntryType = {
   server: "./packages/ansible-language-server/src/server.ts",
-  "mcp/cli": "./packages/ansible-mcp-server/src/cli.ts",
 };
 
 const config = {
@@ -128,10 +126,6 @@ const config = {
       if (pathData.chunk.name === "client") {
         return "[name]/src/extension.js";
       }
-      // MCP server should output to out/mcp/cli.js
-      if (pathData.chunk.name === "mcp/cli") {
-        return "mcp/cli.js";
-      }
       return "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
@@ -164,7 +158,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
-    delete config.entry["mcp/cli"];
   }
   return [config];
 };

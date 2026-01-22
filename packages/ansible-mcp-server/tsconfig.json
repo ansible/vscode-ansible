@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "outDir": "./out/server",
     "resolveJsonModule": true,
     "target": "ES2022"

@@ -42,7 +42,6 @@ tasks:
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
   test:
     desc: Run all tests and coverage report
     deps:
@@ -57,7 +56,6 @@ tasks:
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
     cmds:
       - npm run test:coverage
     interactive: true
