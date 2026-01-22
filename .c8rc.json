@@ -1,5 +1,5 @@
 {
-  "//": "Do not enable 'check-coverage' or text reporters because we loop over the tests from test-launcher.sh.",
+  "//": "Do not enable 'check-coverage' or text reporters.",
   "check-coverage": false,
   "clean": true,
   "exclude": [

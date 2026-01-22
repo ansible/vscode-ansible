@@ -15,7 +15,7 @@ export default defineConfig({
       clean: true,
       enabled: true,
       reportsDirectory: "./out/coverage/unit",
-      reporter: ["cobertura", "lcovonly", "text", "text-summary"], // text-summary shows only overall coverage stats, skipping per-file details
+      reporter: ["cobertura", "lcovonly", "text-summary"], // text-summary shows only overall coverage stats, skipping per-file details
       include: ["src/**/**.{js,jsx,ts,tsx}"], // Include source files for coverage
       exclude: [],
       thresholds: {
