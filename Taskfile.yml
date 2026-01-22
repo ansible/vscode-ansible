@@ -237,6 +237,8 @@ tasks:
       - test/*.ts
       - test/ui/**/*.{ts,js}
       - webviews/**/*.vue
+      - exclude: test/testFixtures/.vscode/
+      - exclude: test/testFixtures/common/collections/
     generates:
       - out/junit/ui/{{.TEST_PREFIX}}-test-results.xml
     cmds:
