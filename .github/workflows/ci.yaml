@@ -382,8 +382,7 @@ jobs:
           path: |
             out/coverage
             out/junit
-            out/log
-            out/test-resources/screenshots/**/*
+            out/{log,ui*,e2e,als,mcp,unit}
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs
@@ -394,6 +393,7 @@ jobs:
         if: ${{ always() }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
+          name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
           disable_search: true
           fail_ci_if_error: true

@@ -1,35 +1,6 @@
 // ui tests
 "use strict";
 
-const fs = require("fs");
-const path = require("path");
-
-const testPrefix = process.env.TEST_PREFIX || "ui";
-// Configure settings.json ASAP when mocha starts to prevent a vscode prompt:
-// "A settings has changed that requires a restart to take effect."
-fs.mkdirSync("out/test-resources/settings/User/", { recursive: true });
-fs.cpSync(
-  "test/testFixtures/settings.json",
-  "out/test-resources/settings/User/settings.json",
-);
-
-function getNextMochaFile() {
-  let counter = 0;
-  const baseDir = "./out/junit/ui";
-  let filename = path.join(baseDir, `${testPrefix}-${counter}-test-results.xml`);
-
-  // Ensure directory exists
-  if (!fs.existsSync(baseDir)) {
-    fs.mkdirSync(baseDir, { recursive: true });
-  }
-
-  while (fs.existsSync(filename)) {
-    counter++;
-    filename = path.join(baseDir, `${testPrefix}-${counter}-test-results.xml`);
-  }
-  return filename;
-}
-
 module.exports = {
   bail: true,
   color: true, // needed to keep colors inside vscode terminal
@@ -48,7 +19,7 @@ module.exports = {
     mochaJunitReporterReporterOptions: {
       attachments: true,
       includePending: true,
-      mochaFile: getNextMochaFile(),
+      mochaFile:  `./out/junit/ui/${process.env.TEST_PREFIX ? process.env.TEST_PREFIX : 'ui' }-test-results.xml`,
       outputs: true,
       suiteTitle: "ui",
       suiteTitleSeparatedBy: "::",

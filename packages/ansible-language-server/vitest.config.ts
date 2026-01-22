@@ -22,7 +22,7 @@ export default defineConfig({
       cleanOnRerun: true,
       clean: true,
       reportsDirectory: "../../out/coverage/als",
-      reporter: ["cobertura", "text", "json"],
+      reporter: ["cobertura", "json"],
       include: ["src/**/*.{js,ts}"],
       exclude: [],
     },

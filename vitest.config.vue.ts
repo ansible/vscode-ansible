@@ -23,7 +23,7 @@ export default defineConfig({
       clean: true,
       enabled: true,
       reportsDirectory: "./out/coverage/vue",
-      reporter: ["cobertura", "lcovonly", "text", "text-summary"],
+      reporter: ["cobertura", "lcovonly", "text-summary"],
       include: [
         "webviews/lightspeed/src/ExplorerApp.vue",
         "webviews/lightspeed/src/ExplanationApp.vue",
