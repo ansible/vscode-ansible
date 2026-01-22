@@ -38,8 +38,8 @@ Towncrier
 antsibull
 argspec
 autofetch
-bfnrt
 autouse
+bfnrt
 bindep
 blackbar
 cfgs
@@ -117,10 +117,10 @@ pytestmark
 pyvenv
 quasis
 relogin
-rhcustom
 reprentries
 reprfileloc
 reprtraceback
+rhcustom
 rhsso
 rimraf
 seealso
