@@ -65,7 +65,7 @@ tasks:
       - "{src,test}/**/*"
       - tsconfig*.json
       - webpack.config.ts
-      - yarn.lock.json
+      - yarn.lock
       - exclude: "**/.ansible/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/testFixtures/.vscode/settings.json"
@@ -318,14 +318,15 @@ tasks:
     deps:
       - build
     sources:
+      - "{src,media,webviews}/**/*" # do not include 'test' as they do not get into the package
+      - .vscodeignore
       - CHANGELOG.md
       - README.md
-      - package*.json
-      - .vscodeignore
-      - tools/helper
-      - "{src,media}/**/*" # do not include 'test' as they do not get into the package
       - exclude: "**/.ansible/**/*"
       - exclude: "test/selenium/ui/**/*"
+      - package*.json
+      - tools/helper
+      - yarn.lock
     generates:
       - "*.vsix"
       - "packages/*/*.tgz"

@@ -1039,7 +1039,7 @@
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vscode-elements/elements": "^2.0.0",
+    "@vscode-elements/elements": "^2.4.0",
     "@vscode/codicons": "^0.0.44",
     "electron": "^40.0.0",
     "highlight.js": "^11.11.1",
