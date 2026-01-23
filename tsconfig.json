@@ -7,12 +7,13 @@
     "node_modules",
     "test-resources",
     "src/features/lightspeed/vue/src",
-    "packages/ansible-mcp-server/test"
+    "packages/ansible-mcp-server/test",
+    "test/unit/webviews"
   ],
   "extends": "./tsconfig.base.json",
   "include": [
-    "vite.config.ts",
     "src/**/*.ts",
+    "test/**/*.ts",
     "webviews/lightspeed/src/utils/*.ts",
     "test",
     "*.js",

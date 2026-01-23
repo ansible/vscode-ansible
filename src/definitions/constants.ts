@@ -33,12 +33,6 @@ export const StandardRolePaths = [
   "/etc/ansible/roles",
 ];
 
-export const IncludeVarValidTaskName = [
-  "include_vars",
-  "ansible.builtin.include_vars",
-  "ansible.legacy.include_vars",
-];
-
 export const ADE_ISOLATION_MODE_MIN = "25.4.0";
 
 /* Slightly lower than CloudFront's timeout which is 30s. */
@@ -47,8 +41,6 @@ export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
 export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
 
 export const ANSIBLE_CREATOR_COLLECTION_VERSION_MIN = "24.7.1";
-
-export const ANSIBLE_CREATOR_EE_VERSION_MIN = "24.12.1";
 
 export const DevfileImages = {
   Upstream: "ghcr.io/ansible/ansible-devspaces:latest",

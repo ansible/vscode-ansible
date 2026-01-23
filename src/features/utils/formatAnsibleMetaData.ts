@@ -134,7 +134,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   };
 }
 
-export function getTildePath(absolutePath: string) {
+function getTildePath(absolutePath: string) {
   if (process.platform === "win32") {
     return path.win32.resolve(absolutePath);
   }

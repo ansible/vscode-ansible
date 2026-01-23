@@ -567,7 +567,16 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "ADE Setup Development Environment",
       description:
-        "Set up a complete Ansible development environment. " +
+        "Set up a complete Ansible development environment with OS-aware package manager detection. " +
+        "\n\n" +
+        "**IMPORTANT:** You MUST provide `osType` and `osDistro` parameters. " +
+        "If the user hasn't specified their OS, ASK THEM before calling this tool.\n\n" +
+        "**Package Manager Mapping:**\n" +
+        "- Fedora/RHEL/CentOS → `dnf`\n" +
+        "- Ubuntu/Debian → `apt`\n" +
+        "- macOS → `brew`\n" +
+        "- Arch → `pacman`\n" +
+        "\n\n" +
         "CRITICAL: For Ansible collections (amazon.aws, ansible.posix, etc.), you MUST use the 'collections' parameter. " +
         "DO NOT put collection names in 'requirementsFile' - that is ONLY for pip packages. " +
         "Correct: {collections: ['amazon.aws', 'ansible.posix']}. " +
@@ -596,6 +605,11 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           "fresh ansible setup",
           "start ansible development",
           "begin ansible project",
+          "system dependencies",
+          "package manager",
+          "dnf",
+          "apt",
+          "brew",
         ],
         useCases: [
           "Set up new Ansible development project",
@@ -606,6 +620,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           "Initialize complete Ansible development setup",
           "Install from requirements.txt",
           "Configure Python environment for Ansible",
+          "Get correct system package commands for OS",
         ],
       },
       inputSchema: {
@@ -641,6 +656,27 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           .describe(
             "Path to pip requirements.txt file ONLY. NOT for Ansible collections! " +
               "For collections like amazon.aws, use the 'collections' parameter instead.",
+          ),
+        osType: z
+          .string()
+          .optional()
+          .describe(
+            "**REQUIRED** - Operating system type: 'linux' or 'darwin' (macOS). " +
+              "ASK THE USER if not known.",
+          ),
+        osDistro: z
+          .string()
+          .optional()
+          .describe(
+            "**REQUIRED for Linux** - OS distribution name. " +
+              "Maps to package manager: 'fedora'→dnf, 'ubuntu'→apt, 'macos'→brew. " +
+              "ASK THE USER if not known.",
+          ),
+        packageManager: z
+          .string()
+          .optional()
+          .describe(
+            "Override the package manager (e.g., 'dnf', 'apt', 'brew', 'yum', 'pacman').",
           ),
       },
     },
@@ -685,7 +721,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         ],
       },
     },
-    createADTCheckEnvHandler(),
+    createADTCheckEnvHandler(workspaceRoot),
     [],
   );
 

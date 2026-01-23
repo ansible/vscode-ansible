@@ -12,10 +12,8 @@ const config: KnipConfig = {
   },
   includeEntryExports: true,
   ignoreDependencies: [
-    "@ansible/ansible-language-server",
     "@ansible/ansible-mcp-server",
     "@tomjs/vite-plugin-vue",
-    "@types/mocha",
     "@types/vscode",
     "@types/vscode-webview", // provides acquireVsCodeApi
     "@typescript-eslint/eslint-plugin",
@@ -24,15 +22,12 @@ const config: KnipConfig = {
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
-    "mocha",
-    "mocha-junit-reporter",
     "mocha-multi-reporters",
+    "mocha-junit-reporter",
     "ovsx",
   ],
-  ignoreExportsUsedInFile: {
-    function: true,
-    interface: true,
-    type: false,
+  mocha: {
+    entry: ["test/e2e/rootMochaHooks.ts"],
   },
   typescript: {
     config: ["**/tsconfig*.json"],
@@ -41,9 +36,10 @@ const config: KnipConfig = {
     ".": {
       entry: [
         "src/extension.ts",
-        "webviews/**/*.{ts,tsx}",
+        "webviews/**/*.{ts,tsx,vue}",
         "test/**/*.ts",
         ".vscode-test.mjs",
+        "test/ui/.mocharc.js",
       ],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },

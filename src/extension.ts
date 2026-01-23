@@ -69,7 +69,6 @@ import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/fee
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
-import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "node:child_process";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -97,9 +96,8 @@ import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleName
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
 
-export let client: LanguageClient;
+let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
-export const globalFileSystemWatcher: IFileSystemWatchers = {};
 
 const lsName = "Ansible Support";
 let lsOutputChannel: vscode.OutputChannel;
@@ -333,7 +331,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        // Send explorer state update when editor changes
+        await updateExplorerState(lightSpeedManager);
       },
     ),
   );
@@ -420,8 +419,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           }
           // If endpoint is already set, keep it (user's custom on-prem WCA deployment)
         }
-
-        await lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        await updateExplorerState(lightSpeedManager);
       }
 
       await updateConfigurationChanges(
@@ -463,9 +461,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      if (lightSpeedManager.lightspeedExplorerProvider.webviewView) {
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
-      }
+      await updateExplorerState(lightSpeedManager);
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
@@ -484,7 +480,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
-    context.extensionUri,
+    context,
   );
 
   // Register the Lightspeed provider for a Webview View
@@ -499,7 +495,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const lightspeedFeedbackCommand = vscode.commands.registerCommand(
     LightSpeedCommands.LIGHTSPEED_FEEDBACK,
     () => {
-      LightspeedFeedbackWebviewProvider.render(context.extensionUri);
+      LightspeedFeedbackWebviewProvider.render(context);
     },
   );
 
@@ -942,24 +938,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.lightspeed.enableExperimentalFeatures",
-      () => {
-        vscode.commands.executeCommand(
-          "setContext",
-          "redhat.ansible.lightspeedExperimentalEnabled",
-          true,
-        );
-        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
-        if (!extSettings.settings.lightSpeedService.enabled) {
-          return;
-        }
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
-      },
-    ),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_OPEN_TRIAL_PAGE,
       () => {
         vscode.env.openExternal(
@@ -976,8 +954,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_REFRESH_EXPLORER_VIEW,
       async () => {
+        console.log("Refreshing Lightspeed Explorer View");
         await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        await updateExplorerState(lightSpeedManager);
       },
     ),
   );
@@ -1216,6 +1195,15 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
+}
+
+/**
+ * Updates the explorer state and sends it to the explorer webview if it's open
+ */
+async function updateExplorerState(
+  lightSpeedManager: LightSpeedManager,
+): Promise<void> {
+  lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
 }
 
 const handleMcpServerConfigurationChange = async (

@@ -51,7 +51,7 @@ const logger = createLogger({
   ),
   transports: [
     new transports.File({
-      filename: path.join("./out/log/e2e.log"),
+      filename: path.join("./out/e2e/e2e.log"),
       level: "info",
     }),
   ],

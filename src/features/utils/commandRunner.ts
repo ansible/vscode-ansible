@@ -3,6 +3,7 @@ import * as path from "path";
 
 /* local */
 import { ExtensionSettings } from "../../interfaces/extensionSettings";
+import { resolveInterpreterPath } from "./interpreterPathResolver";
 
 /**
  * A helper method to get interpreter path related settings to
@@ -20,7 +21,7 @@ export function withInterpreter(
   let command = `${runExecutable} ${cmdArgs}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
-    ANSIBLE_FORCE_COLOR: "0", // ensure output is parseable (no ANSI)
+    ANSIBLE_FORCE_COLOR: "0", // ensure output is parsable (no ANSI)
     PYTHONBREAKPOINT: "0", // We want to be sure that python debugger is never
     // triggered, even if we mistakenly left a breakpoint() there while
     // debugging ansible- lint, or another tool we call.
@@ -32,7 +33,9 @@ export function withInterpreter(
     return { command: command, env: process.env };
   }
 
-  const interpreterPath = settings.interpreterPath;
+  const rawInterpreterPath = settings.interpreterPath;
+  // Resolve ${workspaceFolder} and relative paths
+  const interpreterPath = resolveInterpreterPath(rawInterpreterPath);
   if (interpreterPath && interpreterPath !== "") {
     const virtualEnv = path.resolve(interpreterPath, "../..");
 

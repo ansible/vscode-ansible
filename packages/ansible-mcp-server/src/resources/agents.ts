@@ -4,21 +4,20 @@
  * returning only relevant content based on user queries.
  */
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolveResourcePath } from "../utils/resourcePath.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Agents guidelines file packaged with the extension
-// In compiled output, files are in out/server/src/resources/data/
-// In source, files are in src/resources/data/
-const AGENTS_FILE = path.join(__dirname, "data/agents.md");
+/**
+ * Get the path to agents.md file.
+ * Uses dynamic path resolution to work in both dev and bundled scenarios.
+ */
+async function getAgentsFilePath(): Promise<string> {
+  return await resolveResourcePath("agents.md", import.meta.url);
+}
 
 /**
  * Represents a section from the agents.md file
  */
-export interface GuidelineSection {
+interface GuidelineSection {
   title: string;
   level: number;
   content: string;
@@ -37,7 +36,8 @@ async function parseGuidelines(): Promise<GuidelineSection[]> {
     return sectionsCache;
   }
 
-  const content = await fs.readFile(AGENTS_FILE, "utf8");
+  const agentsFile = await getAgentsFilePath();
+  const content = await fs.readFile(agentsFile, "utf8");
   const lines = content.split("\n");
   const sections: GuidelineSection[] = [];
 
@@ -239,7 +239,8 @@ export async function getAgentsGuidelines(query?: string): Promise<string> {
  */
 export async function getFullAgentsGuidelines(): Promise<string> {
   try {
-    const guidelinesContent = await fs.readFile(AGENTS_FILE, "utf8");
+    const agentsFile = await getAgentsFilePath();
+    const guidelinesContent = await fs.readFile(agentsFile, "utf8");
     return guidelinesContent;
   } catch (error) {
     throw new Error(

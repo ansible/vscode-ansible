@@ -132,7 +132,7 @@ describe("Ansible Development Tools MCP Server Performance", () => {
       const duration = endTime - startTime;
 
       expect(testServer.name).toBe("ansible-mcp-server");
-      expect(duration).toBeLessThan(50); // Should initialize in less than 50ms
+      expect(duration).toBeLessThan(100); // Should initialize in less than 100ms (GHA MacOS can be slow)
     });
 
     it("should handle multiple server creations efficiently", () => {

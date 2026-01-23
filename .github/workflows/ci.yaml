@@ -55,7 +55,7 @@ jobs:
           show-progress: false
 
       - name: task setup
-        timeout-minutes: 1 # expected under 10s for container builds
+        timeout-minutes: 2 # expected under 10s for container builds
         run: |
           set -ex
           pwd
@@ -261,9 +261,18 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Ensure .env file is automatically loaded (mise)
+      # Workaround for: https://github.com/actions/runner/issues/1864
+      - name: Ensure HOME is defined
         run: |
           set -exuo pipefail
+          if [ -z "${HOME:-}" ]; then
+            HOME=$(getent passwd "$(id -u)" | cut -d: -f6)
+            export HOME
+          fi
+          echo "HOME=$HOME" >> $GITHUB_ENV
+
+      - name: Ensure .env file is automatically loaded (mise)
+        run: |
           mise reshim
           mise doctor
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
@@ -327,7 +336,7 @@ jobs:
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task e2e
+      - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
@@ -337,7 +346,16 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui
+      - name: task ui-selenium
+        # runner.os=Linux even on windows if the runner was started from inside wsl!
+        if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
+        run: task ui-selenium
+        env:
+          LIGHTSPEED_USER: lightspeed-test-user
+          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
+        timeout-minutes: 30
+
+      - name: task ui (extest)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
         run: |
@@ -360,19 +378,28 @@ jobs:
         if: ${{ !cancelled() }}
         uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}.zip
+          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
           path: |
             out/coverage
             out/junit
-            out/log
-            out/test-resources/screenshots
+            out/{log,ui*,e2e,als,mcp,unit}
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs
           if-no-files-found: ignore
           retention-days: 90
 
-      - name: Upload test results to Codecov
+      - name: Upload test coverage data to codecov.io
+        if: ${{ always() }}
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          name: ${{ matrix.name }}
+          files: ./out/coverage/**/*coverage.xml
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+
+      - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
@@ -424,15 +451,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Merge logs into a single archive
-        if: ${{ !failure() }}
-        uses: actions/upload-artifact/merge@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: logs.zip
-          pattern: logs-*.zip
-          separate-directories: true
-          delete-merged: true
-
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -444,61 +462,6 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
-
-      - name: Upload als test coverage data [1/5]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          name: als
-          files: ./**/coverage/als/cobertura-coverage.xml
-          flags: als
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-
-      - name: Upload unit test coverage data [2/5]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          name: unit
-          files: ./**/coverage/unit/*cobertura-coverage.xml
-          flags: unit
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-
-      - name: Upload ui test coverage data [3/5]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          name: ui
-          files: ./**/coverage/ui/*cobertura-coverage.xml
-          flags: ui
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-
-      - name: Upload e2e test coverage data [4/5]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          name: e2e
-          files: ./**/coverage/e2e/*cobertura-coverage.xml
-          flags: e2e
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-
-      - name: Upload mcp test coverage data [5/5]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          name: mcp
-          files: ./**/coverage/mcp/*cobertura-coverage.xml
-          flags: mcp
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
@@ -551,7 +514,7 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
+      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
 
       - name: Download the artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -589,7 +552,7 @@ jobs:
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
+      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:

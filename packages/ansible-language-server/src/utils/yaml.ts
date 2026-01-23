@@ -161,7 +161,7 @@ export function getPathAt(
   return null;
 }
 
-export function contains(
+function contains(
   node: Node | null,
   offset: number,
   inclusive: boolean,
@@ -174,7 +174,7 @@ export function contains(
   );
 }
 
-export function getPathAtOffset(
+function getPathAtOffset(
   path: Node[],
   offset: number,
   inclusive: boolean,
@@ -237,8 +237,7 @@ export function getPathAtOffset(
   return null;
 }
 
-export const tasksKey =
-  /^(tasks|pre_tasks|post_tasks|block|rescue|always|handlers)$/;
+const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always|handlers)$/;
 
 /**
  * Determines whether the path points at a parameter key of an Ansible task.
@@ -439,7 +438,7 @@ export async function getPossibleOptionsForPath(
  * the values hold a 'list' or a 'dict' is preserved along the way and returned
  * alongside.
  */
-export function getTaskParamPathWithTrace(
+function getTaskParamPathWithTrace(
   path: Node[],
 ): [Node[], [string, "list" | "dict"][]] {
   const trace: [string, "list" | "dict"][] = [];

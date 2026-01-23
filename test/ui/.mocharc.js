@@ -19,7 +19,7 @@ module.exports = {
     mochaJunitReporterReporterOptions: {
       attachments: true,
       includePending: true,
-      mochaFile: `./out/junit/ui/${process.env.TEST_ID ?? "ui-"}-test-results.xml`,
+      mochaFile:  `./out/junit/ui/${process.env.TEST_PREFIX ? process.env.TEST_PREFIX : 'ui' }-test-results.xml`,
       outputs: true,
       suiteTitle: "ui",
       suiteTitleSeparatedBy: "::",

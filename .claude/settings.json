@@ -1,6 +1,13 @@
 {
   "permissions": {
-    "allow": ["Bash(npm:*)", "Bash(yarn:*)", "Bash(task:*)", "Bash(mise:*)"],
+    "allow": [
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(mise:*)",
+      "Bash(npm:*)",
+      "Bash(task:*)",
+      "Bash(yarn:*)"
+    ],
     "ask": [],
     "deny": []
   }

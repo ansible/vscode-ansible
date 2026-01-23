@@ -23,14 +23,6 @@ export interface OAuthAccount {
   expiresAtTimestampInSeconds: number;
 }
 
-export interface LoggedInUserInfo {
-  username?: string;
-  external_username: string;
-  rh_user_has_seat: boolean;
-  rh_org_has_subscription: boolean;
-  rh_user_is_org_admin: boolean;
-}
-
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
   public handleUri(uri: Uri) {
     this.fire(uri);
@@ -44,20 +36,6 @@ export const generateCodeVerifier = (): string => {
   return alphanumericSecret.length >= 50
     ? alphanumericSecret
     : generateCodeVerifier();
-};
-
-/** Generates challenge code using the code verifier */
-export const generateCodeChallengeFromVerifier = (v: string) => {
-  const sha256 = (plain: string) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return crypto.createHash("sha256").update(data);
-  };
-  return sha256(v)
-    .digest("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
 };
 
 // A function to return the expiry date and time in epoch

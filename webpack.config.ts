@@ -1,4 +1,5 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
+import CopyPlugin from "copy-webpack-plugin";
 
 import path from "path";
 const webpack = require("webpack");
@@ -106,6 +107,14 @@ const config = {
     new webpack.IgnorePlugin({
       resourceRegExp: /^electron$/,
     }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "packages/ansible-mcp-server/src/resources/data/*.{md,json,yml}",
+          to: "mcp/data/[name][ext]",
+        },
+      ],
+    }),
   ],
   ignoreWarnings: [
     {
@@ -150,32 +159,6 @@ const config = {
   target: "node", // vscode extensions run in a Node.js-context
 };
 
-const webviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const playbookExplorerWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/explorer/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/explorer/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -183,5 +166,5 @@ module.exports = (_env: any, argv: { mode: string }) => {
     delete config.entry.server;
     delete config.entry["mcp/cli"];
   }
-  return [config, webviewConfig, playbookExplorerWebviewConfig];
+  return [config];
 };

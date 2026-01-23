@@ -8,9 +8,7 @@ const lspProcess = cp.spawn("npm", [
   "--stdio",
 ]);
 
-export type LanguageServer = rpc.MessageConnection;
-
-export const exit = async (languageServer: rpc.MessageConnection) => {
+const exit = async (languageServer: rpc.MessageConnection) => {
   const ret = new Promise((resolve) => {
     languageServer.onClose(() => {
       languageServer.dispose();

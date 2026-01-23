@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reportsDirectory: "../../out/coverage/mcp",
-      reporter: ["cobertura", "text", "json"],
+      reporter: ["cobertura", "json"],
       exclude: [
         "node_modules/",
         "dist/",

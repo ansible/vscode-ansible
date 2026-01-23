@@ -50,16 +50,23 @@ describe("ADE Tools Integration", () => {
   });
 
   describe("ade_setup_environment tool", () => {
-    it("should be registered and callable with no arguments", async () => {
+    it("should prompt for OS info when not provided", async () => {
       const result = await server.callTool("ade_setup_environment", {});
 
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
+
+      const textContent = result.content.find(
+        (c: { type: string }) => c.type === "text",
+      );
+      expect(textContent?.text).toContain("OS Information Required");
     });
 
-    it("should be callable with all optional arguments", async () => {
+    it("should be callable with OS info and all arguments", async () => {
       const args = {
+        osType: "linux",
+        osDistro: "fedora",
         envName: "test-env",
         pythonVersion: "3.11",
         collections: ["ansible.posix", "community.general"],
@@ -74,8 +81,10 @@ describe("ADE Tools Integration", () => {
       expect(Array.isArray(result.content)).toBe(true);
     });
 
-    it("should handle partial arguments", async () => {
+    it("should handle OS info with partial arguments", async () => {
       const args = {
+        osType: "darwin",
+        osDistro: "macos",
         envName: "my-env",
         collections: ["ansible.posix"],
       };
@@ -133,8 +142,10 @@ describe("ADE Tools Integration", () => {
     });
 
     it("should handle malformed arguments gracefully", async () => {
-      // Test with invalid argument types
+      // Test with invalid argument types but valid osType
       const result = await server.callTool("ade_setup_environment", {
+        osType: "linux",
+        osDistro: "fedora",
         envName: 123, // Should be string
         collections: "not-an-array", // Should be array
       });
