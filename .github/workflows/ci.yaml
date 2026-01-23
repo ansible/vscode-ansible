@@ -49,7 +49,7 @@ jobs:
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -209,7 +209,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -361,7 +361,7 @@ jobs:
         run: |
           set -e
           task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
-          task ui ${{ matrix.env.TASKFILE_ARGS }} --status
+          task ui ${{ matrix.env.TASKFILE_ARGS }} --status ${{ runner.os != 'Linux' && ' || echo "::warning::Ignored task ui --status failure due to https://github.com/go-task/task/issues/2649"' || '' }}
 
       - name: task finish
         run: task finish
@@ -413,25 +413,13 @@ jobs:
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
-      # - name: Stop services
-      #   if: "contains(matrix.os, 'macos')"
-      #   # Stopping podman machine is needed or caching it will fail
-      #   run: |
-      #     command -v podman && {
-      #     podman machine stop
-      #     while [[ "$(podman machine ls --format '{{.Running}}' \
-      #           --noheading || true)" != "false" ]]; do
-      #       sleep 1
-      #       echo -n .
-      #     done
-      #     echo .
-      #     }
-      #   continue-on-error: true
+      - name: Show git ignored files to debug "task ... --status" failures
+        if: ${{ always() && failure() }}
+        run: git status --porcelain --ignored
 
-      ## commented out for future use to debug on the GHA node if required
-      # - name: Setup tmate session
-      #   if: ${{ always() }}
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Report unexpected failures
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
+        uses: ./.github/actions/report
 
   check: # This job does nothing and is only used for the branch protection
     needs:
@@ -447,7 +435,7 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -486,16 +474,9 @@ jobs:
         with:
           jobs: ${{ toJSON(needs) }}
 
-      - name: Send CI failure notification
-        if: failure() && github.ref == 'refs/heads/main'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
-        run: |
-          if [ -n "$SLACK_WEBHOOK_URL" ]; then
-            curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\" Main branch tests failed on `${GITHUB_REPOSITORY}`. Check [logs](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})\"}" \
-              $SLACK_WEBHOOK_URL
-          fi
+      - name: Report unexpected failures
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
+        uses: ./.github/actions/report
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
@@ -505,7 +486,7 @@ jobs:
       - check
     steps:
       - name: Checkout Source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
@@ -539,6 +520,10 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
+      - name: Report unexpected failures
+        if: ${{ always() && failure() }}
+        uses: ./.github/actions/report
+
   publish-npm:
     environment: release
     if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || github.event.inputs.publish == 'true')
@@ -557,3 +542,7 @@ jobs:
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Report unexpected failures
+        if: ${{ always() && failure() }}
+        uses: ./.github/actions/report
