@@ -239,14 +239,13 @@ tasks:
       - webviews/**/*.vue
     generates:
       - out/junit/ui/{{.TEST_PREFIX}}-test-results.xml
-      # - out/coverage/ui/cobertura-coverage.xml
     cmds:
-      - rimraf out/junit/{{.TEST_PREFIX}}/ ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
-      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/
+      - rimraf out/junit/ui/{{.TEST_PREFIX}}-test-results.xml ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
+      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/ out/junit/ui/
       - cp -f test/testFixtures/settings.json out/test-resources/settings/User/settings.json
       # {{.CLI_ARGS}}'
       - >-
-        timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests
+        TEST_PREFIX="${TEST_PREFIX}" timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests
         --mocha_config test/ui/.mocharc.js
         -s out/test-resources
         -e out/ext
