@@ -150,7 +150,7 @@ describe("Ansible Development Tools MCP Server Performance", () => {
         expect(srv.name).toBe("ansible-mcp-server");
       });
 
-      expect(duration).toBeLessThan(200); // 10 servers in less than 200ms
+      expect(duration).toBeLessThan(200); // 10 servers in less than 400ms (GHA MacOS can be slow)
     });
   });
 

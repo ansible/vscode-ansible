@@ -6,7 +6,10 @@ on:
       - main
       - "releases/**"
       - "stable/**"
-
+permissions:
+  contents: write
+  issues: write
+  checks: read
 jobs:
   push:
     uses: ansible/team-devtools/.github/workflows/push.yml@main

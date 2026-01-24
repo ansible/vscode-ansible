@@ -2769,7 +2769,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode-elements/elements@npm:^2.0.0":
+"@vscode-elements/elements@npm:^2.4.0":
   version: 2.4.0
   resolution: "@vscode-elements/elements@npm:2.4.0"
   dependencies:
@@ -3507,7 +3507,7 @@ __metadata:
     "@vitejs/plugin-vue": "npm:^5.2.4"
     "@vitest/coverage-v8": "npm:^4.0.17"
     "@vitest/ui": "npm:^4.0.17"
-    "@vscode-elements/elements": "npm:^2.0.0"
+    "@vscode-elements/elements": "npm:^2.4.0"
     "@vscode/codicons": "npm:^0.0.44"
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.5.2"
