@@ -51,7 +51,7 @@ exclude = "(.ansible|out|syntaxes).*"
 # integration like vscode or pycharm
 addopts = [
   "--durations=10",
-  "--junit-xml=out/junit/ui/ui-selenium-test-results.xml",
+  "--junit-xml=out/junit/ui-selenium-test-results.xml",
   "-m=vscode",
   "-v"
 ]

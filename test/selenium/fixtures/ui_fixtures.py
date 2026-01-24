@@ -136,7 +136,7 @@ def clear_vscode_text() -> Generator[Any, None, None]:
 
 def take_screenshot(driver: WebDriver, name: str) -> None:
     """Take a screenshot."""
-    file_name = "out/junit/ui/" + (
+    file_name = "out/junit/" + (
         f"{name}_{datetime.now().strftime('%Y-%m-%d_%H_%M')}.png".replace(  # noqa: DTZ005
             "/",
             "_",

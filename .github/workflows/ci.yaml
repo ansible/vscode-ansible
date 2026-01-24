@@ -455,7 +455,7 @@ jobs:
         # Run only for pull requests or push to main
         if: >
           ${{ !cancelled() &&
-          hashFiles('**/coverage.xml') != '' &&
+          hashFiles('**/*coverage.xml') != '' &&
           (github.event_name == 'pull_request' ||
           (github.event_name == 'push' && github.ref_name =='main')
           )}}
