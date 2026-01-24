@@ -1,3 +1,5 @@
+import "@vscode-elements/elements/dist/vscode-button";
+
 import { createApp } from "vue";
 import App from "./ExplanationApp.vue";
 

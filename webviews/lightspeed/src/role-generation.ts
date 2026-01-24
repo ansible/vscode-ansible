@@ -1,3 +1,6 @@
+import "@vscode-elements/elements/dist/vscode-button";
+import "@vscode-elements/elements/dist/vscode-textfield";
+
 import { createApp } from "vue";
 import App from "./RoleGenApp.vue";
 
