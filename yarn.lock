@@ -2781,6 +2781,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vscode/codicons@npm:^0.0.44":
+  version: 0.0.44
+  resolution: "@vscode/codicons@npm:0.0.44"
+  checksum: 10/1e74e688290ac4e1188c04528878d85c74b38860c03350559ac006bac790e27d95cb8fbb73afe5f24c503135fc5be9d73e6e34ed8286559721ca83243a0a9471
+  languageName: node
+  linkType: hard
+
 "@vscode/test-cli@npm:^0.0.12":
   version: 0.0.12
   resolution: "@vscode/test-cli@npm:0.0.12"
@@ -3501,6 +3508,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^4.0.17"
     "@vitest/ui": "npm:^4.0.17"
     "@vscode-elements/elements": "npm:^2.0.0"
+    "@vscode/codicons": "npm:^0.0.44"
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.5.2"
     "@vscode/vsce": "npm:^3.7.1"
