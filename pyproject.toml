@@ -53,6 +53,8 @@ exclude = "(.ansible|out|syntaxes).*"
 addopts = [
   "--durations=10",
   "--junit-xml=out/junit/ui-selenium-test-results.xml",
+  "--reruns-delay=60",
+  "--reruns=2",
   "-m=vscode",
   "-v"
 ]
@@ -88,8 +90,6 @@ norecursedirs = [
 strict_markers = true
 strict_xfail = true
 testpaths = ["test/selenium/ui"]
-reruns = 2  # pytest-rerunfailures
-reruns_delay = 60  # pytest-rerunfailures
 
 [tool.ruff]
 cache-dir = "./.cache/.ruff"
