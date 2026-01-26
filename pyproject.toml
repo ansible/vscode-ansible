@@ -53,8 +53,8 @@ exclude = "(.ansible|out|syntaxes).*"
 addopts = [
   "--durations=10",
   "--junit-xml=out/junit/ui-selenium-test-results.xml",
-  "--reruns-delay=60",
-  "--reruns=2",
+  "--reruns-delay=120",
+  "--reruns=3",
   "-m=vscode",
   "-v"
 ]

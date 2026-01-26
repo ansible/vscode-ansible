@@ -48,6 +48,9 @@ tasks:
       - build
     dir: "{{ .TASKFILE_DIR }}"
     generates:
+      - ../../out/coverage/mcp/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/mcp/coverage-final.json # IDE plugins
+      - ../../out/coverage/mcp/lcov.info # sonar
       - ../../out/junit/mcp-test-results.xml
     sources:
       - package.json

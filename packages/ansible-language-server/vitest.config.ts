@@ -1,5 +1,5 @@
-// used for unit tests in ansible-language-server package
 import { defineConfig } from "vitest/config";
+import { resolve } from "node:path";
 
 export default defineConfig({
   define: {
@@ -7,30 +7,35 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ["test/**/*.test.ts"],
+    globalSetup: [`${__dirname}/test/globalSetup.ts`],
+    environment: "node",
     exclude: ["node_modules", "out"],
-    setupFiles: ["./test/vitestSetup.ts"],
-    globalSetup: ["./test/globalSetup.ts"],
+    fileParallelism: false,
+    coverage: {
+      clean: true,
+      cleanOnRerun: true,
+      enabled: true,
+      exclude: [],
+      include: ["src/**/*.{js,ts}"],
+      provider: "v8",
+      reporter: ["cobertura", "json", "lcovonly"],
+      reportsDirectory: "./out/coverage/als", // relative to config root entry
+      thresholds: {
+        branches: process.platform === "linux" ? 22.78 : 0.0,
+      },
+    },
+    include: [`${__dirname}/test/**/*.test.ts`],
     isolate: false,
-    fileParallelism: false, // Run test files sequentially like Mocha did - needed for container tests
+    outputFile: {
+      junit: "./out/junit/als-test-results.xml", // relative to config root entry
+    },
+    reporters: ["default", "junit"],
+    root: resolve(__dirname, "..", ".."), // ensure reports have valid paths
+    testTimeout: 60000, // same as mocha timeout (60 seconds)
+    setupFiles: [`${__dirname}/test/vitestSetup.ts`],
     sequence: {
       concurrent: false,
     },
-    coverage: {
-      provider: "v8",
-      enabled: true,
-      cleanOnRerun: true,
-      clean: true,
-      reportsDirectory: "../../out/coverage/als",
-      reporter: ["cobertura", "json"],
-      include: ["src/**/*.{js,ts}"],
-      exclude: [],
-    },
-    outputFile: {
-      junit: "../../out/junit/als-test-results.xml",
-    },
-    reporters: ["default", "junit"],
-    testTimeout: 60000, // same as mocha timeout (60 seconds)
     slowTestThreshold: 8000, // tests with >8s will show duration in yellow/red
   },
 });
