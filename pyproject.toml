@@ -19,6 +19,7 @@ dev = [
   "pip>=22.3.1",
   "pre-commit>=4.0.1",
   "pre-commit-uv>=4.1.4",
+  "pytest-rerunfailures>=16.1",
   "selenium>=4.40.0",
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
@@ -87,6 +88,8 @@ norecursedirs = [
 strict_markers = true
 strict_xfail = true
 testpaths = ["test/selenium/ui"]
+reruns = 2  # pytest-rerunfailures
+reruns_delay = 60  # pytest-rerunfailures
 
 [tool.ruff]
 cache-dir = "./.cache/.ruff"
