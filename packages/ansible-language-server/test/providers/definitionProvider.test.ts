@@ -7,11 +7,11 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper";
+} from "../helper.js";
 import { Position } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
-import { getDefinition } from "../../src/providers/definitionProvider";
-import { fileExists } from "../../src/utils/misc";
+import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+import { getDefinition } from "../../src/providers/definitionProvider.js";
+import { fileExists } from "../../src/utils/misc.js";
 import { URI } from "vscode-uri";
 
 function testModuleNamesForDefinition(

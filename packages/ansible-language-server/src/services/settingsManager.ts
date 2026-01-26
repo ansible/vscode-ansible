@@ -5,7 +5,7 @@ import {
   ExtensionSettingsWithDescription,
   ExtensionSettings,
   SettingsEntry,
-} from "../interfaces/extensionSettings";
+} from "../interfaces/extensionSettings.js";
 
 export class SettingsManager {
   private connection: Connection | null;

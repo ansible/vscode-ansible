@@ -21,7 +21,7 @@ tasks:
     desc: Run most commands
     env:
       VERSION:
-        sh: node -p "require('./package.json').version"
+        sh: node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')); console.log(pkg.version);"
     sources:
       - src/**/*.*
       - test/**/*.*

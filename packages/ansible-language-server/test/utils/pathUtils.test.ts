@@ -1,6 +1,11 @@
 import { expect } from "vitest";
-import path = require("path");
-import { globArray } from "../../src/utils/pathUtils";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { globArray } from "../../src/utils/pathUtils.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe("docsFinder", function () {
   const dir = path.resolve(__dirname, "..", "fixtures", "utils", "docsFinder");

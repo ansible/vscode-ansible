@@ -1,9 +1,14 @@
 import * as Handlebars from "handlebars";
 import * as fs from "fs";
-import { SettingsManager } from "../src/services/settingsManager";
+import { SettingsManager } from "../src/services/settingsManager.js";
 import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import * as _ from "lodash";
-import { ExtensionSettingsWithDescriptionBase } from "../src/interfaces/extensionSettings";
+import { ExtensionSettingsWithDescriptionBase } from "../src/interfaces/extensionSettings.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Get the default settings values from settingsManager class
 const settingsManager = new SettingsManager(null, false);

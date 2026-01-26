@@ -56,10 +56,12 @@
   },
   "exports": {
     ".": {
-      "default": "./out/server/src/server.js"
+      "default": "./out/server/src/server.js",
+      "types": "./out/server/src/server.d.ts"
     },
     "./interfaces/extensionSettings": {
-      "default": "./out/server/src/interfaces/extensionSettings.js"
+      "default": "./out/server/src/interfaces/extensionSettings.js",
+      "types": "./out/server/src/interfaces/extensionSettings.d.ts"
     }
   },
   "files": [
@@ -90,6 +92,7 @@
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run",
     "watch": "tsc --watch -p ."
   },
+  "type": "module",
   "types": "./out/server/src/server.d.ts",
   "version": "1.2.4"
 }

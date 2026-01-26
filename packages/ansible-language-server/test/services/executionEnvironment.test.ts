@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "vitest";
 import sinon from "sinon";
-import { ExecutionEnvironment } from "../../src/services/executionEnvironment";
+import { ExecutionEnvironment } from "../../src/services/executionEnvironment.js";
 
 const mockConnection = {
   window: {

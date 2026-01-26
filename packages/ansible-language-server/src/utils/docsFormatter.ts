@@ -5,8 +5,8 @@ import {
   IDescription,
   IModuleDocumentation,
   IOption,
-} from "../interfaces/module";
-import { IPluginRoute } from "../interfaces/pluginRouting";
+} from "../interfaces/module.js";
+import { IPluginRoute } from "../interfaces/pluginRouting.js";
 
 export function formatModule(
   module: IModuleDocumentation,

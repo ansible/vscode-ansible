@@ -9,19 +9,23 @@ import {
 } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
 import { isNode, isScalar, Node, YAMLMap } from "yaml";
-import { IOption } from "../interfaces/module";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { SchemaService } from "../services/schemaService";
-import { SchemaCompleter } from "../services/schemaCompleter";
+import { IOption } from "../interfaces/module.js";
+import { WorkspaceFolderContext } from "../services/workspaceManager.js";
+import { SchemaService } from "../services/schemaService.js";
+import { SchemaCompleter } from "../services/schemaCompleter.js";
 import {
   blockKeywords,
   playKeywords,
   playWithoutTaskKeywords,
   roleKeywords,
   taskKeywords,
-} from "../utils/ansible";
-import { formatModule, formatOption, getDetails } from "../utils/docsFormatter";
-import { insert, toLspRange } from "../utils/misc";
+} from "../utils/ansible.js";
+import {
+  formatModule,
+  formatOption,
+  getDetails,
+} from "../utils/docsFormatter.js";
+import { insert, toLspRange } from "../utils/misc.js";
 import {
   AncestryBuilder,
   findProvidedModule,
@@ -37,9 +41,9 @@ import {
   getPossibleOptionsForPath,
   isCursorInsideJinjaBrackets,
   isPlaybook,
-} from "../utils/yaml";
-import { getVarsCompletion } from "./completionProviderUtils";
-import { HostType } from "../services/ansibleInventory";
+} from "../utils/yaml.js";
+import { getVarsCompletion } from "./completionProviderUtils.js";
+import { HostType } from "../services/ansibleInventory.js";
 
 const priorityMap = {
   nameKeyword: 1,

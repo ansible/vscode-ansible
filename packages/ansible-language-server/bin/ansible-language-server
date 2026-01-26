@@ -1,8 +1,16 @@
 #!/usr/bin/env node
 
+import { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 if (process.argv.includes("--version")) {
-  const pkgJSON = require("../package.json");
-  console.log(`${pkgJSON["version"]}`);
+  const pkgPath = join(__dirname, "..", "package.json");
+  const pkgJSON = JSON.parse(readFileSync(pkgPath, "utf8"));
+  console.log(`${pkgJSON.version}`);
 } else {
-  require("../out/server/src/server.js");
+  await import("../out/server/src/server.js");
 }
