@@ -76,7 +76,7 @@ any level (User, Remote, Workspace and/or Folder).
   - For Google: `https://generativelanguage.googleapis.com/v1beta`
 
 - `ansible.lightspeed.modelName`: Model name/ID to use.
-  - For WCA: Model ID override (optional, for commercial users)
+  - Not used for WCA.
   - For LLM providers: Required model identifier (e.g., `gemini-2.5-flash`)
 
 - `ansible.lightspeed.apiKey`: API key for LLM providers.

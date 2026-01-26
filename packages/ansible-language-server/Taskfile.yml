@@ -69,7 +69,7 @@ tasks:
       - webpack.config.js
       - vitest.config.ts
     generates:
-      - ../../out/junit/als/als-test-results.xml
+      - ../../out/junit/als-test-results.xml
     cmds:
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
   test-with-ee:

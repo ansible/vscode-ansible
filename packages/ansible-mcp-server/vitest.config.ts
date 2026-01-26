@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reportsDirectory: "../../out/coverage/mcp",
-      reporter: ["cobertura", "text", "json"],
+      reporter: ["cobertura", "json"],
       exclude: [
         "node_modules/",
         "dist/",
@@ -19,7 +19,7 @@ export default defineConfig({
       ],
     },
     outputFile: {
-      junit: "../../out/junit/mcp/mcp-test-results.xml",
+      junit: "../../out/junit/mcp-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30000, // 30 seconds for tests that might spawn processes

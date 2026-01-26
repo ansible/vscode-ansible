@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
-import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
 import ErrorBox from './components/ErrorBox.vue';
 
 const errorMessages: Ref<string[]> = ref([])
 
 
-provideVSCodeDesignSystem().register(allComponents);
 
 errorMessages.value.push("An error message example to demonstrate how to use the ErrorBox component!");
 
@@ -19,5 +17,6 @@ errorMessages.value.push("An error message example to demonstrate how to use the
 
   <ErrorBox v-model:error-messages="errorMessages" />
 
+  <vscode-button @click="errorMessages = []">Clear Errors</vscode-button>
 </template>
 <style scoped></style>

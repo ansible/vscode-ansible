@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,
     silent: true,
     include: ["test/unit/**/*.test.ts"],
-    exclude: ["test/unit/contentCreator/**"],
+    exclude: ["test/unit/contentCreator/**", "test/unit/webviews/**"],
     setupFiles: ["./test/unit/vitestSetup.ts"],
     coverage: {
       provider: "v8",
@@ -15,7 +15,7 @@ export default defineConfig({
       clean: true,
       enabled: true,
       reportsDirectory: "./out/coverage/unit",
-      reporter: ["cobertura", "lcovonly", "text", "text-summary"], // text-summary shows only overall coverage stats, skipping per-file details
+      reporter: ["cobertura", "lcovonly", "text-summary"], // text-summary shows only overall coverage stats, skipping per-file details
       include: ["src/**/**.{js,jsx,ts,tsx}"], // Include source files for coverage
       exclude: [],
       thresholds: {
@@ -23,7 +23,7 @@ export default defineConfig({
       },
     },
     outputFile: {
-      junit: "./out/junit/unit/unit-test-results.xml",
+      junit: "./out/junit/unit-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30003,

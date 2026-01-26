@@ -5,7 +5,6 @@ import {
   testHover,
   setFixtureAnsibleCollectionPathEnv,
   skip_ee,
-  run_lightspeed_tests_only,
   deleteAlsCache,
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
@@ -14,7 +13,7 @@ import {
 
 describe("ee", function () {
   before(async function () {
-    if (skip_ee || run_lightspeed_tests_only) {
+    if (skip_ee) {
       this.skip();
     }
     deleteAlsCache();

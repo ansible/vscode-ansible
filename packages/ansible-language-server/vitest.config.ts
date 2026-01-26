@@ -22,12 +22,12 @@ export default defineConfig({
       cleanOnRerun: true,
       clean: true,
       reportsDirectory: "../../out/coverage/als",
-      reporter: ["cobertura", "text", "json"],
+      reporter: ["cobertura", "json"],
       include: ["src/**/*.{js,ts}"],
       exclude: [],
     },
     outputFile: {
-      junit: "../../out/junit/als/als-test-results.xml",
+      junit: "../../out/junit/als-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 60000, // same as mocha timeout (60 seconds)

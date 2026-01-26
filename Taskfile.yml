@@ -14,6 +14,8 @@ includes:
     dir: ./packages/ansible-mcp-server
 output: prefixed # do not use "group" due to impact on CI
 env:
+  # Overridden by some specific jobs
+  CODE_VERSION: max
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
@@ -63,11 +65,12 @@ tasks:
       - "{src,test}/**/*"
       - tsconfig*.json
       - webpack.config.ts
-      - yarn.lock.json
+      - yarn.lock
       - exclude: "**/.ansible/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/testFixtures/.vscode/settings.json"
       - exclude: "**/None/**/*"
+      - exclude: "test/selenium/ui/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -178,6 +181,8 @@ tasks:
       - defer: { task: finish }
     interactive: true
   e2e:
+    vars:
+      TEST_PREFIX: "{{ .TASK }}"
     desc: Run e2e tests with vscode-test {{.XVFB}}
     deps:
       - package
@@ -187,9 +192,10 @@ tasks:
       # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
       TMP: out/tmp/e2e
     generates:
-      - out/junit/e2e/test-results.xml
+      - out/junit/e2e-test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
       - out/coverage/e2e/lcov.info
+      - out/log/e2e/e2e.log
     sources:
       - "{src,test}/**/*"
       - .vscode-test.mjs
@@ -203,6 +209,7 @@ tasks:
       - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   ui-prepare:
     deps:
@@ -212,53 +219,85 @@ tasks:
       - out/test-resources/manifest.json
       # do not put out/ext here as it is modified on each run
     sources:
-      - tools/test-launcher.sh
       - "*.vsix"
-    env:
-      CODE_VERSION: max
     cmds:
       - extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
       - extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
       - extest install-vsix -f "$( find . -maxdepth 1 -name '*.vsix' )" -e out/ext -s out/test-resources
       - extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
-      - rimraf out/log/.failed out/log/ui* out/junit/ui/ out/coverage/ui/ out/test-resources/test.log out/test-resources/screenshots/ out/test-resources/settings/logs/*
   ui:
     desc: Run UI tests with extest {{.XVFB}}
     deps:
       - ui-prepare
     env:
+      DONT_PROMPT_WSL_INSTALL: "1"
       EXTEST_ARGS: "--coverage"
       MOCK_LIGHTSPEED_API: "1"
-      TEST_PREFIX: "ui"
+    vars:
+      # allows us to run ui-smoke or ui-oldest:
+      TEST_PREFIX: "{{ coalesce .TEST_PREFIX .TASK }}"
     sources:
-      - src/**/*
-      - test/**/*
-      - ./tools/test-launcher.sh
+      - src/**/*.ts
+      - test/*.ts
+      - test/ui/**/*.{ts,js}
+      - webviews/**/*.vue
+      - exclude: test/testFixtures/.vscode/
+      - exclude: test/testFixtures/common/collections/
     generates:
-      - out/junit/ui/.passed
+      - out/junit/{{.TEST_PREFIX}}-test-results.xml
     cmds:
-      - rm -f out/junit/ui/${TEST_PREFIX}-*-test-results.xml
-      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
+      - rimraf out/junit/{{.TEST_PREFIX}}-test-results.xml ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
+      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/ out/junit/
+      - cp -f test/testFixtures/settings.json out/test-resources/settings/User/settings.json
+      # {{.CLI_ARGS}}'
+      - >-
+        TEST_PREFIX="${TEST_PREFIX}" timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests
+        --mocha_config test/ui/.mocharc.js
+        -s out/test-resources
+        -e out/ext
+        --code_settings out/test-resources/settings/User/settings.json
+        -c "${CODE_VERSION}"
+        --open_resource .
+        "${EXTEST_ARGS:-}"
+        --
+        out/client/test/ui/**/*.test.js | tee >(sed -r 's/\x1B\[[0-9;]*[mK]//g' > "out/{{.TEST_PREFIX}}/{{.TEST_PREFIX}}.log") 2>&1
+      - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
     env:
       TEST_PREFIX: "ui-smoke"
-      MOCK_LIGHTSPEED_API: "1"
+      # this is removing the --coverage option from extest which enables smoke testing
+      EXTEST_ARGS: ""
     deps:
       - ui-prepare
     cmds:
       # essential cleanup to avoid accidental loading of files from disk instead of from within the package
       - rimraf out/client/src out/vitebuild
-      - '{{.XVFB}}./tools/test-launcher.sh {{.CLI_ARGS}}'
+      - task: ui
+        vars:
+          TEST_PREFIX: "{{ .TASK }}"
     interactive: true
   ui-oldest:
     desc: Run UI tests (CODE_VERSION='min')
     env:
       CODE_VERSION: min
       TEST_PREFIX: "ui-oldest"
+      EXTEST_ARGS: "" # disable coverage because it would override 'ui' report (extest does not allow customization)
+    cmds:
+      - task: ui
+        vars:
+          TEST_PREFIX: "{{ .TASK }}"
+  ui-selenium:
+    desc: Run UI tests (Selenium)
     deps:
-      - ui
+      - package
+    cmds:
+      - VSX_FILE=${PWD}/$(ls -1 ansible-*.vsix) && podman run --pull=missing --replace --detach --rm --shm-size=10g --name selenium-vscode -p 4444:4444 -p 5999:5999 --volume $VSX_FILE:/ansible-latest.vsix quay.io/tshinhar/selenium-vscode-multi:latest
+      - curl -sS --retry 10 --retry-all-errors http://localhost:4444
+      - pytest
+      - podman stop selenium-vscode
+    interactive: true
   unit:
     desc: Run unit tests with coverage report
     deps:
@@ -268,22 +307,25 @@ tasks:
       - test/**/*
     generates:
       - out/coverage/unit/lcov.info
+      - out/coverage/vue/lcov.info
     cmds:
       - vitest run
+      - vitest run --config vitest.config.vue.ts
     interactive: true
   package:
     desc: Package extension
     deps:
       - build
     sources:
+      - "{src,media,webviews}/**/*" # do not include 'test' as they do not get into the package
+      - .vscodeignore
       - CHANGELOG.md
       - README.md
-      - package*.json
-      - .vscodeignore
-      - webpack.config.ts
-      - tools/helper
-      - "{src,test,media}/**/*"
       - exclude: "**/.ansible/**/*"
+      - exclude: "test/selenium/ui/**/*"
+      - package*.json
+      - tools/helper
+      - yarn.lock
     generates:
       - "*.vsix"
       - "packages/*/*.tgz"
@@ -335,3 +377,13 @@ tasks:
       - package
     cmds:
       - vitest list
+  collect-logs:
+    requires:
+      vars: [TEST_PREFIX]
+    cmds:
+      - mkdir -p out/{{.TEST_PREFIX}}/screenshots
+      - |
+        find out/test-resources/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+        find out/test-resources/settings/logs -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+        find out/test-resources/screenshots -type f -exec cp -v {} out/{{.TEST_PREFIX}}/screenshots \; 2>/dev/null || true
+      - defer: tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log

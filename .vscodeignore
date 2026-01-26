@@ -13,9 +13,6 @@
 !images/logo.png
 !jinja-language-configuration.json
 !media/style.css
-!media/codicons/codicon.css
-!media/codicons/codicon.ttf
-!media/codicons/codicon.css
 !media/baseStyles/baseFormStyle.css
 !media/contentCreator/icons/ansible-creator-create.png
 !media/contentCreator/icons/ansible-creator-init.png

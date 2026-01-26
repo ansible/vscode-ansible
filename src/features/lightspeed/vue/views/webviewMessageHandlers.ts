@@ -133,6 +133,11 @@ export class WebviewMessageHandlers {
       writeRoleInWorkspace: this.handleWriteRoleInWorkspace.bind(this),
       feedback: this.handleFeedback.bind(this),
       getTelemetryStatus: this.handleGetTelemetryStatus.bind(this),
+
+      // Feedback handlers (from FeedbackApp.vue)
+      sentimentFeedback: this.handleSentimentFeedback.bind(this),
+      issueFeedback: this.handleIssueFeedback.bind(this),
+      suggestionFeedback: this.handleSuggestionFeedback.bind(this),
     };
   }
 
@@ -1199,6 +1204,10 @@ export class WebviewMessageHandlers {
   private async handleGetExplorerState(message: any, webview: vscode.Webview) {
     const hasPlaybookOpened = this.hasPlaybookOpened();
     const hasRoleOpened = await this.hasRoleOpened();
+
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
     const isAuthenticated =
       await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
     const userContent =
@@ -1207,6 +1216,7 @@ export class WebviewMessageHandlers {
     const reply = {
       type: "explorerStateUpdate",
       data: {
+        provider,
         isAuthenticated,
         userContent,
         hasPlaybookOpened,
@@ -1258,5 +1268,109 @@ export class WebviewMessageHandlers {
       }
     }
     return false;
+  }
+
+  // Feedback Handlers (from FeedbackApp.vue)
+  private async handleSentimentFeedback(message: any, webview: vscode.Webview) {
+    const { data } = message;
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    const feedbackRequest: FeedbackRequestParams = {
+      sentimentFeedback: {
+        value: data.value,
+        feedback: data.feedback,
+      },
+    };
+
+    if (provider !== "wca") {
+      // For non-WCA providers, show message that feedback requires WCA
+      vscode.window.showInformationMessage(
+        "Feedback can only be submitted when using Red Hat Ansible Lightspeed with WCA provider.",
+      );
+      return;
+    }
+
+    try {
+      await lightSpeedManager.apiInstance.feedbackRequest(
+        feedbackRequest,
+        true,
+        true,
+      );
+      webview.postMessage({ type: "feedbackSuccess" });
+    } catch (error) {
+      console.error(`[Lightspeed Feedback] Sentiment feedback failed:`, error);
+      this.sendErrorMessage(webview, "Failed to submit feedback.");
+    }
+  }
+
+  private async handleIssueFeedback(message: any, webview: vscode.Webview) {
+    const { data } = message;
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    const feedbackRequest: FeedbackRequestParams = {
+      issueFeedback: {
+        type: data.type,
+        title: data.title,
+        description: data.description,
+      },
+    };
+
+    if (provider !== "wca") {
+      vscode.window.showInformationMessage(
+        "Feedback can only be submitted when using Red Hat Ansible Lightspeed with WCA provider.",
+      );
+      return;
+    }
+
+    try {
+      await lightSpeedManager.apiInstance.feedbackRequest(
+        feedbackRequest,
+        true,
+        true,
+      );
+      webview.postMessage({ type: "feedbackSuccess" });
+    } catch (error) {
+      console.error(`[Lightspeed Feedback] Issue feedback failed:`, error);
+      this.sendErrorMessage(webview, "Failed to submit feedback.");
+    }
+  }
+
+  private async handleSuggestionFeedback(
+    message: any,
+    webview: vscode.Webview,
+  ) {
+    const { data } = message;
+    const provider =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
+
+    const feedbackRequest: FeedbackRequestParams = {
+      suggestionQualityFeedback: {
+        prompt: data.prompt,
+        providedSuggestion: data.provided,
+        expectedSuggestion: data.expected,
+        additionalComment: data.additionalComment,
+      },
+    };
+
+    if (provider !== "wca") {
+      vscode.window.showInformationMessage(
+        "Feedback can only be submitted when using Red Hat Ansible Lightspeed with WCA provider.",
+      );
+      return;
+    }
+
+    try {
+      await lightSpeedManager.apiInstance.feedbackRequest(
+        feedbackRequest,
+        true,
+        true,
+      );
+      webview.postMessage({ type: "feedbackSuccess" });
+    } catch (error) {
+      console.error(`[Lightspeed Feedback] Suggestion feedback failed:`, error);
+      this.sendErrorMessage(webview, "Failed to submit feedback.");
+    }
   }
 }

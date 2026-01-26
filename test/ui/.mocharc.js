@@ -1,26 +1,6 @@
 // ui tests
 "use strict";
 
-const fs = require("fs");
-const testPrefix = process.env.TEST_PREFIX || "ui";
-
-function getNextMochaFile() {
-  let counter = 0;
-  const baseDir = "./out/junit/ui";
-  let filename = `./out/junit/ui/${testPrefix}-${counter}-test-results.xml`;
-
-  // Ensure directory exists
-  if (!fs.existsSync(baseDir)) {
-    fs.mkdirSync(baseDir, { recursive: true });
-  }
-
-  while (fs.existsSync(filename)) {
-    counter++;
-    filename = `./out/junit/ui/${testPrefix}-${counter}-test-results.xml`;
-  }
-  return filename;
-}
-
 module.exports = {
   bail: true,
   color: true, // needed to keep colors inside vscode terminal
@@ -39,7 +19,7 @@ module.exports = {
     mochaJunitReporterReporterOptions: {
       attachments: true,
       includePending: true,
-      mochaFile: getNextMochaFile(),
+      mochaFile:  `./out/junit/${process.env.TEST_PREFIX ? process.env.TEST_PREFIX : 'ui' }-test-results.xml`,
       outputs: true,
       suiteTitle: "ui",
       suiteTitleSeparatedBy: "::",
