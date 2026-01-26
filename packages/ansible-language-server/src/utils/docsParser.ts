@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import * as fs from "fs";
 import { parseDocument, YAMLError } from "yaml";
 import {

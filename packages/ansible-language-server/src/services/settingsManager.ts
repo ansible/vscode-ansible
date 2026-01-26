@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import { Connection } from "vscode-languageserver";
 import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
 import {

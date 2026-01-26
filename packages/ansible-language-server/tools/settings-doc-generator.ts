@@ -1,10 +1,10 @@
-import * as Handlebars from "handlebars";
+import Handlebars from "handlebars";
 import * as fs from "fs";
 import { SettingsManager } from "../src/services/settingsManager.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import * as _ from "lodash";
+import _ from "lodash";
 import { ExtensionSettingsWithDescriptionBase } from "../src/interfaces/extensionSettings.js";
 
 const __filename = fileURLToPath(import.meta.url);

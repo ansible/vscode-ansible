@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   Document,
