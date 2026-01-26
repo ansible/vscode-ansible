@@ -23,7 +23,7 @@ export default defineConfig({
       },
     },
     outputFile: {
-      junit: "./out/junit/unit/unit-test-results.xml",
+      junit: "./out/junit/unit-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30003,

@@ -71,9 +71,8 @@ const overrideConsole = (method: ConsoleMethod) => {
 
 export const mochaHooks = {
   beforeAll() {
-    fs.rmSync("out/junit/e2e", { recursive: true, force: true });
     fs.mkdirSync("out/userdata/User/", { recursive: true });
-    fs.mkdirSync("out/junit/e2e", { recursive: true });
+    fs.mkdirSync("out/junit", { recursive: true });
     fs.cpSync(
       "test/testFixtures/settings.json",
       "out/userdata/User/settings.json",
