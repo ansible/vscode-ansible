@@ -15,8 +15,8 @@ import {
   clearAllFields,
   createActionWrapper
 } from './../src/features/contentCreator/webviewUtils';
-import '../media/contentCreator/createAnsibleCollectionPageStyle.css';
 import RequirementsBanner from './RequirementsBanner.vue';
+import FormPageLayout from './FormPageLayout.vue';
 
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
@@ -173,13 +173,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <body>
-    <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-    <div :class="{ 'disabled-content': !requirementsMet }">
-      <div class="title-div">
-        <h1>Create new Ansible collection</h1>
-        <p class="subtitle">Streamlining automation</p>
-      </div>
+  <FormPageLayout
+    title="Create new Ansible collection"
+    subtitle="Streamlining automation"
+    :requirementsMet="requirementsMet"
+  >
+    <template #banner>
+      <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+    </template>
 
       <form id="init-form">
         <section class="component-container">
@@ -443,10 +444,33 @@ onMounted(async () => {
           </div>
         </section>
       </form>
-    </div>
-  </body>
+  </FormPageLayout>
 </template>
 
 <style>
-.disabled-content { opacity: 0.4; pointer-events: none; }
+/* Component-specific styles for CreateAnsibleCollectionApp */
+.full-collection-name {
+  display: flex;
+  flex-direction: row;
+  color: var(--vscode-descriptionForeground);
+}
+
+#ade-docs-link {
+  margin-left: 30px;
+  font-style: italic;
+}
+
+.log-to-file-options {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  border-style: dotted;
+  border-color: var(--focus-border);
+  border-width: 0.5px;
+  padding: 8px;
+}
+
+.log-level-div {
+  margin: 4px 0px;
+}
 </style>
