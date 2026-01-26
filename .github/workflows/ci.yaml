@@ -151,6 +151,10 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Report unexpected failures
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
+        uses: ./.github/actions/report
+
   build:
     name: ${{ matrix.name }}
 
@@ -380,9 +384,14 @@ jobs:
         with:
           name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
           path: |
+            out/als
             out/coverage
+            out/e2e
             out/junit
-            out/{log,ui*,e2e,als,mcp,unit}
+            out/log
+            out/mcp
+            out/ui*
+            out/unit
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs

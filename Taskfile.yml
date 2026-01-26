@@ -263,6 +263,8 @@ tasks:
         mkdir -p out/log/{{.TEST_PREFIX}}/
         find out/test-resources/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
         find out/test-resources/settings/logs out/test-resources/screenshots -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+      # Sanitize logs by obfuscating tokens (cross-platform Python solution)
+      - tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
