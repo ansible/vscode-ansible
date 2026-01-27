@@ -17,5 +17,6 @@ errorMessages.value.push("An error message example to demonstrate how to use the
 
   <ErrorBox v-model:error-messages="errorMessages" />
 
+  <vscode-button @click="errorMessages = []">Clear Errors</vscode-button>
 </template>
 <style scoped></style>

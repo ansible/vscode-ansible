@@ -11,7 +11,7 @@ tasks:
     sources:
       - package.json
       - packages/*/package.json
-      - .yarn.lock
+      - yarn.lock
     run: once
     interactive: true
   uv:

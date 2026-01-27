@@ -1,3 +1,10 @@
+import "@vscode-elements/elements/dist/vscode-button";
+import "@vscode-elements/elements/dist/vscode-divider";
+import "@vscode-elements/elements/dist/vscode-option";
+import "@vscode-elements/elements/dist/vscode-single-select";
+import "@vscode-elements/elements/dist/vscode-textarea";
+import "@vscode-elements/elements/dist/vscode-textfield";
+
 import { createApp } from "vue";
 import App from "./FeedbackApp.vue";
 

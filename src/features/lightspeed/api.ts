@@ -206,8 +206,6 @@ export class LightSpeedAPI {
     const orgOptOutTelemetry =
       await this.lightspeedAuthenticatedUser.orgOptOutTelemetry();
 
-    inputData.model = "";
-
     if (orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
         delete inputData.inlineSuggestion;

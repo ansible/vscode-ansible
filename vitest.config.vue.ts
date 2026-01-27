@@ -23,7 +23,7 @@ export default defineConfig({
       clean: true,
       enabled: true,
       reportsDirectory: "./out/coverage/vue",
-      reporter: ["cobertura", "lcovonly", "text", "text-summary"],
+      reporter: ["cobertura", "lcovonly", "text-summary"],
       include: [
         "webviews/lightspeed/src/ExplorerApp.vue",
         "webviews/lightspeed/src/ExplanationApp.vue",
@@ -37,7 +37,7 @@ export default defineConfig({
       exclude: [],
     },
     outputFile: {
-      junit: "./out/junit/vue/vue-test-results.xml",
+      junit: "./out/junit/vue-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30000,
