@@ -137,7 +137,7 @@ tasks:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
-      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - npx tsx packages/ansible-language-server/tools/settings-doc-generator.ts
       - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
       - defer: { task: finish }
   lint:

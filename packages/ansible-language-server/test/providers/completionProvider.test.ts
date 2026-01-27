@@ -8,9 +8,9 @@ import {
 import {
   doCompletion,
   doCompletionResolve,
-} from "../../src/providers/completionProvider";
-import {} from "../../src/providers/validationProvider";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
+} from "../../src/providers/completionProvider.js";
+import {} from "../../src/providers/validationProvider.js";
+import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -22,7 +22,7 @@ import {
   setAnsibleConfigEnv,
   unsetAnsibleConfigEnv,
   skipEE,
-} from "../helper";
+} from "../helper.js";
 
 function testPlayKeywords(
   context: WorkspaceFolderContext | undefined,

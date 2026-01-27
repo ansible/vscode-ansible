@@ -1,6 +1,6 @@
 import * as child_process from "child_process";
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
+import { WorkspaceFolderContext } from "../services/workspaceManager.js";
 
 export class ImagePuller {
   private connection: Connection;
