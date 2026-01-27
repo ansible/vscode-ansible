@@ -182,7 +182,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
   /**
    * Handle "Ansible Lightspeed" in the extension
    */
-  lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
+  lightSpeedManager = new LightSpeedManager(
+    context,
+    extSettings,
+    telemetry,
+    llmProviderSettings,
+  );
 
   // Register provider management commands
   const providerCommands = new ProviderCommands(
@@ -336,8 +341,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }
-        // Send explorer state update when editor changes
-        await updateExplorerState(lightSpeedManager);
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );
@@ -431,7 +435,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      await updateExplorerState(lightSpeedManager);
+      lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
@@ -439,6 +443,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,
     context,
+    llmProviderSettings,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(
@@ -457,6 +462,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         extSettings,
         lightSpeedManager.providerManager,
         llmProviderSettings,
+        lightSpeedManager.lightspeedAuthenticatedUser,
+        quickLinksHome,
       );
     },
   );
@@ -932,6 +939,26 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
+      "ansible.lightspeed.enableExperimentalFeatures",
+      () => {
+        vscode.commands.executeCommand(
+          "setContext",
+          "redhat.ansible.lightspeedExperimentalEnabled",
+          true,
+        );
+        if (lightSpeedManager.lightspeedExplorerProvider) {
+          lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
+        }
+        if (!extSettings.settings.lightSpeedService.enabled) {
+          return;
+        }
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_OPEN_TRIAL_PAGE,
       () => {
         vscode.env.openExternal(
@@ -950,7 +977,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       async () => {
         console.log("Refreshing Lightspeed Explorer View");
         await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
-        await updateExplorerState(lightSpeedManager);
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );

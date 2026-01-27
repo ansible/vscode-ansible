@@ -71,6 +71,7 @@ export class LLMProviderFactory implements ProviderFactory {
         description:
           "Official Red Hat Ansible Lightspeed service with IBM watsonx Code Assistant",
         defaultEndpoint: WCA_API_ENDPOINT_DEFAULT,
+        defaultModel: undefined, // WCA uses organization default
         configSchema: [
           {
             key: "apiEndpoint",
@@ -88,6 +89,7 @@ export class LLMProviderFactory implements ProviderFactory {
         displayName: "Google Gemini",
         description: "Direct access to Google Gemini models",
         defaultEndpoint: GOOGLE_API_ENDPOINT,
+        defaultModel: GOOGLE_DEFAULT_MODEL,
         configSchema: [
           {
             key: "apiKey",

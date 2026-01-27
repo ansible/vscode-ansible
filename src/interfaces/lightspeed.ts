@@ -309,6 +309,7 @@ export interface ProviderInfo {
   description: string;
   configSchema: ConfigField[];
   defaultEndpoint?: string;
+  defaultModel?: string;
 }
 
 export interface ProviderFactory {
