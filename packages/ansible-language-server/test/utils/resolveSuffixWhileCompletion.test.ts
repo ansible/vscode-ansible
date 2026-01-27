@@ -1,5 +1,5 @@
 import { EOL } from "os";
-import { resolveSuffix } from "../../src/providers/completionProvider";
+import { resolveSuffix } from "../../src/providers/completionProvider.js";
 import { expect } from "vitest";
 
 function testResolveSuffixInPlaybook() {

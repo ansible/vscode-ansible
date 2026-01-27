@@ -1,13 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import { parseDocument } from "yaml";
-import { LazyModuleDocumentation, parseRawRouting } from "./docsParser";
-import { IModuleMetadata } from "../interfaces/module";
+import { LazyModuleDocumentation, parseRawRouting } from "./docsParser.js";
+import { IModuleMetadata } from "../interfaces/module.js";
 import {
   IPluginRoutesByType,
   IPluginRoutingByCollection,
-} from "../interfaces/pluginRouting";
-import { globArray } from "./pathUtils";
+} from "../interfaces/pluginRouting.js";
+import { globArray } from "./pathUtils.js";
 
 export async function findDocumentation(
   dir: string,

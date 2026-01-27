@@ -1,11 +1,11 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import { Connection } from "vscode-languageserver";
 import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
 import {
   ExtensionSettingsWithDescription,
   ExtensionSettings,
   SettingsEntry,
-} from "../interfaces/extensionSettings";
+} from "../interfaces/extensionSettings.js";
 
 export class SettingsManager {
   private connection: Connection | null;

@@ -1,11 +1,11 @@
 import * as ini from "ini";
-import * as _ from "lodash";
+import _ from "lodash";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "./workspaceManager";
-import { CommandRunner } from "../utils/commandRunner";
-import { ansibleMetaDataType } from "../utils/getAnsibleMetaData";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { CommandRunner } from "../utils/commandRunner.js";
+import { ansibleMetaDataType } from "../utils/getAnsibleMetaData.js";
 
 export class AnsibleConfig {
   private connection: Connection;
