@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { vscodeApi } from "./utils";
+import '@vscode/codicons/dist/codicon.css';
+
 
 // Sentiment feedback state
 const selectedSentiment = ref<number | null>(null);
