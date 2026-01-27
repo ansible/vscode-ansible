@@ -37,7 +37,7 @@ export default defineConfig({
       exclude: [],
     },
     outputFile: {
-      junit: "./out/junit/vue/vue-test-results.xml",
+      junit: "./out/junit/vue-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30000,

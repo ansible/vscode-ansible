@@ -3,7 +3,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import Ajv, { ErrorObject } from "ajv";
 import addFormats from "ajv-formats";
 import { parseDocument, Document } from "yaml";
-import { JSONSchema } from "./schemaCache";
+import { JSONSchema } from "./schemaCache.js";
 
 /**
  * Validates YAML documents against JSON schemas.

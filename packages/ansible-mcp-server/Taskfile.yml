@@ -48,8 +48,8 @@ tasks:
     deps:
       - build
     dir: "{{ .TASKFILE_DIR }}"
-    status:
-      - test -f ../../out/junit/mcp/.passed
+    generates:
+      - ../../out/junit/mcp-test-results.xml
     sources:
       - package.json
       - src/**/*.*
@@ -59,9 +59,7 @@ tasks:
       - exclude: "**/*-artifact-*.json"
       - exclude: ansible-navigator.log
     cmds:
-      - rm -f ../../out/junit/mcp/.passed
       - npm run test:coverage
-      - touch ../../out/junit/mcp/.passed
     interactive: true
   test-watch:
     desc: Run tests in watch mode

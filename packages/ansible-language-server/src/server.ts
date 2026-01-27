@@ -7,8 +7,8 @@ import {
   ProposedFeatures,
   TextDocuments,
 } from "vscode-languageserver/node";
-import { AnsibleLanguageService } from "./ansibleLanguageService";
-import { getUnsupportedError } from "./utils/misc";
+import { AnsibleLanguageService } from "./ansibleLanguageService.js";
+import { getUnsupportedError } from "./utils/misc.js";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.

@@ -11,7 +11,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
-import noUnsafeSpawnRule from "./test/eslint/no-unsafe-spawn.ts";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const noUnsafeSpawnRule =
+  require("./out/client/test/eslint/no-unsafe-spawn.js").default;
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory

@@ -1,7 +1,7 @@
 import { Connection } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
-import { SchemaCache, JSONSchema } from "./schemaCache";
+import { SchemaCache, JSONSchema } from "./schemaCache.js";
 
 // Schema mappings for Ansible metadata files
 // All schemas are from the official ansible-lint repository

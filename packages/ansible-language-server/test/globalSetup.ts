@@ -1,7 +1,7 @@
 // Global setup that runs once before all tests
-import { isWindows, console } from "./helper";
+import { isWindows, console } from "./helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
-import pkg from "../../../package.json";
+import pkg from "../../../package.json" assert { type: "json" };
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";

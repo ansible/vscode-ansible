@@ -120,7 +120,7 @@ describe("ExplorerApp", () => {
       ).toBe(true);
     });
 
-    it("displays user content", async () => {
+    it("displays user content when provider is wca", async () => {
       const wrapper = mount(ExplorerApp);
 
       const onCalls = vi.mocked(vscodeApi.on).mock.calls;
@@ -130,11 +130,30 @@ describe("ExplorerApp", () => {
 
       explorerStateUpdateHandler?.({
         isAuthenticated: true,
+        provider: "wca",
         userContent: "Logged in as: test@example.com",
       });
       await flushPromises();
 
       expect(wrapper.text()).toContain("Logged in as: test@example.com");
+    });
+
+    it("displays the provider when provider is not wca", async () => {
+      const wrapper = mount(ExplorerApp);
+
+      const onCalls = vi.mocked(vscodeApi.on).mock.calls;
+      const explorerStateUpdateHandler = onCalls.find(
+        (call) => call[0] === "explorerStateUpdate",
+      )?.[1];
+
+      explorerStateUpdateHandler?.({
+        isAuthenticated: true,
+        provider: "ollama",
+        userContent: "Logged in as: test@example.com",
+      });
+      await flushPromises();
+
+      expect(wrapper.text()).toContain("Using ollama provider");
     });
 
     it("calls explorerGeneratePlaybook when Generate Playbook is clicked", async () => {

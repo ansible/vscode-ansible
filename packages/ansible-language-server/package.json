@@ -39,7 +39,7 @@
   "description": "Ansible language server",
   "devDependencies": {
     "@types/ini": "^4.1.1",
-    "@types/lodash": "^4.17.21",
+    "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.2",
     "@types/vscode": "^1.85.0",
     "fuse.js": "^7.1.0",
@@ -56,10 +56,12 @@
   },
   "exports": {
     ".": {
-      "default": "./out/server/src/server.js"
+      "default": "./out/server/src/server.js",
+      "types": "./out/server/src/server.d.ts"
     },
     "./interfaces/extensionSettings": {
-      "default": "./out/server/src/interfaces/extensionSettings.js"
+      "default": "./out/server/src/interfaces/extensionSettings.js",
+      "types": "./out/server/src/interfaces/extensionSettings.d.ts"
     }
   },
   "files": [
@@ -90,6 +92,7 @@
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run",
     "watch": "tsc --watch -p ."
   },
+  "type": "module",
   "types": "./out/server/src/server.d.ts",
   "version": "1.2.4"
 }

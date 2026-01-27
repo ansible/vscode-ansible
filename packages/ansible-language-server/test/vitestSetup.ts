@@ -1,6 +1,6 @@
 // This file is loaded automatically by vitest during the test run.
 import { beforeAll, beforeEach } from "vitest";
-import { deleteAlsCache, skipEE } from "./helper";
+import { deleteAlsCache, skipEE } from "./helper.js";
 
 // Delete cache once at the start of all tests (like Mocha's beforeAll)
 beforeAll(() => {

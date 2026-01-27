@@ -15,14 +15,14 @@ import {
   Scalar,
   YAMLMap,
 } from "yaml";
-import { IOption } from "../interfaces/module";
-import { DocsLibrary } from "../services/docsLibrary";
+import { IOption } from "../interfaces/module.js";
+import { DocsLibrary } from "../services/docsLibrary.js";
 import {
   blockKeywords,
   isTaskKeyword,
   playKeywords,
   roleKeywords,
-} from "../utils/ansible";
+} from "../utils/ansible.js";
 import {
   findProvidedModule,
   getOrigRange,
@@ -31,7 +31,7 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from "../utils/yaml";
+} from "../utils/yaml.js";
 
 export const tokenTypes = [
   SemanticTokenTypes.method,

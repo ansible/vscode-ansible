@@ -1,20 +1,20 @@
 import { Hover, MarkupContent, MarkupKind } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
 import { isScalar, Scalar } from "yaml";
-import { DocsLibrary } from "../services/docsLibrary";
+import { DocsLibrary } from "../services/docsLibrary.js";
 import {
   blockKeywords,
   isTaskKeyword,
   playKeywords,
   roleKeywords,
   taskKeywords,
-} from "../utils/ansible";
+} from "../utils/ansible.js";
 import {
   formatModule,
   formatOption,
   formatTombstone,
-} from "../utils/docsFormatter";
-import { toLspRange } from "../utils/misc";
+} from "../utils/docsFormatter.js";
+import { toLspRange } from "../utils/misc.js";
 import {
   AncestryBuilder,
   getOrigRange,
@@ -25,7 +25,7 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from "../utils/yaml";
+} from "../utils/yaml.js";
 
 export async function doHover(
   document: TextDocument,

@@ -1,12 +1,19 @@
-import { CommandRunner } from "../../src/utils/commandRunner";
+import { CommandRunner } from "../../src/utils/commandRunner.js";
 import { expect, it } from "vitest";
 import { AssertionError } from "assert";
-import { WorkspaceManager } from "../../src/services/workspaceManager";
+import { WorkspaceManager } from "../../src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
-import { getDoc } from "../helper";
+import { getDoc } from "../helper.js";
 import * as path from "path";
 import { readFileSync } from "fs";
 import { ExecException } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { createRequire } from "module";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 describe("commandRunner", function () {
   const packageJsonPath = require.resolve("../../package.json");

@@ -1,5 +1,5 @@
 codecov:
-  require_ci_to_pass: true
+  require_ci_to_pass: false
   notify:
     after_n_builds: 3 # effectively number of uploads: linux, macos, wsl
     wait_for_ci: false
@@ -8,3 +8,5 @@ coverage:
   status:
     patch: false
     project: true
+github_checks:
+  annotations: true

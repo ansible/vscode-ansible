@@ -25,6 +25,7 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "ts-node", // Used by Mocha test runners via string-based require
   ],
   mocha: {
     entry: ["test/e2e/rootMochaHooks.ts"],
@@ -36,7 +37,7 @@ const config: KnipConfig = {
     ".": {
       entry: [
         "src/extension.ts",
-        "webviews/**/*.{ts,tsx,vue}",
+        "webviews/**/*.{ts,tsx,vue,js,html}",
         "test/**/*.ts",
         ".vscode-test.mjs",
         "test/ui/.mocharc.js",

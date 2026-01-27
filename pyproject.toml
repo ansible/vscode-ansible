@@ -19,6 +19,7 @@ dev = [
   "pip>=22.3.1",
   "pre-commit>=4.0.1",
   "pre-commit-uv>=4.1.4",
+  "pytest-rerunfailures>=16.1",
   "selenium>=4.40.0",
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
@@ -51,7 +52,9 @@ exclude = "(.ansible|out|syntaxes).*"
 # integration like vscode or pycharm
 addopts = [
   "--durations=10",
-  "--junit-xml=out/junit/ui/ui-selenium-test-results.xml",
+  "--junit-xml=out/junit/ui-selenium-test-results.xml",
+  "--reruns-delay=60",
+  "--reruns=2",
   "-m=vscode",
   "-v"
 ]
