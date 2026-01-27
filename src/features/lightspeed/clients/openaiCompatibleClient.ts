@@ -91,14 +91,14 @@ export class OpenAICompatibleClient {
           model: this.model,
           messages,
           stream: false,
-          ...(options?.temperature !== undefined && {
-            temperature: options.temperature,
-          }),
-          ...(options?.max_tokens !== undefined && {
-            max_tokens: options.max_tokens,
-          }),
-          ...(options?.top_p !== undefined && { top_p: options.top_p }),
-          ...(options?.stop !== undefined && { stop: options.stop }),
+          ...Object.fromEntries(
+            Object.entries({
+              temperature: options?.temperature,
+              max_tokens: options?.max_tokens,
+              top_p: options?.top_p,
+              stop: options?.stop,
+            }).filter(([, v]) => v !== undefined),
+          ),
         }),
         signal: controller.signal,
       });
