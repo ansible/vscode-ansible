@@ -14,8 +14,8 @@ import {
   clearAllFields,
   createActionWrapper
 } from './../src/features/contentCreator/webviewUtils';
-import '../media/contentCreator/createAnsibleProjectPageStyle.css';
 import RequirementsBanner from './RequirementsBanner.vue';
+import FormPageLayout from './FormPageLayout.vue';
 
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
@@ -133,13 +133,15 @@ onMounted(() => {
 });
 </script>
 <template>
-    <body>
+  <FormPageLayout
+    title="Create new Ansible playbook project"
+    subtitle="Streamlining automation"
+    :requirementsMet="requirementsMet"
+  >
+    <template #banner>
       <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-      <div :class="{ 'disabled-content': !requirementsMet }">
-        <div class="title-div">
-            <h1>Create new Ansible playbook project</h1>
-            <p class="subtitle">Streamlining automation</p>
-        </div>
+    </template>
+
             <form id="init-form">
                 <section class="component-container">
 
@@ -318,6 +320,66 @@ onMounted(() => {
                     </div>
                 </section>
             </form>
-        </div>
-    </body>
+  </FormPageLayout>
 </template>
+
+<style>
+/* Component-specific styles for CreateAnsibleProjectApp */
+.playbook-project-div {
+  display: flex;
+  width: 100%;
+}
+
+#namespace-name {
+  width: 95%;
+  display: inline-block;
+}
+
+.checkbox-div {
+  margin-top: 5px;
+  margin-bottom: 8px;
+}
+
+#log-text-area {
+  width: 650px;
+  height: 156px;
+  resize: vertical;
+}
+
+.full-collection-path {
+  display: flex;
+  flex-direction: row;
+  color: var(--vscode-descriptionForeground);
+}
+
+.p-collection-name {
+  font-style: italic;
+}
+
+#ade-docs-link {
+  margin-left: 30px;
+  font-style: italic;
+}
+
+#log-to-file-options-div {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  border-style: dotted;
+  border-color: var(--focus-border);
+  border-width: 0.5px;
+  padding: 8px;
+}
+
+.log-level-div {
+  margin: -4px 0px;
+}
+
+.log-to-file-container {
+  border: 0.2px solid var(--vscode-editorWidget-border);
+  border-color: var(--focus-border);
+  padding: 8px;
+  border-width: 0.5px;
+  flex-direction: column;
+}
+</style>

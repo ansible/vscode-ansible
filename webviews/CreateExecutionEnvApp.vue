@@ -11,8 +11,7 @@ import {
   createFormValidator,
   createActionWrapper
 } from './../src/features/contentCreator/webviewUtils';
-import '../media/contentCreator/createExecutionEnvPageStyle.css';
-
+import FormPageLayout from './FormPageLayout.vue';
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
 const isCreating = commonState.isCreating;
@@ -253,12 +252,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <body>
-    <div class="title-div">
-      <h1>Create an Ansible execution environment</h1>
-      <p class="subtitle">Define and build a container for automation execution</p>
-    </div>
-
+  <FormPageLayout
+    title="Create an Ansible execution environment"
+    subtitle="Define and build a container for automation execution"
+  >
     <form id="init-form">
       <section class="component-container">
 
@@ -534,5 +531,70 @@ onMounted(() => {
 
       </section>
     </form>
-  </body>
+  </FormPageLayout>
 </template>
+
+<style>
+/* Component-specific styles for CreateExecutionEnvApp */
+#log-text-area {
+  width: 100%;
+  height: 200px;
+}
+
+.overwriteCheckbox-div {
+  display: flex;
+  flex-direction: column;
+  margin-top: 22px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.suggestedCollections-div {
+  display: flex;
+  flex-direction: column;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.checkbox-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-start;
+}
+
+#suggestedCollections-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  width: 100%;
+}
+
+.verbose-div {
+  margin-bottom: 15px;
+}
+
+vscode-single-select {
+  width: 800px;
+}
+
+.full-destination-path {
+  display: flex;
+  flex-direction: row;
+  color: var(--vscode-descriptionForeground);
+}
+
+.p-collection-name {
+  font-style: italic;
+}
+
+vscode-checkbox i {
+  width: 100%;
+}
+
+#ade-docs-link {
+  margin-left: 30px;
+  font-style: italic;
+}
+</style>

@@ -10,8 +10,8 @@ import {
   clearAllFields,
   createActionWrapper,
   createFormValidator} from './../src/features/contentCreator/webviewUtils';
-import "../media/contentCreator/addPluginAndPatterPageStyle.css";
 import RequirementsBanner from './RequirementsBanner.vue';
+import FormPageLayout from './FormPageLayout.vue';
 
 const commonState = useCommonWebviewState();
 const homeDir = commonState.homeDir;
@@ -102,13 +102,14 @@ onMounted(() => {
 </script>
 
 <template>
-<body>
-  <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-  <div :class="{ 'disabled-content': !requirementsMet }">
-  <div class="title-div">
-    <h1>Add a plugin to an existing collection</h1>
-    <p class="subtitle">Simplify the deployment of automation to the Ansible Automation Platform</p>
-  </div>
+  <FormPageLayout
+    title="Add a plugin to an existing collection"
+    subtitle="Simplify the deployment of automation to the Ansible Automation Platform"
+    :requirementsMet="requirementsMet"
+  >
+    <template #banner>
+      <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+    </template>
 
     <form id="init-form">
       <section class="component-container">
@@ -238,10 +239,55 @@ onMounted(() => {
 
       </section>
     </form>
-  </div>
-        </body>
+  </FormPageLayout>
 </template>
 
 <style>
-.disabled-content { opacity: 0.4; pointer-events: none; }
+/* Component-specific styles for AddPluginPageApp */
+.name-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+#name {
+  width: 49%;
+  display: inline-block;
+}
+
+.type-div {
+  display: flex;
+  flex-direction: row;
+  margin-top: 12px;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.full-collection-path {
+  display: flex;
+  flex-direction: row;
+  color: var(--vscode-descriptionForeground);
+}
+
+.p-collection-name {
+  font-style: italic;
+}
+
+#log-text-area {
+  width: 650px;
+  height: 156px;
+  resize: vertical;
+}
+
+#vscode-logs-label {
+  margin-top: 12px;
+}
+
+#ade-docs-link {
+  margin-left: 30px;
+  font-style: italic;
+}
 </style>

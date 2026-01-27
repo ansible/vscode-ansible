@@ -10,8 +10,8 @@ import {
   clearAllFields,
   createFormValidator,
   createActionWrapper} from './../src/features/contentCreator/webviewUtils';
-import '../media/contentCreator/createRolePageStyle.css';
 import RequirementsBanner from './RequirementsBanner.vue';
+import FormPageLayout from './FormPageLayout.vue';
 
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
@@ -132,17 +132,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <body>
-    <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-    <div :class="{ 'disabled-content': !requirementsMet }">
-      <div class="title-description-div">
-        <h1>Add a role to an existing collection</h1>
-        <p class="subtitle">Extending automation with Ansible roles</p>
-      </div>
-
-      <div class="description-div">
-        <h3>Ansible roles are modular units that group related tasks and files to promote reusability and organized automation.</h3>
-      </div>
+  <FormPageLayout
+    title="Add a role to an existing collection"
+    subtitle="Extending automation with Ansible roles"
+    description="Ansible roles are modular units that group related tasks and files to promote reusability and organized automation."
+    :requirementsMet="requirementsMet"
+  >
+    <template #banner>
+      <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+    </template>
 
       <form id="role-form">
         <section class="component-container">
@@ -289,6 +287,33 @@ onMounted(() => {
 
         </section>
       </form>
-    </div>
-  </body>
+  </FormPageLayout>
 </template>
+
+<style>
+/* Component-specific styles for CreateRoleApp */
+.role-name-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 18px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+#role-name {
+  width: 49%;
+  display: inline-block;
+}
+
+.full-collection-path {
+  display: flex;
+  flex-direction: row;
+  color: var(--vscode-descriptionForeground);
+}
+
+vscode-divider {
+  margin-top: 12px;
+  margin-bottom: 22px;
+}
+</style>
