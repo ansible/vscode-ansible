@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import '@vscode/codicons/dist/codicon.css';
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
