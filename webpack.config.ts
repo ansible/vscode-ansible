@@ -129,12 +129,8 @@ const config = {
       return "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
+    devtoolModuleFilenameTemplate: "../[resource-path]", // relative to 'path'
     libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: (info: { id: string }) => {
-      return info.id === "client"
-        ? "../[resource-path]"
-        : "../../../[resource-path]";
-    },
   },
   resolve: {
     // support reading TypeScript and JavaScript files

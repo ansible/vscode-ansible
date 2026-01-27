@@ -15,7 +15,7 @@ import { ExtensionSettings } from "../src/interfaces/extensionSettings.js";
 
 import Fuse from "fuse.js";
 
-const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+const FIXTURES_BASE_PATH = path.join(__dirname, "fixtures");
 const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
