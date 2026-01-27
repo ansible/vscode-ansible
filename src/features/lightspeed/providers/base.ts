@@ -157,6 +157,39 @@ export abstract class BaseLLMProvider<
   }
 
   /**
+   * Get provider status with validation check
+   * This is a reusable helper method that performs validation and returns status
+   */
+  protected async getStatusWithValidation(
+    modelName: string,
+    lastValidationError: string | undefined,
+    defaultErrorMessage: string,
+  ): Promise<ProviderStatus> {
+    try {
+      const isValid = await this.validateConfig();
+      if (!isValid) {
+        return {
+          connected: false,
+          error: lastValidationError || defaultErrorMessage,
+        };
+      }
+
+      return {
+        connected: true,
+        modelInfo: {
+          name: modelName,
+          capabilities: ["completion", "chat", "generation"],
+        },
+      };
+    } catch (error) {
+      return {
+        connected: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  }
+
+  /**
    * Handle HTTP status code errors with comprehensive error messages
    * This method provides reusable error handling for common HTTP status codes
    */
