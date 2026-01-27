@@ -210,7 +210,7 @@ export abstract class BaseLLMProvider<
 
       case 401: {
         let sanitizedMessage = error?.message || "Authentication failed";
-        sanitizedMessage = sanitizedMessage.replace(
+        sanitizedMessage = sanitizedMessage.replaceAll(
           /,?\s{0,10}Key Hash\s{0,10}\(Token\)\s{0,10}=\s{0,10}[a-f0-9]{32,64}/gi,
           "",
         );
