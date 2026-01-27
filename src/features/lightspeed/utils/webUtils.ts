@@ -7,7 +7,10 @@ import {
   LightspeedUserDetails,
   LightspeedSessionInfo,
 } from "../../../interfaces/lightspeed";
-import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
+import {
+  LIGHTSPEED_USER_TYPE,
+  WCA_API_ENDPOINT_DEFAULT,
+} from "../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
@@ -67,7 +70,21 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(settingsManager: SettingsManager): string {
+export function getBaseUri(
+  settingsManager: SettingsManager,
+  providerOverride?: string,
+): string {
+  // Check the provider from globalState via lightSpeedManager if available
+  const provider =
+    providerOverride ||
+    lightSpeedManager?.llmProviderSettings?.getProvider() ||
+    settingsManager.settings.lightSpeedService.provider;
+
+  // For WCA, always use the default WCA endpoint
+  if (provider === "wca") {
+    return WCA_API_ENDPOINT_DEFAULT;
+  }
+
   const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }

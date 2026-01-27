@@ -184,7 +184,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
   /**
    * Handle "Ansible Lightspeed" in the extension
    */
-  lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
+  lightSpeedManager = new LightSpeedManager(
+    context,
+    extSettings,
+    telemetry,
+    llmProviderSettings,
+  );
 
   // Register provider management commands
   const providerCommands = new ProviderCommands(
@@ -338,7 +343,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );
@@ -432,9 +437,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      if (lightSpeedManager.lightspeedExplorerProvider.webviewView) {
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
-      }
+      lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
@@ -442,6 +445,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,
     context,
+    llmProviderSettings,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(
@@ -460,6 +464,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         extSettings,
         lightSpeedManager.providerManager,
         llmProviderSettings,
+        lightSpeedManager.lightspeedAuthenticatedUser,
+        quickLinksHome,
       );
     },
   );
@@ -933,11 +939,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
-        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
+        if (lightSpeedManager.lightspeedExplorerProvider) {
+          lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
+        }
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );
@@ -961,7 +969,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       LightSpeedCommands.LIGHTSPEED_REFRESH_EXPLORER_VIEW,
       async () => {
         await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
-        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );

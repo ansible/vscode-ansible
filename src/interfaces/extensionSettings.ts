@@ -2,7 +2,8 @@ export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
 export type IContainerEngine = "auto" | "podman" | "docker";
 
-export type ProviderType = "wca" | "google";
+// Re-export from single source of truth
+export { ProviderType } from "../definitions/lightspeed";
 
 export interface ExtensionSettings {
   activationScript: string | undefined;

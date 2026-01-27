@@ -8,10 +8,21 @@ const systemReadinessIcon = ref('');
 const systemReadinessDescription = ref('');
 const showSystemReadiness = ref(false);
 
+// Active provider state
+const activeProviderName = ref('');
+const isProviderConnected = ref(false);
+
 // System status check
 const updateAnsibleCreatorAvailabilityStatus = () => {
   vscodeApi.postMessage({
     message: 'set-system-status-view',
+  });
+};
+
+// Get active provider info
+const getActiveProviderInfo = () => {
+  vscodeApi.postMessage({
+    command: 'getActiveProvider',
   });
 };
 
@@ -49,11 +60,15 @@ const handleMessage = (event: MessageEvent) => {
         </p>`;
       showSystemReadiness.value = true;
     }
+  } else if (message.command === 'activeProviderInfo') {
+    activeProviderName.value = message.providerDisplayName || '';
+    isProviderConnected.value = message.isConnected || false;
   }
 };
 
 onMounted(() => {
   updateAnsibleCreatorAvailabilityStatus();
+  getActiveProviderInfo();
   window.addEventListener('message', handleMessage);
 });
 </script>
@@ -107,12 +122,42 @@ onMounted(() => {
       </div>
 
       <h3>GENERATIVE AI</h3>
-      <p>Configure AI-powered features</p>
+      <p>Configure AI-powered features and generate content</p>
       <div class="catalogue">
         <h3>
           <a href="command:ansible.lightspeed.openLlmProviderSettings" title="Configure LLM provider for Ansible Lightspeed">
             <span class="codicon codicon-hubot"></span> LLM Provider Settings
-            <span class="new-badge">NEW</span>
+            <span v-if="activeProviderName && isProviderConnected" class="active-provider-badge connected">
+              : {{ activeProviderName }}
+            </span>
+          </a>
+        </h3>
+      </div>
+      <div class="catalogue">
+        <h3>
+          <a href="command:ansible.lightspeed.playbookGeneration" title="Generate a playbook with Ansible Lightspeed">
+            <span class="codicon codicon-sparkle"></span> Generate Playbook
+          </a>
+        </h3>
+      </div>
+      <div class="catalogue">
+        <h3>
+          <a href="command:ansible.lightspeed.playbookExplanation" title="Explain the current playbook">
+            <span class="codicon codicon-comment-discussion"></span> Explain Playbook
+          </a>
+        </h3>
+      </div>
+      <div class="catalogue">
+        <h3>
+          <a href="command:ansible.lightspeed.roleGeneration" title="Generate a role with Ansible Lightspeed">
+            <span class="codicon codicon-sparkle"></span> Generate Role
+          </a>
+        </h3>
+      </div>
+      <div class="catalogue">
+        <h3>
+          <a href="command:ansible.lightspeed.roleExplanation" title="Explain the current role">
+            <span class="codicon codicon-comment-discussion"></span> Explain Role
           </a>
         </h3>
       </div>
@@ -173,14 +218,6 @@ onMounted(() => {
           <a href="command:ansible.content-creator.create-role" title="Create a role and add it to an existing Ansible collection">
             <span class="codicon codicon-new-file"></span> Role
             <span class="new-badge">NEW</span>
-          </a>
-        </h3>
-      </div>
-      <div class="catalogue">
-        <h3>
-          <a href="command:ansible.lightspeed.playbookGeneration" title="Generate a playbook with Ansible Lightspeed">
-            <span class="codicon codicon-new-file"></span> Playbook
-            <img class="category-icon icon-widget" src="/media/quickLinks/lightspeed.png" alt="Lightspeed">
           </a>
         </h3>
       </div>

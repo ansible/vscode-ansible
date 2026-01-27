@@ -1,24 +1,32 @@
 import { ExtensionContext } from "vscode";
+import { providerFactory } from "./providers/factory";
 
 /**
  * Service for managing LLM provider settings.
  * Uses VS Code's globalState for regular settings and secrets storage for sensitive data.
  * This keeps LLM provider configuration out of VS Code's Settings UI.
+ * Defaults are read from providerFactory for single source of truth.
  */
 export class LlmProviderSettings {
   private static readonly PROVIDER_KEY = "lightspeed.provider";
-  private static readonly MODEL_NAME_KEY = "lightspeed.modelName";
-  private static readonly API_ENDPOINT_KEY = "lightspeed.apiEndpoint";
+  private static readonly MODEL_NAME_PREFIX = "lightspeed.modelName.";
+  private static readonly API_ENDPOINT_PREFIX = "lightspeed.apiEndpoint.";
   private static readonly API_KEY_SECRET_PREFIX = "lightspeed.apiKey.";
+  private static readonly CONNECTION_STATUS_PREFIX =
+    "lightspeed.connectionStatus.";
 
   private static readonly DEFAULT_PROVIDER = "wca";
-  private static readonly DEFAULT_WCA_ENDPOINT =
-    "https://c.ai.ansible.redhat.com";
-  private static readonly DEFAULT_GOOGLE_ENDPOINT =
-    "https://generativelanguage.googleapis.com/v1beta";
-  private static readonly DEFAULT_GOOGLE_MODEL = "gemini-2.5-flash";
 
   constructor(private readonly context: ExtensionContext) {}
+
+  /**
+   * Get provider info from factory (single source of truth for defaults)
+   */
+  private getProviderInfo(providerType: string) {
+    return providerFactory
+      .getSupportedProviders()
+      .find((p) => p.type === providerType);
+  }
 
   // Provider
   getProvider(): string {
@@ -35,62 +43,54 @@ export class LlmProviderSettings {
     );
   }
 
-  // Model Name
-  getModelName(): string | undefined {
-    const value = this.context.globalState.get<string>(
-      LlmProviderSettings.MODEL_NAME_KEY,
-    );
+  // Model Name (stored per-provider)
+  getModelName(provider?: string): string | undefined {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.MODEL_NAME_PREFIX}${targetProvider}`;
+    const value = this.context.globalState.get<string>(key);
 
     // Return stored value if set
     if (value?.trim()) {
       return value.trim();
     }
 
-    // Return default model based on provider
-    const provider = this.getProvider();
-    if (provider === "google") {
-      return LlmProviderSettings.DEFAULT_GOOGLE_MODEL;
-    }
-
-    // WCA doesn't have a default model (uses org default)
-    return undefined;
+    // Return default model from factory (single source of truth)
+    const providerInfo = this.getProviderInfo(targetProvider);
+    return providerInfo?.defaultModel;
   }
 
-  async setModelName(value: string | undefined): Promise<void> {
-    await this.context.globalState.update(
-      LlmProviderSettings.MODEL_NAME_KEY,
-      value?.trim() || undefined,
-    );
+  async setModelName(
+    value: string | undefined,
+    provider?: string,
+  ): Promise<void> {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.MODEL_NAME_PREFIX}${targetProvider}`;
+    await this.context.globalState.update(key, value?.trim() || undefined);
   }
 
-  // API Endpoint
-  getApiEndpoint(): string {
-    const provider = this.getProvider();
-    const endpoint = this.context.globalState.get<string>(
-      LlmProviderSettings.API_ENDPOINT_KEY,
-    );
+  // API Endpoint (stored per-provider)
+  getApiEndpoint(provider?: string): string {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.API_ENDPOINT_PREFIX}${targetProvider}`;
+    const endpoint = this.context.globalState.get<string>(key);
 
     // Return stored endpoint if set
     if (endpoint) {
       return endpoint;
     }
 
-    // Default endpoints based on provider
-    if (provider === "wca") {
-      return LlmProviderSettings.DEFAULT_WCA_ENDPOINT;
-    }
-    if (provider === "google") {
-      return LlmProviderSettings.DEFAULT_GOOGLE_ENDPOINT;
-    }
-
-    return "";
+    // Return default endpoint from factory (single source of truth)
+    const providerInfo = this.getProviderInfo(targetProvider);
+    return providerInfo?.defaultEndpoint ?? "";
   }
 
-  async setApiEndpoint(value: string | undefined): Promise<void> {
-    await this.context.globalState.update(
-      LlmProviderSettings.API_ENDPOINT_KEY,
-      value || undefined,
-    );
+  async setApiEndpoint(
+    value: string | undefined,
+    provider?: string,
+  ): Promise<void> {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.API_ENDPOINT_PREFIX}${targetProvider}`;
+    await this.context.globalState.update(key, value || undefined);
   }
 
   // API Key (stored securely in secrets, per-provider)
@@ -111,18 +111,46 @@ export class LlmProviderSettings {
     }
   }
 
+  // Connection Status (stored per-provider)
+  getConnectionStatus(provider?: string): boolean {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.CONNECTION_STATUS_PREFIX}${targetProvider}`;
+    return this.context.globalState.get<boolean>(key) ?? false;
+  }
+
+  async setConnectionStatus(
+    connected: boolean,
+    provider?: string,
+  ): Promise<void> {
+    const targetProvider = provider ?? this.getProvider();
+    const key = `${LlmProviderSettings.CONNECTION_STATUS_PREFIX}${targetProvider}`;
+    await this.context.globalState.update(key, connected);
+  }
+
+  // Get connection status for all providers
+  getAllConnectionStatuses(): Record<string, boolean> {
+    const providers = providerFactory.getSupportedProviders();
+    const statuses: Record<string, boolean> = {};
+    for (const provider of providers) {
+      statuses[provider.type] = this.getConnectionStatus(provider.type);
+    }
+    return statuses;
+  }
+
   // Bulk getter for all settings (useful for webview)
   async getAllSettings(): Promise<{
     provider: string;
     modelName: string | undefined;
     apiEndpoint: string;
     apiKey: string;
+    connectionStatuses: Record<string, boolean>;
   }> {
     return {
       provider: this.getProvider(),
       modelName: this.getModelName(),
       apiEndpoint: this.getApiEndpoint(),
       apiKey: await this.getApiKey(),
+      connectionStatuses: this.getAllConnectionStatuses(),
     };
   }
 
@@ -153,19 +181,23 @@ export class LlmProviderSettings {
       LlmProviderSettings.PROVIDER_KEY,
       undefined,
     );
-    await this.context.globalState.update(
-      LlmProviderSettings.MODEL_NAME_KEY,
-      undefined,
-    );
-    await this.context.globalState.update(
-      LlmProviderSettings.API_ENDPOINT_KEY,
-      undefined,
-    );
-    // Clear API keys for all known providers
-    const providers = ["wca", "google"];
+    // Clear per-provider settings from factory (single source of truth)
+    const providers = providerFactory.getSupportedProviders();
     for (const provider of providers) {
+      await this.context.globalState.update(
+        `${LlmProviderSettings.MODEL_NAME_PREFIX}${provider.type}`,
+        undefined,
+      );
+      await this.context.globalState.update(
+        `${LlmProviderSettings.API_ENDPOINT_PREFIX}${provider.type}`,
+        undefined,
+      );
       await this.context.secrets.delete(
-        `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${provider}`,
+        `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${provider.type}`,
+      );
+      await this.context.globalState.update(
+        `${LlmProviderSettings.CONNECTION_STATUS_PREFIX}${provider.type}`,
+        undefined,
       );
     }
   }

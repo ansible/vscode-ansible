@@ -22,11 +22,13 @@ import { LightspeedUser } from "./lightspeedUser";
 import { Log } from "../../utils/logger";
 import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
 import { ProviderManager } from "./providerManager";
+import { LlmProviderSettings } from "./llmProviderSettings";
 
 export class LightSpeedManager {
   private context;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
+  public llmProviderSettings: LlmProviderSettings;
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   public lightspeedAuthenticatedUser: LightspeedUser;
@@ -37,7 +39,9 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
-  public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
+  public lightspeedExplorerProvider:
+    | LightspeedExplorerWebviewViewProvider
+    | undefined;
   public providerManager: ProviderManager;
   private logger: Log;
 
@@ -45,10 +49,12 @@ export class LightSpeedManager {
     context: vscode.ExtensionContext,
     settingsManager: SettingsManager,
     telemetry: TelemetryManager,
+    llmProviderSettings: LlmProviderSettings,
   ) {
     this.context = context;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
+    this.llmProviderSettings = llmProviderSettings;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
     this.logger = new Log();
@@ -99,17 +105,9 @@ export class LightSpeedManager {
       settingsManager,
     );
 
-    this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
-      context.extensionUri,
-      this.lightspeedAuthenticatedUser,
-      this.settingsManager,
-    );
-    const lightspeedExplorerDisposable =
-      vscode.window.registerWebviewViewProvider(
-        LightspeedExplorerWebviewViewProvider.viewType,
-        this.lightspeedExplorerProvider,
-      );
-    context.subscriptions.push(lightspeedExplorerDisposable);
+    // Explorer webview has been replaced by LLM Provider panel
+    // Generative AI features are now in the LLM Provider Settings panel
+    this.lightspeedExplorerProvider = undefined;
 
     // create workspace context for ansible roles
     this.setContext();

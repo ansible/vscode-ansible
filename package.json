@@ -713,13 +713,7 @@
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'"
         }
       ],
-      "view/title": [
-        {
-          "command": "ansible.lightspeed.explorer.refresh",
-          "group": "navigation",
-          "when": "view == lightspeed-explorer-webview"
-        }
-      ]
+      "view/title": []
     },
     "submenus": [
       {
@@ -745,13 +739,6 @@
           "id": "ansible-home",
           "name": "Ansible Development Tools",
           "type": "webview"
-        },
-        {
-          "icon": "images/ansible.svg",
-          "id": "lightspeed-explorer-webview",
-          "name": "Ansible Lightspeed",
-          "type": "webview",
-          "when": "config.ansible.lightspeed.enabled"
         },
         {
           "icon": "$(comment-discussion)",

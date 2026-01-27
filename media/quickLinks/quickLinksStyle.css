@@ -66,3 +66,13 @@ img.category-icon {
     line-height: 15px;
     float: right;
 }
+
+.active-provider-badge {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-weight: normal;
+}
+
+.active-provider-badge.connected {
+    color: var(--vscode-charts-green);
+}
