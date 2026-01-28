@@ -736,7 +736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@google/genai@npm:^1.29.0":
+"@google/genai@npm:^1.38.0":
   version: 1.38.0
   resolution: "@google/genai@npm:1.38.0"
   dependencies:
@@ -3480,7 +3480,7 @@ __metadata:
     "@ansible/ansible-language-server": "workspace:^"
     "@ansible/ansible-mcp-server": "workspace:^"
     "@eslint/js": "npm:^9.39.2"
-    "@google/genai": "npm:^1.29.0"
+    "@google/genai": "npm:^1.38.0"
     "@highlightjs/vue-plugin": "npm:2.1.0"
     "@html-eslint/eslint-plugin": "npm:^0.54.0"
     "@primeuix/themes": "npm:^2.0.3"
@@ -3545,7 +3545,7 @@ __metadata:
     prettier: "npm:^3.7.4"
     primevue: "npm:4.5.4"
     rimraf: "npm:^6.1.2"
-    selenium-webdriver: "npm:^4.36.0"
+    selenium-webdriver: "npm:^4.40.0"
     semver: "npm:^7.7.3"
     sinon: "npm:^21.0.1"
     ts-loader: "npm:^9.5.4"
@@ -3556,7 +3556,7 @@ __metadata:
     uuid: "npm:^13.0.0"
     vite: "npm:^7.3.1"
     vitest: "npm:^4.0.17"
-    vscode-extension-tester: "npm:^8.19.0"
+    vscode-extension-tester: "npm:^8.21.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.1.0"
     vue: "npm:^3.5.27"
@@ -9683,7 +9683,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.36.0, selenium-webdriver@npm:^4.39.0":
+"selenium-webdriver@npm:^4.39.0, selenium-webdriver@npm:^4.40.0":
   version: 4.40.0
   resolution: "selenium-webdriver@npm:4.40.0"
   dependencies:
@@ -11264,7 +11264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^8.19.0":
+"vscode-extension-tester@npm:^8.21.0":
   version: 8.21.0
   resolution: "vscode-extension-tester@npm:8.21.0"
   dependencies:
