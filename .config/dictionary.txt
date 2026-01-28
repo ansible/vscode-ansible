@@ -2,6 +2,7 @@ CACHEDIR
 CMDB
 Containerfile
 Customizer
+DEEPSEEK
 Devfile
 Devfiles
 EXTEST
@@ -24,6 +25,8 @@ Npmjs
 PKGMGR
 PYCMD
 PYTHONBREAKPOINT
+Qwen
+RHCUSTOM
 RHSSO
 SSOT
 TASKFILE
@@ -35,6 +38,7 @@ antsibull
 argspec
 autofetch
 autouse
+bfnrt
 bindep
 blackbar
 cfgs
@@ -48,6 +52,7 @@ contentmatching
 coreutils
 cpython
 dedupe
+deepseek
 devfile
 devspaces
 dnsutils
@@ -67,6 +72,7 @@ hookwrapper
 hostsvars
 hostvars
 icontent
+inetpub
 johndoe
 knip
 konflux
@@ -113,6 +119,7 @@ relogin
 reprentries
 reprfileloc
 reprtraceback
+rhcustom
 rhsso
 rimraf
 seealso
