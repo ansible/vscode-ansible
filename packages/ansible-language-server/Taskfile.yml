@@ -69,6 +69,9 @@ tasks:
       - webpack.config.js
       - vitest.config.ts
     generates:
+      - ../../out/coverage/als/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/als/coverage-final.json # IDE plugins
+      - ../../out/coverage/als/lcov.info # sonar
       - ../../out/junit/als-test-results.xml
     cmds:
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"

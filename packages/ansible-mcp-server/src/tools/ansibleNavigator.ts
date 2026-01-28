@@ -367,6 +367,8 @@ export async function runAnsibleNavigator(
       args.push("--ee", "false");
     }
 
+    args.push("--log-file", "/dev/null");
+
     // Use the found path (could be from venv)
     const navProcess = spawn(navigatorPath, args);
 

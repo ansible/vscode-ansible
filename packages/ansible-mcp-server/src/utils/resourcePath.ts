@@ -7,10 +7,11 @@ import { fileURLToPath } from "node:url";
 
 /**
  * Get the directory where resources are located.
- * In bundled code (CommonJS), uses __dirname which webpack preserves.
- * In dev mode (ESM), uses import.meta.url from the caller.
+ * Uses import.meta.url for ESM module resolution.
+ * The __dirname check is kept for compatibility but should not be used in ESM mode.
  */
 function getResourceBaseDir(callerUrl?: string): string {
+  // In ESM, __dirname is not available, so we always use import.meta.url
   if (typeof __dirname !== "undefined") {
     return __dirname;
   }
@@ -71,7 +72,6 @@ export async function resolveResourcePath(
 
   // Resources are in data/ relative to base directory:
   // - Dev: out/server/src/resources/agents.js -> out/server/src/resources/data/
-  // - Bundled: out/mcp/cli.js -> out/mcp/data/
   const resourcePath = path.join(baseDir, "data", relativePath);
 
   try {

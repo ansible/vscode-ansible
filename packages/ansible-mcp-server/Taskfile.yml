@@ -42,13 +42,15 @@ tasks:
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
   test:
     desc: Run all tests and coverage report
     deps:
       - build
     dir: "{{ .TASKFILE_DIR }}"
     generates:
+      - ../../out/coverage/mcp/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/mcp/coverage-final.json # IDE plugins
+      - ../../out/coverage/mcp/lcov.info # sonar
       - ../../out/junit/mcp-test-results.xml
     sources:
       - package.json
@@ -57,7 +59,6 @@ tasks:
       - tsconfig.json
       - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
     cmds:
       - npm run test:coverage
     interactive: true

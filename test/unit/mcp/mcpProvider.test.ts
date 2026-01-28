@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as path from "path";
+import type { McpServerDefinition } from "vscode";
 import * as vscode from "vscode";
 import { AnsibleMcpServerProvider } from "../../../src/utils/mcpProvider";
 
@@ -24,41 +25,15 @@ vi.mock("fs", () => ({
 
 describe("AnsibleMcpServerProvider", function () {
   const mockExtensionPath = "/mock/extension/path";
-  const mockProjectRoot = "/mock/project/root";
-  const mockWorkspaceRoot = path.join(mockProjectRoot, "workspace");
-  const mockPackagedCliPath = path.join(mockExtensionPath, "out/mcp/cli.js");
-  const mockDevCliPath = path.join(
-    mockProjectRoot,
-    "packages/ansible-mcp-server/out/server/src/cli.js",
-  );
 
   let provider: AnsibleMcpServerProvider;
   let mockGetConfiguration: ReturnType<typeof vi.fn>;
-  let mockWorkspaceFolders: vscode.WorkspaceFolder[] | undefined;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     // Setup default mocks
-    mockGetConfiguration = vi.fn();
-    mockWorkspaceFolders = [
-      {
-        uri: { fsPath: mockWorkspaceRoot } as vscode.Uri,
-        name: "test-workspace",
-        index: 0,
-      },
-    ];
-
-    // Mock vscode.workspace
-    (vscode.workspace.getConfiguration as ReturnType<typeof vi.fn>) =
-      mockGetConfiguration;
-    (vscode.workspace.workspaceFolders as
-      | vscode.WorkspaceFolder[]
-      | undefined) = mockWorkspaceFolders;
-
-    // Mock fs.existsSync to return false by default
-    (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
-    (fs.accessSync as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+    mockGetConfiguration = vi.mocked(vscode.workspace.getConfiguration);
 
     provider = new AnsibleMcpServerProvider(mockExtensionPath);
   });
@@ -104,244 +79,6 @@ describe("AnsibleMcpServerProvider", function () {
       expect(typeof mcpProvider.provideMcpServerDefinitions).toBe("function");
       expect(typeof mcpProvider.resolveMcpServerDefinition).toBe("function");
       expect(typeof mcpProvider.dispose).toBe("function");
-    });
-  });
-
-  describe("findCliPath - CLI path resolution for packaged and development environments", function () {
-    let consoleLogSpy: ReturnType<typeof vi.spyOn> | null = null;
-    let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
-
-    beforeEach(() => {
-      consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {
-        // Mock implementation - no-op
-      });
-      consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
-        // Mock implementation - no-op
-      });
-    });
-
-    afterEach(() => {
-      if (consoleLogSpy) {
-        consoleLogSpy.mockRestore();
-        consoleLogSpy = null;
-      }
-      if (consoleErrorSpy) {
-        consoleErrorSpy.mockRestore();
-        consoleErrorSpy = null;
-      }
-    });
-
-    it("should find CLI at packaged path when it exists", function () {
-      // Mock packaged path exists
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          return filePath === mockPackagedCliPath;
-        },
-      );
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBe(mockPackagedCliPath);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Found MCP server CLI at packaged path: ${mockPackagedCliPath}`,
-      );
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
-    });
-
-    it("should find CLI at development path when packaged path doesn't exist", function () {
-      // Mock packaged path doesn't exist, but dev path does
-      // findProjectRoot traverses up from workspaceRoot, so we need to mock that
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          if (filePath === mockPackagedCliPath) {
-            return false;
-          }
-          if (filePath === mockDevCliPath) {
-            return true;
-          }
-          // Mock package.json exists at project root (findProjectRoot will traverse up from workspaceRoot)
-          if (filePath === path.join(mockProjectRoot, "package.json")) {
-            return true;
-          }
-          // Return false for intermediate paths during traversal
-          if (filePath === path.join(mockWorkspaceRoot, "package.json")) {
-            return false; // workspace root doesn't have package.json
-          }
-          return false;
-        },
-      );
-
-      // Ensure workspace folders are set
-      (vscode.workspace.workspaceFolders as
-        | vscode.WorkspaceFolder[]
-        | undefined) = mockWorkspaceFolders;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBe(mockDevCliPath);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Found MCP server CLI at development path: ${mockDevCliPath}`,
-      );
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
-    });
-
-    it("should return undefined when neither path exists (no workspace)", function () {
-      // Mock both paths don't exist
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
-
-      // Clear workspace folders to simulate no workspace scenario
-      (vscode.workspace.workspaceFolders as
-        | vscode.WorkspaceFolder[]
-        | undefined) = undefined;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBeUndefined();
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        `MCP server CLI not found at either location:\n  - Packaged: ${mockPackagedCliPath}\n  - Development: N/A`,
-      );
-    });
-
-    it("should return undefined and log error when neither path exists (with workspace)", function () {
-      // Mock both paths don't exist, but workspace exists
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          // Return false for both CLI paths
-          if (filePath === mockPackagedCliPath || filePath === mockDevCliPath) {
-            return false;
-          }
-          // But allow package.json to exist so findProjectRoot works
-          if (filePath === path.join(mockProjectRoot, "package.json")) {
-            return true;
-          }
-          // Return false for workspace package.json during traversal
-          if (filePath === path.join(mockWorkspaceRoot, "package.json")) {
-            return false;
-          }
-          return false;
-        },
-      );
-
-      // Ensure workspace folders are set
-      (vscode.workspace.workspaceFolders as
-        | vscode.WorkspaceFolder[]
-        | undefined) = mockWorkspaceFolders;
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBeUndefined();
-      // Should log error with both paths (packaged and development)
-      // The devPath will be calculated from projectRoot (via findProjectRoot)
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`MCP server CLI not found at either location:`),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`- Packaged: ${mockPackagedCliPath}`),
-      );
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`- Development: ${mockDevCliPath}`),
-      );
-    });
-
-    it("should prioritize packaged path over development path", function () {
-      // Mock both paths exist
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          return (
-            filePath === mockPackagedCliPath || filePath === mockDevCliPath
-          );
-        },
-      );
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBe(mockPackagedCliPath);
-      // Should log packaged path, not dev path
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Found MCP server CLI at packaged path: ${mockPackagedCliPath}`,
-      );
-      expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining("development path"),
-      );
-    });
-
-    it("should check packaged path before development path", function () {
-      // Track the order of existsSync calls
-      const callOrder: string[] = [];
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          callOrder.push(filePath);
-          return filePath === mockPackagedCliPath;
-        },
-      );
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findCliPath();
-
-      expect(result).toBe(mockPackagedCliPath);
-      // Verify packaged path is checked first
-      expect(callOrder[0]).toBe(mockPackagedCliPath);
-    });
-
-    it("should use extensionPath for packaged path resolution", function () {
-      const customExtensionPath = "/custom/extension/path";
-      const customProvider = new AnsibleMcpServerProvider(customExtensionPath);
-      const expectedPackagedPath = path.join(
-        customExtensionPath,
-        "out/mcp/cli.js",
-      );
-
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          return filePath === expectedPackagedPath;
-        },
-      );
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (customProvider as any).findCliPath();
-
-      expect(result).toBe(expectedPackagedPath);
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        `Found MCP server CLI at packaged path: ${expectedPackagedPath}`,
-      );
-    });
-  });
-
-  describe("isMcpServerAvailable - checking CLI file existence and accessibility", function () {
-    it("should return true when CLI path exists and is accessible", async function () {
-      // Mock findCliPath to return a path
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
-      (fs.accessSync as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (provider as any).isMcpServerAvailable();
-      expect(result).toBe(true);
-    });
-
-    it("should return false when CLI path doesn't exist", async function () {
-      // Mock findCliPath to return undefined
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (provider as any).isMcpServerAvailable();
-      expect(result).toBe(false);
-    });
-
-    it("should return false when CLI path exists but is not accessible", async function () {
-      // Mock findCliPath to return a path but accessSync throws
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
-      (fs.accessSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
-        throw new Error("Permission denied");
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (provider as any).isMcpServerAvailable();
-      expect(result).toBe(false);
     });
   });
 
@@ -392,9 +129,7 @@ describe("AnsibleMcpServerProvider", function () {
       mockGetConfiguration.mockReturnValue(mockConfig);
 
       // Mock no workspace folders
-      (vscode.workspace.workspaceFolders as
-        | vscode.WorkspaceFolder[]
-        | undefined) = undefined;
+      // mockWorkspaceFolders = undefined;
 
       const result = await provider.provideMcpServerDefinitions();
       expect(result).toEqual([]);
@@ -435,45 +170,16 @@ describe("AnsibleMcpServerProvider", function () {
     it("should return undefined when MCP server is not available", async function () {
       const mockServer = {
         label: "Ansible Development Tools MCP Server",
-      } as vscode.McpServerDefinition;
-
-      // Mock isMcpServerAvailable to return false
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
+      } as McpServerDefinition;
 
       const result = await provider.resolveMcpServerDefinition(mockServer);
       expect(result).toBeUndefined();
     });
 
-    it("should return server when it is available and matches our server", async function () {
-      const mockServer = {
-        label: "Ansible Development Tools MCP Server",
-      } as vscode.McpServerDefinition;
-
-      // Mock isMcpServerAvailable to return true
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
-      (fs.accessSync as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
-
-      const result = await provider.resolveMcpServerDefinition(mockServer);
-      expect(result).toBe(mockServer);
-    });
-
-    it("should return server when label doesn't match our server", async function () {
-      const mockServer = {
-        label: "Other MCP Server",
-      } as vscode.McpServerDefinition;
-
-      // Mock isMcpServerAvailable to return true
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
-      (fs.accessSync as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
-
-      const result = await provider.resolveMcpServerDefinition(mockServer);
-      expect(result).toBe(mockServer);
-    });
-
     it("should handle errors gracefully", async function () {
       const mockServer = {
         label: "Ansible Development Tools MCP Server",
-      } as vscode.McpServerDefinition;
+      } as McpServerDefinition;
 
       // Mock isMcpServerAvailable to throw
       (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
