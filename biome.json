@@ -38,6 +38,22 @@
       "indentStyle": "space"
     }
   },
+  "overrides": [
+    {
+      "assist": {
+        "actions": {
+          "source": {
+            "useSortedKeys": "off"
+          }
+        },
+        "enabled": true
+      },
+      "includes": ["package.json", "**/package.json"],
+      "json": {
+        "formatter": { "expand": "always" }
+      }
+    }
+  ],
   "vcs": {
     "clientKind": "git",
     "enabled": true,

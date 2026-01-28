@@ -5,6 +5,7 @@ ci:
   autoupdate_schedule: monthly
   autofix_commit_msg: "chore: auto fixes from pre-commit.com hooks"
   skip:
+    - biome
     - codecov
     - codespell # missing uv
     - knip
@@ -38,13 +39,6 @@ repos:
       - id: codespell
       - id: yamllint
       - id: md
-  - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.3.10"
-    hooks:
-      - id: biome-check
-        name: biome
-        alias: biome
-        args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.4.0
     hooks:
@@ -72,6 +66,13 @@ repos:
           - SC1091
   - repo: local
     hooks:
+      - id: biome
+        name: biome
+        alias: biome
+        language: system
+        pass_filenames: false
+        always_run: true
+        entry: biome check --write --unsafe
       - id: knip
         name: knip (typescript declutter)
         entry: yarn knip --fix

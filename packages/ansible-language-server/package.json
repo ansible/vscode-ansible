@@ -27,7 +27,7 @@
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.0",
     "ini": "^6.0.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "uuid": "^13.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -46,7 +46,7 @@
     "handlebars": "^4.7.8",
     "rimraf": "^6.1.2",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.17",
+    "vitest": "^4.0.18",
     "vscode-jsonrpc": "^8.2.1"
   },
   "displayName": "Ansible",
@@ -56,12 +56,12 @@
   },
   "exports": {
     ".": {
-      "default": "./out/server/src/server.js",
-      "types": "./out/server/src/server.d.ts"
+      "types": "./out/server/src/server.d.ts",
+      "default": "./out/server/src/server.js"
     },
     "./interfaces/extensionSettings": {
-      "default": "./out/server/src/interfaces/extensionSettings.js",
-      "types": "./out/server/src/interfaces/extensionSettings.d.ts"
+      "types": "./out/server/src/interfaces/extensionSettings.d.ts",
+      "default": "./out/server/src/interfaces/extensionSettings.js"
     }
   },
   "files": [
@@ -87,9 +87,9 @@
     "compile": "tsc -p .",
     "prepack": "yarn compile",
     "prepare": "yarn run compile",
-    "test": "vitest run",
-    "test-with-ee": "vitest run -t @ee",
-    "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run",
+    "test": "vitest run --project=als",
+    "test-with-ee": "vitest run --project=als -t @ee",
+    "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
     "watch": "tsc --watch -p ."
   },
   "type": "module",
