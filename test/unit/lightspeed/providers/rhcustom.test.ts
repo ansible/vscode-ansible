@@ -514,6 +514,203 @@ describe("RHCustomProvider", () => {
       expect(mockedGenerateOutlineFromPlaybook).toHaveBeenCalled();
     });
 
+    it("should use regex fallback for outline when generateOutlineFromPlaybook returns empty", async () => {
+      const mockPlaybook =
+        "---\n- name: Install nginx\n  hosts: all\n  tasks:\n    - name: Task one\n      debug:\n    - name: Task two\n      copy:";
+      mockChatCompletion.mockResolvedValueOnce({
+        id: "test-id",
+        object: "chat.completion",
+        created: Date.now(),
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: mockPlaybook,
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      mockedGenerateOutlineFromPlaybook
+        .mockReturnValueOnce("")
+        .mockReturnValueOnce("");
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const result = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+
+      expect(result.outline).toBe("1. Install nginx\n2. Task one\n3. Task two");
+    });
+
+    it("should strip quotes from task names in regex fallback outline", async () => {
+      const mockPlaybook =
+        "---\n  tasks:\n    - name: \"Quoted task\"\n    - name: 'Single quoted'\n";
+      mockChatCompletion.mockResolvedValueOnce({
+        id: "test-id",
+        object: "chat.completion",
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: mockPlaybook,
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      mockedGenerateOutlineFromPlaybook
+        .mockReturnValueOnce("")
+        .mockReturnValueOnce("");
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const result = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+
+      expect(result.outline).toBe("1. Quoted task\n2. Single quoted");
+    });
+
+    it("should use regex-based task extraction when outline generator returns empty", async () => {
+      mockedGenerateOutlineFromPlaybook
+        .mockReturnValueOnce("")
+        .mockReturnValueOnce("");
+      const mockPlaybook = `
+      - name: Install packages
+        apt:
+          name: nginx
+      - name: Start service
+        service:
+          name: nginx
+          state: started
+      `;
+      mockChatCompletion.mockResolvedValueOnce({
+        id: "test-id",
+        object: "chat.completion",
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: mockPlaybook,
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const result = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+
+      expect(result.outline).toBe("1. Install packages\n2. Start service");
+      expect(mockedGenerateOutlineFromPlaybook).toHaveBeenCalled();
+    });
+
+    it("should extract quoted task names in regex fallback", async () => {
+      mockedGenerateOutlineFromPlaybook
+        .mockReturnValueOnce("")
+        .mockReturnValueOnce("");
+      const mockPlaybook = `
+      - name: 'First task'
+      - name: "Second task"
+      `;
+      mockChatCompletion.mockResolvedValueOnce({
+        id: "test-id",
+        object: "chat.completion",
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: mockPlaybook,
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const result = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+
+      expect(result.outline).toBe("1. First task\n2. Second task");
+    });
+
+    it("should return empty outline when regex finds no task names", async () => {
+      mockedGenerateOutlineFromPlaybook
+        .mockReturnValueOnce("")
+        .mockReturnValueOnce("");
+      const mockPlaybook = "hosts: all\nvars:\n  foo: bar";
+      mockChatCompletion.mockResolvedValueOnce({
+        id: "test-id",
+        object: "chat.completion",
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "assistant",
+              content: mockPlaybook,
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const result = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+
+      expect(result.outline).toBe("");
+    });
+
     it("should incorporate outline into prompt when provided", async () => {
       const outline = "1. Setup\n2. Configure";
       mockChatCompletion.mockResolvedValueOnce({
