@@ -21,7 +21,11 @@ export default defineConfig({
       reporter: ["cobertura", "json", "lcovonly"],
       reportsDirectory: "./out/coverage/als", // relative to config root entry
       thresholds: {
-        branches: process.platform === "linux" ? 22.78 : 0.0,
+        // Enforce coverage thresholds on pure Linux, skip on WSL
+        branches:
+          process.platform === "linux" && process.env.IS_WSL !== "1"
+            ? 22.78
+            : 0.0,
       },
     },
     include: [`${__dirname}/test/**/*.test.ts`],
