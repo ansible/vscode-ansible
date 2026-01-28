@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAnsibleLintHandler } from "../../src/handlers.js";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { writeFile, unlink } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe("Ansible Lint Handler", () => {
   const testPlaybookPath = join(__dirname, "test-playbook.yml");

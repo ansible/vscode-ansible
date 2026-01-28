@@ -1,11 +1,13 @@
 import { expect, beforeAll, afterAll } from "vitest";
-import path = require("path");
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import {
   ansibleMetaDataEntryType,
   ansibleMetaDataType,
   getAnsibleMetaData,
   getResultsThroughCommandRunner,
-} from "../../src/utils/getAnsibleMetaData";
+} from "../../src/utils/getAnsibleMetaData.js";
 import {
   createTestWorkspaceManager,
   disableExecutionEnvironmentSettings,
@@ -13,7 +15,10 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper";
+} from "../helper.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function getAnsibleTestInfo() {
   const ansibleInfo: ansibleMetaDataEntryType = {};

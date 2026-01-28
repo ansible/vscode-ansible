@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '@vscode/codicons/dist/codicon.css';
+
 import { ref, toRaw, watch } from "vue";
 import * as marked from "marked";
 import { v4 as uuidv4 } from "uuid";

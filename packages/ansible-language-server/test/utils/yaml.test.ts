@@ -12,8 +12,8 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from "../../src/utils/yaml";
-import { getDoc, isWindows } from "../helper";
+} from "../../src/utils/yaml.js";
+import { getDoc, isWindows } from "../helper.js";
 
 function getPathInFile(yamlFile: string, line: number, character: number) {
   const textDoc = getDoc(`yaml/${yamlFile}`);

@@ -1,27 +1,27 @@
 import { defineConfig } from "vitest/config";
+import { resolve } from "node:path";
 
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["test/**/*.ts"],
-    exclude: ["test/fixtures/**", "test/README.md", "test/testWrapper.ts"],
+    exclude: [`${__dirname}/test/fixtures/**`],
     coverage: {
+      exclude: ["node_modules/", "dist/", "test/fixtures/**", "**/*.d.ts"],
       provider: "v8",
-      reportsDirectory: "../../out/coverage/mcp",
-      reporter: ["cobertura", "json"],
-      exclude: [
-        "node_modules/",
-        "dist/",
-        "test/fixtures/**",
-        "test/testWrapper.ts",
-        "**/*.d.ts",
-      ],
+      reporter: ["cobertura", "json", "lcovonly"],
+      reportsDirectory: "./out/coverage/mcp", // relative to config root entry
+      thresholds: {
+        branches: process.platform === "linux" ? 53.95 : 0.0,
+      },
     },
+    include: [`${__dirname}/test/**/*.test.ts`],
+
     outputFile: {
-      junit: "../../out/junit/mcp/mcp-test-results.xml",
+      junit: "./out/junit/mcp-test-results.xml", // relative to config root entry
     },
     reporters: ["default", "junit"],
+    root: resolve(__dirname, "..", ".."),
     testTimeout: 30000, // 30 seconds for tests that might spawn processes
   },
 });

@@ -137,7 +137,7 @@ tasks:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
-      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - npx tsx packages/ansible-language-server/tools/settings-doc-generator.ts
       - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
       - defer: { task: finish }
   lint:
@@ -181,6 +181,8 @@ tasks:
       - defer: { task: finish }
     interactive: true
   e2e:
+    vars:
+      TEST_PREFIX: "{{ .TASK }}"
     desc: Run e2e tests with vscode-test {{.XVFB}}
     deps:
       - package
@@ -190,9 +192,10 @@ tasks:
       # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
       TMP: out/tmp/e2e
     generates:
-      - out/junit/e2e/test-results.xml
+      - out/junit/e2e-test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
       - out/coverage/e2e/lcov.info
+      - out/log/e2e/e2e.log
     sources:
       - "{src,test}/**/*"
       - .vscode-test.mjs
@@ -206,6 +209,7 @@ tasks:
       - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   ui-prepare:
     deps:
@@ -240,10 +244,10 @@ tasks:
       - exclude: test/testFixtures/.vscode/
       - exclude: test/testFixtures/common/collections/
     generates:
-      - out/junit/ui/{{.TEST_PREFIX}}-test-results.xml
+      - out/junit/{{.TEST_PREFIX}}-test-results.xml
     cmds:
-      - rimraf out/junit/ui/{{.TEST_PREFIX}}-test-results.xml ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
-      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/ out/junit/ui/
+      - rimraf out/junit/{{.TEST_PREFIX}}-test-results.xml ./out/test-resources/settings/User/ out/coverage/{{.TEST_PREFIX}}/ out/test-resources/test.log ./out/{{.TEST_PREFIX}}
+      - mkdir -p out/test-resources/settings/User/ out/{{.TEST_PREFIX}}/ out/junit/
       - cp -f test/testFixtures/settings.json out/test-resources/settings/User/settings.json
       # {{.CLI_ARGS}}'
       - >-
@@ -257,12 +261,7 @@ tasks:
         "${EXTEST_ARGS:-}"
         --
         out/client/test/ui/**/*.test.js | tee >(sed -r 's/\x1B\[[0-9;]*[mK]//g' > "out/{{.TEST_PREFIX}}/{{.TEST_PREFIX}}.log") 2>&1
-      # we move the logs and screenshots to a location safe for collection but
-      # we do not remove them because they are needed for local debugging, cleaning happens before new runs instead
-      - |
-        mkdir -p out/log/{{.TEST_PREFIX}}/
-        find out/test-resources/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
-        find out/test-resources/settings/logs out/test-resources/screenshots -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+      - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   ui-smoke:
     desc: Run UI test with extest but no coverage in order to detect packaging issues
@@ -378,3 +377,13 @@ tasks:
       - package
     cmds:
       - vitest list
+  collect-logs:
+    requires:
+      vars: [TEST_PREFIX]
+    cmds:
+      - mkdir -p out/{{.TEST_PREFIX}}/screenshots
+      - |
+        find out/test-resources/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+        find out/test-resources/settings/logs -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
+        find out/test-resources/screenshots -type f -exec cp -v {} out/{{.TEST_PREFIX}}/screenshots \; 2>/dev/null || true
+      - defer: tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log

@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import * as fs from "fs";
 import { parseDocument, YAMLError } from "yaml";
 import {
@@ -6,14 +6,14 @@ import {
   IModuleDocumentation,
   IModuleMetadata,
   IOption,
-} from "../interfaces/module";
-import { hasOwnProperty, isObject } from "./misc";
+} from "../interfaces/module.js";
+import { hasOwnProperty, isObject } from "./misc.js";
 import {
   IPluginRoute,
   IPluginRoutesByName,
   IPluginRoutesByType,
   IPluginTypes,
-} from "../interfaces/pluginRouting";
+} from "../interfaces/pluginRouting.js";
 
 const DOCUMENTATION = "DOCUMENTATION";
 

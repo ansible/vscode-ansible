@@ -4,15 +4,15 @@ import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
-import { AnsibleConfig } from "./ansibleConfig";
-import { ImagePuller } from "../utils/imagePuller";
-import { asyncExec } from "../utils/misc";
-import { WorkspaceFolderContext } from "./workspaceManager";
+import { AnsibleConfig } from "./ansibleConfig.js";
+import { ImagePuller } from "../utils/imagePuller.js";
+import { asyncExec } from "../utils/misc.js";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
 import {
   ExtensionSettings,
   IContainerEngine,
-} from "../interfaces/extensionSettings";
-import { IVolumeMounts } from "../interfaces/extensionSettings";
+} from "../interfaces/extensionSettings.js";
+import { IVolumeMounts } from "../interfaces/extensionSettings.js";
 
 export class ExecutionEnvironment {
   public isServiceInitialized: boolean = false;

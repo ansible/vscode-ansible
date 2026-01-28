@@ -1,5 +1,5 @@
 import { expect } from "vitest";
-import { withInterpreter } from "../../src/utils/misc";
+import { withInterpreter } from "../../src/utils/misc.js";
 
 interface testType {
   scenario: string;

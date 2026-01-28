@@ -4,18 +4,18 @@ import { readFileSync, rmSync } from "fs";
 import {
   WorkspaceManager,
   WorkspaceFolderContext,
-} from "../src/services/workspaceManager";
+} from "../src/services/workspaceManager.js";
 import {
   CompletionItem,
   createConnection,
   TextDocuments,
 } from "vscode-languageserver/node";
-import { ValidationManager } from "../src/services/validationManager";
-import { ExtensionSettings } from "../src/interfaces/extensionSettings";
+import { ValidationManager } from "../src/services/validationManager.js";
+import { ExtensionSettings } from "../src/interfaces/extensionSettings.js";
 
 import Fuse from "fuse.js";
 
-const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+const FIXTURES_BASE_PATH = path.join(__dirname, "fixtures");
 const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",

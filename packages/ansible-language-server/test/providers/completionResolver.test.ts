@@ -5,9 +5,9 @@
 
 import { expect, beforeAll, afterAll } from "vitest";
 import { EOL } from "os";
-import { doCompletionResolve } from "../../src/providers/completionProvider";
-import {} from "../../src/providers/validationProvider";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
+import { doCompletionResolve } from "../../src/providers/completionProvider.js";
+import {} from "../../src/providers/validationProvider.js";
+import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
 import {
   createTestWorkspaceManager,
   enableExecutionEnvironmentSettings,
@@ -15,7 +15,7 @@ import {
   setFixtureAnsibleCollectionPathEnv,
   resolveDocUri,
   getDoc,
-} from "../helper";
+} from "../helper.js";
 
 function testFQCNEnabled(context: WorkspaceFolderContext) {
   const tests = [

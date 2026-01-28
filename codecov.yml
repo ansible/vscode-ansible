@@ -8,3 +8,5 @@ coverage:
   status:
     patch: false
     project: true
+github_checks:
+  annotations: true

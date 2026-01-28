@@ -1,9 +1,11 @@
 // used for unit tests from test/unit
 import { defineConfig } from "vitest/config";
+import path from "node:path";
 
 // see https://vitest.dev/guide/migration.html
 export default defineConfig({
   test: {
+    environment: "node",
     globals: true,
     silent: true,
     include: ["test/unit/**/*.test.ts"],
@@ -23,10 +25,15 @@ export default defineConfig({
       },
     },
     outputFile: {
-      junit: "./out/junit/unit/unit-test-results.xml",
+      junit: "./out/junit/unit-test-results.xml",
     },
     reporters: ["default", "junit"],
     testTimeout: 30003,
     slowTestThreshold: 25000,
+  },
+  resolve: {
+    alias: {
+      vscode: path.resolve(__dirname, "./test/unit/mocks/vscode.ts"),
+    },
   },
 });
