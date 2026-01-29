@@ -154,6 +154,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   build:
     name: ${{ matrix.name }}
@@ -318,7 +320,7 @@ jobs:
           EOT
           podman info
 
-      - name: Save ready_to_test=true
+      - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
@@ -429,6 +431,9 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+
   builder-image:
     runs-on: ubuntu-24.04
     needs: [preflight]
@@ -513,6 +518,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
@@ -563,6 +570,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish-npm:
     environment: release
@@ -590,3 +599,5 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
