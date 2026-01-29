@@ -1,17 +1,21 @@
 name: report
 description: Report failures
 
+inputs:
+  slack_webhook_url:
+    description: "Slack webhook URL for notifications"
+    required: false
+
 runs:
   using: "composite"
   steps:
     - name: Send CI failure notification
       shell: bash
-      if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
       env:
-        SLACK_WEBHOOK_URL: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+        SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}
       run: |
         if [ -n "$SLACK_WEBHOOK_URL" ]; then
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\" Main branch tests failed on `${GITHUB_REPOSITORY}`. Check [logs](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})\"}" \
-            $SLACK_WEBHOOK_URL
+            --data "{\"text\":\"❌ Main branch tests failed on \`${GITHUB_REPOSITORY}\`. Check <${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|logs>\"}" \
+            "$SLACK_WEBHOOK_URL"
         fi
