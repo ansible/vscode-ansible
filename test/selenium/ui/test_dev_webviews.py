@@ -1,4 +1,4 @@
-"""Tests for content creator webviews (without ansible-creator)."""
+"""Tests for devfile/devcontainer webviews."""
 
 # pylint: disable=E0401, W0613, R0801
 from typing import Any
