@@ -5,6 +5,10 @@ import {
   API_ENDPOINTS,
   DEFAULT_TIMEOUTS,
 } from "../testConstants.js";
+import {
+  OpenAICompatibleClient,
+  OpenAIClientError,
+} from "../../../../src/features/lightspeed/clients/openaiCompatibleClient.js";
 
 vi.mock("../../../../src/utils/logger", () => {
   const loggerMock = {
@@ -23,11 +27,6 @@ const mockFetch = vi.fn();
 vi.mock("../../../../src/features/lightspeed/api", () => ({
   getFetch: vi.fn(() => mockFetch),
 }));
-
-import {
-  OpenAICompatibleClient,
-  OpenAIClientError,
-} from "../../../../src/features/lightspeed/clients/openaiCompatibleClient";
 
 describe("OpenAICompatibleClient", () => {
   beforeEach(() => {
