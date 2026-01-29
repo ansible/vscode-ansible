@@ -310,6 +310,10 @@ export interface ProviderInfo {
   configSchema: ConfigField[];
   defaultEndpoint?: string;
   defaultModel?: string;
+  /** Whether this provider uses OAuth for authentication (e.g., WCA) */
+  usesOAuth?: boolean;
+  /** Whether this provider requires an API key (e.g., Google). False for OAuth providers. */
+  requiresApiKey?: boolean;
 }
 
 export interface ProviderFactory {

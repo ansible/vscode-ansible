@@ -72,6 +72,8 @@ export class LLMProviderFactory implements ProviderFactory {
           "Official Red Hat Ansible Lightspeed service with IBM watsonx Code Assistant",
         defaultEndpoint: WCA_API_ENDPOINT_DEFAULT,
         defaultModel: undefined, // WCA uses organization default
+        usesOAuth: true,
+        requiresApiKey: false,
         configSchema: [
           {
             key: "apiEndpoint",
@@ -80,15 +82,6 @@ export class LLMProviderFactory implements ProviderFactory {
             required: true,
             placeholder: WCA_API_ENDPOINT_DEFAULT,
             description: "URL for Ansible Lightspeed service",
-          },
-          {
-            key: "modelName",
-            label: "Model ID Override",
-            type: "string",
-            required: false,
-            placeholder: "Leave empty to use organization default",
-            description:
-              "Model ID to override your organization's default model (commercial users only)",
           },
         ],
       },
@@ -99,7 +92,18 @@ export class LLMProviderFactory implements ProviderFactory {
         description: "Direct access to Google Gemini models",
         defaultEndpoint: GOOGLE_API_ENDPOINT,
         defaultModel: GOOGLE_DEFAULT_MODEL,
+        usesOAuth: false,
+        requiresApiKey: true,
         configSchema: [
+          {
+            key: "apiEndpoint",
+            label: "API Endpoint",
+            type: "string",
+            required: false,
+            placeholder: GOOGLE_API_ENDPOINT,
+            description:
+              "API endpoint URL (leave empty for default, only localhost URLs supported for testing)",
+          },
           {
             key: "apiKey",
             label: "API Key",

@@ -130,22 +130,14 @@ export class ProviderCommands {
 
       const providerType = selectedProvider.provider.type;
 
-      // Configure required fields
+      // Configure required fields using generic API
       for (const field of selectedProvider.provider.configSchema) {
         if (field.required) {
-          // Get current value from LlmProviderSettings (per-provider storage)
-          let currentValue = "";
-          if (field.key === "apiKey") {
-            currentValue = await this.llmProviderSettings.getApiKey(
-              providerType,
-            );
-          } else if (field.key === "modelName") {
-            currentValue =
-              this.llmProviderSettings.getModelName(providerType) ?? "";
-          } else if (field.key === "apiEndpoint") {
-            currentValue =
-              this.llmProviderSettings.getApiEndpoint(providerType);
-          }
+          // Get current value using generic API
+          const currentValue = await this.llmProviderSettings.get(
+            providerType,
+            field.key,
+          );
 
           const inputOptions: vscode.InputBoxOptions = {
             prompt: field.label,
@@ -164,37 +156,29 @@ export class ProviderCommands {
             return; // User cancelled
           }
 
-          // Save to LlmProviderSettings (per-provider storage)
-          if (field.key === "apiKey") {
-            await this.llmProviderSettings.setApiKey(
-              value || undefined,
-              providerType,
-            );
-          } else if (field.key === "modelName") {
-            await this.llmProviderSettings.setModelName(
-              value || undefined,
-              providerType,
-            );
-          } else if (field.key === "apiEndpoint") {
-            await this.llmProviderSettings.setApiEndpoint(
-              value || undefined,
-              providerType,
-            );
-          }
+          // Save using generic API
+          await this.llmProviderSettings.set(
+            providerType,
+            field.key,
+            value || undefined,
+          );
         }
       }
 
       // Set default endpoint if available and not already set
       if (selectedProvider.provider.defaultEndpoint) {
-        const currentEndpoint =
-          this.llmProviderSettings.getApiEndpoint(providerType);
+        const currentEndpoint = await this.llmProviderSettings.get(
+          providerType,
+          "apiEndpoint",
+        );
         if (
           !currentEndpoint ||
           currentEndpoint === "https://c.ai.ansible.redhat.com"
         ) {
-          await this.llmProviderSettings.setApiEndpoint(
-            selectedProvider.provider.defaultEndpoint,
+          await this.llmProviderSettings.set(
             providerType,
+            "apiEndpoint",
+            selectedProvider.provider.defaultEndpoint,
           );
         }
       }

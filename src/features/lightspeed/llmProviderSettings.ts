@@ -9,15 +9,84 @@ import { providerFactory } from "./providers/factory";
  */
 export class LlmProviderSettings {
   private static readonly PROVIDER_KEY = "lightspeed.provider";
-  private static readonly MODEL_NAME_PREFIX = "lightspeed.modelName.";
-  private static readonly API_ENDPOINT_PREFIX = "lightspeed.apiEndpoint.";
-  private static readonly API_KEY_SECRET_PREFIX = "lightspeed.apiKey.";
+  private static readonly SETTING_PREFIX = "lightspeed.setting.";
+  private static readonly SECRET_PREFIX = "lightspeed.secret.";
   private static readonly CONNECTION_STATUS_PREFIX =
     "lightspeed.connectionStatus.";
 
   private static readonly DEFAULT_PROVIDER = "wca";
 
   constructor(private readonly context: ExtensionContext) {}
+
+  // ============================================================
+  // Generic Settings API - Use these for all config fields
+  // ============================================================
+
+  /**
+   * Get a setting value for a provider.
+   * Automatically uses secrets storage for password fields.
+   */
+  async get(provider: string, key: string): Promise<string> {
+    const providerInfo = this.getProviderInfo(provider);
+    const field = providerInfo?.configSchema.find((f) => f.key === key);
+
+    // Use secrets for password fields
+    if (field?.type === "password") {
+      const secretKey = `${LlmProviderSettings.SECRET_PREFIX}${provider}.${key}`;
+      return (await this.context.secrets.get(secretKey)) ?? "";
+    }
+
+    // Use globalState for regular fields
+    const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${provider}.${key}`;
+    const value = this.context.globalState.get<string>(stateKey);
+
+    // Return stored value if set
+    if (value?.trim()) {
+      return value.trim();
+    }
+
+    // Return default from factory for known fields
+    if (key === "apiEndpoint") {
+      return providerInfo?.defaultEndpoint ?? "";
+    }
+    if (key === "modelName") {
+      return providerInfo?.defaultModel ?? "";
+    }
+
+    return "";
+  }
+
+  /**
+   * Set a setting value for a provider.
+   * Automatically uses secrets storage for password fields.
+   */
+  async set(
+    provider: string,
+    key: string,
+    value: string | undefined,
+  ): Promise<void> {
+    const providerInfo = this.getProviderInfo(provider);
+    const field = providerInfo?.configSchema.find((f) => f.key === key);
+
+    // Use secrets for password fields
+    if (field?.type === "password") {
+      const secretKey = `${LlmProviderSettings.SECRET_PREFIX}${provider}.${key}`;
+      if (value) {
+        await this.context.secrets.store(secretKey, value);
+      } else {
+        await this.context.secrets.delete(secretKey);
+      }
+      return;
+    }
+
+    // Use globalState for regular fields
+    const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${provider}.${key}`;
+    await this.context.globalState.update(stateKey, value?.trim() || undefined);
+  }
+
+  // ============================================================
+  // Provider & Connection Status - Core settings
+  // ============================================================
 
   /**
    * Get provider info from factory (single source of truth for defaults)
@@ -28,7 +97,6 @@ export class LlmProviderSettings {
       .find((p) => p.type === providerType);
   }
 
-  // Provider
   getProvider(): string {
     return (
       this.context.globalState.get<string>(LlmProviderSettings.PROVIDER_KEY) ??
@@ -43,75 +111,6 @@ export class LlmProviderSettings {
     );
   }
 
-  // Model Name (stored per-provider)
-  getModelName(provider?: string): string | undefined {
-    const targetProvider = provider ?? this.getProvider();
-    const key = `${LlmProviderSettings.MODEL_NAME_PREFIX}${targetProvider}`;
-    const value = this.context.globalState.get<string>(key);
-
-    // Return stored value if set
-    if (value?.trim()) {
-      return value.trim();
-    }
-
-    // Return default model from factory (single source of truth)
-    const providerInfo = this.getProviderInfo(targetProvider);
-    return providerInfo?.defaultModel;
-  }
-
-  async setModelName(
-    value: string | undefined,
-    provider?: string,
-  ): Promise<void> {
-    const targetProvider = provider ?? this.getProvider();
-    const key = `${LlmProviderSettings.MODEL_NAME_PREFIX}${targetProvider}`;
-    await this.context.globalState.update(key, value?.trim() || undefined);
-  }
-
-  // API Endpoint (stored per-provider)
-  getApiEndpoint(provider?: string): string {
-    const targetProvider = provider ?? this.getProvider();
-    const key = `${LlmProviderSettings.API_ENDPOINT_PREFIX}${targetProvider}`;
-    const endpoint = this.context.globalState.get<string>(key);
-
-    // Return stored endpoint if set
-    if (endpoint) {
-      return endpoint;
-    }
-
-    // Return default endpoint from factory (single source of truth)
-    const providerInfo = this.getProviderInfo(targetProvider);
-    return providerInfo?.defaultEndpoint ?? "";
-  }
-
-  async setApiEndpoint(
-    value: string | undefined,
-    provider?: string,
-  ): Promise<void> {
-    const targetProvider = provider ?? this.getProvider();
-    const key = `${LlmProviderSettings.API_ENDPOINT_PREFIX}${targetProvider}`;
-    await this.context.globalState.update(key, value || undefined);
-  }
-
-  // API Key (stored securely in secrets, per-provider)
-  async getApiKey(provider?: string): Promise<string> {
-    const targetProvider = provider ?? this.getProvider();
-    const secretKey = `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${targetProvider}`;
-    return (await this.context.secrets.get(secretKey)) ?? "";
-  }
-
-  async setApiKey(value: string | undefined, provider?: string): Promise<void> {
-    const targetProvider = provider ?? this.getProvider();
-    const secretKey = `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${targetProvider}`;
-
-    if (value) {
-      await this.context.secrets.store(secretKey, value);
-    } else {
-      await this.context.secrets.delete(secretKey);
-    }
-  }
-
-  // Connection Status (stored per-provider)
   getConnectionStatus(provider?: string): boolean {
     const targetProvider = provider ?? this.getProvider();
     const key = `${LlmProviderSettings.CONNECTION_STATUS_PREFIX}${targetProvider}`;
@@ -127,7 +126,6 @@ export class LlmProviderSettings {
     await this.context.globalState.update(key, connected);
   }
 
-  // Get connection status for all providers
   getAllConnectionStatuses(): Record<string, boolean> {
     const providers = providerFactory.getSupportedProviders();
     const statuses: Record<string, boolean> = {};
@@ -137,64 +135,60 @@ export class LlmProviderSettings {
     return statuses;
   }
 
-  // Bulk getter for all settings (useful for webview)
+  // ============================================================
+  // Bulk Operations
+  // ============================================================
+
+  /**
+   * Get all settings for the current provider (useful for webview/settings manager)
+   */
   async getAllSettings(): Promise<{
     provider: string;
-    modelName: string | undefined;
     apiEndpoint: string;
+    modelName: string | undefined;
     apiKey: string;
     connectionStatuses: Record<string, boolean>;
   }> {
+    const currentProvider = this.getProvider();
+    const apiEndpoint = await this.get(currentProvider, "apiEndpoint");
+    const modelName = await this.get(currentProvider, "modelName");
+    const apiKey = await this.get(currentProvider, "apiKey");
+
     return {
-      provider: this.getProvider(),
-      modelName: this.getModelName(),
-      apiEndpoint: this.getApiEndpoint(),
-      apiKey: await this.getApiKey(),
+      provider: currentProvider,
+      apiEndpoint,
+      modelName: modelName || undefined,
+      apiKey,
       connectionStatuses: this.getAllConnectionStatuses(),
     };
   }
 
-  // Bulk setter for all settings
-  async setAllSettings(settings: {
-    provider?: string;
-    modelName?: string;
-    apiEndpoint?: string;
-    apiKey?: string;
-  }): Promise<void> {
-    if (settings.provider !== undefined) {
-      await this.setProvider(settings.provider);
-    }
-    if (settings.modelName !== undefined) {
-      await this.setModelName(settings.modelName);
-    }
-    if (settings.apiEndpoint !== undefined) {
-      await this.setApiEndpoint(settings.apiEndpoint);
-    }
-    if (settings.apiKey !== undefined) {
-      await this.setApiKey(settings.apiKey);
-    }
-  }
-
-  // Clear all settings (for testing or reset)
+  /**
+   * Clear all settings (for testing or reset)
+   */
   async clearAllSettings(): Promise<void> {
     await this.context.globalState.update(
       LlmProviderSettings.PROVIDER_KEY,
       undefined,
     );
-    // Clear per-provider settings from factory (single source of truth)
+
+    // Clear per-provider settings based on configSchema
     const providers = providerFactory.getSupportedProviders();
     for (const provider of providers) {
-      await this.context.globalState.update(
-        `${LlmProviderSettings.MODEL_NAME_PREFIX}${provider.type}`,
-        undefined,
-      );
-      await this.context.globalState.update(
-        `${LlmProviderSettings.API_ENDPOINT_PREFIX}${provider.type}`,
-        undefined,
-      );
-      await this.context.secrets.delete(
-        `${LlmProviderSettings.API_KEY_SECRET_PREFIX}${provider.type}`,
-      );
+      // Clear all config fields
+      for (const field of provider.configSchema) {
+        if (field.type === "password") {
+          await this.context.secrets.delete(
+            `${LlmProviderSettings.SECRET_PREFIX}${provider.type}.${field.key}`,
+          );
+        } else {
+          await this.context.globalState.update(
+            `${LlmProviderSettings.SETTING_PREFIX}${provider.type}.${field.key}`,
+            undefined,
+          );
+        }
+      }
+      // Clear connection status
       await this.context.globalState.update(
         `${LlmProviderSettings.CONNECTION_STATUS_PREFIX}${provider.type}`,
         undefined,

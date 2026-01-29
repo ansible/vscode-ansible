@@ -85,9 +85,14 @@ describe("ProviderCommands", () => {
     mockLlmProviderSettings = {
       getProvider: vi.fn().mockReturnValue("wca"),
       setProvider: vi.fn().mockResolvedValue(undefined),
-      getModelName: vi.fn().mockReturnValue(undefined),
-      setModelName: vi.fn().mockResolvedValue(undefined),
-      getApiEndpoint: vi.fn().mockReturnValue("https://c.ai.ansible.redhat.com"),
+      get: vi.fn().mockImplementation((provider: string, key: string) => {
+        if (key === "apiEndpoint")
+          return Promise.resolve("https://c.ai.ansible.redhat.com");
+        if (key === "modelName") return Promise.resolve("");
+        if (key === "apiKey") return Promise.resolve("");
+        return Promise.resolve("");
+      }),
+      set: vi.fn().mockResolvedValue(undefined),
       setApiEndpoint: vi.fn().mockResolvedValue(undefined),
       getApiKey: vi.fn().mockResolvedValue(""),
       setApiKey: vi.fn().mockResolvedValue(undefined),
@@ -343,9 +348,13 @@ describe("ProviderCommands", () => {
 
       // Verify LlmProviderSettings updates
       const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
-      const setApiKey = vi.mocked(mockLlmProviderSettings.setApiKey);
+      const set = vi.mocked(mockLlmProviderSettings.set);
       expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
-      expect(setApiKey).toHaveBeenCalledWith(TEST_API_KEYS.GOOGLE);
+      expect(set).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "apiKey",
+        TEST_API_KEYS.GOOGLE,
+      );
       const refreshProviders = vi.mocked(
         // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.refreshProviders,
@@ -416,8 +425,12 @@ describe("ProviderCommands", () => {
       const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
       expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
       // Should not update apiKey or refresh providers if cancelled
-      const setApiKey = vi.mocked(mockLlmProviderSettings.setApiKey);
-      expect(setApiKey).not.toHaveBeenCalled();
+      const set = vi.mocked(mockLlmProviderSettings.set);
+      expect(set).not.toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "apiKey",
+        expect.anything(),
+      );
       const refreshProviders4 = vi.mocked(
         // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.refreshProviders,
@@ -481,8 +494,10 @@ describe("ProviderCommands", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
-      const setApiEndpoint = vi.mocked(mockLlmProviderSettings.setApiEndpoint);
-      expect(setApiEndpoint).toHaveBeenCalledWith(
+      const set = vi.mocked(mockLlmProviderSettings.set);
+      expect(set).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "apiEndpoint",
         "https://generativelanguage.googleapis.com/v1beta",
       );
     });

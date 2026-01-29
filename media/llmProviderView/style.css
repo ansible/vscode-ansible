@@ -174,13 +174,32 @@
   cursor: not-allowed;
 }
 
-.activate-btn {
-  background-color: var(--vscode-charts-green);
-  color: var(--vscode-editor-background);
+.switch-btn {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
 }
 
-.activate-btn:hover {
-  opacity: 0.9;
+.switch-btn:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Configured badge - shown next to provider name when connected */
+.configured-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 12px;
+  background-color: transparent;
+  border: 1px solid var(--vscode-charts-green);
+  color: var(--vscode-charts-green);
+}
+
+.configured-badge .codicon {
+  font-size: 12px;
 }
 
 .save-btn {
@@ -245,6 +264,12 @@
   font-weight: 600;
   color: var(--vscode-foreground);
   margin-bottom: 6px;
+}
+
+.required-indicator {
+  color: var(--vscode-errorForeground, #f44336);
+  margin-left: 2px;
+  font-weight: normal;
 }
 
 .text-input {
