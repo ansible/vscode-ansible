@@ -429,7 +429,7 @@ jobs:
         run: git status --porcelain --ignored
 
       - name: Report unexpected failures
-        if: ${{ always()}}
+        if: ${{ always() && failure() }}
         uses: ./.github/actions/report
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
