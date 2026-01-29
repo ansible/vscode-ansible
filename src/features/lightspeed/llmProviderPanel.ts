@@ -7,6 +7,7 @@ import { LlmProviderSettings } from "./llmProviderSettings";
 import { LightSpeedCommands } from "../../definitions/lightspeed";
 import { LightspeedUser } from "./lightspeedUser";
 import { QuickLinksWebviewViewProvider } from "../quickLinks/utils/quickLinksViewProvider";
+import { ProviderInfo } from "../../interfaces/lightspeed";
 
 /**
  * Main panel for LLM Provider settings.
@@ -110,30 +111,58 @@ export class LlmProviderPanel {
     });
   }
 
+  /**
+   * Get provider info by type from factory
+   */
+  private getProviderInfo(providerType: string): ProviderInfo | undefined {
+    return providerFactory
+      .getSupportedProviders()
+      .find((p) => p.type === providerType);
+  }
+
+  /**
+   * Common pattern for updating UI and refreshing providers after changes
+   */
+  private async updateAndNotify(): Promise<void> {
+    await this.sendProviderSettings(this._panel.webview);
+    this.quickLinksProvider?.refreshProviderInfo();
+
+    // Run heavy operations in background (don't block UI)
+    this.settingsManager.reinitialize().then(() => {
+      this.providerManager.refreshProviders().catch((error) => {
+        console.error("Failed to refresh providers:", error);
+      });
+    });
+  }
+
   private async sendProviderSettings(webview: Webview) {
     const providers = providerFactory.getSupportedProviders();
     const settings = await this.llmProviderSettings.getAllSettings();
-
-    // Check WCA connection status from actual session
-    const wcaConnected = await this.lightspeedUser.isAuthenticated();
     const connectionStatuses = { ...settings.connectionStatuses };
-    connectionStatuses["wca"] = wcaConnected;
 
-    // Persist WCA status
-    await this.llmProviderSettings.setConnectionStatus(wcaConnected, "wca");
-
-    // Build configs for ALL providers so webview has correct values
-    const providerConfigs: Record<
-      string,
-      { apiKey: string; modelName: string; apiEndpoint: string }
-    > = {};
+    // Check connection status for OAuth providers from actual session
     for (const provider of providers) {
-      const providerType = provider.type;
-      providerConfigs[providerType] = {
-        apiKey: await this.llmProviderSettings.getApiKey(providerType),
-        modelName: this.llmProviderSettings.getModelName(providerType) ?? "",
-        apiEndpoint: this.llmProviderSettings.getApiEndpoint(providerType),
-      };
+      if (provider.usesOAuth) {
+        const isConnected = await this.lightspeedUser.isAuthenticated();
+        connectionStatuses[provider.type] = isConnected;
+        await this.llmProviderSettings.setConnectionStatus(
+          isConnected,
+          provider.type,
+        );
+      }
+    }
+
+    // Build configs dynamically based on each provider's configSchema
+    const providerConfigs: Record<string, Record<string, string>> = {};
+    for (const provider of providers) {
+      const config: Record<string, string> = {};
+      for (const field of provider.configSchema) {
+        config[field.key] = await this.llmProviderSettings.get(
+          provider.type,
+          field.key,
+        );
+      }
+      providerConfigs[provider.type] = config;
     }
 
     webview.postMessage({
@@ -175,56 +204,36 @@ export class LlmProviderPanel {
 
   private async handleSaveSettings(message: {
     provider: string;
-    apiKey: string;
-    modelName: string;
-    apiEndpoint: string;
+    config: Record<string, string>;
   }) {
     try {
-      // Update provider
+      const providerInfo = this.getProviderInfo(message.provider);
+
+      // Update active provider
       await this.llmProviderSettings.setProvider(message.provider);
 
-      // Update API key for the specific provider (stored per-provider)
-      // Only update if a key is provided - don't clear existing keys
-      if (message.provider !== "wca" && message.apiKey) {
-        await this.llmProviderSettings.setApiKey(
-          message.apiKey,
-          message.provider,
-        );
+      // Save each field from the dynamic config based on configSchema
+      if (providerInfo) {
+        for (const field of providerInfo.configSchema) {
+          const value = message.config[field.key];
+          // Skip apiKey if provider doesn't require it or value is empty
+          if (field.key === "apiKey" && (!providerInfo.requiresApiKey || !value)) {
+            continue;
+          }
+          await this.llmProviderSettings.set(message.provider, field.key, value);
+        }
       }
 
-      // Update model name for the specific provider (stored per-provider)
-      await this.llmProviderSettings.setModelName(
-        message.modelName || undefined,
-        message.provider,
-      );
-
-      // Update API endpoint for the specific provider (stored per-provider)
-      await this.llmProviderSettings.setApiEndpoint(
-        message.apiEndpoint || undefined,
-        message.provider,
-      );
-
       // Reset connection status when settings are changed (require re-connect)
-      // Skip for WCA since it uses OAuth, not config changes
-      if (message.provider !== "wca") {
+      // Skip for OAuth providers since they use OAuth, not config changes
+      if (!providerInfo?.usesOAuth) {
         await this.llmProviderSettings.setConnectionStatus(
           false,
           message.provider,
         );
       }
 
-      // Send updated settings back to webview immediately for fast UI response
-      await this.sendProviderSettings(this._panel.webview);
-
-      // Refresh the QuickLinks sidebar to show updated provider info
-      this.quickLinksProvider?.refreshProviderInfo();
-
-      // Run heavy operations in background (don't block UI)
-      this.settingsManager.reinitialize().then(() => {
-        this.providerManager.refreshProviders().catch((error) => {
-          console.error("Failed to refresh providers:", error);
-        });
-      });
+      await this.updateAndNotify();
     } catch (error) {
       console.error("Failed to save provider settings:", error);
     }
@@ -238,116 +247,37 @@ export class LlmProviderPanel {
     try {
       // Only update the active provider - don't touch connection status
       await this.llmProviderSettings.setProvider(providerType);
-
-      // Send updated settings back to webview
-      await this.sendProviderSettings(this._panel.webview);
-
-      // Refresh the QuickLinks sidebar to show updated provider info
-      this.quickLinksProvider?.refreshProviderInfo();
-
-      // Reinitialize settings manager in background
-      this.settingsManager.reinitialize().then(() => {
-        this.providerManager.refreshProviders().catch((error) => {
-          console.error("Failed to refresh providers:", error);
-        });
-      });
+      await this.updateAndNotify();
     } catch (error) {
       console.error("Failed to activate provider:", error);
     }
   }
 
   private async handleConnectProvider(providerType: string, webview: Webview) {
-    console.log(`[LlmProviderPanel] handleConnectProvider called for: ${providerType}`);
+    console.log(
+      `[LlmProviderPanel] handleConnectProvider called for: ${providerType}`,
+    );
 
     try {
       // Set this provider as active
-      console.log(`[LlmProviderPanel] Setting provider to: ${providerType}`);
       await this.llmProviderSettings.setProvider(providerType);
-      console.log(`[LlmProviderPanel] Provider set. Current provider: ${this.llmProviderSettings.getProvider()}`);
+      const providerInfo = this.getProviderInfo(providerType);
 
-      // Connect using backend's stored values
-      if (providerType === "wca") {
-        console.log(`[LlmProviderPanel] WCA detected, triggering OAuth flow...`);
-
-        // For WCA, trigger OAuth flow
-        await commands.executeCommand(
-          LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
-        );
-        console.log(`[LlmProviderPanel] OAuth command executed`);
-
-        // Wait a bit for the OAuth flow to complete, then refresh
-        // The actual status will be checked on next sendProviderSettings call
-        setTimeout(async () => {
-          console.log(`[LlmProviderPanel] Checking WCA auth status...`);
-          const isAuth = await this.lightspeedUser.isAuthenticated();
-          console.log(`[LlmProviderPanel] WCA isAuthenticated: ${isAuth}`);
-          
-          // Show notification based on auth result
-          if (isAuth) {
-            window.showInformationMessage(
-              "Successfully connected to Watson Code Assistant."
-            );
-            await this.llmProviderSettings.setConnectionStatus(true, providerType);
-          } else {
-            window.showErrorMessage(
-              "Failed to connect to Watson Code Assistant. Please try again or check your credentials."
-            );
-            await this.llmProviderSettings.setConnectionStatus(false, providerType);
-          }
-          
-          // Send result back to webview
-          webview.postMessage({
-            command: "connectionResult",
-            provider: providerType,
-            connected: isAuth,
-            error: isAuth ? undefined : "Authentication failed or was cancelled.",
-          });
-          
-          await this.sendProviderSettings(webview);
-          // Also refresh the QuickLinks sidebar
-          this.quickLinksProvider?.refreshProviderInfo();
-        }, 2000); // Increased timeout to give OAuth more time
+      // Route to appropriate connection method based on provider flags
+      if (providerInfo?.usesOAuth) {
+        await this.connectWithOAuth(providerType, providerInfo, webview);
       } else {
-        // For other providers (e.g., Google), validate using getStatus()
-        const result = await this.validateProviderConnection(providerType);
-        await this.llmProviderSettings.setConnectionStatus(
-          result.connected,
-          providerType,
-        );
-
-        // Show VS Code notification for success or failure
-        if (result.connected) {
-          window.showInformationMessage(
-            `Successfully connected to ${providerType.toUpperCase()} provider.`
-          );
-        } else {
-          window.showErrorMessage(
-            `Failed to connect to ${providerType.toUpperCase()}: ${result.error}`
-          );
-        }
-
-        // Send result back to webview
-        webview.postMessage({
-          command: "connectionResult",
-          provider: providerType,
-          connected: result.connected,
-          error: result.error,
-        });
-
-        // Refresh all settings
-        await this.sendProviderSettings(webview);
-        // Also refresh the QuickLinks sidebar
-        this.quickLinksProvider?.refreshProviderInfo();
+        await this.connectWithApiKey(providerType, providerInfo, webview);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Connection failed";
+      const errorMessage =
+        error instanceof Error ? error.message : "Connection failed";
       console.error(`Failed to connect provider ${providerType}:`, error);
-      
-      // Show error notification
+
       window.showErrorMessage(
-        `Failed to connect to ${providerType.toUpperCase()}: ${errorMessage}`
+        `Failed to connect to ${providerType.toUpperCase()}: ${errorMessage}`,
       );
-      
+
       webview.postMessage({
         command: "connectionResult",
         provider: providerType,
@@ -357,27 +287,106 @@ export class LlmProviderPanel {
     }
   }
 
+  /**
+   * Handle connection result - show notification, update status, notify webview
+   */
+  private async handleConnectionResult(
+    providerType: string,
+    displayName: string,
+    connected: boolean,
+    error: string | undefined,
+    webview: Webview,
+  ): Promise<void> {
+    await this.llmProviderSettings.setConnectionStatus(connected, providerType);
+
+    if (connected) {
+      window.showInformationMessage(`Successfully connected to ${displayName}.`);
+    } else {
+      window.showErrorMessage(`Failed to connect to ${displayName}: ${error}`);
+    }
+
+    webview.postMessage({
+      command: "connectionResult",
+      provider: providerType,
+      connected,
+      error,
+    });
+
+    await this.sendProviderSettings(webview);
+    this.quickLinksProvider?.refreshProviderInfo();
+  }
+
+  /**
+   * Connect to an OAuth-based provider (e.g., WCA)
+   */
+  private async connectWithOAuth(
+    providerType: string,
+    providerInfo: ProviderInfo | undefined,
+    webview: Webview,
+  ): Promise<void> {
+    // Trigger OAuth flow
+    await commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
+
+    // Wait for the OAuth flow to complete, then check status
+    setTimeout(async () => {
+      const isAuth = await this.lightspeedUser.isAuthenticated();
+      const displayName = providerInfo?.displayName || providerType.toUpperCase();
+      const error = isAuth ? undefined : "Authentication failed or was cancelled.";
+
+      await this.handleConnectionResult(providerType, displayName, isAuth, error, webview);
+    }, 2000);
+  }
+
+  /**
+   * Connect to an API key-based provider (e.g., Google)
+   */
+  private async connectWithApiKey(
+    providerType: string,
+    providerInfo: ProviderInfo | undefined,
+    webview: Webview,
+  ): Promise<void> {
+    const result = await this.validateProviderConnection(providerType);
+    const displayName = providerInfo?.displayName || providerType.toUpperCase();
+
+    await this.handleConnectionResult(
+      providerType,
+      displayName,
+      result.connected,
+      result.error,
+      webview,
+    );
+  }
+
   private async validateProviderConnection(
     providerType: string,
   ): Promise<{ connected: boolean; error?: string }> {
     try {
-      // Get current settings for the specific provider (per-provider storage)
-      const apiKey = await this.llmProviderSettings.getApiKey(providerType);
-      const modelName = this.llmProviderSettings.getModelName(providerType);
-      const storedEndpoint =
-        this.llmProviderSettings.getApiEndpoint(providerType);
+      const providerInfo = this.getProviderInfo(providerType);
 
-      if (!apiKey) {
-        return { connected: false, error: "API key is required. Please enter your API key in the settings." };
+      // Get current settings using generic API
+      const apiKey = await this.llmProviderSettings.get(providerType, "apiKey");
+      const modelName = await this.llmProviderSettings.get(
+        providerType,
+        "modelName",
+      );
+      const storedEndpoint = await this.llmProviderSettings.get(
+        providerType,
+        "apiEndpoint",
+      );
+
+      // Check if API key is required but not provided
+      if (providerInfo?.requiresApiKey && !apiKey) {
+        return {
+          connected: false,
+          error:
+            "API key is required. Please enter your API key in the settings.",
+        };
       }
 
-      // For Google provider, only use endpoint if it's localhost (for testing)
+      // Only use custom endpoint if it's localhost (for testing)
       // Otherwise, let the factory use the default endpoint
-      let apiEndpoint = storedEndpoint;
-      if (providerType === "google") {
-        const isLocalhostUrl = storedEndpoint?.startsWith("http://localhost");
-        apiEndpoint = isLocalhostUrl ? storedEndpoint : "";
-      }
+      const isLocalhostUrl = storedEndpoint?.startsWith("http://localhost");
+      const apiEndpoint = isLocalhostUrl ? storedEndpoint : "";
 
       // Create a temporary provider instance to validate
       const provider = providerFactory.createProvider(
@@ -395,11 +404,15 @@ export class LlmProviderPanel {
 
       const status = await provider.getStatus();
       if (!status.connected) {
-        return { connected: false, error: status.error || "Failed to connect to the provider." };
+        return {
+          connected: false,
+          error: status.error || "Failed to connect to the provider.",
+        };
       }
       return { connected: true };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       console.error(`Provider validation failed for ${providerType}:`, error);
       return { connected: false, error: errorMessage };
     }

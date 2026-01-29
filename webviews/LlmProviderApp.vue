@@ -18,13 +18,12 @@ interface ProviderInfo {
     placeholder: string;
     description: string;
   }[];
+  usesOAuth?: boolean;
+  requiresApiKey?: boolean;
 }
 
-interface ProviderConfig {
-  apiKey: string;
-  modelName: string;
-  apiEndpoint: string;
-}
+// Dynamic config - fields are driven by configSchema
+type ProviderConfig = Record<string, string>;
 
 // State
 const providers = ref<ProviderInfo[]>([]);
@@ -34,7 +33,7 @@ const isLoading = ref<boolean>(true);
 const saveIndicatorVisible = ref<boolean>(false);
 const connectingProvider = ref<string | null>(null);
 
-// Provider-specific configs (stored locally for editing)
+// Provider-specific configs (stored locally for editing) - dynamic fields from configSchema
 const providerConfigs = ref<Record<string, ProviderConfig>>({});
 
 // Original configs (to compare against for detecting actual changes)
@@ -48,10 +47,6 @@ const getProviderInfo = (type: string) => {
   return providers.value.find(p => p.type === type);
 };
 
-const needsApiKey = (providerType: string) => {
-  return providerType !== 'wca';
-};
-
 const isConnected = (providerType: string) => {
   return connectionStatuses.value[providerType] ?? false;
 };
@@ -60,17 +55,34 @@ const isConnecting = (providerType: string) => {
   return connectingProvider.value === providerType;
 };
 
+// Compare all fields from configSchema to detect changes
 const hasUnsavedChanges = (providerType: string) => {
+  const provider = getProviderInfo(providerType);
   const current = providerConfigs.value[providerType];
   const original = originalConfigs.value[providerType];
   
-  if (!original || !current) return false;
+  if (!provider || !original || !current) return false;
   
-  return (
-    current.apiKey !== original.apiKey ||
-    current.modelName !== original.modelName ||
-    current.apiEndpoint !== original.apiEndpoint
-  );
+  // Compare each field defined in configSchema
+  for (const field of provider.configSchema) {
+    if ((current[field.key] || '') !== (original[field.key] || '')) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// Get config value for a field (used in template)
+const getConfigValue = (providerType: string, fieldKey: string): string => {
+  return providerConfigs.value[providerType]?.[fieldKey] || '';
+};
+
+// Set config value for a field (used in template)
+const setConfigValue = (providerType: string, fieldKey: string, value: string): void => {
+  if (!providerConfigs.value[providerType]) {
+    providerConfigs.value[providerType] = {};
+  }
+  providerConfigs.value[providerType][fieldKey] = value;
 };
 
 // Methods
@@ -97,45 +109,47 @@ const toggleEdit = (providerType: string) => {
     editingProvider.value = null;
   } else {
     editingProvider.value = providerType;
-    // Load the config for this provider if not already loaded
+    const providerInfo = getProviderInfo(providerType);
+    
+    // Initialize config from configSchema if not already loaded
     if (!providerConfigs.value[providerType]) {
-      const providerInfo = getProviderInfo(providerType);
-      providerConfigs.value[providerType] = {
-        apiKey: '',
-        modelName: '',
-        apiEndpoint: providerInfo?.defaultEndpoint || '',
-      };
+      const config: ProviderConfig = {};
+      providerInfo?.configSchema.forEach(field => {
+        // Use defaultEndpoint for apiEndpoint field, empty string for others
+        config[field.key] = field.key === 'apiEndpoint' 
+          ? (providerInfo?.defaultEndpoint || '') 
+          : '';
+      });
+      providerConfigs.value[providerType] = config;
     }
+    
     // Store original values to compare against for change detection
-    originalConfigs.value[providerType] = {
-      apiKey: providerConfigs.value[providerType].apiKey,
-      modelName: providerConfigs.value[providerType].modelName,
-      apiEndpoint: providerConfigs.value[providerType].apiEndpoint,
-    };
+    originalConfigs.value[providerType] = { ...providerConfigs.value[providerType] };
   }
 };
 
 const saveProviderConfig = (providerType: string) => {
   const config = providerConfigs.value[providerType];
-  if (!config) return;
+  const provider = getProviderInfo(providerType);
+  if (!config || !provider) return;
   
   // Check if there are actual changes before saving
   const hadChanges = hasUnsavedChanges(providerType);
   
+  // Build config object from configSchema fields
+  const configToSend: Record<string, string> = {};
+  provider.configSchema.forEach(field => {
+    configToSend[field.key] = config[field.key] || '';
+  });
+  
   vscodeApi.postMessage({
     command: 'saveProviderSettings',
     provider: providerType,
-    apiKey: config.apiKey,
-    modelName: config.modelName,
-    apiEndpoint: config.apiEndpoint,
+    config: configToSend,
   });
   
   // Update original config to match saved values
-  originalConfigs.value[providerType] = {
-    apiKey: config.apiKey,
-    modelName: config.modelName,
-    apiEndpoint: config.apiEndpoint,
-  };
+  originalConfigs.value[providerType] = { ...config };
   
   // Reset connection status if config actually changed (require re-connect)
   if (hadChanges) {
@@ -145,11 +159,6 @@ const saveProviderConfig = (providerType: string) => {
   showSaveIndicator();
 };
 
-// Track config changes (no longer auto-resets connection status - that happens on Save)
-const onConfigChange = (_providerType: string) => {
-  // Just trigger reactivity for hasUnsavedChanges
-  // Connection status will be reset when user explicitly clicks Save
-};
 
 const showSaveIndicator = () => {
   saveIndicatorVisible.value = true;
@@ -179,28 +188,25 @@ const handleMessage = (event: MessageEvent) => {
       activeProvider.value = message.currentProvider || 'wca';
       connectionStatuses.value = message.connectionStatuses || {};
       
-      // Load configs for ALL providers from backend
+      // Load configs for ALL providers from backend, using configSchema as the field source
       const backendConfigs = message.providerConfigs || {};
       
       providers.value.forEach(provider => {
-        const backendConfig = backendConfigs[provider.type];
-        if (backendConfig) {
-          // Use backend values
-          providerConfigs.value[provider.type] = {
-            apiKey: backendConfig.apiKey || '',
-            modelName: backendConfig.modelName || '',
-            apiEndpoint: backendConfig.apiEndpoint || provider.defaultEndpoint || '',
-          };
-        } else {
-          // Fallback to defaults
-          providerConfigs.value[provider.type] = {
-            apiKey: '',
-            modelName: '',
-            apiEndpoint: provider.defaultEndpoint || '',
-          };
-        }
+        const backendConfig = backendConfigs[provider.type] || {};
+        const config: ProviderConfig = {};
+        
+        // Initialize each field from configSchema with backend value or default
+        provider.configSchema.forEach(field => {
+          if (field.key === 'apiEndpoint') {
+            config[field.key] = backendConfig[field.key] || provider.defaultEndpoint || '';
+          } else {
+            config[field.key] = backendConfig[field.key] || '';
+          }
+        });
+        
+        providerConfigs.value[provider.type] = config;
         // Also update original configs to match
-        originalConfigs.value[provider.type] = { ...providerConfigs.value[provider.type] };
+        originalConfigs.value[provider.type] = { ...config };
       });
       
       isLoading.value = false;
@@ -213,7 +219,6 @@ const handleMessage = (event: MessageEvent) => {
         connectionStatuses.value[message.provider] = true;
       } else {
         connectionStatuses.value[message.provider] = false;
-        // Could show error message here if needed
         console.error(`Connection failed for ${message.provider}: ${message.error}`);
       }
       break;
@@ -253,6 +258,11 @@ onMounted(() => {
               <div class="provider-name">
                 <span class="codicon codicon-server"></span>
                 {{ provider.displayName }}
+                <!-- Configured badge: shown when connected -->
+                <span v-if="isConnected(provider.type)" class="configured-badge">
+                  <span class="codicon codicon-check"></span>
+                  Configured
+                </span>
               </div>
               <div class="provider-description">{{ provider.description }}</div>
             </div>
@@ -281,15 +291,15 @@ onMounted(() => {
                 {{ isConnecting(provider.type) ? 'Connecting...' : 'Connect' }}
               </button>
               
-              <!-- Activate button: shown when connected but not active -->
+              <!-- Switch button: shown when connected but not active -->
               <button 
                 v-else-if="activeProvider !== provider.type"
-                class="action-btn activate-btn"
+                class="action-btn switch-btn"
                 @click="setActiveProvider(provider.type)"
-                title="Set as active provider"
+                title="Switch to this provider"
               >
-                <span class="codicon codicon-check"></span>
-                Activate
+                <span class="codicon codicon-arrow-swap"></span>
+                Switch to this Provider
               </button>
               
               <!-- Active badge: shown when provider is active -->
@@ -302,51 +312,26 @@ onMounted(() => {
           
           <!-- Provider Config Panel (shown when editing) -->
           <div v-if="editingProvider === provider.type" class="provider-config">
-            <!-- API Endpoint -->
-            <div class="config-field">
-              <label :for="`api-endpoint-${provider.type}`" class="field-label">API Endpoint</label>
+            <!-- Dynamically render fields from configSchema -->
+            <div 
+              v-for="field in provider.configSchema" 
+              :key="field.key" 
+              class="config-field"
+            >
+              <label :for="`${field.key}-${provider.type}`" class="field-label">
+                {{ field.label }}
+                <span v-if="field.required" class="required-indicator">*</span>
+              </label>
               <input 
-                :id="`api-endpoint-${provider.type}`"
-                v-model="providerConfigs[provider.type].apiEndpoint" 
-                type="text" 
+                :id="`${field.key}-${provider.type}`"
+                :value="getConfigValue(provider.type, field.key)"
+                @input="setConfigValue(provider.type, field.key, ($event.target as HTMLInputElement).value)"
+                :type="field.type === 'password' ? 'password' : 'text'" 
                 class="text-input"
-                :placeholder="provider.defaultEndpoint || 'Leave empty for default'"
-                @input="onConfigChange(provider.type)"
+                :placeholder="field.placeholder || ''"
               />
-              <p class="field-description">
-                {{ provider.configSchema.find(c => c.key === 'apiEndpoint')?.description || 'API endpoint URL. Leave empty to use the default endpoint.' }}
-              </p>
-            </div>
-
-            <!-- API Key (for non-WCA providers) -->
-            <div v-if="needsApiKey(provider.type)" class="config-field">
-              <label :for="`api-key-${provider.type}`" class="field-label">API Key</label>
-              <input 
-                :id="`api-key-${provider.type}`"
-                v-model="providerConfigs[provider.type].apiKey" 
-                type="password" 
-                class="text-input"
-                :placeholder="provider.configSchema.find(c => c.key === 'apiKey')?.placeholder || 'Enter your API key'"
-                @input="onConfigChange(provider.type)"
-              />
-              <p class="field-description">
-                {{ provider.configSchema.find(c => c.key === 'apiKey')?.description }}
-              </p>
-            </div>
-
-            <!-- Model Name (for non-WCA providers) -->
-            <div v-if="needsApiKey(provider.type)" class="config-field">
-              <label :for="`model-name-${provider.type}`" class="field-label">Model Name</label>
-              <input 
-                :id="`model-name-${provider.type}`"
-                v-model="providerConfigs[provider.type].modelName" 
-                type="text" 
-                class="text-input"
-                :placeholder="provider.configSchema.find(c => c.key === 'modelName')?.placeholder || 'Leave empty for default'"
-                @input="onConfigChange(provider.type)"
-              />
-              <p class="field-description">
-                {{ provider.configSchema.find(c => c.key === 'modelName')?.description || 'Optional: Specify a model name to use. Leave empty to use the provider default.' }}
+              <p v-if="field.description" class="field-description">
+                {{ field.description }}
               </p>
             </div>
 

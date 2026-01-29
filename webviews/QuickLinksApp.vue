@@ -122,11 +122,10 @@ onMounted(() => {
       </div>
 
       <h3>GENERATIVE AI</h3>
-      <p>Configure AI-powered features and generate content</p>
       <div class="catalogue">
         <h3>
           <a href="command:ansible.lightspeed.openLlmProviderSettings" title="Configure LLM provider for Ansible Lightspeed">
-            <span class="codicon codicon-hubot"></span> LLM Provider Settings
+            <span class="codicon codicon-hubot"></span> LLM Provider
             <span v-if="activeProviderName && isProviderConnected" class="active-provider-badge connected">
               : {{ activeProviderName }}
             </span>
@@ -143,7 +142,7 @@ onMounted(() => {
       <div class="catalogue">
         <h3>
           <a href="command:ansible.lightspeed.playbookExplanation" title="Explain the current playbook">
-            <span class="codicon codicon-comment-discussion"></span> Explain Playbook
+            <span class="codicon codicon-sparkle"></span> Explain Playbook
           </a>
         </h3>
       </div>
@@ -157,7 +156,7 @@ onMounted(() => {
       <div class="catalogue">
         <h3>
           <a href="command:ansible.lightspeed.roleExplanation" title="Explain the current role">
-            <span class="codicon codicon-comment-discussion"></span> Explain Role
+            <span class="codicon codicon-sparkle"></span> Explain Role
           </a>
         </h3>
       </div>
