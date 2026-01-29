@@ -16,6 +16,6 @@ runs:
       run: |
         if [ -n "$SLACK_WEBHOOK_URL" ]; then
           curl -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"❌ Main branch tests failed on \`${GITHUB_REPOSITORY}\`. Check <${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|logs>\"}" \
+            --data "{\"text\":\"CI failed in jobs: ${GITHUB_JOB} for '${GITHUB_REPOSITORY}' (${GITHUB_WORKFLOW}.yaml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
             "$SLACK_WEBHOOK_URL"
         fi

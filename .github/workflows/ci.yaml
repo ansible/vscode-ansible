@@ -152,7 +152,7 @@ jobs:
           retention-days: 90
 
       - name: Report unexpected failures
-        if: ${{ always() && failure() }}
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
@@ -429,7 +429,7 @@ jobs:
         run: git status --porcelain --ignored
 
       - name: Report unexpected failures
-        if: ${{ always() && failure() }}
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
@@ -516,7 +516,7 @@ jobs:
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
-        if: ${{ always() && failure() }}
+        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
