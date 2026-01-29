@@ -320,7 +320,7 @@ jobs:
           EOT
           podman info
 
-      - name: Save ready_to_test=true
+      - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
