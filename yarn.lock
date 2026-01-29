@@ -736,7 +736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@google/genai@npm:^1.29.0":
+"@google/genai@npm:^1.38.0":
   version: 1.38.0
   resolution: "@google/genai@npm:1.38.0"
   dependencies:
@@ -771,62 +771,62 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@html-eslint/eslint-plugin@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@html-eslint/eslint-plugin@npm:0.53.0"
+"@html-eslint/eslint-plugin@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@html-eslint/eslint-plugin@npm:0.54.0"
   dependencies:
     "@eslint/plugin-kit": "npm:^0.4.1"
-    "@html-eslint/parser": "npm:^0.53.0"
-    "@html-eslint/template-parser": "npm:^0.53.0"
-    "@html-eslint/template-syntax-parser": "npm:^0.53.0"
-    "@html-eslint/types": "npm:^0.53.0"
+    "@html-eslint/parser": "npm:^0.54.0"
+    "@html-eslint/template-parser": "npm:^0.54.0"
+    "@html-eslint/template-syntax-parser": "npm:^0.54.0"
+    "@html-eslint/types": "npm:^0.54.0"
   peerDependencies:
     eslint: ^8.0.0 || ^9.0.0
-  checksum: 10/8b3f72f15ce480607c0f814ad95159555dcda7c2506d359d28f89a5922f84ef950427b87358c95e8ca060cbfa1339318a205d0b219ecd17e80952d394056b3d7
+  checksum: 10/28ca66ebaa4cb79f3b42a309de74ec891817a5c1680caa6d997ce062ee6a8bff31cdc80f2f0258a1efd71137e53951a13eb7384734b37f4bd38f2987c3308e96
   languageName: node
   linkType: hard
 
-"@html-eslint/parser@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@html-eslint/parser@npm:0.53.0"
+"@html-eslint/parser@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@html-eslint/parser@npm:0.54.0"
   dependencies:
     "@eslint/css-tree": "npm:^3.6.8"
-    "@html-eslint/template-syntax-parser": "npm:^0.53.0"
-    "@html-eslint/types": "npm:^0.53.0"
+    "@html-eslint/template-syntax-parser": "npm:^0.54.0"
+    "@html-eslint/types": "npm:^0.54.0"
     css-tree: "npm:^3.1.0"
     es-html-parser: "npm:0.3.1"
-  checksum: 10/eb7796ef85e848cde684f3718569ca3ddff875d628a0493345876d12d6ecb10af7c5bca62129d58116a75b8fe8af9df5fed83b00e3769e69b4cc2a149e11e8f8
+  checksum: 10/eb95e5d521e64f769cc8f6e1fcfa396e7b0e5f15c42d19ad4ed384e0fff9faa517fce40a941e4e6ae113cfb7628e5c808810ede21cdb9e08327185faf544ac39
   languageName: node
   linkType: hard
 
-"@html-eslint/template-parser@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@html-eslint/template-parser@npm:0.53.0"
+"@html-eslint/template-parser@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@html-eslint/template-parser@npm:0.54.0"
   dependencies:
-    "@html-eslint/types": "npm:^0.53.0"
+    "@html-eslint/types": "npm:^0.54.0"
     es-html-parser: "npm:0.3.1"
-  checksum: 10/2faef95b27e84535b4d74734abe8dfe3ee06b0ae75391f3d2ce04b9935e78befff0a0c8f721d1cde8aa604d09165970e96875a5749727181b1d0de206afe2cb5
+  checksum: 10/8d7a8045aa92f17a6b1dc9e18647c98bbc0d5a2a1c5e31f5402c2154391ae7ae8797576c227e1d6b6e295054823dd2f2f1756048cb52f7ec1d35017c37a14a16
   languageName: node
   linkType: hard
 
-"@html-eslint/template-syntax-parser@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@html-eslint/template-syntax-parser@npm:0.53.0"
+"@html-eslint/template-syntax-parser@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@html-eslint/template-syntax-parser@npm:0.54.0"
   dependencies:
-    "@html-eslint/types": "npm:^0.53.0"
-  checksum: 10/52eb4327a197bbdbbe5d146cedda1b7d4d80b9bc2d26e62d9cee7cd82a21d1fafc0350347d3af6f4828eb0de9e1185de8424061db2bf1ab034f9952d70c37e1b
+    "@html-eslint/types": "npm:^0.54.0"
+  checksum: 10/063eae2ec98dd2d3d0bab80af33d6eae4e550afe9eb8764393702ca1c20e108fadae35bb45a2b085d91215185484f978753ac5b8e5ca6111df6da80fa4f8241d
   languageName: node
   linkType: hard
 
-"@html-eslint/types@npm:^0.53.0":
-  version: 0.53.0
-  resolution: "@html-eslint/types@npm:0.53.0"
+"@html-eslint/types@npm:^0.54.0":
+  version: 0.54.0
+  resolution: "@html-eslint/types@npm:0.54.0"
   dependencies:
     "@types/css-tree": "npm:^2.3.11"
     "@types/estree": "npm:^1.0.6"
     es-html-parser: "npm:0.3.1"
     eslint: "npm:^9.39.1"
-  checksum: 10/33cfb53d19d1a86175be8caf5fc9c95200b353633612865d625a9ad143046363e98cee808ab3bb763f2ec31c8262b68aa0f9e69ab5b0bd4146f250b829f9aec2
+  checksum: 10/da7a6705861ea8fe911c663996b24e8ab1660ac6e5db6aa1e0f1931cd0c34ea64a1df21c5574a7d2e750538c038157d63ca93b71f6a333def39ba5d041db5bfa
   languageName: node
   linkType: hard
 
@@ -3480,9 +3480,9 @@ __metadata:
     "@ansible/ansible-language-server": "workspace:^"
     "@ansible/ansible-mcp-server": "workspace:^"
     "@eslint/js": "npm:^9.39.2"
-    "@google/genai": "npm:^1.29.0"
+    "@google/genai": "npm:^1.38.0"
     "@highlightjs/vue-plugin": "npm:2.1.0"
-    "@html-eslint/eslint-plugin": "npm:^0.53.0"
+    "@html-eslint/eslint-plugin": "npm:^0.54.0"
     "@primeuix/themes": "npm:^2.0.3"
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.10.2"
     "@tomjs/vite-plugin-vscode": "npm:^4.2.1"
@@ -3545,7 +3545,7 @@ __metadata:
     prettier: "npm:^3.7.4"
     primevue: "npm:4.5.4"
     rimraf: "npm:^6.1.2"
-    selenium-webdriver: "npm:^4.36.0"
+    selenium-webdriver: "npm:^4.40.0"
     semver: "npm:^7.7.3"
     sinon: "npm:^21.0.1"
     ts-loader: "npm:^9.5.4"
@@ -3556,7 +3556,7 @@ __metadata:
     uuid: "npm:^13.0.0"
     vite: "npm:^7.3.1"
     vitest: "npm:^4.0.17"
-    vscode-extension-tester: "npm:^8.19.0"
+    vscode-extension-tester: "npm:^8.21.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.1.0"
     vue: "npm:^3.5.27"
@@ -9683,7 +9683,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.36.0, selenium-webdriver@npm:^4.39.0":
+"selenium-webdriver@npm:^4.39.0, selenium-webdriver@npm:^4.40.0":
   version: 4.40.0
   resolution: "selenium-webdriver@npm:4.40.0"
   dependencies:
@@ -11264,7 +11264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^8.19.0":
+"vscode-extension-tester@npm:^8.21.0":
   version: 8.21.0
   resolution: "vscode-extension-tester@npm:8.21.0"
   dependencies:
