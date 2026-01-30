@@ -3,22 +3,9 @@
     "lib": ["ES2022", "DOM"],
     "outDir": "out/client"
   },
-  "exclude": [
-    "node_modules",
-    "test-resources",
-    "src/features/lightspeed/vue/src",
-    "packages/ansible-mcp-server/test",
-    "test/unit/webviews"
-  ],
+  "exclude": ["node_modules", "test-resources"],
   "extends": "./tsconfig.base.json",
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "webviews/lightspeed/src/utils/*.ts",
-    "test",
-    "*.js",
-    "*.ts"
-  ],
+  "include": ["{src,test,webviews}/**/*.ts", "*.js", "*.ts"],
   "ts-node": {
     "files": true
   }
