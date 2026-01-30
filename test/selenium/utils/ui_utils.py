@@ -5,7 +5,7 @@ import contextlib
 import os
 import time
 from collections.abc import Generator
-from typing import Any
+from typing import Any, cast
 
 from selenium.common import (
     ElementClickInterceptedException,
@@ -335,9 +335,11 @@ def switch_vscode_ligthspeed_url(driver: WebDriver, new_url: str) -> WebElement:
     ActionChains(driver).key_down(Keys.CONTROL).send_keys(",").key_up(
         Keys.CONTROL,
     ).perform()
+
     search_settings = find_element_across_iframes(
         driver,
         "//textarea[@aria-label='Search settings']",
+        retries=10,
     )
     search_settings.send_keys("ansible.lightspeed.apiEndpoint")
     search_settings.send_keys(Keys.ENTER)
@@ -492,6 +494,77 @@ def vscode_connect(
     driver.switch_to.window(driver.window_handles[-1])
 
 
+class ElementInAnyIframe:
+    """Custom expected condition to find element across iframes and nested iframes.
+
+    This condition searches for an element in:
+    1. Default content
+    2. All top-level iframes
+    3. All nested iframes (one level deep)
+
+    Args:
+        xpath: XPath selector for the element
+
+    Returns:
+        The WebElement if found, False otherwise
+    """
+
+    def __init__(self, xpath: str) -> None:
+        """Initialize the expected condition.
+
+        Args:
+            xpath: XPath selector for the element
+        """
+        self.xpath = xpath
+
+    def __call__(self, driver: WebDriver) -> WebElement | bool:
+        """Search for element across all iframes.
+
+        Args:
+            driver: WebDriver instance
+
+        Returns:
+            The WebElement if found, False otherwise
+        """
+        # Try default content first
+        driver.switch_to.default_content()
+        with contextlib.suppress(NoSuchElementException):
+            return driver.find_element(By.XPATH, self.xpath)
+
+        # Try all top-level iframes
+        iframes = driver.find_elements(By.XPATH, "//iframe")
+        for iframe in iframes:
+            driver.switch_to.default_content()
+            with contextlib.suppress(
+                NoSuchElementException,
+                NoSuchFrameException,
+                StaleElementReferenceException,
+            ):
+                driver.switch_to.frame(iframe)
+                with contextlib.suppress(NoSuchElementException):
+                    return driver.find_element(By.XPATH, self.xpath)
+
+                # Try nested iframes (one level deep)
+                with contextlib.suppress(
+                    NoSuchElementException,
+                    NoSuchFrameException,
+                    StaleElementReferenceException,
+                ):
+                    nested_iframes = driver.find_elements(By.XPATH, "//iframe")
+                    for ni in nested_iframes:
+                        with contextlib.suppress(
+                            NoSuchElementException,
+                            NoSuchFrameException,
+                            StaleElementReferenceException,
+                        ):
+                            driver.switch_to.frame(ni)
+                            return driver.find_element(By.XPATH, self.xpath)
+                        driver.switch_to.default_content()
+
+        driver.switch_to.default_content()
+        return False
+
+
 def find_element_across_iframes(
     driver: WebDriver,
     xpath: str,
@@ -499,47 +572,102 @@ def find_element_across_iframes(
 ) -> WebElement:
     """Loop over all iframes and nested iframes and return first matching element.
 
+    Uses WebDriverWait with a custom expected condition to efficiently poll for
+    the element across different iframe contexts.
+
     Args:
         driver: WebDriver instance
         xpath: XPath selector for the element
-        retries: Number of retry attempts
+        retries: Number of seconds to wait (timeout)
 
     Returns:
         The first matching WebElement
 
     Raises:
-        ValueError: If element not found after all retries
+        ValueError: If element not found after timeout
     """
-    for _ in range(retries):
-        driver.switch_to.default_content()
-        with contextlib.suppress(NoSuchElementException):
-            return driver.find_element(By.XPATH, xpath)
-        iframes = driver.find_elements(By.XPATH, "//iframe")
-        for iframe in iframes:
-            driver.switch_to.default_content()
-            driver.switch_to.frame(iframe)
-            with contextlib.suppress(NoSuchElementException):
-                return driver.find_element(By.XPATH, xpath)
+    try:
+        wait = WebDriverWait(driver, timeout=retries, poll_frequency=0.5)
+        result = wait.until(ElementInAnyIframe(xpath))
+        # Type narrowing: ElementInAnyIframe returns WebElement | bool
+        # but WebDriverWait only returns the truthy value, never False
+        return cast("WebElement", result)
+    except TimeoutException as e:
+        msg = f"element not found: {xpath}"
+        raise ValueError(msg) from e
 
-            with contextlib.suppress(
-                NoSuchElementException,
-                NoSuchFrameException,
-                StaleElementReferenceException,
-            ):
-                nested_iframes = driver.find_elements(By.XPATH, "//iframe")
-                for ni in nested_iframes:
+
+class ElementsInAnyIframe:
+    """Custom expected condition to find elements across iframes and nested iframes.
+
+    This condition searches for elements in:
+    1. Default content
+    2. All top-level iframes
+    3. All nested iframes (one level deep)
+
+    Args:
+        xpath: XPath selector for elements
+
+    Returns:
+        List of WebElements if any found, False otherwise
+    """
+
+    def __init__(self, xpath: str) -> None:
+        """Initialize the expected condition.
+
+        Args:
+            xpath: XPath selector for elements
+        """
+        self.xpath = xpath
+
+    def __call__(self, driver: WebDriver) -> list[WebElement] | bool:
+        """Search for elements across all iframes.
+
+        Args:
+            driver: WebDriver instance
+
+        Returns:
+            List of WebElements if found, False otherwise
+        """
+        elements = []
+
+        with contextlib.suppress(
+            NoSuchWindowException,
+            NoSuchElementException,
+            NoSuchFrameException,
+            StaleElementReferenceException,
+        ):
+            # Search in default content
+            driver.switch_to.default_content()
+            elements.extend(driver.find_elements(By.XPATH, self.xpath))
+
+            # Search in all top-level iframes
+            iframes = driver.find_elements(By.XPATH, "//iframe")
+            for iframe in iframes:
+                driver.switch_to.default_content()
+                with contextlib.suppress(
+                    NoSuchElementException,
+                    NoSuchFrameException,
+                    StaleElementReferenceException,
+                ):
+                    driver.switch_to.frame(iframe)
+                    elements.extend(driver.find_elements(By.XPATH, self.xpath))
+
+                    # Search in nested iframes
                     with contextlib.suppress(
+                        WebDriverException,
                         NoSuchElementException,
                         NoSuchFrameException,
                         StaleElementReferenceException,
                     ):
-                        driver.switch_to.frame(ni)
-                        return driver.find_element(By.XPATH, xpath)
-                    driver.switch_to.default_content()
-            driver.switch_to.default_content()
-        time.sleep(1)
-    msg = f"element not found: {xpath}"
-    raise ValueError(msg)
+                        nested_iframes = driver.find_elements(By.XPATH, "//iframe")
+                        for ni in nested_iframes:
+                            driver.switch_to.frame(ni)
+                            elements.extend(driver.find_elements(By.XPATH, self.xpath))
+                        driver.switch_to.default_content()
+
+        driver.switch_to.default_content()
+        return elements or False
 
 
 def find_elements_across_iframes(
@@ -549,42 +677,26 @@ def find_elements_across_iframes(
 ) -> Generator[WebElement, None, None]:
     """Loop over all iframes and nested iframes and yield matching elements.
 
+    Uses WebDriverWait with a custom expected condition to efficiently poll for
+    elements across different iframe contexts.
+
     Args:
         driver: WebDriver instance
         xpath: XPath selector for elements
-        retries: Number of retry attempts
+        retries: Number of seconds to wait (timeout)
 
     Yields:
         Matching WebElements
     """
-    for _ in range(retries):
-        with contextlib.suppress(
-            NoSuchWindowException,
-            NoSuchElementException,
-            NoSuchFrameException,
-            StaleElementReferenceException,
-        ):
-            driver.switch_to.default_content()
-            yield from driver.find_elements(By.XPATH, xpath)
-            iframes = driver.find_elements(By.XPATH, "//iframe")
-            for iframe in iframes:
-                driver.switch_to.default_content()
-                driver.switch_to.frame(iframe)
-                yield from driver.find_elements(By.XPATH, xpath)
-                with contextlib.suppress(
-                    WebDriverException,
-                    NoSuchElementException,
-                    NoSuchFrameException,
-                    StaleElementReferenceException,
-                ):
-                    nested_iframes = driver.find_elements(By.XPATH, "//iframe")
-                    for ni in nested_iframes:
-                        driver.switch_to.frame(ni)
-                        yield from driver.find_elements(By.XPATH, xpath)
-                    driver.switch_to.default_content()
-                    continue
-            time.sleep(1)
-        time.sleep(1)
+    try:
+        wait = WebDriverWait(driver, timeout=retries, poll_frequency=0.5)
+        elements = wait.until(ElementsInAnyIframe(xpath))
+        # Type narrowing: ElementsInAnyIframe returns list[WebElement] | bool
+        # but WebDriverWait only returns the truthy value, never False
+        yield from cast("list[WebElement]", elements)
+    except TimeoutException:
+        # No elements found within timeout - yield nothing
+        return
 
 
 def vscode_prediction(
