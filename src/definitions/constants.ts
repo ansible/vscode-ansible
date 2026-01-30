@@ -63,8 +63,9 @@ You answer with just an Ansible playbook.`;
 
 // For role generation (from backend: langchain/pipelines.py)
 export const ANSIBLE_SYSTEM_PROMPT_ROLE = `You are an ansible expert optimized to generate Ansible roles.
-First line the role name in a way: role_name.
-After that the answer is a plain tasks/main.yml file for the user's request.
+Generate ONLY the tasks/main.yml file content as a YAML array of tasks.
+Do NOT include role_name, do NOT include document separators (---), do NOT include multiple YAML documents.
+Output ONLY a single YAML array starting with "- name:" for each task.
 Prefix your comments with the hash character.`;
 
 // For chat/explanations
