@@ -1167,3 +1167,34 @@ class Checkbox:
         check = self._element.find_element(By.XPATH, f"{self.xpath}/input")
         check.click()
         return self.selected
+
+
+def vscode_textfield_interact(
+    driver: WebDriver,
+    field_id: str,
+    value: str,
+) -> None:
+    """Find a vscode-textfield by ID and enter a value.
+
+    Args:
+        driver: WebDriver instance
+        field_id: The ID attribute of the vscode-textfield element
+        value: The text value to send to the field
+    """
+    text_field = find_element_across_iframes(
+        driver,
+        f"//vscode-textfield[@id='{field_id}']",
+        retries=10,
+    )
+    text_field.send_keys(value)
+
+
+def vscode_button_click(driver: WebDriver, button_id: str) -> None:
+    """Find a vscode-button by ID, verify it's enabled, and click it."""
+    button = find_element_across_iframes(
+        driver,
+        f"//vscode-button[@id='{button_id}']",
+        retries=10,
+    )
+    assert button.is_enabled(), f"{button_id} should be enabled"
+    button.click()
