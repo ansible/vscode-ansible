@@ -44,12 +44,15 @@ tasks:
     cmds:
       - git clean -dxf
   finish:
-    desc: Commands to run at the end
+    desc: Commands to run at the end of build and test processes
+    dir: "{{ .TASKFILE_DIR }}"
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
       - task: ci_clean_cache
       # we also need to be sure that at the end of build and test we do not produce undesired side effects
       - ./tools/precheck.sh
+      # ensure that `vitest list` works and does not display any warnings (stderr)
+      - vitest list 1>out/log/vitest-list-stdout.txt 2>out/log/vitest-list-stderr.txt && test ! -s out/log/vitest-list-stderr.txt || { echo "Failing because 'vitest list' should not produce any warnings:"; cat out/log/vitest-list-stderr.txt; exit 5; }
       - tools/dirty.sh
 
   build:
@@ -303,14 +306,15 @@ tasks:
     deps:
       - build
     sources:
-      - src/**/*
-      - test/**/*
+      - "{src,test}/**/*"
+      # - test/**/*
+      - vitest.config.ts
+      - packages/*/{src,test}/**.*
     generates:
       - out/coverage/unit/lcov.info
-      - out/coverage/vue/lcov.info
+      - out/junit/unit-test-results.xml
     cmds:
       - vitest run
-      - vitest run --config vitest.config.vue.ts
     interactive: true
   package:
     desc: Package extension

@@ -16,7 +16,7 @@ on:
     types: [synchronize, opened, reopened]
     branches: ["main", "devel/*"]
   schedule:
-    - cron: "0 0,12 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       publish:
@@ -329,18 +329,9 @@ jobs:
         if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task unit
+      - name: task unit (ext, vue, als, mcp)
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task als
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task mcp
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
@@ -426,7 +417,9 @@ jobs:
 
       - name: Show git ignored files to debug "task ... --status" failures
         if: ${{ always() && failure() }}
-        run: git status --porcelain --ignored
+        run: |
+          git diff
+          git status --porcelain --ignored
 
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
@@ -480,6 +473,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # needed for pycobertura
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -491,6 +488,18 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
+
+      - name: pycobertura diff across different platform runs
+        run: |
+          git diff
+          git status --porcelain --ignored
+          cp -f logs-*linux*.zip/coverage/unit/cobertura-coverage.xml linux.xml
+          cp -f logs-*macos*.zip/coverage/unit/cobertura-coverage.xml macos.xml
+          cp -f logs-*wsl**.zip/coverage/unit/cobertura-coverage.xml wsl.xml
+          # linux vs macos (tool needs source code to be present)
+          uv tool run pycobertura diff linux.xml macos.xml || true
+          # linux vs wsl  (tool needs source code to be present)
+          uv tool run pycobertura diff linux.xml wsl.xml || true
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
