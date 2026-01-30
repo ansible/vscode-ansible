@@ -16,7 +16,7 @@ on:
     types: [synchronize, opened, reopened]
     branches: ["main", "devel/*"]
   schedule:
-    - cron: "0 0,12 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       publish:
@@ -426,7 +426,9 @@ jobs:
 
       - name: Show git ignored files to debug "task ... --status" failures
         if: ${{ always() && failure() }}
-        run: git status --porcelain --ignored
+        run: |
+          git diff
+          git status --porcelain --ignored
 
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}

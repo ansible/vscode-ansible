@@ -1059,6 +1059,7 @@
   },
   "description": "Ansible language support",
   "devDependencies": {
+    "@biomejs/biome": "^2.3.13",
     "@eslint/js": "^9.39.2",
     "@html-eslint/eslint-plugin": "^0.54.0",
     "@types/chai": "^5.2.3",
