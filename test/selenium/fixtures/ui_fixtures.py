@@ -158,6 +158,18 @@ def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, 
                 ).perform()
                 driver.switch_to.default_content()
 
+                # Check for and dismiss save dialog if it appears
+                try:
+                    dont_save_button = driver.find_element(
+                        "xpath",
+                        "//button[contains(normalize-space(.), \"Don't Save\")]"
+                    )
+                    dont_save_button.click()
+                    log.debug("Clicked 'Don't Save' on unsaved changes dialog")
+                except Exception:  # noqa: BLE001
+                    # No save dialog appeared, continue
+                    pass
+
         except Exception as e:  # noqa: BLE001
             log.warning("Error closing tabs: %s", e)
             # Try to ensure we're in default content even if closing fails
