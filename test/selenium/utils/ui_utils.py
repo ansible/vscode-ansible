@@ -2,6 +2,7 @@
 
 # pylint: disable=E0401
 import contextlib
+import logging
 import os
 import time
 from collections.abc import Generator
@@ -26,6 +27,9 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+
+# Initialize logging
+log = logging.getLogger(__name__)
 
 USERNAME = os.environ.get("LIGHTSPEED_USER")
 PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD")
@@ -332,23 +336,40 @@ def switch_vscode_ligthspeed_url(driver: WebDriver, new_url: str) -> WebElement:
     Returns:
         The URL input element
     """
+    # Close settings panel if already open (defensive cleanup for test retries)
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("W").key_up(
+        Keys.CONTROL,
+    ).perform()
+    time.sleep(0.5)
+
+    # Open settings panel
     ActionChains(driver).key_down(Keys.CONTROL).send_keys(",").key_up(
         Keys.CONTROL,
     ).perform()
+
+    # Wait for settings panel to open and render (important for CI)
+    time.sleep(1)
+
     search_settings = find_element_across_iframes(
         driver,
         "//textarea[@aria-label='Search settings']",
+        retries=5,  # Increase retries for slower CI environments
     )
     search_settings.send_keys("ansible.lightspeed.apiEndpoint")
     search_settings.send_keys(Keys.ENTER)
     url_input = wait_displayed(
         driver,
         "//input[@aria-label='ansible.lightspeed.apiEndpoint' or @aria-label='ansible.lightspeed.URL']",
-        timeout=1,
+        timeout=10,
     )
     url_input.click()
     url_input.clear()
     url_input.send_keys(new_url)
+    # Close settings panel after updating URL
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("W").key_up(
+        Keys.CONTROL,
+    ).perform()
+    driver.switch_to.default_content()
     return url_input
 
 
@@ -510,16 +531,32 @@ def find_element_across_iframes(
     Raises:
         ValueError: If element not found after all retries
     """
-    for _ in range(retries):
+    for attempt in range(retries):
+        log.debug(
+            "find_element_across_iframes: Retry attempt %d/%d for xpath: %s",
+            attempt + 1,
+            retries,
+            xpath,
+        )
         driver.switch_to.default_content()
         with contextlib.suppress(NoSuchElementException):
-            return driver.find_element(By.XPATH, xpath)
+            element = driver.find_element(By.XPATH, xpath)
+            log.debug(
+                "find_element_across_iframes: Element FOUND in default content, returning immediately"
+            )
+            return element
         iframes = driver.find_elements(By.XPATH, "//iframe")
-        for iframe in iframes:
+        log.debug("find_element_across_iframes: Checking %d iframes", len(iframes))
+        for iframe_idx, iframe in enumerate(iframes):
             driver.switch_to.default_content()
             driver.switch_to.frame(iframe)
             with contextlib.suppress(NoSuchElementException):
-                return driver.find_element(By.XPATH, xpath)
+                element = driver.find_element(By.XPATH, xpath)
+                log.debug(
+                    "find_element_across_iframes: Element FOUND in iframe %d, returning immediately",
+                    iframe_idx,
+                )
+                return element
 
             with contextlib.suppress(
                 NoSuchElementException,
@@ -527,17 +564,38 @@ def find_element_across_iframes(
                 StaleElementReferenceException,
             ):
                 nested_iframes = driver.find_elements(By.XPATH, "//iframe")
-                for ni in nested_iframes:
+                log.debug(
+                    "find_element_across_iframes: Checking %d nested iframes in iframe %d",
+                    len(nested_iframes),
+                    iframe_idx,
+                )
+                for nested_idx, ni in enumerate(nested_iframes):
                     with contextlib.suppress(
                         NoSuchElementException,
                         NoSuchFrameException,
                         StaleElementReferenceException,
                     ):
                         driver.switch_to.frame(ni)
-                        return driver.find_element(By.XPATH, xpath)
+                        element = driver.find_element(By.XPATH, xpath)
+                        log.debug(
+                            "find_element_across_iframes: Element FOUND in nested iframe %d of iframe %d, returning immediately",
+                            nested_idx,
+                            iframe_idx,
+                        )
+                        return element
                     driver.switch_to.default_content()
             driver.switch_to.default_content()
+        log.debug(
+            "find_element_across_iframes: Retry attempt %d/%d completed without finding element, sleeping 1s",
+            attempt + 1,
+            retries,
+        )
         time.sleep(1)
+    log.info(
+        "find_element_across_iframes: All %d retries exhausted, raising ValueError for xpath: %s",
+        retries,
+        xpath
+    )
     msg = f"element not found: {xpath}"
     raise ValueError(msg)
 

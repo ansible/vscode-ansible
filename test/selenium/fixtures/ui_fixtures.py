@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from selenium import webdriver
 from selenium.common import WebDriverException
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webdriver import WebDriver
 
 if TYPE_CHECKING:
@@ -51,7 +53,17 @@ def browser_setup() -> Generator[tuple[WebDriver, str], None, None]:
     driver.maximize_window()
 
     yield driver, "https://stage.ai.ansible.redhat.com/login"
-    close_all_tabs(driver)
+
+    # Cleanup: close all tabs and quit the browser
+    try:
+        close_all_tabs(driver)
+        driver.quit()
+        log.info("Browser session closed successfully")
+    except Exception as e:  # noqa: BLE001
+        log.warning("Error during browser cleanup: %s", e)
+        # Force quit even if cleanup fails
+        with contextlib.suppress(Exception):
+            driver.quit()
 
 
 @pytest.fixture
@@ -104,6 +116,47 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
                     driver.quit()
 
 
+@pytest.fixture(scope="module", autouse=True)
+def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, None, None]:
+    """Reset VSCode state between test modules to prevent state leakage.
+
+    This fixture runs automatically at the start of each test module to ensure
+    clean state, preventing issues where one test module's actions affect another.
+
+    Yields:
+        None - this fixture performs cleanup before and after module execution
+    """
+    driver, _ = browser_setup
+
+    # Initial cleanup before module starts
+    try:
+        # Only clean if we're on VSCode
+        if "127.0.0.1:8080" in driver.current_url:
+            # Close any open panels/dialogs (settings, command palette, etc.)
+            # Pressing Escape multiple times to close various UI elements
+            for _ in range(5):
+                ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+
+            driver.switch_to.default_content()
+            log.debug("VSCode state reset before module execution")
+    except Exception as e:  # noqa: BLE001
+        log.warning("Error during pre-module VSCode state reset: %s", e)
+
+    yield
+
+    # Cleanup after module completes
+    try:
+        if "127.0.0.1:8080" in driver.current_url:
+            # Close any open panels/dialogs
+            for _ in range(5):
+                ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+
+            driver.switch_to.default_content()
+            log.debug("VSCode state reset after module execution")
+    except Exception as e:  # noqa: BLE001
+        log.warning("Error during post-module VSCode state reset: %s", e)
+
+
 @pytest.fixture
 def lightspeed_logout_teardown() -> Generator[Any, None, None]:
     """Fixture to log-out from lightspeed.
@@ -142,6 +195,14 @@ def take_screenshot(driver: WebDriver, name: str) -> str:
             "_",
         ).replace("::", "__")
     )
+
+    # Log context before taking screenshot
+    try:
+        current_url = driver.current_url
+        log.info("Taking screenshot for test '%s' at URL: %s", name, current_url)
+    except Exception:  # noqa: BLE001
+        log.info("Taking screenshot for test '%s' (unable to get current URL)", name)
+
     try:
         driver.save_screenshot(f"{file_name}")
     except WebDriverException:
