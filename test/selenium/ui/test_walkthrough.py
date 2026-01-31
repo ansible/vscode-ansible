@@ -12,7 +12,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
-from test.selenium.utils.ui_utils import vscode_run_command, wait_displayed
+from test.selenium.utils.ui_utils import (
+    navigate_to_vscode_and_clean,
+    vscode_run_command,
+    wait_displayed,
+)
 
 # Walkthrough test data: [walkthrough_name, [expected_steps]]
 WALKTHROUGHS = [
@@ -83,10 +87,8 @@ def test_walkthrough(
     """Test that walkthrough opens and contains expected elements."""
     driver, _ = browser_setup
 
-    # Navigate to VSCode if not already there
-    if "127.0.0.1:8080" not in driver.current_url:
-        driver.get("http://127.0.0.1:8080")
-        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
+    # Navigate to VSCode and close any welcome tabs
+    navigate_to_vscode_and_clean(driver)
 
     # Open the specific walkthrough
     walkthrough_element = open_walkthrough(driver, walkthrough_name)

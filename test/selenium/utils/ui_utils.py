@@ -1256,3 +1256,50 @@ def vscode_button_click(driver: WebDriver, button_id: str) -> None:
     )
     assert button.is_enabled(), f"{button_id} should be enabled"
     button.click()
+
+
+def navigate_to_vscode_and_clean(driver: WebDriver) -> None:
+    """Navigate to VSCode and close any welcome/walkthrough tabs.
+
+    This function:
+    1. Navigates to VSCode if not already there
+    2. Waits for the Ansible icon to appear
+    3. Closes any default welcome/walkthrough tabs that VSCode opens on first launch
+
+    Args:
+        driver: WebDriver instance
+    """
+    # Navigate to VSCode if not already there
+    if "127.0.0.1:8080" not in driver.current_url:
+        driver.get("http://127.0.0.1:8080")
+        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
+
+        # Close welcome/walkthrough tabs that appear on first VSCode launch
+        time.sleep(1)  # Give tabs time to render
+        driver.switch_to.default_content()
+
+        # Find all tabs
+        tabs = driver.find_elements(
+            "xpath",
+            "//div[contains(@class, 'tab') and @role='tab']"
+        )
+
+        # Close all tabs except keep at least one
+        num_tabs = len(tabs)
+        if num_tabs > 1:
+            log.debug("Closing %s welcome tabs", num_tabs - 1)
+            for _ in range(num_tabs - 1):
+                ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(
+                    Keys.CONTROL,
+                ).perform()
+                driver.switch_to.default_content()
+
+                # Dismiss save dialog if it appears
+                try:
+                    dont_save = driver.find_element(
+                        "xpath",
+                        "//button[contains(normalize-space(.), \"Don't Save\")]"
+                    )
+                    dont_save.click()
+                except Exception:  # noqa: BLE001
+                    pass
