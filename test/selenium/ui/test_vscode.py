@@ -25,8 +25,7 @@ pytestmark = pytest.mark.skipif(
 
 GENERATE_TASK = """update all RHEL machines"""
 
-PLAYBOOK_CONTENT = """
----
+PLAYBOOK_CONTENT = """---
 - name: example
   hosts: all
   become: true
@@ -34,8 +33,7 @@ PLAYBOOK_CONTENT = """
   tasks:
     - name: install dnsutils"""
 
-MULTI_SUGGESTIONS_PLAYBOOK = """
----
+MULTI_SUGGESTIONS_PLAYBOOK = """---
 - name: Playbook
   hosts: all
 

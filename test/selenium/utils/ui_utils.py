@@ -342,6 +342,19 @@ def switch_vscode_ligthspeed_url(driver: WebDriver, new_url: str) -> WebElement:
     ).perform()
     time.sleep(0.5)
 
+    # Dismiss any save dialog that might have appeared from closing panels/tabs
+    try:
+        driver.switch_to.default_content()
+        dont_save_button = driver.find_element(
+            "xpath", '//button[contains(normalize-space(.), "Don\'t Save")]'
+        )
+        dont_save_button.click()
+        log.debug("Dismissed save dialog before opening settings")
+        time.sleep(0.3)
+    except Exception:  # noqa: BLE001
+        # No save dialog present, continue
+        pass
+
     # Open settings panel
     ActionChains(driver).key_down(Keys.CONTROL).send_keys(",").key_up(
         Keys.CONTROL,
@@ -594,7 +607,7 @@ def find_element_across_iframes(
     log.info(
         "find_element_across_iframes: All %d retries exhausted, raising ValueError for xpath: %s",
         retries,
-        xpath
+        xpath,
     )
     msg = f"element not found: {xpath}"
     raise ValueError(msg)
@@ -803,9 +816,12 @@ def clear_text(driver: WebDriver) -> None:
         "//div[@class='view-lines monaco-mouse-cursor-text']",
         timeout=60,
     ).click()
-    actions = ActionChains(driver)
-    actions.key_down(Keys.CONTROL).send_keys("a").key_up(Keys.CONTROL).perform()
-    actions.send_keys(Keys.BACKSPACE).perform()
+    # Select all text
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("a").key_up(
+        Keys.CONTROL
+    ).perform()
+    # Delete selected text
+    ActionChains(driver).send_keys(Keys.BACKSPACE).perform()
 
 
 def close_all_tabs(driver: WebDriver) -> None:
@@ -1280,8 +1296,7 @@ def navigate_to_vscode_and_clean(driver: WebDriver) -> None:
 
         # Find all tabs
         tabs = driver.find_elements(
-            "xpath",
-            "//div[contains(@class, 'tab') and @role='tab']"
+            "xpath", "//div[contains(@class, 'tab') and @role='tab']"
         )
 
         # Close all tabs except keep at least one
@@ -1297,8 +1312,7 @@ def navigate_to_vscode_and_clean(driver: WebDriver) -> None:
                 # Dismiss save dialog if it appears
                 try:
                     dont_save = driver.find_element(
-                        "xpath",
-                        "//button[contains(normalize-space(.), \"Don't Save\")]"
+                        "xpath", '//button[contains(normalize-space(.), "Don\'t Save")]'
                     )
                     dont_save.click()
                 except Exception:  # noqa: BLE001

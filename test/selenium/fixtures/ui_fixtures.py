@@ -117,7 +117,9 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, None, None]:
+def reset_vscode_state(
+    browser_setup: tuple[WebDriver, str],
+) -> Generator[None, None, None]:
     """Reset VSCode state between test modules to prevent state leakage.
 
     This fixture runs automatically at the start of each test module to ensure
@@ -137,8 +139,7 @@ def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, 
             # Find all tab elements in VSCode
             # The tabs are in a div with class 'tabs-container'
             tabs = driver.find_elements(
-                "xpath",
-                "//div[contains(@class, 'tab') and @role='tab']"
+                "xpath", "//div[contains(@class, 'tab') and @role='tab']"
             )
 
             num_tabs = len(tabs)
@@ -161,8 +162,7 @@ def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, 
                 # Check for and dismiss save dialog if it appears
                 try:
                     dont_save_button = driver.find_element(
-                        "xpath",
-                        "//button[contains(normalize-space(.), \"Don't Save\")]"
+                        "xpath", '//button[contains(normalize-space(.), "Don\'t Save")]'
                     )
                     dont_save_button.click()
                     log.debug("Clicked 'Don't Save' on unsaved changes dialog")
