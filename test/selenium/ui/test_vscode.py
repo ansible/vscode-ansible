@@ -29,16 +29,18 @@ PLAYBOOK_CONTENT = """
 ---
 - name: example
   hosts: all
-become: true
+  become: true
 
-tasks:
-- name: install dnsutils"""
+  tasks:
+    - name: install dnsutils"""
 
-MULTI_SUGGESTIONS_PLAYBOOK = """---
+MULTI_SUGGESTIONS_PLAYBOOK = """
+---
 - name: Playbook
   hosts: all
-tasks:
-  - name: Install dnsutils"""
+
+  tasks:
+    - name: Install dnsutils"""
 logged_in_flag = False
 
 
