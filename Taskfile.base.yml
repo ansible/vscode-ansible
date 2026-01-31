@@ -55,7 +55,7 @@ tasks:
     internal: true
     silent: true
     status:
-      - '[ -n "$CI" ]'
+      - '[ "$SKIP_MISE" == "1" ] || [ "$CI" == "true" ]'
     cmds:
       - "mise --version >>/dev/null || { echo ''ERROR: mise not found in PATH'' >&2; exit 1; }"
       - "mise doctor >>/dev/null || { mise doctor || echo 'ERROR: mise doctor failed, resolve reported problems.' >&2 && exit 1; }"

@@ -1,7 +1,7 @@
 # container used for building and testing our own repository code
 FROM ghcr.io/jdx/mise:latest
 
-ENV CI=1
+ENV CI=true
 ENV MISE_TRUSTED_CONFIG_PATHS=/
 ENV SKIP_UI=1
 ENV SKIP_DOCKER=1
