@@ -337,7 +337,7 @@ def switch_vscode_ligthspeed_url(driver: WebDriver, new_url: str) -> WebElement:
         The URL input element
     """
     # Close settings panel if already open (defensive cleanup for test retries)
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys("W").key_up(
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(
         Keys.CONTROL,
     ).perform()
     time.sleep(0.5)
@@ -366,7 +366,7 @@ def switch_vscode_ligthspeed_url(driver: WebDriver, new_url: str) -> WebElement:
     url_input.clear()
     url_input.send_keys(new_url)
     # Close settings panel after updating URL
-    ActionChains(driver).key_down(Keys.CONTROL).send_keys("W").key_up(
+    ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(
         Keys.CONTROL,
     ).perform()
     driver.switch_to.default_content()

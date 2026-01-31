@@ -128,16 +128,46 @@ def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, 
     """
     driver, _ = browser_setup
 
+    def close_all_editor_tabs() -> None:
+        """Close all open editor tabs in VSCode, leaving one empty tab."""
+        try:
+            # Switch to default content first
+            driver.switch_to.default_content()
+
+            # Find all tab elements in VSCode
+            # The tabs are in a div with class 'tabs-container'
+            tabs = driver.find_elements(
+                "xpath",
+                "//div[contains(@class, 'tab') and @role='tab']"
+            )
+
+            num_tabs = len(tabs)
+            if num_tabs == 0:
+                log.debug("No tabs found to close")
+                return
+
+            # Close all tabs except the last one to avoid closing the window
+            # If there's only 1 tab, leave it open
+            tabs_to_close = max(0, num_tabs - 1)
+
+            log.debug("Found %s tabs, closing %s", num_tabs, tabs_to_close)
+
+            for _ in range(tabs_to_close):
+                ActionChains(driver).key_down(Keys.CONTROL).send_keys("w").key_up(
+                    Keys.CONTROL,
+                ).perform()
+                driver.switch_to.default_content()
+
+        except Exception as e:  # noqa: BLE001
+            log.warning("Error closing tabs: %s", e)
+            # Try to ensure we're in default content even if closing fails
+            driver.switch_to.default_content()
+
     # Initial cleanup before module starts
     try:
         # Only clean if we're on VSCode
         if "127.0.0.1:8080" in driver.current_url:
-            # Close any open panels/dialogs (settings, command palette, etc.)
-            # Pressing Escape multiple times to close various UI elements
-            for _ in range(5):
-                ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-
-            driver.switch_to.default_content()
+            close_all_editor_tabs()
             log.debug("VSCode state reset before module execution")
     except Exception as e:  # noqa: BLE001
         log.warning("Error during pre-module VSCode state reset: %s", e)
@@ -147,11 +177,7 @@ def reset_vscode_state(browser_setup: tuple[WebDriver, str]) -> Generator[None, 
     # Cleanup after module completes
     try:
         if "127.0.0.1:8080" in driver.current_url:
-            # Close any open panels/dialogs
-            for _ in range(5):
-                ActionChains(driver).send_keys(Keys.ESCAPE).perform()
-
-            driver.switch_to.default_content()
+            close_all_editor_tabs()
             log.debug("VSCode state reset after module execution")
     except Exception as e:  # noqa: BLE001
         log.warning("Error during post-module VSCode state reset: %s", e)
