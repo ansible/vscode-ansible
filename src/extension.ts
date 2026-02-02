@@ -60,7 +60,7 @@ import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
-import { LlmProviderPanel } from "./features/lightspeed/llmProviderPanel";
+import { LlmProviderPanel } from "./features/lightspeed/vue/views/llmProviderPanel";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
@@ -469,14 +469,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const openLlmProviderSettingsCommand = vscode.commands.registerCommand(
     LightSpeedCommands.LIGHTSPEED_OPEN_LLM_PROVIDER_SETTINGS,
     () => {
-      LlmProviderPanel.render(
-        context,
-        extSettings,
-        lightSpeedManager.providerManager,
-        llmProviderSettings,
-        lightSpeedManager.lightspeedAuthenticatedUser,
-        quickLinksHome,
-      );
+      LlmProviderPanel.render(context, {
+        settingsManager: extSettings,
+        providerManager: lightSpeedManager.providerManager,
+        llmProviderSettings: llmProviderSettings,
+        lightspeedUser: lightSpeedManager.lightspeedAuthenticatedUser,
+        quickLinksProvider: quickLinksHome,
+      });
     },
   );
 
@@ -942,26 +941,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.lightspeed.enableExperimentalFeatures",
-      () => {
-        vscode.commands.executeCommand(
-          "setContext",
-          "redhat.ansible.lightspeedExperimentalEnabled",
-          true,
-        );
-        if (lightSpeedManager.lightspeedExplorerProvider) {
-          lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
-        }
-        if (!extSettings.settings.lightSpeedService.enabled) {
-          return;
-        }
-        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
-      },
-    ),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_OPEN_TRIAL_PAGE,
       () => {
         vscode.env.openExternal(
@@ -1220,14 +1199,13 @@ export function deactivate(): Thenable<void> | undefined {
   }
   return client.stop();
 }
-
 /**
  * Updates the explorer state and sends it to the explorer webview if it's open
  */
 async function updateExplorerState(
   lightSpeedManager: LightSpeedManager,
 ): Promise<void> {
-  lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+  lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
 }
 
 const handleMcpServerConfigurationChange = async (

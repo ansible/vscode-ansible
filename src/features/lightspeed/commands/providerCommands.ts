@@ -185,7 +185,7 @@ export class ProviderCommands {
 
       // Refresh provider manager
       await this.lightSpeedManager.providerManager.refreshProviders();
-      this.lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+      this.lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
 
       vscode.window
         .showInformationMessage(
@@ -291,7 +291,7 @@ export class ProviderCommands {
       );
 
       await this.lightSpeedManager.providerManager.refreshProviders();
-      this.lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+      this.lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
 
       vscode.window.showInformationMessage(
         `Switched to ${selectedProvider.provider.displayName}`,
