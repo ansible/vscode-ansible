@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import '@vscode/codicons/dist/codicon.css';
 import { onMounted, ref } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
 import '../media/llmProviderView/style.css';
