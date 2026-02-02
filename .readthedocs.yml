@@ -40,7 +40,7 @@ build:
     build:
       html:
         - >
-          CI=1
+          CI=true
           FORCE_COLOR=0
           PATH=~/.local/bin:$PATH
           SKIP_DOCKER=1
