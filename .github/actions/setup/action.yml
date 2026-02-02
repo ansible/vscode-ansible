@@ -25,7 +25,7 @@ runs:
 
     - name: Enable caching for python
       # left out due to having their own caching: yarn, node_modules, mise
-      uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         # we cache only wheels because http cache cannot be cleaned well
         path: |
@@ -35,7 +35,7 @@ runs:
 
     - name: Enable caching for pre-commit
       if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
-      uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: ~/.cache/pre-commit/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -57,7 +57,7 @@ runs:
     - name: Enable caching for vscode resources
       if: "${{ contains(matrix.name, 'test') }}"
       # left out due to having their own caching: yarn, node_modules, mise
-      uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: |
           .vscode-test
