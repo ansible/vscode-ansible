@@ -28,6 +28,8 @@ import {
   installRequirements,
   checkConflictingPackages,
   checkAnsibleLint,
+  checkPythonVersionAvailable,
+  reportMissingPython,
   type ADEEnvironmentInfo,
 } from "../../src/tools/adeTools.js";
 import * as fs from "node:fs/promises";
@@ -178,6 +180,100 @@ describe("ADE Tools", () => {
     });
   });
 
+  describe("checkPythonVersionAvailable", () => {
+    it("should return true when Python version is available", async () => {
+      const mockChild = {
+        stdout: {
+          on: vi.fn((event, callback) => {
+            if (event === "data") {
+              setTimeout(() => callback("Python 3.11.0"), 5);
+            }
+          }),
+        },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable("3.11");
+      expect(result).toBe(true);
+      expect(vi.mocked(spawn)).toHaveBeenCalledWith(
+        "python3.11",
+        ["--version"],
+        expect.anything(),
+      );
+    });
+
+    it("should return false when Python version is not available", async () => {
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(1), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable("3.15");
+      expect(result).toBe(false);
+    });
+
+    it("should use python3 when no version specified", async () => {
+      const mockChild = {
+        stdout: { on: vi.fn() },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const result = await checkPythonVersionAvailable();
+      expect(result).toBe(true);
+      expect(vi.mocked(spawn)).toHaveBeenCalledWith(
+        "python3",
+        ["--version"],
+        expect.anything(),
+      );
+    });
+  });
+
+  describe("reportMissingPython", () => {
+    it("should return error with requirements info", () => {
+      const result = reportMissingPython("3.11");
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("Python 3.11 is not available");
+      expect(result.output).toContain("Requirements:");
+      expect(result.output).toContain(
+        "Python 3.11 must be installed and available in PATH",
+      );
+      expect(result.error).toContain("Python 3.11 is not available");
+    });
+
+    it("should work with different Python versions", () => {
+      const result = reportMissingPython("3.12");
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("Python 3.12 is not available");
+      expect(result.output).toContain(
+        "Python 3.12 must be installed and available in PATH",
+      );
+    });
+  });
+
   describe("checkADEInstalled", () => {
     it("should return true when ADE is installed", async () => {
       const mockChild = {
@@ -319,6 +415,43 @@ describe("ADE Tools", () => {
 
       const result = await checkADTInstalled();
       expect(result).toBe(false);
+    });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const mockChild = {
+        stdout: {
+          on: vi.fn((event, callback) => {
+            if (event === "data") {
+              callback(
+                JSON.stringify([
+                  { name: "ansible-dev-tools", version: "1.0.0" },
+                ]),
+              );
+            }
+          }),
+        },
+        stderr: { on: vi.fn() },
+        on: vi.fn((event, callback) => {
+          if (event === "close") {
+            setTimeout(() => callback(0), 10);
+          }
+        }),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(spawn).mockReturnValue(mockChild as any);
+
+      await checkADTInstalled(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to executeCommand
+      expect(spawn).toHaveBeenCalledWith(
+        "pip",
+        ["list", "--format=json"],
+        expect.objectContaining({
+          cwd: workspaceRoot,
+        }),
+      );
     });
   });
 
@@ -491,9 +624,7 @@ describe("ADE Tools", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.output).toContain(
-        "Virtual environment created successfully",
-      );
+      expect(result.output).toContain("Virtual environment created at");
     });
 
     it("should install ADT and setup environment when ADT is not available", async () => {
@@ -540,9 +671,7 @@ describe("ADE Tools", () => {
 
       const result = await setupDevelopmentEnvironment("/test/workspace");
       expect(result.success).toBe(true);
-      expect(result.output).toContain(
-        "Virtual environment created successfully",
-      );
+      expect(result.output).toContain("Virtual environment created at");
     });
 
     it("should handle venv creation failure", async () => {
@@ -693,13 +822,18 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // Ansible tools install in venv fails
-              if (
-                command === "bash" &&
-                args?.[1]?.includes("pip") &&
-                args?.[1]?.includes("ansible-lint")
-              ) {
-                setTimeout(() => callback(1), 10);
+              // Both ADT and fallback ansible-lint install fail
+              if (command === "bash" && args?.[1]?.includes("pip")) {
+                // Fail ADT install
+                if (args?.[1]?.includes("ansible-dev-tools")) {
+                  setTimeout(() => callback(1), 10);
+                }
+                // Also fail fallback ansible-lint install
+                else if (args?.[1]?.includes("ansible-lint")) {
+                  setTimeout(() => callback(1), 10);
+                } else {
+                  setTimeout(() => callback(0), 10);
+                }
               } else {
                 setTimeout(() => callback(0), 10);
               }
@@ -733,8 +867,7 @@ describe("ADE Tools", () => {
           stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // Collections install fails
-              if (command === "ansible-galaxy") {
+              if (command === "bash" && args?.[1]?.includes("ansible-galaxy")) {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);
@@ -764,25 +897,139 @@ describe("ADE Tools", () => {
       expect(result.output).toContain("Failed to install collections");
     });
 
-    it("should handle ADT installation failure", async () => {
+    it("should fallback to individual tools when ADT installation fails", async () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         const mockChild = {
           stdout: { on: vi.fn() },
           stderr: {
             on: vi.fn((event, callback) => {
               if (event === "data") {
-                setTimeout(() => callback("error"), 5);
+                // ADT install fails with error (executed via bash -c)
+                if (
+                  command === "bash" &&
+                  args?.some(
+                    (arg) =>
+                      typeof arg === "string" &&
+                      arg.includes("pip install ansible-dev-tools"),
+                  )
+                ) {
+                  setTimeout(() => callback("error installing ADT"), 5);
+                }
               }
             }),
           },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // ADT check fails (pip list), pip install fails, pipx fails
-              if (command === "pip" && args?.includes("list")) {
+              // ADT pip install fails (via bash -c), but individual tools succeed
+              if (
+                command === "bash" &&
+                args?.some(
+                  (arg) =>
+                    typeof arg === "string" &&
+                    arg.includes("pip install ansible-dev-tools"),
+                )
+              ) {
+                setTimeout(() => callback(1), 10); // ADT fails
+              } else {
+                setTimeout(() => callback(0), 10); // Everything else succeeds
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace");
+      // Should succeed because we fall back to individual tools
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("ADT installation failed");
+      expect(result.output).toContain("installing individual tools");
+    });
+
+    it("should check Python version availability before creating venv", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        if (command === "python3.11" && args?.includes("--version")) {
+          mockChild.stdout.on = vi.fn((event, callback) => {
+            if (event === "data") {
+              setTimeout(() => callback("Python 3.11.0"), 5);
+            }
+          });
+        }
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.11",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("Python 3.11 is available");
+    });
+
+    it("should fail when requested Python version is not available", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // Python version check fails
+              if (command === "python3.11" && args?.includes("--version")) {
                 setTimeout(() => callback(1), 10);
-              } else if (command === "pip" && args?.includes("install")) {
-                setTimeout(() => callback(1), 10);
-              } else if (command === "pipx") {
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.11",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("Python 3.11 is not available");
+      expect(result.output).toContain("Requirements:");
+      expect(result.error).toContain("Python 3.11 is not available");
+    });
+
+    it("should provide detailed error when venv creation fails", async () => {
+      vi.mocked(spawn).mockImplementation((command, args) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: {
+            on: vi.fn((event, callback) => {
+              if (
+                event === "data" &&
+                command === "python3" &&
+                args?.includes("venv")
+              ) {
+                setTimeout(() => callback("Error: No module named venv"), 5);
+              }
+            }),
+          },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // venv creation fails
+              if (command === "python3" && args?.includes("venv")) {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);
@@ -796,8 +1043,289 @@ describe("ADE Tools", () => {
       });
 
       const result = await setupDevelopmentEnvironment("/test/workspace");
+
       expect(result.success).toBe(false);
-      expect(result.error).toContain("Failed to install ADT");
+      expect(result.output).toContain("Failed to create virtual environment");
+      expect(result.output).toContain("Requirements:");
+    });
+
+    it("should include setup parameters in output header", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        pythonVersion: "3.12",
+        collections: ["amazon.aws", "ansible.posix"],
+      });
+
+      expect(result.output).toContain("Workspace: /test/workspace");
+      expect(result.output).toContain("Python version: 3.12");
+      expect(result.output).toContain("Collections: amazon.aws, ansible.posix");
+    });
+
+    it("should detect brew package manager for macOS (darwin)", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "darwin", osDistro: "macos" },
+      });
+
+      expect(result.output).toContain("System: darwin (macos)");
+      expect(result.output).toContain("Package Manager: brew");
+    });
+
+    it("should detect dnf package manager for Fedora", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", osDistro: "fedora" },
+      });
+
+      expect(result.output).toContain("System: linux (fedora)");
+      expect(result.output).toContain("Package Manager: dnf");
+    });
+
+    it("should detect apt package manager for Ubuntu", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", osDistro: "ubuntu" },
+      });
+
+      expect(result.output).toContain("System: linux (ubuntu)");
+      expect(result.output).toContain("Package Manager: apt");
+    });
+
+    it("should detect pacman package manager for Arch Linux", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", osDistro: "arch" },
+      });
+
+      expect(result.output).toContain("System: linux (arch)");
+      expect(result.output).toContain("Package Manager: pacman");
+    });
+
+    it("should use explicit packageManager override", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: {
+          osType: "linux",
+          osDistro: "ubuntu",
+          packageManager: "yum",
+        },
+      });
+
+      expect(result.output).toContain("Package Manager: yum");
+    });
+
+    it("should default to dnf for generic Linux without distro", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux" },
+      });
+
+      expect(result.output).toContain("System: linux");
+      expect(result.output).toContain("Package Manager: dnf");
+    });
+
+    it("should detect zypper package manager for openSUSE", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", osDistro: "opensuse" },
+      });
+
+      expect(result.output).toContain("Package Manager: zypper");
+    });
+
+    it("should detect dnf package manager for RHEL", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", osDistro: "rhel" },
+      });
+
+      expect(result.output).toContain("Package Manager: dnf");
+    });
+
+    it("should fallback to brew for darwin osType with unknown distro", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "darwin", osDistro: "unknown-distro" },
+      });
+
+      expect(result.output).toContain("Package Manager: brew");
+    });
+
+    it("should fallback to apt for unknown osType", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "freebsd", osDistro: "unknown" },
+      });
+
+      expect(result.output).toContain("Package Manager: apt");
+    });
+
+    it("should generate fallback install command for unknown package manager", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        systemInfo: { osType: "linux", packageManager: "custom-pkg" },
+        collections: ["test.collection"],
+      });
+
+      expect(result.output).toContain("Package Manager: custom-pkg");
+      expect(result.output).toContain("sudo custom-pkg install");
     });
   });
 
@@ -958,6 +1486,181 @@ describe("ADE Tools", () => {
       expect(result.error).toContain("pip error");
       expect(result.error).toContain("pipx error");
     });
+
+    it("should pass workspaceRoot to executeCommand", async () => {
+      const workspaceRoot = "/path/to/ansible-workspace";
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        // Track all spawn calls to verify workspaceRoot is passed
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              if (command === "pip" && args?.includes("list")) {
+                setTimeout(() => callback(0), 10);
+              } else if (command === "pip" && args?.includes("install")) {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      await checkAndInstallADT(workspaceRoot);
+
+      // Verify workspaceRoot is passed as cwd to all executeCommand calls
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(workspaceRoot);
+      });
+    });
+  });
+
+  describe("multiple workspace folders scenario", () => {
+    it("should execute commands in workspaceRoot instead of process.cwd()", async () => {
+      const ansibleWorkspace = "/path/to/ansible-project";
+      const currentCwd = process.cwd(); // This could be any workspace folder
+
+      // Verify that workspaceRoot is different from process.cwd()
+      // In real scenario, VS Code might have process.cwd() pointing to a different workspace
+      expect(ansibleWorkspace).not.toBe(currentCwd);
+
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        // Track all spawn calls to verify workspaceRoot is used
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed initially
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // All commands succeed
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      // Test checkADTInstalled with workspaceRoot
+      // Command should execute in ansibleWorkspace, not process.cwd()
+      await checkADTInstalled(ansibleWorkspace);
+
+      // Verify the command was called with ansibleWorkspace, not process.cwd()
+      const pipListCalls = calls.filter(
+        (c) => c.command === "pip" && c.args?.includes("list"),
+      );
+      expect(pipListCalls.length).toBeGreaterThan(0);
+      pipListCalls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd); // Should not use process.cwd()
+      });
+
+      // Clear calls for next test
+      calls.length = 0;
+
+      // Test checkAndInstallADT with workspaceRoot
+      await checkAndInstallADT(ansibleWorkspace);
+
+      // Verify all commands (pip list, pip install) were called with ansibleWorkspace
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd); // Should not use process.cwd()
+      });
+    });
+
+    it("should handle adt_check_env tool correctly with workspaceRoot from MCP server", async () => {
+      const ansibleWorkspace = "/path/to/ansible-project";
+      const currentCwd = process.cwd();
+
+      const calls: Array<{ command: string; args: string[]; cwd?: string }> =
+        [];
+
+      vi.mocked(spawn).mockImplementation((command, args, options) => {
+        calls.push({
+          command: command,
+          args: args as string[],
+          cwd: (options as { cwd?: string })?.cwd,
+        });
+
+        const mockChild = {
+          stdout: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                if (command === "pip" && args?.includes("list")) {
+                  // ADT not installed
+                  callback(JSON.stringify([{ name: "other-package" }]));
+                }
+              }
+            }),
+          },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        return mockChild;
+      });
+
+      // Simulate the handler being called with workspaceRoot from MCP server
+      // (This is what happens when VS Code passes workspaceRoot to MCP server)
+      const result = await checkAndInstallADT(ansibleWorkspace);
+
+      // Verify success
+      expect(result.success).toBe(true);
+
+      // Verify all commands executed in ansibleWorkspace, not process.cwd()
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach((call) => {
+        expect(call.cwd).toBe(ansibleWorkspace);
+        expect(call.cwd).not.toBe(currentCwd);
+      });
+    });
   });
 
   describe("createVirtualEnvironment", () => {
@@ -977,6 +1680,7 @@ describe("ADE Tools", () => {
 
       const result = await createVirtualEnvironment("/test/workspace");
       expect(result.success).toBe(true);
+      expect(result.venvPath).toContain("venv");
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
         "python3",
         ["-m", "venv", expect.stringContaining("venv")],
@@ -1003,6 +1707,7 @@ describe("ADE Tools", () => {
         "custom-env",
       );
       expect(result.success).toBe(true);
+      expect(result.venvPath).toContain("custom-env");
       expect(vi.mocked(spawn)).toHaveBeenCalledWith(
         "python3",
         ["-m", "venv", expect.stringContaining("custom-env")],
@@ -1418,16 +2123,16 @@ describe("ADE Tools", () => {
 
       const formatted = formatEnvironmentInfo(envInfo);
 
-      expect(formatted).toContain("🔍 Environment Information");
-      expect(formatted).toContain("📁 Workspace: /test/workspace");
-      expect(formatted).toContain("🐍 Python: Python 3.11.0");
-      expect(formatted).toContain("🔧 Virtual Environment: /test/venv");
-      expect(formatted).toContain("• Ansible: ansible [core 2.15.0]");
-      expect(formatted).toContain("• Ansible Lint: ansible-lint 6.22.0");
-      expect(formatted).toContain("• ADE: ✅ Installed");
-      expect(formatted).toContain("• ADT: ✅ Installed");
-      expect(formatted).toContain("• ansible.posix");
-      expect(formatted).toContain("• community.general");
+      expect(formatted).toContain("Environment Information");
+      expect(formatted).toContain("Workspace: /test/workspace");
+      expect(formatted).toContain("Python: Python 3.11.0");
+      expect(formatted).toContain("Virtual Environment: /test/venv");
+      expect(formatted).toContain("- Ansible: ansible [core 2.15.0]");
+      expect(formatted).toContain("- Ansible Lint: ansible-lint 6.22.0");
+      expect(formatted).toContain("- ADE: Installed");
+      expect(formatted).toContain("- ADT: Installed");
+      expect(formatted).toContain("- ansible.posix");
+      expect(formatted).toContain("- community.general");
     });
 
     it("should handle missing information gracefully", () => {
@@ -1444,12 +2149,12 @@ describe("ADE Tools", () => {
 
       const formatted = formatEnvironmentInfo(envInfo);
 
-      expect(formatted).toContain("🔧 Virtual Environment: Not set");
-      expect(formatted).toContain("• Ansible: Not installed");
-      expect(formatted).toContain("• Ansible Lint: Not installed");
-      expect(formatted).toContain("• ADE: ❌ Not installed");
-      expect(formatted).toContain("• ADT: ❌ Not installed");
-      expect(formatted).toContain("• None");
+      expect(formatted).toContain("Virtual Environment: Not set");
+      expect(formatted).toContain("- Ansible: Not installed");
+      expect(formatted).toContain("- Ansible Lint: Not installed");
+      expect(formatted).toContain("- ADE: Not installed");
+      expect(formatted).toContain("- ADT: Not installed");
+      expect(formatted).toContain("- None");
     });
   });
 });

@@ -1,18 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from "chai";
 import path from "path";
 import { PROJECT_ROOT } from "../setup";
 import {
   By,
   Locator,
-  ModalDialog,
   SettingsEditor,
   Workbench,
   WebView,
   ViewControl,
   ActivityBar,
-  WebviewView,
-  InputBox,
   VSBrowser,
 } from "vscode-extension-tester";
 import { until } from "selenium-webdriver";
@@ -65,74 +61,8 @@ export async function updateSettings(
   await settingInUI.setValue(value);
 }
 
-// In the redirection occurs in the login flow, getting message from a modal dialog
-// may throw NoSuchElementError. This function is for dealing with those errors.
-export async function getModalDialogAndMessage(details = false): Promise<{
-  dialog: ModalDialog;
-  message: string;
-}> {
-  for (let i = 0; i < 30; i++) {
-    try {
-      const dialog = await new ModalDialog().wait();
-      const message = details
-        ? await dialog.getDetails()
-        : await dialog.getMessage();
-      if (message !== undefined) {
-        return { dialog, message };
-      }
-    } catch {
-      await sleep(1000);
-    }
-  }
-  throw new Error("Could not retrieve a message from a modal dialog");
-}
-
 function capitalizeFirstLetter(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-export async function expectNotification(
-  expected: string,
-  clickButton = false,
-): Promise<void> {
-  const workbench = new Workbench();
-
-  const matchingNotification = await waitForCondition({
-    condition: async () => {
-      const notifications = await workbench.getNotifications();
-      for (const notification of notifications) {
-        const message = await notification.getMessage();
-        if (message === expected) {
-          return notification;
-        }
-      }
-      return false;
-    },
-    message: `Timed out waiting for notification with message: "${expected}"`,
-    timeout: 15000,
-  });
-
-  expect(matchingNotification).not.to.be.false;
-
-  if (clickButton) {
-    const button = await VSBrowser.instance.driver.wait(
-      until.elementLocated(By.xpath(".//a[@role='button']")),
-      5000,
-      "Timed out waiting for button to be located",
-    );
-    await VSBrowser.instance.driver.wait(
-      until.elementIsEnabled(button as any),
-      5000,
-      "Timed out waiting for button to be clickable",
-    );
-
-    expect(button).not.to.be.undefined;
-    await button.click();
-    await sleep(500);
-  } else {
-    const center = await workbench.openNotificationsCenter();
-    await center.clearAllNotifications();
-  }
 }
 
 export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
@@ -238,25 +168,6 @@ export async function openSettings() {
   throw new Error("Failed to open settings after 5 attempts");
 }
 
-export async function dismissNotifications(workbench: Workbench) {
-  try {
-    const notifications = await workbench.getNotifications();
-    for (const notification of notifications) {
-      try {
-        await notification.dismiss();
-      } catch (error) {
-        console.log(
-          `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-  } catch (error) {
-    console.log(
-      `Failed to get notifications: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
-
 export async function getAnsibleViewControl(): Promise<ViewControl> {
   return await waitForCondition({
     condition: async () => {
@@ -279,76 +190,6 @@ export async function getAnsibleViewControl(): Promise<ViewControl> {
     timeout: 20000,
     pollTimeout: 500,
   });
-}
-
-export async function connectLightspeed() {
-  const explorerView = new WebviewView();
-  let modalDialog: ModalDialog;
-  let dialogMessage: string;
-  const view = await getAnsibleViewControl();
-  const sideBar = await view.openView();
-  const adtView = await sideBar
-    .getContent()
-    .getSection("Ansible Development Tools");
-
-  // Set "UI Test" and "One Click" options for mock server
-  try {
-    await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(["--ui-test"]),
-    });
-  } catch (error) {
-    console.error(
-      "Failed to set ui-test and one-click options for lightspeed mock server",
-      error,
-    );
-    expect.fail(
-      "Failed to set ui-test and one-click options for lightspeed mock server",
-    );
-  }
-
-  await adtView.collapse();
-
-  const alfView = await sideBar
-    .getContent()
-    .getSection("Ansible Lightspeed WCA Provider Feedback");
-  await alfView.collapse();
-
-  await explorerView.switchToFrame(5000);
-
-  const connectButton = await explorerView.findWebElement(
-    By.id("lightspeed-explorer-connect"),
-  );
-  expect(connectButton).not.to.be.undefined;
-  if (connectButton) {
-    await connectButton.click();
-  }
-  await explorerView.switchBack();
-
-  // Click Allow to use Lightspeed
-  const { dialog } = await getModalDialogAndMessage(true);
-  await dialog.pushButton("Allow");
-
-  const { dialog: dialog2, message: message2 } =
-    await getModalDialogAndMessage();
-  modalDialog = dialog2;
-  dialogMessage = message2;
-
-  // If the dialog to open the external website is not suppressed, click Open
-  if (dialogMessage === "Do you want Code to open the external website?") {
-    await modalDialog.pushButton("Configure Trusted Domains");
-    const input = await InputBox.create();
-    input.confirm();
-
-    const d = await getModalDialogAndMessage();
-    modalDialog = d.dialog;
-    dialogMessage = d.message;
-  }
-
-  // Click Open to allow Ansible extension to open the callback URI
-  await modalDialog.pushButton("Open");
-  await sleep(2000);
 }
 
 export async function waitForCondition({

@@ -1,16 +1,15 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
+import CopyPlugin from "copy-webpack-plugin";
 
 import path from "path";
 const webpack = require("webpack");
 
 type EntryType = {
   server?: string;
-  "mcp/cli"?: string;
 };
 
 const entry: EntryType = {
   server: "./packages/ansible-language-server/src/server.ts",
-  "mcp/cli": "./packages/ansible-mcp-server/src/cli.ts",
 };
 
 const config = {
@@ -106,6 +105,14 @@ const config = {
     new webpack.IgnorePlugin({
       resourceRegExp: /^electron$/,
     }),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "packages/ansible-mcp-server/src/resources/data/*.{md,json,yml}",
+          to: "mcp/data/[name][ext]",
+        },
+      ],
+    }),
   ],
   ignoreWarnings: [
     {
@@ -119,19 +126,11 @@ const config = {
       if (pathData.chunk.name === "client") {
         return "[name]/src/extension.js";
       }
-      // MCP server should output to out/mcp/cli.js
-      if (pathData.chunk.name === "mcp/cli") {
-        return "mcp/cli.js";
-      }
       return "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
+    devtoolModuleFilenameTemplate: "../[resource-path]", // relative to 'path'
     libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: (info: { id: string }) => {
-      return info.id === "client"
-        ? "../[resource-path]"
-        : "../../../[resource-path]";
-    },
   },
   resolve: {
     // support reading TypeScript and JavaScript files
@@ -150,38 +149,11 @@ const config = {
   target: "node", // vscode extensions run in a Node.js-context
 };
 
-const webviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const playbookExplorerWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/explorer/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/explorer/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
-    delete config.entry["mcp/cli"];
   }
-  return [config, webviewConfig, playbookExplorerWebviewConfig];
+  return [config];
 };

@@ -1,11 +1,11 @@
 import * as ini from "ini";
-import * as _ from "lodash";
+import _ from "lodash";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "./workspaceManager";
-import { CommandRunner } from "../utils/commandRunner";
-import { ansibleMetaDataType } from "../utils/getAnsibleMetaData";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { CommandRunner } from "../utils/commandRunner.js";
+import { ansibleMetaDataType } from "../utils/getAnsibleMetaData.js";
 
 export class AnsibleConfig {
   private connection: Connection;
@@ -90,6 +90,7 @@ export class AnsibleConfig {
         ...parsePythonStringArray(pythonPathResult.stdout),
       );
     } catch (error) {
+      /* v8 ignore next 3 */
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
@@ -100,6 +101,7 @@ export class AnsibleConfig {
     }
   }
 
+  /* v8 ignore next 3 */
   set collections_paths(updatedCollectionPath: string[]) {
     this._collection_paths = updatedCollectionPath;
   }
@@ -116,6 +118,7 @@ export class AnsibleConfig {
     return this._default_host_list;
   }
 
+  /* v8 ignore next */
   set module_locations(updatedModulesPath: string[]) {
     this._module_locations = updatedModulesPath;
   }

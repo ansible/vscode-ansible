@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect } from "chai";
+import { expect, beforeAll, afterAll } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -7,11 +7,11 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper";
+} from "../helper.js";
 import { Position } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
-import { getDefinition } from "../../src/providers/definitionProvider";
-import { fileExists } from "../../src/utils/misc";
+import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+import { getDefinition } from "../../src/providers/definitionProvider.js";
+import { fileExists } from "../../src/utils/misc.js";
 import { URI } from "vscode-uri";
 
 function testModuleNamesForDefinition(
@@ -57,21 +57,21 @@ function testModuleNamesForDefinition(
       );
 
       if (!provideDefinition) {
-        expect(actualDefinition).to.be.null;
+        expect(actualDefinition).toBeNull();
         return;
       }
 
-      expect(actualDefinition).to.have.length(1);
+      expect(actualDefinition).toHaveLength(1);
       if (actualDefinition) {
         const definition = actualDefinition[0];
         // file uri check
-        expect(definition.targetUri.startsWith("file:///")).to.be.true;
+        expect(definition.targetUri.startsWith("file:///")).toBe(true);
         expect(definition.targetUri).satisfy((fileUri: string) =>
           fileExists(URI.parse(fileUri).path),
         );
 
         // nodule name range check in the playbook
-        expect(definition.originSelectionRange).to.deep.equal(selectionRange);
+        expect(definition.originSelectionRange).toEqual(selectionRange);
 
         // original document range checks
         expect(definition).to.haveOwnProperty("targetRange");
@@ -92,12 +92,12 @@ describe("getDefinition()", function () {
 
   describe("Module name definitions", function () {
     describe("@ee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
-          await enableExecutionEnvironmentSettings(docSettings);
+          await enableExecutionEnvironmentSettings(docSettings, context);
         }
       });
 
@@ -105,19 +105,19 @@ describe("getDefinition()", function () {
         testModuleNamesForDefinition(context, textDoc);
       }
 
-      after(async function () {
+      afterAll(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
     });
 
     describe("@noee", function () {
-      before(async function () {
+      beforeAll(async () => {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
-          await disableExecutionEnvironmentSettings(docSettings);
+          await disableExecutionEnvironmentSettings(docSettings, context);
         }
       });
       if (context) {

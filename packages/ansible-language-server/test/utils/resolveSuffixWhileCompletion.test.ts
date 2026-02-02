@@ -1,6 +1,6 @@
 import { EOL } from "os";
-import { resolveSuffix } from "../../src/providers/completionProvider";
-import { expect } from "chai";
+import { resolveSuffix } from "../../src/providers/completionProvider.js";
+import { expect } from "vitest";
 
 function testResolveSuffixInPlaybook() {
   const tests = [
@@ -33,7 +33,7 @@ function testResolveSuffixInPlaybook() {
           isPlaybook,
         );
 
-        expect(actualSuffix).to.equal(expectedSuffix);
+        expect(actualSuffix).toBe(expectedSuffix);
       });
     },
   );
@@ -70,7 +70,7 @@ function testResolveSuffixInNonPlaybookFile() {
           isPlaybook,
         );
 
-        expect(actualSuffix).to.equal(expectedSuffix);
+        expect(actualSuffix).toBe(expectedSuffix);
       });
     },
   );

@@ -35,7 +35,7 @@ export default defineConfig({
       mochaJunitReporterReporterOptions: {
         attachments: true,
         includePending: true,
-        mochaFile: "./out/junit/e2e/test-results.xml",
+        mochaFile: "./out/junit/e2e-test-results.xml",
         outputs: true,
         toConsole: false,
         suiteTitle: "e2e",

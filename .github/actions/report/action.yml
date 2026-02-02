@@ -1,0 +1,21 @@
+name: report
+description: Report failures
+
+inputs:
+  slack_webhook_url:
+    description: "Slack webhook URL for notifications"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Send CI failure notification
+      shell: bash
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}
+      run: |
+        if [ -n "$SLACK_WEBHOOK_URL" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"CI failed in jobs: ${GITHUB_JOB} for '${GITHUB_REPOSITORY}' (${GITHUB_WORKFLOW}.yaml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
+            "$SLACK_WEBHOOK_URL"
+        fi

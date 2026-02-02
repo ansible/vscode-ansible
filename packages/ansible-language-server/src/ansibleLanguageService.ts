@@ -11,18 +11,19 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   doCompletion,
   doCompletionResolve,
-} from "./providers/completionProvider";
-import { getDefinition } from "./providers/definitionProvider";
-import { doHover } from "./providers/hoverProvider";
+} from "./providers/completionProvider.js";
+import { getDefinition } from "./providers/definitionProvider.js";
+import { doHover } from "./providers/hoverProvider.js";
 import {
   doSemanticTokens,
   tokenModifiers,
   tokenTypes,
-} from "./providers/semanticTokenProvider";
-import { doValidate } from "./providers/validationProvider";
-import { ValidationManager } from "./services/validationManager";
-import { WorkspaceManager } from "./services/workspaceManager";
-import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
+} from "./providers/semanticTokenProvider.js";
+import { doValidate } from "./providers/validationProvider.js";
+import { SchemaService } from "./services/schemaService.js";
+import { ValidationManager } from "./services/validationManager.js";
+import { WorkspaceManager } from "./services/workspaceManager.js";
+import { getAnsibleMetaData } from "./utils/getAnsibleMetaData.js";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -38,12 +39,14 @@ export class AnsibleLanguageService {
 
   private workspaceManager: WorkspaceManager;
   private validationManager: ValidationManager;
+  private schemaService: SchemaService;
 
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
     this.documents = documents;
     this.workspaceManager = new WorkspaceManager(connection);
     this.validationManager = new ValidationManager(connection, documents);
+    this.schemaService = new SchemaService(connection);
   }
 
   public initialize(): void {
@@ -150,6 +153,7 @@ export class AnsibleLanguageService {
             false,
             context,
             this.connection,
+            this.schemaService,
           );
         }
       } catch (error) {
@@ -190,6 +194,7 @@ export class AnsibleLanguageService {
             false,
             context,
             this.connection,
+            this.schemaService,
           );
         }
       } catch (error) {
@@ -216,6 +221,7 @@ export class AnsibleLanguageService {
           true,
           this.workspaceManager.getContext(e.document.uri),
           this.connection,
+          this.schemaService,
         );
       } catch (error) {
         this.handleError(error, "onDidChangeContent");
@@ -270,7 +276,12 @@ export class AnsibleLanguageService {
             params.textDocument.uri,
           );
           if (context) {
-            return await doCompletion(document, params.position, context);
+            return await doCompletion(
+              document,
+              params.position,
+              context,
+              this.schemaService,
+            );
           }
         }
       } catch (error) {

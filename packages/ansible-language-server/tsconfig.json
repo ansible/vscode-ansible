@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "outDir": "./out/server",
     "resolveJsonModule": true
   },

@@ -40,6 +40,7 @@
   "[yaml]": {
     "editor.formatOnSave": false
   },
+  "claudeCode.environmentVariables": [],
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.fixAll.eslint": "explicit"
@@ -47,6 +48,20 @@
   "editor.formatOnSave": true,
   "eslint.useESLintClass": true,
   "explorer.fileNesting.enabled": true,
+  "extesterRunner.additionalArgs": [
+    "--mocha_config",
+    "test/ui/.mocharc.js",
+    "--code_settings",
+    "out/test-resources/settings/User/settings.json",
+    "-e",
+    "out/ext",
+    "--offline",
+    "--coverage",
+    "--log_level",
+    "Debug"
+  ],
+  "extesterRunner.outputFolder": "out/client",
+  "extesterRunner.rootFolder": "",
   "extesterRunner.tempFolder": "out/test-resources",
   "extesterRunner.testFileGlob": "test/ui/**/*.test.ts",
   "files.exclude": {

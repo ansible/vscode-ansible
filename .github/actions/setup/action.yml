@@ -8,13 +8,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: jdx/mise-action@146a28175021df8ca24f8ee1828cc2a60f980bd5 # v3.5.1
+    - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2025.11.11
-        # https://github.com/jdx/mise-action/issues/165
-        mise_dir: ~/.local/bin
+        version: 2026.1.6
         reshim: true
 
     - name: Corepack enable
@@ -27,7 +25,7 @@ runs:
 
     - name: Enable caching for python
       # left out due to having their own caching: yarn, node_modules, mise
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         # we cache only wheels because http cache cannot be cleaned well
         path: |
@@ -37,7 +35,7 @@ runs:
 
     - name: Enable caching for pre-commit
       if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: ~/.cache/pre-commit/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -59,7 +57,7 @@ runs:
     - name: Enable caching for vscode resources
       if: "${{ contains(matrix.name, 'test') }}"
       # left out due to having their own caching: yarn, node_modules, mise
-      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: |
           .vscode-test

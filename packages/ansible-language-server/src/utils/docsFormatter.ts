@@ -5,8 +5,8 @@ import {
   IDescription,
   IModuleDocumentation,
   IOption,
-} from "../interfaces/module";
-import { IPluginRoute } from "../interfaces/pluginRouting";
+} from "../interfaces/module.js";
+import { IPluginRoute } from "../interfaces/pluginRouting.js";
 
 export function formatModule(
   module: IModuleDocumentation,
@@ -102,7 +102,7 @@ export function formatOption(
   };
 }
 
-export function formatDescription(doc?: IDescription, asList = true): string {
+function formatDescription(doc?: IDescription, asList = true): string {
   let result = "";
   if (doc instanceof Array) {
     const lines: string[] = [];

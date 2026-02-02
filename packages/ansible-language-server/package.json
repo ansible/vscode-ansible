@@ -22,10 +22,12 @@
   ],
   "dependencies": {
     "@flatten-js/interval-tree": "^2.0.3",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.0",
     "ini": "^6.0.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "uuid": "^13.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -36,26 +38,31 @@
   },
   "description": "Ansible language server",
   "devDependencies": {
-    "@types/chai": "^5.2.3",
     "@types/ini": "^4.1.1",
-    "@types/lodash": "^4.17.21",
-    "@types/mocha": "^10.0.10",
+    "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.2",
     "@types/vscode": "^1.85.0",
-    "chai": "^6.2.1",
     "fuse.js": "^7.1.0",
     "handlebars": "^4.7.8",
-    "mocha": "^11.7.5",
-    "mocha-junit-reporter": "^2.2.1",
     "rimraf": "^6.1.2",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
     "vscode-jsonrpc": "^8.2.1"
   },
   "displayName": "Ansible",
   "engines": {
     "node": ">=20.0",
     "npm": ">=7.11.2"
+  },
+  "exports": {
+    ".": {
+      "types": "./out/server/src/server.d.ts",
+      "default": "./out/server/src/server.js"
+    },
+    "./interfaces/extensionSettings": {
+      "types": "./out/server/src/interfaces/extensionSettings.d.ts",
+      "default": "./out/server/src/interfaces/extensionSettings.js"
+    }
   },
   "files": [
     "icon.png",
@@ -80,11 +87,12 @@
     "compile": "tsc -p .",
     "prepack": "yarn compile",
     "prepare": "yarn run compile",
-    "test": "c8 mocha ${MOCHA_OPTS:-}",
-    "test-with-ee": "c8 mocha --grep @ee ${MOCHA_OPTS:-}",
-    "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-}",
+    "test": "vitest run --project=als",
+    "test-with-ee": "vitest run --project=als -t @ee",
+    "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
     "watch": "tsc --watch -p ."
   },
+  "type": "module",
   "types": "./out/server/src/server.d.ts",
   "version": "1.2.4"
 }

@@ -11,7 +11,7 @@ import * as ini from "ini";
 
 const homeDirectory = os.homedir();
 
-export default function untildify(pathWithTilde: string) {
+function untildify(pathWithTilde: string) {
   if (typeof pathWithTilde !== "string") {
     throw new TypeError(`Expected a string, got ${typeof pathWithTilde}`);
   }
@@ -58,8 +58,8 @@ export type AnsibleVaultConfig = {
   };
 };
 
-export async function scanAnsibleCfg(
-  rootPath: string | undefined = undefined,
+async function scanAnsibleCfg(
+  rootPath?: string,
 ): Promise<AnsibleVaultConfig | undefined> {
   /*
    * Reading order (based on the documentation: https://docs.ansible.com/projects/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
@@ -96,7 +96,7 @@ export async function scanAnsibleCfg(
   return cfg;
 }
 
-export async function getValueByCfg(
+async function getValueByCfg(
   path: string,
 ): Promise<AnsibleVaultConfig | undefined> {
   console.log(`Reading '${path}'...`);

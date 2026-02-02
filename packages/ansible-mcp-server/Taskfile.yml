@@ -35,33 +35,32 @@ tasks:
     generates:
       - out/server/**/*.*
     sources:
+      - ../../vitest.config.ts
       - package-lock.json
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
   test:
     desc: Run all tests and coverage report
     deps:
       - build
     dir: "{{ .TASKFILE_DIR }}"
-    status:
-      - test -f ../../out/junit/mcp/.passed
+    generates:
+      - ../../out/coverage/mcp/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/mcp/coverage-final.json # IDE plugins
+      - ../../out/coverage/mcp/lcov.info # sonar
+      - ../../out/junit/mcp-test-results.xml
     sources:
+      - ../../vitest.config.ts
       - package.json
-      - test/**/*.*
       - src/**/*.*
+      - test/**/*.*
       - tsconfig.json
-      - vitest.config.ts
       - exclude: "**/*-artifact-*.json"
-      - exclude: ansible-navigator.log
     cmds:
-      - rm -f ../../out/junit/mcp/.passed
-      - npm run test:coverage
-      - touch ../../out/junit/mcp/.passed
+      - npm run test
     interactive: true
   test-watch:
     desc: Run tests in watch mode

@@ -65,7 +65,7 @@ export function permissionDeniedCanApplyForTrial(): {
   };
 }
 
-export default class Server {
+class Server {
   constructor(app: Application) {
     this.init(app);
   }

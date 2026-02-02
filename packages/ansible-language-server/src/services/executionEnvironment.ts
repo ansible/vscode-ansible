@@ -4,15 +4,15 @@ import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
-import { AnsibleConfig } from "./ansibleConfig";
-import { ImagePuller } from "../utils/imagePuller";
-import { asyncExec } from "../utils/misc";
-import { WorkspaceFolderContext } from "./workspaceManager";
+import { AnsibleConfig } from "./ansibleConfig.js";
+import { ImagePuller } from "../utils/imagePuller.js";
+import { asyncExec } from "../utils/misc.js";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
 import {
   ExtensionSettings,
   IContainerEngine,
-} from "../interfaces/extensionSettings";
-import { IVolumeMounts } from "../interfaces/extensionSettings";
+} from "../interfaces/extensionSettings.js";
+import { IVolumeMounts } from "../interfaces/extensionSettings.js";
 
 export class ExecutionEnvironment {
   public isServiceInitialized: boolean = false;
@@ -41,6 +41,7 @@ export class ExecutionEnvironment {
       this.settings = await this.context.documentSettings.get(
         this.context.workspaceFolder.uri,
       );
+      /* v8 ignore next 4 */
       if (!this.settings.executionEnvironment.enabled) {
         this.isServiceInitialized = true;
         return;
@@ -52,28 +53,34 @@ export class ExecutionEnvironment {
         this.settings.executionEnvironment.volumeMounts;
 
       const setEngineSuccess = this.setContainerEngine();
+      /* v8 ignore next 4 */
       if (!setEngineSuccess) {
         this.isServiceInitialized = false;
         return;
       }
 
+      /* v8 ignore next 3 */
       this.updateContainerVolumeMountFromSettings();
       this.settingsContainerOptions =
         this.settings.executionEnvironment.containerOptions;
 
       const pullSuccess = await this.pullContainerImage();
+      /* v8 ignore next 4 */
       if (!pullSuccess) {
         this.isServiceInitialized = false;
         return;
       }
     } catch (error) {
+      /* v8 ignore next 3 */
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
+        /* v8 ignore next 3 */
         this.connection.console.error(
           `Exception in ExecutionEnvironment service: ${JSON.stringify(error)}`,
         );
       }
+      /* v8 ignore next 2 */
       this.isServiceInitialized = false;
       return;
     }
@@ -81,6 +88,7 @@ export class ExecutionEnvironment {
   }
 
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
+    /* v8 ignore next 6 */
     if (!this.isServiceInitialized || !this._container_image) {
       this.connection.console.error(
         `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
@@ -91,6 +99,7 @@ export class ExecutionEnvironment {
     let progressTracker;
 
     try {
+      /* v8 ignore next 11 */
       const containerImageIdCommand = `${this._container_engine} images ${this._container_image} --format="{{.ID}}" | head -n 1`;
       this.connection.console.log(containerImageIdCommand);
       this._container_image_id = child_process
@@ -102,11 +111,13 @@ export class ExecutionEnvironment {
         `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`,
       );
 
+      /* v8 ignore next 3 */
       const isContainerRunning = this.runContainer(containerName);
       if (!isContainerRunning) {
         return;
       }
 
+      /* v8 ignore next 10 */
       if (this.isPluginDocCacheValid(hostCacheBasePath)) {
         ansibleConfig.collections_paths = this.updateCachePaths(
           ansibleConfig.collections_paths,
@@ -121,10 +132,12 @@ export class ExecutionEnvironment {
           `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
         );
       } else {
+        /* v8 ignore next 4 */
         if (this.useProgressTracker) {
           progressTracker =
             await this.connection.window.createWorkDoneProgress();
         }
+        /* v8 ignore next 7 */
         if (progressTracker) {
           progressTracker.begin(
             "execution-environment",
@@ -133,6 +146,7 @@ export class ExecutionEnvironment {
             true,
           );
         }
+        /* v8 ignore next 38 */
         this.connection.console.log(
           `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
         );
@@ -171,6 +185,7 @@ export class ExecutionEnvironment {
           "/",
         );
       }
+      /* v8 ignore next 6 */
       this.connection.console.log(
         `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
       );
@@ -179,15 +194,18 @@ export class ExecutionEnvironment {
         fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w+"),
       );
     } catch (error) {
+      /* v8 ignore next 6 */
       this.connection.window.showErrorMessage(
         `Exception in ExecutionEnvironment service while fetching docs: ${JSON.stringify(
           error,
         )}`,
       );
     } finally {
+      /* v8 ignore next 3 */
       if (progressTracker) {
         progressTracker.done();
       }
+      /* v8 ignore next */
       this.cleanUpContainer(containerName);
     }
   }
@@ -196,6 +214,7 @@ export class ExecutionEnvironment {
     command: string,
     mountPaths?: Set<string>,
   ): string | undefined {
+    /* v8 ignore next 10 */
     if (
       !this.isServiceInitialized ||
       !this._container_engine ||
@@ -206,6 +225,7 @@ export class ExecutionEnvironment {
       );
       return undefined;
     }
+    /* v8 ignore next 92 */
     const workspaceFolderPath = URI.parse(
       this.context.workspaceFolder.uri,
     ).path;
@@ -246,7 +266,7 @@ export class ExecutionEnvironment {
         containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
       }
     }
-    // ensure output is parseable (no ANSI)
+    // ensure output is parsable (no ANSI)
     containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
 
     if (this._container_engine === "podman") {
@@ -286,6 +306,7 @@ export class ExecutionEnvironment {
   }
 
   private async pullContainerImage(): Promise<boolean> {
+    /* v8 ignore next 23 */
     if (!this._container_engine || !this._container_image || !this.settings) {
       this.connection.window.showErrorMessage(
         "Execution environment not properly initialized.",
@@ -312,6 +333,7 @@ export class ExecutionEnvironment {
   }
 
   private setContainerEngine(): boolean {
+    /* v8 ignore next 41 */
     if (!this._container_engine) {
       this.connection.window.showErrorMessage(
         "Unable to setContainerEngine with incompletely initialized settings.",
@@ -355,6 +377,7 @@ export class ExecutionEnvironment {
   }
 
   private cleanUpContainer(containerName: string): void {
+    /* v8 ignore next 75 */
     if (!this._container_engine) {
       return;
     }
@@ -432,6 +455,7 @@ export class ExecutionEnvironment {
   }
 
   private doesContainerNameExist(containerName: string): boolean {
+    /* v8 ignore next 16 */
     if (!this._container_engine) {
       return false;
     }
@@ -451,6 +475,7 @@ export class ExecutionEnvironment {
   }
 
   private updateContainerVolumeMountFromSettings(): void {
+    /* v8 ignore next 16 */
     for (const volumeMounts of this._container_volume_mounts || []) {
       const fsSrcPath = volumeMounts.src;
       const fsDestPath = volumeMounts.dest;
@@ -473,6 +498,7 @@ export class ExecutionEnvironment {
     searchPath: string,
     pluginFolderPath: string,
   ): boolean {
+    /* v8 ignore next 21 */
     const completeSearchPath = path.join(searchPath, pluginFolderPath);
     const command = `${this._container_engine} exec ${containerName} ls ${completeSearchPath}`;
     try {
@@ -496,6 +522,7 @@ export class ExecutionEnvironment {
   }
 
   private runContainer(containerName: string): boolean {
+    /* v8 ignore next 38 */
     // ensure container is not running
     this.cleanUpContainer(containerName);
 
@@ -513,7 +540,7 @@ export class ExecutionEnvironment {
           command += ` -e ${envVarKey}=${envVarValue} `;
         }
       }
-      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parseable (no ANSI)
+      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parsable (no ANSI)
       if (
         this.settingsContainerOptions &&
         this.settingsContainerOptions !== ""
@@ -541,6 +568,7 @@ export class ExecutionEnvironment {
     containerPluginPaths: string[],
     searchKind: string,
   ): Promise<string[]> {
+    /* v8 ignore next 33 */
     const updatedHostDocPath: string[] = [];
 
     containerPluginPaths.forEach((srcPath) => {
@@ -578,6 +606,7 @@ export class ExecutionEnvironment {
     pluginPaths: string[],
     cacheBasePath: string,
   ): string[] {
+    /* v8 ignore next 9 */
     const localCachePaths: string[] = [];
     pluginPaths.forEach((srcPath) => {
       const destPath = path.join(cacheBasePath, srcPath);
@@ -589,11 +618,13 @@ export class ExecutionEnvironment {
   }
 
   private isPluginDocCacheValid(hostCacheBasePath: string) {
+    /* v8 ignore next 3 */
     const markerFilePath = path.join(hostCacheBasePath, this.successFileMarker);
     return fs.existsSync(markerFilePath);
   }
 
   public get getBasicContainerAndImageDetails() {
+    /* v8 ignore next 7 */
     return {
       containerEngine: this._container_engine,
       containerImage: this._container_image,

@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""
+Sanitize log files by obfuscating sensitive tokens.
+Replaces token values with [REDACTED] to prevent sensitive data leakage.
+
+Usage:
+    tools/sanitize-logs <file1> <file2> ...
+    tools/sanitize-logs out/ui/*.log
+"""
+
+import re
+import sys
+from pathlib import Path
+
+
+def obfuscate_tokens(content: str) -> str:
+    """Replace token values with [REDACTED]."""
+    # Pattern matches: "token": "value" or "token": "value",
+    pattern = r'("token"\s*:\s*")[^"]+'
+    replacement = r'\1[REDACTED]'
+    return re.sub(pattern, replacement, content, flags=re.IGNORECASE)
+
+
+def process_file(file_path: Path) -> bool:
+    """Process a single file, obfuscating tokens in place."""
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+
+        obfuscated = obfuscate_tokens(content)
+
+        # Only write if content changed
+        if obfuscated != content:
+            with open(file_path, 'w', encoding='utf-8', errors='ignore') as f:
+                f.write(obfuscated)
+            print(f"Sanitized: {file_path}")
+            return True
+        return False
+    except Exception as e:
+        print(f"Error processing {file_path}: {e}", file=sys.stderr)
+        return False
+
+
+def main():
+    """Main entry point."""
+    if len(sys.argv) < 2:
+        print("Usage: sanitize-logs <file1> <file2> ...", file=sys.stderr)
+        sys.exit(1)
+
+    files_processed = 0
+    for file_arg in sys.argv[1:]:
+        file_path = Path(file_arg)
+        if not file_path.exists():
+            print(f"Warning: File not found: {file_path}", file=sys.stderr)
+            continue
+        if file_path.is_file():
+            if process_file(file_path):
+                files_processed += 1
+        elif file_path.is_dir():
+            print(f"Warning: {file_path} is a directory, skipping", file=sys.stderr)
+
+    if files_processed > 0:
+        print(f"Successfully sanitized {files_processed} file(s)")
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

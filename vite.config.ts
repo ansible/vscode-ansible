@@ -23,6 +23,13 @@ export default defineConfig({
     }),
   ],
   publicDir: "media",
+  experimental: {
+    renderBuiltUrl(filename) {
+      if (filename.startsWith("assets/codicon.ttf")) {
+        return { relative: true };
+      }
+    },
+  },
   build: {
     minify: false,
     outDir: "out/vitebuild",
@@ -42,6 +49,8 @@ export default defineConfig({
           __dirname,
           "webviews/lightspeed/explanation.html",
         ),
+        explorer: path.resolve(__dirname, "webviews/lightspeed/explorer.html"),
+        feedback: path.resolve(__dirname, "webviews/lightspeed/feedback.html"),
         "hello-world": path.resolve(
           __dirname,
           "webviews/lightspeed/hello-world.html",

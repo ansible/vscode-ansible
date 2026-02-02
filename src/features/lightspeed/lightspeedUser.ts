@@ -17,11 +17,10 @@ import {
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
-import * as marked from "marked";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { getFetch } from "./api";
 
-export class LightspeedAccessDenied extends Error {
+class LightspeedAccessDenied extends Error {
   constructor(message: string) {
     super(message);
     this.name = "LightspeedAccessDenied";
@@ -33,7 +32,7 @@ export enum AuthProviderType {
   lightspeed = ANSIBLE_LIGHTSPEED_AUTH_ID,
 }
 
-export const ExtensionHost = {
+const ExtensionHost = {
   WebWorker: "WebWorker",
   Remote: "Remote",
   Local: "Local",
@@ -207,8 +206,7 @@ export class LightspeedUser {
 
       if (response.ok) {
         const data = await response.json();
-        const markdownData = marked.parseInline(data.content) as string;
-        return markdownData;
+        return data.content;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info from markdown returned non-2xx response. Status: ${response.status}`,
@@ -281,7 +279,7 @@ export class LightspeedUser {
 
   private async setLightspeedUser(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
@@ -406,7 +404,7 @@ export class LightspeedUser {
 
   public async getLightspeedUserDetails(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
@@ -433,7 +431,7 @@ export class LightspeedUser {
 
   public async getMarkdownLightspeedUserDetails(
     createIfNone: boolean,
-    useProviderType: AuthProviderType | undefined = undefined,
+    useProviderType?: AuthProviderType,
   ) {
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {

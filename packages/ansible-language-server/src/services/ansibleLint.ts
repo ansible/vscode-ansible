@@ -10,9 +10,9 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { fileExists } from "../utils/misc";
-import { WorkspaceFolderContext } from "./workspaceManager";
-import { CommandRunner } from "../utils/commandRunner";
+import { fileExists } from "../utils/misc.js";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { CommandRunner } from "../utils/commandRunner.js";
 
 /**
  * Acts as and interface to ansible-lint and a cache of its output.
@@ -51,6 +51,10 @@ export class AnsibleLint {
     const mountPaths = new Set([workingDirectory]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
+    if (!settings.validation?.enabled) {
+      return diagnostics;
+    }
+
     let linterArguments = settings.validation.lint.arguments ?? "";
 
     // Determine linter config file
@@ -72,6 +76,10 @@ export class AnsibleLint {
 
     this._ansibleLintConfigFilePath = ansibleLintConfigPath;
     linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
+
+    if (settings.validation.lint.autoFixOnSave) {
+      linterArguments = `${linterArguments} --fix`;
+    }
 
     const docPath = URI.parse(textDocument.uri).path;
     mountPaths.add(path.dirname(docPath));

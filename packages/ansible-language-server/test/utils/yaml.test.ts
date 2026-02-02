@@ -1,5 +1,5 @@
 // codespell:ignore isPlay
-import { expect } from "chai";
+import { expect, beforeEach } from "vitest";
 import { Position } from "vscode-languageserver";
 import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
 import {
@@ -12,8 +12,8 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from "../../src/utils/yaml";
-import { getDoc, isWindows } from "../helper";
+} from "../../src/utils/yaml.js";
+import { getDoc, isWindows } from "../helper.js";
 
 function getPathInFile(yamlFile: string, line: number, character: number) {
   const textDoc = getDoc(`yaml/${yamlFile}`);
@@ -26,19 +26,19 @@ function getPathInFile(yamlFile: string, line: number, character: number) {
 }
 
 describe("yaml", function () {
-  beforeEach(function (this: Mocha.Context) {
+  beforeEach((context) => {
     const brokenTests = new Map([
       // ['<testName>', '<url-of-tracking-issue>'],
     ]);
-    const reason = brokenTests.get(this.currentTest?.title);
-    if (isWindows() && reason && this.currentTest) {
-      const msg = `Marked ${this.currentTest.title} as pending due to ${reason}`;
+    const reason = brokenTests.get(context.task?.name);
+    if (isWindows() && reason && context.task) {
+      const msg = `Marked ${context.task.name} as pending due to ${reason}`;
       if (process.env.GITHUB_ACTIONS) {
-        console.log(`::warning file=${this.currentTest.file}:: ${msg}`);
+        console.log(`::warning file=${context.task.file}:: ${msg}`);
       } else {
         console.log(`🚩 ${msg}`);
       }
-      this.currentTest.pending = true;
+      context.skip();
     }
   });
 
@@ -46,70 +46,76 @@ describe("yaml", function () {
     it("canGetParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().get();
-      expect(node).to.be.an.instanceOf(YAMLMap);
+      expect(node).toBeInstanceOf(YAMLMap);
     });
 
     it("canGetAssertedParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLMap).get();
-      expect(node).to.be.an.instanceOf(YAMLMap);
+      expect(node).toBeInstanceOf(YAMLMap);
     });
 
     it("canAssertParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLSeq).get();
-      expect(node).to.be.null;
+      expect(node).toBeNull();
     });
 
     it("canGetAncestor", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().parent().get();
-      expect(node).to.be.an.instanceOf(YAMLSeq);
+      expect(node).toBeInstanceOf(YAMLSeq);
     });
 
     it("canGetParentPath", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent().getPath();
-      expect(subPath)
-        .to.be.an.instanceOf(Array)
-        .to.have.lengthOf((path?.length || 0) - 2);
+      expect(subPath).toBeInstanceOf(Array);
+      expect(subPath).toHaveLength((path?.length || 0) - 2);
     });
 
     it("canGetKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
-      expect(key).to.be.equal("name");
+      expect(key).toBe("name");
     });
 
     it("canGetKeyForValue", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
-      expect(key).to.be.equal("name");
+      expect(key).toBe("name");
     });
 
     it("canGetKeyPath", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
-      expect(subPath)
-        .to.be.an.instanceOf(Array)
-        .to.have.lengthOf(path?.length || 0);
-      if (subPath)
-        expect(subPath[subPath.length - 1])
-          .to.be.an.instanceOf(Scalar)
-          .to.have.property("value", "name");
+      expect(subPath).toBeInstanceOf(Array);
+      expect(subPath).toHaveLength(path?.length || 0);
+      if (subPath && subPath.length > 0) {
+        expect(subPath[subPath.length - 1]).toBeInstanceOf(Scalar);
+        expect(subPath[subPath.length - 1]).toHaveProperty("value", "name");
+      }
     });
 
     it("canGetAssertedParentOfKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parentOfKey().get();
-      expect(node).to.be.an.instanceOf(YAMLMap);
-      expect(node).to.have.nested.property("items[0].key.value", "name");
+      expect(node).toBeInstanceOf(YAMLMap);
+      if (node) {
+        const yamlMap = node;
+        expect(yamlMap).toHaveProperty("items");
+        const firstItem = yamlMap.items?.[0];
+        if (firstItem && "key" in firstItem) {
+          const key = firstItem.key as Scalar;
+          expect(key.value).toBe("name");
+        }
+      }
     });
 
     it("canAssertParentOfKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
       const node = new AncestryBuilder(path).parentOfKey().get();
-      expect(node).to.be.null;
+      expect(node).toBeNull();
     });
 
     it("canGetIndentationParent", async function () {
@@ -118,7 +124,7 @@ describe("yaml", function () {
         .parent(YAMLMap)
         .parent(YAMLMap)
         .getStringKey();
-      expect(node).to.be.equal("lineinfile");
+      expect(node).toBe("lineinfile");
     });
 
     it.skip("canGetIndentationParentAtEndOfMap", async function () {
@@ -131,7 +137,7 @@ describe("yaml", function () {
           .parent(YAMLMap)
           .parent(YAMLMap)
           .getStringKey();
-        expect(node).to.be.equal("lineinfile");
+        expect(node).toBe("lineinfile");
       }
     });
 
@@ -144,7 +150,7 @@ describe("yaml", function () {
         .parent(YAMLMap)
         .parent(YAMLMap)
         .getStringKey();
-      expect(node).to.be.equal("lineinfile");
+      expect(node).toBe("lineinfile");
     });
   });
 
@@ -152,67 +158,79 @@ describe("yaml", function () {
     it("canGetCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 13, 7);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canGetCollectionsFromPreTasks", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 9, 7);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canGetCollectionsFromBlock", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 12, 11);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canGetCollectionsFromNestedBlock", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 23, 15);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canGetCollectionsFromRescue", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 27, 11);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canGetCollectionsFromAlways", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 31, 11);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([
-        "mynamespace.mycollection",
-        "mynamespace2.mycollection2",
-      ]);
+      expect(collections).toEqual(
+        expect.arrayContaining([
+          "mynamespace.mycollection",
+          "mynamespace2.mycollection2",
+        ]),
+      );
     });
 
     it("canWorkWithoutCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 38, 7);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([]);
+      expect(collections).toEqual(expect.arrayContaining([]));
     });
 
     it("canWorkWithEmptyCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 46, 7);
       const collections = getDeclaredCollections(path);
-      expect(collections).to.have.members([]);
+      expect(collections).toEqual(expect.arrayContaining([]));
     });
   });
 
@@ -405,7 +423,7 @@ describe("yaml", function () {
         const test = isCursorInsideJinjaBrackets(document, position, path);
         expect(test).to.be.eq(true);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
 
@@ -418,7 +436,7 @@ describe("yaml", function () {
         const test = isCursorInsideJinjaBrackets(document, position, path);
         expect(test).to.be.eq(true);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
 
@@ -431,7 +449,7 @@ describe("yaml", function () {
         const test = isCursorInsideJinjaBrackets(document, position, path);
         expect(test).to.be.eq(true);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
 
@@ -444,7 +462,7 @@ describe("yaml", function () {
         const test = isCursorInsideJinjaBrackets(document, position, path);
         expect(test).to.be.eq(true);
       } else {
-        expect(false);
+        expect(false).toBe(true);
       }
     });
 

@@ -33,12 +33,6 @@ export const StandardRolePaths = [
   "/etc/ansible/roles",
 ];
 
-export const IncludeVarValidTaskName = [
-  "include_vars",
-  "ansible.builtin.include_vars",
-  "ansible.legacy.include_vars",
-];
-
 export const ADE_ISOLATION_MODE_MIN = "25.4.0";
 
 /* Slightly lower than CloudFront's timeout which is 30s. */
@@ -47,8 +41,6 @@ export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
 export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
 
 export const ANSIBLE_CREATOR_COLLECTION_VERSION_MIN = "24.7.1";
-
-export const ANSIBLE_CREATOR_EE_VERSION_MIN = "24.12.1";
 
 export const DevfileImages = {
   Upstream: "ghcr.io/ansible/ansible-devspaces:latest",
@@ -71,8 +63,9 @@ You answer with just an Ansible playbook.`;
 
 // For role generation (from backend: langchain/pipelines.py)
 export const ANSIBLE_SYSTEM_PROMPT_ROLE = `You are an ansible expert optimized to generate Ansible roles.
-First line the role name in a way: role_name.
-After that the answer is a plain tasks/main.yml file for the user's request.
+Generate ONLY the tasks/main.yml file content as a YAML array of tasks.
+Do NOT include role_name, do NOT include document separators (---), do NOT include multiple YAML documents.
+Output ONLY a single YAML array starting with "- name:" for each task.
 Prefix your comments with the hash character.`;
 
 // For chat/explanations

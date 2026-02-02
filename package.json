@@ -169,18 +169,9 @@
         "title": "Explain the role with Ansible Lightspeed"
       },
       {
-        "command": "ansible.lightspeed.openTrialPage",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
-        "title": "Ansible Lightspeed: Open trial page"
-      },
-      {
         "command": "ansible.lightspeed.explorer.refresh",
         "icon": "$(refresh)",
         "title": "Ansible Lightspeed: Refresh explorer view"
-      },
-      {
-        "command": "ansible.lightspeed.enableExperimentalFeatures",
-        "title": "Ansible Lightspeed: Enable experimental features"
       },
       {
         "command": "ansible.walkthrough.gettingStarted.setLanguage",
@@ -204,11 +195,11 @@
       },
       {
         "command": "ansible.mcpServer.enabled",
-        "title": "Enable Ansible Development Tools MCP Server"
+        "title": "Ansible: Enable Ansible Development Tools MCP Server"
       },
       {
         "command": "ansible.mcpServer.disable",
-        "title": "Disable Ansible Development Tools MCP Server"
+        "title": "Ansible: Disable Ansible Development Tools MCP Server"
       },
       {
         "command": "ansible.lightspeed.testProviderConnection",
@@ -335,6 +326,13 @@
             "scope": "resource",
             "type": "string"
           },
+          "ansible.validation.lint.autoFixOnSave": {
+            "default": false,
+            "markdownDescription": "Specifies whether `ansible-lint --fix` should run automatically when you save a file. [Learn more](https://ansible.readthedocs.io/projects/lint/autofix/)",
+            "order": 4,
+            "scope": "resource",
+            "type": "boolean"
+          },
           "ansible.validation.lint.enabled": {
             "default": true,
             "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
@@ -441,6 +439,27 @@
             "order": 0,
             "scope": "resource",
             "type": "boolean"
+          },
+          "ansible.lightspeed.modelName": {
+            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults).",
+            "order": 2,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.provider": {
+            "default": "wca",
+            "enum": [
+              "wca",
+              "google"
+            ],
+            "enumDescriptions": [
+              "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
+            ],
+            "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
@@ -968,7 +987,7 @@
           "rulebooks/*.yaml",
           "rulebooks/*.yml"
         ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
+        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/ansible_rulebook/schema/ruleset_schema.json"
       }
     ]
   },
@@ -990,41 +1009,42 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
-    "@google/genai": "^1.29.0",
+    "@google/genai": "^1.38.0",
     "@highlightjs/vue-plugin": "2.1.0",
-    "@primeuix/themes": "^1.2.5",
+    "@primeuix/themes": "^2.0.3",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@tomjs/vite-plugin-vscode": "^4.2.1",
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vscode-elements/elements": "^2.0.0",
-    "@vscode/webview-ui-toolkit": "^1.4.0",
-    "electron": "^39.2.6",
+    "@vscode-elements/elements": "^2.4.0",
+    "@vscode/codicons": "^0.0.44",
+    "electron": "^40.0.0",
     "highlight.js": "^11.11.1",
     "ini": "^6.0.0",
     "js-yaml": "^4.1.1",
     "marked": "^17.0.1",
     "minimatch": "^10.1.1",
-    "primevue": "4.4.1",
+    "primevue": "4.5.4",
     "semver": "^7.7.3",
     "uuid": "^13.0.0",
-    "vite": "^7.2.7",
+    "vite": "^7.3.1",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
-    "vue": "^3.5.25",
+    "vue": "^3.5.27",
     "vue-tsc": "^3.1.8",
     "yaml": "^2.8.2"
   },
   "description": "Ansible language support",
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@html-eslint/eslint-plugin": "^0.51.0",
+    "@biomejs/biome": "^2.3.13",
+    "@eslint/js": "^9.39.2",
+    "@html-eslint/eslint-plugin": "^0.54.0",
     "@types/chai": "^5.2.3",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^27.0.0",
-    "@types/lodash": "^4.17.21",
+    "@types/lodash": "^4.17.23",
     "@types/mocha": "^10.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.2",
@@ -1034,48 +1054,50 @@
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
     "@types/yargs": "^17.0.35",
-    "@typescript-eslint/eslint-plugin": "^8.49.0",
-    "@typescript-eslint/parser": "^8.49.0",
-    "@vitest/coverage-v8": "^4.0.15",
-    "@vitest/ui": "^4.0.15",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "@vitest/coverage-v8": "^v4.1.0-beta.2",
+    "@vitest/ui": "^v4.1.0-beta.2",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.7.1",
-    "chai": "^6.2.1",
+    "@vue/test-utils": "^2.4.6",
+    "chai": "^6.2.2",
+    "copy-webpack-plugin": "^13.0.1",
     "cypress-multi-reporters": "^2.0.5",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-formatter-gha": "^2.0.0",
+    "eslint-formatter-gha": "^2.0.1",
     "eslint-formatter-unix": "^9.0.1",
     "eslint-plugin-chai-friendly": "^1.1.0",
-    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-tsdoc": "^0.5.0",
     "express": "^5.2.1",
     "find-process": "^2.0.0",
     "glob": "^13.0.0",
-    "globals": "^16.5.0",
-    "jsdom": "^27.3.0",
-    "knip": "^5.72.0",
+    "globals": "^17.0.0",
+    "jsdom": "^27.4.0",
+    "knip": "^5.82.1",
     "lodash": "^4.17.21",
     "mocha": "^11.7.5",
+    "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "morgan": "^1.10.1",
-    "npm-check-updates": "^19.1.2",
-    "ovsx": "^0.10.7",
+    "npm-check-updates": "^19.3.1",
+    "ovsx": "^0.10.8",
     "prettier": "^3.7.4",
-    "react": "^19.2.1",
     "rimraf": "^6.1.2",
-    "selenium-webdriver": "^4.36.0",
-    "sinon": "^21.0.0",
+    "selenium-webdriver": "^4.40.0",
+    "sinon": "^21.0.1",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0",
-    "vitest": "^4.0.15",
-    "vscode-extension-tester": "^8.19.0",
+    "typescript-eslint": "^8.53.1",
+    "vitest": "^v4.1.0-beta.2",
+    "vscode-extension-tester": "^8.21.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
-    "webpack": "^5.103.0",
+    "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
     "winston": "^3.19.0",
     "yargs": "^18.0.0"
@@ -1133,7 +1155,11 @@
   "version": "0.0.0",
   "vsce": {
     "dependencies": false,
-    "yarn": false
+    "followSymlinks": true,
+    "gitTagVersion": false,
+    "readmePath": "docs/README.md",
+    "updatePackageJson": false,
+    "yarn": true
   },
   "workspaces": [
     "packages/*"

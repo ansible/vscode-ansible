@@ -9,7 +9,7 @@ export interface IInterpreterDetails {
 }
 
 /** Activate python extension */
-export async function activatePythonExtension() {
+async function activatePythonExtension() {
   const extension = extensions.getExtension("ms-python.python");
   if (extension) {
     if (!extension.isActive) {

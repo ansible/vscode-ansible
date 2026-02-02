@@ -1,5 +1,3 @@
-import fs from "node:fs/promises";
-import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
 import {
@@ -11,6 +9,7 @@ import {
   setupDevelopmentEnvironment,
   checkAndInstallADT,
   formatEnvironmentInfo,
+  type SystemInfo,
 } from "./tools/adeTools.js";
 import {
   generateExecutionEnvironment,
@@ -33,9 +32,9 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAgentsGuidelinesHandler() {
-  return async () => {
+  return async (args?: { topic?: string }) => {
     try {
-      const guidelines = await getAgentsGuidelines();
+      const guidelines = await getAgentsGuidelines(args?.topic);
       return {
         content: [
           {
@@ -130,18 +129,6 @@ export function createAnsibleLintHandler() {
   };
 }
 
-export function createWorkspaceFileHandler(workspaceRoot: string) {
-  return async (uri: URL, variables: Record<string, string | string[]>) => {
-    const raw = variables["relPath"];
-    const rel = Array.isArray(raw) ? raw.join("/") : (raw ?? "");
-    const abs = path.resolve(workspaceRoot, rel);
-    const data = await fs.readFile(abs, "utf8");
-    return {
-      contents: [{ uri: uri.href, mimeType: "text/plain", text: data }],
-    };
-  };
-}
-
 export function createListToolsHandler(getToolNames: () => string[]) {
   return async () => {
     const toolNames = getToolNames();
@@ -188,21 +175,113 @@ export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
 }
 
 export function createADESetupEnvironmentHandler(workspaceRoot: string) {
-  return async (args: {
+  return async (args?: {
     envName?: string;
     pythonVersion?: string;
     collections?: string[];
     installRequirements?: boolean;
     requirementsFile?: string;
+    // OS info for correct package manager - LLM MUST provide these
+    osType?: string;
+    osDistro?: string;
+    packageManager?: string;
   }) => {
     try {
-      const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+      const notes: string[] = [];
+
+      // Ensure args is defined
+      const safeArgs = args || {};
+
+      // If OS info is not provided, ask the LLM to provide it
+      if (!safeArgs.osType) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "**OS Information Required**\n\n" +
+                "To provide correct package manager commands, please specify the operating system.\n\n" +
+                "Please call this tool again with:\n" +
+                "- `osType`: 'linux' or 'darwin' (macOS)\n" +
+                "- `osDistro`: Distribution name (e.g., 'fedora', 'ubuntu', 'rhel', 'macos')\n\n" +
+                "**Examples:**\n" +
+                '- macOS: `{"osType": "darwin", "osDistro": "macos", ...}`\n' +
+                '- Fedora: `{"osType": "linux", "osDistro": "fedora", ...}`\n' +
+                '- Ubuntu: `{"osType": "linux", "osDistro": "ubuntu", ...}`\n' +
+                '- RHEL: `{"osType": "linux", "osDistro": "rhel", ...}`\n\n' +
+                "**Supported distributions:**\n" +
+                "- Debian-based (apt): ubuntu, debian, linux mint\n" +
+                "- Red Hat-based (dnf): fedora, rhel, centos, rocky, alma\n" +
+                "- Arch-based (pacman): arch, manjaro\n" +
+                "- SUSE-based (zypper): opensuse, suse\n" +
+                "- Other: alpine (apk), gentoo (emerge)\n" +
+                "- macOS (brew): darwin, macos\n\n" +
+                "Please ask the user what OS they are using if not already known.",
+            },
+          ],
+          isError: false,
+        };
+      }
+
+      // Build systemInfo from provided args (osType is guaranteed to be defined here)
+      const systemInfo: SystemInfo = {
+        osType: safeArgs.osType,
+        osDistro: safeArgs.osDistro,
+        packageManager: safeArgs.packageManager,
+      };
+
+      // Auto-detect: If requirementsFile looks like collection names, move them to collections
+      // Collection format: namespace.collection (e.g., amazon.aws, ansible.posix)
+      // NOT file extensions like .txt, .yml, .yaml, .json, .cfg
+      if (safeArgs.requirementsFile) {
+        const fileExtensions = /\.(txt|yml|yaml|json|cfg|ini|req|in)$/i;
+        const collectionPattern = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/i;
+
+        // Skip if it looks like a file path
+        if (!fileExtensions.test(safeArgs.requirementsFile)) {
+          const potentialCollections = safeArgs.requirementsFile
+            .split(/[,\s]+/)
+            .filter((s) => s.trim());
+
+          const detectedCollections = potentialCollections.filter((name) =>
+            collectionPattern.test(name.trim()),
+          );
+
+          if (detectedCollections.length > 0) {
+            // Auto-correct: Move to collections parameter
+            safeArgs.collections = [
+              ...(safeArgs.collections || []),
+              ...detectedCollections,
+            ];
+            notes.push(
+              `Auto-detected collections: ${detectedCollections.join(", ")}`,
+            );
+            // Clear requirementsFile since we moved the collections
+            delete safeArgs.requirementsFile;
+          }
+        }
+      }
+
+      // Remove empty requirementsFile
+      if (safeArgs.requirementsFile === "") {
+        delete safeArgs.requirementsFile;
+      }
+
+      const result = await setupDevelopmentEnvironment(workspaceRoot, {
+        ...safeArgs,
+        systemInfo,
+      });
+
+      // Prepend notes to output
+      const output = notes.length
+        ? notes.join("\n") + "\n" + result.output
+        : result.output;
 
       return {
         content: [
           {
             type: "text" as const,
-            text: result.output,
+            text: output,
           },
         ],
         isError: !result.success,
@@ -223,10 +302,10 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
   };
 }
 
-export function createADTCheckEnvHandler() {
+export function createADTCheckEnvHandler(workspaceRoot: string) {
   return async () => {
     try {
-      const result = await checkAndInstallADT();
+      const result = await checkAndInstallADT(workspaceRoot);
 
       return {
         content: [
@@ -279,7 +358,7 @@ export function createAnsibleNavigatorHandler() {
               "- **VM/Podman** (default) - Runs in isolated container environment\n" +
               "- **Local Ansible** - Runs directly on your system (use `--ee false`)\n" +
               "- **Virtual Environment** - Runs from specific Python venv\n\n" +
-              "## 🔍 Environment Detection (Default Order)\n" +
+              "## Environment Detection (Default Order)\n" +
               "When running ansible-navigator, we auto-detect the installation in this order:\n" +
               "1. **System PATH** - First checks if ansible-navigator is in your PATH (e.g., `/usr/local/bin/ansible-navigator`)\n" +
               "2. **Virtual Environments** - Then checks common venv locations (`ansible-dev/bin/`, `venv/bin/`, `.venv/bin/`)\n" +
@@ -296,7 +375,7 @@ export function createAnsibleNavigatorHandler() {
               "# Use specific Python venv\n" +
               "source venv/bin/activate && ansible-navigator run playbooks/play1.yml\n" +
               "```\n\n" +
-              "## 💡 Tips\n" +
+              "## Tips\n" +
               "- **This tool uses**: stdout mode by default (direct output, best for chat/scripting)\n" +
               "- **For exploration**: Use `-m interactive` (TUI - press ESC to navigate)\n" +
               "- **Podman/Docker**: Required for execution environment (EE), auto-retries with `--ee false` if not available\n" +
@@ -356,7 +435,7 @@ export function createAnsibleNavigatorHandler() {
           {
             type: "text" as const,
             text:
-              "❌ **Could not determine which playbook to run.**\n\n" +
+              "**Could not determine which playbook to run.**\n\n" +
               "Please specify the playbook name more clearly. Examples:\n" +
               "- 'run play1.yml'\n" +
               "- 'run playbooks/deploy.yml'\n" +
@@ -433,7 +512,7 @@ export function createAnsibleNavigatorHandler() {
       // If it's a container engine error and we haven't already disabled EE, automatically retry
       if (isContainerEngineError && !disableExecutionEnvironment) {
         // Inform the user we're automatically retrying
-        const retryMessage = `⚠️  Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
+        const retryMessage = `Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
 
         try {
           // Retry with execution environment disabled

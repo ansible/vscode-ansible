@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import { withInterpreter } from "../../src/utils/misc";
+import { expect } from "vitest";
+import { withInterpreter } from "../../src/utils/misc.js";
 
 interface testType {
   scenario: string;
@@ -72,7 +72,7 @@ describe("withInterpreter", function () {
           interpreterPath,
           activationScript,
         );
-        expect(actualCommand.command).to.equal(expectedCommand);
+        expect(actualCommand.command).toBe(expectedCommand);
 
         if (expectedEnv) {
           const expectedKeys = Object.keys(expectedEnv);
@@ -81,9 +81,9 @@ describe("withInterpreter", function () {
             expect(actualCommand.env).to.haveOwnProperty(key);
             expect(typeof actualCommand.env === "object");
             if (!actualCommand.env || typeof expectedEnv === "string") {
-              expect(false);
+              expect(false).toBe(true);
             } else {
-              expect(actualCommand.env[key]).to.include(expectedEnv[key]);
+              expect(actualCommand.env[key]).toContain(expectedEnv[key]);
             }
           });
         }

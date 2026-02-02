@@ -2,7 +2,7 @@ import express, { Application } from "express";
 import * as winston from "winston";
 import morgan from "morgan";
 
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
   level: "debug",
   format: winston.format.json(),
   transports: [
@@ -67,7 +67,7 @@ const mockResponse = {
   ],
 };
 
-export default class LLMProviderServer {
+class LLMProviderServer {
   constructor(app: Application) {
     this.init(app);
   }

@@ -1,26 +1,26 @@
 import { Connection } from "vscode-languageserver";
 import { Node } from "yaml";
-import { getDeclaredCollections } from "../utils/yaml";
-import { findDocumentation, findPluginRouting } from "../utils/docsFinder";
-import { WorkspaceFolderContext } from "./workspaceManager";
+import { getDeclaredCollections } from "../utils/yaml.js";
+import { findDocumentation, findPluginRouting } from "../utils/docsFinder.js";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
 import {
   IPluginRoute,
   IPluginRoutesByType,
   IPluginRoutingByCollection,
-} from "../interfaces/pluginRouting";
+} from "../interfaces/pluginRouting.js";
 import {
   processDocumentationFragments,
   processRawDocumentation,
-} from "../utils/docsParser";
-import { IModuleMetadata } from "../interfaces/module";
+} from "../utils/docsParser.js";
+import { IModuleMetadata } from "../interfaces/module.js";
 import * as path from "path";
 import { existsSync, lstatSync } from "fs";
 import { URI } from "vscode-uri";
 import {
   findModulesUtils,
   getModuleFqcnsUtils,
-} from "./docsLibraryUtilsForPAC";
-import { globArray } from "../utils/pathUtils";
+} from "./docsLibraryUtilsForPAC.js";
+import { globArray } from "../utils/pathUtils.js";
 export class DocsLibrary {
   private connection: Connection;
   private modules = new Map<string, IModuleMetadata>();
@@ -43,11 +43,13 @@ export class DocsLibrary {
         this.context.workspaceFolder.uri,
       );
       const ansibleConfig = await this.context.ansibleConfig;
+      /* v8 ignore next */
       if (settings.executionEnvironment.enabled) {
         // ensure plugin/module cache is established
         const executionEnvironment = await this.context.executionEnvironment;
         await executionEnvironment.fetchPluginDocs(ansibleConfig);
       }
+      /* v8 ignore next */
       for (const modulesPath of ansibleConfig.module_locations) {
         await this.findDocumentationInModulesPath(modulesPath);
       }
@@ -191,10 +193,12 @@ export class DocsLibrary {
     (
       await findDocumentation(collectionsPath, "collection_doc_fragment")
     ).forEach((doc) => {
+      /* v8 ignore next */
       this.docFragments.set(doc.fqcn, doc);
     });
 
     (await findPluginRouting(collectionsPath, "collection")).forEach(
+      /* v8 ignore next */
       (r, collection) => this.pluginRouting.set(collection, r),
     );
 

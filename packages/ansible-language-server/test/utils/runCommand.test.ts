@@ -1,12 +1,19 @@
-import { CommandRunner } from "../../src/utils/commandRunner";
-import { expect } from "chai";
+import { CommandRunner } from "../../src/utils/commandRunner.js";
+import { expect, it } from "vitest";
 import { AssertionError } from "assert";
-import { WorkspaceManager } from "../../src/services/workspaceManager";
+import { WorkspaceManager } from "../../src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
-import { getDoc } from "../helper";
+import { getDoc } from "../helper.js";
 import * as path from "path";
 import { readFileSync } from "fs";
 import { ExecException } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { createRequire } from "module";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 describe("commandRunner", function () {
   const packageJsonPath = require.resolve("../../package.json");
@@ -85,11 +92,9 @@ describe("commandRunner", function () {
 
   tests.forEach(
     ({ args, rc, stdout, stderr, pythonInterpreterPath, activationScript }) => {
-      it(`call ${args.join(" ")}`, async function () {
-        this.timeout(10000);
-
+      it(`call ${args.join(" ")}`, { timeout: 10000 }, async () => {
         // try to enforce ansible to output ANSI in order to check if we are
-        // still able to disable it at runtime in order to keep output parseable.
+        // still able to disable it at runtime in order to keep output parsable.
         process.env.ANSIBLE_FORCE_COLOR = "1";
 
         process.argv.push("--node-ipc");
@@ -116,17 +121,17 @@ describe("commandRunner", function () {
               args[0],
               args.slice(1).join(" "),
             );
-            expect(proc.stdout, proc.stderr).contains(stdout);
-            expect(proc.stderr, proc.stdout).contains(stderr);
+            expect(proc.stdout).toContain(stdout);
+            expect(proc.stderr).toContain(stderr);
           } catch (e) {
             if (e instanceof AssertionError) {
               throw e;
             }
             if (e instanceof Error) {
               const err = e as ExecException;
-              expect(err.code).equals(rc);
-              expect(err.stdout).contains(stdout);
-              expect(err.stderr).contains(stderr);
+              expect(err.code).toBe(rc);
+              expect(err.stdout).toContain(stdout);
+              expect(err.stderr).toContain(stderr);
             }
           }
         }

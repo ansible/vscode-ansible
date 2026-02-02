@@ -1,7 +1,7 @@
 import { Connection } from "vscode-languageserver";
 import { URI } from "vscode-uri";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { CommandRunner } from "./commandRunner";
+import { WorkspaceFolderContext } from "../services/workspaceManager.js";
+import { CommandRunner } from "./commandRunner.js";
 import * as child_process from "child_process";
 
 let context: WorkspaceFolderContext;

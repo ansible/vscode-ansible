@@ -11,7 +11,7 @@ tasks:
     sources:
       - package.json
       - packages/*/package.json
-      - .yarn.lock
+      - yarn.lock
     run: once
     interactive: true
   uv:
@@ -35,11 +35,13 @@ tasks:
       OS: "{{OS}}"
       ARCH: "{{ARCH}}"
     deps:
+      - mise
       - yarn
       - uv
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - bash ./tools/test-setup.sh
+      - ./tools/precheck.sh
     sources:
       - ./tools/precheck.sh
       - pyproject.toml
@@ -48,3 +50,12 @@ tasks:
       - out/log/manifest-*.yml
     run: once
     interactive: true
+  mise:
+    desc: Check if mise is installed and working
+    internal: true
+    silent: true
+    status:
+      - '[ -n "$CI" ]'
+    cmds:
+      - "mise --version >>/dev/null || { echo ''ERROR: mise not found in PATH'' >&2; exit 1; }"
+      - "mise doctor >>/dev/null || { mise doctor || echo 'ERROR: mise doctor failed, resolve reported problems.' >&2 && exit 1; }"

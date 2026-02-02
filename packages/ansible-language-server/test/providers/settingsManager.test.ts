@@ -1,10 +1,10 @@
-import { expect } from "chai";
+import { expect, beforeAll } from "vitest";
 import {
   WorkspaceFolderContext,
   WorkspaceManager,
-} from "../../src/services/workspaceManager";
-import { createTestWorkspaceManager } from "../helper";
-import { ExtensionSettings } from "../../src/interfaces/extensionSettings";
+} from "../../src/services/workspaceManager.js";
+import { createTestWorkspaceManager } from "../helper.js";
+import { ExtensionSettings } from "../../src/interfaces/extensionSettings.js";
 import { ConfigurationItem } from "vscode-languageclient";
 
 function simulateClientSettings(
@@ -25,7 +25,7 @@ describe("get()", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
 
-      before(async function () {
+      beforeAll(async () => {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, []);
         context = workspaceManager.getContext("");
@@ -37,7 +37,7 @@ describe("get()", function () {
       it("should return default value for all settings", function () {
         expect(typeof context !== "undefined");
         if (typeof context !== "undefined") {
-          expect(mergedSettings).to.deep.equal(
+          expect(mergedSettings).toEqual(
             context.documentSettings.globalSettings,
           );
         }
@@ -48,7 +48,7 @@ describe("get()", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
 
-      before(async function () {
+      beforeAll(async () => {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, {
           validation: { lint: { enabled: false } },
@@ -60,16 +60,35 @@ describe("get()", function () {
       });
 
       it("should return setting from client when defined", function () {
-        expect(mergedSettings.validation.lint.enabled).to.equal(false);
+        expect(mergedSettings.validation.lint.enabled).toBe(false);
       });
 
       it("should return default value otherwise", function () {
         if (typeof context !== "undefined") {
-          expect(mergedSettings.validation.lint.path).to.equal(
+          expect(mergedSettings.validation.lint.path).toBe(
             context.documentSettings.globalSettings.validation.lint.path,
           );
         }
       });
+    });
+  });
+
+  describe("When client provides autoFixOnSave setting", function () {
+    let mergedSettings: ExtensionSettings;
+
+    beforeAll(async () => {
+      const workspaceManager = createTestWorkspaceManager();
+      simulateClientSettings(workspaceManager, {
+        validation: { lint: { autoFixOnSave: true } },
+      });
+      const context = workspaceManager.getContext("");
+      if (typeof context !== "undefined") {
+        mergedSettings = await context.documentSettings.get("");
+      }
+    });
+
+    it("should return autoFixOnSave value from client", function () {
+      expect(mergedSettings.validation.lint.autoFixOnSave).toBe(true);
     });
   });
 });

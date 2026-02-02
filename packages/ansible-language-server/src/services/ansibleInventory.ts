@@ -1,6 +1,6 @@
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "./workspaceManager";
-import { CommandRunner } from "../utils/commandRunner";
+import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { CommandRunner } from "../utils/commandRunner.js";
 import { URI } from "vscode-uri";
 
 export type HostType = { host: string; priority: number };

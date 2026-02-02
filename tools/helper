@@ -5,7 +5,7 @@
 import argparse
 import glob
 import logging
-import os
+import pathlib
 import subprocess
 import sys
 from datetime import datetime
@@ -13,6 +13,7 @@ from datetime import datetime
 
 def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
     """Helper to easy calling subprocess."""
+    logging.info("run: %s", cmd)
     return subprocess.run(cmd, shell=True, check=True)
 
 
@@ -27,9 +28,11 @@ def get_tags(cmd: str) -> subprocess.CompletedProcess[str]:
             text=True,
         )
     except subprocess.CalledProcessError as e:
-        logging.warning("This repository is missing tags. Fetch tags from upstream repository.")
-        logging.error(e)
-        logging.error(e.output)
+        logging.warning(
+            "This repository is missing tags. Fetch tags from upstream repository."
+        )
+        logging.exception(e)
+        logging.exception(e.output)
         result = subprocess.CompletedProcess(
             "",
             0,
@@ -104,8 +107,8 @@ def cli() -> None:
                 ).stdout.rstrip()
             )
         except subprocess.CalledProcessError as e:
-            logging.error(e)
-            logging.error(e.output)
+            logging.exception(e)
+            logging.exception(e.output)
             last_tag_timestamp = 1721335286
             last_commit_timestamp = 1722605520
         version_info[2] = last_commit_timestamp - last_tag_timestamp
@@ -142,22 +145,24 @@ def cli() -> None:
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
-        # Webpack bundles the MCP server code into out/mcp/cli.js
         # We only need to copy the resource data files that are loaded at runtime
         # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
         run("task build")
         run("mkdir -p out/mcp/data")
-        run("cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true")
-
         run(
-            "vsce package --follow-symlinks --no-dependencies --no-git-tag-version"
-            f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
+            "cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true"
         )
-        # Using zipinfo instead of `vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+
+        # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
+        run(f"vsce package --no-update-package-json {pre_release_arg} {version}")
+
+        # running `vsce ls` is a must as it is also executed by extester so we need
+        # to be sure that the command succeeds.
+        # --yarn needed to avoid a warning message as package.json config does not prevent it
+        run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
-        run("zipinfo -1 ./*.vsix > out/log/package.log")
         vsix_file = f"ansible-{version}.vsix"
-        size = os.path.getsize(vsix_file) / 1024 / 1024
+        size = pathlib.Path(vsix_file).stat().st_size / 1024 / 1024
         vsx_size_limit_mb = 8.0
         print(f"Generated ansible-{vsix_file} of size {size:.2f} MB")
         if size > vsx_size_limit_mb:

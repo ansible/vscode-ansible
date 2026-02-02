@@ -1,18 +1,3 @@
-export interface CompletionResponseParams {
-  predictions: string[];
-}
-
-export interface MetadataParams {
-  documentUri: string;
-  activityId: string;
-}
-export interface CompletionRequestParams {
-  prompt: string;
-  suggestionId?: string;
-  metadata?: MetadataParams;
-  model?: string;
-}
-
 export enum UserAction {
   ACCEPTED = 0, // accepted the suggestion
   REJECTED = 1, // rejected the suggestion
@@ -67,8 +52,8 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.openLlmProviderSettings";
 }
 
-export const LIGHTSPEED_API_VERSION = "v0";
-export const LIGHTSPEED_API_VERSION_V1 = "v1";
+const LIGHTSPEED_API_VERSION = "v0";
+const LIGHTSPEED_API_VERSION_V1 = "v1";
 export const LIGHTSPEED_PLAYBOOK_EXPLANATION_URL = `${LIGHTSPEED_API_VERSION}/ai/explanations/`;
 export const LIGHTSPEED_PLAYBOOK_GENERATION_URL = `${LIGHTSPEED_API_VERSION}/ai/generations/`;
 export const LIGHTSPEED_ROLE_GENERATION_URL = `${LIGHTSPEED_API_VERSION_V1}/ai/generations/role/`;
@@ -78,13 +63,6 @@ export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/
 export const LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL = `${LIGHTSPEED_API_VERSION}/ai/contentmatches/`;
 export const LIGHTSPEED_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/`;
 export const LIGHTSPEED_MARKDOWN_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/summary/`;
-
-export const LIGHTSPEED_FEEDBACK_FORM_URL =
-  "https://red.ht/ansible-ai-feedback";
-
-export const LIGHTSPEED_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
-export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
-  "ansible.lightspeed.statusBar.clickHandler";
 
 export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;

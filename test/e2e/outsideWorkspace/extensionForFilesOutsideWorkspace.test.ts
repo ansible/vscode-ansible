@@ -2,7 +2,6 @@ import { Position, Range, Uri, commands } from "vscode";
 import {
   activate,
   getDocUriOutsideWorkspace,
-  run_lightspeed_tests_only,
   testDiagnostics,
   testHover,
   waitForDiagnosisCompletion,
@@ -16,9 +15,6 @@ describe("language services for a playbook that is present outside a workspace",
   const docUri = Uri.parse(getDocUriOutsideWorkspace(playbook));
 
   before(async function () {
-    if (run_lightspeed_tests_only) {
-      this.skip();
-    }
     await commands.executeCommand("workbench.action.closeAllEditors");
     await activate(docUri);
   });

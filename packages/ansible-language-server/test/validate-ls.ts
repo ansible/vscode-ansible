@@ -1,5 +1,5 @@
 import * as cp from "child_process";
-import * as rpc from "vscode-jsonrpc/node";
+import * as rpc from "vscode-jsonrpc/node.js";
 
 const lspProcess = cp.spawn("npm", [
   "exec",
@@ -8,9 +8,7 @@ const lspProcess = cp.spawn("npm", [
   "--stdio",
 ]);
 
-export type LanguageServer = rpc.MessageConnection;
-
-export const exit = async (languageServer: rpc.MessageConnection) => {
+const exit = async (languageServer: rpc.MessageConnection) => {
   const ret = new Promise((resolve) => {
     languageServer.onClose(() => {
       languageServer.dispose();

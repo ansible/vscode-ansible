@@ -6,16 +6,19 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { ValidationManager } from "../services/validationManager";
-import { WorkspaceFolderContext } from "../services/workspaceManager";
-import { isPlaybook, parseAllDocuments } from "../utils/yaml";
-import { CommandRunner } from "../utils/commandRunner";
+import { ValidationManager } from "../services/validationManager.js";
+import { WorkspaceFolderContext } from "../services/workspaceManager.js";
+import { isPlaybook, parseAllDocuments } from "../utils/yaml.js";
+import { CommandRunner } from "../utils/commandRunner.js";
+import { SchemaService } from "../services/schemaService.js";
+import { SchemaValidator } from "../services/schemaValidator.js";
 
 /**
  * Validates the given document.
  * @param textDocument - the document to validate
  * @param linter - uses linter
  * @param quick - only re-evaluates YAML validation and uses lint cache
+ * @param schemaService - optional schema service for JSON schema validation
  * @returns Map of diagnostics per file.
  */
 export async function doValidate(
@@ -24,6 +27,7 @@ export async function doValidate(
   quick = true,
   context?: WorkspaceFolderContext,
   connection?: Connection,
+  schemaService?: SchemaService,
 ): Promise<Map<string, Diagnostic[]>> {
   let diagnosticsByFile: Map<string, Diagnostic[]> = new Map<
     string,
@@ -92,9 +96,22 @@ export async function doValidate(
   }
 
   // attach quick validation for the inspected file
-  for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
-    if (textDocument.uri === fileUri) {
-      fileDiagnostics.push(...getYamlValidation(textDocument));
+  const settings = await context?.documentSettings.get(textDocument.uri);
+  if (settings?.validation.enabled) {
+    for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
+      if (textDocument.uri === fileUri) {
+        fileDiagnostics.push(...getYamlValidation(textDocument));
+
+        // Add schema validation if schema service is available
+        if (schemaService) {
+          const schemaDiagnostics = await getSchemaValidation(
+            textDocument,
+            schemaService,
+            connection,
+          );
+          fileDiagnostics.push(...schemaDiagnostics);
+        }
+      }
     }
   }
   validationManager.processDiagnostics(textDocument.uri, diagnosticsByFile);
@@ -148,4 +165,32 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   });
 
   return diagnostics;
+}
+
+let schemaValidator: SchemaValidator | undefined;
+
+async function getSchemaValidation(
+  textDocument: TextDocument,
+  schemaService: SchemaService,
+  connection?: Connection,
+): Promise<Diagnostic[]> {
+  if (!schemaService.shouldValidateWithSchema(textDocument)) {
+    return [];
+  }
+
+  const schema = await schemaService.getSchemaForDocument(textDocument);
+  if (!schema) {
+    return [];
+  }
+
+  if (!schemaValidator) {
+    schemaValidator = new SchemaValidator();
+  }
+
+  try {
+    return schemaValidator.validate(textDocument, schema);
+  } catch (err) {
+    connection?.console.error(`Schema validation error: ${err}`);
+    return [];
+  }
 }

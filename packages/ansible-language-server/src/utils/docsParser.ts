@@ -1,4 +1,4 @@
-import * as _ from "lodash";
+import _ from "lodash";
 import * as fs from "fs";
 import { parseDocument, YAMLError } from "yaml";
 import {
@@ -6,14 +6,14 @@ import {
   IModuleDocumentation,
   IModuleMetadata,
   IOption,
-} from "../interfaces/module";
-import { hasOwnProperty, isObject } from "./misc";
+} from "../interfaces/module.js";
+import { hasOwnProperty, isObject } from "./misc.js";
 import {
   IPluginRoute,
   IPluginRoutesByName,
   IPluginRoutesByType,
   IPluginTypes,
-} from "../interfaces/pluginRouting";
+} from "../interfaces/pluginRouting.js";
 
 const DOCUMENTATION = "DOCUMENTATION";
 
@@ -106,7 +106,7 @@ export function processRawDocumentation(
   }
 }
 
-export function processRawOptions(rawOptions: unknown): Map<string, IOption> {
+function processRawOptions(rawOptions: unknown): Map<string, IOption> {
   const options = new Map<string, IOption>();
   if (isObject(rawOptions)) {
     for (const [optionName, rawOption] of Object.entries(rawOptions)) {
@@ -149,6 +149,7 @@ function isIDescription(obj: unknown): obj is IDescription {
 
 export function parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
   const routesByType = new Map<IPluginTypes, IPluginRoutesByName>();
+  /* v8 ignore next 14 */
   if (
     hasOwnProperty(rawDoc, "plugin_routing") &&
     isObject(rawDoc.plugin_routing)

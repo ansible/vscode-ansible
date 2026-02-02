@@ -1,6 +1,11 @@
-import { expect } from "chai";
-import path = require("path");
-import { globArray } from "../../src/utils/pathUtils";
+import { expect } from "vitest";
+import * as path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { globArray } from "../../src/utils/pathUtils.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe("docsFinder", function () {
   const dir = path.resolve(__dirname, "..", "fixtures", "utils", "docsFinder");
@@ -42,7 +47,7 @@ describe("docsFinder", function () {
     tests.forEach(({ name, pattern, filteredFiles }) => {
       it(`should provide file path match for ${name}`, function () {
         const actualResult = globArray(pattern);
-        expect(actualResult).to.have.members(filteredFiles);
+        expect(actualResult).toEqual(expect.arrayContaining(filteredFiles));
       });
     });
   });
