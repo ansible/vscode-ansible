@@ -1,5 +1,5 @@
-import { LightSpeedAPI } from "../../api";
-import { IError } from "../../utils/errors";
+import { LightSpeedAPI } from "@/features/lightspeed/api";
+import { IError } from "@/features/lightspeed/utils/errors";
 import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
@@ -9,14 +9,14 @@ import {
   RoleExplanationRequestParams,
   RoleGenerationRequestParams,
   RoleFileType,
-} from "../../../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 import {
   LightSpeedCommands,
   ThumbsUpDownAction,
-} from "../../../../definitions/lightspeed";
-import { ANSIBLE_PLAYBOOK_EXPLANATION_TEMPLATE } from "../../../../definitions/constants";
+} from "@/definitions/lightspeed";
+import { ANSIBLE_PLAYBOOK_EXPLANATION_TEMPLATE } from "@/definitions/constants";
 import { commands, ExtensionContext } from "vscode";
-import { lightSpeedManager } from "../../../../extension";
+import { lightSpeedManager } from "@/extension";
 
 export async function explainPlaybook(
   apiInstance: LightSpeedAPI,

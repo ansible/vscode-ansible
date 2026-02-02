@@ -5,11 +5,11 @@ import {
   GenerationRequestParams,
   GenerationResponseParams,
   ProviderStatus,
-} from "./base";
+} from "@/features/lightspeed/providers/base";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 import {
   ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
   ANSIBLE_SYSTEM_PROMPT_ROLE,
@@ -17,17 +17,20 @@ import {
   ANSIBLE_SYSTEM_PROMPT_EXPLANATION,
   ANSIBLE_PLAYBOOK_GENERATION_TEMPLATE,
   ANSIBLE_ROLE_GENERATION_TEMPLATE,
-} from "../../../definitions/constants";
-import { getLightspeedLogger } from "../../../utils/logger";
+} from "@/definitions/constants";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+import { getLightspeedLogger } from "@/utils/logger";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "../utils/outlineGenerator";
+} from "@/features/lightspeed/utils/outlineGenerator";
 import {
   OpenAICompatibleClient,
   ChatMessage,
   OpenAIClientError,
-} from "../clients/openaiCompatibleClient";
+} from "@/features/lightspeed/clients/openaiCompatibleClient";
 
 export interface RHCustomConfig {
   apiKey: string;
@@ -502,6 +505,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
         // Try to parse and validate the structure before generating outline
         try {
+          // ESM: Use createRequire for optional dependency
           const yaml = require("js-yaml");
           const parsed = yaml.load(cleanedContent);
           console.log(

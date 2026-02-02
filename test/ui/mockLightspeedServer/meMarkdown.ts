@@ -1,4 +1,4 @@
-import { options } from "./server";
+import { options } from "@test/ui/mockLightspeedServer/server";
 export function meMarkdown() {
   let content =
     "Logged in as: ONE_CLICK_USER (unlicensed)\n\n User Type: Unlicensed";

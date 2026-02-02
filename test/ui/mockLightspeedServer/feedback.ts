@@ -1,4 +1,4 @@
-import { logger } from "./server";
+import { logger } from "@test/ui/mockLightspeedServer/server";
 import { Request, Response } from "express";
 
 let feedbacks: object[] = [];

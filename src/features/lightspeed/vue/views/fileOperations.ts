@@ -7,8 +7,11 @@ import {
   window,
   commands,
 } from "vscode";
-import { expandPath } from "../../../contentCreator/utils";
-import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
+import { expandPath } from "@/features/contentCreator/utils";
+import {
+  CollectionFinder,
+  AnsibleCollection,
+} from "@/features/lightspeed/utils/scanner";
 
 export async function openNewPlaybookEditor(content: string) {
   const options = {

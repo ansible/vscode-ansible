@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { logger } from "./server";
+import { logger } from "@test/ui/mockLightspeedServer/server";
 
 export function roleGeneration(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

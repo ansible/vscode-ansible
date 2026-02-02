@@ -2,8 +2,8 @@
 import * as path from "path";
 
 /* local */
-import { ExtensionSettings } from "../../interfaces/extensionSettings";
-import { resolveInterpreterPath } from "./interpreterPathResolver";
+import { ExtensionSettings } from "@/interfaces/extensionSettings";
+import { resolveInterpreterPath } from "@/features/utils/interpreterPathResolver";
 
 /**
  * A helper method to get interpreter path related settings to

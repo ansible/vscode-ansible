@@ -1,7 +1,7 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import * as vscode from "vscode";
 import { ViewColumn, window } from "vscode";
-import { getSystemDetails } from "../utils/getSystemDetails";
+import { getSystemDetails } from "@/features/utils/getSystemDetails";
 
 interface WebviewMessage {
   type: string;

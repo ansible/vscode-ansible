@@ -1,7 +1,7 @@
-import { MetadataManager } from "../features/ansibleMetaData";
-import { LightSpeedManager } from "../features/lightspeed/base";
-import { PythonInterpreterManager } from "../features/pythonMetadata";
-import { SettingsManager } from "../settings";
+import { MetadataManager } from "@/features/ansibleMetaData";
+import { LightSpeedManager } from "@/features/lightspeed/base";
+import { PythonInterpreterManager } from "@/features/pythonMetadata";
+import { SettingsManager } from "@/settings";
 
 export async function updateConfigurationChanges(
   metaData: MetadataManager,

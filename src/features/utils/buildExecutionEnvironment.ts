@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { withInterpreter } from "../utils/commandRunner";
-import { SettingsManager } from "../../settings";
-import { runCommand } from "../contentCreator/utils";
+import { withInterpreter } from "@/features/utils/commandRunner";
+import { SettingsManager } from "@/settings";
+import { runCommand } from "@/features/contentCreator/utils";
 
 export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
   return vscode.commands.registerCommand(commandId, async (uri: vscode.Uri) => {

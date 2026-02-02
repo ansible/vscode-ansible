@@ -7,7 +7,7 @@ import {
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
-import { getSystemDetails } from "../../utils/getSystemDetails";
+import { getSystemDetails } from "@/features/utils/getSystemDetails";
 
 export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "ansible-home";

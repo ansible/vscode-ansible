@@ -45,7 +45,8 @@ export default defineConfig({
     preload: "ts-node/register",
     require: [
       "ts-node/register",
-      "./test/e2e/rootMochaHooks.ts", // this file must be loaded last
+      "tsconfig-paths/register",
+      "./test/e2e/rootMochaHooks.js", // this file must be loaded last
     ],
   },
 });

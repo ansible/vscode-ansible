@@ -12,7 +12,7 @@ import {
   sleep,
   waitForCondition,
   getAnsibleViewControl,
-} from "./uiTestHelper";
+} from "@test/ui/uiTestHelper";
 
 config.truncateThreshold = 0;
 

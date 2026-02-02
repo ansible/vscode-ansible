@@ -5,9 +5,9 @@ import {
   ThumbsUpDownAction,
   UserAction,
   ProviderType,
-} from "../definitions/lightspeed";
-import type { LightSpeedServiceSettings } from "./extensionSettings";
-import type { LLMProvider } from "../features/lightspeed/providers/base";
+} from "@/definitions/lightspeed";
+import type { LightSpeedServiceSettings } from "@/interfaces/extensionSettings";
+import type { LLMProvider } from "@/features/lightspeed/providers/base";
 
 export interface LightspeedAuthSession extends AuthenticationSession {
   rhOrgHasSubscription: boolean;

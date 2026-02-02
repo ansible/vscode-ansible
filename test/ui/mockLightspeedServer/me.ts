@@ -1,4 +1,4 @@
-import { options } from "./server";
+import { options } from "@test/ui/mockLightspeedServer/server";
 export function me() {
   return options.oneClick
     ? {

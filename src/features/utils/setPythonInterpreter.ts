@@ -1,6 +1,6 @@
 import { commands, ConfigurationTarget, window, workspace } from "vscode";
-import { getInterpreterDetails } from "./python";
-import { isUserConfiguredPath } from "./interpreterPathResolver";
+import { getInterpreterDetails } from "@/features/utils/python";
+import { isUserConfiguredPath } from "@/features/utils/interpreterPathResolver";
 
 function inspectInterpreterPathConfig(): {
   hasExplicitValue: boolean;

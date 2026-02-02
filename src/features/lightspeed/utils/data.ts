@@ -4,12 +4,12 @@ import {
   IAnsibleFileType,
   GenerationListEntry,
   RoleFileType,
-} from "../../../interfaces/lightspeed";
-import { readVarFiles } from "./readVarFiles";
+} from "@/interfaces/lightspeed";
+import { readVarFiles } from "@/features/lightspeed/utils/readVarFiles";
 import {
   tasksFileKeywords,
   tasksInPlaybookKeywords,
-} from "../../../definitions/lightspeed";
+} from "@/definitions/lightspeed";
 
 export function shouldRequestInlineSuggestions(
   parsedAnsibleDocument: yaml.YAMLMap[],

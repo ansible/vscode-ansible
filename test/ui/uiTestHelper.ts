@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import path from "path";
-import { PROJECT_ROOT } from "../setup";
+import { PROJECT_ROOT } from "@test/setup";
 import {
   By,
   Locator,

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { LightSpeedAPI } from "./api";
-import { SettingsManager } from "../../settings";
+import { LightSpeedAPI } from "@/features/lightspeed/api";
+import { SettingsManager } from "@/settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
@@ -8,11 +8,11 @@ import {
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
-} from "../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 import * as yaml from "yaml";
-import { LightspeedUser } from "./lightspeedUser";
-import { parsePlays } from "./utils/parsePlays";
-import { IError } from "./utils/errors";
+import { LightspeedUser } from "@/features/lightspeed/lightspeedUser";
+import { parsePlays } from "@/features/lightspeed/utils/parsePlays";
+import { IError } from "@/features/lightspeed/utils/errors";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";

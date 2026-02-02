@@ -1,3 +1,4 @@
+// @ts-expect-error - KnipConfig type import issue
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
@@ -27,9 +28,11 @@ const config: KnipConfig = {
     "mocha-junit-reporter",
     "ovsx",
     "ts-node", // Used by Mocha test runners via string-based require
+    "tsconfig-paths", // Used by Mocha test runners via string-based require
+
   ],
   mocha: {
-    entry: ["test/e2e/rootMochaHooks.ts"],
+    entry: ["test/e2e/rootMochaHooks.js"],
   },
   typescript: {
     config: ["**/tsconfig*.json"],

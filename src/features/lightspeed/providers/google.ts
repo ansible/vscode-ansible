@@ -6,11 +6,11 @@ import {
   GenerationRequestParams,
   GenerationResponseParams,
   ProviderStatus,
-} from "./base";
+} from "@/features/lightspeed/providers/base";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 import {
   ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
   ANSIBLE_SYSTEM_PROMPT_ROLE,
@@ -19,12 +19,12 @@ import {
   ANSIBLE_SYSTEM_PROMPT_COMPLETION,
   ANSIBLE_PLAYBOOK_GENERATION_TEMPLATE,
   ANSIBLE_ROLE_GENERATION_TEMPLATE,
-} from "../../../definitions/constants";
-import { getLightspeedLogger } from "../../../utils/logger";
+} from "@/definitions/constants";
+import { getLightspeedLogger } from "@/utils/logger";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "../utils/outlineGenerator";
+} from "@/features/lightspeed/utils/outlineGenerator";
 
 export interface GoogleConfig {
   apiKey: string;

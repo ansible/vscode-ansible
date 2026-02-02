@@ -1,6 +1,6 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, window } from "vscode";
-import { WebviewHelper } from "./helper";
+import { WebviewHelper } from "@/features/lightspeed/vue/views/helper";
 
 /**
  * Sets up the common lifecycle hooks and HTML content for a webview panel.

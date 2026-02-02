@@ -5,16 +5,16 @@ import {
   ChatResponseParams,
   GenerationRequestParams,
   GenerationResponseParams,
-} from "./providers/base";
-import { providerFactory } from "./providers/factory";
-import type { ProviderType } from "../../../src/definitions/lightspeed.d.ts";
-import { SettingsManager } from "../../settings";
-import { LightSpeedAPI } from "./api";
+} from "@/features/lightspeed/providers/base";
+import { providerFactory } from "@/features/lightspeed/providers/factory";
+import type { ProviderType } from "@/definitions/lightspeed";
+import { SettingsManager } from "@/settings";
+import { LightSpeedAPI } from "@/features/lightspeed/api";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../interfaces/lightspeed";
-import { isError } from "./utils/errors";
+} from "@/interfaces/lightspeed";
+import { isError } from "@/features/lightspeed/utils/errors";
 
 export class ProviderManager {
   private readonly settingsManager: SettingsManager;

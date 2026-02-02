@@ -1,8 +1,12 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 import CopyPlugin from "copy-webpack-plugin";
-
+import webpack from "webpack";
 import path from "path";
-const webpack = require("webpack");
+import { fileURLToPath } from "url";
+
+// ESM equivalent of __filename and __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 type EntryType = {
   server?: string;
@@ -140,6 +144,9 @@ const config = {
     extensionAlias: {
       ".js": [".ts", ".js"],
     },
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
   stats: {
     errorDetails: true,
@@ -150,10 +157,12 @@ const config = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-module.exports = (_env: any, argv: { mode: string }) => {
+const makeConfig = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
   }
   return [config];
 };
+
+export default makeConfig;

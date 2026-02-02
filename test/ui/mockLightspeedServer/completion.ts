@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import { options, permissionDeniedCanApplyForTrial } from "./server";
+import {
+  options,
+  permissionDeniedCanApplyForTrial,
+} from "@test/ui/mockLightspeedServer/server";
 
 // Default model ID
 const DEFAULT_MODEL_ID = "ABCD-1234-5678";

@@ -1,7 +1,10 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, window } from "vscode";
-import { GenerationListEntry } from "../../../../interfaces/lightspeed";
-import { setupPanelLifecycle, disposePanelResources } from "./panelUtils";
+import { GenerationListEntry } from "@/interfaces/lightspeed";
+import {
+  setupPanelLifecycle,
+  disposePanelResources,
+} from "@/features/lightspeed/vue/views/panelUtils";
 
 export type Playbook = {
   content: string;

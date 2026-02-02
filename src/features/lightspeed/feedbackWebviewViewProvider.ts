@@ -6,7 +6,7 @@ import type {
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
-import { WebviewHelper } from "./vue/views/helper";
+import { WebviewHelper } from "@/features/lightspeed/vue/views/helper";
 
 export class LightspeedFeedbackWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "lightspeed-feedback-webview";

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { ExtensionSettings } from "./interfaces/extensionSettings";
+import { ExtensionSettings } from "@/interfaces/extensionSettings";
 
 export class SettingsManager {
   public settings = {} as ExtensionSettings;

@@ -5,7 +5,7 @@ import {
   ViewControl,
   Workbench,
 } from "vscode-extension-tester";
-import { waitForCondition } from "./uiTestHelper";
+import { waitForCondition } from "@test/ui/uiTestHelper";
 
 const WAIT_TIME = 20000;
 

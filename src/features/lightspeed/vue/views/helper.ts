@@ -1,5 +1,5 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
-import { WebviewMessageHandlers } from "./webviewMessageHandlers";
+import { WebviewMessageHandlers } from "@/features/lightspeed/vue/views/webviewMessageHandlers";
 
 function setupHtml(webview: Webview, context: ExtensionContext, name: string) {
   return __getWebviewHtml__({
