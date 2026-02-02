@@ -77,7 +77,5 @@
   "redhat.telemetry.enabled": false,
   "search.exclude": {
     ".vscode-test": true
-  },
-  "ansible.lightspeed.provider": "google",
-  "ansible.lightspeed.apiEndpoint": "https://generativelanguage.googleapis.com/v1beta"
+  }
 }

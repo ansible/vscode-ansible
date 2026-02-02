@@ -18,10 +18,6 @@ export class LlmProviderSettings {
 
   constructor(private readonly context: ExtensionContext) {}
 
-  // ============================================================
-  // Generic Settings API - Use these for all config fields
-  // ============================================================
-
   /**
    * Get a setting value for a provider.
    * Automatically uses secrets storage for password fields.
@@ -84,10 +80,6 @@ export class LlmProviderSettings {
     await this.context.globalState.update(stateKey, value?.trim() || undefined);
   }
 
-  // ============================================================
-  // Provider & Connection Status - Core settings
-  // ============================================================
-
   /**
    * Get provider info from factory (single source of truth for defaults)
    */
@@ -134,10 +126,6 @@ export class LlmProviderSettings {
     }
     return statuses;
   }
-
-  // ============================================================
-  // Bulk Operations
-  // ============================================================
 
   /**
    * Get all settings for the current provider (useful for webview/settings manager)
