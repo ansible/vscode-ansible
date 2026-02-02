@@ -67,7 +67,7 @@ export class LLMProviderFactory implements ProviderFactory {
         type: "wca",
         name: "wca",
         displayName:
-          "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+          "IBM watsonx",
         description:
           "Official Red Hat Ansible Lightspeed service with IBM watsonx Code Assistant",
         defaultEndpoint: WCA_API_ENDPOINT_DEFAULT,

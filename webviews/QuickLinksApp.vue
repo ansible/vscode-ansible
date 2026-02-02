@@ -125,7 +125,7 @@ onMounted(() => {
       <div class="catalogue">
         <h3>
           <a href="command:ansible.lightspeed.openLlmProviderSettings" title="Configure LLM provider for Ansible Lightspeed">
-            <span class="codicon codicon-hubot"></span> LLM Provider
+            <span class="codicon codicon-settings-gear"></span> LLM Provider
             <span v-if="activeProviderName && isProviderConnected" class="active-provider-badge connected">
               : {{ activeProviderName }}
             </span>
