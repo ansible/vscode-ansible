@@ -493,9 +493,12 @@ jobs:
         run: |
           git diff
           git status --porcelain --ignored
-          cp -f logs-*linux*.zip/coverage/unit/cobertura-coverage.xml linux.xml
-          cp -f logs-*macos*.zip/coverage/unit/cobertura-coverage.xml macos.xml
-          cp -f logs-*wsl**.zip/coverage/unit/cobertura-coverage.xml wsl.xml
+          LINUX_COVERAGE=$(ls -1 logs-*linux*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
+          MACOS_COVERAGE=$(ls -1 logs-*macos*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
+          WSL_COVERAGE=$(ls -1 logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
+          cp -f "${LINUX_COVERAGE}" linux.xml
+          cp -f "${MACOS_COVERAGE}" macos.xml
+          cp -f "${WSL_COVERAGE}" wsl.xml
           # linux vs macos (tool needs source code to be present)
           uv tool run pycobertura diff linux.xml macos.xml || true
           # linux vs wsl  (tool needs source code to be present)
