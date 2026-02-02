@@ -431,9 +431,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
         return;
       }
       await lightSpeedManager.lightspeedAuthenticatedUser.refreshLightspeedUser();
-      if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
+      const isAuthenticated =
+        await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+
+      if (!isAuthenticated) {
         lightSpeedManager.currentModelValue = undefined;
       }
+
+      // Update WCA connection status based on auth state
+      await llmProviderSettings.setConnectionStatus(isAuthenticated, "wca");
+
+      // Refresh LLM Provider Panel if it's open
+      if (LlmProviderPanel.currentPanel) {
+        await LlmProviderPanel.currentPanel.refreshWebView();
+      }
+
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }

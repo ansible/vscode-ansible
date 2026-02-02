@@ -65,10 +65,7 @@
   border-color: var(--vscode-focusBorder);
 }
 
-.provider-row.is-active {
-  border-color: var(--vscode-charts-green);
-  border-width: 2px;
-}
+/* Active provider has no special border - just uses the "Active" badge */
 
 .provider-row.is-editing {
   border-color: var(--vscode-focusBorder);

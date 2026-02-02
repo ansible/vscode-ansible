@@ -140,18 +140,6 @@ export class LlmProviderPanel {
     const settings = await this.llmProviderSettings.getAllSettings();
     const connectionStatuses = { ...settings.connectionStatuses };
 
-    // Check connection status for OAuth providers from actual session
-    for (const provider of providers) {
-      if (provider.usesOAuth) {
-        const isConnected = await this.lightspeedUser.isAuthenticated();
-        connectionStatuses[provider.type] = isConnected;
-        await this.llmProviderSettings.setConnectionStatus(
-          isConnected,
-          provider.type,
-        );
-      }
-    }
-
     // Build configs dynamically based on each provider's configSchema
     const providerConfigs: Record<string, Record<string, string>> = {};
     for (const provider of providers) {
@@ -225,13 +213,8 @@ export class LlmProviderPanel {
       }
 
       // Reset connection status when settings are changed (require re-connect)
-      // Skip for OAuth providers since they use OAuth, not config changes
-      if (!providerInfo?.usesOAuth) {
-        await this.llmProviderSettings.setConnectionStatus(
-          false,
-          message.provider,
-        );
-      }
+      // This applies to ALL providers including OAuth - if config changed, user needs to re-connect
+      await this.llmProviderSettings.setConnectionStatus(false, message.provider);
 
       await this.updateAndNotify();
     } catch (error) {

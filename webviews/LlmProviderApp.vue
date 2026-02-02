@@ -106,8 +106,17 @@ const setActiveProvider = (providerType: string) => {
 
 const toggleEdit = (providerType: string) => {
   if (editingProvider.value === providerType) {
+    // Closing edit panel - discard any unsaved changes by restoring original values
+    if (originalConfigs.value[providerType]) {
+      providerConfigs.value[providerType] = { ...originalConfigs.value[providerType] };
+    }
     editingProvider.value = null;
   } else {
+    // If switching from another provider's edit, discard that provider's unsaved changes
+    if (editingProvider.value && originalConfigs.value[editingProvider.value]) {
+      providerConfigs.value[editingProvider.value] = { ...originalConfigs.value[editingProvider.value] };
+    }
+    
     editingProvider.value = providerType;
     const providerInfo = getProviderInfo(providerType);
     
@@ -250,13 +259,12 @@ onMounted(() => {
           v-for="provider in providers" 
           :key="provider.type" 
           class="provider-row"
-          :class="{ 'is-active': activeProvider === provider.type, 'is-editing': editingProvider === provider.type }"
+          :class="{ 'is-editing': editingProvider === provider.type }"
         >
           <!-- Provider Header Row -->
           <div class="provider-header">
             <div class="provider-info">
               <div class="provider-name">
-                <span class="codicon codicon-server"></span>
                 {{ provider.displayName }}
                 <!-- Configured badge: shown when connected -->
                 <span v-if="isConnected(provider.type)" class="configured-badge">
@@ -298,13 +306,12 @@ onMounted(() => {
                 @click="setActiveProvider(provider.type)"
                 title="Switch to this provider"
               >
-                <span class="codicon codicon-arrow-swap"></span>
                 Switch to this Provider
               </button>
               
               <!-- Active badge: shown when provider is active -->
               <span v-else class="active-badge">
-                <span class="codicon codicon-check-all"></span>
+                <span class="codicon codicon-check"></span>
                 Active
               </span>
             </div>
