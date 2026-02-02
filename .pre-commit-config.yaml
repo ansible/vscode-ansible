@@ -40,7 +40,7 @@ repos:
       - id: yamllint
       - id: md
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.4.0
+    rev: v9.6.0
     hooks:
       - id: cspell
         entry: bash
