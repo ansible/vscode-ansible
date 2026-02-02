@@ -1,13 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { existsSync, statSync } from "node:fs";
 
 export class AnsibleMcpServerProvider {
   private static readonly MCP_SERVER_NAME =
     "Ansible Development Tools MCP Server";
-  private static readonly CLI_PATH_DEV =
-    "packages/ansible-mcp-server/out/server/src/cli.js";
-  private static readonly CLI_PATH_PACKAGED = "out/mcp/cli.js";
 
   private extensionPath: string;
   private didChangeEmitter = new vscode.EventEmitter<void>();
@@ -54,7 +52,6 @@ export class AnsibleMcpServerProvider {
         return servers;
       }
 
-      // Find CLI path - check both packaged and development locations
       const cliPath = this.findCliPath();
       if (!cliPath) {
         console.log("MCP server CLI file not found, skipping registration");
@@ -131,15 +128,7 @@ export class AnsibleMcpServerProvider {
       if (!cliPath) {
         return false;
       }
-
-      // Check if the file is accessible
-      try {
-        fs.accessSync(cliPath, fs.constants.F_OK | fs.constants.R_OK);
-        return true;
-      } catch (error) {
-        console.error(error);
-        return false;
-      }
+      return true;
     } catch (error) {
       console.error(`Failed to check MCP server availability: ${error}`);
       return false;
@@ -147,35 +136,28 @@ export class AnsibleMcpServerProvider {
   }
 
   /**
-   * Find the CLI path - checks both packaged and development locations
+   * Find the CLI path - checks local node_modules/.bin first, then PATH
    */
-  private findCliPath(): string | undefined {
-    // First, check if we're in a packaged extension (out/mcp/cli.js)
-    const packagedPath = path.join(
+  private findCliPath(): string | null {
+    // First, try to find in local node_modules/.bin (for development)
+    const localBinPath = path.join(
       this.extensionPath,
-      AnsibleMcpServerProvider.CLI_PATH_PACKAGED,
+      "node_modules",
+      ".bin",
+      "ansible-mcp-server",
     );
-    if (fs.existsSync(packagedPath)) {
-      console.log(`Found MCP server CLI at packaged path: ${packagedPath}`);
-      return packagedPath;
-    }
-
-    // If not found, check development path (packages/ansible-mcp-server/out/server/src/cli.js)
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    let devPath: string | undefined;
-    if (workspaceRoot) {
-      const projectRoot = this.findProjectRoot(workspaceRoot);
-      devPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH_DEV);
-      if (fs.existsSync(devPath)) {
-        console.log(`Found MCP server CLI at development path: ${devPath}`);
-        return devPath;
+    if (existsSync(localBinPath)) {
+      try {
+        const stats = statSync(localBinPath);
+        if (stats.isFile()) {
+          console.log(`Found MCP server CLI at: ${localBinPath}`);
+          return localBinPath;
+        }
+      } catch (error) {
+        console.error(`Error checking local CLI path: ${error}`);
       }
     }
-
-    console.error(
-      `MCP server CLI not found at either location:\n  - Packaged: ${packagedPath}\n  - Development: ${devPath || "N/A"}`,
-    );
-    return undefined;
+    return null;
   }
 
   /**

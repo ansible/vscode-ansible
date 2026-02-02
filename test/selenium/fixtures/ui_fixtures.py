@@ -134,7 +134,7 @@ def clear_vscode_text() -> Generator[Any, None, None]:
                     clear_text(driver)
 
 
-def take_screenshot(driver: WebDriver, name: str) -> None:
+def take_screenshot(driver: WebDriver, name: str) -> str:
     """Take a screenshot."""
     file_name = "out/junit/" + (
         f"{name}_{datetime.now().strftime('%Y-%m-%d_%H_%M')}.png".replace(  # noqa: DTZ005
@@ -147,6 +147,7 @@ def take_screenshot(driver: WebDriver, name: str) -> None:
     except WebDriverException:
         driver.switch_to.parent_frame()
         driver.save_screenshot(f"{file_name}")
+    return file_name
 
 
 @pytest.fixture(autouse=False)
@@ -167,5 +168,5 @@ def screenshot_on_fail(request: pytest.FixtureRequest) -> Generator[None, None, 
             driver = request.node.funcargs["browser_setup"][0]
         except KeyError:
             driver = request.node.funcargs["new_browser"][0]
-        take_screenshot(driver, request.node.name)
-        log.info("screenshot taken")
+        file_name = take_screenshot(driver, request.node.name)
+        log.info("screenshot taken: %s", file_name)

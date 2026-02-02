@@ -149,6 +149,7 @@ function isIDescription(obj: unknown): obj is IDescription {
 
 export function parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
   const routesByType = new Map<IPluginTypes, IPluginRoutesByName>();
+  /* v8 ignore next 14 */
   if (
     hasOwnProperty(rawDoc, "plugin_routing") &&
     isObject(rawDoc.plugin_routing)

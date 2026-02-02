@@ -1,0 +1,7 @@
+# Integration with Issue Tracker
+#
+# (note that '\' need to be escaped).
+
+[issuetracker "jira"]
+  regex = "(AAP|ANSTRAT)-(\\d+)"
+  url = "https://issues.redhat.com/browse/$1-$2"

@@ -23,6 +23,13 @@ export default defineConfig({
     }),
   ],
   publicDir: "media",
+  experimental: {
+    renderBuiltUrl(filename) {
+      if (filename.startsWith("assets/codicon.ttf")) {
+        return { relative: true };
+      }
+    },
+  },
   build: {
     minify: false,
     outDir: "out/vitebuild",

@@ -277,6 +277,12 @@ if [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     fi
 
     DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null')"
+
+    if [[ "${DOCKER_VERSION}" == "null" ]] ; then
+        log error "Docker not found, please install it."
+        exit 1
+    fi
+
     DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
     if [[ "${DOCKER_STDERR}" == *"Emulate Docker CLI using podman"* ]]; then
         log error "podman-docker shim is present and we do not support it. Please remove it."

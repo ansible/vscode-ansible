@@ -23,14 +23,14 @@ tasks:
       VERSION:
         sh: node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8')); console.log(pkg.version);"
     sources:
+      - ../../vitest.config.ts
+      - package.json
+      - pyproject.toml
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - vitest.config.ts
-      - package.json
       - yarn.lock
-      - pyproject.toml
     generates:
       - "*.tgz"
     deps:
@@ -59,16 +59,19 @@ tasks:
     deps:
       - build
     sources:
-      - ../../yarn.lock
       - ../../pyproject.toml
       - ../../uv.lock
+      - ../../vitest.config.ts
+      - ../../yarn.lock
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - vitest.config.ts
     generates:
+      - ../../out/coverage/als/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/als/coverage-final.json # IDE plugins
+      - ../../out/coverage/als/lcov.info # sonar
       - ../../out/junit/als-test-results.xml
     cmds:
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"

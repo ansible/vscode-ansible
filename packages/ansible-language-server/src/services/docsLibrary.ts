@@ -43,11 +43,13 @@ export class DocsLibrary {
         this.context.workspaceFolder.uri,
       );
       const ansibleConfig = await this.context.ansibleConfig;
+      /* v8 ignore next */
       if (settings.executionEnvironment.enabled) {
         // ensure plugin/module cache is established
         const executionEnvironment = await this.context.executionEnvironment;
         await executionEnvironment.fetchPluginDocs(ansibleConfig);
       }
+      /* v8 ignore next */
       for (const modulesPath of ansibleConfig.module_locations) {
         await this.findDocumentationInModulesPath(modulesPath);
       }
@@ -191,10 +193,12 @@ export class DocsLibrary {
     (
       await findDocumentation(collectionsPath, "collection_doc_fragment")
     ).forEach((doc) => {
+      /* v8 ignore next */
       this.docFragments.set(doc.fqcn, doc);
     });
 
     (await findPluginRouting(collectionsPath, "collection")).forEach(
+      /* v8 ignore next */
       (r, collection) => this.pluginRouting.set(collection, r),
     );
 

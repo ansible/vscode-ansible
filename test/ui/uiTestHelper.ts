@@ -168,25 +168,6 @@ export async function openSettings() {
   throw new Error("Failed to open settings after 5 attempts");
 }
 
-export async function dismissNotifications(workbench: Workbench) {
-  try {
-    const notifications = await workbench.getNotifications();
-    for (const notification of notifications) {
-      try {
-        await notification.dismiss();
-      } catch (error) {
-        console.log(
-          `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-  } catch (error) {
-    console.log(
-      `Failed to get notifications: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
-
 export async function getAnsibleViewControl(): Promise<ViewControl> {
   return await waitForCondition({
     condition: async () => {

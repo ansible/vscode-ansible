@@ -244,30 +244,11 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   async getStatus(): Promise<ProviderStatus> {
-    try {
-      const isValid = await this.validateConfig();
-      if (!isValid) {
-        return {
-          connected: false,
-          error:
-            this.lastValidationError ||
-            "Failed to connect to Red Hat Custom API. Check your API key and base URL.",
-        };
-      }
-
-      return {
-        connected: true,
-        modelInfo: {
-          name: this.modelName,
-          capabilities: ["completion", "chat", "generation"],
-        },
-      };
-    } catch (error) {
-      return {
-        connected: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
+    return await this.getStatusWithValidation(
+      this.modelName,
+      this.lastValidationError,
+      "Failed to connect to Red Hat Custom API. Check your API key and base URL.",
+    );
   }
 
   async completionRequest(

@@ -16,7 +16,7 @@ on:
     types: [synchronize, opened, reopened]
     branches: ["main", "devel/*"]
   schedule:
-    - cron: "0 0,12 * * *"
+    - cron: "0 0,6,12,18 * * *"
   workflow_dispatch:
     inputs:
       publish:
@@ -154,6 +154,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   build:
     name: ${{ matrix.name }}
@@ -318,7 +320,7 @@ jobs:
           EOT
           podman info
 
-      - name: Save ready_to_test=true
+      - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
@@ -327,18 +329,9 @@ jobs:
         if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task unit
+      - name: task unit (ext, vue, als, mcp)
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task als
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task mcp
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
@@ -364,7 +357,7 @@ jobs:
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
         run: |
           set -e
-          task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
+          task ui ${{ matrix.env.TASKFILE_ARGS }} || { echo "::warning::task ui failed, flushing and retrying" && task flush && task ui ${{ matrix.env.TASKFILE_ARGS }} || { echo "::error::task ui still failed after flushing"; exit 1; }; }
           task ui ${{ matrix.env.TASKFILE_ARGS }} --status ${{ runner.os != 'Linux' && ' || echo "::warning::Ignored task ui --status failure due to https://github.com/go-task/task/issues/2649"' || '' }}
 
       - name: task finish
@@ -408,27 +401,32 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload junit test results to codecov.io
-        if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-        with:
-          directory: out/junit
-          fail_ci_if_error: true
-          handle_no_reports_found: true
-          plugins: noop
-          report_type: test_results
-          name: ${{ matrix.id }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      # - name: Upload junit test results to codecov.io
+      #   if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
+      #   uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+      #   with:
+      #     directory: out/junit
+      #     fail_ci_if_error: true
+      #     handle_no_reports_found: true
+      #     plugins: noop
+      #     report_type: test_results
+      #     name: ${{ matrix.id }}
+      #     # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+      #     flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
+      #     use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       - name: Show git ignored files to debug "task ... --status" failures
         if: ${{ always() && failure() }}
-        run: git status --porcelain --ignored
+        run: |
+          git diff
+          git status --porcelain --ignored
 
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+
   builder-image:
     runs-on: ubuntu-24.04
     needs: [preflight]
@@ -475,6 +473,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # needed for pycobertura
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
       - name: Download artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -486,6 +488,18 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
+
+      - name: pycobertura diff across different platform runs
+        run: |
+          git diff
+          git status --porcelain --ignored
+          cp -f logs-*linux*.zip/coverage/unit/cobertura-coverage.xml linux.xml
+          cp -f logs-*macos*.zip/coverage/unit/cobertura-coverage.xml macos.xml
+          cp -f logs-*wsl**.zip/coverage/unit/cobertura-coverage.xml wsl.xml
+          # linux vs macos (tool needs source code to be present)
+          uv tool run pycobertura diff linux.xml macos.xml || true
+          # linux vs wsl  (tool needs source code to be present)
+          uv tool run pycobertura diff linux.xml wsl.xml || true
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
@@ -513,6 +527,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
@@ -563,6 +579,8 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish-npm:
     environment: release
@@ -590,3 +608,5 @@ jobs:
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
         uses: ./.github/actions/report
+        with:
+          slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
