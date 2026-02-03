@@ -17,17 +17,17 @@ if [[ "${READTHEDOCS:-}" != "True" ]]; then
     NOTICE_COLOR='\033[0;36m'
     WARNING_COLOR='\033[0;33m'
     ERROR_COLOR='\033[0;31m'
-    # see https://github.com/readthedocs/readthedocs.org/issues/8733
-    # shellcheck disable=SC2034
-    FORCE_COLOR=0
-    # shellcheck disable=SC2034
-    NO_COLOR=1
 else
     NC=''
     DEBUG_COLOR=''
     NOTICE_COLOR=''
     WARNING_COLOR=''
     ERROR_COLOR=''
+    # see https://github.com/readthedocs/readthedocs.org/issues/8733
+    # shellcheck disable=SC2034
+    unset FORCE_COLOR=0
+    # shellcheck disable=SC2034
+    NO_COLOR=1
 fi
 # Use "log [notice|warning|error] message" to  print a colored message to
 # stderr, with colors.
