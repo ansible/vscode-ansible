@@ -33,11 +33,13 @@ runs:
           ~/.cache/uv
         key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.id }}-${{ hashFiles('uv.lock', '.python-version') }}
 
-    - name: Enable caching for pre-commit
+    - name: Enable caching for prek
       if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
-        path: ~/.cache/pre-commit/
+        path: |
+          ~/.cache/pre-commit/
+          ~/.cache/prek/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
     - name: Get yarn cache directory path
