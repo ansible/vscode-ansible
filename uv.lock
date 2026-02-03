@@ -1588,6 +1588,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-github-actions-annotate-failures"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/39/d4/c54ee6a871eee4a7468e3a8c0dead28e634c0bc2110c694309dcb7563a66/pytest_github_actions_annotate_failures-0.3.0.tar.gz", hash = "sha256:d4c3177c98046c3900a7f8ddebb22ea54b9f6822201b5d3ab8fcdea51e010db7", size = 11248, upload-time = "2025-01-17T22:39:32.722Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl", hash = "sha256:41ea558ba10c332c0bfc053daeee0c85187507b2034e990f21e4f7e5fef044cf", size = 6030, upload-time = "2025-01-17T22:39:31.701Z" },
+]
+
+[[package]]
 name = "pytest-plus"
 version = "0.8.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2291,6 +2303,7 @@ dev = [
     { name = "mypy" },
     { name = "pip" },
     { name = "prek" },
+    { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-rerunfailures" },
     { name = "selenium" },
     { name = "typing-inspect" },
@@ -2318,6 +2331,7 @@ dev = [
     { name = "mypy", specifier = ">=1.17.1" },
     { name = "pip", specifier = ">=22.3.1" },
     { name = "prek", specifier = ">=0.3.1" },
+    { name = "pytest-github-actions-annotate-failures", specifier = ">=0.3.0" },
     { name = "pytest-rerunfailures", specifier = ">=16.1" },
     { name = "selenium", specifier = ">=4.40.0" },
     { name = "typing-inspect", specifier = ">=0.8.0,<0.10.0" },
