@@ -200,7 +200,7 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
             driver, _ = request.getfixturevalue("browser_setup")
         elif "new_browser" in request.fixturenames:
             driver, _, _ = request.getfixturevalue("new_browser")
-    except Exception:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except  # noqa: BLE001
         # No browser fixture in this test, skip cleanup
         yield
         return
