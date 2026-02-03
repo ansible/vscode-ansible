@@ -751,7 +751,7 @@ def clear_text(driver: WebDriver) -> None:
 
 
 def close_all_tabs(driver: WebDriver) -> None:
-    """Close all the open tabs and interact with the save dialog.
+    """Close all the open tabs at the end of test session.
 
     Args:
         driver: WebDriver instance
