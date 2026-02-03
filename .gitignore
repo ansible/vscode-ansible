@@ -8,6 +8,8 @@
 .idea
 .nyc_output
 .pytest_cache
+*.pyc
+*.pyo
 .task
 .vscode-test
 CHANGELOG.html
