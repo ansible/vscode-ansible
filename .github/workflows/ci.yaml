@@ -29,7 +29,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FORCE_COLOR: "1" # make mocha output colorful
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV

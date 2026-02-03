@@ -16,10 +16,6 @@ output: prefixed # do not use "group" due to impact on CI
 env:
   # Overridden by some specific jobs
   CODE_VERSION: max
-  # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
-  FORCE_COLOR: "true"
-  PRE_COMMIT_COLOR: always
-  # basically the same thing from .env file:
 vars:
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
