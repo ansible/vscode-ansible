@@ -125,7 +125,7 @@ def cli() -> None:
         sys.exit(0)
     pre_release_arg = "--pre-release" if pre_release else ""
     if opt.publish:
-        vsix_files = glob.glob("*.vsix")
+        vsix_files = glob.glob("out/*.vsix")
         if len(vsix_files) != 1:
             msg = (
                 "Publish command requires presence of exactly one '.vsix' on disk, found:"
@@ -140,7 +140,7 @@ def cli() -> None:
         run(f"ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
-        run("rm -f ./*.vsix")
+        run("rm -f ./out/*.vsix")
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
@@ -154,11 +154,13 @@ def cli() -> None:
         )
 
         # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
-        run(f"vsce package --no-update-package-json {pre_release_arg} {version}")
+        vsix_file = f"out/ansible-{version}.vsix"
+        run(
+            f"vsce package --no-update-package-json --out={vsix_file} {pre_release_arg} {version}"
+        )
         # --yarn needed to avoid a warning message as package.json config does not prevent it
-        run("vsce ls --yarn | sort > out/log/package.log")
+        # run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
-        vsix_file = f"ansible-{version}.vsix"
         size = pathlib.Path(vsix_file).stat().st_size / 1024 / 1024
         vsx_size_limit_mb = 8.0
         print(f"Generated ansible-{vsix_file} of size {size:.2f} MB")
