@@ -56,6 +56,8 @@ tasks:
     deps:
       - setup
     cmds:
+      - for: sources
+        cmd: echo {{ .ITEM }}
       - yarn workspaces foreach --all -tv run clean
       - yarn run build
       - yarn run vite-build
@@ -66,10 +68,14 @@ tasks:
       - webpack.config.ts
       - yarn.lock
       - exclude: "**/.ansible/**/*"
-      - exclude: "src/vscode_ansible.egg-info/**/*"
-      - exclude: "test/testFixtures/.vscode/settings.json"
       - exclude: "**/None/**/*"
+      - exclude: "src/vscode_ansible.egg-info/**/*"
+      - exclude: "test/**/__pycache__/**/*"
       - exclude: "test/selenium/**/*"
+      - exclude: "test/testFixtures/.vscode/**/*"
+      - exclude: "test/testFixtures/common/collections/ansible_collections/**/*"
+      - exclude: "test/testFixtures/hover/with_ee/collections/ansible_collections/**/*"
+      - exclude: "test/testFixtures/hover/without_ee/collections/ansible_collections/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
@@ -181,6 +187,7 @@ tasks:
       - defer: { task: finish }
     interactive: true
   e2e:
+    dir: "{{ .TASKFILE_DIR }}"
     vars:
       TEST_PREFIX: "{{ .TASK }}"
     desc: Run e2e tests with vscode-test {{.XVFB}}
@@ -190,7 +197,7 @@ tasks:
       NODE_NO_WARNINGS: "1"
       DONT_PROMPT_WSL_INSTALL: "1"
       # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
-      TMP: out/tmp/e2e
+      TMP: "{{ .TASKFILE_DIR }}/out/tmp/e2e"
     generates:
       - out/junit/e2e-test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
@@ -215,6 +222,13 @@ tasks:
     desc: Run UI tests (Selenium)
     deps:
       - package
+    sources:
+      - "*.vsix"
+      - pyproject.toml
+      - test/ui-selenium/**/*
+      - uv.lock
+    generates:
+      - out/junit/ui-selenium-test-results.xml
     cmds:
       # settings.json gets changed during tests so we do copy it
       # we use same location for altered settings.json for all test suites
@@ -233,7 +247,7 @@ tasks:
         -p 5999:5999
         --volume $VSX_FILE:/ansible-latest.vsix:ro,Z
         --volume ./out/test-resources/settings/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw,Z
-        --volume $PWD/out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw,Z
+        --volume ${PWD}/out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw,Z
         quay.io/tshinhar/selenium-vscode-multi:latest
       - curl -sS --retry 10 --retry-all-errors http://localhost:4444
       - pytest
