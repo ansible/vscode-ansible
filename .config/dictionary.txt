@@ -64,8 +64,10 @@ eslintcache
 extest
 extester
 fqcn
+fixturenames
 funcargs
 genai
+getfixturevalue
 haaaad
 highlightjs
 hookwrapper

@@ -178,10 +178,8 @@ def _close_all_editors_without_saving(driver: WebDriver) -> None:
     """Close all editors and handle save dialog if it appears."""
     vscode_run_command(driver, ">View: Close All Editors")
 
-    # Wait a moment for dialog to appear if there are unsaved changes
     time.sleep(0.5)
 
-    # Try to click "Don't Save" button if the dialog appears
     for elm in driver.find_elements(
         by="xpath",
         value='//*[normalize-space(.)="Don\'t Save"]',
@@ -196,7 +194,6 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
     Yields:
         None - this fixture performs cleanup after test execution
     """
-    # Try to get the driver from either browser_setup or new_browser
     driver = None
     try:
         if "browser_setup" in request.fixturenames:
@@ -212,25 +209,14 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
         yield
         return
 
-    log.info("close_editors: Starting setup")
-
     # Ensure VS Code is loaded before trying to close editors
     if "127.0.0.1:8080" not in driver.current_url:
-        log.info(
-            "close_editors: VS Code not loaded, navigating to http://127.0.0.1:8080"
-        )
         driver.get("http://127.0.0.1:8080")
         # Wait briefly for page to load
         time.sleep(1)
 
-    log.info("close_editors: Closing all editors before test (without saving)")
     _close_all_editors_without_saving(driver)
-    log.info("close_editors: Editors closed, yielding to test")
 
     yield
 
-    log.info(
-        "close_editors: Test complete, closing all editors after test (without saving)"
-    )
     _close_all_editors_without_saving(driver)
-    log.info("close_editors: Cleanup complete")
