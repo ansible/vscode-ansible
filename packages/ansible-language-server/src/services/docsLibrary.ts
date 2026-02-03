@@ -43,12 +43,13 @@ export class DocsLibrary {
         this.context.workspaceFolder.uri,
       );
       const ansibleConfig = await this.context.ansibleConfig;
-      /* v8 ignore next */
+      /* v8 ignore start */
       if (settings.executionEnvironment.enabled) {
         // ensure plugin/module cache is established
         const executionEnvironment = await this.context.executionEnvironment;
         await executionEnvironment.fetchPluginDocs(ansibleConfig);
       }
+      /* v8 ignore end */
       /* v8 ignore next */
       for (const modulesPath of ansibleConfig.module_locations) {
         await this.findDocumentationInModulesPath(modulesPath);
@@ -190,17 +191,19 @@ export class DocsLibrary {
       this._moduleFqcns.add(doc.fqcn);
     });
 
+    /* v8 ignore start */
     (
       await findDocumentation(collectionsPath, "collection_doc_fragment")
     ).forEach((doc) => {
-      /* v8 ignore next */
       this.docFragments.set(doc.fqcn, doc);
     });
+    /* v8 ignore end */
 
+    /* v8 ignore start */
     (await findPluginRouting(collectionsPath, "collection")).forEach(
-      /* v8 ignore next */
       (r, collection) => this.pluginRouting.set(collection, r),
     );
+    /* v8 ignore end */
 
     // add all valid redirect routes as possible FQCNs
     for (const [collection, routesByType] of this.pluginRouting) {
