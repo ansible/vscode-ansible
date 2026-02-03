@@ -63,8 +63,8 @@ equalto
 eslintcache
 extest
 extester
-fqcn
 fixturenames
+fqcn
 funcargs
 genai
 getfixturevalue
