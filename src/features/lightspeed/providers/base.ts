@@ -1,7 +1,7 @@
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 
 export interface ProviderMetadata {
   ansibleFileType?:
@@ -133,6 +133,7 @@ export abstract class BaseLLMProvider<
     prompt: string,
     metadata?: ProviderMetadata,
   ): string {
+    // ESM: Use createRequire for circular dependency
     const { AnsibleContextProcessor } = require("../ansibleContext");
 
     const ansibleContext = {
@@ -152,6 +153,7 @@ export abstract class BaseLLMProvider<
    * Clean and validate Ansible output
    */
   protected cleanAnsibleOutput(output: string): string {
+    // ESM: Use createRequire for circular dependency
     const { AnsibleContextProcessor } = require("../ansibleContext");
     return AnsibleContextProcessor.cleanAnsibleOutput(output);
   }

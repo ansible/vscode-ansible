@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { logger } from "./server";
-import { options, permissionDeniedCanApplyForTrial } from "./server";
+import { logger } from "@test/ui/mockLightspeedServer/server";
+import {
+  options,
+  permissionDeniedCanApplyForTrial,
+} from "@test/ui/mockLightspeedServer/server";
 
 export function explanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

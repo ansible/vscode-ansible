@@ -4,14 +4,14 @@ import * as vscode from "vscode";
 import * as child_process from "child_process";
 import * as util from "util";
 import * as os from "os";
-import { getTerminal } from "./utils";
+import { getTerminal } from "@/features/ansibleTox/utils";
 import {
   ANSIBLE_TOX_FILE_NAME,
   ANSIBLE_TOX_LIST_ENV_COMMAND,
   ANSIBLE_TOX_RUN_COMMAND,
-} from "./constants";
+} from "@/features/ansibleTox/constants";
 import path from "path";
-import { resolveInterpreterPath } from "../utils/interpreterPathResolver";
+import { resolveInterpreterPath } from "@/features/utils/interpreterPathResolver";
 
 const exec = util.promisify(child_process.exec);
 

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { SettingsManager } from "../../settings";
+import { SettingsManager } from "@/settings";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
@@ -14,7 +14,7 @@ import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   RoleExplanationRequestParams,
-} from "../../interfaces/lightspeed";
+} from "@/interfaces/lightspeed";
 import {
   LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
   LIGHTSPEED_PLAYBOOK_GENERATION_URL,
@@ -24,24 +24,27 @@ import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
   UserAction,
-} from "../../definitions/lightspeed";
-import { getBaseUri } from "./utils/webUtils";
-import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { HTTPError, IError } from "./utils/errors";
-import { LightspeedUser } from "./lightspeedUser";
-import { inlineSuggestionHideHandler } from "./inlineSuggestions";
+} from "@/definitions/lightspeed";
+import { getBaseUri } from "@/features/lightspeed/utils/webUtils";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@/definitions/constants";
+import { HTTPError, IError } from "@/features/lightspeed/utils/errors";
+import { LightspeedUser } from "@/features/lightspeed/lightspeedUser";
+import { inlineSuggestionHideHandler } from "@/features/lightspeed/inlineSuggestions";
 import {
   getOneClickTrialProvider,
   OneClickTrialProvider,
-} from "./utils/oneClickTrial";
-import { mapError } from "./handleApiError";
-import { Log } from "../../utils/logger";
-import { ProviderStatus } from "./providers/base";
+} from "@/features/lightspeed/utils/oneClickTrial";
+import { mapError } from "@/features/lightspeed/handleApiError";
+import { Log } from "@/utils/logger";
+import { ProviderStatus } from "@/features/lightspeed/providers/base";
+import { createRequire } from "module";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
+const require = createRequire(import.meta.url);
 
 export function getFetch() {
   try {
+    // ESM: Use createRequire for optional electron dependency
     const electronFetch = require("electron")?.net?.fetch;
     if (electronFetch) {
       return electronFetch;

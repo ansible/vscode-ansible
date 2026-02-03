@@ -1,12 +1,9 @@
 import * as path from "path";
 import * as fs from "fs";
 
-import {
-  IVarsContext,
-  IWorkSpaceRolesContext,
-} from "../../../interfaces/lightspeed";
-import { readVarFiles } from "./readVarFiles";
-import { VarType } from "../../../interfaces/lightspeed";
+import { IVarsContext, IWorkSpaceRolesContext } from "@/interfaces/lightspeed";
+import { readVarFiles } from "@/features/lightspeed/utils/readVarFiles";
+import { VarType } from "@/interfaces/lightspeed";
 
 function getVarsFromRoles(
   rolePath: string,

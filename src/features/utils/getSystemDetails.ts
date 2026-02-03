@@ -1,6 +1,6 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-import { getBinDetail } from "../contentCreator/utils";
+import { getBinDetail } from "@/features/contentCreator/utils";
 import * as ini from "ini";
 
 export async function getSystemDetails() {

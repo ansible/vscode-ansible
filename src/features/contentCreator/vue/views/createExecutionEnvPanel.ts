@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "./panelUtils";
+} from "@/features/contentCreator/vue/views/panelUtils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;

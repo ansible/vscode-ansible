@@ -1,6 +1,6 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, window } from "vscode";
-import { WebviewHelper } from "./vue/views/helper";
+import { WebviewHelper } from "@/features/lightspeed/vue/views/helper";
 
 export class LightspeedFeedbackWebviewProvider {
   public static currentPanel: LightspeedFeedbackWebviewProvider | undefined;

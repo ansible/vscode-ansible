@@ -1,5 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { logger, options, permissionDeniedCanApplyForTrial } from "./server";
+import {
+  logger,
+  options,
+  permissionDeniedCanApplyForTrial,
+} from "@test/ui/mockLightspeedServer/server";
 
 export function roleExplanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

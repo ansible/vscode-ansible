@@ -12,7 +12,7 @@ import {
   waitForCondition,
   openSettings,
   workbenchExecuteCommand,
-} from "./uiTestHelper";
+} from "@test/ui/uiTestHelper";
 
 config.truncateThreshold = 0;
 describe("terminal", function () {

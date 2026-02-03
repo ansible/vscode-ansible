@@ -1,8 +1,8 @@
 import * as cp from "child_process";
 import * as os from "os";
-import { SettingsManager } from "../../settings";
-import { withInterpreter } from "../utils/commandRunner";
-import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
+import { SettingsManager } from "@/settings";
+import { withInterpreter } from "@/features/utils/commandRunner";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "@/definitions/constants";
 import * as semver from "semver";
 
 export async function getBinDetail(cmd: string, arg: string) {

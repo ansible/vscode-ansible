@@ -1,14 +1,14 @@
 import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
-import { SettingsManager } from "../../../settings";
+import { SettingsManager } from "@/settings";
 import {
   LightspeedSessionModelInfo,
   LightspeedSessionUserInfo,
   LightspeedUserDetails,
   LightspeedSessionInfo,
-} from "../../../interfaces/lightspeed";
-import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
-import { lightSpeedManager } from "../../../extension";
+} from "@/interfaces/lightspeed";
+import { LIGHTSPEED_USER_TYPE } from "@/definitions/lightspeed";
+import { lightSpeedManager } from "@/extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
 export const ANSIBLE_LIGHTSPEED_AUTH_NAME = `Ansible Lightspeed`;

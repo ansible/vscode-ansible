@@ -16,8 +16,11 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import crypto from "crypto";
-import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
-import { SettingsManager } from "../../settings";
+import {
+  PromiseAdapter,
+  promiseFromEvent,
+} from "@/features/lightspeed/utils/promiseHandlers";
+import { SettingsManager } from "@/settings";
 import {
   generateCodeVerifier,
   UriEventHandler,
@@ -27,17 +30,17 @@ import {
   ACCOUNT_SECRET_KEY,
   getBaseUri,
   getUserTypeLabel,
-} from "./utils/webUtils";
+} from "@/features/lightspeed/utils/webUtils";
 import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LightSpeedCommands,
-} from "../../definitions/lightspeed";
-import { LightspeedAuthSession } from "../../interfaces/lightspeed";
-import { lightSpeedManager } from "../../extension";
-import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { Log } from "../../utils/logger";
-import { getFetch } from "./api";
+} from "@/definitions/lightspeed";
+import { LightspeedAuthSession } from "@/interfaces/lightspeed";
+import { lightSpeedManager } from "@/extension";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@/definitions/constants";
+import { Log } from "@/utils/logger";
+import { getFetch } from "@/features/lightspeed/api";
 
 // Lazy initialization to avoid module loading order issues
 let _codeVerifier: string | undefined;

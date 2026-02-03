@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import { IAnsibleFileTypes } from "../interfaces/lightspeed";
+import { IAnsibleFileTypes } from "@/interfaces/lightspeed";
 
 export namespace AnsibleCommands {
   export const ANSIBLE_VAULT = "extension.ansible.vault";

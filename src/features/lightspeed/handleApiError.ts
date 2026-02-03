@@ -7,8 +7,8 @@ import {
   ERRORS_CONNECTION_CANCELED_TIMEOUT,
   ERRORS_CONNECTION_TIMEOUT,
   ERRORS_NOT_FOUND,
-} from "./errors";
-import { HTTPError, IError } from "./utils/errors";
+} from "@/features/lightspeed/errors";
+import { HTTPError, IError } from "@/features/lightspeed/utils/errors";
 
 function mapHttpError(err: HTTPError): IError {
   // Lookup _known_ errors

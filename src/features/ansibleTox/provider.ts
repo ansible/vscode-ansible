@@ -4,12 +4,12 @@ import * as path from "path";
 import * as fs_promises from "fs/promises";
 import * as fs from "fs";
 import * as vscode from "vscode";
-import { getToxEnvs } from "./runner";
+import { getToxEnvs } from "@/features/ansibleTox/runner";
 import {
   ANSIBLE_TOX_FILE_NAME,
   ANSIBLE_TOX_RUN_COMMAND,
   TOX_TYPE,
-} from "./constants";
+} from "@/features/ansibleTox/constants";
 
 export class AnsibleToxProvider implements vscode.TaskProvider {
   static readonly toxType = TOX_TYPE;

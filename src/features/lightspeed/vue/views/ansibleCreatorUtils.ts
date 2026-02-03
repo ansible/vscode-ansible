@@ -8,20 +8,20 @@ import {
   RoleFormInterface,
   PluginFormInterface,
   PostMessageEvent,
-} from "../../../contentCreator/types";
+} from "@/features/contentCreator/types";
 import {
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
   runCommand,
-} from "../../../contentCreator/utils";
-import { withInterpreter } from "../../../utils/commandRunner";
-import { SettingsManager } from "../../../../settings";
+} from "@/features/contentCreator/utils";
+import { withInterpreter } from "@/features/utils/commandRunner";
+import { SettingsManager } from "@/settings";
 import {
   ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
   ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
-} from "../../../../definitions/constants";
+} from "@/definitions/constants";
 
 export class AnsibleCreatorOperations {
   private checkVersionWithError(

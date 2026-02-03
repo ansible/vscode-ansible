@@ -1113,6 +1113,7 @@
     "sinon": "^21.0.1",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.53.1",
@@ -1174,6 +1175,7 @@
   },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
   "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm",
+  "type": "module",
   "version": "0.0.0",
   "vsce": {
     "dependencies": false,

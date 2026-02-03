@@ -1,11 +1,16 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "composite": true,
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["src/*"],
+      "@test/*": ["test/*"]
+    },
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,

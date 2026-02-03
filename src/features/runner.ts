@@ -2,12 +2,12 @@
 import * as vscode from "vscode";
 
 /* local */
-import { withInterpreter } from "./utils/commandRunner";
-import { getContainerEngine } from "../utils/executionEnvironment";
-import { AnsibleCommands } from "../definitions/constants";
-import { registerCommandWithTelemetry } from "../utils/registerCommands";
-import { TelemetryManager } from "../utils/telemetryUtils";
-import { SettingsManager } from "../settings";
+import { withInterpreter } from "@/features/utils/commandRunner";
+import { getContainerEngine } from "@/utils/executionEnvironment";
+import { AnsibleCommands } from "@/definitions/constants";
+import { registerCommandWithTelemetry } from "@/utils/registerCommands";
+import { TelemetryManager } from "@/utils/telemetryUtils";
+import { SettingsManager } from "@/settings";
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using

@@ -3,9 +3,12 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as util from "util";
-import { runTox, getToxEnvs } from "./runner";
-import { getTerminal, getRootParentLabelDesc } from "./utils";
-import { ANSIBLE_TOX_FILE_NAME } from "./constants";
+import { runTox, getToxEnvs } from "@/features/ansibleTox/runner";
+import {
+  getTerminal,
+  getRootParentLabelDesc,
+} from "@/features/ansibleTox/utils";
+import { ANSIBLE_TOX_FILE_NAME } from "@/features/ansibleTox/constants";
 
 export class AnsibleToxController {
   public controller: vscode.TestController;

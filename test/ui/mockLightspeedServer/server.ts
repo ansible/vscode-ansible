@@ -1,18 +1,18 @@
 // "Mock" Lightspeed Server
 import express, { Application } from "express";
-import { completions } from "./completion";
-import { contentmatches } from "./contentmatches";
-import { explanations } from "./explanations";
-import { feedback, getFeedbacks } from "./feedback";
-import { playbookGeneration } from "./playbookGeneration";
-import { roleGeneration } from "./roleGeneration";
-import { roleExplanations } from "./roleExplanations";
-import { me } from "./me";
-import { openUrl } from "./openUrl";
+import { completions } from "@test/ui/mockLightspeedServer/completion";
+import { contentmatches } from "@test/ui/mockLightspeedServer/contentmatches";
+import { explanations } from "@test/ui/mockLightspeedServer/explanations";
+import { feedback, getFeedbacks } from "@test/ui/mockLightspeedServer/feedback";
+import { playbookGeneration } from "@test/ui/mockLightspeedServer/playbookGeneration";
+import { roleGeneration } from "@test/ui/mockLightspeedServer/roleGeneration";
+import { roleExplanations } from "@test/ui/mockLightspeedServer/roleExplanations";
+import { me } from "@test/ui/mockLightspeedServer/me";
+import { openUrl } from "@test/ui/mockLightspeedServer/openUrl";
 import * as winston from "winston";
 import morgan from "morgan";
 import yargs from "yargs";
-import { meMarkdown } from "./meMarkdown";
+import { meMarkdown } from "@test/ui/mockLightspeedServer/meMarkdown";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export let options: any = readOptions(process.argv.splice(2));

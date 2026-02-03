@@ -1,6 +1,6 @@
 // Based on https://www.npmjs.com/package/openurl
 import { spawn } from "child_process";
-import { logger, options } from "./server";
+import { logger, options } from "@test/ui/mockLightspeedServer/server";
 
 export function openUrl(url: string) {
   let command: string;

@@ -1,5 +1,5 @@
 import { commands, ExtensionContext, window } from "vscode";
-import { TelemetryManager } from "./telemetryUtils";
+import { TelemetryManager } from "@/utils/telemetryUtils";
 
 /**
  * Register a command with the given name and async function

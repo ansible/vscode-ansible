@@ -11,13 +11,13 @@ import {
   sleep,
   waitForCondition,
   workbenchExecuteCommand,
-} from "./uiTestHelper";
+} from "@test/ui/uiTestHelper";
 import { config, expect } from "chai";
 import path from "path";
 import fs from "fs";
 import { execFile } from "child_process";
 import os from "os";
-import { resetSettings } from "../utils";
+import { resetSettings } from "@test/utils";
 
 config.truncateThreshold = 0;
 

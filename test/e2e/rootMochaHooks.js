@@ -3,8 +3,6 @@ import { createLogger, format, transports } from "winston";
 import path from "path";
 import fs from "fs";
 
-type ConsoleMethod = "log" | "info" | "warn" | "error";
-
 const PRETEST_ERR_RC = 2;
 
 process.env = {
@@ -57,17 +55,17 @@ const logger = createLogger({
   ],
 });
 
-const overrideConsole = (method: ConsoleMethod) => {
+const overrideConsole = (method) => {
   const logMethod = method === "log" ? "info" : method;
   Object.defineProperty(console, method, {
-    value: (...args: unknown[]) => {
+    value: (...args) => {
       logger[logMethod](args.map((arg) => String(arg)).join(" "));
     },
     writable: true,
   });
 };
 
-(["log", "info", "warn", "error"] as ConsoleMethod[]).forEach(overrideConsole);
+["log", "info", "warn", "error"].forEach(overrideConsole);
 
 export const mochaHooks = {
   beforeAll() {
