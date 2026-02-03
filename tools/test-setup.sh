@@ -410,7 +410,7 @@ tools:
   git: $(get_version git)
   node: $(get_version node)
   npm: $(get_version npm)
-  pre-commit: $(get_version pre-commit)
+  prek: $(get_version prek)
   python: $(get_version python3)
   task: $(get_version task)
   yarn: $(npx --yes yarn --version || echo null)

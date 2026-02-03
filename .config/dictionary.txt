@@ -107,6 +107,7 @@ openshiftapps
 ovsx
 pacman
 precheck
+prek
 primevue
 priyamsahoo
 progressspinner

@@ -62,5 +62,5 @@ mise install && \
 mise list && \
 mise exec -- uv sync --no-progress -q --active && \
 mise exec -- python --version && \
-mise exec -- pre-commit --version && \
-mise exec -- pre-commit install-hooks
+mise exec -- prek --version && \
+mise exec -- prek install-hooks

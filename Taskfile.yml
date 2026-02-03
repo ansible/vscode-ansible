@@ -145,8 +145,9 @@ tasks:
       - defer: { task: finish }
   lint:
     desc: Lint the project
+    interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
+      - "{{.VIRTUAL_ENV}}/bin/prek run -a"
       - defer: { task: finish }
     silent: true
     sources:
