@@ -66,6 +66,11 @@
       "branchTopic": "npm",
       "ignoreDeps": ["@tomjs/vite-plugin-vscode", "@vitejs/plugin-vue"],
       "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"]
+    },
+    {
+      "branchTopic": "npm",
+      "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "major"]
     },
