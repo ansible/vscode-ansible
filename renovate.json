@@ -64,7 +64,7 @@
     },
     {
       "branchTopic": "npm",
-      "ignoreDeps": ["@tomjs/vite-plugin-vscode", "@vitejs/plugin-vue"],
+      "ignoreDeps": ["@tomjs/vite-plugin-vscode", "@vitejs/plugin-vue", "zod"],
       "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"]
     },

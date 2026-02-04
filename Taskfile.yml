@@ -69,7 +69,7 @@ tasks:
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/testFixtures/.vscode/settings.json"
       - exclude: "**/None/**/*"
-      - exclude: "test/selenium/ui/**/*"
+      - exclude: "test/selenium/**/*"
     generates:
       - out/client/**/*
       - out/server/**/*
