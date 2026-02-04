@@ -42,9 +42,17 @@ WALKTHROUGHS = [
 
 
 def open_walkthrough(driver: Any, walkthrough_name: str) -> Any:
-    """Open a specific walkthrough by name."""
+    """Open a specific walkthrough by name via command palette."""
+    time.sleep(1)
     vscode_run_command(driver, ">Welcome: Open Walkthrough")
-    ActionChains(driver).send_keys(walkthrough_name).send_keys(Keys.ENTER).perform()
+
+    ActionChains(driver).send_keys(walkthrough_name).perform()
+
+    time.sleep(0.5)
+
+    ActionChains(driver).send_keys(Keys.ENTER).perform()
+
+    # Wait for walkthrough to open
     time.sleep(1)
 
     # Switch to default content and wait for walkthrough element
