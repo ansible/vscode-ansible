@@ -1,18 +1,19 @@
 """Tests for VSCode walkthrough functionality."""
 
 # pylint: disable=E0401, W0613, R0801
-import time
 from typing import Any
 
 import pytest
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
-from test.selenium.utils.ui_utils import vscode_run_command, wait_displayed
+from test.selenium.utils.ui_utils import (
+    find_element_across_iframes,
+    vscode_run_command,
+    wait_displayed,
+)
 
 # Walkthrough test data: [walkthrough_name, [expected_steps]]
 WALKTHROUGHS = [
@@ -42,24 +43,38 @@ WALKTHROUGHS = [
 
 
 def open_walkthrough(driver: Any, walkthrough_name: str) -> Any:
-    """Open a specific walkthrough by name via command palette."""
-    time.sleep(1)
-    vscode_run_command(driver, ">Welcome: Open Walkthrough")
+    """Open a specific walkthrough by name via the welcome page."""
+    # Open the Ansible sidebar view
+    vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
 
-    ActionChains(driver).send_keys(walkthrough_name).perform()
+    # Find and click the Getting Started link to open welcome page
+    get_started_link = find_element_across_iframes(
+        driver,
+        "//a[contains(@title, 'Ansible Development Tools welcome page')]",
+        retries=10,
+    )
+    get_started_link.click()
 
-    time.sleep(0.5)
+    # Wait for welcome page to load
+    find_element_across_iframes(
+        driver,
+        "//h1[text()='Ansible Development Tools']",
+        retries=10,
+    )
 
-    ActionChains(driver).send_keys(Keys.ENTER).perform()
-
-    # Wait for walkthrough to open
-    time.sleep(1)
+    # Find and click the walkthrough button by name
+    walkthrough_button = find_element_across_iframes(
+        driver,
+        f"//button[.//div[@class='category-title'][contains(text(), '{walkthrough_name}')]]",
+        retries=20,
+    )
+    walkthrough_button.click()
 
     # Switch to default content and wait for walkthrough element
     driver.switch_to.default_content()
 
     try:
-        element = WebDriverWait(driver, 3).until(
+        element = WebDriverWait(driver, 15).until(
             expected_conditions.presence_of_element_located((
                 By.XPATH,
                 "//div[contains(@class, 'getting-started-category')]",
@@ -73,6 +88,7 @@ def open_walkthrough(driver: Any, walkthrough_name: str) -> Any:
 
 
 @pytest.mark.vscode
+@pytest.mark.modify_settings({"ansible.lightspeed.enabled": False})
 @pytest.mark.parametrize(
     ("walkthrough_name", "expected_steps"),
     WALKTHROUGHS,
@@ -82,8 +98,9 @@ def open_walkthrough(driver: Any, walkthrough_name: str) -> Any:
         "first_playbook",
     ],
 )
-def test_walkthrough(
+def test_walkthrough(  # noqa: PLR0913, PLR0917
     browser_setup: Any,
+    modify_vscode_settings: Any,
     screenshot_on_fail: Any,
     walkthrough_name: str,
     expected_steps: list[str],
