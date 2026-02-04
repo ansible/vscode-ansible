@@ -14,6 +14,7 @@ from test.selenium.utils.ui_utils import vscode_run_command, wait_displayed
 def test_create_empty_playbook(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the 'Create an empty Ansible playbook' command."""
     driver, _ = browser_setup

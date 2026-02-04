@@ -79,6 +79,7 @@ def test_walkthrough(
     screenshot_on_fail: Any,
     walkthrough_name: str,
     expected_steps: list[str],
+    close_editors: Any,
 ) -> None:
     """Test that walkthrough opens and contains expected elements."""
     driver, _ = browser_setup

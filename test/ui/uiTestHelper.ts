@@ -7,8 +7,6 @@ import {
   SettingsEditor,
   Workbench,
   WebView,
-  ViewControl,
-  ActivityBar,
   VSBrowser,
 } from "vscode-extension-tester";
 import { until } from "selenium-webdriver";
@@ -166,30 +164,6 @@ export async function openSettings() {
   }
 
   throw new Error("Failed to open settings after 5 attempts");
-}
-
-export async function getAnsibleViewControl(): Promise<ViewControl> {
-  return await waitForCondition({
-    condition: async () => {
-      try {
-        const activityBar = new ActivityBar();
-        const ansibleView = await activityBar.getViewControl("Ansible");
-        if (ansibleView) {
-          return ansibleView;
-        }
-        return false;
-      } catch (error) {
-        console.log(
-          `Waiting for Ansible view to be available: ${error instanceof Error ? error.message : String(error)}`,
-        );
-        return false;
-      }
-    },
-    message:
-      "Timed out waiting for Ansible view to be available in Activity Bar",
-    timeout: 20000,
-    pollTimeout: 500,
-  });
 }
 
 export async function waitForCondition({

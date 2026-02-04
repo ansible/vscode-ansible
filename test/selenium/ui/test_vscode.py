@@ -53,6 +53,7 @@ def vscode_login_wrapper(driver: Any) -> None:
 def test_vscode_widget(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test that the vs-code widget shows up and works correctly.
 
@@ -80,6 +81,7 @@ def test_vscode_widget(
 def test_vscode_playbook_explanation(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the playbook explanation feature from VSCode."""
     driver, _ = browser_setup
@@ -110,6 +112,7 @@ def test_vscode_playbook_explanation(
 def test_vscode_playbook_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the playbook generation feature from VSCode."""
     driver, _ = browser_setup
@@ -131,6 +134,7 @@ def test_vscode_playbook_generation(
 def test_vscode_role_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the role generation feature from VSCode."""
     driver, _ = browser_setup
@@ -147,6 +151,7 @@ def test_vscode_role_generation(
 def test_vscode_lightspeed_explorer(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the Lightspeed explorer view from VSCode."""
     driver, _ = browser_setup
