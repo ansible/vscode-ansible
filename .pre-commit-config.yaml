@@ -13,6 +13,7 @@ ci:
     - md # missing uv
     - mypy # missing uv
     - ruff # missing uv
+    - renovate # locally managed
     - toml # missing uv
     - yamllint # missing uv
 exclude: >
@@ -114,7 +115,14 @@ repos:
         language: system
         files: "codecov.yml"
         pass_filenames: false
-
+      - id: renovate-config-validator
+        name: renovate config validator
+        alias: renovate
+        entry: renovate-config-validator
+        language: system
+        pass_filenames: false
+        files: "renovate.json"
+        args: [--strict]
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
     hooks:
