@@ -21,6 +21,10 @@ There are three types of tests for the extension:
 3. **UI tests:** Check the presence and functionality of various UI elements in
    the VS Code interface, from the status bar and activity bar to web-views and
    terminal views.
+4. **UI-Selenium tests:** Similar to the UI tests, but they run in a `code-server`
+   (a.k.a VSCode in a Webbrowser) instance embedded in a container. The web browser
+   is Firefox and the interactions are handled by Selenium.
+   Some tests require a secret. You cannot run them locally.
 
 ## Language server tests
 
@@ -41,6 +45,7 @@ Each type of test has its own script and can be run by `task <command>`:
    against the code packaged as a `.vsix` file.
 4. `task ui-oldest`: Runs the UI tests on the oldest supported version of VS
    Code against the code packaged as a `.vsix` file.
+5. `task ui-selenium`: Runs the Selenium-based UI tests.
 
 !!! tip
 
