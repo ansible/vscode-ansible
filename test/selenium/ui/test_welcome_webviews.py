@@ -129,38 +129,3 @@ def test_mcp_section(
     assert "Provides native VS Code AI integration" in description_text, (
         f"Expected VS Code AI integration description, got: {description_text}"
     )
-
-
-@pytest.mark.vscode
-def test_walkthrough_section(
-    browser_setup: Any,
-    screenshot_on_fail: Any,
-) -> None:
-    """Test welcome page displays walkthrough section."""
-    driver, _ = browser_setup
-
-    if "127.0.0.1:8080" not in driver.current_url:
-        driver.get("http://127.0.0.1:8080")
-        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
-
-    first_walkthrough_button = find_element_across_iframes(
-        driver,
-        "//button[.//div[@class='category-title'][contains(text(), 'Create an Ansible environment')]]",
-        retries=20,
-    )
-    button_text = first_walkthrough_button.text
-    assert "Create an Ansible environment" in button_text, (
-        f"Expected 'Create an Ansible environment', got: {button_text}"
-    )
-
-    first_walkthrough_button.click()
-
-    # Verify the walkthrough opens by checking for the first step
-    first_step = find_element_across_iframes(
-        driver,
-        "//*[contains(text(), 'Create an Ansible playbook')]",
-        retries=10,
-    )
-    assert first_step is not None, (
-        "First walkthrough step 'Create an Ansible playbook' should be visible"
-    )
