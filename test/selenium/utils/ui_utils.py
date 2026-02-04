@@ -443,7 +443,6 @@ def vscode_connect(
         vscode_install_vsix(driver)
 
     ansible_button = wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
-    switch_vscode_ligthspeed_url(driver, "https://stage.ai.ansible.redhat.com/")
 
     if device_login:  # OAuth2 Device Flow
         # in this case, give time for the command input to load correctly
