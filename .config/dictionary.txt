@@ -63,9 +63,11 @@ equalto
 eslintcache
 extest
 extester
+fixturenames
 fqcn
 funcargs
 genai
+getfixturevalue
 haaaad
 highlightjs
 hookwrapper
@@ -107,6 +109,7 @@ openshiftapps
 ovsx
 pacman
 precheck
+prek
 primevue
 priyamsahoo
 progressspinner

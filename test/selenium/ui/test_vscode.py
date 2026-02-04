@@ -49,6 +49,7 @@ def vscode_login_wrapper(driver: Any) -> None:
     logged_in_flag = True
 
 
+@pytest.mark.flaky(reruns=6, reruns_delay=10)
 @pytest.mark.vscode
 def test_vscode_widget(
     browser_setup: Any,

@@ -15,7 +15,7 @@ from test.selenium.utils.ui_utils import (
 
 
 @pytest.mark.vscode
-def test_create_devfile_webview_elements(
+def test_devfile_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
 ) -> None:
@@ -60,7 +60,7 @@ def test_create_devfile_webview_elements(
 
 
 @pytest.mark.vscode
-def test_create_devcontainer_webview_elements(
+def test_devcontainer_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
 ) -> None:

@@ -477,7 +477,6 @@ def vscode_connect(
         vscode_install_vsix(driver)
 
     ansible_button = wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
-    switch_vscode_ligthspeed_url(driver, "https://stage.ai.ansible.redhat.com/")
 
     if device_login:  # OAuth2 Device Flow
         # in this case, give time for the command input to load correctly
@@ -825,7 +824,7 @@ def clear_text(driver: WebDriver) -> None:
 
 
 def close_all_tabs(driver: WebDriver) -> None:
-    """Close all the open tabs and interact with the save dialog.
+    """Close all the open tabs at the end of test session.
 
     Args:
         driver: WebDriver instance
