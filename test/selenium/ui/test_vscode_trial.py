@@ -29,6 +29,7 @@ def test_vscode_trial_button(
     new_browser: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the playbook explanation feature from vs-code."""
     # We use a function scoped browser because the connection is different

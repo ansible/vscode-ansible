@@ -18,6 +18,7 @@ from test.selenium.utils.ui_utils import (
 def test_devfile_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the devfile creation webview elements and workflow."""
     driver, _ = browser_setup
@@ -63,6 +64,7 @@ def test_devfile_webview(
 def test_devcontainer_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the devcontainer creation webview elements and workflow."""
     driver, _ = browser_setup

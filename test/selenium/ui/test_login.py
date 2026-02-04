@@ -45,6 +45,7 @@ def test_unsubed_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the login page for a user without subscription."""
     driver, login_url = browser_setup
@@ -89,6 +90,7 @@ def test_unsubed_admin_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the login page for a user without subscription."""
     driver, login_url = browser_setup
@@ -137,6 +139,7 @@ def test_no_wca_user_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test the login page for a user with subscribed org that does not have wca set-up."""
     driver, login_url = browser_setup

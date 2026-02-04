@@ -308,9 +308,9 @@ tasks:
         --name selenium-vscode
         -p 4444:4444
         -p 5999:5999
-        --volume $VSX_FILE:/ansible-latest.vsix:ro
-        --volume ./out/test-resources/settings/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw
-        --volume $PWD/out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw
+        --volume $VSX_FILE:/ansible-latest.vsix:ro,Z
+        --volume ./out/test-resources/settings/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw,Z
+        --volume $PWD/out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw,Z
         quay.io/tshinhar/selenium-vscode-multi:latest
       - curl -sS --retry 10 --retry-all-errors http://localhost:4444
       - pytest

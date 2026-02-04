@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from selenium.webdriver.common.options import ArgOptions
 
 from test.selenium.hooks.logging_hook import phase_report_key
+from test.selenium.utils.settings_utils import ensure_settings, reset_settings
 from test.selenium.utils.ui_utils import (
     TimeOutError,
     clear_text,
@@ -187,7 +188,7 @@ def _close_all_editors_without_saving(driver: WebDriver) -> None:
         elm.click()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=False)
 def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]:
     """A fixture to close all editors without saving.
 
@@ -220,3 +221,28 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
     yield
 
     _close_all_editors_without_saving(driver)
+
+
+@pytest.fixture(autouse=False)
+def modify_vscode_settings(
+    request: pytest.FixtureRequest,
+) -> Generator[None, None, None]:
+    """Modify VS Code settings file before test and restore after."""
+    marker = request.node.get_closest_marker("modify_settings")
+    if not marker:
+        yield
+        return
+
+    settings_updates = marker.args[0] if marker.args else {}
+    if not settings_updates:
+        yield
+        return
+
+    ensure_settings(settings_updates)
+    time.sleep(1)
+
+    yield
+
+    # Restore to original baseline (same as test/utils.ts resetSettings)
+    reset_settings()
+    time.sleep(1)

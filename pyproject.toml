@@ -65,6 +65,7 @@ junit_logging = "all"
 log_cli = true
 log_cli_level = "INFO"
 markers = [
+  "modify_settings: modify vscode settings.json before/after test",
   "vscode: mark tests for vscode extension",
   "vscode_trial: mark tests related to lightspeed trial",
 ]
