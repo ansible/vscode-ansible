@@ -100,7 +100,8 @@ export default defineConfig({
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: "./out/coverage/unit",
-      reporter: ["cobertura", "lcovonly", "text-summary"], // text-summary shows only overall coverage stats, skipping per-file details
+      reporter: ["cobertura", "lcovonly", "text-summary", "text"], // text-summary shows only overall coverage stats, skipping per-file details
+      skipFull: true,
       thresholds: {
         // We cannot enable until we normalize the results across all platforms.
         // autoUpdate:
@@ -120,8 +121,9 @@ export default defineConfig({
       junit: resolve(__dirname, "out/junit/unit-test-results.xml"),
     },
     reporters: ["default", "junit"],
-    testTimeout: 30003,
     slowTestThreshold: 25000,
+    testTimeout: 30003,
+    watch: false,
   },
   resolve: {
     alias: {

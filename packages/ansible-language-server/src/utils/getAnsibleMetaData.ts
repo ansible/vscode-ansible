@@ -231,10 +231,12 @@ async function getExecutionEnvironmentInfo() {
     console.log(error);
   }
 
+  /* v8 ignore start */
   if (eeServiceWorking) {
     eeInfo["env"] = inspectResult["Env"];
     eeInfo["working directory"] = inspectResult["WorkingDir"];
   }
+  /* v8 ignore end */
 
   return eeInfo;
 }

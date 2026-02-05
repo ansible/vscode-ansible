@@ -2,6 +2,7 @@ import * as child_process from "child_process";
 import { Connection } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "../services/workspaceManager.js";
 
+/* v8 ignore start */
 export class ImagePuller {
   private connection: Connection;
   private context: WorkspaceFolderContext;
@@ -118,3 +119,4 @@ export class ImagePuller {
     }
   }
 }
+/* v8 ignore end */

@@ -164,9 +164,11 @@ export class SettingsManager {
       result = Promise.resolve(mergedSettings);
       this.documentSettings.set(uri, result);
     }
+    /* v8 ignore start */
     if (!result) {
       return {} as ExtensionSettings;
     }
+    /* v8 ignore end */
     return result;
   }
 

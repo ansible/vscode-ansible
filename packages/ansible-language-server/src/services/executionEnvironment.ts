@@ -14,6 +14,14 @@ import {
 } from "../interfaces/extensionSettings.js";
 import { IVolumeMounts } from "../interfaces/extensionSettings.js";
 
+/* We are forced to ignore coverage because we can only measure it if we do
+it on all 3 platforms: linux, macos, wsl. Currently macos runners do not
+have podman/docker available. Once this is addressed please remove this coverage
+ignore. Why this? Because we have auto-update enabled on vite for coverage
+levels when they go up, so we do not have to rely on external systems like
+codecov.io or sonarcloud.io to do this (proved unreliable over time).
+*/
+/* v8 ignore start */
 export class ExecutionEnvironment {
   public isServiceInitialized: boolean = false;
   private settings: ExtensionSettings | undefined = undefined;
@@ -602,11 +610,11 @@ export class ExecutionEnvironment {
     return updatedHostDocPath;
   }
 
+  /* v8 ignore start */
   private updateCachePaths(
     pluginPaths: string[],
     cacheBasePath: string,
   ): string[] {
-    /* v8 ignore next 9 */
     const localCachePaths: string[] = [];
     pluginPaths.forEach((srcPath) => {
       const destPath = path.join(cacheBasePath, srcPath);
@@ -616,15 +624,17 @@ export class ExecutionEnvironment {
     });
     return localCachePaths;
   }
+  /* v8 ignore end */
 
+  /* v8 ignore start */
   private isPluginDocCacheValid(hostCacheBasePath: string) {
-    /* v8 ignore next 3 */
     const markerFilePath = path.join(hostCacheBasePath, this.successFileMarker);
     return fs.existsSync(markerFilePath);
   }
+  /* v8 ignore end */
 
+  /* v8 ignore start */
   public get getBasicContainerAndImageDetails() {
-    /* v8 ignore next 7 */
     return {
       containerEngine: this._container_engine,
       containerImage: this._container_image,
@@ -632,4 +642,5 @@ export class ExecutionEnvironment {
       containerVolumeMounts: this._container_volume_mounts,
     };
   }
+  /* v8 ignore end */
 }

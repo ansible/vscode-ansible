@@ -85,7 +85,9 @@ export function withInterpreter(
  */
 export function getUnsupportedError(): string | undefined {
   // win32 applies to x64 arch too, is the platform name
+  /* v8 ignore start */
   if (process.platform === "win32") {
     return "Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.";
   }
+  /* v8 ignore end */
 }

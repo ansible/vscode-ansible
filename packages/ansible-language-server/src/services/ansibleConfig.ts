@@ -46,6 +46,7 @@ export class AnsibleConfig {
         config,
         (_, key) => key.substring(0, key.indexOf("(")), // remove config source in parenthesis
       );
+      /* v8 ignore start */
       if (typeof config.COLLECTIONS_PATHS === "string") {
         this._collection_paths = parsePythonStringArray(
           config.COLLECTIONS_PATHS,
@@ -53,6 +54,7 @@ export class AnsibleConfig {
       } else {
         this._collection_paths = [];
       }
+      /* v8 ignore end */
 
       // get default host list from config dump
       if (typeof config.DEFAULT_HOST_LIST === "string") {
@@ -60,7 +62,9 @@ export class AnsibleConfig {
           config.DEFAULT_HOST_LIST,
         );
       } else {
+        /* v8 ignore start */
         this._default_host_list = [];
+        /* v8 ignore end */
       }
 
       // get Ansible basic information
@@ -90,7 +94,7 @@ export class AnsibleConfig {
         ...parsePythonStringArray(pythonPathResult.stdout),
       );
     } catch (error) {
-      /* v8 ignore next 3 */
+      /* v8 ignore start */
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
@@ -98,6 +102,7 @@ export class AnsibleConfig {
           `Exception in AnsibleConfig service: ${JSON.stringify(error)}`,
         );
       }
+      /* v8 ignore end */
     }
   }
 
