@@ -455,7 +455,7 @@
             "type": "number"
           },
           "ansible.lightspeed.timeout": {
-            "default": 3000,
+            "default": 30000,
             "markdownDescription": "Request timeout in milliseconds for API calls.",
             "order": 3,
             "scope": "resource",
