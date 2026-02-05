@@ -422,6 +422,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
       inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
+  
+  // Initialize QuickLinks provider early so it's available in auth callback
+  const quickLinksHome = new QuickLinksWebviewViewProvider(
+    context.extensionUri,
+    context,
+    llmProviderSettings,
+  );
 
   context.subscriptions.push(
     vscode.authentication.onDidChangeSessions(async (e) => {
@@ -444,18 +451,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await LlmProviderPanel.currentPanel.refreshWebView();
       }
 
+      // Refresh QuickLinks sidebar to update provider status
+      quickLinksHome.refreshProviderInfo();
+
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
       lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
-  );
-
-  const quickLinksHome = new QuickLinksWebviewViewProvider(
-    context.extensionUri,
-    context,
-    llmProviderSettings,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(

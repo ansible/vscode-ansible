@@ -160,11 +160,9 @@ export class LlmProviderMessageHandlers {
       if (providerInfo) {
         for (const field of providerInfo.configSchema) {
           const value = message.config[field.key];
-          // Skip apiKey if provider doesn't require it or value is empty
-          if (
-            field.key === "apiKey" &&
-            (!providerInfo.requiresApiKey || !value)
-          ) {
+          // Skip apiKey only if provider doesn't require it
+          // (but still save empty value to clear existing key)
+          if (field.key === "apiKey" && !providerInfo.requiresApiKey) {
             continue;
           }
           await this.llmProviderSettings.set(

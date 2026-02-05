@@ -5,6 +5,7 @@ import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
 } from "./llmProviderMessageHandlers";
+import { providerFactory } from "../../providers/factory";
 
 /**
  * Main panel for LLM Provider settings.
@@ -15,6 +16,28 @@ export class LlmProviderPanel {
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
   private readonly messageHandlers: LlmProviderMessageHandlers;
+
+  /**
+   * Get panel title based on active provider.
+   */
+  private static getPanelTitle(deps: LlmProviderDependencies): string {
+    const activeProviderType =
+      deps.settingsManager.settings.lightSpeedService.provider;
+
+    if (!activeProviderType) {
+      return "Configure LLM Provider";
+    }
+
+    const providerInfo = providerFactory
+      .getSupportedProviders()
+      .find((p) => p.type === activeProviderType);
+
+    if (providerInfo) {
+      return `LLM Provider: ${providerInfo.displayName}`;
+    }
+
+    return "Configure LLM Provider";
+  }
 
   private constructor(
     panel: WebviewPanel,
@@ -54,9 +77,10 @@ export class LlmProviderPanel {
     if (LlmProviderPanel.currentPanel) {
       LlmProviderPanel.currentPanel._panel.reveal(ViewColumn.One);
     } else {
+      const panelTitle = LlmProviderPanel.getPanelTitle(deps);
       const panel = window.createWebviewPanel(
         "llm-provider-settings",
-        "LLM Provider Settings",
+        panelTitle,
         ViewColumn.One,
         {
           enableScripts: true,
