@@ -203,10 +203,33 @@ export async function testDiagnostics(
     }
   }
 
+  const actualDiagnosticsInfo =
+    actualDiagnostics.length > 0
+      ? actualDiagnostics
+          .map(
+            (d, i) =>
+              `  [${i}] source="${d.source}", message="${d.message}", severity=${d.severity}, range=${d.range.start.line}:${d.range.start.character}-${d.range.end.line}:${d.range.end.character}`,
+          )
+          .join("\n")
+      : "  (none)";
+
+  const expectedDiagnosticsInfo =
+    expectedDiagnostics.length > 0
+      ? expectedDiagnostics
+          .map(
+            (d, i) =>
+              `  [${i}] source="${d.source}", message="${d.message}", severity=${d.severity}`,
+          )
+          .join("\n")
+      : "  (none)";
+
   assert.strictEqual(
     actualDiagnostics.length,
     expectedDiagnostics.length,
-    `Expected ${expectedDiagnostics.length} diagnostics but got ${actualDiagnostics.length}`,
+    `Expected ${expectedDiagnostics.length} diagnostics but got ${actualDiagnostics.length}.\n` +
+      `Document: ${docUri.toString()}\n` +
+      `Expected diagnostics:\n${expectedDiagnosticsInfo}\n` +
+      `Actual diagnostics:\n${actualDiagnosticsInfo}`,
   );
 
   if (actualDiagnostics.length && expectedDiagnostics.length) {

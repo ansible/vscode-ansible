@@ -81,11 +81,15 @@ export class WorkspaceManager {
      * opened in client without any workspace.
      * Set the workspace to directory of the file pointed by uri.
      */
-    const documentFolderPathParts = URI.parse(uri).toString().split(path.sep);
-    documentFolderPathParts.pop();
+    // Parse URI to get the file system path, use path.dirname() for OS-aware
+    // directory extraction, then convert back to URI format
+    const parsedUri = URI.parse(uri);
+    const filePath = parsedUri.path;
+    const folderPath = path.dirname(filePath);
+    const folderName = path.basename(folderPath);
     const workspaceFolder: WorkspaceFolder = {
-      uri: documentFolderPathParts.join(path.sep),
-      name: documentFolderPathParts[documentFolderPathParts.length - 1],
+      uri: URI.file(folderPath).toString(),
+      name: folderName,
     };
 
     this.connection.console.log(
