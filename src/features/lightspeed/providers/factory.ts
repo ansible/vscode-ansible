@@ -109,7 +109,7 @@ export class LLMProviderFactory implements ProviderFactory {
             label: "API Key",
             type: "password",
             required: true,
-            placeholder: "AIza...",
+            placeholder: "",
             description: "Your Google AI API key",
           },
           {

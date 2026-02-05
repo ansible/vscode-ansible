@@ -2,7 +2,6 @@
 import '@vscode/codicons/dist/codicon.css';
 import { onMounted, ref } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
-import '../media/llmProviderView/style.css';
 
 // Types
 interface ProviderInfo {
@@ -369,3 +368,305 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* LLM Provider Settings - Optimized CSS */
+
+/* Base container */
+#llmProviderView {
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  min-height: 100vh;
+}
+
+.settings-wrapper {
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Header */
+.settings-header {
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.settings-header h1 {
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.settings-header p {
+  font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 20px;
+  color: var(--vscode-descriptionForeground);
+}
+
+/* Provider list & rows */
+.provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.provider-row {
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.provider-row:hover,
+.provider-row.is-editing {
+  border-color: var(--vscode-focusBorder);
+}
+
+/* Provider header */
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  gap: 16px;
+}
+
+.provider-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.provider-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.provider-description {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
+}
+
+/* Provider actions */
+.provider-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Base button styles */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+.action-btn:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.action-btn .codicon {
+  font-size: 14px;
+}
+
+/* Primary button variants */
+.edit-btn.active,
+.connect-btn,
+.switch-btn,
+.save-btn {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.connect-btn:hover:not(:disabled),
+.switch-btn:hover,
+.save-btn:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.save-btn.has-changes {
+  background-color: var(--vscode-inputValidation-warningBackground);
+  border-color: var(--vscode-inputValidation-warningBorder);
+  color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+}
+
+/* Badges - shared base */
+.configured-badge,
+.active-badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 500;
+  border-radius: 12px;
+}
+
+.configured-badge {
+  gap: 4px;
+  margin-left: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  border: 1px solid var(--vscode-charts-green);
+  color: var(--vscode-charts-green);
+}
+
+.active-badge {
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  background-color: var(--vscode-charts-green);
+  color: var(--vscode-editor-background);
+}
+
+.configured-badge .codicon { font-size: 12px; }
+.active-badge .codicon { font-size: 14px; }
+
+/* Config panel */
+.provider-config {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--vscode-widget-border);
+  background-color: var(--vscode-sideBar-background);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form fields */
+.config-field {
+  margin-top: 16px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.required-indicator {
+  color: var(--vscode-errorForeground, #f44336);
+  margin-left: 2px;
+  font-weight: normal;
+}
+
+.text-input {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, var(--vscode-widget-border));
+  border-radius: 4px;
+  font-size: 13px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.text-input:hover,
+.text-input:focus {
+  border-color: var(--vscode-focusBorder);
+}
+
+.text-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.text-input::placeholder {
+  color: var(--vscode-input-placeholderForeground);
+}
+
+.field-description {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* Config actions */
+.config-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--vscode-widget-border);
+}
+
+.unsaved-indicator {
+  font-size: 12px;
+  color: var(--vscode-inputValidation-warningForeground, var(--vscode-editorWarning-foreground));
+  font-style: italic;
+}
+
+/* Toast notification */
+.save-indicator {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: var(--vscode-charts-green);
+  color: var(--vscode-editor-background);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.save-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Spinner animation */
+.codicon-modifier-spin {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+</style>

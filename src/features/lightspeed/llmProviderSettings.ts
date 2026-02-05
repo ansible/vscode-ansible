@@ -21,6 +21,7 @@ export class LlmProviderSettings {
   /**
    * Get a setting value for a provider.
    * Automatically uses secrets storage for password fields.
+   * Returns stored value (even if empty string) or default if never set.
    */
   async get(provider: string, key: string): Promise<string> {
     const providerInfo = this.getProviderInfo(provider);
@@ -36,12 +37,13 @@ export class LlmProviderSettings {
     const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${provider}.${key}`;
     const value = this.context.globalState.get<string>(stateKey);
 
-    // Return stored value if set
-    if (value?.trim()) {
+    // If value exists in storage (even empty string), return it
+    // This respects user's explicit choice to clear a field
+    if (value !== undefined) {
       return value.trim();
     }
 
-    // Return default from factory for known fields
+    // Only return defaults when value was never set (first time use)
     if (key === "apiEndpoint") {
       return providerInfo?.defaultEndpoint ?? "";
     }
@@ -55,6 +57,7 @@ export class LlmProviderSettings {
   /**
    * Set a setting value for a provider.
    * Automatically uses secrets storage for password fields.
+   * Stores empty string (not undefined) when user explicitly clears a field.
    */
   async set(
     provider: string,
@@ -76,8 +79,10 @@ export class LlmProviderSettings {
     }
 
     // Use globalState for regular fields
+    // Store empty string (not undefined) to distinguish "cleared" from "never set"
     const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${provider}.${key}`;
-    await this.context.globalState.update(stateKey, value?.trim() || undefined);
+    const trimmedValue = value?.trim() ?? "";
+    await this.context.globalState.update(stateKey, trimmedValue);
   }
 
   /**

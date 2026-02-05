@@ -440,27 +440,6 @@
             "scope": "resource",
             "type": "boolean"
           },
-          "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults).",
-            "order": 2,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.provider": {
-            "default": "wca",
-            "enum": [
-              "wca",
-              "google"
-            ],
-            "enumDescriptions": [
-              "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
-              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
-            ],
-            "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
-            "order": 1,
-            "scope": "resource",
-            "type": "string"
-          },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
             "markdownDescription": "Enable inline suggestions. Note: Currently only supported with WCA provider.",
