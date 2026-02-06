@@ -1,7 +1,6 @@
 """Tests for VSCode extension functionality."""
 
 # pylint: disable=E0401, W0613, R0801, W0603
-import os
 from typing import Any
 
 import pytest
@@ -17,10 +16,7 @@ from test.selenium.utils.ui_utils import (
     wait_displayed,
 )
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("LIGHTSPEED_PASSWORD"),
-    reason="LIGHTSPEED_PASSWORD environment variable is not defined",
-)
+pytestmark = pytest.mark.lightspeed
 
 
 GENERATE_TASK = """update all RHEL machines"""

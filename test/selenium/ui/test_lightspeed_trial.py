@@ -1,17 +1,13 @@
 """This module is for testing the Ansible Lightspeed Trial functionality."""
 
 # pylint: disable=E0401, W0613, R0801, W0603
-import os
 from typing import Any
 
 import pytest
 
 from test.selenium.utils.ui_utils import vscode_login, vscode_trial_button
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("LIGHTSPEED_PASSWORD"),
-    reason="LIGHTSPEED_PASSWORD environment variable is not defined",
-)
+pytestmark = pytest.mark.lightspeed
 
 
 PLAYBOOK_CONTENT = """

@@ -1,7 +1,6 @@
 """This module is for testing the login process."""
 
 # pylint: disable=E0401, W0613
-import os
 import time
 from typing import Any
 
@@ -19,10 +18,7 @@ from test.selenium.utils.ui_utils import (
     wait_displayed,
 )
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("LIGHTSPEED_PASSWORD"),
-    reason="LIGHTSPEED_PASSWORD environment variable is not defined",
-)
+pytestmark = pytest.mark.lightspeed
 
 
 PLAYBOOK_CONTENT = """

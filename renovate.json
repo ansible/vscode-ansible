@@ -37,6 +37,7 @@
     "recreateWhen": "always"
   },
   "minimumReleaseAge": "1 days",
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "description": "Disable updates to requires-python field",
@@ -105,9 +106,15 @@
   "pre-commit": {
     "branchTopic": "pre-commit"
   },
+  "prHourlyLimit": 5,
   "rangeStrategy": "replace",
   "recreateWhen": "always",
   "separateMajorMinor": false,
   "separateMinorPatch": false,
-  "timezone": "UTC"
+  "timezone": "UTC",
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "minimumReleaseAge": "0 days"
+  }
 }
