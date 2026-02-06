@@ -1,7 +1,7 @@
 # cspell:ignore tombi addopts minversion
 [project]
 name = "vscode-ansible"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11,<3.15"
 dynamic = ["version"]
 
 [dependency-groups]
