@@ -48,7 +48,9 @@ describe("language services for a playbook that is present outside a workspace",
   describe("diagnostics functionality", function () {
     it("should complain about no task names", async function () {
       await commands.executeCommand("workbench.action.files.save");
-      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint
+      // may take time to start, especially on WSL
+      await waitForDiagnosisCompletion(150, 7000, 3000);
 
       await testDiagnostics(docUri, [
         {
