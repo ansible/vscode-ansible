@@ -114,6 +114,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pullrequest
 pydoclint
 pytestmark
 pyvenv

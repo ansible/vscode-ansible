@@ -34,7 +34,7 @@ lint = [
 builtin = "clear,rare,code"
 check-filenames = true
 check-hidden = true
-ignore-words-list = ["als", "ro", "stdio", "isPlay", "afterAll"]
+ignore-words-list = ["als", "ro", "stdio", "isPlay", "afterAll", "pullrequest"]
 ignore-words = ".config/dictionary.txt"
 skip = ".cache,.yarn,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible"
 
