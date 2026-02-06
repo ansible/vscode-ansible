@@ -42,7 +42,6 @@ const config: KnipConfig = {
         "webviews/**/*.{ts,tsx,vue,js,html}",
         "test/**/*.ts",
         ".vscode-test.mjs",
-        "test/ui/.mocharc.js",
       ],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },

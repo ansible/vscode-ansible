@@ -8,8 +8,7 @@ export default defineConfig({
   workspaceFolder: "test/testFixtures",
   launchArgs: [
     // cannot rely on vscode-test ability to install extensions because it does
-    // implicitly use --force and the server can respond with 503 errors. But
-    // we could use extest to install extensions, which is more resilient.
+    // implicitly use --force and the server can respond with 503 errors.
     // "--install-extensions=ms-python.python,redhat.vscode-yaml",
     "--disable-gpu", // avoids misleading console messages during local or CI/CD test like VK_ERROR_INCOMPATIBLE_DRIVER
     "--user-data-dir=.vscode-test/user-data",

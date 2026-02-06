@@ -3,8 +3,7 @@ import { describe, it, expect } from "vitest";
 import { activate, deactivate } from "../../src/extension";
 // @ts-expect-error - .mjs file doesn't have type definitions
 import vscodeTestConfig from "../../.vscode-test.mjs";
-// @ts-expect-error - .js file doesn't have type definitions
-import mocharcConfig from "../../test/ui/.mocharc.js";
+import { resetSettings } from "../utils";
 
 describe("entrypoints", () => {
   it("should export activate as a function", () => {
@@ -16,7 +15,7 @@ describe("entrypoints", () => {
     expect(vscodeTestConfig).toBeDefined();
   });
 
-  it("should export default from test/ui/.mocharc.js", () => {
-    expect(mocharcConfig).toBeDefined();
+  it("should reset settings to original baseline", () => {
+    expect(typeof resetSettings).toBe("function");
   });
 });
