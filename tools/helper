@@ -155,9 +155,6 @@ def cli() -> None:
 
         # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
         run(f"vsce package --no-update-package-json {pre_release_arg} {version}")
-
-        # running `vsce ls` is a must as it is also executed by extester so we need
-        # to be sure that the command succeeds.
         # --yarn needed to avoid a warning message as package.json config does not prevent it
         run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")

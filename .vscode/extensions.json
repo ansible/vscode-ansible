@@ -5,7 +5,6 @@
     "charliermarsh.ruff",
     "dbaeumer.vscode-eslint",
     "hbenl.vscode-mocha-test-adapter",
-    "redhat.extester-runner",
     "timonwong.shellcheck",
     "tombi-toml.tombi"
   ],
