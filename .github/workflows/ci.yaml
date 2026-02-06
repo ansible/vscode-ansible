@@ -330,14 +330,18 @@ jobs:
 
       - name: task unit (ext, vue, als, mcp)
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
+        run: |
+          task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
           set -e
+          task build 2>out/log/build-before.txt
           task e2e ${{ matrix.env.TASKFILE_ARGS }}
+          task build 2>out/log/build-after.txt
+          task build --status --verbose
         # Add these once e2e is fixed:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
@@ -345,7 +349,9 @@ jobs:
       - name: task ui-selenium
         # runner.os=Linux even on windows if the runner was started from inside wsl!
         if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
-        run: task ui-selenium
+        run: |
+          task ui-selenium
+          task build --status
         env:
           LIGHTSPEED_USER: lightspeed-test-user
           LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
@@ -412,7 +418,7 @@ jobs:
           git diff
           git status --porcelain --ignored
 
-      - name: Report unexpected failures
+      - name: Report unexpected failures on slack
         if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
         uses: ./.github/actions/report
         with:
