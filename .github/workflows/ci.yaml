@@ -47,11 +47,25 @@ jobs:
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
+      builder_files: ${{ steps.paths.outputs.builder_files }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+
+      - name: Check for builder-related file changes
+        id: paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            builder_files:
+              - .config/mise.toml
+              - .git/workflows/ci.yaml
+              - Containerfile
+              - pyproject.toml
+              - tools/builder.sh
+              - uv.lock
 
       - name: task setup
         timeout-minutes: 2 # expected under 10s for container builds
@@ -423,6 +437,7 @@ jobs:
   builder-image:
     runs-on: ubuntu-24.04
     needs: [preflight]
+    if: needs.preflight.outputs.builder_files == 'true'
     permissions:
       contents: read
       packages: write
@@ -451,6 +466,7 @@ jobs:
     needs:
       - build
       - builder-image
+    if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
 
     permissions:
       checks: read # codecov
@@ -518,6 +534,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
+          allowed-skips: builder-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
