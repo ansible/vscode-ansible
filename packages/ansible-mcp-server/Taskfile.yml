@@ -79,10 +79,10 @@ tasks:
       - src/**/*.*
       - tsconfig.json
     generates:
-      - "*.tgz"
+      - "../../out/@ansible-ansible-mcp-server*.tgz"
     cmds:
-      - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - rm -f {{ .GIT_ROOT }}/out/@ansible-ansible-mcp-server*.tgz
+      - yarn pack --out '{{ .GIT_ROOT }}/out/%s-%v.tgz'
     silent: false
   clean:
     desc: Clean build artifacts

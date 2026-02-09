@@ -132,21 +132,14 @@ jobs:
       - name: task finish
         run: task finish
 
-      - name: Upload vsix artifact
+      - name: Upload packages archive
         uses: ansible/actions/upload-artifact@main
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
-          path: ansible-*.vsix
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-language-server npm package
-        uses: ansible/actions/upload-artifact@main
-        with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
-          path: packages/ansible-language-server/*.tgz
+          path: |
+            out/ansible-*.vsix
+            out/*.tgz
           if-no-files-found: error
           retention-days: 90
 

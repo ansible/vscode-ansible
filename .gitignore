@@ -1,8 +1,8 @@
+# WARNING: ideally this file should contain only out/ folder as all our build
+# steps should never create or modify files outside that. That is also true
+# about not not using or creating files from user home directory directly (~).
 !media/
-*.tgz
-*.vsix
 .DS_Store
-.ansible
 .cache
 .eslintcache
 .idea
@@ -12,17 +12,9 @@
 *.pyo
 .task
 .vscode-test
-CHANGELOG.html
-docs/als/settings.md
-examples/.vscode/
 node_modules
 out
-packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
 site
-test/testFixtures/.vscode/settings.json
-test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
-xunit.xml
 
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
 .yarn/*
@@ -31,5 +23,16 @@ xunit.xml
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# TODO: Seek to remove these from this file:
+.ansible
+CHANGELOG.html
+docs/als/settings.md
+examples/.vscode/
+packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
 resources/contentCreator/createDevcontainer/.devcontainer
 resources/contentCreator/createDevfile/devfile-template.txt
+test/testFixtures/.vscode/settings.json
+test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
+xunit.xml

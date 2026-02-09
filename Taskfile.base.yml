@@ -1,6 +1,9 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
+vars:
+  GIT_ROOT:
+    sh: git rev-parse --show-toplevel
 tasks:
   yarn:
     cmds:

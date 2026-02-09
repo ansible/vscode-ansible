@@ -215,7 +215,7 @@ tasks:
       # dry run to fail fast if we misconfigure it
       - "{{.XVFB}}vscode-test --dry-run --fail-zero"
       # cannot put coverage option inside .vscode-test.mjs
-      - "{{.XVFB}}vscode-test --install-extensions ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   ui-selenium:
@@ -235,7 +235,7 @@ tasks:
       - mkdir -p out/test-resources/settings/User/ out/ui-selenium/logs out/ui-selenium/coder-logs
       - cp -f test/testFixtures/settings.json out/test-resources/settings/User/settings.json
       - >
-        VSX_FILE=${PWD}/$(ls -1 ansible-*.vsix) &&
+        VSX_FILE=${PWD}/$(ls -1 out/ansible-*.vsix) &&
         podman run
         --pull=missing
         --replace
@@ -283,8 +283,9 @@ tasks:
       - tools/helper
       - yarn.lock
     generates:
-      - "*.vsix"
-      - "packages/*/*.tgz"
+      - "out/*.vsix"
+      - "out/@ansible-ansible-mcp-server*.tgz"
+      - "out/@ansible-ansible-language-server*.tgz"
     cmds:
       # we want to build both all the time:
       - task: als:package

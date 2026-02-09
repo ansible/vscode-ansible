@@ -102,12 +102,12 @@ tasks:
       - package.json
       - out/server/
     generates:
-      - "*.tgz"
+      - '{{ .GIT_ROOT }}/out/@ansible-ansible-language-server-*.tgz'
     deps:
       - build
     cmds:
-      - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - rm -f '{{ .GIT_ROOT }}/out/@ansible-ansible-language-server-*.tgz'
+      - yarn pack --out '{{ .GIT_ROOT }}/out/%s-%v.tgz'
     silent: false
   release:
     desc: Create a new release (used by CI)
