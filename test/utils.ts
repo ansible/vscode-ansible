@@ -4,7 +4,7 @@ import { PROJECT_ROOT } from "./setup";
 
 const userSettingsPath = path.join(
   PROJECT_ROOT,
-  "out/test-resources/settings/User/settings.json",
+  ".vscode-test/user-data/User/settings.json",
 );
 const originalSettingsPath = path.join(
   PROJECT_ROOT,

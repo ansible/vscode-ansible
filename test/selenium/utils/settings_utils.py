@@ -11,7 +11,7 @@ from typing import Any
 log = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-USER_SETTINGS_PATH = PROJECT_ROOT / "out/test-resources/settings/User/settings.json"
+USER_SETTINGS_PATH = PROJECT_ROOT / ".vscode-test/user-data/User/settings.json"
 ORIGINAL_SETTINGS_PATH = PROJECT_ROOT / "test/testFixtures/settings.json"
 
 

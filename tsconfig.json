@@ -5,7 +5,6 @@
   },
   "exclude": [
     "node_modules",
-    "test-resources",
     "src/features/lightspeed/vue/src",
     "packages/ansible-mcp-server/test",
     "test/unit/webviews"
@@ -15,7 +14,6 @@
     "src/**/*.ts",
     "test/**/*.ts",
     "webviews/lightspeed/src/utils/*.ts",
-    "test",
     "*.js",
     "*.ts"
   ],
