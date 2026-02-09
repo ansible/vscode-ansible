@@ -8,12 +8,14 @@ ci:
     - biome
     - codecov
     - codespell # missing uv
-    - knip
+    - cspell
     - eslint
+    - knip
     - md # missing uv
     - mypy # missing uv
-    - ruff # missing uv
     - renovate # locally managed
+    - ruff # missing uv
+    - shellcheck # missing uv
     - toml # missing uv
     - yamllint # missing uv
 exclude: >
@@ -26,45 +28,17 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/ansible/actions
-    rev: v0.3.1
+    rev: v0.5.0
     hooks:
       - id: toml
-        name: toml format
-        entry: uv run -q --group=lint tombi format --offline
-      - id: toml
-        alias: toml
-        name: toml lint
-        entry: uv run -q --group=lint tombi lint --offline
       - id: mypy
       - id: ruff
       - id: codespell
+      - id: cspell
       - id: yamllint
       - id: md
-  - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.6.0
-    hooks:
-      - id: cspell
-        entry: bash
-        pass_filenames: false
-        additional_dependencies:
-          - cspell@^9.2.2
-        args:
-          [
-            "-euo",
-            "pipefail",
-            "-c",
-            "cspell-cli . --relative --no-progress --no-summary && cspell-cli . --disable-dictionary=words --no-exit-code --words-only --quiet --unique | LC_ALL=C sort > .config/dictionary.txt",
-          ]
-        name: cspell + remove unused and sort dictionary
-
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
+      - id: codecov
       - id: shellcheck
-        args:
-          - --color=always
-          - -e
-          - SC1091
   - repo: local
     hooks:
       - id: biome
@@ -104,17 +78,6 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: codecov
-        name: Check codecov.yml
-        # https://superuser.com/a/1587813/3004
-        entry: >
-          bash -c '[ $(
-          curl --silent -o /dev/stderr -w "%{http_code}" -X POST
-          --data-binary @codecov.yml https://codecov.io/validate
-          ) -eq 200 ]'
-        language: system
-        files: "codecov.yml"
-        pass_filenames: false
       - id: renovate-config-validator
         name: renovate config validator
         alias: renovate

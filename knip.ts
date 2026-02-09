@@ -38,10 +38,11 @@ const config: KnipConfig = {
   workspaces: {
     ".": {
       entry: [
-        "src/extension.ts",
-        "webviews/**/*.{ts,tsx,vue,js,html}",
-        "test/**/*.ts",
         ".vscode-test.mjs",
+        "src/**/env.d.ts",
+        "src/extension.ts",
+        "test/**/*.ts",
+        "webviews/**/*.{ts,tsx,vue,js,html}",
       ],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },
