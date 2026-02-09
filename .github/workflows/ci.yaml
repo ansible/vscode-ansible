@@ -375,6 +375,9 @@ jobs:
             out/mcp
             out/ui*
             out/unit
+            out/server
+            out/client
+            out/vitebuild
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
           # out/test-resources/settings/logs
