@@ -10,8 +10,10 @@ import {
 import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../extension";
 
-export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
-export const ANSIBLE_LIGHTSPEED_AUTH_NAME = `Ansible Lightspeed`;
+// Also defined in package.json in "".contributes.authentication"
+export const ANSIBLE_LIGHTSPEED_AUTH_ID = "auth-lightspeed";
+export const ANSIBLE_LIGHTSPEED_AUTH_NAME = "Ansible Lightspeed";
+
 export const RHSSO_AUTH_ID = "redhat-account-auth";
 export const SESSIONS_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_ID}.sessions`;
 export const ACCOUNT_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_NAME}.account`;

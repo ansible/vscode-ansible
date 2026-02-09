@@ -1011,6 +1011,12 @@
         ],
         "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/ansible_rulebook/schema/ruleset_schema.json"
       }
+    ],
+    "authentication": [
+      {
+        "id": "auth-lightspeed",
+        "label": "Ansible Lightspeed"
+      }
     ]
   },
   "contributors": [
