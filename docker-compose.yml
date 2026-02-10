@@ -1,0 +1,29 @@
+# Used by `task ui-selenium` to start the selenium server.
+
+# Override VSIX path: VSX_FILE=./out/ansible-1.2.3.vsix
+# cspell: ignore healthcheck
+version: "3.8"
+services:
+  selenium-vscode:
+    image: quay.io/tshinhar/selenium-vscode-multi:latest
+    pull_policy: missing
+    container_name: selenium-vscode
+    shm_size: "10g"
+    ports:
+      - "4444:4444"
+      - "5999:5999"
+    volumes:
+      - ${VSX_FILE:-./out/ansible-latest.vsix}:/ansible-latest.vsix:ro
+      - ./.vscode-test/user-data/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw
+      - ./out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 4G # on macos 4G is already the limit

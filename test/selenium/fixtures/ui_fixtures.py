@@ -1,9 +1,11 @@
 """This module is a fixtures for the ui testing."""
 
+# cspell: ignore capmanager capturemanager pluginmanager getplugin
 # pylint: disable=E0401
 import contextlib
 import logging
 import os
+import subprocess
 import time
 from collections.abc import Generator
 from datetime import datetime
@@ -15,6 +17,7 @@ from selenium.common import WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
 
 if TYPE_CHECKING:
+    from _pytest.capture import CaptureManager
     from selenium.webdriver.common.options import ArgOptions
 
 from test.selenium.hooks.logging_hook import phase_report_key
@@ -32,12 +35,26 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
-def browser_setup() -> Generator[tuple[WebDriver, str], None, None]:
+def browser_setup(
+    request: pytest.FixtureRequest,
+) -> Generator[tuple[WebDriver, str], None, None]:
     """Create a browser instance.
 
     Yields:
         Tuple of (WebDriver instance, login URL)
     """
+    capmanager: CaptureManager = request.config.pluginmanager.getplugin(
+        "capturemanager"
+    )  # type: ignore[name-defined]
+    log.info(
+        "Starting selenium server at http://localhost:4444 and vnc://localhost:5999"
+    )
+    with capmanager.global_and_fixture_disabled():
+        subprocess.run(
+            "podman-compose up --remove-orphans --timeout 5 -d selenium-vscode",
+            check=True,
+            shell=True,
+        )
     browser = os.environ.get("BROWSER_TYPE")
     options: ArgOptions  # type: ignore[name-defined]
     if browser == "chrome":
