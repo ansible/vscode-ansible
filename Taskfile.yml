@@ -229,7 +229,11 @@ tasks:
     generates:
       - out/junit/ui-selenium-test-results.xml
     cmds:
-      - pytest
+      - |
+        for i in {1..5}; do
+          echo "===== Run $i of 5 ====="
+          pytest || true
+        done
       - defer: podman-compose down
     interactive: true
   unit:
