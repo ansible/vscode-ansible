@@ -62,14 +62,9 @@ runs:
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: |
-          .vscode-test
+          .vscode-test/extensions
+          .vscode-test/vscode-*
           out/ext
-          out/test-resources*/chromedriver*
-          out/test-resources*/VSCode-*
-          out/test-resources*/Visual*
-          out/test-resources*/driverVersion
-          out/test-resources*/stable.zip
-          out/test-resources*/manifest.json
         key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
     # - name: Enable caching for podman-machine
     #   if: "contains(matrix.os, 'macos')"

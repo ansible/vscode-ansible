@@ -61,5 +61,6 @@
   "redhat.telemetry.enabled": false,
   "search.exclude": {
     ".vscode-test": true
-  }
+  },
+  "vitest.maximumConfigs": 10
 }
