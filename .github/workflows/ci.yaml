@@ -54,6 +54,10 @@ jobs:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
+      - name: Workaround for https://github.com/actions/runner/issues/2033
+        run: |
+          chown -R $(id -u):$(id -g) $PWD
+
       - name: Check for builder-related file changes
         id: paths
         uses: dorny/paths-filter@v3
