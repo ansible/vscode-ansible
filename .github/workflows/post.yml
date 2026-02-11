@@ -9,7 +9,7 @@ on:
       - completed
 permissions:
   actions: read
-  checks: read
+  checks: write
   contents: read
   pull-requests: read
   statuses: write
