@@ -18,7 +18,6 @@ def test_sidebar_nav(
     browser_setup: Any,
     modify_vscode_settings: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test sidebar navigation to welcome page."""
     driver, _ = browser_setup

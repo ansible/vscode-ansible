@@ -232,7 +232,7 @@ tasks:
       - |
         for i in {1..5}; do
           echo "===== Run $i of 5 ====="
-          pytest || true
+          pytest {{.CLI_ARGS}} || true
         done
       - defer: podman-compose down
     interactive: true
