@@ -20,22 +20,21 @@ jobs:
     if: github.repository == 'ansible/vscode-ansible' && github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Create check run with link
-        id: check
+        id: create-check
         uses: actions/github-script@v7
         with:
+          result-encoding: string
           script: |
-            await github.rest.checks.create({
+            const check = await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'sonar',
               head_sha: '${{ github.event.workflow_run.head_sha }}',
               status: 'in_progress',
-              details_url: '${{ github.event.workflow_run.html_url }}',
-              output: {
-                title: 'Workflow completed',
-                summary: 'The workflow_run triggered workflow has completed successfully'
-              }
+              details_url: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
             });
+            console.log(`In progress check created with ID: ${check.data.id}`);
+            return check.data.id
 
       - name: Checkout Code
         uses: actions/checkout@v6
@@ -99,11 +98,10 @@ jobs:
             await github.rest.checks.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              check_run_id: ${{ steps.check.outputs.check_id }},
+              check_run_id: ${{ steps.create-check.outputs.result }},
               status: 'completed',
               conclusion: 'success',
               completed_at: new Date().toISOString(),
-              details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               output: {
                 title: 'Service Tests Passed',
                 summary: `All service tests passed for PR #${{ steps.pr-context.outputs.number }}.`
@@ -118,11 +116,10 @@ jobs:
             await github.rest.checks.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              check_run_id: ${{ steps.check.outputs.check_id }},
+              check_run_id: ${{ steps.create-check.outputs.result }},
               status: 'completed',
               conclusion: 'failure',
               completed_at: new Date().toISOString(),
-              details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
               output: {
                 title: 'Service Tests Failed',
                 summary: `The service tests failed for PR #${{ steps.pr-context.outputs.number }}. Click "Details" to view the full test output and logs.`,
