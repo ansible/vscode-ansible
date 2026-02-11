@@ -5,6 +5,11 @@
     "charliermarsh.ruff",
     "dbaeumer.vscode-eslint",
     "hbenl.vscode-mocha-test-adapter",
+    "ms-python.debugpy",
+    "ms-python.mypy-type-checker",
+    "ms-python.python",
+    "ms-python.vscode-python-envs",
+    "task.vscode-task",
     "timonwong.shellcheck",
     "tombi-toml.tombi"
   ],
