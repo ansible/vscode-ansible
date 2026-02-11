@@ -78,7 +78,7 @@ const handleCreate = createActionWrapper(
   commonState.logs,
   commonState.createButtonDisabled,
   () => {
-    const actualInitPath = initPath.value || defaultInitPath.value;
+    const actualInitPath = initPath.value.trim() || defaultInitPath.value;
     const actualLogFilePath = commonState.logFilePath.value || commonState.defaultLogFilePath.value;
 
     const payload = {
