@@ -240,12 +240,18 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
     _close_all_editors_without_saving(driver)
 
 
-@pytest.fixture(autouse=False)
+@pytest.fixture(scope="module", autouse=False)
 def modify_vscode_settings(
     request: pytest.FixtureRequest,
 ) -> Generator[None, None, None]:
-    """Modify VS Code settings file before test and restore after."""
-    marker = request.node.get_closest_marker("modify_settings")
+    """Modify VS Code settings file before tests and restore after."""
+    marker = None
+    for item in request.session.items:
+        if hasattr(item, "module") and item.module == request.module:  # type: ignore[attr-defined]
+            marker = item.get_closest_marker("modify_settings")
+            if marker:
+                break
+
     if not marker:
         yield
         return
@@ -256,10 +262,9 @@ def modify_vscode_settings(
         return
 
     ensure_settings(settings_updates)
-    time.sleep(1)
+    time.sleep(3)
 
     yield
 
-    # Restore to original baseline (same as test/utils.ts resetSettings)
     reset_settings()
-    time.sleep(1)
+    time.sleep(2)

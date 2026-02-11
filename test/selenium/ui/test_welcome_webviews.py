@@ -56,12 +56,6 @@ def test_header_and_subtitle(
         driver.get("http://127.0.0.1:8080")
         wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
 
-    find_element_across_iframes(
-        driver,
-        "//h1[text()='Ansible Development Tools']",
-        retries=30,
-    )
-
     header_title = find_element_across_iframes(
         driver,
         "//h1[text()='Ansible Development Tools']",
