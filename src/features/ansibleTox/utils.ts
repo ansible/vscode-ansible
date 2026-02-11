@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { TerminalService } from "../../services/TerminalService";
 
-export function findProjectDir() {
+export function findProjectDir(): string | undefined {
   const docUri = vscode.window.activeTextEditor?.document.uri;
   if (docUri) {
     const workspace = vscode.workspace.getWorkspaceFolder(docUri);
@@ -25,18 +26,23 @@ export function findProjectDir() {
       return rootPath;
     }
   }
+  return undefined;
 }
 
-export function getTerminal(
+export async function getTerminal(
   projDir: string | undefined = findProjectDir(),
   name = "Ansible Tox",
-): vscode.Terminal {
-  for (const terminal of vscode.window.terminals) {
-    if (terminal.name === name) {
-      return terminal;
-    }
-  }
-  return vscode.window.createTerminal({ cwd: projDir, name: name });
+): Promise<vscode.Terminal> {
+  const terminalService = TerminalService.getInstance();
+
+  const cwd = projDir ? vscode.Uri.file(projDir) : undefined;
+  const managed = await terminalService.createActivatedTerminal({
+    name,
+    cwd,
+    reuseExisting: true,
+  });
+
+  return managed.terminal;
 }
 
 export function getRootParentLabelDesc(test: vscode.TestItem): string {
