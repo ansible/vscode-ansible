@@ -27,8 +27,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
-USERNAME = os.environ.get("LIGHTSPEED_USER")
-PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD")
+LIGHTSPEED_USER = os.environ.get("LIGHTSPEED_USER", "")
+LIGHTSPEED_PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD", "")
 
 # Move cursor to the "Explain the playbook with Ansible Lightspeed" menu item.
 # Note: The required number of DOWN key presses varies by VSCode version.
@@ -160,8 +160,8 @@ def user_is_auth(driver: WebDriver) -> bool:
 
 def sso_auth_flow(  # noqa: PLR0913
     driver: WebDriver,
-    username: str | None = USERNAME,
-    password: str | None = PASSWORD,
+    username: str | None = LIGHTSPEED_USER,
+    password: str | None = LIGHTSPEED_PASSWORD,
     *,
     admin_login: bool = False,
     no_wca: bool = False,
@@ -179,8 +179,8 @@ def sso_auth_flow(  # noqa: PLR0913
         no_wca: Whether to skip WCA
         no_sub: Whether to skip subscription
     """
-    user = USERNAME
-    password = PASSWORD
+    user = LIGHTSPEED_USER
+    password = LIGHTSPEED_PASSWORD
 
     assert user
     assert password
