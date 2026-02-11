@@ -9,23 +9,26 @@ import {
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
-import { execSync } from "child_process";
-import { resolveInterpreterPath } from "./utils/interpreterPathResolver";
+import { PythonEnvironmentService } from "../services/PythonEnvironmentService";
 
 export class PythonInterpreterManager {
   private context;
   private pythonInterpreterStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
   private extensionSettings: SettingsManager;
+  private pythonEnvService: PythonEnvironmentService;
 
   constructor(
     context: ExtensionContext,
     telemetry: TelemetryManager,
     extensionSettings: SettingsManager,
+    pythonEnvService?: PythonEnvironmentService,
   ) {
     this.context = context;
     this.telemetry = telemetry;
     this.extensionSettings = extensionSettings;
+    this.pythonEnvService =
+      pythonEnvService || PythonEnvironmentService.getInstance();
 
     this.pythonInterpreterStatusBarItem = this.initialiseStatusBar();
   }
@@ -64,54 +67,62 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    const rawInterpreterPath = this.extensionSettings.settings.interpreterPath;
-    if (rawInterpreterPath) {
-      const activeURI = window.activeTextEditor?.document.uri;
-      // Use the centralized resolver to handle ${workspaceFolder} and relative paths
-      const resolvedPath = resolveInterpreterPath(
-        rawInterpreterPath,
-        activeURI,
+    // Check if Python extension is available
+    if (!this.pythonEnvService.isAvailable()) {
+      this.pythonInterpreterStatusBarItem.text =
+        "$(warning) Python extension not installed";
+      this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+        "statusBarItem.warningBackground",
+      );
+      this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
+        "#### Install Python Extension\n" +
+          "Click to install the Python extension for better environment management.",
+        true,
+      );
+      this.pythonInterpreterStatusBarItem.command =
+        AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER;
+      return;
+    }
+
+    // Get the current environment from the Python extension
+    const activeURI = window.activeTextEditor?.document.uri;
+    const environment = await this.pythonEnvService.getEnvironment(activeURI);
+
+    if (environment) {
+      // Display environment information
+      const displayName = environment.displayName || environment.name;
+      this.pythonInterpreterStatusBarItem.text = displayName;
+      this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+        "statusBar.background",
       );
 
-      if (!resolvedPath) {
-        this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
-        this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-          "statusBarItem.warningBackground",
-        );
-        console.error(
-          `Could not resolve interpreter path: ${rawInterpreterPath}`,
-        );
-      } else {
-        const label = this.makeLabelFromPath(resolvedPath);
-        if (label) {
-          this.pythonInterpreterStatusBarItem.text = label;
-          // Show both the configured path and resolved path in tooltip for clarity
-          const tooltipText =
-            rawInterpreterPath !== resolvedPath
-              ? `#### Change environment\nConfigured: ${rawInterpreterPath}\nResolved: ${resolvedPath}`
-              : `#### Change environment\nCurrent python path: ${resolvedPath}`;
-          this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
-            tooltipText,
-            true,
-          );
-          this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-            "statusBar.background",
-          );
-        } else {
-          this.pythonInterpreterStatusBarItem.text =
-            "Invalid python environment";
-          this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-            "statusBarItem.warningBackground",
-          );
-          console.error(
-            `The specified python interpreter path in settings does not exist: ${resolvedPath} (configured: ${rawInterpreterPath})`,
-          );
-        }
+      const tooltipLines = [
+        "#### Change environment",
+        `**Name:** ${displayName}`,
+      ];
+
+      if (environment.version) {
+        tooltipLines.push(`**Version:** ${environment.version}`);
       }
+
+      if (environment.displayPath) {
+        tooltipLines.push(`**Path:** ${environment.displayPath}`);
+      }
+
+      this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
+        tooltipLines.join("\n\n"),
+        true,
+      );
     } else {
+      // No environment selected
       this.pythonInterpreterStatusBarItem.text = "Select python environment";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground",
+      );
+      this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
+        "#### Select Python Environment\n" +
+          "Click to select a Python environment for this workspace.",
+        true,
       );
     }
 
@@ -120,38 +131,5 @@ export class PythonInterpreterManager {
       AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER;
 
     return;
-  }
-
-  public makeLabelFromPath(interpreterPath: string): string | undefined {
-    let version: string;
-    try {
-      version = execSync(`${interpreterPath} -V`).toString().trim();
-    } catch (error) {
-      console.error(
-        `Error gathering python version from ${interpreterPath}: ${error}`,
-      );
-      return;
-    }
-    let envLabel: string = version;
-
-    const pythonInVenv = execSync(
-      `${interpreterPath} -c "import sys;in_venv = sys.prefix != sys.base_prefix;print(in_venv)"`,
-    )
-      .toString()
-      .trim();
-
-    const inVenv = pythonInVenv === "True";
-
-    if (inVenv) {
-      const sysPrefix = execSync(
-        `${interpreterPath} -c "import sys;print(sys.prefix.split('/').pop())"`,
-      )
-        .toString()
-        .trim();
-
-      envLabel = `${version} (${sysPrefix})`;
-    }
-
-    return envLabel;
   }
 }
