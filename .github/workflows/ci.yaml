@@ -54,6 +54,10 @@ jobs:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
+      - name: Workaround for https://github.com/actions/runner/issues/2033
+        run: |
+          chown -R $(id -u):$(id -g) $PWD
+
       - name: Check for builder-related file changes
         id: paths
         uses: dorny/paths-filter@v3
@@ -406,19 +410,19 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      # - name: Upload junit test results to codecov.io
-      #   if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
-      #   uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
-      #   with:
-      #     directory: out/junit
-      #     fail_ci_if_error: true
-      #     handle_no_reports_found: true
-      #     plugins: noop
-      #     report_type: test_results
-      #     name: ${{ matrix.id }}
-      #     # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-      #     flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
-      #     use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      - name: Upload junit test results to codecov.io
+        if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          directory: out/junit
+          fail_ci_if_error: true
+          handle_no_reports_found: true
+          plugins: noop
+          report_type: test_results
+          name: ${{ matrix.id }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }}
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       - name: Show git ignored files to debug "task ... --status" failures
         if: ${{ always() && failure() }}

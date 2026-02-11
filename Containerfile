@@ -57,7 +57,7 @@ sudo \
 xauth \
 xvfb \
 2> /dev/null && \
-git config --global --add safe.directory /context && \
+git config --global --add safe.directory '*' && \
 mkdir -p /root/.local/bin && \
 mise install && \
 mise list && \
