@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pytest
 
+from test.selenium.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
+
 # Project root (vscode-ansible), assuming conftest at test/selenium/conftest.py
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -32,18 +34,12 @@ def skip_if_missing_lightspeed_credentials() -> bool:
 
     Result is cached to avoid repeated environment variable lookups.
     """
-    if "CI" in os.environ:  # pragma: no cover
-        result = False
-    else:
-        result = (
-            "LIGHTSPEED_PASSWORD" not in os.environ
-            or "LIGHTSPEED_USER" not in os.environ
-        )
-    if result:  # pragma: no cover
+    skip = not LIGHTSPEED_USER or not LIGHTSPEED_PASSWORD
+    if skip:  # pragma: no cover
         logger.warning(
-            "LIGHTSPEED_PASSWORD or LIGHTSPEED_USER environment variables are not defined, this will make use skip all tests with lightspeed marker."
+            "Lightspeed tests will be skipped because LIGHTSPEED_USER and LIGHTSPEED_PASSWORD environment variables are not defined or empty."
         )
-    return result
+    return skip
 
 
 def pytest_collection_modifyitems(
