@@ -1,16 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import type {
-  ExtensionContext,
-  WebviewPanel,
-  Webview,
-} from "vscode";
+import type { ExtensionContext, WebviewPanel, Webview } from "vscode";
 import { ViewColumn, window, Uri } from "vscode";
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __getWebviewHtml__: (options: unknown) => string;
-}
-globalThis.__getWebviewHtml__ = vi.fn().mockReturnValue("<html></html>");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).__getWebviewHtml__ = vi
+  .fn()
+  .mockReturnValue("<html></html>");
 import type { LlmProviderDependencies } from "../../../../src/features/lightspeed/vue/views/llmProviderMessageHandlers";
 import type { SettingsManager } from "../../../../src/settings";
 import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
@@ -34,12 +29,9 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
   };
 });
 
-vi.mock(
-  "../../../../src/features/lightspeed/vue/views/panelUtils",
-  () => ({
-    disposePanelResources: vi.fn(),
-  }),
-);
+vi.mock("../../../../src/features/lightspeed/vue/views/panelUtils", () => ({
+  disposePanelResources: vi.fn(),
+}));
 
 vi.mock(
   "../../../../src/features/lightspeed/vue/views/llmProviderMessageHandlers",
