@@ -30,7 +30,6 @@ jobs:
               name: 'sonar',
               head_sha: '${{ github.event.workflow_run.head_sha }}',
               status: 'in_progress',
-              conclusion: 'null',
               details_url: '${{ github.event.workflow_run.html_url }}',
               output: {
                 title: 'Workflow completed',
