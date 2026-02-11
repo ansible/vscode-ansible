@@ -19,6 +19,7 @@ dev = [
   "pip>26.0.0",  # security reasons
   "podman-compose>=1.5.0",
   "prek>=0.3.1",
+  "pytest-coverage>=0.0",
   "pytest-github-actions-annotate-failures>=0.3.0",
   "pytest-rerunfailures>=16.1",
   "selenium>=4.40.0",
@@ -40,6 +41,12 @@ ignore-words-list = ["als", "ro", "stdio", "isPlay", "afterAll", "pullrequest"]
 ignore-words = ".config/dictionary.txt"
 skip = ".cache,.yarn,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible"
 
+[tool.coverage.run]
+# branch is more reliable than lines, protects against false positives
+branch = true
+relative_files = false
+source = ["test"]
+
 [tool.distutils.egg_info]
 egg_base = "out"
 
@@ -53,11 +60,18 @@ exclude = "(.ansible|out|syntaxes).*"
 # do not add options here as this will likely break either console runs or IDE
 # integration like vscode or pycharm
 addopts = [
+  "--cov-branch",  # no parallel support with selenium
+  "--cov-context=test",
+  "--cov-report=term-missing",
+  "--cov-report=xml:out/coverage/ui-selenium/coverage.xml",
+  "--cov=test",
   "--durations=10",
   "--junit-xml=out/junit/ui-selenium-test-results.xml",
+  "--no-cov-on-fail",
   "--reruns-delay=120",
   "--reruns=3",
   "-m=vscode",
+  "-n0",
   "-v"
 ]
 filterwarnings = [

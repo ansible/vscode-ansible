@@ -229,7 +229,7 @@ tasks:
     generates:
       - out/junit/ui-selenium-test-results.xml
     cmds:
-      - pytest
+      - pytest {{.CLI_ARGS}}
       - defer: podman-compose down
     interactive: true
   unit:

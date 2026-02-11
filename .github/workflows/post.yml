@@ -19,6 +19,25 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'ansible/vscode-ansible' && github.event.workflow_run.conclusion == 'success'
     steps:
+      - name: Create check run with link
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'sonar',
+              head_sha: '${{ github.event.workflow_run.head_sha }}',
+              status: 'in_progress',
+              conclusion: 'null',
+              details_url: '${{ github.event.workflow_run.html_url }}',
+              output: {
+                title: 'Workflow completed',
+                summary: 'The workflow_run triggered workflow has completed successfully'
+              }
+            });
+
       - name: Checkout Code
         uses: actions/checkout@v6
         with:
@@ -72,3 +91,42 @@ jobs:
             -Dsonar.pullrequest.branch=${{ steps.pr-context.outputs.pr_branch }}
             -Dsonar.pullrequest.base=${{ steps.pr-context.outputs.base_ref }}
             -Dsonar.verbose=${{ secrets.ACTIONS_STEP_DEBUG }}
+
+      - name: Update check run (success)
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: ${{ steps.check.outputs.check_id }},
+              status: 'completed',
+              conclusion: 'success',
+              completed_at: new Date().toISOString(),
+              details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              output: {
+                title: 'Service Tests Passed',
+                summary: `All service tests passed for PR #${{ steps.pr-context.outputs.number }}.`
+              }
+            });
+
+      - name: Update check run (failure)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: ${{ steps.check.outputs.check_id }},
+              status: 'completed',
+              conclusion: 'failure',
+              completed_at: new Date().toISOString(),
+              details_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              output: {
+                title: 'Service Tests Failed',
+                summary: `The service tests failed for PR #${{ steps.pr-context.outputs.number }}. Click "Details" to view the full test output and logs.`,
+                text: `**Workflow Run:** [View Details](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n**PR:** #${{ inputs.pr_number }}\n**Commit:** ${{ needs.setup.outputs.head_sha }}`
+              }
+            });
