@@ -1,7 +1,13 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 import * as path from "node:path";
-import { ExtensionContext, extensions, window, workspace } from "vscode";
+import {
+  commands,
+  ExtensionContext,
+  extensions,
+  window,
+  workspace,
+} from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
 import {
@@ -56,11 +62,9 @@ import {
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
-import {
-  setPythonInterpreter,
-  setPythonInterpreterWithCommand,
-} from "./features/utils/setPythonInterpreter";
 import { PythonInterpreterManager } from "./features/pythonMetadata";
+import { PythonEnvironmentService } from "./services/PythonEnvironmentService";
+import { TerminalService } from "./services/TerminalService";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
@@ -106,11 +110,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
 
-  // set correct python interpreter
-  const workspaceFolders = workspace.workspaceFolders;
-  if (workspaceFolders) {
-    await setPythonInterpreter();
-  }
+  // Initialize Python Environment Service early
+  const pythonEnvService = PythonEnvironmentService.getInstance();
+  await pythonEnvService.initialize();
+  context.subscriptions.push(pythonEnvService);
+
+  // Initialize Terminal Service
+  const terminalService = TerminalService.getInstance();
+  await terminalService.initialize();
+  context.subscriptions.push(terminalService);
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
@@ -143,7 +151,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER,
-    setPythonInterpreterWithCommand,
+    async () => {
+      await pythonEnvService.selectEnvironment();
+    },
     true,
   );
 
@@ -159,6 +169,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   await startClient(context, telemetry);
 
   notifyAboutConflicts();
+  notifyAboutPythonExtension(pythonEnvService);
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 
@@ -171,12 +182,27 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     extSettings,
+    pythonEnvService,
   );
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
   } catch (error) {
     console.error(`Error updating python status bar: ${error}`);
   }
+
+  // Subscribe to Python environment changes to update the status bar
+  context.subscriptions.push(
+    pythonEnvService.onDidChangeEnvironment(async () => {
+      try {
+        await pythonInterpreterManager.updatePythonInfoInStatusbar();
+        await metaData.updateAnsibleInfoInStatusbar();
+      } catch (error) {
+        console.error(
+          `Error updating status bar after environment change: ${error}`,
+        );
+      }
+    }),
+  );
 
   /**
    * Handle "Ansible Lightspeed" in the extension
@@ -1277,6 +1303,35 @@ function notifyAboutConflicts(): void {
   const conflictingExtensions = getConflictingExtensions();
   if (conflictingExtensions.length > 0) {
     showUninstallConflictsNotification(conflictingExtensions);
+  }
+}
+
+/**
+ * Check if the Python extension is installed and show a recommendation if not.
+ * The Ansible extension works best with the Python extension for environment management.
+ */
+function notifyAboutPythonExtension(
+  pythonEnvService: PythonEnvironmentService,
+): void {
+  if (!pythonEnvService.isAvailable()) {
+    const installMsg = "Install";
+    const dismissMsg = "Dismiss";
+
+    window
+      .showInformationMessage(
+        "The Python extension is recommended for better Python environment management with Ansible. " +
+          "Install it to automatically use your selected Python environment.",
+        installMsg,
+        dismissMsg,
+      )
+      .then((selection) => {
+        if (selection === installMsg) {
+          commands.executeCommand(
+            "workbench.extensions.installExtension",
+            "ms-python.python",
+          );
+        }
+      });
   }
 }
 
