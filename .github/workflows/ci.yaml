@@ -364,8 +364,10 @@ jobs:
           task ui-selenium
           task build --status
         env:
-          LIGHTSPEED_USER: lightspeed-test-user
-          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_STAGE_PASSWORD }}
+          # defined inside 'ci' environment
+          LIGHTSPEED_API_ENDPOINT: ${{ secrets.LIGHTSPEED_API_ENDPOINT }}
+          LIGHTSPEED_USER: ${{ secrets.LIGHTSPEED_USER }}
+          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
       - name: task finish
