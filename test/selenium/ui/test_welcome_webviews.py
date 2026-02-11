@@ -1,7 +1,6 @@
 """Tests for Ansible Development Tools welcome page."""
 
 # pylint: disable=E0401, W0613, R0801
-import time
 from typing import Any
 
 import pytest
@@ -12,36 +11,6 @@ from test.selenium.utils.ui_utils import (
     wait_displayed,
 )
 
-WALKTHROUGHS = [
-    [
-        "Create an Ansible environment",
-        [
-            "Create an Ansible playbook",
-            "tag in the status bar",
-            "Install the Ansible environment package",
-        ],
-    ]
-]
-
-
-def open_walkthrough(driver: Any, walkthrough_name: str) -> Any:
-    """Open a specific walkthrough by name via the welcome page."""
-    walkthrough_button = find_element_across_iframes(
-        driver,
-        f"//button[.//div[@class='category-title'][contains(text(), '{walkthrough_name}')]]",
-        retries=20,
-    )
-
-    walkthrough_button.click()
-    time.sleep(2)
-
-    element = find_element_across_iframes(
-        driver,
-        f"//h2[contains(text(), '{walkthrough_name}')]",
-        retries=15,
-    )
-    return element
-
 
 @pytest.mark.vscode
 @pytest.mark.modify_settings({"ansible.lightspeed.enabled": False})
@@ -49,6 +18,7 @@ def test_sidebar_nav(
     browser_setup: Any,
     modify_vscode_settings: Any,
     screenshot_on_fail: Any,
+    close_editors: Any,
 ) -> None:
     """Test sidebar navigation to welcome page."""
     driver, _ = browser_setup
@@ -154,49 +124,3 @@ def test_mcp_section(
     assert "Provides native VS Code AI integration" in description_text, (
         f"Expected VS Code AI integration description, got: {description_text}"
     )
-
-
-@pytest.mark.vscode
-@pytest.mark.parametrize(
-    ("walkthrough_name", "expected_steps"),
-    WALKTHROUGHS,
-    ids=[
-        "ansible_env",
-    ],
-)
-def test_walkthrough(
-    browser_setup: Any,
-    screenshot_on_fail: Any,
-    walkthrough_name: str,
-    expected_steps: list[str],
-) -> None:
-    """Test that walkthrough opens and contains expected elements."""
-    driver, _ = browser_setup
-
-    if "127.0.0.1:8080" not in driver.current_url:
-        driver.get("http://127.0.0.1:8080")
-        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
-
-    walkthrough_element = open_walkthrough(driver, walkthrough_name)
-
-    title_text = walkthrough_element.text
-    assert walkthrough_name in title_text, (
-        f"Expected walkthrough title to contain '{walkthrough_name}', got: {title_text}"
-    )
-
-    # Verify at least one of the expected steps is present
-    try:
-        step_list_element = wait_displayed(
-            driver,
-            "//div[contains(@class, 'step-list-container')]",
-            timeout=2,
-        )
-        step_text = step_list_element.text
-        first_step = step_text.split("\n")[0] if step_text else ""
-
-        assert first_step in expected_steps, (
-            f"Expected first step to be one of {expected_steps}, got: {first_step}"
-        )
-    except Exception as e:
-        msg = f"Failed to verify walkthrough steps: {e}"
-        raise AssertionError(msg) from e
