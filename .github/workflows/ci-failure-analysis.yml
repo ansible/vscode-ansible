@@ -1,0 +1,41 @@
+---
+name: CI Failure Analysis
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:  # Allow manual triggers
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run CI failure analysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x tools/analyze_ci_failures.sh
+          ./tools/analyze_ci_failures.sh
+
+      - name: Upload failure report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ci-failure-report-${{ github.run_number }}
+          path: ci_failure_report.md
+          retention-days: 90
+
+      - name: Display summary
+        if: always()
+        run: |
+          echo "## CI Failure Analysis Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          tail -n 10 ci_failure_report.md >> $GITHUB_STEP_SUMMARY
