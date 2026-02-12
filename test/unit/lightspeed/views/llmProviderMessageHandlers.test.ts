@@ -662,7 +662,7 @@ describe("LlmProviderMessageHandlers", () => {
       mockedGetSupportedProviders.mockReturnValueOnce([
         {
           type: "google" as const,
-          name: "testprovider",
+          name: "google",
           displayName: "",
           description: "",
           defaultEndpoint: "",
