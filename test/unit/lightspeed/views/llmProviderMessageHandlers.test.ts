@@ -13,9 +13,10 @@ import type { QuickLinksWebviewViewProvider } from "../../../../src/features/qui
 import { PROVIDER_TYPES, TEST_API_KEYS, API_ENDPOINTS } from "../testConstants";
 
 const mockWcaProvider = {
-  type: "wca",
+  type: "wca" as const,
   name: "wca",
   displayName: "IBM watsonx",
+  description: "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
   defaultEndpoint: "https://c.ai.ansible.redhat.com",
   defaultModel: undefined,
   usesOAuth: true,
@@ -24,7 +25,7 @@ const mockWcaProvider = {
     {
       key: "apiEndpoint",
       label: "Lightspeed URL",
-      type: "string",
+      type: "string" as const,
       required: true,
       placeholder: "https://c.ai.ansible.redhat.com",
     },
@@ -32,9 +33,10 @@ const mockWcaProvider = {
 };
 
 const mockGoogleProvider = {
-  type: "google",
+  type: "google" as const,
   name: "google",
   displayName: "Google Gemini",
+  description: "Direct access to Google Gemini models",
   defaultEndpoint: "https://generativelanguage.googleapis.com/v1beta",
   defaultModel: "gemini-2.5-flash",
   usesOAuth: false,
@@ -43,21 +45,21 @@ const mockGoogleProvider = {
     {
       key: "apiEndpoint",
       label: "API Endpoint",
-      type: "string",
+      type: "string" as const,
       required: false,
       placeholder: "https://generativelanguage.googleapis.com/v1beta",
     },
     {
       key: "apiKey",
       label: "API Key",
-      type: "password",
+      type: "password" as const,
       required: true,
       placeholder: "AIza...",
     },
     {
       key: "modelName",
       label: "Model Name",
-      type: "string",
+      type: "string" as const,
       required: false,
       placeholder: "gemini-2.5-flash",
     },
@@ -659,9 +661,10 @@ describe("LlmProviderMessageHandlers", () => {
     it("should use uppercase provider type when displayName is not available", async () => {
       mockedGetSupportedProviders.mockReturnValueOnce([
         {
-          type: "unknown",
-          name: "unknown",
+          type: "google" as const,
+          name: "testprovider",
           displayName: "",
+          description: "",
           defaultEndpoint: "",
           configSchema: [],
           requiresApiKey: true,
@@ -672,11 +675,11 @@ describe("LlmProviderMessageHandlers", () => {
 
       await messageHandlers.handleMessage({
         command: "connectProvider",
-        provider: "unknown",
+        provider: "google",
       });
 
       expect(mockedWindow.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining("UNKNOWN"),
+        expect.stringContaining("GOOGLE"),
       );
     });
   });
