@@ -1212,14 +1212,6 @@ export function deactivate(): Thenable<void> | undefined {
   }
   return client.stop();
 }
-/**
- * Updates the explorer state and sends it to the explorer webview if it's open
- */
-async function updateExplorerState(
-  lightSpeedManager: LightSpeedManager,
-): Promise<void> {
-  lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
-}
 
 const handleMcpServerConfigurationChange = async (
   extSettings: SettingsManager,
