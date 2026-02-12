@@ -283,4 +283,63 @@ describe("LlmProviderSettings", () => {
       );
     });
   });
+
+  describe("whitespace handling", () => {
+    it("should trim whitespace from stored values on get", async () => {
+      globalStateStore.set(
+        "lightspeed.setting.google.modelName",
+        "  gemini-pro  ",
+      );
+      const model = await llmProviderSettings.get("google", "modelName");
+      expect(model).toBe("gemini-pro");
+    });
+
+    it("should trim whitespace when setting values", async () => {
+      await llmProviderSettings.set("google", "modelName", "  gemini-pro  ");
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.modelName",
+        "gemini-pro",
+      );
+    });
+
+    it("should handle undefined value by storing empty string", async () => {
+      await llmProviderSettings.set("google", "modelName", undefined);
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.modelName",
+        "",
+      );
+    });
+  });
+
+  describe("edge cases", () => {
+    it("should return empty string for unknown provider apiEndpoint", async () => {
+      const endpoint = await llmProviderSettings.get(
+        "unknown-provider",
+        "apiEndpoint",
+      );
+      expect(endpoint).toBe("");
+    });
+
+    it("should return empty string for unknown provider modelName", async () => {
+      const model = await llmProviderSettings.get(
+        "unknown-provider",
+        "modelName",
+      );
+      expect(model).toBe("");
+    });
+
+    it("should return stored empty string instead of default", async () => {
+      await llmProviderSettings.set("google", "apiEndpoint", "");
+      const endpoint = await llmProviderSettings.get("google", "apiEndpoint");
+      expect(endpoint).toBe("");
+    });
+  });
+
+  describe("getAllSettings edge cases", () => {
+    it("should return undefined modelName when empty string", async () => {
+      await llmProviderSettings.setProvider("wca");
+      const settings = await llmProviderSettings.getAllSettings();
+      expect(settings.modelName).toBeUndefined();
+    });
+  });
 });

@@ -12,68 +12,68 @@ import type { LightspeedUser } from "../../../../src/features/lightspeed/lightsp
 import type { QuickLinksWebviewViewProvider } from "../../../../src/features/quickLinks/utils/quickLinksViewProvider";
 import { PROVIDER_TYPES, TEST_API_KEYS, API_ENDPOINTS } from "../testConstants";
 
-vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
-  const mockWcaProvider = {
-    type: "wca",
-    name: "wca",
-    displayName: "IBM watsonx",
-    defaultEndpoint: "https://c.ai.ansible.redhat.com",
-    defaultModel: undefined,
-    usesOAuth: true,
-    requiresApiKey: false,
-    configSchema: [
-      {
-        key: "apiEndpoint",
-        label: "Lightspeed URL",
-        type: "string",
-        required: true,
-        placeholder: "https://c.ai.ansible.redhat.com",
-      },
-    ],
-  };
-
-  const mockGoogleProvider = {
-    type: "google",
-    name: "google",
-    displayName: "Google Gemini",
-    defaultEndpoint: "https://generativelanguage.googleapis.com/v1beta",
-    defaultModel: "gemini-2.5-flash",
-    usesOAuth: false,
-    requiresApiKey: true,
-    configSchema: [
-      {
-        key: "apiEndpoint",
-        label: "API Endpoint",
-        type: "string",
-        required: false,
-        placeholder: "https://generativelanguage.googleapis.com/v1beta",
-      },
-      {
-        key: "apiKey",
-        label: "API Key",
-        type: "password",
-        required: true,
-        placeholder: "AIza...",
-      },
-      {
-        key: "modelName",
-        label: "Model Name",
-        type: "string",
-        required: false,
-        placeholder: "gemini-2.5-flash",
-      },
-    ],
-  };
-
-  return {
-    providerFactory: {
-      getSupportedProviders: vi.fn(() => [mockWcaProvider, mockGoogleProvider]),
-      createProvider: vi.fn(() => ({
-        getStatus: vi.fn().mockResolvedValue({ connected: true }),
-      })),
+const mockWcaProvider = {
+  type: "wca",
+  name: "wca",
+  displayName: "IBM watsonx",
+  defaultEndpoint: "https://c.ai.ansible.redhat.com",
+  defaultModel: undefined,
+  usesOAuth: true,
+  requiresApiKey: false,
+  configSchema: [
+    {
+      key: "apiEndpoint",
+      label: "Lightspeed URL",
+      type: "string",
+      required: true,
+      placeholder: "https://c.ai.ansible.redhat.com",
     },
-  };
-});
+  ],
+};
+
+const mockGoogleProvider = {
+  type: "google",
+  name: "google",
+  displayName: "Google Gemini",
+  defaultEndpoint: "https://generativelanguage.googleapis.com/v1beta",
+  defaultModel: "gemini-2.5-flash",
+  usesOAuth: false,
+  requiresApiKey: true,
+  configSchema: [
+    {
+      key: "apiEndpoint",
+      label: "API Endpoint",
+      type: "string",
+      required: false,
+      placeholder: "https://generativelanguage.googleapis.com/v1beta",
+    },
+    {
+      key: "apiKey",
+      label: "API Key",
+      type: "password",
+      required: true,
+      placeholder: "AIza...",
+    },
+    {
+      key: "modelName",
+      label: "Model Name",
+      type: "string",
+      required: false,
+      placeholder: "gemini-2.5-flash",
+    },
+  ],
+};
+
+vi.mock("../../../../src/features/lightspeed/providers/factory", () => ({
+  providerFactory: {
+    getSupportedProviders: vi.fn(() => [mockWcaProvider, mockGoogleProvider]),
+    createProvider: vi.fn(() => ({
+      getStatus: vi.fn().mockResolvedValue({ connected: true }),
+    })),
+  },
+}));
+
+import { providerFactory } from "../../../../src/features/lightspeed/providers/factory";
 
 describe("LlmProviderMessageHandlers", () => {
   let messageHandlers: LlmProviderMessageHandlers;
@@ -85,22 +85,38 @@ describe("LlmProviderMessageHandlers", () => {
   let mockLightspeedUser: LightspeedUser;
   let mockQuickLinksProvider: QuickLinksWebviewViewProvider;
 
-  // Define mock functions as separate variables
   let mockPostMessage: ReturnType<typeof vi.fn>;
   let mockSetProvider: ReturnType<typeof vi.fn>;
   let mockSet: ReturnType<typeof vi.fn>;
   let mockGet: ReturnType<typeof vi.fn>;
   let mockSetConnectionStatus: ReturnType<typeof vi.fn>;
   let mockIsAuthenticated: ReturnType<typeof vi.fn>;
+  let mockReinitialize: ReturnType<typeof vi.fn>;
+  let mockRefreshProviderInfo: ReturnType<typeof vi.fn>;
 
-  // Get mocked versions of global vscode functions
   const mockedCommands = vi.mocked(commands);
   const mockedWindow = vi.mocked(window);
+
+  const mockedGetSupportedProviders = vi.mocked(
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    providerFactory.getSupportedProviders,
+  );
+  const mockedCreateProvider = vi.mocked(
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    providerFactory.createProvider,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Initialize mock functions
+    mockedGetSupportedProviders.mockReturnValue([
+      mockWcaProvider,
+      mockGoogleProvider,
+    ]);
+    mockedCreateProvider.mockReturnValue({
+      getStatus: vi.fn().mockResolvedValue({ connected: true }),
+    } as unknown as ReturnType<typeof providerFactory.createProvider>);
+
     mockPostMessage = vi.fn().mockResolvedValue(true);
     mockSetProvider = vi.fn().mockResolvedValue(undefined);
     mockSet = vi.fn().mockResolvedValue(undefined);
@@ -113,6 +129,8 @@ describe("LlmProviderMessageHandlers", () => {
     });
     mockSetConnectionStatus = vi.fn().mockResolvedValue(undefined);
     mockIsAuthenticated = vi.fn().mockResolvedValue(true);
+    mockReinitialize = vi.fn().mockResolvedValue(undefined);
+    mockRefreshProviderInfo = vi.fn();
 
     mockWebview = {
       postMessage: mockPostMessage,
@@ -124,7 +142,7 @@ describe("LlmProviderMessageHandlers", () => {
           provider: "wca",
         },
       },
-      reinitialize: vi.fn().mockResolvedValue(undefined),
+      reinitialize: mockReinitialize,
     } as unknown as SettingsManager;
 
     mockProviderManager = {
@@ -156,7 +174,7 @@ describe("LlmProviderMessageHandlers", () => {
     } as unknown as LightspeedUser;
 
     mockQuickLinksProvider = {
-      refreshProviderInfo: vi.fn(),
+      refreshProviderInfo: mockRefreshProviderInfo,
     } as unknown as QuickLinksWebviewViewProvider;
 
     mockDeps = {
@@ -454,6 +472,212 @@ describe("LlmProviderMessageHandlers", () => {
       });
 
       expect(mockSetProvider).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("validateProviderConnection", () => {
+    it("should return connected true when provider validates successfully", async () => {
+      const message = {
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      };
+
+      await messageHandlers.handleMessage(message);
+
+      expect(mockSetConnectionStatus).toHaveBeenCalledWith(
+        true,
+        PROVIDER_TYPES.GOOGLE,
+      );
+    });
+
+    it("should return connected false when provider.getStatus returns not connected", async () => {
+      mockedCreateProvider.mockReturnValueOnce({
+        getStatus: vi
+          .fn()
+          .mockResolvedValue({ connected: false, error: "Invalid API key" }),
+      } as unknown as ReturnType<typeof providerFactory.createProvider>);
+
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockSetConnectionStatus).toHaveBeenCalledWith(
+        false,
+        PROVIDER_TYPES.GOOGLE,
+      );
+    });
+
+    it("should handle status with no error message", async () => {
+      mockedCreateProvider.mockReturnValueOnce({
+        getStatus: vi.fn().mockResolvedValue({ connected: false }),
+      } as unknown as ReturnType<typeof providerFactory.createProvider>);
+
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockedWindow.showErrorMessage).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to connect"),
+      );
+    });
+
+    it("should handle exception during validation", async () => {
+      mockedCreateProvider.mockImplementationOnce(() => {
+        throw new Error("Network error");
+      });
+
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockSetConnectionStatus).toHaveBeenCalledWith(
+        false,
+        PROVIDER_TYPES.GOOGLE,
+      );
+    });
+
+    it("should handle non-Error exception during validation", async () => {
+      mockedCreateProvider.mockImplementationOnce(() => {
+        throw "String error";
+      });
+
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockSetConnectionStatus).toHaveBeenCalledWith(
+        false,
+        PROVIDER_TYPES.GOOGLE,
+      );
+    });
+  });
+
+  describe("handleConnectionResult", () => {
+    it("should show information message on successful connection", async () => {
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockedWindow.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining("Successfully connected"),
+      );
+    });
+
+    it("should post connection result to webview on success", async () => {
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockPostMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          command: "connectionResult",
+          provider: PROVIDER_TYPES.GOOGLE,
+          connected: true,
+        }),
+      );
+    });
+  });
+
+  describe("saveProviderSettings with configSchema", () => {
+    it("should skip apiKey field when provider does not require it", async () => {
+      const message = {
+        command: "saveProviderSettings",
+        provider: PROVIDER_TYPES.WCA,
+        config: {
+          apiEndpoint: "https://custom.endpoint.com",
+          apiKey: "should-be-skipped",
+        },
+      };
+
+      await messageHandlers.handleMessage(message);
+
+      expect(mockSet).not.toHaveBeenCalledWith(
+        PROVIDER_TYPES.WCA,
+        "apiKey",
+        expect.anything(),
+      );
+    });
+
+    it("should save all fields from configSchema for provider that requires API key", async () => {
+      const message = {
+        command: "saveProviderSettings",
+        provider: PROVIDER_TYPES.GOOGLE,
+        config: {
+          apiEndpoint: "https://custom.endpoint.com",
+          apiKey: TEST_API_KEYS.GOOGLE,
+          modelName: "gemini-pro",
+        },
+      };
+
+      await messageHandlers.handleMessage(message);
+
+      expect(mockSet).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "apiEndpoint",
+        "https://custom.endpoint.com",
+      );
+      expect(mockSet).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "apiKey",
+        TEST_API_KEYS.GOOGLE,
+      );
+      expect(mockSet).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
+        "modelName",
+        "gemini-pro",
+      );
+    });
+  });
+
+  describe("updateAndNotify", () => {
+    it("should refresh quickLinksProvider when available", async () => {
+      await messageHandlers.handleMessage({
+        command: "activateProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockRefreshProviderInfo).toHaveBeenCalled();
+    });
+
+    it("should call settingsManager.reinitialize", async () => {
+      await messageHandlers.handleMessage({
+        command: "activateProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockReinitialize).toHaveBeenCalled();
+    });
+  });
+
+  describe("provider display name fallback", () => {
+    it("should use uppercase provider type when displayName is not available", async () => {
+      mockedGetSupportedProviders.mockReturnValueOnce([
+        {
+          type: "unknown",
+          name: "unknown",
+          displayName: "",
+          defaultEndpoint: "",
+          configSchema: [],
+          requiresApiKey: true,
+        },
+      ]);
+
+      mockGet.mockImplementation(() => Promise.resolve("test-key"));
+
+      await messageHandlers.handleMessage({
+        command: "connectProvider",
+        provider: "unknown",
+      });
+
+      expect(mockedWindow.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining("UNKNOWN"),
+      );
     });
   });
 });
