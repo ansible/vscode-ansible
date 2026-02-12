@@ -91,7 +91,7 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
     return await this.getStatusWithValidation(
       this.modelName,
       this.lastValidationError,
-      "Failed to connect to Google Gemini API. Check your API key.",
+      "Failed to connect to Google Gemini API. Check your API key or endpoint.",
     );
   }
 

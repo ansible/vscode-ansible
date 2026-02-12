@@ -337,8 +337,8 @@ export class LlmProviderMessageHandlers {
         };
       }
 
-      const isLocalhostUrl = storedEndpoint?.startsWith("http://localhost");
-      const apiEndpoint = isLocalhostUrl ? storedEndpoint : "";
+      // Use stored endpoint as-is (allows custom endpoints, v2, proxies, etc.)
+      const apiEndpoint = storedEndpoint || "";
 
       const provider = providerFactory.createProvider(
         providerType as "google",

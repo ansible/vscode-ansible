@@ -342,7 +342,7 @@ onMounted(() => {
               </p>
             </div>
 
-            <!-- Save Button -->
+            <!-- Save and Cancel Buttons -->
             <div class="config-actions">
               <button 
                 class="action-btn save-btn"
@@ -352,6 +352,13 @@ onMounted(() => {
               >
                 <span class="codicon codicon-save"></span>
                 Save
+              </button>
+              <button 
+                class="action-btn cancel-btn"
+                @click="toggleEdit(provider.type)"
+                title="Cancel and close"
+              >
+                Cancel
               </button>
               <span v-if="hasUnsavedChanges(provider.type)" class="unsaved-indicator">
                 Unsaved changes
@@ -524,6 +531,16 @@ onMounted(() => {
   background-color: var(--vscode-inputValidation-warningBackground);
   border-color: var(--vscode-inputValidation-warningBorder);
   color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+}
+
+.cancel-btn {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  margin-left: 8px;
+}
+
+.cancel-btn:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
 }
 
 /* Badges - shared base */

@@ -36,23 +36,17 @@ export class LLMProviderFactory implements ProviderFactory {
             "API Key is required for Google Gemini. Please set 'ansible.lightspeed.apiKey' in your settings.",
           );
         }
-        // Allow localhost URLs for testing, block other custom endpoints
-        const isLocalhostUrl =
-          config.apiEndpoint?.startsWith("http://localhost");
-        if (
-          config.apiEndpoint &&
-          config.apiEndpoint !== GOOGLE_API_ENDPOINT &&
-          !isLocalhostUrl
-        ) {
-          throw new Error(
-            `Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.`,
-          );
-        }
+        // Use custom endpoint if provided (allows v2, proxies, etc.)
+        const customEndpoint =
+          config.apiEndpoint && config.apiEndpoint !== GOOGLE_API_ENDPOINT
+            ? config.apiEndpoint
+            : undefined;
+
         return new GoogleProvider({
           apiKey: config.apiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
-          baseUrl: isLocalhostUrl ? config.apiEndpoint : undefined,
+          baseUrl: customEndpoint,
         } as GoogleConfig);
       }
 
