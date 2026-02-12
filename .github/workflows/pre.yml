@@ -1,0 +1,59 @@
+---
+name: pre
+on:
+  merge_group:
+    branches: ["main", "devel/*"]
+  push:
+    branches: ["main", "devel/*"]
+    tags:
+      - "v*.*"
+  pull_request:
+    # 'closed' is missing to avoid double triggering on PR merge
+    # 'edited' is missing to allow us to edit PR title/description without triggering
+    types: [synchronize, opened, reopened]
+    branches: ["main", "devel/*"]
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+  checks: write
+jobs:
+  prek:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
+
+      # needed by our prek system hooks like toml
+      - uses: astral-sh/setup-uv@v7
+
+      # needed by our prek systems hooks like biome
+      - name: Set up Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
+
+      - name: yarn install
+        run: |
+          npx yarn install --immutable
+
+      - uses: j178/prek-action@v1
+        with:
+          install-only: true
+
+      - name: Run prek with auto-fix
+        id: prek
+        run: |
+          EXIT_CODE=0
+          prek run --all-files --color=always || EXIT_CODE=$?
+          if [ -n "$(git status --porcelain)" ]; then
+              git config --global user.email ansible-devtools@redhat.com
+              git config --global user.name "Ansible DevTools"
+              git add -A
+              git commit -m 'Prek auto-fixes'
+              prek run --all-files --color=always || EXIT_CODE=$?
+              if  [ $EXIT_CODE -eq 0 ]; then
+                git push origin || EXIT_CODE=$?
+              fi
+          fi
+          exit $EXIT_CODE
