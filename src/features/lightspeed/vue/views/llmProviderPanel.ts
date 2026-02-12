@@ -93,7 +93,11 @@ export class LlmProviderPanel {
         },
       );
 
-      LlmProviderPanel.currentPanel = new LlmProviderPanel(panel, context, deps);
+      LlmProviderPanel.currentPanel = new LlmProviderPanel(
+        panel,
+        context,
+        deps,
+      );
     }
   }
 
