@@ -76,6 +76,7 @@ addopts = [
 ]
 filterwarnings = [
   "error",
+  "once::pytest.PytestWarning",
 ]
 junit_logging = "all"
 log_cli = true
