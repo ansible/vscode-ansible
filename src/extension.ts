@@ -422,7 +422,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
-  
+
   // Initialize QuickLinks provider early so it's available in auth callback
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,

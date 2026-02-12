@@ -60,9 +60,9 @@ const hasUnsavedChanges = (providerType: string) => {
   const provider = getProviderInfo(providerType);
   const current = providerConfigs.value[providerType];
   const original = originalConfigs.value[providerType];
-  
+
   if (!provider || !original || !current) return false;
-  
+
   // Compare each field defined in configSchema
   for (const field of provider.configSchema) {
     if ((current[field.key] || '') !== (original[field.key] || '')) {
@@ -94,13 +94,13 @@ const loadProviderSettings = () => {
 
 const setActiveProvider = (providerType: string) => {
   activeProvider.value = providerType;
-  
+
   // Only activate the provider (don't reset connection status)
   vscodeApi.postMessage({
     command: 'activateProvider',
     provider: providerType,
   });
-  
+
   showSaveIndicator();
 };
 
@@ -116,22 +116,22 @@ const toggleEdit = (providerType: string) => {
     if (editingProvider.value && originalConfigs.value[editingProvider.value]) {
       providerConfigs.value[editingProvider.value] = { ...originalConfigs.value[editingProvider.value] };
     }
-    
+
     editingProvider.value = providerType;
     const providerInfo = getProviderInfo(providerType);
-    
+
     // Initialize config from configSchema if not already loaded
     if (!providerConfigs.value[providerType]) {
       const config: ProviderConfig = {};
       providerInfo?.configSchema.forEach(field => {
         // Use defaultEndpoint for apiEndpoint field, empty string for others
-        config[field.key] = field.key === 'apiEndpoint' 
-          ? (providerInfo?.defaultEndpoint || '') 
+        config[field.key] = field.key === 'apiEndpoint'
+          ? (providerInfo?.defaultEndpoint || '')
           : '';
       });
       providerConfigs.value[providerType] = config;
     }
-    
+
     // Store original values to compare against for change detection
     originalConfigs.value[providerType] = { ...providerConfigs.value[providerType] };
   }
@@ -141,30 +141,30 @@ const saveProviderConfig = (providerType: string) => {
   const config = providerConfigs.value[providerType];
   const provider = getProviderInfo(providerType);
   if (!config || !provider) return;
-  
+
   // Check if there are actual changes before saving
   const hadChanges = hasUnsavedChanges(providerType);
-  
+
   // Build config object from configSchema fields
   const configToSend: Record<string, string> = {};
   provider.configSchema.forEach(field => {
     configToSend[field.key] = config[field.key] || '';
   });
-  
+
   vscodeApi.postMessage({
     command: 'saveProviderSettings',
     provider: providerType,
     config: configToSend,
   });
-  
+
   // Update original config to match saved values
   originalConfigs.value[providerType] = { ...config };
-  
+
   // Reset connection status if config actually changed (require re-connect)
   if (hadChanges) {
     connectionStatuses.value[providerType] = false;
   }
-  
+
   showSaveIndicator();
 };
 
@@ -179,7 +179,7 @@ const showSaveIndicator = () => {
 const connectProvider = (providerType: string) => {
   connectingProvider.value = providerType;
   activeProvider.value = providerType;
-  
+
   // Just tell backend to connect - it uses its own stored values
   vscodeApi.postMessage({
     command: 'connectProvider',
@@ -190,20 +190,20 @@ const connectProvider = (providerType: string) => {
 // Message handler
 const handleMessage = (event: MessageEvent) => {
   const message = event.data;
-  
+
   switch (message.command) {
     case 'providerSettings':
       providers.value = message.providers || [];
       activeProvider.value = message.currentProvider || 'wca';
       connectionStatuses.value = message.connectionStatuses || {};
-      
+
       // Load configs for ALL providers from backend, using configSchema as the field source
       const backendConfigs = message.providerConfigs || {};
-      
+
       providers.value.forEach(provider => {
         const backendConfig = backendConfigs[provider.type] || {};
         const config: ProviderConfig = {};
-        
+
         // Initialize each field from configSchema with backend value or default
         provider.configSchema.forEach(field => {
           if (field.key === 'apiEndpoint') {
@@ -212,16 +212,16 @@ const handleMessage = (event: MessageEvent) => {
             config[field.key] = backendConfig[field.key] || '';
           }
         });
-        
+
         providerConfigs.value[provider.type] = config;
         // Also update original configs to match
         originalConfigs.value[provider.type] = { ...config };
       });
-      
+
       isLoading.value = false;
       connectingProvider.value = null;
       break;
-      
+
     case 'connectionResult':
       connectingProvider.value = null;
       if (message.connected) {
@@ -255,9 +255,9 @@ onMounted(() => {
 
       <div v-else class="provider-list">
         <!-- Provider Rows -->
-        <div 
-          v-for="provider in providers" 
-          :key="provider.type" 
+        <div
+          v-for="provider in providers"
+          :key="provider.type"
           class="provider-row"
           :class="{ 'is-editing': editingProvider === provider.type }"
         >
@@ -274,9 +274,9 @@ onMounted(() => {
               </div>
               <div class="provider-description">{{ provider.description }}</div>
             </div>
-            
+
             <div class="provider-actions">
-              <button 
+              <button
                 class="action-btn edit-btn"
                 :class="{ 'active': editingProvider === provider.type }"
                 @click="toggleEdit(provider.type)"
@@ -285,9 +285,9 @@ onMounted(() => {
                 <span class="codicon codicon-edit"></span>
                 Edit
               </button>
-              
+
               <!-- Connect button: shown when not connected -->
-              <button 
+              <button
                 v-if="!isConnected(provider.type)"
                 class="action-btn connect-btn"
                 :disabled="isConnecting(provider.type)"
@@ -298,9 +298,9 @@ onMounted(() => {
                 <span v-else class="codicon codicon-plug"></span>
                 {{ isConnecting(provider.type) ? 'Connecting...' : 'Connect' }}
               </button>
-              
+
               <!-- Switch button: shown when connected but not active -->
-              <button 
+              <button
                 v-else-if="activeProvider !== provider.type"
                 class="action-btn switch-btn"
                 @click="setActiveProvider(provider.type)"
@@ -308,7 +308,7 @@ onMounted(() => {
               >
                 Switch to this Provider
               </button>
-              
+
               <!-- Active badge: shown when provider is active -->
               <span v-else class="active-badge">
                 <span class="codicon codicon-check"></span>
@@ -316,24 +316,24 @@ onMounted(() => {
               </span>
             </div>
           </div>
-          
+
           <!-- Provider Config Panel (shown when editing) -->
           <div v-if="editingProvider === provider.type" class="provider-config">
             <!-- Dynamically render fields from configSchema -->
-            <div 
-              v-for="field in provider.configSchema" 
-              :key="field.key" 
+            <div
+              v-for="field in provider.configSchema"
+              :key="field.key"
               class="config-field"
             >
               <label :for="`${field.key}-${provider.type}`" class="field-label">
                 {{ field.label }}
                 <span v-if="field.required" class="required-indicator">*</span>
               </label>
-              <input 
+              <input
                 :id="`${field.key}-${provider.type}`"
                 :value="getConfigValue(provider.type, field.key)"
                 @input="setConfigValue(provider.type, field.key, ($event.target as HTMLInputElement).value)"
-                :type="field.type === 'password' ? 'password' : 'text'" 
+                :type="field.type === 'password' ? 'password' : 'text'"
                 class="text-input"
                 :placeholder="field.placeholder || ''"
               />
@@ -344,7 +344,7 @@ onMounted(() => {
 
             <!-- Save and Cancel Buttons -->
             <div class="config-actions">
-              <button 
+              <button
                 class="action-btn save-btn"
                 :class="{ 'has-changes': hasUnsavedChanges(provider.type) }"
                 @click="saveProviderConfig(provider.type)"
@@ -353,7 +353,7 @@ onMounted(() => {
                 <span class="codicon codicon-save"></span>
                 Save
               </button>
-              <button 
+              <button
                 class="action-btn cancel-btn"
                 @click="toggleEdit(provider.type)"
                 title="Cancel and close"
