@@ -563,7 +563,7 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
     ? ""
     : inlinePosition.document.getText(range).trimEnd();
 
-  let parsedAnsibleDocument = undefined;
+  let parsedAnsibleDocument: unknown;
   const documentUri = inlinePosition.document.uri.toString();
   const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
   const documentFilePath = URI.parse(documentUri).path;
@@ -589,7 +589,7 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
     documentDirPath: documentDirPath,
     documentFilePath: documentFilePath,
     documentUri: documentUri,
-    parsedAnsibleDocument: parsedAnsibleDocument,
+    parsedAnsibleDocument: parsedAnsibleDocument as yaml.YAMLMap[],
   };
 }
 

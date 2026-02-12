@@ -733,9 +733,9 @@ export async function setupDevelopmentEnvironment(
         output: results.join("\n"),
         error: missingPythonReport.error,
       };
-    } else {
-      results.push(`Python ${options.pythonVersion} is available`);
     }
+    pythonCommand = `python${options.pythonVersion}`;
+    results.push(`Python ${options.pythonVersion} is available`);
   }
 
   const expectedVenvName = options.envName || "venv";

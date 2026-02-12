@@ -30,7 +30,7 @@ export class CommandRunner {
     stderr: string;
   }> {
     let executablePath: string;
-    let command: string | undefined = "";
+    let command: string | undefined;
     let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
     let interpreterPathFromConfig = this.settings.python.interpreterPath;

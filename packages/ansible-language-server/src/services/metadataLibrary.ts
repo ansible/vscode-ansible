@@ -84,7 +84,7 @@ export class MetadataLibrary {
           }
         });
       } catch (error) {
-        let msg: string = "";
+        let msg: string;
         if (error instanceof Error) {
           msg = error.message;
         } else {

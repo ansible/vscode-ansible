@@ -91,7 +91,7 @@ export async function getADEVersion(): Promise<string> {
 
 export async function checkContentCreatorRequirements() {
   const failures = [];
-  let creatorVersion = "unknown";
+  let creatorVersion: string;
   try {
     creatorVersion = await getCreatorVersion();
     if (!semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
@@ -102,10 +102,11 @@ export async function checkContentCreatorRequirements() {
       });
     }
   } catch {
+    creatorVersion = "not found";
     failures.push({
       type: "ansible-creator",
       required: ANSIBLE_CREATOR_VERSION_MIN,
-      current: "not found",
+      current: creatorVersion,
     });
   }
   return {

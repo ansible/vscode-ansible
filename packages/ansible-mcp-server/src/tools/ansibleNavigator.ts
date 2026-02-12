@@ -306,6 +306,7 @@ export async function runAnsibleNavigator(
   } catch (error) {
     throw new Error(
       `File not found or not accessible: ${absolutePath}. ${error instanceof Error ? error.message : ""}`,
+      { cause: error },
     );
   }
 
@@ -324,6 +325,7 @@ export async function runAnsibleNavigator(
     }
     throw new Error(
       `Cannot access file: ${absolutePath}. ${error instanceof Error ? error.message : ""}`,
+      { cause: error },
     );
   }
 
