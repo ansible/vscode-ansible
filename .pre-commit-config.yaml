@@ -47,20 +47,18 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        entry: biome check --write --unsafe
+        entry: npx biome check --write --unsafe
       - id: knip
         name: knip (typescript declutter)
-        entry: yarn knip --fix
+        entry: npx knip --fix
         language: system
         pass_filenames: false
         always_run: true
       - id: eslint
         name: eslint
-        entry: npm
+        entry: npx
         language: system
         args:
-          - exec
-          - --
           - eslint
           - --no-warn-ignored
           - --color
@@ -81,7 +79,7 @@ repos:
       - id: renovate-config-validator
         name: renovate config validator
         alias: renovate
-        entry: renovate-config-validator
+        entry: npx --yes --package renovate -- renovate-config-validator
         language: system
         pass_filenames: false
         files: "renovate.json"
