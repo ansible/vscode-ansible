@@ -158,6 +158,12 @@ describe("LlmProviderSettings", () => {
       const value = await llmProviderSettings.get("google", "unknownField");
       expect(value).toBe("");
     });
+
+    it("should trim whitespace from model name when setting and getting", async () => {
+      await llmProviderSettings.set("google", "modelName", "gemini-pro  ");
+      const model = await llmProviderSettings.get("google", "modelName");
+      expect(model).toBe("gemini-pro");
+    });
   });
 
   describe("get / set for password fields (secrets)", () => {
@@ -234,6 +240,13 @@ describe("LlmProviderSettings", () => {
       );
       expect(settings.modelName).toBe("gemini-2.5-flash");
       expect(settings.connectionStatuses.google).toBe(true);
+    });
+
+    it("should return undefined for modelName when provider is wca", async () => {
+      await llmProviderSettings.setProvider("wca");
+      const settings = await llmProviderSettings.getAllSettings();
+      expect(settings.provider).toBe("wca");
+      expect(settings.modelName).toBeUndefined();
     });
   });
 
