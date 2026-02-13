@@ -25,7 +25,7 @@ export default defineConfig({
           environment: "node",
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
-          exclude: ["test/unit/contentCreator/**", "test/unit/webviews/**"],
+          exclude: ["test/unit/webviews/**"],
           setupFiles: ["./test/unit/vitestSetup.ts"],
         },
       },
