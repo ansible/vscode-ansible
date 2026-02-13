@@ -1,5 +1,7 @@
 import { homedir } from "os";
 import { assert } from "chai";
+import { describe, it, vi, beforeEach } from "vitest";
+import * as vscode from "vscode";
 import {
   expandPath,
   getBinDetail,
@@ -7,6 +9,15 @@ import {
 } from "../../../src/features/contentCreator/utils";
 
 const homeDir = homedir();
+
+beforeEach(() => {
+  const mockConfig = {
+    get: vi.fn((key: string, defaultValue?: unknown) => defaultValue ?? ""),
+  };
+  vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
+    mockConfig as unknown as vscode.WorkspaceConfiguration,
+  );
+});
 
 const getBinDetailTests = [
   {
@@ -31,7 +42,7 @@ const getBinDetailTests = [
     name: "valid binary (ansible-creator)",
     command: "ansible-creator",
     arg: "--version",
-    expected: "ansible-creator",
+    expected: /^\d+\.\d+\.\d+/,
   },
 ];
 
@@ -77,7 +88,11 @@ describe(__filename, function () {
     getBinDetailTests.forEach(({ name, command, arg, expected }) => {
       it(`should provide details for ${name}`, async function () {
         const result = (await getBinDetail(command, arg)).toString();
-        assert.include(result, expected);
+        if (expected instanceof RegExp) {
+          assert.match(result, expected);
+        } else {
+          assert.include(result, expected);
+        }
       });
     });
   });

@@ -760,6 +760,11 @@ export class WebviewMessageHandlers {
     }
   }
 
+  /**
+   * Scaffolds devcontainer structure from .j2 templates using simple variable substitution.
+   * Note: Uses basic string replacement, not full Jinja2 rendering.
+   * Only supports simple variable substitution, not Jinja2 filters/loops/conditionals.
+   */
   private async scaffoldDevcontainerStructure(
     templateSourcePath: string,
     destinationPath: string,
@@ -767,16 +772,16 @@ export class WebviewMessageHandlers {
     recommendedExtensions: string[],
   ): Promise<void> {
     const templateFiles = [
-      "devcontainer-template.txt", // Root devcontainer.json
-      "docker/devcontainer-template.txt", // Docker variant
-      "podman/devcontainer-template.txt", // Podman variant
+      "devcontainer.json.j2", // Root devcontainer.json
+      "docker/devcontainer.json.j2", // Docker variant
+      "podman/devcontainer.json.j2", // Podman variant
     ];
 
     for (const templateFile of templateFiles) {
       const sourceFilePath = path.join(templateSourcePath, templateFile);
       const destinationFilePath = path.join(
         destinationPath,
-        templateFile.replace("-template.txt", ".json"),
+        templateFile.replace(".json.j2", ".json"),
       );
 
       const destinationDir = path.dirname(destinationFilePath);
