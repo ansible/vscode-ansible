@@ -1,3 +1,4 @@
+"use strict";
 /**
  * ESLint rule to detect unsafe child_process spawn/spawnSync calls
  * that use a single string argument instead of separate command and args array.
@@ -5,68 +6,20 @@
  * This prevents shell injection vulnerabilities and ensures proper argument handling.
  */
 
-import type { Rule } from "eslint";
-
-// Extend RuleContext to include report method which exists at runtime
-interface ExtendedRuleContext extends Rule.RuleContext {
-  report(options: { node: Rule.Node; messageId: string }): void;
-}
-
-// Extend RuleModule to require meta (it's optional in the base type)
-interface ExtendedRuleModule extends Rule.RuleModule {
-  meta: {
-    type: "problem";
-    docs: {
-      description: string;
-      category: string;
-      recommended: boolean;
-    };
-    fixable: undefined;
-    schema: [];
-    messages: {
-      unsafeSpawn: string;
-      unsafeSpawnSync: string;
-    };
-  };
-  create(context: ExtendedRuleContext): Rule.RuleListener;
-}
-
-const rule: ExtendedRuleModule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description:
-        "disallow child_process.spawn/spawnSync with single string argument containing spaces",
-      category: "Security",
-      recommended: true,
-    },
-    fixable: undefined,
-    schema: [],
-    messages: {
-      unsafeSpawn:
-        "Use spawn(command, args[]) instead of spawn(commandString). Split the command string into command and args array to prevent shell injection.",
-      unsafeSpawnSync:
-        "Use spawnSync(command, args[]) instead of spawnSync(commandString). Split the command string into command and args array to prevent shell injection.",
-    },
-  },
-  create(context: ExtendedRuleContext): Rule.RuleListener {
+const rule = {
+  create(context) {
     /**
      * Check if a call expression is spawn or spawnSync
      */
-    function isSpawnCall(
-      node: Rule.Node,
-    ): node is Rule.Node & { type: "CallExpression" } {
+    function isSpawnCall(node) {
       if (node.type !== "CallExpression" || !("callee" in node)) {
         return false;
       }
-
       const callee = node.callee;
-
       // Check for: spawnSync(...) or spawn(...) as identifier
       if (callee.type === "Identifier") {
         return callee.name === "spawnSync" || callee.name === "spawn";
       }
-
       // Check for: child_process.spawnSync(...) or cp.spawnSync(...)
       if (
         callee.type === "MemberExpression" &&
@@ -77,31 +30,24 @@ const rule: ExtendedRuleModule = {
         const methodName = callee.property.name;
         return methodName === "spawnSync" || methodName === "spawn";
       }
-
       return false;
     }
-
     /**
      * Check if the call is unsafe (command string instead of command + args array)
      */
-    function isUnsafeCall(
-      node: Rule.Node & { type: "CallExpression" },
-    ): boolean {
+    function isUnsafeCall(node) {
       const args = node.arguments;
       if (!args || args.length === 0) {
         return false;
       }
-
       const firstArg = args[0];
       if (!firstArg) {
         return false;
       }
-
       // If there's a second argument that's an array, it's safe (proper usage)
       if (args.length > 1 && args[1].type === "ArrayExpression") {
         return false;
       }
-
       // Check if second argument is an options object with shell: true
       // This is unsafe because it goes through shell interpretation
       if (
@@ -125,14 +71,12 @@ const rule: ExtendedRuleModule = {
           }
         }
       }
-
       // Check if first argument is a string literal with spaces
       if (firstArg.type === "Literal" && typeof firstArg.value === "string") {
         const value = firstArg.value.trim();
         // Flag if it contains spaces (command + args) but allow single commands
         return value.includes(" ") && value.length > 0;
       }
-
       // Check if it's a template literal
       if (firstArg.type === "TemplateLiteral") {
         const quasis = firstArg.quasis || [];
@@ -144,7 +88,6 @@ const rule: ExtendedRuleModule = {
           }
         }
       }
-
       // Check if first argument is a variable and second is options (not array)
       // This is potentially unsafe - we can't know the variable's value statically,
       // but if it's not followed by an array, it's likely a command string
@@ -156,16 +99,13 @@ const rule: ExtendedRuleModule = {
         // Variable with options object (not array) - likely unsafe
         return true;
       }
-
       return false;
     }
-
     return {
-      CallExpression(node: Rule.Node) {
+      CallExpression(node) {
         if (!isSpawnCall(node)) {
           return;
         }
-
         // Check if it's an unsafe call
         if (isUnsafeCall(node)) {
           const methodName =
@@ -177,19 +117,34 @@ const rule: ExtendedRuleModule = {
                   node.callee.property.type === "Identifier"
                 ? node.callee.property.name
                 : "spawn";
-
           context.report({
-            node,
             messageId:
               methodName === "spawnSync" ? "unsafeSpawnSync" : "unsafeSpawn",
+            node,
           });
         }
       },
     };
   },
+  meta: {
+    docs: {
+      category: "Security",
+      description:
+        "disallow child_process.spawn/spawnSync with single string argument containing spaces",
+      recommended: true,
+    },
+    fixable: undefined,
+    messages: {
+      unsafeSpawn:
+        "Use spawn(command, args[]) instead of spawn(commandString). Split the command string into command and args array to prevent shell injection.",
+      unsafeSpawnSync:
+        "Use spawnSync(command, args[]) instead of spawnSync(commandString). Split the command string into command and args array to prevent shell injection.",
+    },
+    schema: [],
+    type: "problem",
+  },
 };
-
-export default {
+module.exports = {
   rules: {
     "no-unsafe-spawn": rule,
   },
