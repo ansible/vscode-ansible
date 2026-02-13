@@ -42,7 +42,7 @@ const getBinDetailTests = [
     name: "valid binary (ansible-creator)",
     command: "ansible-creator",
     arg: "--version",
-    expected: "ansible-creator",
+    expected: /^\d+\.\d+\.\d+/,
   },
 ];
 
@@ -88,7 +88,11 @@ describe(__filename, function () {
     getBinDetailTests.forEach(({ name, command, arg, expected }) => {
       it(`should provide details for ${name}`, async function () {
         const result = (await getBinDetail(command, arg)).toString();
-        assert.include(result, expected);
+        if (expected instanceof RegExp) {
+          assert.match(result, expected);
+        } else {
+          assert.include(result, expected);
+        }
       });
     });
   });
