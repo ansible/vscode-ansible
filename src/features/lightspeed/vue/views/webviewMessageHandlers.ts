@@ -760,6 +760,11 @@ export class WebviewMessageHandlers {
     }
   }
 
+  /**
+   * Scaffolds devcontainer structure from .j2 templates using simple variable substitution.
+   * Note: Uses basic string replacement, not full Jinja2 rendering.
+   * Only supports simple {{ variable }} substitution, not Jinja2 filters/loops/conditionals.
+   */
   private async scaffoldDevcontainerStructure(
     templateSourcePath: string,
     destinationPath: string,

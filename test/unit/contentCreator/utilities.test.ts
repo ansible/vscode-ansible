@@ -1,5 +1,7 @@
 import { homedir } from "os";
 import { assert } from "chai";
+import { describe, it, vi, beforeEach } from "vitest";
+import * as vscode from "vscode";
 import {
   expandPath,
   getBinDetail,
@@ -7,6 +9,15 @@ import {
 } from "../../../src/features/contentCreator/utils";
 
 const homeDir = homedir();
+
+beforeEach(() => {
+  const mockConfig = {
+    get: vi.fn((key: string, defaultValue?: unknown) => defaultValue ?? ""),
+  };
+  vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
+    mockConfig as unknown as vscode.WorkspaceConfiguration,
+  );
+});
 
 const getBinDetailTests = [
   {
