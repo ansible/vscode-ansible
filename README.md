@@ -10,7 +10,7 @@ display what it can do and display well inside:
 Full size of the page should not be more than two screens long. Use only
 one video on this page. -->
 
-# Ansible Extension    
+# Ansible Extension
 
 [![GitHub Release](https://img.shields.io/github/v/release/ansible/vscode-ansible?sort=semver&style=flat)](https://github.com/ansible/vscode-ansible/releases)
 [![GitHub Repo stars](https://img.shields.io/github/stars/ansible/vscode-ansible?style=flat)](https://github.com/ansible/vscode-ansible)
