@@ -1,13 +1,7 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 import * as path from "node:path";
-import {
-  commands,
-  ExtensionContext,
-  extensions,
-  window,
-  workspace,
-} from "vscode";
+import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
 import {
@@ -169,7 +163,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   await startClient(context, telemetry);
 
   notifyAboutConflicts();
-  notifyAboutPythonExtension(pythonEnvService);
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 
@@ -1304,18 +1297,6 @@ function notifyAboutConflicts(): void {
   if (conflictingExtensions.length > 0) {
     showUninstallConflictsNotification(conflictingExtensions);
   }
-}
-
-/**
- * Check if the Python Environments extension is configured and show guidance if not.
- * The Ansible extension works best with the Python Environments extension for environment management.
- */
-function notifyAboutPythonExtension(
-  pythonEnvService: PythonEnvironmentService,
-): void {
-  // The PythonEnvironmentService handles its own prompts for installation/configuration
-  // So we don't need to show a notification here - just initialize the service
-  // The service will prompt the user if needed
 }
 
 /**
