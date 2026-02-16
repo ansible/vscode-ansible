@@ -12,7 +12,7 @@ runs:
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.1.6
+        version: 2026.2.13
         reshim: true
 
     - name: Corepack enable
