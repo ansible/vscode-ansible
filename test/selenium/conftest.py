@@ -12,6 +12,8 @@ from pathlib import Path
 
 import pytest
 
+from test.selenium.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
+
 # Project root (vscode-ansible), assuming conftest at test/selenium/conftest.py
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
@@ -32,25 +34,19 @@ def skip_if_missing_lightspeed_credentials() -> bool:
 
     Result is cached to avoid repeated environment variable lookups.
     """
-    if "CI" in os.environ:
-        result = False
-    else:
-        result = (
-            "LIGHTSPEED_PASSWORD" not in os.environ
-            or "LIGHTSPEED_USER" not in os.environ
-        )
-    if result:
+    skip = not LIGHTSPEED_USER or not LIGHTSPEED_PASSWORD
+    if skip:  # pragma: no cover
         logger.warning(
-            "LIGHTSPEED_PASSWORD or LIGHTSPEED_USER environment variables are not defined, this will make use skip all tests with lightspeed marker."
+            "Lightspeed tests will be skipped because LIGHTSPEED_USER and LIGHTSPEED_PASSWORD environment variables are not defined or empty."
         )
-    return result
+    return skip
 
 
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Automatically skip tests marked with 'lightspeed' if credentials are missing."""
-    if skip_if_missing_lightspeed_credentials():
+    if skip_if_missing_lightspeed_credentials():  # pragma: no cover
         skip_marker = pytest.mark.skip(
             reason="LIGHTSPEED_PASSWORD or LIGHTSPEED_USER environment variables are not defined."
         )
@@ -65,7 +61,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         _PROJECT_ROOT / "out" / "ui-selenium" / "logs",
         _PROJECT_ROOT / "out" / "ui-selenium" / "coder-logs",
     ):
-        if dir_path.exists():
+        if dir_path.exists():  # pragma: no cover
             shutil.rmtree(dir_path)
     for dir_path in (
         _PROJECT_ROOT / ".vscode-test" / "user-data" / "User",
@@ -80,8 +76,12 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     shutil.copy2(settings_src, settings_dst)
 
 
-def pytest_sessionfinish(session: pytest.Session, exitstatus: pytest.ExitCode) -> None:
+def pytest_sessionfinish(
+    session: pytest.Session, exitstatus: pytest.ExitCode
+) -> None:  # pragma: no cover
     """Teardown the selenium server after tests on CI."""
-    subprocess.run("podman-compose stats --no-stream", check=False, shell=True)
+    subprocess.run(
+        "podman-compose stats --no-stream --no-reset", check=False, shell=True
+    )
     if os.environ.get("CI"):
         subprocess.run("podman-compose down", check=False, shell=True)
