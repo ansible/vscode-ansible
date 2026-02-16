@@ -31,7 +31,7 @@ lockfile = true
 gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn
 node = "22.20.0"
-python = "3.13"
+python = "3.14"
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
 yarn = "latest"
