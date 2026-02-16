@@ -10,7 +10,7 @@ export interface PythonEnvironmentId {
   managerId: string;
 }
 
-export interface PythonCommandRunConfiguration {
+interface PythonCommandRunConfiguration {
   executable: string;
   args?: string[];
 }
