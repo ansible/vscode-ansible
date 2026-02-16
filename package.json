@@ -1107,7 +1107,6 @@
     "npm-check-updates": "^19.3.2",
     "ovsx": "^0.10.8",
     "prettier": "^3.8.1",
-    "renovate": "^43.3.0",
     "rimraf": "^6.1.2",
     "sinon": "^21.0.1",
     "ts-loader": "^9.5.4",

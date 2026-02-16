@@ -13,7 +13,7 @@ ci:
     - knip
     - md # missing uv
     - mypy # missing uv
-    - renovate # locally managed
+    - renovate-config-validator # network
     - ruff # missing uv
     - shellcheck # missing uv
     - toml # missing uv
@@ -28,7 +28,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/ansible/actions
-    rev: v0.5.0
+    rev: v0.5.1
     hooks:
       - id: toml
       - id: mypy
@@ -39,6 +39,7 @@ repos:
       - id: md
       - id: codecov
       - id: shellcheck
+      - id: renovate-config-validator
   - repo: local
     hooks:
       - id: biome
@@ -69,21 +70,6 @@ repos:
           - --cache-strategy=content
         pass_filenames: false
         always_run: true
-
-      - id: git-dirty
-        name: Check if git reports dirty
-        entry: git diff --exit-code
-        language: system
-        pass_filenames: false
-        always_run: true
-      - id: renovate-config-validator
-        name: renovate config validator
-        alias: renovate
-        entry: npx --yes --package renovate -- renovate-config-validator
-        language: system
-        pass_filenames: false
-        files: "renovate.json"
-        args: [--strict]
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
     hooks:
