@@ -7,6 +7,7 @@ import logging
 import os
 import shutil
 import subprocess
+import warnings
 from functools import lru_cache
 from pathlib import Path
 
@@ -36,8 +37,10 @@ def skip_if_missing_lightspeed_credentials() -> bool:
     """
     skip = not LIGHTSPEED_USER or not LIGHTSPEED_PASSWORD
     if skip:  # pragma: no cover
-        logger.warning(
-            "Lightspeed tests will be skipped because LIGHTSPEED_USER and LIGHTSPEED_PASSWORD environment variables are not defined or empty."
+        warnings.warn(
+            "Lightspeed tests will be skipped because LIGHTSPEED_USER and LIGHTSPEED_PASSWORD environment variables are not defined or empty.",
+            pytest.PytestWarning,
+            stacklevel=1,
         )
     return skip
 

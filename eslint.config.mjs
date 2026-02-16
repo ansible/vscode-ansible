@@ -14,8 +14,7 @@ import { defineConfig } from "eslint/config";
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
-const noUnsafeSpawnRule =
-  require("./out/client/test/eslint/no-unsafe-spawn.js").default;
+const noUnsafeSpawnRule = require("./test/eslint/no-unsafe-spawn.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -66,6 +65,19 @@ export default defineConfig(
       "@typescript-eslint/no-unsafe-call": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-argument": "off",
+    },
+  },
+  {
+    // CommonJS rule file: Node globals (module, require, exports)
+    files: ["test/eslint/**/*.cjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "script",
+      },
     },
   },
   eslint.configs.recommended,
