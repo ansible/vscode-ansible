@@ -25,7 +25,6 @@ const config: KnipConfig = {
     "eslint-formatter-unix",
     "mocha-multi-reporters",
     "mocha-junit-reporter",
-    "renovate",
     "ovsx",
     "ts-node", // Used by Mocha test runners via string-based require
   ],
