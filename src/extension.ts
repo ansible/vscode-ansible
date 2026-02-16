@@ -1307,32 +1307,15 @@ function notifyAboutConflicts(): void {
 }
 
 /**
- * Check if the Python extension is installed and show a recommendation if not.
- * The Ansible extension works best with the Python extension for environment management.
+ * Check if the Python Environments extension is configured and show guidance if not.
+ * The Ansible extension works best with the Python Environments extension for environment management.
  */
 function notifyAboutPythonExtension(
   pythonEnvService: PythonEnvironmentService,
 ): void {
-  if (!pythonEnvService.isAvailable()) {
-    const installMsg = "Install";
-    const dismissMsg = "Dismiss";
-
-    window
-      .showInformationMessage(
-        "The Python extension is recommended for better Python environment management with Ansible. " +
-          "Install it to automatically use your selected Python environment.",
-        installMsg,
-        dismissMsg,
-      )
-      .then((selection) => {
-        if (selection === installMsg) {
-          commands.executeCommand(
-            "workbench.extensions.installExtension",
-            "ms-python.python",
-          );
-        }
-      });
-  }
+  // The PythonEnvironmentService handles its own prompts for installation/configuration
+  // So we don't need to show a notification here - just initialize the service
+  // The service will prompt the user if needed
 }
 
 /**

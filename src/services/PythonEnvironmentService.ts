@@ -3,6 +3,9 @@
  *
  * Provides a wrapper around the Microsoft Python Environments extension API.
  * Handles initialization, environment retrieval, and event propagation.
+ *
+ * Note: This service uses ms-python.vscode-python-envs extension.
+ * Users need to enable 'python.useEnvironmentsExtension' setting for full API access.
  */
 
 import * as vscode from "vscode";
@@ -46,37 +49,62 @@ export class PythonEnvironmentService implements vscode.Disposable {
       return this._pythonEnvApi !== undefined;
     }
 
+    console.log(
+      `[Ansible] Looking for Python Environments extension: ${PYTHON_ENVS_EXTENSION_ID}`,
+    );
+
+    // Get the Python Environments extension
     const pythonEnvExt = vscode.extensions.getExtension<PythonEnvironmentApi>(
       PYTHON_ENVS_EXTENSION_ID,
     );
 
     if (pythonEnvExt) {
+      console.log(
+        `[Ansible] Found Python Environments extension, isActive: ${pythonEnvExt.isActive}`,
+      );
       try {
         if (!pythonEnvExt.isActive) {
+          console.log("[Ansible] Activating Python Environments extension...");
           await pythonEnvExt.activate();
         }
-        this._pythonEnvApi = pythonEnvExt.exports;
 
-        // Subscribe to environment change events if available
-        if (this._pythonEnvApi?.onDidChangeEnvironment) {
-          const listener = this._pythonEnvApi.onDidChangeEnvironment(
-            (event) => {
-              this._onDidChangeEnvironment.fire(event);
-            },
+        // Check if the extension exports the API
+        const exports = pythonEnvExt.exports;
+        console.log(
+          `[Ansible] Python Environments exports: ${typeof exports}, hasGetEnvironment: ${exports && typeof exports.getEnvironment === "function"}`,
+        );
+
+        if (exports && typeof exports.getEnvironment === "function") {
+          this._pythonEnvApi = exports;
+
+          // Subscribe to environment change events if available
+          if (this._pythonEnvApi?.onDidChangeEnvironment) {
+            const listener = this._pythonEnvApi.onDidChangeEnvironment(
+              (event) => {
+                this._onDidChangeEnvironment.fire(event);
+              },
+            );
+            this._disposables.push(listener);
+          }
+
+          console.log(
+            "[Ansible] Python Environment Service initialized successfully",
           );
-          this._disposables.push(listener);
+        } else {
+          console.warn(
+            "[Ansible] Python Environments extension found but API not available.",
+          );
+          // Check and prompt for the setting
+          await this._checkAndPromptForSetting();
         }
-
-        console.log("Python Environment Service initialized successfully");
       } catch (error) {
         console.error(
-          `Failed to activate Python Environments extension: ${error}`,
+          `[Ansible] Failed to activate Python Environments extension: ${error}`,
         );
       }
     } else {
       console.warn(
-        `Python Environments extension (${PYTHON_ENVS_EXTENSION_ID}) is not installed. ` +
-          "Some features may be limited.",
+        `[Ansible] Python Environments extension (${PYTHON_ENVS_EXTENSION_ID}) is not installed.`,
       );
     }
 
@@ -85,7 +113,56 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   /**
-   * Check if the Python Environments extension is available
+   * Check if the required setting is enabled and prompt if not
+   */
+  private async _checkAndPromptForSetting(): Promise<void> {
+    const pythonConfig = vscode.workspace.getConfiguration("python");
+    const useEnvsExtension = pythonConfig.get<boolean>(
+      "useEnvironmentsExtension",
+    );
+
+    if (!useEnvsExtension) {
+      console.log(
+        "[Ansible] python.useEnvironmentsExtension is not enabled, prompting user...",
+      );
+
+      const enableSetting = "Enable Setting";
+      const learnMore = "Learn More";
+
+      const selection = await vscode.window.showWarningMessage(
+        "The Python Environments extension requires 'python.useEnvironmentsExtension' to be enabled for full functionality. " +
+          "Enable this setting to use Python environment auto-activation in terminals.",
+        enableSetting,
+        learnMore,
+      );
+
+      if (selection === enableSetting) {
+        await pythonConfig.update(
+          "useEnvironmentsExtension",
+          true,
+          vscode.ConfigurationTarget.Global,
+        );
+
+        const reloadSelection = await vscode.window.showInformationMessage(
+          "Setting enabled. Please reload VS Code for the changes to take effect.",
+          "Reload Now",
+        );
+
+        if (reloadSelection === "Reload Now") {
+          await vscode.commands.executeCommand("workbench.action.reloadWindow");
+        }
+      } else if (selection === learnMore) {
+        vscode.env.openExternal(
+          vscode.Uri.parse(
+            "https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs",
+          ),
+        );
+      }
+    }
+  }
+
+  /**
+   * Check if the Python Environments extension API is available
    */
   public isAvailable(): boolean {
     return this._pythonEnvApi !== undefined;
@@ -107,7 +184,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     try {
       return await this._pythonEnvApi.getEnvironment(scope);
     } catch (error) {
-      console.error(`Error getting Python environment: ${error}`);
+      console.error(`[Ansible] Error getting Python environment: ${error}`);
       return undefined;
     }
   }
@@ -128,7 +205,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     try {
       return await this._pythonEnvApi.getEnvironments(scope);
     } catch (error) {
-      console.error(`Error getting Python environments: ${error}`);
+      console.error(`[Ansible] Error getting Python environments: ${error}`);
       return [];
     }
   }
@@ -180,7 +257,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     vscode.window
       .showWarningMessage(
         "The Python Environments extension is not installed. " +
-          "Install it for better Python environment management.",
+          "Install it for Python environment management and terminal auto-activation.",
         "Install Extension",
       )
       .then((selection) => {
@@ -194,21 +271,37 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   /**
-   * Open the Python environment picker from the Python extension
+   * Open the Python environment picker from the Python Environments extension
    */
   public async selectEnvironment(): Promise<void> {
-    // Try the new Python Environments extension command first
+    if (!this._pythonEnvApi) {
+      // Extension not available or API not exported, prompt to install/enable
+      const pythonEnvExt = vscode.extensions.getExtension(
+        PYTHON_ENVS_EXTENSION_ID,
+      );
+      if (pythonEnvExt) {
+        // Extension installed but API not available - prompt for setting
+        await this._checkAndPromptForSetting();
+      } else {
+        // Extension not installed
+        this.showExtensionNotInstalledWarning();
+      }
+      return;
+    }
+
     try {
       await vscode.commands.executeCommand("python-envs.set");
-    } catch {
-      // Fall back to the classic Python extension command
+    } catch (error) {
+      console.error(
+        `[Ansible] Error opening Python environment picker: ${error}`,
+      );
+      // Fall back to classic Python extension command
       try {
         await vscode.commands.executeCommand("python.setInterpreter");
-      } catch (error) {
-        console.error(`Error opening Python environment picker: ${error}`);
+      } catch {
         vscode.window.showErrorMessage(
           "Unable to open Python environment picker. " +
-            "Please ensure a Python extension is installed.",
+            "Please ensure the Python Environments extension is installed and enabled.",
         );
       }
     }

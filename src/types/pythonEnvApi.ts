@@ -1,6 +1,7 @@
 /**
  * Type definitions for the Microsoft Python Environments extension API
  * Based on: https://github.com/microsoft/vscode-python-environments/blob/main/src/api.ts
+ * Reference: https://github.com/cidrblock/ansible-environments/blob/main/src/types/pythonEnvApi.ts
  */
 
 import * as vscode from "vscode";

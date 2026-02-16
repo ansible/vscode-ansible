@@ -1131,7 +1131,6 @@
     "yarn": ">=4.5.1"
   },
   "extensionDependencies": [
-    "ms-python.python",
     "ms-python.vscode-python-envs",
     "redhat.vscode-yaml"
   ],

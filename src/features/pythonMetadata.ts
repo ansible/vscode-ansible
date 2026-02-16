@@ -67,16 +67,19 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    // Check if Python extension is available
+    // Ensure service is initialized before checking availability
+    await this.pythonEnvService.initialize();
+
+    // Check if Python Environments extension API is available
     if (!this.pythonEnvService.isAvailable()) {
       this.pythonInterpreterStatusBarItem.text =
-        "$(warning) Python extension not installed";
+        "$(warning) Python Environments not configured";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground",
       );
       this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
-        "#### Install Python Extension\n" +
-          "Click to install the Python extension for better environment management.",
+        "#### Configure Python Environments\n" +
+          "Click to install or enable the Python Environments extension for environment management.",
         true,
       );
       this.pythonInterpreterStatusBarItem.command =
@@ -84,7 +87,7 @@ export class PythonInterpreterManager {
       return;
     }
 
-    // Get the current environment from the Python extension
+    // Get the current environment from the Python Environments API
     const activeURI = window.activeTextEditor?.document.uri;
     const environment = await this.pythonEnvService.getEnvironment(activeURI);
 

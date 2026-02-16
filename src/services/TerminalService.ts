@@ -3,6 +3,7 @@
  *
  * Central dispatcher for terminal operations with Python venv support.
  * Handles waiting for Python extension activation before sending commands.
+ * Uses the Python Environments extension for automatic terminal activation.
  */
 
 import * as vscode from "vscode";
@@ -67,7 +68,7 @@ export class TerminalService implements vscode.Disposable {
   }
 
   /**
-   * Initialize the service with Python extension API
+   * Initialize the service with Python Environments extension API
    */
   public async initialize(): Promise<void> {
     if (this._initialized) {
@@ -83,11 +84,20 @@ export class TerminalService implements vscode.Disposable {
         if (!pythonExt.isActive) {
           await pythonExt.activate();
         }
-        this._pythonEnvApi = pythonExt.exports;
-        console.log("Terminal Service: Python Environment API initialized");
+        const exports = pythonExt.exports;
+        if (exports && typeof exports.createTerminal === "function") {
+          this._pythonEnvApi = exports;
+          console.log(
+            "[Ansible] Terminal Service: Python Environment API initialized",
+          );
+        } else {
+          console.warn(
+            "[Ansible] Terminal Service: Python Environments API not available (enable python.useEnvironmentsExtension)",
+          );
+        }
       } catch (error) {
         console.warn(
-          `Terminal Service: Failed to activate Python extension: ${error}`,
+          `[Ansible] Terminal Service: Failed to activate Python extension: ${error}`,
         );
       }
     }
@@ -96,7 +106,7 @@ export class TerminalService implements vscode.Disposable {
   }
 
   /**
-   * Check if the Python Environments extension is available
+   * Check if the Python Environments extension API is available
    */
   public isAvailable(): boolean {
     return this._pythonEnvApi !== undefined;
@@ -131,22 +141,26 @@ export class TerminalService implements vscode.Disposable {
     let terminal: vscode.Terminal;
     let expectActivation = false;
 
-    // Try to create terminal with Python environment
+    // Try to create terminal with Python environment using the Python Environments API
     if (this._pythonEnvApi && workspaceFolder) {
       const environment =
         await this._pythonEnvApi.getEnvironment(workspaceFolder);
 
       if (environment) {
         try {
+          // Use Python Environments extension to create an activated terminal
           terminal = await this._pythonEnvApi.createTerminal(environment, {
             name: options.name,
             cwd: workspaceFolder,
             env: options.env,
           });
           expectActivation = true;
+          console.log(
+            `[Ansible] Created activated terminal with environment: ${environment.displayName}`,
+          );
         } catch (error) {
           console.warn(
-            `Terminal Service: Failed to create Python-activated terminal: ${error}`,
+            `[Ansible] Terminal Service: Failed to create Python-activated terminal: ${error}`,
           );
           terminal = vscode.window.createTerminal({
             name: options.name,
