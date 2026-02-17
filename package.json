@@ -1100,7 +1100,7 @@
     "glob": "^13.0.0",
     "globals": "^17.3.0",
     "jsdom": "^28.0.0",
-    "knip": "^5.82.1",
+    "knip": "^5.83.1",
     "lodash": "^4.17.23",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",

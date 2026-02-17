@@ -31,7 +31,7 @@ async function getSampleEEFilePath(): Promise<string> {
   );
 }
 
-export interface ExecutionEnvironmentSchema {
+interface ExecutionEnvironmentSchema {
   $defs: {
     v3: {
       properties: Record<string, unknown>;

@@ -29,7 +29,7 @@ import {
   OpenAIClientError,
 } from "../clients/openaiCompatibleClient";
 
-export interface RHCustomConfig {
+interface RHCustomConfig {
   apiKey: string;
   modelName: string;
   baseURL: string;

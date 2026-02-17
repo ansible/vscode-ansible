@@ -11,7 +11,7 @@ import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { LightspeedSessionUserInfo } from "../../interfaces/lightspeed";
 
-export interface StatusBarTooltipParams {
+interface StatusBarTooltipParams {
   userInfo?: LightspeedSessionUserInfo;
   provider?: string;
   modelName?: string;
