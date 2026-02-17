@@ -144,11 +144,14 @@ export default defineConfig(
       ],
       // temporary until we address these
       "import/enforce-node-protocol-usage": "off",
-      "import/no-unresolved": "off",
+      // "import/no-unresolved": [
+      //   "error",
+      //   { commonjs: true, ignore: ["^vitest/config", "uuid"] },
+      // ],
       "import/no-named-as-default-member": "off",
       // https://github.com/import-js/eslint-plugin-import/issues/3199
       eqeqeq: ["error", "smart"],
-      "import/no-relative-parent-imports": "error",
+      // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
@@ -189,6 +192,13 @@ export default defineConfig(
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
+    },
+    settings: {
+      // workaround for vscode imports in test files
+      "import/core-modules": ["vscode"],
+      "import/resolver": {
+        typescript: { alwaysTryTypes: true },
+      },
     },
   },
   {

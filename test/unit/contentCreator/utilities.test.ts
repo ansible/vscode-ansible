@@ -5,7 +5,7 @@ import {
   expandPath,
   getBinDetail,
   runCommand,
-} from "../../../src/features/contentCreator/utils";
+} from "@src/features/contentCreator/utils";
 
 const homeDir = homedir();
 

@@ -25,7 +25,7 @@ import {
   getWorkspaceFolderPath,
   isUserConfiguredPath,
   expandTilde,
-} from "../../../src/features/utils/interpreterPathResolver";
+} from "@src/features/utils/interpreterPathResolver";
 
 describe("interpreterPathResolver", () => {
   const mockWorkspacePath = "/home/user/project";

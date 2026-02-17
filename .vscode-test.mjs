@@ -1,7 +1,11 @@
 // https://github.com/microsoft/vscode-test-cli
 // Used by e2e tests
+
 import { defineConfig } from "@vscode/test-cli";
 
+/**
+ * @public
+ */
 export default defineConfig({
   files: "test/e2e/**/*.test.ts",
   extensionDevelopmentPath: ".", // package.json location

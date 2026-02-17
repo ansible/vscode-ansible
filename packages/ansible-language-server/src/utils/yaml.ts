@@ -18,8 +18,12 @@ import {
 } from "yaml";
 import { IModuleMetadata, IOption } from "../interfaces/module.js";
 import { DocsLibrary } from "../services/docsLibrary.js";
-import { isTaskKeyword, playExclusiveKeywords } from "./ansible.js";
-import { playKeywords, taskKeywords } from "../utils/ansible.js";
+import {
+  isTaskKeyword,
+  playExclusiveKeywords,
+  playKeywords,
+  taskKeywords,
+} from "./ansible.js";
 import { Range, Position } from "vscode-languageserver";
 
 type Options = ParseOptions & DocumentOptions & SchemaOptions;

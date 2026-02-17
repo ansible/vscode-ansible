@@ -1,6 +1,6 @@
 import assert from "assert";
 import * as yaml from "yaml";
-import { parsePlays } from "../../../src/features/lightspeed/utils/parsePlays";
+import { parsePlays } from "@src/features/lightspeed/utils/parsePlays";
 
 function parseYaml(yamlString: string) {
   return yaml.parse(yamlString, {

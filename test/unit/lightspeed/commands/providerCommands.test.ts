@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { ProviderCommands } from "../../../../src/features/lightspeed/commands/providerCommands";
-import type { LightSpeedManager } from "../../../../src/features/lightspeed/base";
-import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
-import { ProviderStatus } from "../../../../src/features/lightspeed/providers/base";
+import { ProviderCommands } from "@src/features/lightspeed/commands/providerCommands";
+import type { LightSpeedManager } from "@src/features/lightspeed/base";
+import type { ProviderManager } from "@src/features/lightspeed/providerManager";
+import { ProviderStatus } from "@src/features/lightspeed/providers/base";
 import {
   PROVIDER_TYPES,
   TEST_API_KEYS,
@@ -11,7 +11,7 @@ import {
   GOOGLE_PROVIDER,
 } from "../testConstants";
 
-vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
+vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockProviderInfo = {
     type: "google",
     name: "google",
@@ -47,7 +47,7 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
 });
 
 // Import after mocks
-import { providerFactory } from "../../../../src/features/lightspeed/providers/factory";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 describe("ProviderCommands", () => {
   let providerCommands: ProviderCommands;
