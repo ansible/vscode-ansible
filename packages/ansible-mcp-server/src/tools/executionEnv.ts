@@ -9,7 +9,7 @@ import {
   getSampleExecutionEnvironment,
 } from "../resources/eeSchema.js";
 
-export interface ExecutionEnvInputs {
+interface ExecutionEnvInputs {
   baseImage: string;
   tag: string;
   destinationPath?: string;

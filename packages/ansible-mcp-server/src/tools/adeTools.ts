@@ -13,7 +13,7 @@ export interface ADEEnvironmentInfo {
   adtInstalled: boolean;
 }
 
-export interface ADECommandResult {
+interface ADECommandResult {
   success: boolean;
   output: string;
   error?: string;
@@ -39,7 +39,7 @@ export interface SystemInfo {
 /**
  * Follow-up task for the agent to perform.
  */
-export interface FollowUpTask {
+interface FollowUpTask {
   /** Type of task */
   taskType:
     | "install_system_packages"
@@ -61,7 +61,7 @@ export interface FollowUpTask {
 /**
  * Result of setup development environment with follow-up tasks.
  */
-export interface SetupEnvironmentResult extends ADECommandResult {
+interface SetupEnvironmentResult extends ADECommandResult {
   /** Follow-up tasks for system dependencies */
   followUpTasks?: FollowUpTask[];
   /** Detected package manager */
@@ -384,7 +384,7 @@ export function reportMissingPython(pythonVersion: string): ADECommandResult {
  * @returns A promise that resolves with an ADECommandResult containing the creation status and output.
  * @throws No direct throws, but returns error information in the result if the virtual environment creation fails.
  */
-export interface VenvCreationResult extends ADECommandResult {
+interface VenvCreationResult extends ADECommandResult {
   venvPath?: string;
 }
 

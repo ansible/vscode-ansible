@@ -3529,7 +3529,7 @@ __metadata:
     ini: "npm:^6.0.0"
     js-yaml: "npm:^4.1.1"
     jsdom: "npm:^28.0.0"
-    knip: "npm:^5.82.1"
+    knip: "npm:^5.83.1"
     lodash: "npm:^4.17.23"
     marked: "npm:^17.0.1"
     minimatch: "npm:^10.1.1"
@@ -7021,9 +7021,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knip@npm:^5.82.1":
-  version: 5.82.1
-  resolution: "knip@npm:5.82.1"
+"knip@npm:^5.83.1":
+  version: 5.83.1
+  resolution: "knip@npm:5.83.1"
   dependencies:
     "@nodelib/fs.walk": "npm:^1.2.3"
     fast-glob: "npm:^3.3.3"
@@ -7043,7 +7043,7 @@ __metadata:
   bin:
     knip: bin/knip.js
     knip-bun: bin/knip-bun.js
-  checksum: 10/e41549af9dc9b8921b393cab881f848ce06c7fd915214cb1806ee01aec7155b4e045684bc8d1a396a588e8fe284693912a50edc5680312b1859a1f949dd4c37a
+  checksum: 10/d4783b22eacbcb726790211cb6e7cfb966cbb42c4737ae71fbe766523add2e9b8c7eb389a14f9418742d7722f26b107b036c6f0e1af4b56d86a7097f62172a54
   languageName: node
   linkType: hard
 

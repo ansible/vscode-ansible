@@ -2,7 +2,7 @@
 
 import { extensions } from "vscode";
 
-export interface IInterpreterDetails {
+interface IInterpreterDetails {
   path?: string;
   environment?: string;
   version?: string;

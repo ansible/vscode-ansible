@@ -10,7 +10,7 @@ export interface Dependency {
   versionParser?: (output: string) => string | null; // Extract version from output
 }
 
-export interface DependencyCheckResult {
+interface DependencyCheckResult {
   satisfied: boolean;
   missingDependencies: Dependency[];
   versionMismatches: Array<{

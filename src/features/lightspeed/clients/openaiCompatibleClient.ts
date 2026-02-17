@@ -18,7 +18,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface ChatCompletionOptions {
+interface ChatCompletionOptions {
   temperature?: number;
   max_tokens?: number;
   top_p?: number;
@@ -26,7 +26,7 @@ export interface ChatCompletionOptions {
   timeout?: number; // Per-request timeout override (ms)
 }
 
-export interface ChatCompletionResponse {
+interface ChatCompletionResponse {
   id: string;
   object: string;
   created: number;
@@ -43,7 +43,7 @@ export interface ChatCompletionResponse {
   };
 }
 
-export interface OpenAIClientConfig {
+interface OpenAIClientConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
