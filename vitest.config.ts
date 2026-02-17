@@ -1,8 +1,7 @@
 // used for unit tests from test/unit
 import { defineConfig } from "vitest/config";
-import path from "node:path";
+import path, { resolve } from "node:path";
 import vue from "@vitejs/plugin-vue";
-import { resolve } from "node:path";
 
 // see https://vitest.dev/guide/migration.html
 // we use this approach because it allows 'knip' to also detect the imports
@@ -128,6 +127,7 @@ export default defineConfig({
   resolve: {
     alias: {
       vscode: path.resolve(__dirname, "./test/unit/mocks/vscode.ts"),
+      "@": path.resolve(__dirname, "."),
     },
   },
 });

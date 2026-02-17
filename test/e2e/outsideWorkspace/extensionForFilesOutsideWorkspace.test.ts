@@ -1,4 +1,4 @@
-import { Position, Range, Uri, commands } from "vscode";
+import { Position, Range, Uri, commands, workspace } from "vscode";
 import {
   activate,
   getDocUriOutsideWorkspace,
@@ -7,7 +7,6 @@ import {
   waitForDiagnosticsFromSource,
   clearActivationCache,
 } from "../e2e.utils";
-import { workspace } from "vscode";
 import { expect } from "chai";
 import { integer } from "vscode-languageclient";
 
