@@ -1,22 +1,21 @@
 {
   "compilerOptions": {
+    // https://github.com/vuejs/tsconfig/blob/main/tsconfig.json
+    "jsx": "preserve", // required for vue
+    "jsxImportSource": "vue", // required for vue
     "lib": ["ES2022", "DOM"],
     "outDir": "out/client",
     "paths": {
+      "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
       "@src/*": ["./src/*"]
     }
   },
-  "exclude": [
-    "node_modules",
-    "src/features/lightspeed/vue/src",
-    "packages/ansible-mcp-server/test",
-    "test/unit/webviews"
-  ],
   "extends": "./tsconfig.base.json",
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
-    "webviews/lightspeed/src/utils/*.ts",
+    "webviews/**/*.ts",
+    "webviews/**/*.vue",
     "*.js",
     "*.ts"
   ],

@@ -18,7 +18,7 @@ vscodeApi.on('getRecentPrompts', (prompts: string[]) => {
 });
 
 
-function search(event) {
+function search(event: { query: string }) {
     if (!event.query.trim().length) {
         recentPromptsFiltered.value = [...recentPrompts.value];
     } else {

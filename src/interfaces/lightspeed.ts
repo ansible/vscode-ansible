@@ -187,6 +187,7 @@ export enum RoleFileType {
   Default = "default",
   Task = "task",
   Playbook = "playbook",
+  Handler = "handler",
 }
 
 export interface GenerationListEntry {

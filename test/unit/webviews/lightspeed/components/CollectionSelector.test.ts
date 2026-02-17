@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { mount, flushPromises, type VueWrapper } from "@vue/test-utils";
 import CollectionSelector from "../../../../../webviews/lightspeed/src/components/CollectionSelector.vue";
 import { vscodeApi } from "../../../../../webviews/lightspeed/src/utils/vscode";
 
@@ -127,11 +127,13 @@ describe("CollectionSelector", () => {
   });
 
   it("emits update:collectionName when selection changes", async () => {
-    const wrapper = mount(CollectionSelector, {
+    let wrapper: VueWrapper<InstanceType<typeof CollectionSelector>>;
+    wrapper = mount(CollectionSelector, {
       props: {
         collectionName: "",
-        "onUpdate:collectionName": (e: string) =>
-          wrapper.setProps({ collectionName: e }),
+        "onUpdate:collectionName": (value: string | undefined): void => {
+          wrapper.setProps({ collectionName: value ?? "" });
+        },
       },
     });
 
