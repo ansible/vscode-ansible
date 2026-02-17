@@ -403,7 +403,7 @@ jobs:
           retention-days: 90
 
       - name: Upload test coverage data to codecov.io
-        if: ${{ always() }}
+        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' }}
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           name: ${{ matrix.name }}
