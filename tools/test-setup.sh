@@ -161,12 +161,14 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
 fi
 
 if command -v pipx >/dev/null 2>&1; then
+    log notice "Uninstalling pipx packages..."
     pipx list 2> /dev/null
-    for pkg in ansible-core ansible-creator ansible-dev-tools ansible-lint ansible-navigator molecule; do
+    for pkg in ansible-core ansible-creator ansible-dev-tools ansible-lint ansible-navigator molecule yamllint; do
         if pipx list 2> /dev/null | grep -q "$pkg"; then
             pipx uninstall -q "$pkg"
         fi
     done
+    log notice "pipx list after uninstall:"
     pipx list 2> /dev/null
 fi
 
