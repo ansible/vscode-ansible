@@ -122,6 +122,24 @@ vi.mock("vscode", () => {
       Two: 2,
       Three: 3,
     },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2,
+    },
+    ThemeColor: class MockThemeColor {
+      id: string;
+      constructor(id: string) {
+        this.id = id;
+      }
+    },
+    MarkdownString: class MockMarkdownString {
+      value: string;
+      isTrusted: boolean;
+      constructor(value?: string, supportThemeIcons?: boolean) {
+        this.value = value || "";
+        this.isTrusted = supportThemeIcons || false;
+      }
+    },
     env: {
       machineId: "test-machine-id",
       sessionId: "test-session-id",
