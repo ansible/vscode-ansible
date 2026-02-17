@@ -1,5 +1,3 @@
-import * as chai from "chai";
-chai.config.truncateThreshold = 0; // disable truncating
 import { vi } from "vitest";
 
 // Mock vscode first so it's available when other packages try to require it

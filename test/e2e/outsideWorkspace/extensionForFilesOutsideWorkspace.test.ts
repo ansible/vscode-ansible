@@ -7,7 +7,7 @@ import {
   waitForDiagnosticsFromSource,
   clearActivationCache,
 } from "../e2e.utils";
-import { expect } from "chai";
+import assert from "node:assert/strict";
 import { integer } from "vscode-languageclient";
 
 describe("language services for a playbook that is present outside a workspace", function () {
@@ -23,7 +23,7 @@ describe("language services for a playbook that is present outside a workspace",
   it("should confirm that file is present outside the workspace", function () {
     const docUri = Uri.parse(getDocUriOutsideWorkspace(playbook));
     const workspaceFolder = workspace.getWorkspaceFolder(docUri);
-    expect(workspaceFolder).to.be.undefined;
+    assert.strictEqual(workspaceFolder, undefined);
   });
 
   describe("hover functionality", function () {

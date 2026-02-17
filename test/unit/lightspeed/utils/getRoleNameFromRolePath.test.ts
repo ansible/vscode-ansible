@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from "vitest";
 import * as path from "path";
 import { getRoleNameFromFilePath } from "../../../../src/features/lightspeed/utils/getRoleNameFromFilePath";
 

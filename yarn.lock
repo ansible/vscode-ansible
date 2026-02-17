@@ -2097,7 +2097,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:^5.2.2, @types/chai@npm:^5.2.3":
+"@types/chai@npm:^5.2.2":
   version: 5.2.3
   resolution: "@types/chai@npm:5.2.3"
   dependencies:
@@ -3461,7 +3461,6 @@ __metadata:
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.10.2"
     "@tomjs/vite-plugin-vscode": "npm:^4.2.1"
     "@tomjs/vscode-webview": "npm:^2.0.2"
-    "@types/chai": "npm:^5.2.3"
     "@types/ini": "npm:^4.1.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^27.0.0"
@@ -3483,7 +3482,6 @@ __metadata:
     "@vscode/test-electron": "npm:^2.5.2"
     "@vscode/vsce": "npm:^3.7.1"
     "@vue/test-utils": "npm:^2.4.6"
-    chai: "npm:^6.2.2"
     copy-webpack-plugin: "npm:^13.0.1"
     cypress-multi-reporters: "npm:^2.0.5"
     electron: "npm:^40.1.0"
@@ -3491,7 +3489,6 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-formatter-gha: "npm:^2.0.1"
     eslint-formatter-unix: "npm:^9.0.1"
-    eslint-plugin-chai-friendly: "npm:^1.1.0"
     eslint-plugin-import: "npm:^2.32.0"
     eslint-plugin-prettier: "npm:^5.5.5"
     find-process: "npm:^2.0.0"
@@ -5334,15 +5331,6 @@ __metadata:
     eslint:
       optional: true
   checksum: 10/bd25d6610ec3abaa50e8f1beb0119541562bbb8dd02c035c7e887976fe1e0c5dd8175f4607ca8d86d1146df24d52a071bd3d1dd329f6902bd58df805a8ca16d3
-  languageName: node
-  linkType: hard
-
-"eslint-plugin-chai-friendly@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "eslint-plugin-chai-friendly@npm:1.1.0"
-  peerDependencies:
-    eslint: ">=3.0.0"
-  checksum: 10/2c3ff01e7a58222a5fc42eeed9a04d9ef319198455fa6f2dfd1dbff5f68624cbe4e5ae510fb9406b6a1097e962d1dd4e60d69ce877a115c3f1bbe596adfb3fa7
   languageName: node
   linkType: hard
 

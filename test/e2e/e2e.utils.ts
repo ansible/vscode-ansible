@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { assert } from "chai";
 import findProcess from "find-process";
 
 import { rmSync } from "fs";
 import { PROJECT_ROOT } from "../setup";
 
+import assert from "node:assert/strict";
 let doc: vscode.TextDocument;
 
 export const skip_ee: boolean =
@@ -273,9 +273,8 @@ export async function testDiagnostics(
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
-      assert.include(
-        actualDiagnostic.message,
-        expectedDiagnostic.message,
+      assert.ok(
+        actualDiagnostic.message.includes(expectedDiagnostic.message),
         `Expected message ${expectedDiagnostic.message} but got ${actualDiagnostic.message}`,
       ); // subset of expected message
       assert.deepEqual(
@@ -313,9 +312,10 @@ export async function testHover(
   if (actualHover.length && expectedHover.length) {
     expectedHover.forEach((expectedItem, i) => {
       const actualItem = actualHover[i];
-      assert.include(
-        (actualItem.contents[i] as vscode.MarkdownString).value,
-        expectedItem.contents[i].toString(),
+      assert.ok(
+        (actualItem.contents[i] as vscode.MarkdownString).value.includes(
+          expectedItem.contents[i].toString(),
+        ),
       );
     });
   }

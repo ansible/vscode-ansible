@@ -4,7 +4,6 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
-import pluginChaiFriendly from "eslint-plugin-chai-friendly";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -135,6 +134,14 @@ export default defineConfig(
       "custom-rules": noUnsafeSpawnRule,
     },
     rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          name: "chai",
+          message:
+            "No direct import from chain, use vitest or node:assert alternatives.",
+        },
+      ],
       // temporary until we address these
       "import/enforce-node-protocol-usage": "off",
       "import/no-unresolved": "off",
@@ -182,16 +189,6 @@ export default defineConfig(
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
-    },
-  },
-  {
-    plugins: { "chai-friendly": pluginChaiFriendly },
-    files: ["**/test/**/*.{js,ts,tsx}"],
-    rules: {
-      "no-unused-expressions": "off",
-      "@typescript-eslint/no-unused-expressions": "off",
-      "@typescript-eslint/no-require-imports": "off",
-      "chai-friendly/no-unused-expressions": "error",
     },
   },
   {

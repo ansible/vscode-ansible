@@ -198,7 +198,7 @@ function testAnsibleSyntaxCheckErrorsInAnsibleLint(
       ],
     },
   ];
-  expect(context).to.not.be.undefined;
+  expect(context).toBeDefined();
   if (context) {
     assertValidateTests(
       tests,
@@ -222,7 +222,7 @@ function testAnsibleSyntaxCheckNoErrors(
       diagnosticReport: [],
     },
   ];
-  expect(context).to.not.be.undefined;
+  expect(context).toBeDefined();
   if (context) {
     assertValidateTests(
       tests,
