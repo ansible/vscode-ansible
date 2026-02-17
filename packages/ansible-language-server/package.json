@@ -51,7 +51,7 @@
   },
   "displayName": "Ansible",
   "engines": {
-    "node": ">=20.0",
+    "node": ">=24.0",
     "npm": ">=7.11.2"
   },
   "exports": {

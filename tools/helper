@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# cspell: ignore rimraf
 """Utility that helps with extension building and testing."""
 
 import argparse
@@ -61,6 +61,8 @@ def cli() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     pre_release = False
+    # must be run or risk of failing further steps
+    subprocess.run("git fetch --tags", shell=True, check=True)
     result = get_tags('git describe --dirty --tags --long --match "v*.*"')
     git_tag = result.stdout.rstrip()
     logging.debug('git describe (with --match "v*.*") returned: %s', git_tag)
@@ -140,7 +142,7 @@ def cli() -> None:
         run(f"ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
-        run("rm -f ./out/*.vsix")
+        run("rimraf ./out/*.vsix")
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
