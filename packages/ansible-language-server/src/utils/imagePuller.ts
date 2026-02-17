@@ -31,7 +31,7 @@ export class ImagePuller {
   }
 
   public async setupImage(): Promise<boolean> {
-    let setupComplete = false;
+    let setupComplete: boolean;
     const imageTag = this._containerImage.split(":", 2)[1] || "latest";
     const imagePresent = this.checkForImage();
     const pullRequired = this.determinePull(imagePresent, imageTag);

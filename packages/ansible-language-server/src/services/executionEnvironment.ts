@@ -468,7 +468,7 @@ export class ExecutionEnvironment {
       return false;
     }
 
-    let containerNameExist = false;
+    let containerNameExist: boolean;
     try {
       const result = child_process.spawnSync(
         this._container_engine,

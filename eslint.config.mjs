@@ -3,7 +3,6 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
-import tsdocPlugin from "eslint-plugin-tsdoc";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import pluginChaiFriendly from "eslint-plugin-chai-friendly";
 import globals from "globals";
@@ -113,7 +112,6 @@ export default defineConfig(
     plugins: {
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
-      tsdoc: tsdocPlugin,
       "custom-rules": noUnsafeSpawnRule,
     },
     rules: {
@@ -150,7 +148,6 @@ export default defineConfig(
       "no-control-regex": "error",
       "no-empty-function": "error",
       "no-prototype-builtins": "error",
-      "tsdoc/syntax": "error",
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",

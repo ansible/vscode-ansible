@@ -337,7 +337,7 @@ async function waitForDiagnosisCompletion(
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
-    let processes: Array<{ name: string }> = [];
+    let processes: Array<{ name: string }>;
     try {
       const ansibleProcesses = await findProcess("name", "ansible");
       processes = ansibleProcesses.filter((p) =>

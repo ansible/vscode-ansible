@@ -140,6 +140,7 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       );
       throw new Error(
         `Google completion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { cause: error },
       );
     }
   }
