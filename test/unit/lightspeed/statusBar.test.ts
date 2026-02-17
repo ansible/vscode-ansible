@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateStatusBarTooltipMarkdown } from "../../../src/features/lightspeed/statusBar";
-import { LIGHTSPEED_MODEL_DEFAULT } from "../../../src/definitions/lightspeed";
+import { generateStatusBarTooltipMarkdown } from "@src/features/lightspeed/statusBar";
+import { LIGHTSPEED_MODEL_DEFAULT } from "@src/definitions/lightspeed";
 
 describe("generateStatusBarTooltipMarkdown", () => {
   describe("user details section", () => {

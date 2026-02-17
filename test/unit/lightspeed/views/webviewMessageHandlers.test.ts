@@ -6,12 +6,12 @@ import type {
   RoleGenerationResponseParams,
   ExplanationResponseParams,
   FeedbackRequestParams,
-} from "../../../../src/interfaces/lightspeed";
-import { RoleFileType } from "../../../../src/interfaces/lightspeed";
-import { IError } from "../../../../src/features/lightspeed/utils/errors";
-import { ThumbsUpDownAction } from "../../../../src/definitions/lightspeed";
+} from "@src/interfaces/lightspeed";
+import { RoleFileType } from "@src/interfaces/lightspeed";
+import { IError } from "@src/features/lightspeed/utils/errors";
+import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
 
-vi.mock("../../../../src/extension", () => {
+vi.mock("@src/extension", () => {
   return {
     lightSpeedManager: {
       apiInstance: {
@@ -46,26 +46,23 @@ vi.mock("../../../../src/extension", () => {
   };
 });
 
-vi.mock(
-  "../../../../src/features/lightspeed/vue/views/lightspeedUtils",
-  async () => {
-    const actual = await vi.importActual(
-      "../../../../src/features/lightspeed/vue/views/lightspeedUtils",
-    );
-    return {
-      ...actual,
-      contentMatch: vi.fn(),
-      updatePromptHistory: vi.fn(),
-      generatePlaybook: vi.fn(),
-      explainPlaybook: vi.fn(),
-      explainRole: vi.fn(),
-      generateRole: vi.fn(),
-      thumbsUpDown: vi.fn(),
-    };
-  },
-);
+vi.mock("@src/features/lightspeed/vue/views/lightspeedUtils", async () => {
+  const actual = await vi.importActual(
+    "@src/features/lightspeed/vue/views/lightspeedUtils",
+  );
+  return {
+    ...actual,
+    contentMatch: vi.fn(),
+    updatePromptHistory: vi.fn(),
+    generatePlaybook: vi.fn(),
+    explainPlaybook: vi.fn(),
+    explainRole: vi.fn(),
+    generateRole: vi.fn(),
+    thumbsUpDown: vi.fn(),
+  };
+});
 
-vi.mock("../../../../src/features/lightspeed/vue/views/fileOperations", () => {
+vi.mock("@src/features/lightspeed/vue/views/fileOperations", () => {
   class MockFileOperations {
     openLogFile = vi.fn();
     openFolderInWorkspaceProjects = vi.fn();
@@ -85,29 +82,26 @@ vi.mock("../../../../src/features/lightspeed/vue/views/fileOperations", () => {
   };
 });
 
-vi.mock(
-  "../../../../src/features/lightspeed/vue/views/ansibleCreatorUtils",
-  () => {
-    class MockAnsibleCreatorOperations {
-      runInitCommand = vi.fn();
-      runPluginAddCommand = vi.fn();
-      runRoleAddCommand = vi.fn();
-      isADEPresent = vi.fn();
-    }
+vi.mock("@src/features/lightspeed/vue/views/ansibleCreatorUtils", () => {
+  class MockAnsibleCreatorOperations {
+    runInitCommand = vi.fn();
+    runPluginAddCommand = vi.fn();
+    runRoleAddCommand = vi.fn();
+    isADEPresent = vi.fn();
+  }
 
-    return {
-      AnsibleCreatorOperations: MockAnsibleCreatorOperations,
-    };
-  },
-);
+  return {
+    AnsibleCreatorOperations: MockAnsibleCreatorOperations,
+  };
+});
 
-vi.mock("../../../../src/utils/telemetryUtils", () => {
+vi.mock("@src/utils/telemetryUtils", () => {
   return {
     sendTelemetry: vi.fn(),
   };
 });
 
-vi.mock("../../../../../src/features/lightspeed/utils/oneClickTrial", () => {
+vi.mock("../@src/features/lightspeed/utils/oneClickTrial", () => {
   return {
     getOneClickTrialProvider: vi.fn().mockReturnValue({
       showPopup: vi.fn().mockResolvedValue(false),
@@ -116,8 +110,8 @@ vi.mock("../../../../../src/features/lightspeed/utils/oneClickTrial", () => {
 });
 
 // Import after mocks
-import { WebviewMessageHandlers } from "../../../../src/features/lightspeed/vue/views/webviewMessageHandlers";
-import * as lightspeedUtils from "../../../../src/features/lightspeed/vue/views/lightspeedUtils";
+import { WebviewMessageHandlers } from "@src/features/lightspeed/vue/views/webviewMessageHandlers";
+import * as lightspeedUtils from "@src/features/lightspeed/vue/views/lightspeedUtils";
 import {
   contentMatch,
   updatePromptHistory,
@@ -125,10 +119,10 @@ import {
   explainRole,
   generateRole,
   thumbsUpDown,
-} from "../../../../src/features/lightspeed/vue/views/lightspeedUtils";
-import { openNewPlaybookEditor } from "../../../../src/features/lightspeed/vue/views/fileOperations";
-import { lightSpeedManager } from "../../../../src/extension";
-import { sendTelemetry } from "../../../../src/utils/telemetryUtils";
+} from "@src/features/lightspeed/vue/views/lightspeedUtils";
+import { openNewPlaybookEditor } from "@src/features/lightspeed/vue/views/fileOperations";
+import { lightSpeedManager } from "@src/extension";
+import { sendTelemetry } from "@src/utils/telemetryUtils";
 
 describe("WebviewMessageHandlers", () => {
   let messageHandlers: WebviewMessageHandlers;

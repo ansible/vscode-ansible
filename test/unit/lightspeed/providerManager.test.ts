@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ProviderManager } from "../../../src/features/lightspeed/providerManager";
-import type { SettingsManager } from "../../../src/settings";
-import type { LightSpeedAPI } from "../../../src/features/lightspeed/api";
+import { ProviderManager } from "@src/features/lightspeed/providerManager";
+import type { SettingsManager } from "@src/settings";
+import type { LightSpeedAPI } from "@src/features/lightspeed/api";
 import type {
   LLMProvider,
   ProviderStatus,
-} from "../../../src/features/lightspeed/providers/base";
+} from "@src/features/lightspeed/providers/base";
 import {
   PROVIDER_TYPES,
   MODEL_NAMES,
@@ -16,7 +16,7 @@ import {
   TEST_RESPONSES,
 } from "./testConstants";
 
-vi.mock("../../../src/features/lightspeed/providers/factory", () => {
+vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockGoogleProvider: LLMProvider = {
     name: "google",
     displayName: "Google Gemini",
@@ -53,7 +53,7 @@ vi.mock("../../../src/features/lightspeed/providers/factory", () => {
 });
 
 // Mock isError utility
-vi.mock("../../../src/features/lightspeed/utils/errors", () => ({
+vi.mock("@src/features/lightspeed/utils/errors", () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   isError: vi.fn((response: any) => {
     return (
@@ -66,8 +66,8 @@ vi.mock("../../../src/features/lightspeed/utils/errors", () => ({
 }));
 
 // Import after mocks
-import { providerFactory } from "../../../src/features/lightspeed/providers/factory";
-import { isError } from "../../../src/features/lightspeed/utils/errors";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
+import { isError } from "@src/features/lightspeed/utils/errors";
 
 describe("ProviderManager", () => {
   let providerManager: ProviderManager;
@@ -97,7 +97,7 @@ describe("ProviderManager", () => {
 
     // Get the mock provider from the factory
     const factoryModule =
-      await import("../../../src/features/lightspeed/providers/factory.js");
+      await import("@src/features/lightspeed/providers/factory.js");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockLlmProvider = (factoryModule as any).__mockGoogleProvider;
 

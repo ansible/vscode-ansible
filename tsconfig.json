@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
-    "outDir": "out/client"
+    "outDir": "out/client",
+    "paths": {
+      "@src/*": ["./src/*"]
+    }
   },
   "exclude": [
     "node_modules",

@@ -1,6 +1,6 @@
 import { expect } from "vitest";
 import * as path from "path";
-import { getRoleNamePathFromFilePath } from "../../../../src/features/lightspeed/utils/getRoleNamePathFromFilePath";
+import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
 
 describe("getRoleNamePathFromFilePath", function () {
   it("should return the correct role name path when the file path contains 'roles'", function () {

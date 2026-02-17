@@ -1,6 +1,6 @@
 import assert from "assert";
 import { PROJECT_ROOT } from "../../../setup";
-import { CollectionFinder } from "../../../../src/features/lightspeed/utils/scanner";
+import { CollectionFinder } from "@src/features/lightspeed/utils/scanner";
 
 describe(__filename, function () {
   describe("Playbook project", function () {

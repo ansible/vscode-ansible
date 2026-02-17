@@ -2,7 +2,7 @@ import assert from "assert";
 import {
   shouldRequestForPromptPosition,
   getContentWithMultiLinePromptForMultiTasksSuggestions,
-} from "../../../../src/features/lightspeed/utils/multiLinePromptForMultiTasks";
+} from "@src/features/lightspeed/utils/multiLinePromptForMultiTasks";
 
 describe(__filename, function () {
   describe("getContentWithMultiLinePromptForMultiTasksSuggestions", function () {

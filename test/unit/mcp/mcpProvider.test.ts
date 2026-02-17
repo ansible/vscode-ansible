@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import type { McpServerDefinition } from "vscode";
 import * as vscode from "vscode";
-import { AnsibleMcpServerProvider } from "../../../src/utils/mcpProvider";
+import { AnsibleMcpServerProvider } from "@src/utils/mcpProvider";
 
 // Mock fs module
 vi.mock("fs", () => ({

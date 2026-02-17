@@ -8,9 +8,9 @@ import {
 import {
   OpenAICompatibleClient,
   OpenAIClientError,
-} from "../../../../src/features/lightspeed/clients/openaiCompatibleClient.js";
+} from "@src/features/lightspeed/clients/openaiCompatibleClient.js";
 
-vi.mock("../../../../src/utils/logger", () => {
+vi.mock("@src/utils/logger", () => {
   const loggerMock = {
     info: vi.fn(),
     error: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock("../../../../src/utils/logger", () => {
 });
 
 const mockFetch = vi.fn();
-vi.mock("../../../../src/features/lightspeed/api", () => ({
+vi.mock("@src/features/lightspeed/api", () => ({
   getFetch: vi.fn(() => mockFetch),
 }));
 

@@ -1,12 +1,12 @@
 require("assert");
 
-import { updateRolesContext } from "../../../../src/features/lightspeed/utils/updateRolesContext";
+import { updateRolesContext } from "@src/features/lightspeed/utils/updateRolesContext";
 import assert from "assert";
 import sinon from "sinon";
 import tmp from "tmp";
 import fs from "fs";
 
-import { IWorkSpaceRolesContext } from "../../../../src/interfaces/lightspeed";
+import { IWorkSpaceRolesContext } from "@src/interfaces/lightspeed";
 
 describe("updateRolesContext", function () {
   const tmpDir = tmp.dirSync();
