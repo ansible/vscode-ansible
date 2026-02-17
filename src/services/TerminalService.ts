@@ -205,8 +205,6 @@ export class TerminalService implements vscode.Disposable {
    * Create a managed terminal wrapper
    */
   private _wrapTerminal(terminal: vscode.Terminal): ManagedTerminal {
-    const disposables: vscode.Disposable[] = [];
-
     const sendCommand = async (
       command: string,
       cmdOptions?: SendCommandOptions,
@@ -223,7 +221,6 @@ export class TerminalService implements vscode.Disposable {
     };
 
     const dispose = () => {
-      disposables.forEach((d) => d.dispose());
       terminal.dispose();
     };
 
