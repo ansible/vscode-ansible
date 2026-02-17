@@ -1094,6 +1094,7 @@
     "eslint-formatter-gha": "^2.0.1",
     "eslint-formatter-unix": "^9.0.1",
     "eslint-plugin-chai-friendly": "^1.1.0",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "find-process": "^2.0.0",
     "glob": "^13.0.0",

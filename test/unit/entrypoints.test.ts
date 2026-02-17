@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { activate, deactivate } from "../../src/extension";
 // @ts-expect-error - .mjs file doesn't have type definitions
-import vscodeTestConfig from "../../.vscode-test.mjs";
+import vscodeTestConfig from "@/.vscode-test.mjs";
 import { resetSettings } from "../utils";
 
 describe("entrypoints", () => {

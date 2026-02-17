@@ -4,9 +4,9 @@ import * as fs from "fs";
 import {
   IVarsContext,
   IWorkSpaceRolesContext,
+  VarType,
 } from "../../../interfaces/lightspeed";
 import { readVarFiles } from "./readVarFiles";
-import { VarType } from "../../../interfaces/lightspeed";
 
 function getVarsFromRoles(
   rolePath: string,

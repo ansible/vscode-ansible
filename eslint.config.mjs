@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import { createRequire } from "module";
+import importPlugin from "eslint-plugin-import";
 
 const require = createRequire(import.meta.url);
 const noUnsafeSpawnRule = require("./test/eslint/no-unsafe-spawn.cjs");
@@ -79,6 +80,7 @@ export default defineConfig(
       },
     },
   },
+  importPlugin.flatConfigs.recommended,
   eslint.configs.recommended,
   prettierRecommendedConfig,
   tseslint.configs.recommended,
@@ -90,6 +92,24 @@ export default defineConfig(
       "test/**/*.{js,ts,tsx}",
     ],
   })),
+  // Root .mjs config files: parse with TS parser but without project (not in tsconfig)
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2017,
+      },
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "import/no-unresolved": "off",
+    },
+  },
   {
     files: [
       "**/*.{js,ts,tsx}",
@@ -115,7 +135,13 @@ export default defineConfig(
       "custom-rules": noUnsafeSpawnRule,
     },
     rules: {
+      // temporary until we address these
+      "import/enforce-node-protocol-usage": "off",
+      "import/no-unresolved": "off",
+      "import/no-named-as-default-member": "off",
+      // https://github.com/import-js/eslint-plugin-import/issues/3199
       eqeqeq: ["error", "smart"],
+      "import/no-relative-parent-imports": "error",
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",

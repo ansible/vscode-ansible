@@ -1,4 +1,4 @@
-import IntervalTree from "@flatten-js/interval-tree";
+import { IntervalTree } from "@flatten-js/interval-tree";
 import {
   Connection,
   Diagnostic,

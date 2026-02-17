@@ -12,6 +12,7 @@ import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
+  IAnsibleFileType,
 } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
@@ -29,7 +30,6 @@ import {
   shouldRequestForPromptPosition,
   getContentWithMultiLinePromptForMultiTasksSuggestions,
 } from "./utils/multiLinePromptForMultiTasks";
-import { IAnsibleFileType } from "../../interfaces/lightspeed";
 import { getAnsibleFileType } from "../utils/ansible";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
