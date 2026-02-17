@@ -218,7 +218,7 @@ describe("doCompletionResolve()", function () {
   const context = workspaceManager.getContext(fixtureFileUri);
 
   const textDoc = getDoc(fixtureFilePath);
-  expect(context).be.not.undefined;
+  expect(context).toBeDefined();
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 

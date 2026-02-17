@@ -1,4 +1,4 @@
-import { assert } from "chai";
+import { assert } from "vitest";
 
 describe("MCP Server Setting Tests", function () {
   describe("Default Setting", function () {
