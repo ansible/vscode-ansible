@@ -321,7 +321,7 @@ export async function testHover(
   }
 }
 
-export async function waitForDiagnosisCompletion(
+async function waitForDiagnosisCompletion(
   interval = 150,
   timeout = 3000,
   quickCheckTimeout = 500, // Quick check period to detect if validation is disabled
