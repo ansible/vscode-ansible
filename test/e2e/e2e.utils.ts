@@ -222,8 +222,16 @@ export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[],
   pollTimeout = 5000,
+  sourceFilter?: string[],
 ): Promise<void> {
-  let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
+  const filterDiagnostics = (diags: vscode.Diagnostic[]) =>
+    sourceFilter
+      ? diags.filter((d) => d.source && sourceFilter.includes(d.source))
+      : diags;
+
+  let actualDiagnostics = filterDiagnostics(
+    vscode.languages.getDiagnostics(docUri),
+  );
 
   // Poll until we have the expected number of diagnostics
   // Use a longer default timeout to handle slow environments like WSL
@@ -237,7 +245,9 @@ export async function testDiagnostics(
     ) {
       await sleep(pollInterval);
       elapsed += pollInterval;
-      actualDiagnostics = vscode.languages.getDiagnostics(docUri);
+      actualDiagnostics = filterDiagnostics(
+        vscode.languages.getDiagnostics(docUri),
+      );
     }
   }
 
