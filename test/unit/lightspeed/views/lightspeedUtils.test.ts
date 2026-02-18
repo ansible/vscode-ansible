@@ -87,7 +87,6 @@ describe("lightspeedUtils", () => {
       };
 
       const generatePlaybookMock = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockProviderManager.generatePlaybook,
       );
       generatePlaybookMock.mockResolvedValue(mockLLMResponse);
@@ -121,10 +120,7 @@ describe("lightspeedUtils", () => {
         outline: customOutline,
       };
 
-      const generatePlaybook2 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generatePlaybook,
-      );
+      const generatePlaybook2 = vi.mocked(mockProviderManager.generatePlaybook);
       generatePlaybook2.mockResolvedValue(mockLLMResponse);
 
       const result = await generatePlaybook(
@@ -151,10 +147,7 @@ describe("lightspeedUtils", () => {
 
     it("should handle errors from Google provider and return error response", async () => {
       const errorMessage = "API rate limit exceeded";
-      const generatePlaybook3 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generatePlaybook,
-      );
+      const generatePlaybook3 = vi.mocked(mockProviderManager.generatePlaybook);
       generatePlaybook3.mockRejectedValue(new Error(errorMessage));
 
       const result = await generatePlaybook(
@@ -182,7 +175,6 @@ describe("lightspeedUtils", () => {
       };
 
       const playbookGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockApiInstance.playbookGenerationRequest,
       );
       playbookGenerationRequest.mockResolvedValue(mockWCAResponse);
@@ -215,10 +207,7 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      const chatRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.chatRequest,
-      );
+      const chatRequest = vi.mocked(mockProviderManager.chatRequest);
       chatRequest.mockResolvedValue(mockChatResponse);
 
       const result = await explainPlaybook(
@@ -244,10 +233,7 @@ describe("lightspeedUtils", () => {
     it("should handle errors from Google provider and return error response", async () => {
       const playbookContent = ANSIBLE_CONTENT.PLAYBOOK;
       const errorMessage = "Explanation service unavailable";
-      const chatRequest2 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.chatRequest,
-      );
+      const chatRequest2 = vi.mocked(mockProviderManager.chatRequest);
       chatRequest2.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainPlaybook(
@@ -275,10 +261,7 @@ describe("lightspeedUtils", () => {
         explanationId: explanationId,
       };
 
-      const explanationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockApiInstance.explanationRequest,
-      );
+      const explanationRequest = vi.mocked(mockApiInstance.explanationRequest);
       explanationRequest.mockResolvedValue(mockWCAResponse);
 
       const result = await explainPlaybook(
@@ -305,10 +288,7 @@ describe("lightspeedUtils", () => {
         outline: TEST_CONTENT.OUTLINE_DEFAULT,
       };
 
-      const generateRoleMock = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generateRole,
-      );
+      const generateRoleMock = vi.mocked(mockProviderManager.generateRole);
       generateRoleMock.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
@@ -351,10 +331,7 @@ describe("lightspeedUtils", () => {
         outline: customOutline,
       };
 
-      const generateRole2 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generateRole,
-      );
+      const generateRole2 = vi.mocked(mockProviderManager.generateRole);
       generateRole2.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
@@ -387,10 +364,7 @@ describe("lightspeedUtils", () => {
         outline: TEST_CONTENT.OUTLINE_DEFAULT,
       };
 
-      const generateRole3 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generateRole,
-      );
+      const generateRole3 = vi.mocked(mockProviderManager.generateRole);
       generateRole3.mockResolvedValue(mockLLMResponse);
 
       const result = await generateRole(
@@ -410,10 +384,7 @@ describe("lightspeedUtils", () => {
 
     it("should handle errors from Google provider and return error response", async () => {
       const errorMessage = "Role generation failed";
-      const generateRole4 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.generateRole,
-      );
+      const generateRole4 = vi.mocked(mockProviderManager.generateRole);
       generateRole4.mockRejectedValue(new Error(errorMessage));
 
       const result = await generateRole(
@@ -452,7 +423,6 @@ describe("lightspeedUtils", () => {
       };
 
       const roleGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockApiInstance.roleGenerationRequest,
       );
       roleGenerationRequest.mockResolvedValue(mockWCAResponse);
@@ -495,10 +465,7 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      const chatRequest3 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.chatRequest,
-      );
+      const chatRequest3 = vi.mocked(mockProviderManager.chatRequest);
       chatRequest3.mockResolvedValue(mockChatResponse);
 
       const result = await explainRole(
@@ -547,10 +514,7 @@ describe("lightspeedUtils", () => {
         conversationId: explanationId,
       };
 
-      const chatRequest4 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.chatRequest,
-      );
+      const chatRequest4 = vi.mocked(mockProviderManager.chatRequest);
       chatRequest4.mockResolvedValue(mockChatResponse);
 
       const result = await explainRole(
@@ -588,10 +552,7 @@ describe("lightspeedUtils", () => {
         },
       ];
       const errorMessage = "Role explanation failed";
-      const chatRequest5 = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockProviderManager.chatRequest,
-      );
+      const chatRequest5 = vi.mocked(mockProviderManager.chatRequest);
       chatRequest5.mockRejectedValue(new Error(errorMessage));
 
       const result = await explainRole(
@@ -629,7 +590,6 @@ describe("lightspeedUtils", () => {
       };
 
       const roleExplanationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockApiInstance.roleExplanationRequest,
       );
       roleExplanationRequest.mockResolvedValue(mockWCAResponse);

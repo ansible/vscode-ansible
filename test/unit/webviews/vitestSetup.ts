@@ -48,12 +48,12 @@ vi.mock("highlight.js/styles/atom-one-dark.css", () => ({}));
 // Configure Vue Test Utils to stub vscode-* custom elements
 config.global.stubs = {
   "vscode-button": {
-    template:
-      '<button :disabled="disabled" :title="title"><slot /></button>',
+    template: '<button :disabled="disabled" :title="title"><slot /></button>',
     props: ["disabled", "title"],
   },
   "vscode-textfield": {
-    template: '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+    template:
+      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
     props: ["modelValue"],
     emits: ["update:modelValue"],
   },
@@ -61,7 +61,7 @@ config.global.stubs = {
     template: '<div class="progress-spinner">Loading...</div>',
   },
   highlightjs: {
-    template: '<pre><code>{{ code }}</code></pre>',
+    template: "<pre><code>{{ code }}</code></pre>",
     props: ["language", "autodetect", "code"],
   },
 };

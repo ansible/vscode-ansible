@@ -14,8 +14,8 @@ describe("ExplorerActions", () => {
     expect(wrapper.find(".active-session").exists()).toBe(true);
   });
 
- describe("Generate Playbook button", () => {
-  it("renders the button", () => {
+  describe("Generate Playbook button", () => {
+    it("renders the button", () => {
       const wrapper = mount(ExplorerActions, { props: defaultProps });
       const button = wrapper.find(
         "#lightspeed-explorer-playbook-generation-submit",

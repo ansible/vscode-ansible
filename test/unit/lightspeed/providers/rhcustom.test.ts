@@ -374,7 +374,6 @@ describe("RHCustomProvider", () => {
         metadata: { isExplanation: true },
       });
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("EXPLANATION"),
       );
@@ -395,7 +394,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.chatRequest(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -727,7 +726,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.generatePlaybook(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -824,7 +823,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.generateRole(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });

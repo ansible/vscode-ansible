@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import OutlineReview from "../../../../../../webviews/lightspeed/src/components/lightspeed/OutlineReview.vue";
 
 describe("OutlineReview", () => {
