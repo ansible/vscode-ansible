@@ -95,7 +95,7 @@ export default defineConfig({
       clean: true,
       enabled: true,
       exclude: [],
-      include: ["src/**/**.{js,jsx,ts,tsx}"], // Include source files for coverage
+      include: ["src/**/**.{js,jsx,ts,tsx}", "webviews/**/*.{ts,vue}"], // Include source files for coverage
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: "./out/coverage/unit",
