@@ -85,7 +85,6 @@ llmprovider
 longrepr
 makereport
 microdnf
-mocharc
 modeline
 modelines
 mutil

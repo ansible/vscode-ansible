@@ -1066,8 +1066,8 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@biomejs/biome": "^2.4.2",
+    "@eslint/compat": "^2.0.2",
     "@eslint/js": "^10.0.1",
-    "@html-eslint/eslint-plugin": "^0.55.0",
     "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^27.0.0",
     "@types/lodash": "^4.17.23",

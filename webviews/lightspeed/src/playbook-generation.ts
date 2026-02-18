@@ -64,6 +64,7 @@ app.use(PrimeVue, {
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mutationObserver = new MutationObserver((mutationsList, observer) => {
   const isDark = document
     .querySelector("body")
