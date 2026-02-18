@@ -27,7 +27,7 @@ import {
 } from "../../definitions/lightspeed";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { HTTPError, IError } from "./utils/errors";
+import { formatErrorDetail, HTTPError, IError } from "./utils/errors";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
 import {
@@ -161,7 +161,7 @@ export class LightSpeedAPI {
       const mappedError: IError = mapError(error as Error);
       if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
         vscode.window.showErrorMessage(
-          `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`,
+          `${mappedError.message ?? UNKNOWN_ERROR} ${formatErrorDetail(mappedError.detail)}`,
         );
       }
       return {} as CompletionResponseParams;
@@ -243,7 +243,7 @@ export class LightSpeedAPI {
       return data;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
-      const errorMessage: string = `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`;
+      const errorMessage: string = `${mappedError.message ?? UNKNOWN_ERROR} ${formatErrorDetail(mappedError.detail)}`;
       if (showInfoMessage) {
         vscode.window.showErrorMessage(errorMessage);
       } else {

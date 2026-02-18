@@ -52,7 +52,7 @@ Specify any additional parameters that should be added to the pull command when 
 ## [`ansible.executionEnvironment.volumeMounts`](#executionEnvironment.volumeMounts) { #executionEnvironment.volumeMounts data-toc-label=executionEnvironment.volumeMounts }
 Add a dictionary entry to the array with the volume mount source path (key: &#x27;src&#x27;), destination (key: &#x27;dest&#x27;), and options (key: &#x27;options&#x27;)
 . Default value:
-``""``
+``[]``
 
 ## [`ansible.executionEnvironment.containerOptions`](#executionEnvironment.containerOptions) { #executionEnvironment.containerOptions data-toc-label=executionEnvironment.containerOptions }
 Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27;

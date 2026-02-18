@@ -183,6 +183,14 @@ export function structureSettings(
     keyArray.splice(-1, 1);
     const key = keyArray.join(".");
 
+    const defaultVal = settingsInDotNotation[`${key}.default`];
+    const defaultValueStr =
+      defaultVal !== undefined && defaultVal !== null
+        ? typeof defaultVal === "object"
+          ? JSON.stringify(defaultVal)
+          : String(defaultVal)
+        : "";
+
     // Find keys that have array elements
     const arrayElementIndex = keyArray.findIndex((e) => e === "_array");
     const arrayElement =
@@ -194,9 +202,7 @@ export function structureSettings(
       const arrayObj = {
         parent: keyArray.slice(0, arrayElementIndex).join("."),
         key: keyArray[arrayElementIndex + 1],
-        defaultValue: settingsInDotNotation[`${key}.default`].toString() // convert to string for showing the actual value in doc
-          ? settingsInDotNotation[`${key}.default`]
-          : "",
+        defaultValue: defaultValueStr,
         description: settingsInDotNotation[`${key}.description`],
       } as unknown as SettingEntry;
 
@@ -205,9 +211,7 @@ export function structureSettings(
     } else {
       const obj = {
         setting: key,
-        defaultValue: settingsInDotNotation[`${key}.default`].toString() // convert to string for showing the actual value in doc
-          ? settingsInDotNotation[`${key}.default`]
-          : "",
+        defaultValue: defaultValueStr,
         description: settingsInDotNotation[`${key}.description`],
         valueType: typeof settingsInDotNotation[`${key}.default`],
         slug: key.replace("ansible.", ""),
