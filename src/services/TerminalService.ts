@@ -13,13 +13,13 @@ import {
   PYTHON_ENVS_EXTENSION_ID,
 } from "../types/pythonEnvApi";
 
-export interface CommandResult {
+interface CommandResult {
   output: string;
   exitCode: number | undefined;
   success: boolean;
 }
 
-export interface ManagedTerminal {
+interface ManagedTerminal {
   terminal: vscode.Terminal;
   sendCommand: (
     command: string,
@@ -28,14 +28,14 @@ export interface ManagedTerminal {
   dispose: () => void;
 }
 
-export interface SendCommandOptions {
+interface SendCommandOptions {
   /** Timeout in ms (default: 300000 = 5 minutes) */
   timeout?: number;
   /** Whether to wait for command completion (default: true) */
   waitForCompletion?: boolean;
 }
 
-export interface CreateTerminalOptions {
+interface CreateTerminalOptions {
   name: string;
   cwd?: vscode.Uri;
   /** Whether to show the terminal (default: true) */
