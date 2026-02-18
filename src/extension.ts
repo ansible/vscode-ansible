@@ -56,11 +56,9 @@ import {
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
-import {
-  setPythonInterpreter,
-  setPythonInterpreterWithCommand,
-} from "./features/utils/setPythonInterpreter";
 import { PythonInterpreterManager } from "./features/pythonMetadata";
+import { PythonEnvironmentService } from "./services/PythonEnvironmentService";
+import { TerminalService } from "./services/TerminalService";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
@@ -106,11 +104,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
 
-  // set correct python interpreter
-  const workspaceFolders = workspace.workspaceFolders;
-  if (workspaceFolders) {
-    await setPythonInterpreter();
-  }
+  // Initialize Python Environment Service early
+  const pythonEnvService = PythonEnvironmentService.getInstance();
+  await pythonEnvService.initialize();
+  context.subscriptions.push(pythonEnvService);
+
+  // Initialize Terminal Service
+  const terminalService = TerminalService.getInstance();
+  await terminalService.initialize();
+  context.subscriptions.push(terminalService);
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
@@ -143,7 +145,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER,
-    setPythonInterpreterWithCommand,
+    async () => {
+      await pythonEnvService.selectEnvironment();
+    },
     true,
   );
 
@@ -171,12 +175,27 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     extSettings,
+    pythonEnvService,
   );
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
   } catch (error) {
     console.error(`Error updating python status bar: ${error}`);
   }
+
+  // Subscribe to Python environment changes to update the status bar
+  context.subscriptions.push(
+    pythonEnvService.onDidChangeEnvironment(async () => {
+      try {
+        await pythonInterpreterManager.updatePythonInfoInStatusbar();
+        await metaData.updateAnsibleInfoInStatusbar();
+      } catch (error) {
+        console.error(
+          `Error updating status bar after environment change: ${error}`,
+        );
+      }
+    }),
+  );
 
   /**
    * Handle "Ansible Lightspeed" in the extension

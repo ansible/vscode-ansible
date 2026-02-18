@@ -88,11 +88,28 @@ vi.mock("vscode", () => {
       ),
       registerUriHandler: vi.fn(),
       createWebviewPanel: vi.fn(),
+      createTerminal: vi.fn(() => ({
+        name: "Mock Terminal",
+        processId: Promise.resolve(12345),
+        show: vi.fn(),
+        sendText: vi.fn(),
+        dispose: vi.fn(),
+      })),
+      terminals: [] as Array<{
+        name: string;
+        processId: Promise<number>;
+        show: () => void;
+        sendText: () => void;
+        dispose: () => void;
+      }>,
     },
     workspace: {
       workspaceFolders: [],
       getConfiguration: vi.fn(),
       openTextDocument: vi.fn(),
+    },
+    extensions: {
+      getExtension: vi.fn(),
     },
     Uri: {
       file: vi.fn(),
@@ -103,9 +120,28 @@ vi.mock("vscode", () => {
       Two: 2,
       Three: 3,
     },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2,
+    },
+    ThemeColor: class MockThemeColor {
+      id: string;
+      constructor(id: string) {
+        this.id = id;
+      }
+    },
+    MarkdownString: class MockMarkdownString {
+      value: string;
+      isTrusted: boolean;
+      constructor(value?: string, supportThemeIcons?: boolean) {
+        this.value = value || "";
+        this.isTrusted = supportThemeIcons || false;
+      }
+    },
     env: {
       machineId: "test-machine-id",
       sessionId: "test-session-id",
+      openExternal: vi.fn(),
     },
     lm: {
       registerMcpServerDefinitionProvider: vi.fn(),

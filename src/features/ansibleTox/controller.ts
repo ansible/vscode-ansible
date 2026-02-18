@@ -200,11 +200,8 @@ export class AnsibleToxController {
       const start = Date.now();
       try {
         const cwd = vscode.workspace.getWorkspaceFolder(test.uri)?.uri.path;
-        runTox(
-          [test.label.split("->")[0].trim()],
-          "",
-          getTerminal(cwd, getRootParentLabelDesc(test)),
-        );
+        const terminal = await getTerminal(cwd, getRootParentLabelDesc(test));
+        await runTox([test.label.split("->")[0].trim()], "", terminal);
         run.passed(test, Date.now() - start);
       } catch (e: unknown) {
         let msg;

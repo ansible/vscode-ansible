@@ -2,12 +2,12 @@
 import * as vscode from "vscode";
 
 /* local */
-import { withInterpreter } from "./utils/commandRunner";
 import { getContainerEngine } from "../utils/executionEnvironment";
 import { AnsibleCommands } from "../definitions/constants";
 import { registerCommandWithTelemetry } from "../utils/registerCommands";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
+import { TerminalService } from "../services/TerminalService";
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using
@@ -93,41 +93,29 @@ export class AnsiblePlaybookRunProvider {
   }
 
   /**
-   * A property representing the target terminal for running playbooks in.
+   * Create or reuse a terminal with Python environment activated.
    */
-  private createTerminal(
-    runEnv: NodeJS.ProcessEnv | undefined,
-  ): vscode.Terminal {
-    if (vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal) {
-      const reuse_terminal = vscode.window.terminals.find(
-        (terminal) => terminal.name === "Ansible Terminal",
-      );
-      if (reuse_terminal) {
-        return reuse_terminal;
-      }
-    }
-    const terminal = vscode.window.createTerminal({
+  private async getTerminal(): Promise<vscode.Terminal> {
+    const reuseTerminal =
+      vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal;
+    const terminalService = TerminalService.getInstance();
+
+    const managed = await terminalService.createActivatedTerminal({
       name: "Ansible Terminal",
-      env: runEnv,
+      reuseExisting: reuseTerminal,
     });
-    this.vsCodeExtCtx.subscriptions.push(terminal);
-    this.vsCodeExtCtx.subscriptions.push(
-      vscode.window.onDidCloseTerminal((term: vscode.Terminal) => {
-        if (term !== terminal) {
-          return;
-        }
-      }),
-    );
-    return terminal;
+
+    this.vsCodeExtCtx.subscriptions.push(managed.terminal);
+    return managed.terminal;
   }
 
   /**
    * A helper method for executing commands in terminal.
    */
-  private invokeInTerminal(cmd: string, runEnv: NodeJS.ProcessEnv | undefined) {
-    const newTerminal = this.createTerminal(runEnv);
-    newTerminal.show();
-    newTerminal.sendText(cmd);
+  private async invokeInTerminal(cmd: string): Promise<void> {
+    const terminal = await this.getTerminal();
+    terminal.show();
+    terminal.sendText(cmd);
   }
 
   /**
@@ -154,14 +142,10 @@ export class AnsiblePlaybookRunProvider {
     // replace spaces in file name with escape sequence '\ '
     commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
-    const { command, env } = withInterpreter(
-      this.extensionSettings.settings,
-      runExecutable,
-      cmdArgs,
-    );
+    const command = `${runExecutable} ${cmdArgs}`;
 
     console.debug(`Running command: ${command}`);
-    this.invokeInTerminal(command, env);
+    await this.invokeInTerminal(command);
   }
 
   /**
@@ -185,14 +169,9 @@ export class AnsiblePlaybookRunProvider {
     this.addEEArgs(commandLineArgs);
 
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
-    const runCmdArgs = `run ${cmdArgs}`;
-    const { command, env } = withInterpreter(
-      this.extensionSettings.settings,
-      runExecutable,
-      runCmdArgs,
-    );
+    const command = `${runExecutable} run ${cmdArgs}`;
     console.debug(`Running command: ${command}`);
-    this.invokeInTerminal(command, env);
+    await this.invokeInTerminal(command);
   }
 }
 
