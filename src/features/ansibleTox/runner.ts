@@ -4,14 +4,14 @@ import * as vscode from "vscode";
 import * as child_process from "child_process";
 import * as util from "util";
 import * as os from "os";
+import * as path from "path";
 import { getTerminal } from "./utils";
 import {
   ANSIBLE_TOX_FILE_NAME,
   ANSIBLE_TOX_LIST_ENV_COMMAND,
   ANSIBLE_TOX_RUN_COMMAND,
 } from "./constants";
-import path from "path";
-import { resolveInterpreterPath } from "../utils/interpreterPathResolver";
+import { PythonEnvironmentService } from "../../services/PythonEnvironmentService";
 
 const exec = util.promisify(child_process.exec);
 
@@ -20,26 +20,22 @@ export async function getToxEnvs(
   command: string = ANSIBLE_TOX_LIST_ENV_COMMAND,
 ) {
   const newEnv = { ...process.env };
-  const ansibleSettings = vscode.workspace.getConfiguration("ansible");
-  const activationScript = (await ansibleSettings.get(
-    "python.activationScript",
-  )) as string;
-  const rawInterpreterPath = (await ansibleSettings.get(
-    "python.interpreterPath",
-  )) as string;
-  // Resolve ${workspaceFolder} and relative paths
-  const interpreterPath = resolveInterpreterPath(rawInterpreterPath);
+  const pythonEnvService = PythonEnvironmentService.getInstance();
 
-  if (activationScript) {
-    command = `sh -c '. ${activationScript} && ${command}'`;
-  }
-  if (interpreterPath && interpreterPath !== "") {
-    const virtualEnv = path.resolve(interpreterPath, "../..");
+  // Get Python environment from the Python extension
+  const projUri = vscode.Uri.file(projDir);
+  const environment = await pythonEnvService.getEnvironment(projUri);
 
-    const pathEntry = path.join(virtualEnv, "bin");
-    newEnv["VIRTUAL_ENV"] = virtualEnv;
-    newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
+  if (environment) {
+    const interpreterPath = environment.execInfo.run.executable;
+    if (interpreterPath) {
+      const virtualEnv = path.resolve(interpreterPath, "../..");
+      const pathEntry = path.join(virtualEnv, "bin");
+      newEnv["VIRTUAL_ENV"] = virtualEnv;
+      newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
+    }
   }
+
   try {
     const { stdout, stderr } = await exec(command, {
       cwd: projDir,
@@ -68,16 +64,17 @@ export async function getToxEnvs(
   return undefined;
 }
 
-export function runTox(
+export async function runTox(
   envs: string[],
   toxArguments: string,
-  terminal: vscode.Terminal = getTerminal(),
+  terminal?: vscode.Terminal,
   command: string = ANSIBLE_TOX_RUN_COMMAND,
 ) {
   const envArg = envs.join(",");
-  terminal.show(true);
+  const targetTerminal = terminal || (await getTerminal());
+  targetTerminal.show(true);
   const terminalCommand = `${command} ${envArg} ${toxArguments} --ansible --conf ${ANSIBLE_TOX_FILE_NAME}`;
-  terminal.sendText(terminalCommand);
+  targetTerminal.sendText(terminalCommand);
 }
 
 let _channel: vscode.OutputChannel;
