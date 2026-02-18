@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true, // needed by eslint to find .cjs files
     // https://github.com/vuejs/tsconfig/blob/main/tsconfig.json
     "jsx": "preserve", // required for vue
     "jsxImportSource": "vue", // required for vue
@@ -10,10 +11,16 @@
       "@src/*": ["./src/*"]
     }
   },
+  "exclude": [
+    // cannot use them as long target is still commonjs
+    "eslint.config.mjs",
+    ".vscode-test.mjs"
+  ],
   "extends": "./tsconfig.base.json",
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
+    "test/**/*.cjs",
     "webviews/**/*.ts",
     "webviews/**/*.vue",
     "*.js",
