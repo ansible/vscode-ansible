@@ -12,7 +12,7 @@ import {
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
 import { parsePlays } from "./utils/parsePlays";
-import { IError } from "./utils/errors";
+import { formatErrorDetail, IError } from "./utils/errors";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
@@ -140,18 +140,13 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   }
 
   private async getErrorWebviewContent(error: IError) {
-    let detail: unknown = error.detail;
-    if (typeof error.detail === "string") {
-      detail = error.detail;
-    } else if (typeof error.detail === "object") {
-      detail = JSON.stringify(error.detail, undefined, "  ");
-    }
+    const detailStr = formatErrorDetail(error.detail);
     let htmlDetail: string = "";
-    if (detail !== undefined) {
+    if (detailStr !== "") {
       htmlDetail = `
         <details>
           <summary><b>Detail:</b></summary>
-          <p>${detail}</p>
+          <p>${detailStr}</p>
         </details>
       `;
     }
