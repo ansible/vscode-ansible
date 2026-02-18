@@ -42,7 +42,8 @@ describe("ErrorBoxEntry", () => {
   });
 
   it("handles special characters in error message", () => {
-    const specialMessage = "Error: <script>alert('xss')</script> & special chars";
+    const specialMessage =
+      "Error: <script>alert('xss')</script> & special chars";
     const wrapper = mount(ErrorBoxEntry, {
       props: {
         message: specialMessage,

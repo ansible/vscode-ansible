@@ -102,14 +102,8 @@ describe("ProviderManager", () => {
     mockLlmProvider = (factoryModule as any).__mockGoogleProvider;
 
     // Reset mock implementations
-    const getStatus = vi.mocked(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      mockLlmProvider.getStatus,
-    );
-    const createProvider = vi.mocked(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      providerFactory.createProvider,
-    );
+    const getStatus = vi.mocked(mockLlmProvider.getStatus);
+    const createProvider = vi.mocked(providerFactory.createProvider);
     getStatus.mockResolvedValue({
       connected: true,
       modelInfo: {
@@ -127,14 +121,8 @@ describe("ProviderManager", () => {
       // Wait for async initialization
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.getStatus,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
+      const getStatus = vi.mocked(mockLlmProvider.getStatus);
       expect(createProvider).toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
         mockSettingsManager.settings.lightSpeedService,
@@ -148,10 +136,7 @@ describe("ProviderManager", () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       expect(createProvider).not.toHaveBeenCalled();
     });
 
@@ -163,10 +148,7 @@ describe("ProviderManager", () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       expect(createProvider).not.toHaveBeenCalled();
     });
 
@@ -176,10 +158,7 @@ describe("ProviderManager", () => {
         .mockImplementation(() => {
           // Empty implementation for testing
         });
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       createProvider.mockImplementation(() => {
         throw new Error("Invalid API key");
       });
@@ -201,10 +180,7 @@ describe("ProviderManager", () => {
         .mockImplementation(() => {
           // Empty implementation for testing
         });
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.getStatus,
-      );
+      const getStatus = vi.mocked(mockLlmProvider.getStatus);
       getStatus.mockResolvedValue({
         connected: false,
         error: "API key invalid",
@@ -231,14 +207,8 @@ describe("ProviderManager", () => {
 
       await providerManager.refreshProviders();
 
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.getStatus,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
+      const getStatus = vi.mocked(mockLlmProvider.getStatus);
       expect(createProvider).toHaveBeenCalled();
       expect(getStatus).toHaveBeenCalled();
     });
@@ -279,10 +249,7 @@ describe("ProviderManager", () => {
     });
 
     it("should return llmprovider even when provider initialization failed", async () => {
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       createProvider.mockImplementation(() => {
         throw new Error("Invalid API key");
       });
@@ -322,10 +289,7 @@ describe("ProviderManager", () => {
         },
       };
 
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.getStatus,
-      );
+      const getStatus = vi.mocked(mockLlmProvider.getStatus);
       getStatus.mockResolvedValue(mockStatus);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -360,10 +324,7 @@ describe("ProviderManager", () => {
         suggestionId: TEST_RESPONSES.SUGGESTION_ID,
       };
 
-      const completionRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.completionRequest,
-      );
+      const completionRequest = vi.mocked(mockLlmProvider.completionRequest);
       completionRequest.mockResolvedValue(mockCompletion);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -391,10 +352,7 @@ describe("ProviderManager", () => {
         suggestionId: TEST_RESPONSES.SUGGESTION_ID,
       };
 
-      const completionRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.completionRequest,
-      );
+      const completionRequest = vi.mocked(mockWcaApi.completionRequest);
       completionRequest.mockResolvedValue(mockCompletion);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -436,10 +394,7 @@ describe("ProviderManager", () => {
         model: MODEL_NAMES.GEMINI_PRO,
       };
 
-      const chatRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.chatRequest,
-      );
+      const chatRequest = vi.mocked(mockLlmProvider.chatRequest);
       chatRequest.mockResolvedValue(mockChatResponse);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -497,10 +452,7 @@ describe("ProviderManager", () => {
         model: MODEL_NAMES.GEMINI_PRO,
       };
 
-      const generatePlaybook = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.generatePlaybook,
-      );
+      const generatePlaybook = vi.mocked(mockLlmProvider.generatePlaybook);
       generatePlaybook.mockResolvedValue(mockPlaybook);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -530,7 +482,6 @@ describe("ProviderManager", () => {
       };
 
       const playbookGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockWcaApi.playbookGenerationRequest,
       );
       playbookGenerationRequest.mockResolvedValue(mockWcaResponse);
@@ -560,10 +511,7 @@ describe("ProviderManager", () => {
     });
 
     it("should throw error when provider not initialized", async () => {
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       createProvider.mockImplementation(() => {
         throw new Error("Invalid API key");
       });
@@ -592,7 +540,6 @@ describe("ProviderManager", () => {
       };
 
       const playbookGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         mockWcaApi.playbookGenerationRequest,
       );
       playbookGenerationRequest.mockResolvedValue(mockErrorResponse);
@@ -636,10 +583,7 @@ describe("ProviderManager", () => {
         model: MODEL_NAMES.GEMINI_PRO,
       };
 
-      const generateRole = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.generateRole,
-      );
+      const generateRole = vi.mocked(mockLlmProvider.generateRole);
       generateRole.mockResolvedValue(mockRole);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
@@ -677,10 +621,7 @@ describe("ProviderManager", () => {
         ],
       };
 
-      const roleGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.roleGenerationRequest,
-      );
+      const roleGenerationRequest = vi.mocked(mockWcaApi.roleGenerationRequest);
       roleGenerationRequest.mockResolvedValue(mockWcaResponse);
       const mockedIsError = vi.mocked(isError);
       mockedIsError.mockReturnValue(false);
@@ -708,10 +649,7 @@ describe("ProviderManager", () => {
     });
 
     it("should throw error when provider not initialized", async () => {
-      const createProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        providerFactory.createProvider,
-      );
+      const createProvider = vi.mocked(providerFactory.createProvider);
       createProvider.mockImplementation(() => {
         throw new Error("Invalid API key");
       });
@@ -739,10 +677,7 @@ describe("ProviderManager", () => {
         message: "Invalid role prompt",
       };
 
-      const roleGenerationRequest = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.roleGenerationRequest,
-      );
+      const roleGenerationRequest = vi.mocked(mockWcaApi.roleGenerationRequest);
       roleGenerationRequest.mockResolvedValue(mockErrorResponse);
       const mockedIsError = vi.mocked(isError);
       mockedIsError.mockReturnValue(true);
@@ -779,10 +714,7 @@ describe("ProviderManager", () => {
 
   describe("testProviderConnection", () => {
     it("should test WCA connection successfully", async () => {
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.getStatus,
-      );
+      const getStatus = vi.mocked(mockWcaApi.getStatus);
       getStatus.mockResolvedValue({
         connected: true,
         modelInfo: {
@@ -807,10 +739,7 @@ describe("ProviderManager", () => {
     });
 
     it("should handle WCA connection failure", async () => {
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockWcaApi.getStatus,
-      );
+      const getStatus = vi.mocked(mockWcaApi.getStatus);
       getStatus.mockResolvedValue({
         connected: false,
         error: "Connection failed",
@@ -837,10 +766,7 @@ describe("ProviderManager", () => {
         },
       };
 
-      const getStatus = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProvider.getStatus,
-      );
+      const getStatus = vi.mocked(mockLlmProvider.getStatus);
       getStatus.mockResolvedValue(mockStatus);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);

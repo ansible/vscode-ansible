@@ -168,7 +168,7 @@ describe("GoogleProvider", () => {
 
       expect(provider.name).toBe(GOOGLE_PROVIDER.NAME);
       expect(provider.displayName).toBe(GOOGLE_PROVIDER.DISPLAY_NAME);
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining(MODEL_NAMES.GEMINI_25_FLASH),
       );
@@ -216,7 +216,7 @@ describe("GoogleProvider", () => {
       expect(isValid).toBe(false);
       expect(status.connected).toBe(false);
       expect(status.error).toContain("API key");
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -286,7 +286,7 @@ describe("GoogleProvider", () => {
       await expect(provider.completionRequest(params)).rejects.toThrow(
         "Google completion failed",
       );
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -328,7 +328,7 @@ describe("GoogleProvider", () => {
         message: "Explain this task",
         metadata: { isExplanation: true },
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("EXPLANATION"),
       );
@@ -338,7 +338,7 @@ describe("GoogleProvider", () => {
         message: "Hello",
         metadata: { isExplanation: false },
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("CHAT"),
       );
@@ -356,7 +356,7 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.chatRequest(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -447,7 +447,7 @@ describe("GoogleProvider", () => {
           fileType: "playbook",
         }),
       );
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining(outline),
       );
@@ -466,7 +466,7 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.generatePlaybook(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -570,7 +570,7 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.generateRole(params)).rejects.toThrow();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });

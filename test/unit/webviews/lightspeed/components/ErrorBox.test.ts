@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import ErrorBox from "../../../../../webviews/lightspeed/src/components/ErrorBox.vue";
 import { vscodeApi } from "../../../../../webviews/lightspeed/src/utils/vscode";
 

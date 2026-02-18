@@ -73,7 +73,6 @@ describe("Content Creator Scaffolding", () => {
       },
     } as unknown as vscode.ExtensionContext;
 
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     vi.mocked(vscode.Uri.joinPath).mockImplementation(
       (base: vscode.Uri, ...pathSegments: string[]) => {
         const joined = path.join(base.fsPath, ...pathSegments);
@@ -391,7 +390,6 @@ components:
     it("should return 'failed' if template file doesn't exist", () => {
       const destinationPath = path.join(tempDir, "devfile.yaml");
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       const originalMock = vi.mocked(vscode.Uri.joinPath);
       vi.spyOn(vscode.Uri, "joinPath").mockReturnValueOnce({
         fsPath: "/nonexistent/template.yaml",

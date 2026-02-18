@@ -115,7 +115,7 @@ tasks:
     interactive: true # needed for ncu prompts
     cmds:
       - yarn ncu -u --workspaces -i
-      - yarn knip --exclude=exports
+      - yarn knip
   "deps:python":
     desc: Update python dependencies
     cmds:

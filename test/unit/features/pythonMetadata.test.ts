@@ -51,7 +51,7 @@ describe("PythonInterpreterManager", function () {
     };
 
     // Mock getInstance to return our mock service
-    // eslint-disable-next-line @typescript-eslint/unbound-method
+
     vi.mocked(PythonEnvironmentService.getInstance).mockReturnValue(
       mockPythonEnvService as unknown as PythonEnvironmentService,
     );
@@ -109,7 +109,6 @@ describe("PythonInterpreterManager", function () {
         mockExtensionSettings as never,
       );
 
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(PythonEnvironmentService.getInstance).toHaveBeenCalled();
       expect(newManager).toBeDefined();
     });

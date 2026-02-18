@@ -18,6 +18,13 @@ const noUnsafeSpawnRule = require("./test/eslint/no-unsafe-spawn.cjs");
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
+/** Files that use type-aware linting (TS/JS in src, packages, test). */
+const typeCheckedFiles = [
+  "**/*.{js,ts,tsx}",
+  "packages/**/*.{js,ts,tsx}",
+  "test/**/*.{js,ts,tsx}",
+];
+
 export default defineConfig(
   {
     ignores: [
@@ -36,63 +43,27 @@ export default defineConfig(
       "media/walkthroughs/**/*.html",
       "site/*",
       "webviews/**",
-      "test/unit/webviews/lightspeed/**",
-      "test/unit/webviews/vitestSetup.ts",
     ],
   },
   {
-    // Configuration for ESLint rule files (TypeScript)
-    // Must come before TypeScript configs to override parser
-    files: ["test/eslint/**/*.ts"],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.es2017,
-      },
-      // Use TypeScript parser for rule files, but without project for type checking
-      // since rule files don't need full type checking
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "module",
-      },
-    },
-    rules: {
-      // Allow some TypeScript-specific rules for rule files, but disable strict ones
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-    },
-  },
-  {
-    // CommonJS rule file: Node globals (module, require, exports)
     files: ["test/eslint/**/*.cjs"],
     languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "script",
-      },
+      globals: { ...globals.node },
+      parserOptions: { ecmaVersion: 2022, sourceType: "script" },
     },
   },
-  importPlugin.flatConfigs.recommended,
-  eslint.configs.recommended,
-  prettierRecommendedConfig,
-  tseslint.configs.recommended,
+  ...[
+    importPlugin.flatConfigs.recommended,
+    eslint.configs.recommended,
+    prettierRecommendedConfig,
+    tseslint.configs.recommended,
+  ],
   ...tseslint.configs.strictTypeChecked.map((config) => ({
     ...config,
-    files: [
-      "**/*.{js,ts,tsx}",
-      "packages/**/*.{js,ts,tsx}",
-      "test/**/*.{js,ts,tsx}",
-    ],
+    files: typeCheckedFiles,
   })),
-  // Root .mjs config files: parse with TS parser but without project (not in tsconfig)
   {
+    // Root .mjs config: TS parser without project (not in tsconfig)
     files: ["**/*.mjs"],
     languageOptions: {
       globals: {
@@ -110,11 +81,7 @@ export default defineConfig(
     },
   },
   {
-    files: [
-      "**/*.{js,ts,tsx}",
-      "packages/**/*.{js,ts,tsx}",
-      "test/**/*.{js,ts,tsx}",
-    ],
+    files: typeCheckedFiles,
     languageOptions: {
       globals: {
         ...globals.node,
@@ -199,6 +166,13 @@ export default defineConfig(
       "import/resolver": {
         typescript: { alwaysTryTypes: true },
       },
+    },
+  },
+  {
+    // Test files: unbound-method is noisy (expect(mock.method).toHaveBeenCalledWith etc.)
+    files: ["test/**/*.{js,ts,tsx}"],
+    rules: {
+      "@typescript-eslint/unbound-method": "off",
     },
   },
   {
