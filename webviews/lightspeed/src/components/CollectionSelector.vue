@@ -11,7 +11,7 @@ const collectionName = defineModel<string>("collectionName", { type: String });
 const collectionListCache: Ref<AnsibleCollection[]> = ref([]);
 const collectionListFiltered: Ref<string[]> = ref([]);
 
-function search(event) {
+function search(event: { query: string }) {
     if (!event.query.trim().length) {
         collectionListFiltered.value = [...collectionListCache.value].map(c => c.fqcn);
     } else {

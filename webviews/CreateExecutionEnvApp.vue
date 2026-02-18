@@ -186,7 +186,9 @@ const onClear = () => {
   clearAllFields(componentFields, defaults);
 
   // Reset suggested collections
-  Object.keys(suggestedCollections.value).forEach(key => {
+  (
+    Object.keys(suggestedCollections.value) as (keyof typeof suggestedCollections.value)[]
+  ).forEach((key) => {
     suggestedCollections.value[key] = false;
   });
 
