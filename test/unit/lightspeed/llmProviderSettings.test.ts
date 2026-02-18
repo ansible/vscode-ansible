@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { LlmProviderSettings } from "../../../src/features/lightspeed/llmProviderSettings";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import type { ExtensionContext, SecretStorage, Memento } from "vscode";
 import { PROVIDER_TYPES, TEST_API_KEYS } from "./testConstants";
 
-vi.mock("../../../src/features/lightspeed/providers/factory", () => {
+vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockWcaProvider = {
     type: "wca",
     name: "wca",
@@ -340,6 +340,64 @@ describe("LlmProviderSettings", () => {
       await llmProviderSettings.setProvider("wca");
       const settings = await llmProviderSettings.getAllSettings();
       expect(settings.modelName).toBeUndefined();
+    });
+  });
+
+  describe("clearAllSettings comprehensive", () => {
+    it("should clear all regular fields for all providers", async () => {
+      await llmProviderSettings.set(
+        "google",
+        "apiEndpoint",
+        "https://test.com",
+      );
+      await llmProviderSettings.set("google", "modelName", "gemini-pro");
+      await llmProviderSettings.set("wca", "apiEndpoint", "https://wca.com");
+
+      await llmProviderSettings.clearAllSettings();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.apiEndpoint",
+        undefined,
+      );
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.modelName",
+        undefined,
+      );
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.wca.apiEndpoint",
+        undefined,
+      );
+    });
+
+    it("should clear connection status for all providers", async () => {
+      await llmProviderSettings.setConnectionStatus(true, "google");
+      await llmProviderSettings.setConnectionStatus(true, "wca");
+
+      await llmProviderSettings.clearAllSettings();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.connectionStatus.google",
+        undefined,
+      );
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.connectionStatus.wca",
+        undefined,
+      );
+    });
+  });
+
+  describe("provider info edge cases", () => {
+    it("should handle get for unknown provider without crashing", async () => {
+      const value = await llmProviderSettings.get("nonexistent", "someField");
+      expect(value).toBe("");
+    });
+
+    it("should handle set for unknown provider without crashing", async () => {
+      await llmProviderSettings.set("nonexistent", "someField", "value");
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.nonexistent.someField",
+        "value",
+      );
     });
   });
 });

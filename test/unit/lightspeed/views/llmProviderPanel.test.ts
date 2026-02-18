@@ -6,13 +6,13 @@ import { ViewColumn, window, Uri } from "vscode";
 (globalThis as any).__getWebviewHtml__ = vi
   .fn()
   .mockReturnValue("<html></html>");
-import type { LlmProviderDependencies } from "../../../../src/features/lightspeed/vue/views/llmProviderMessageHandlers";
-import type { SettingsManager } from "../../../../src/settings";
-import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
-import type { LlmProviderSettings } from "../../../../src/features/lightspeed/llmProviderSettings";
-import type { LightspeedUser } from "../../../../src/features/lightspeed/lightspeedUser";
+import type { LlmProviderDependencies } from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
+import type { SettingsManager } from "@src/settings";
+import type { ProviderManager } from "@src/features/lightspeed/providerManager";
+import type { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import type { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 
-vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
+vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockGoogleProvider = {
     type: "google",
     name: "google",
@@ -29,25 +29,22 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
   };
 });
 
-vi.mock("../../../../src/features/lightspeed/vue/views/panelUtils", () => ({
+vi.mock("@src/features/lightspeed/vue/views/panelUtils", () => ({
   disposePanelResources: vi.fn(),
 }));
 
-vi.mock(
-  "../../../../src/features/lightspeed/vue/views/llmProviderMessageHandlers",
-  () => {
-    return {
-      LlmProviderMessageHandlers: class MockMessageHandlers {
-        setWebview = vi.fn();
-        handleMessage = vi.fn();
-        sendProviderSettings = vi.fn();
-      },
-    };
-  },
-);
+vi.mock("@src/features/lightspeed/vue/views/llmProviderMessageHandlers", () => {
+  return {
+    LlmProviderMessageHandlers: class MockMessageHandlers {
+      setWebview = vi.fn();
+      handleMessage = vi.fn();
+      sendProviderSettings = vi.fn();
+    },
+  };
+});
 
-import { LlmProviderPanel } from "../../../../src/features/lightspeed/vue/views/llmProviderPanel";
-import { disposePanelResources } from "../../../../src/features/lightspeed/vue/views/panelUtils";
+import { LlmProviderPanel } from "@src/features/lightspeed/vue/views/llmProviderPanel";
+import { disposePanelResources } from "@src/features/lightspeed/vue/views/panelUtils";
 
 describe("LlmProviderPanel", () => {
   let mockContext: ExtensionContext;
@@ -262,6 +259,73 @@ describe("LlmProviderPanel", () => {
       await onDidReceiveMessageCallback({ command: "getProviderSettings" });
 
       expect(true).toBe(true);
+    });
+
+    it("should handle different message types", async () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      await onDidReceiveMessageCallback({ command: "saveProviderSettings" });
+      await onDidReceiveMessageCallback({ command: "activateProvider" });
+      await onDidReceiveMessageCallback({ command: "connectProvider" });
+
+      expect(true).toBe(true);
+    });
+  });
+
+  describe("panel configuration", () => {
+    it("should set enableScripts to true for webview", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      expect(mockCreateWebviewPanel).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          enableScripts: true,
+        }),
+      );
+    });
+
+    it("should set retainContextWhenHidden to true", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      expect(mockCreateWebviewPanel).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          retainContextWhenHidden: true,
+        }),
+      );
+    });
+
+    it("should set localResourceRoots correctly", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      expect(mockCreateWebviewPanel).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          localResourceRoots: expect.any(Array),
+        }),
+      );
+    });
+  });
+
+  describe("webview content", () => {
+    it("should set webview HTML content on creation", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      expect(mockWebview.html).toBe("<html></html>");
+    });
+  });
+
+  describe("dispose callback", () => {
+    it("should register dispose callback on panel creation", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      expect(mockOnDidDispose).toHaveBeenCalled();
     });
   });
 });

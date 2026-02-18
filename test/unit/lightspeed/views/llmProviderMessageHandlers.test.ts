@@ -4,12 +4,12 @@ import { window, commands } from "vscode";
 import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
-} from "../../../../src/features/lightspeed/vue/views/llmProviderMessageHandlers";
-import type { SettingsManager } from "../../../../src/settings";
-import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
-import type { LlmProviderSettings } from "../../../../src/features/lightspeed/llmProviderSettings";
-import type { LightspeedUser } from "../../../../src/features/lightspeed/lightspeedUser";
-import type { QuickLinksWebviewViewProvider } from "../../../../src/features/quickLinks/utils/quickLinksViewProvider";
+} from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
+import type { SettingsManager } from "@src/settings";
+import type { ProviderManager } from "@src/features/lightspeed/providerManager";
+import type { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import type { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import type { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { PROVIDER_TYPES, TEST_API_KEYS, API_ENDPOINTS } from "../testConstants";
 
 const mockWcaProvider = {
@@ -66,7 +66,7 @@ const mockGoogleProvider = {
   ],
 };
 
-vi.mock("../../../../src/features/lightspeed/providers/factory", () => ({
+vi.mock("@src/features/lightspeed/providers/factory", () => ({
   providerFactory: {
     getSupportedProviders: vi.fn(() => [mockWcaProvider, mockGoogleProvider]),
     createProvider: vi.fn(() => ({
@@ -75,7 +75,7 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => ({
   },
 }));
 
-import { providerFactory } from "../../../../src/features/lightspeed/providers/factory";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 describe("LlmProviderMessageHandlers", () => {
   let messageHandlers: LlmProviderMessageHandlers;
@@ -680,6 +680,133 @@ describe("LlmProviderMessageHandlers", () => {
 
       expect(mockedWindow.showInformationMessage).toHaveBeenCalledWith(
         expect.stringContaining("GOOGLE"),
+      );
+    });
+  });
+
+  describe("handleConnectProvider edge cases", () => {
+    it("should not process when webview is not set", async () => {
+      const handler = new LlmProviderMessageHandlers(mockDeps);
+
+      await handler.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockSetProvider).not.toHaveBeenCalled();
+    });
+
+    it("should handle OAuth connection when providerInfo is undefined", async () => {
+      vi.useFakeTimers();
+
+      mockedGetSupportedProviders.mockReturnValue([]);
+
+      const handlerWithNoProviders = new LlmProviderMessageHandlers(mockDeps);
+      handlerWithNoProviders.setWebview(mockWebview);
+
+      await handlerWithNoProviders.handleMessage({
+        command: "connectProvider",
+        provider: "unknown",
+      });
+
+      expect(mockSetProvider).toHaveBeenCalledWith("unknown");
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe("updateAndNotify error handling", () => {
+    it("should handle refreshProviders error gracefully", async () => {
+      const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
+
+      const mockProviderManagerWithError = {
+        refreshProviders: vi
+          .fn()
+          .mockRejectedValue(new Error("Refresh failed")),
+      } as unknown as ProviderManager;
+
+      const depsWithError: LlmProviderDependencies = {
+        ...mockDeps,
+        providerManager: mockProviderManagerWithError,
+      };
+
+      const handlerWithError = new LlmProviderMessageHandlers(depsWithError);
+      handlerWithError.setWebview(mockWebview);
+
+      await handlerWithError.handleMessage({
+        command: "activateProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockReinitialize).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("saveProviderSettings with unknown provider", () => {
+    it("should handle unknown provider type gracefully", async () => {
+      mockedGetSupportedProviders.mockReturnValue([
+        mockWcaProvider,
+        mockGoogleProvider,
+      ]);
+
+      await messageHandlers.handleMessage({
+        command: "saveProviderSettings",
+        provider: "unknown-provider",
+        config: {
+          apiKey: "test-key",
+        },
+      });
+
+      expect(mockSetProvider).toHaveBeenCalledWith("unknown-provider");
+      expect(mockSetConnectionStatus).toHaveBeenCalledWith(
+        false,
+        "unknown-provider",
+      );
+    });
+  });
+
+  describe("handleConnectionResult without webview", () => {
+    it("should not crash when handleConnectionResult is called indirectly without webview", async () => {
+      const handler = new LlmProviderMessageHandlers(mockDeps);
+
+      await handler.handleMessage({
+        command: "connectProvider",
+        provider: PROVIDER_TYPES.GOOGLE,
+      });
+
+      expect(mockSetConnectionStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("sendProviderSettings builds correct config", () => {
+    it("should build provider configs dynamically from configSchema", async () => {
+      await messageHandlers.sendProviderSettings();
+
+      expect(mockGet).toHaveBeenCalledWith("wca", "apiEndpoint");
+      expect(mockGet).toHaveBeenCalledWith("google", "apiEndpoint");
+      expect(mockGet).toHaveBeenCalledWith("google", "apiKey");
+      expect(mockGet).toHaveBeenCalledWith("google", "modelName");
+    });
+  });
+
+  describe("connectWithApiKey with undefined providerInfo", () => {
+    it("should use uppercase fallback for displayName when providerInfo is undefined", async () => {
+      mockedGetSupportedProviders.mockReturnValue([]);
+
+      const handlerNoProviders = new LlmProviderMessageHandlers(mockDeps);
+      handlerNoProviders.setWebview(mockWebview);
+
+      await handlerNoProviders.handleMessage({
+        command: "connectProvider",
+        provider: "custom",
+      });
+
+      expect(mockedWindow.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining("CUSTOM"),
       );
     });
   });
