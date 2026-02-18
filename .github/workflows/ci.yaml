@@ -365,8 +365,8 @@ jobs:
           task build --status
         env:
           # defined inside 'ci' environment
-          LIGHTSPEED_API_ENDPOINT: ${{ secrets.LIGHTSPEED_API_ENDPOINT }}
-          LIGHTSPEED_USER: ${{ secrets.LIGHTSPEED_USER }}
+          LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
+          LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
           LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
