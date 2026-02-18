@@ -160,8 +160,8 @@ def user_is_auth(driver: WebDriver) -> bool:
 
 def sso_auth_flow(  # noqa: PLR0913
     driver: WebDriver,
-    username: str | None = LIGHTSPEED_USER,
-    password: str | None = LIGHTSPEED_PASSWORD,
+    username: str = LIGHTSPEED_USER,
+    password: str = LIGHTSPEED_PASSWORD,
     *,
     admin_login: bool = False,
     no_wca: bool = False,

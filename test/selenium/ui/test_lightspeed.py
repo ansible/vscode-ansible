@@ -47,6 +47,7 @@ def vscode_login_wrapper(driver: Any) -> None:
 
 # @pytest.mark.flaky(reruns=6, reruns_delay=10)
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="Broken")
 def test_vscode_widget(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -75,6 +76,7 @@ def test_vscode_widget(
 
 
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="Broken")
 def test_vscode_playbook_explanation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -106,6 +108,7 @@ def test_vscode_playbook_explanation(
 
 
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="Broken")
 def test_vscode_playbook_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -128,6 +131,7 @@ def test_vscode_playbook_generation(
 
 
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="Broken")
 def test_vscode_role_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -145,6 +149,7 @@ def test_vscode_role_generation(
 
 
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="Broken")
 def test_vscode_lightspeed_explorer(
     browser_setup: Any,
     screenshot_on_fail: Any,

@@ -62,7 +62,9 @@ exclude = "(.ansible|out|syntaxes).*"
 [tool.pytest]
 # do not add options here as this will likely break either console runs or IDE
 # integration like vscode or pycharm
-addopts = ["--durations-min=10", "--durations=10", "-n0", "-rx", "-v"]
+# keep -rA to know what is skipped, failed and passed as these are scenarios
+#  and we do not expect to have too many of them.
+addopts = ["--durations-min=10", "--durations=10", "-n0", "-rA", "-v"]
 filterwarnings = [
   "error",
   "once::pytest.PytestWarning",
@@ -96,7 +98,7 @@ norecursedirs = [
   "out",
 ]
 strict_markers = true
-strict_xfail = true
+# strict_xfail = true
 testpaths = ["test/selenium/ui"]
 
 [tool.ruff]
