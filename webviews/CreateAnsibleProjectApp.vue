@@ -41,8 +41,8 @@ const projectUrl = ref("");
 
 const canCreate = computed(() => {
   return (
-    namespace.value.trim() !== "" &&
-    collectionName.value.trim() !== ""
+    namespace.value.trim().length > 2 &&
+    collectionName.value.trim().length > 2
   );
 });
 
@@ -70,14 +70,14 @@ const handleCreate = createActionWrapper(
   commonState.createButtonDisabled,
   () => {
     const payload = {
-      destinationPath: initPath.value,
-      namespaceName: namespace.value,
-      collectionName: collectionName.value,
+      destinationPath: initPath.value.trim(),
+      namespaceName: namespace.value.trim(),
+      collectionName: collectionName.value.trim(),
       verbosity: verbosity.value,
       logToFile: logToFile.value,
       logFileAppend: logFileAppend.value,
       isEditableModeInstall: isEditableModeInstall.value,
-      logFilePath: commonState.logFilePath.value || commonState.defaultLogFilePath.value,
+      logFilePath: (commonState.logFilePath.value || commonState.defaultLogFilePath.value || '').trim(),
       logLevel: logLevel.value,
       isOverwritten: isOverwritten.value,
     };
