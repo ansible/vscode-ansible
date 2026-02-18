@@ -12,7 +12,7 @@ runs:
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.1.6
+        version: 2026.2.13
         reshim: true
 
     - name: Corepack enable
@@ -74,3 +74,11 @@ runs:
     #       ~/.local/share/containers
     #       ~/.config/containers
     #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+
+    - name: Remove preinstalled pipx packages that can cause conflicts
+      shell: bash
+      run: |
+        pipx list
+        if [[ "${OSTYPE:-}" != darwin* && "${IS_WSL:-0}" != "1" ]]; then
+          pipx uninstall --global ansible-core
+        fi

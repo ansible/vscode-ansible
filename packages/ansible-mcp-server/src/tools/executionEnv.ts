@@ -9,7 +9,7 @@ import {
   getSampleExecutionEnvironment,
 } from "../resources/eeSchema.js";
 
-export interface ExecutionEnvInputs {
+interface ExecutionEnvInputs {
   baseImage: string;
   tag: string;
   destinationPath?: string;
@@ -130,6 +130,7 @@ function parseLLMGeneratedYAML(generatedYaml: string): Record<string, unknown> {
   } catch (parseError) {
     throw new Error(
       `Failed to parse LLM-generated YAML: ${parseError instanceof Error ? parseError.message : String(parseError)}\n\nGenerated content:\n${cleanedYaml}`,
+      { cause: parseError },
     );
   }
 }
@@ -152,6 +153,7 @@ export async function generateExecutionEnvironment(
   } catch (error) {
     throw new Error(
       `Failed to create destination directory: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 
@@ -181,6 +183,7 @@ export async function generateExecutionEnvironment(
   } catch (error) {
     throw new Error(
       `Failed to write execution-environment.yml: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 

@@ -1,7 +1,7 @@
 import assert from "assert";
 import { JSDOM } from "jsdom";
 
-import { EditableList } from "../../../src/webview/apps/common/editableList";
+import { EditableList } from "@src/webview/apps/common/editableList";
 
 describe("EditableList", function () {
   let dom: JSDOM;

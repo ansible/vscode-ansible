@@ -42,8 +42,7 @@ export class AnsibleCreatorOperations {
     roleName: string,
     url: string,
   ): Promise<string> {
-    let command = "";
-    command = `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
+    const command = `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
     return command;
   }
 
@@ -462,7 +461,6 @@ export class AnsibleCreatorOperations {
     collectionName: string,
     initPathUrl: string,
   ): Promise<string> {
-    let command = "";
     const creatorVersion = await getCreatorVersion();
 
     const versionCheck = this.checkVersionWithError(
@@ -470,6 +468,7 @@ export class AnsibleCreatorOperations {
       ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
     );
 
+    let command: string;
     if (versionCheck.isGte || versionCheck.userMessage) {
       command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
     } else {
@@ -483,9 +482,7 @@ export class AnsibleCreatorOperations {
     pluginType: string,
     url: string,
   ): Promise<string> {
-    let command = "";
-
-    command = `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
+    const command = `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
     return command;
   }
 

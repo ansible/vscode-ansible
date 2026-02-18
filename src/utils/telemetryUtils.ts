@@ -1,8 +1,8 @@
 import {
   getRedHatService,
   TelemetryService,
+  RedHatService,
 } from "@redhat-developer/vscode-redhat-telemetry/lib";
-import { RedHatService } from "@redhat-developer/vscode-redhat-telemetry";
 
 import { ExtensionContext } from "vscode";
 import {

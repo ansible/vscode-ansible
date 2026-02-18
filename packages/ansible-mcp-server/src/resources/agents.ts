@@ -230,6 +230,7 @@ export async function getAgentsGuidelines(query?: string): Promise<string> {
   } catch (error) {
     throw new Error(
       `Error loading agents.md file: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }
@@ -245,6 +246,7 @@ export async function getFullAgentsGuidelines(): Promise<string> {
   } catch (error) {
     throw new Error(
       `Error loading agents.md file: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }

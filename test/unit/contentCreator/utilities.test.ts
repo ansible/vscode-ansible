@@ -1,12 +1,11 @@
 import { homedir } from "os";
-import { assert } from "chai";
-import { describe, it, vi, beforeEach } from "vitest";
+import { assert, expect, describe, it, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
 import {
   expandPath,
   getBinDetail,
   runCommand,
-} from "../../../src/features/contentCreator/utils";
+} from "@src/features/contentCreator/utils";
 
 const homeDir = homedir();
 
@@ -91,7 +90,7 @@ describe(__filename, function () {
         if (expected instanceof RegExp) {
           assert.match(result, expected);
         } else {
-          assert.include(result, expected);
+          expect(result).toContain(expected);
         }
       });
     });
@@ -101,7 +100,7 @@ describe(__filename, function () {
     runCommandTests.forEach(({ name, command, expected }) => {
       it(`should provide details for ${name}`, async function () {
         const result = await runCommand(command, process.env);
-        assert.include(result.output, expected.output);
+        expect(result.output).toContain(expected.output);
         assert.equal(result.status, expected.status);
       });
     });

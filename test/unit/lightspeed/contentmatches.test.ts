@@ -1,16 +1,16 @@
 require("assert");
 
-import { ContentMatchesWebview } from "../../../src/features/lightspeed/contentMatchesWebview";
-import { SettingsManager } from "../../../src/settings";
+import { ContentMatchesWebview } from "@src/features/lightspeed/contentMatchesWebview";
+import { SettingsManager } from "@src/settings";
 import sinon from "sinon";
 import assert from "assert";
 
 import {
   ExtensionSettings,
   LightSpeedServiceSettings,
-} from "../../../src/interfaces/extensionSettings";
+} from "@src/interfaces/extensionSettings";
 import { ExtensionContext } from "vscode";
-import { LightSpeedAPI } from "../../../src/features/lightspeed/api";
+import { LightSpeedAPI } from "@src/features/lightspeed/api";
 
 import {
   ContentMatchesRequestParams,
@@ -18,9 +18,9 @@ import {
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
-} from "../../../src/interfaces/lightspeed";
-import { LightspeedUser } from "../../../src/features/lightspeed/lightspeedUser";
-import { IError } from "../../../src/features/lightspeed/utils/errors";
+} from "@src/interfaces/lightspeed";
+import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { IError } from "@src/features/lightspeed/utils/errors";
 
 function createMatchResponse(): ContentMatchesResponseParams {
   const contentMatchParams = {

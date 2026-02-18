@@ -4,7 +4,7 @@ import {
   getDocUri,
   activate,
   testDiagnostics,
-  waitForDiagnosisCompletion,
+  waitForDiagnosticsFromSource,
 } from "../e2e.utils";
 
 describe("yaml-diag-no-ee", function () {
@@ -23,7 +23,8 @@ describe("yaml-diag-no-ee", function () {
 
     it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {
       await activate(docUri1);
-      await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+      // Wait for ansible-lint diagnostics to appear (this test expects 5 total diagnostics)
+      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 10000);
 
       await testDiagnostics(docUri1, [
         {

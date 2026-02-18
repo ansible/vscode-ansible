@@ -17,7 +17,7 @@
     "vitest": "^4.0.18"
   },
   "engines": {
-    "node": ">=20.0"
+    "node": ">=24.0"
   },
   "files": [
     "./out/server/src/**/*",

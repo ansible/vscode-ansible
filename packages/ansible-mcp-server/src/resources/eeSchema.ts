@@ -31,7 +31,7 @@ async function getSampleEEFilePath(): Promise<string> {
   );
 }
 
-export interface ExecutionEnvironmentSchema {
+interface ExecutionEnvironmentSchema {
   $defs: {
     v3: {
       properties: Record<string, unknown>;
@@ -66,6 +66,7 @@ export async function getExecutionEnvironmentSchema(): Promise<ExecutionEnvironm
   } catch (error) {
     throw new Error(
       `Error loading execution environment schema from packaged file: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }
@@ -81,6 +82,7 @@ export async function getSampleExecutionEnvironment(): Promise<string> {
   } catch (error) {
     throw new Error(
       `Error loading sample execution environment file: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }
@@ -96,6 +98,7 @@ export async function getEERules(): Promise<string> {
   } catch (error) {
     throw new Error(
       `Error loading ee-rules.md file: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
     );
   }
 }

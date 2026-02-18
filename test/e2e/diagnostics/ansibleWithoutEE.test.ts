@@ -5,7 +5,7 @@ import {
   activate,
   testDiagnostics,
   updateSettings,
-  waitForDiagnosisCompletion,
+  waitForDiagnosticsFromSource,
   clearActivationCache,
   sleep,
 } from "../e2e.utils";
@@ -37,8 +37,9 @@ describe("ansible-diag-no-ee", function () {
     it("should complain about no task names", async function () {
       await activate(docUri1);
       await vscode.commands.executeCommand("workbench.action.files.save");
-      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start, especially on WSL
-      await waitForDiagnosisCompletion(150, 7000, 3000); // Wait for the diagnostics to compute on this file
+      // Wait for ansible-lint diagnostics directly instead of relying on process detection
+      // which is unreliable on WSL. Use a generous timeout for slow CI environments.
+      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 15000);
 
       await testDiagnostics(docUri1, [
         {
@@ -56,8 +57,8 @@ describe("ansible-diag-no-ee", function () {
     it("should complain about command syntax-check failed", async function () {
       await activate(docUri2);
       await vscode.commands.executeCommand("workbench.action.files.save");
-      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
-      await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
+      // Wait for ansible-lint diagnostics directly instead of relying on process detection
+      await waitForDiagnosticsFromSource(docUri2, "ansible-lint", 1, 15000);
 
       await testDiagnostics(docUri2, [
         {

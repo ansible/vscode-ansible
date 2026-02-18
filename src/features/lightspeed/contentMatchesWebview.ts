@@ -201,7 +201,8 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
 
-    let suggestedTasks = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let suggestedTasks: any[];
     try {
       suggestedTasks = yaml.parse(suggestion, {
         keepSourceTokens: true,

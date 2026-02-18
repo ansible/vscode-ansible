@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """Analyze CI failures related."""
-# ruff: noqa: T201
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import subprocess  # noqa: S404
 import sys
-import zipfile
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from io import BytesIO
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.request import Request, urlopen
 
 import github
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 if TYPE_CHECKING:
     from github.Issue import Issue
@@ -23,6 +24,28 @@ if TYPE_CHECKING:
     from github.WorkflowJob import WorkflowJob
     from github.WorkflowRun import WorkflowRun
     from github.WorkflowStep import WorkflowStep
+
+
+@dataclass(order=True)
+class FailureEntry:
+    """Represents a CI failure."""
+
+    # Sort keys (sorted by area first, then title)
+    area: str = ""
+    failed_steps: str = field(default="")
+    failed_jobs: str = field(default="")
+    title: str = field(default="")
+    # Non-comparison fields
+    run_id: str = field(default="", compare=False)
+    branch: str = field(default="", compare=False)
+    url: str = field(default="", compare=False)
+    date: str = field(default="", compare=False)
+    # Fields specific to Lightspeed test failures
+    job_id: int | None = field(default=None, compare=False)
+    job_url: str | None = field(default=None, compare=False)
+    context: str | None = field(default=None, compare=False)
+
+
 OUT_DIR = Path("out")
 DAYS_BACK = 7
 OUTPUT_FILE = OUT_DIR / "ci_failure_report.md"
@@ -98,49 +121,34 @@ LIGHTSPEED_PATTERN = re.compile(
 )
 
 
-def fetch_job_logs(
-    repo_full_name: str, job_id: int, token: str, timeout: int = 30
-) -> str | None:
+def fetch_job_logs(repo_full_name: str, job_id: int, timeout: int = 30) -> str | None:
     """Download job logs via GitHub API.
+
+    WARNING, Using API or even the browser does not seem to work as we get:
+
+    HTTP Error 403: Server failed to authenticate the request. Make sure the value of Authorization header is formed correctly including the signature.
+
+    But using `gh` cli to retrieve the logs seems to work.
 
     Returns:
         Log text or None on failure.
     """
     owner, repo_name = repo_full_name.split("/", 1)
-    url = f"https://api.github.com/repos/{owner}/{repo_name}/actions/jobs/{job_id}/logs"
-    req = Request(
-        url,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/vnd.github+json",
-        },
-    )
+    # url = f"https://api.github.com/repos/{owner}/{repo_name}/actions/jobs/{job_id}/logs"
+    cmd = f"gh api /repos/{owner}/{repo_name}/actions/jobs/{job_id}/logs"
+    data = ""
     try:
-        with urlopen(req, timeout=timeout) as resp:  # noqa: S310
-            # API may redirect to the actual log URL
-            if resp.status in {301, 302, 307, 308}:
-                redirect_url = resp.headers.get("Location")
-                if redirect_url:
-                    req_redirect = Request(  # noqa: S310
-                        redirect_url, headers={"Accept": "application/vnd.github+json"}
-                    )
-                    resp = urlopen(req_redirect, timeout=timeout)  # noqa: S310
-            data = resp.read()
-    except (OSError, ValueError):
+        data = subprocess.check_output(  # noqa: S602
+            cmd,
+            shell=True,
+            text=True,
+            encoding="utf-8",
+            timeout=timeout,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Failed to extract logs for job %s: %s", job_id, e)
         return None
-    if data[:2] == b"PK":
-        # Zip archive (typical for job logs)
-        try:
-            with zipfile.ZipFile(BytesIO(data), "r") as zf:
-                parts = [
-                    zf.read(name).decode("utf-8", errors="replace")
-                    for name in sorted(zf.namelist())
-                    if name.endswith(".txt")
-                ]
-                return "\n".join(parts) if parts else None
-        except (zipfile.BadZipFile, OSError, ValueError):
-            return None
-    return data.decode("utf-8", errors="replace")
+    return data
 
 
 def update_or_create_ci_dashboard(
@@ -164,14 +172,14 @@ def update_or_create_ci_dashboard(
             labels=LABELS,
             state_reason=state_reason,
         )
-        print(f"Updated issue #{issue.number} : {issue.html_url}")
+        msg = f"Updated issue #{issue.number} : {issue.html_url}"
+        logger.info(msg)
     else:
         issue = repo.create_issue(
             title=DASHBOARD_ISSUE_TITLE, body=body, assignee=ASSIGNEE, labels=LABELS
         )
-        print(
-            f"Created new CI Status Dashboard issue #{issue.number}: {issue.html_url}"
-        )
+        msg = f"Created new CI Status Dashboard issue #{issue.number}: {issue.html_url}"
+        logger.info(msg)
 
 
 def get_failed_step_names(job: WorkflowJob) -> list[str]:
@@ -179,7 +187,8 @@ def get_failed_step_names(job: WorkflowJob) -> list[str]:
     try:
         steps: list[WorkflowStep] = job.steps
     except Exception as e:  # noqa: BLE001
-        print(f"  Warning: Failure fetch steps for job {job.id}: {e}")
+        msg = f"Failure fetch steps for job {job.id}: {e}"
+        logger.warning(msg)
         return []
     # keep in mind that .outcome might fail but if continue-on-error is set, conclusion will be success
     return [s.name for s in steps if getattr(s, "conclusion", None) == "failure"]
@@ -222,18 +231,14 @@ def main() -> int:  # noqa: C901, PLR0912, PLR0915, PLR0914, D103
         ):
             token = ""
     if not token:
-        print(
-            "Error: Set GH_TOKEN or GITHUB_TOKEN, or run 'gh auth login'",
-            file=sys.stderr,
-        )
+        logger.error("Set GH_TOKEN or GITHUB_TOKEN, or run 'gh auth login'")
         return 1
 
     repo_name = detect_repo_name()
     if not repo_name:
-        print(
-            "Error: Could not detect repository. Set GITHUB_REPOSITORY (e.g. owner/repo), "
-            "run from a repo with 'gh' CLI configured, or use a git remote origin pointing to GitHub.",
-            file=sys.stderr,
+        logger.error(
+            "Could not detect repository. Set GITHUB_REPOSITORY (e.g. owner/repo), "
+            "run from a repo with 'gh' CLI configured, or use a git remote origin pointing to GitHub."
         )
         return 1
     days_back = DAYS_BACK
@@ -242,7 +247,9 @@ def main() -> int:  # noqa: C901, PLR0912, PLR0915, PLR0914, D103
 
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days_back)).isoformat()
 
-    print(f"Fetching workflow runs from the last {days_back} days: >={cutoff_date} ...")
+    logger.info(
+        "Fetching workflow runs from the last %s days: >=%s ...", days_back, cutoff_date
+    )
     gh = github.Github(auth=github.Auth.Token(token))
     repo = gh.get_repo(repo_name)
     default_branch = repo.get_branch(repo.default_branch)
@@ -254,8 +261,13 @@ def main() -> int:  # noqa: C901, PLR0912, PLR0915, PLR0914, D103
             created=f">={cutoff_date}",
         ):
             runs_in_range.append(r)
-            print(
-                f"Workflow run {r.name} {r.workflow_id} on {r.event} => {r.conclusion} {r.display_title}"
+            logger.info(
+                "Workflow run %s %s on %s => %s %s",
+                r.name,
+                r.workflow_id,
+                r.event,
+                r.conclusion,
+                r.display_title,
             )
     total_runs = len(runs_in_range)
     failed_runs = [r for r in runs_in_range if r.conclusion == "failure"]
@@ -265,93 +277,99 @@ def main() -> int:  # noqa: C901, PLR0912, PLR0915, PLR0914, D103
     md_report = (
         "# CI Failure Analysis Report\n\n"
         f"Analysis of last {days_back} days CI failures on runs that should never fail.\n\n"
-        f"Generated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n\n"
     )
 
-    lightspeed_entries: list[
-        tuple[str, str, str, str, str, str, int, str, str, str]
-    ] = []
-    other_entries: list[tuple[str, str, str, str, str, str, str]] = []
-    lightspeed_count = 0
-    other_count = 0
+    failure_entries: list[FailureEntry] = []
     step_failures: dict[str, int] = {}
     total_failed_jobs = 0
 
     for idx, run in enumerate(failed_runs, 1):
-        print(f"[{idx}/{len(failed_runs)}] Analyzing run {run.id}...")
+        logger.info("[%d/%d] Analyzing run %s...", idx, len(failed_runs), run.id)
         try:
             jobs: list[WorkflowJob] = list(run.jobs())
         except Exception as e:  # noqa: BLE001
-            print(f"  Warning: Could not fetch jobs for run {run.id}: {e}")
+            logger.warning("  Could not fetch jobs for run %s: %s", run.id, e)
             continue
         failed_jobs = [j for j in jobs if j.conclusion == "failure"]
         if not failed_jobs:
-            print("  No failed jobs found")
+            logger.info("  No failed jobs found")
             continue
 
         total_failed_jobs += len(failed_jobs)
         for j in failed_jobs:
             for step_name in get_failed_step_names(j):
-                print(f"  Step '{step_name}' failed in job {j.name} (ID: {j.id})")
+                logger.info(
+                    "Step '%s' failed in job %s (ID: %s)", step_name, j.name, j.id
+                )
                 step_failures[step_name] = step_failures.get(step_name, 0) + 1
 
         run_title = run.display_title or str(run.id)
         run_branch = run.head_branch or ""
         run_url = run.html_url or ""
         run_date = run.created_at.isoformat() if run.created_at else ""
+        area = ""
+        job_url = run_url
+        context = ""
 
-        found_lightspeed = False
         for job in failed_jobs:
-            print(f"  Checking job: {job.name} (ID: {job.id})")
-            log_text = fetch_job_logs(repo_name, job.id, token)
+            logger.info("Checking job: %s (ID: %s)", job.name, job.id)
+            log_text = fetch_job_logs(repo_name, job.id)
             if log_text is None:
-                print(f"    Warning: Could not fetch log for job {job.id}")
+                logger.warning("Could not fetch log for job %s", job.id)
                 continue
             if LIGHTSPEED_PATTERN.search(log_text):
-                print("    Found lightspeed test FAILURE!")
-                found_lightspeed = True
+                logger.info("Found lightspeed test FAILURE!")
                 context = extract_failure_context(log_text)
                 job_url = (
                     getattr(job, "html_url", None)
                     or f"https://github.com/{repo_name}/actions/runs/{run.id}"
                 )
-                failed_steps = get_failed_step_names(job)
-                failed_step_str = ", ".join(failed_steps) if failed_steps else "—"
-                lightspeed_entries.append((
-                    str(run.id),
-                    run_title,
-                    run_branch,
-                    run_url,
-                    run_date,
-                    job.name,
-                    job.id,
-                    job_url,
-                    context,
-                    failed_step_str,
-                ))
-                lightspeed_count += 1
+                area = "lightspeed"
                 break
+        failed_steps = get_failed_step_names(job)
+        failed_step_str = ", ".join(failed_steps) if failed_steps else "—"
+        failed_job_names = ",".join(j.name for j in failed_jobs)
 
-        if not found_lightspeed:
-            other_count += 1
-            failed_job_names = ",".join(j.name for j in failed_jobs)
-            step_parts = [
-                f"{j.name}: {', '.join(get_failed_step_names(j)) or '—'}"
-                for j in failed_jobs
-            ]
-            failed_step_summary = "; ".join(step_parts)
-            other_entries.append((
-                str(run.id),
-                run_title,
-                run_branch,
-                run_url,
-                run_date,
-                failed_job_names,
-                failed_step_summary,
-            ))
+        failure_entries.append(
+            FailureEntry(
+                run_id=str(run.id),
+                title=run_title,
+                branch=run_branch,
+                url=run_url,
+                date=run_date,
+                failed_jobs=failed_job_names,
+                failed_steps=failed_step_str,
+                job_id=job.id,
+                job_url=job_url,
+                context=context,
+                area=area,
+            )
+        )
+    failure_entries.sort()
 
+    # Produce details report, grouping by area
+    last_area = ""
+    area_counter: dict[str, int] = {}
+
+    md_details = "\n\n## Detailed Analysis: area > step > job\n\n"
+    for entry in failure_entries:
+        area_counter.setdefault(entry.area, 0)
+        area_counter[entry.area] += 1
+        if last_area != entry.area:
+            md_details += f"\n\n### Area: {entry.area or 'Uncategorized'}\n\n"
+        last_area = entry.area
+        md_details += f"- `{entry.failed_steps}` {entry.failed_jobs} [{entry.title}]({entry.job_url})\n"
+        if entry.context:
+            md_details += (
+                "<details>\n"
+                "<summary>Failure Details</summary>\n\n"
+                "```\n"
+                f"{entry.context}\n"
+                "```\n"
+                "</details>\n\n"
+            )
     if total_runs == 0:
-        print(f"No runs found in the last {days_back} days", file=sys.stderr)
+        logger.info("No runs found in the last %s days", days_back)
         return 1
 
     md_summary = (
@@ -360,86 +378,28 @@ def main() -> int:  # noqa: C901, PLR0912, PLR0915, PLR0914, D103
         f"- **Total runs**: {total_runs}\n"
         f"- **Successful**: {success_count}\n"
         f"- **Failed**: {len(failed_runs)}\n"
-        f"- **Cancelled**: {cancelled_count}\n\n"
-        f"- **Failures caused by Lightspeed tests**: {lightspeed_count} ({lightspeed_count / total_runs * 100:.1f}%)\n"
-        f"- **Other failures**: {other_count}\n"
+        f"- **Cancelled**: {cancelled_count}\n"
     )
+    for area, count in area_counter.items():
+        md_summary += f"- **{area or 'Uncategorized'}**: {count} ({count / total_runs * 100:.1f}%)\n"
+    md_summary += "\n"
+
     md_report += md_summary
-    if failed_runs:
-        pct = (lightspeed_count / len(failed_runs)) * 100
-        md_report += (
-            f"- **Percentage of failures due to Lightspeed tests**: {pct:.1f}%\n"
-        )
-
-    # Detailed: Lightspeed failures
-    md_report += "## Detailed Analysis\n\n### Failures Related to Lightspeed Tests\n\n"
-    if not lightspeed_entries:
-        md_report += "No failures related to lightspeed tests found.\n"
-    else:
-        for (
-            run_id,
-            title,
-            branch,
-            url,
-            date,
-            job_name,
-            _job_id,
-            job_url,
-            context,
-            failed_step_str,
-        ) in lightspeed_entries:
-            md_report += (
-                f"#### Run #{run_id} - {title}\n\n"
-                f"- **Branch**: `{branch}`\n"
-                f"- **Date**: {date}\n"
-                f"- **Failed Job**: {job_name}\n"
-                f"- **Failed step(s)**: {failed_step_str}\n"
-                f"- **Run URL**: {url}\n"
-                f"- **Job URL**: {job_url}\n\n"
-            )
-            if context:
-                md_report += (
-                    "<details>\n"
-                    "<summary>Failure Details</summary>\n\n"
-                    "```\n"
-                    f"{context}\n"
-                    "```\n"
-                    "</details>\n\n"
-                )
-
-    md_report += "\n### Other Failures (Not Related to Lightspeed Tests)\n\n"
-    if not other_entries:
-        md_report += "No other failures found.\n"
-    else:
-        for (
-            run_id,
-            title,
-            branch,
-            url,
-            date,
-            failed_job_names,
-            failed_step_summary,
-        ) in other_entries:
-            md_report += (
-                f"- Run #{run_id}: **{title}** (`{branch}`) - Failed jobs: {failed_job_names}\n"
-                f"  - Failed step(s): {failed_step_summary}\n"
-                f"  - URL: {url}\n"
-                f"  - Date: {date}\n"
-            )
-
     # Failure rate per step name
-    md_report += "\n## Failure rate per step name\n\n"
-    if not step_failures or total_failed_jobs == 0:
-        md_report += "No step-level failure data available.\n"
-    else:
-        md_report += f"Failure count and rate by step (out of {total_failed_jobs} failed job(s)).\n\n"
+    if step_failures or total_failed_jobs != 0:
+        md_report += "\n## Failure rate per step name\n\n"
+
+        md_report += "```mermaid\npie\n"
         for step_name in sorted(step_failures.keys(), key=lambda s: -step_failures[s]):
             count = step_failures[step_name]
-            pct = (count / total_failed_jobs) * 100
-            md_report += f"- **{step_name}**: {count} ({pct:.1f}%)\n"
+            md_report += f'    "{step_name}": {count}\n'
+        md_report += "```\n"
+
+    md_report += md_details
+    f"\n\nGenerated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
 
     output_file.write_text(md_report, encoding="utf-8")
-    print(f"Report generated: {output_file}\n{md_summary}")
+    logger.info("Report generated: %s\n%s", output_file, md_summary)
 
     update_or_create_ci_dashboard(gh, repo, md_report, passing=len(failed_runs) == 0)
     return 0

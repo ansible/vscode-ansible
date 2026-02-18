@@ -55,7 +55,7 @@ export async function showUninstallConflictsNotification(
     return;
   }
   // Gather all the conflicting display names
-  let conflictMsg = "";
+  let conflictMsg: string;
   if (conflictingExts.length === 1) {
     conflictMsg = `${conflictingExts[0].packageJSON.displayName} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
   } else {

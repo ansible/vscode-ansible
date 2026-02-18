@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
-import { RoleFileType } from "../../../../src/interfaces/lightspeed";
-import { ThumbsUpDownAction } from "../../../../src/definitions/lightspeed";
+import { RoleFileType } from "@src/interfaces/lightspeed";
+import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
 
 // Mock vscode commands first (before any imports that use it)
 vi.mock("vscode", async () => {
@@ -16,7 +16,7 @@ vi.mock("vscode", async () => {
 });
 
 // Mock the extension module with factory function
-vi.mock("../../../../src/extension", () => {
+vi.mock("@src/extension", () => {
   return {
     lightSpeedManager: {
       settingsManager: {
@@ -47,9 +47,9 @@ import {
   thumbsUpDown,
   contentMatch,
   updatePromptHistory,
-} from "../../../../src/features/lightspeed/vue/views/lightspeedUtils";
-import { lightSpeedManager } from "../../../../src/extension";
-import { LightSpeedAPI } from "../../../../src/features/lightspeed/api";
+} from "@src/features/lightspeed/vue/views/lightspeedUtils";
+import { lightSpeedManager } from "@src/extension";
+import { LightSpeedAPI } from "@src/features/lightspeed/api";
 
 describe("lightspeedUtils", () => {
   // Create mock API instance
