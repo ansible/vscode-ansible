@@ -3,12 +3,12 @@ import { ViewColumn, window } from "vscode";
 import { GenerationListEntry } from "../../../../interfaces/lightspeed";
 import { setupPanelLifecycle, disposePanelResources } from "./panelUtils";
 
-export type Playbook = {
+type Playbook = {
   content: string;
   fileName: string;
 };
 
-export type Role = {
+type Role = {
   files: GenerationListEntry[];
   roleName: string;
 };

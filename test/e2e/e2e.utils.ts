@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { assert } from "chai";
 import findProcess from "find-process";
 
 import { rmSync } from "fs";
 import { PROJECT_ROOT } from "../setup";
 
+import assert from "node:assert/strict";
 let doc: vscode.TextDocument;
 
 export const skip_ee: boolean =
@@ -180,17 +180,55 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.volumeMounts", []);
 }
 
+/**
+ * Wait for diagnostics to appear from a specific source.
+ * This is more reliable than process detection, especially on WSL where
+ * findProcess may not work correctly.
+ *
+ * @param docUri - The document URI to check diagnostics for
+ * @param expectedSource - The expected source of diagnostics (e.g., "ansible-lint")
+ * @param expectedCount - The expected number of diagnostics (default: at least 1)
+ * @param timeout - Maximum time to wait in milliseconds (default: 15000)
+ * @param interval - Polling interval in milliseconds (default: 200)
+ * @returns true if expected diagnostics were found, false if timed out
+ */
+export async function waitForDiagnosticsFromSource(
+  docUri: vscode.Uri,
+  expectedSource: string,
+  expectedCount = 1,
+  timeout = 15000,
+  interval = 200,
+): Promise<boolean> {
+  let elapsed = 0;
+
+  while (elapsed < timeout) {
+    const diagnostics = vscode.languages.getDiagnostics(docUri);
+    const sourceDiagnostics = diagnostics.filter(
+      (d) => d.source === expectedSource,
+    );
+
+    if (sourceDiagnostics.length >= expectedCount) {
+      return true;
+    }
+
+    await sleep(interval);
+    elapsed += interval;
+  }
+
+  return false;
+}
+
 export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[],
+  pollTimeout = 5000,
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
   // Poll until we have the expected number of diagnostics
-  // Since waitForDiagnosisCompletion already waits for processes, this should be quick
+  // Use a longer default timeout to handle slow environments like WSL
   if (actualDiagnostics.length !== expectedDiagnostics.length) {
-    const pollTimeout = 3000;
-    const pollInterval = 50; // Very fast polling for quick response
+    const pollInterval = 100;
     let elapsed = 0;
 
     while (
@@ -235,9 +273,8 @@ export async function testDiagnostics(
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
-      assert.include(
-        actualDiagnostic.message,
-        expectedDiagnostic.message,
+      assert.ok(
+        actualDiagnostic.message.includes(expectedDiagnostic.message),
         `Expected message ${expectedDiagnostic.message} but got ${actualDiagnostic.message}`,
       ); // subset of expected message
       assert.deepEqual(
@@ -275,15 +312,16 @@ export async function testHover(
   if (actualHover.length && expectedHover.length) {
     expectedHover.forEach((expectedItem, i) => {
       const actualItem = actualHover[i];
-      assert.include(
-        (actualItem.contents[i] as vscode.MarkdownString).value,
-        expectedItem.contents[i].toString(),
+      assert.ok(
+        (actualItem.contents[i] as vscode.MarkdownString).value.includes(
+          expectedItem.contents[i].toString(),
+        ),
       );
     });
   }
 }
 
-export async function waitForDiagnosisCompletion(
+async function waitForDiagnosisCompletion(
   interval = 150,
   timeout = 3000,
   quickCheckTimeout = 500, // Quick check period to detect if validation is disabled
@@ -299,7 +337,7 @@ export async function waitForDiagnosisCompletion(
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
-    let processes: Array<{ name: string }> = [];
+    let processes: Array<{ name: string }>;
     try {
       const ansibleProcesses = await findProcess("name", "ansible");
       processes = ansibleProcesses.filter((p) =>

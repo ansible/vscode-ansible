@@ -39,7 +39,7 @@ const ExtensionHost = {
 } as const;
 type ExtensionHostType = (typeof ExtensionHost)[keyof typeof ExtensionHost];
 
-export interface LoggedInUserInfo {
+interface LoggedInUserInfo {
   username?: string;
   external_username: string;
   rh_user_has_seat: boolean;

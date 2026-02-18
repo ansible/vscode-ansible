@@ -100,7 +100,7 @@ async function getAnsibleInfo() {
     return ansibleInfo;
   }
 
-  let ansibleCoreVersion: string[] = [];
+  let ansibleCoreVersion: string[];
   if (ansibleVersionObjKeys[0].includes(" [")) {
     ansibleCoreVersion = ansibleVersionObjKeys[0].split(" [");
   } else {
@@ -214,8 +214,8 @@ async function getExecutionEnvironmentInfo() {
   eeInfo["container image"] = basicDetails.containerImage;
   eeInfo["container image ID"] = basicDetails.containerImageId;
 
-  let eeServiceWorking = false;
-  let inspectResult;
+  let eeServiceWorking: boolean;
+  let inspectResult: Record<string, unknown>;
   try {
     inspectResult = JSON.parse(
       child_process.execSync(
@@ -228,13 +228,16 @@ async function getExecutionEnvironmentInfo() {
     eeServiceWorking = true;
   } catch (error) {
     eeServiceWorking = false;
+    inspectResult = {};
     console.log(error);
   }
 
   /* v8 ignore start */
   if (eeServiceWorking) {
-    eeInfo["env"] = inspectResult["Env"];
-    eeInfo["working directory"] = inspectResult["WorkingDir"];
+    eeInfo["env"] = inspectResult["Env"] as ansibleMetaDataEntryType[string];
+    eeInfo["working directory"] = inspectResult[
+      "WorkingDir"
+    ] as ansibleMetaDataEntryType[string];
   }
   /* v8 ignore end */
 

@@ -11,8 +11,8 @@ import { WorkspaceFolderContext } from "./workspaceManager.js";
 import {
   ExtensionSettings,
   IContainerEngine,
+  IVolumeMounts,
 } from "../interfaces/extensionSettings.js";
-import { IVolumeMounts } from "../interfaces/extensionSettings.js";
 
 /* We are forced to ignore coverage because we can only measure it if we do
 it on all 3 platforms: linux, macos, wsl. Currently macos runners do not
@@ -468,7 +468,7 @@ export class ExecutionEnvironment {
       return false;
     }
 
-    let containerNameExist = false;
+    let containerNameExist: boolean;
     try {
       const result = child_process.spawnSync(
         this._container_engine,

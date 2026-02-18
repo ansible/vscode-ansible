@@ -1,7 +1,7 @@
-import { expect } from "chai";
+import { expect } from "vitest";
 import sinon from "sinon";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { DiagnosticSeverity } from "vscode-languageserver";
+import { Connection, DiagnosticSeverity } from "vscode-languageserver";
 import { SchemaService } from "../../src/services/schemaService.js";
 import { SchemaValidator } from "../../src/services/schemaValidator.js";
 import { SchemaCompleter } from "../../src/services/schemaCompleter.js";
@@ -14,15 +14,14 @@ const mockConnection = {
     warn: sinon.stub(),
     error: sinon.stub(),
   },
-};
+} as unknown as Connection;
 
 describe("SchemaCache", () => {
   let cache: SchemaCache;
   let fetchStub: sinon.SinonStub;
 
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cache = new SchemaCache(mockConnection as any);
+    cache = new SchemaCache(mockConnection);
     fetchStub = sinon.stub(global, "fetch");
   });
 
@@ -39,7 +38,7 @@ describe("SchemaCache", () => {
     } as Response);
 
     const result = await cache.getSchema("http://test.com/schema.json");
-    expect(result).to.deep.equal(mockSchema);
+    expect(result).toEqual(mockSchema);
   });
 
   it("returns cached schema on second call", async () => {
@@ -51,15 +50,15 @@ describe("SchemaCache", () => {
 
     await cache.getSchema("http://test.com/schema.json");
     const result = await cache.getSchema("http://test.com/schema.json");
-    expect(result).to.deep.equal(mockSchema);
-    expect(fetchStub.calledOnce).to.be.true;
+    expect(result).toEqual(mockSchema);
+    expect(fetchStub.calledOnce).toBe(true);
   });
 
   it("handles fetch error gracefully", async () => {
     fetchStub.rejects(new Error("Network error"));
 
     const result = await cache.getSchema("http://test.com/schema.json");
-    expect(result).to.be.undefined;
+    expect(result).toBeUndefined();
   });
 
   it("handles non-ok response", async () => {
@@ -69,7 +68,7 @@ describe("SchemaCache", () => {
     } as Response);
 
     const result = await cache.getSchema("http://test.com/schema.json");
-    expect(result).to.be.undefined;
+    expect(result).toBeUndefined();
   });
 
   it("invalidates specific URL", () => {
@@ -84,28 +83,28 @@ describe("SchemaCache", () => {
 });
 
 describe("SchemaService", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const service = new SchemaService(mockConnection as any);
+  const service = new SchemaService(mockConnection);
 
   it("matches meta/main.yml files", () => {
-    expect(service.getSchemaUrlForUri("file:///role/meta/main.yml")).to.include(
+    expect(service.getSchemaUrlForUri("file:///role/meta/main.yml")).toContain(
       "meta.json",
     );
-    expect(
-      service.getSchemaUrlForUri("file:///role/meta/main.yaml"),
-    ).to.include("meta.json");
+    expect(service.getSchemaUrlForUri("file:///role/meta/main.yaml")).toContain(
+      "meta.json",
+    );
   });
 
   it("matches meta/runtime.yml files", () => {
     expect(
       service.getSchemaUrlForUri("file:///coll/meta/runtime.yml"),
-    ).to.include("meta-runtime.json");
+    ).toContain("meta-runtime.json");
   });
 
   it("ignores non-meta files", () => {
-    expect(service.getSchemaUrlForUri("file:///role/tasks/main.yml")).to.be
-      .undefined;
-    expect(service.getSchemaUrlForUri("file:///playbook.yml")).to.be.undefined;
+    expect(
+      service.getSchemaUrlForUri("file:///role/tasks/main.yml"),
+    ).toBeUndefined();
+    expect(service.getSchemaUrlForUri("file:///playbook.yml")).toBeUndefined();
   });
 
   it("shouldValidateWithSchema returns correct boolean", () => {
@@ -121,19 +120,19 @@ describe("SchemaService", () => {
       1,
       "",
     );
-    expect(service.shouldValidateWithSchema(metaDoc)).to.be.true;
-    expect(service.shouldValidateWithSchema(taskDoc)).to.be.false;
+    expect(service.shouldValidateWithSchema(metaDoc)).toBe(true);
+    expect(service.shouldValidateWithSchema(taskDoc)).toBe(false);
   });
 
   it("handles invalid URI gracefully", () => {
     const result = service.getSchemaUrlForUri("not-a-valid-uri");
-    expect(result).to.be.undefined;
+    expect(result).toBeUndefined();
   });
 
   it("handles URI that throws during parsing", () => {
     // Empty string causes URI.parse to work but returns empty path
     const result = service.getSchemaUrlForUri("");
-    expect(result).to.be.undefined;
+    expect(result).toBeUndefined();
   });
 
   it("getSchemaForDocument returns undefined for non-meta files", async () => {
@@ -144,7 +143,7 @@ describe("SchemaService", () => {
       "",
     );
     const result = await service.getSchemaForDocument(taskDoc);
-    expect(result).to.be.undefined;
+    expect(result).toBeUndefined();
   });
 
   it("getSchemaForDocument attempts to fetch for meta files", async () => {
@@ -157,7 +156,7 @@ describe("SchemaService", () => {
     // This will try to fetch but may fail - we just test it doesn't throw
     const result = await service.getSchemaForDocument(metaDoc);
     // Result may be undefined if fetch fails, or schema if it succeeds
-    expect(result === undefined || typeof result === "object").to.be.true;
+    expect(result === undefined || typeof result === "object").toBe(true);
   });
 });
 
@@ -181,15 +180,15 @@ describe("SchemaValidator", () => {
       1,
       "name: test\ncount: 5",
     );
-    expect(validator.validate(doc, schema)).to.be.empty;
+    expect(validator.validate(doc, schema)).toEqual([]);
   });
 
   it("reports missing required property", () => {
     const doc = TextDocument.create("file:///test.yml", "yaml", 1, "count: 5");
     const diags = validator.validate(doc, schema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].message).to.include("name");
-    expect(diags[0].severity).to.equal(DiagnosticSeverity.Error);
+    expect(diags).toHaveLength(1);
+    expect(diags[0].message).toContain("name");
+    expect(diags[0].severity).toBe(DiagnosticSeverity.Error);
   });
 
   it("warns on unknown property", () => {
@@ -200,14 +199,14 @@ describe("SchemaValidator", () => {
       "name: test\nextra: bad",
     );
     const diags = validator.validate(doc, schema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
     expect(diags[0].message).to.include("extra");
-    expect(diags[0].severity).to.equal(DiagnosticSeverity.Warning);
+    expect(diags[0].severity).toBe(DiagnosticSeverity.Warning);
   });
 
   it("handles empty document", () => {
     const doc = TextDocument.create("file:///test.yml", "yaml", 1, "");
-    expect(validator.validate(doc, schema)).to.be.empty;
+    expect(validator.validate(doc, schema)).toEqual([]);
   });
 
   it("reports enum validation errors", () => {
@@ -224,7 +223,7 @@ describe("SchemaValidator", () => {
       "status: invalid",
     );
     const diags = validator.validate(doc, enumSchema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
     expect(diags[0].message).to.include("Must be one of:");
   });
 
@@ -236,7 +235,7 @@ describe("SchemaValidator", () => {
       "name: test\ncount: invalid",
     );
     const diags = validator.validate(doc, schema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
     expect(diags[0].message).to.include("Expected");
   });
 
@@ -262,7 +261,7 @@ describe("SchemaValidator", () => {
       "items:\n  - id: invalid",
     );
     const diags = validator.validate(doc, arraySchema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
   });
 
   it("handles YAML parse errors gracefully", () => {
@@ -273,7 +272,7 @@ describe("SchemaValidator", () => {
       "invalid: yaml: content:",
     );
     const diags = validator.validate(doc, schema);
-    expect(diags).to.be.empty;
+    expect(diags).toEqual([]);
   });
 
   it("uses default error message for unknown keywords", () => {
@@ -290,8 +289,8 @@ describe("SchemaValidator", () => {
       "email: UPPERCASE",
     );
     const diags = validator.validate(doc, patternSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].code).to.equal("pattern");
+    expect(diags).toHaveLength(1);
+    expect(diags[0].code).toBe("pattern");
   });
 
   it("provides diagnostic for deeply nested missing required field", () => {
@@ -314,8 +313,8 @@ describe("SchemaValidator", () => {
       "level1: {}",
     );
     const diags = validator.validate(doc, deepSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("validates additional properties at root level", () => {
@@ -326,8 +325,8 @@ describe("SchemaValidator", () => {
       "name: test\nextra: value",
     );
     const diags = validator.validate(doc, schema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range.start.line).to.be.greaterThanOrEqual(0);
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range.start.line).toBeGreaterThanOrEqual(0);
   });
 
   it("handles invalid schema compilation gracefully", () => {
@@ -342,7 +341,7 @@ describe("SchemaValidator", () => {
       "name: test",
     );
     const diags = validator.validate(doc, invalidSchema);
-    expect(diags).to.be.empty;
+    expect(diags).toEqual([]);
   });
 
   it("handles document with YAML syntax errors", () => {
@@ -353,7 +352,7 @@ describe("SchemaValidator", () => {
       "key: [unclosed bracket",
     );
     const diags = validator.validate(doc, schema);
-    expect(diags).to.be.empty;
+    expect(diags).toEqual([]);
   });
 
   it("handles nested array validation with proper range", () => {
@@ -379,8 +378,8 @@ describe("SchemaValidator", () => {
       "list:\n  - value: test\n    extra: bad",
     );
     const diags = validator.validate(doc, nestedSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range.start.line).to.be.greaterThanOrEqual(0);
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range.start.line).toBeGreaterThanOrEqual(0);
   });
 
   it("handles error path through scalar value", () => {
@@ -404,8 +403,8 @@ describe("SchemaValidator", () => {
       "config:\n  unknown: value",
     );
     const diags = validator.validate(doc, nestedObjSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("handles deeply nested additional properties error", () => {
@@ -433,7 +432,7 @@ describe("SchemaValidator", () => {
       "level1:\n  level2:\n    unknown: value",
     );
     const diags = validator.validate(doc, deepSchema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
     expect(diags[0].message).to.include("unknown");
   });
 
@@ -460,7 +459,7 @@ describe("SchemaValidator", () => {
       "items:\n  - name: ok\n  - name: ok\n    extra: bad",
     );
     const diags = validator.validate(doc, arraySchema);
-    expect(diags).to.have.lengthOf(1);
+    expect(diags).toHaveLength(1);
   });
 
   it("validates minItems constraint", () => {
@@ -481,8 +480,8 @@ describe("SchemaValidator", () => {
       "list:\n  - one",
     );
     const diags = validator.validate(doc, minItemsSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("validates nested object type when scalar provided", () => {
@@ -507,8 +506,8 @@ describe("SchemaValidator", () => {
       "config:\n  other: value",
     );
     const diags = validator.validate(doc, nestedSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("handles root-level validation error", () => {
@@ -527,8 +526,8 @@ describe("SchemaValidator", () => {
       "other: value",
     );
     const diags = validator.validate(doc, rootSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("handles error on non-existent nested path", () => {
@@ -557,8 +556,8 @@ describe("SchemaValidator", () => {
       "parent:\n  child: {}\n",
     );
     const diags = validator.validate(doc, nestedReqSchema);
-    expect(diags).to.have.lengthOf(1);
-    expect(diags[0].range).to.exist;
+    expect(diags).toHaveLength(1);
+    expect(diags[0].range).toBeDefined();
   });
 
   it("returns valid range when node found is undefined in path", () => {
@@ -577,9 +576,9 @@ describe("SchemaValidator", () => {
       "unknown_key: value\n",
     );
     const diags = validator.validate(doc, strictSchema);
-    expect(diags.length).to.be.greaterThan(0);
-    expect(diags[0].range.start).to.exist;
-    expect(diags[0].range.end).to.exist;
+    expect(diags.length).toBeGreaterThan(0);
+    expect(diags[0].range.start).toBeDefined();
+    expect(diags[0].range.end).toBeDefined();
   });
 });
 
@@ -687,7 +686,7 @@ describe("SchemaCompleter", () => {
     const doc = TextDocument.create("file:///test.yml", "yaml", 1, "");
     const items = completer.complete(doc, { line: 0, character: 0 }, objSchema);
     const configItem = items.find((i) => i.label === "config");
-    expect(configItem?.insertText).to.equal("config:\n  $1");
+    expect(configItem?.insertText).toBe("config:\n  $1");
   });
 
   it("returns empty when no schema properties", () => {
@@ -698,7 +697,7 @@ describe("SchemaCompleter", () => {
       { line: 0, character: 0 },
       emptySchema,
     );
-    expect(items).to.be.empty;
+    expect(items).toEqual([]);
   });
 
   it("handles map without matching key in getExistingKeys", () => {
@@ -732,7 +731,7 @@ describe("SchemaCompleter", () => {
       "\t\t\tinvalid",
     );
     const items = completer.complete(doc, { line: 0, character: 0 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles severely malformed YAML", () => {
@@ -743,7 +742,7 @@ describe("SchemaCompleter", () => {
       "---\n%invalid directive\n...",
     );
     const items = completer.complete(doc, { line: 0, character: 0 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles cursor inside a key value", () => {
@@ -754,7 +753,7 @@ describe("SchemaCompleter", () => {
       "author: some value here",
     );
     const items = completer.complete(doc, { line: 0, character: 10 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles cursor at key boundary", () => {
@@ -765,19 +764,19 @@ describe("SchemaCompleter", () => {
       "author: x\nversion: y\n",
     );
     const items = completer.complete(doc, { line: 0, character: 5 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles completion after colon", () => {
     const doc = TextDocument.create("file:///test.yml", "yaml", 1, "author:");
     const items = completer.complete(doc, { line: 0, character: 7 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles empty key scenario", () => {
     const doc = TextDocument.create("file:///test.yml", "yaml", 1, ": value");
     const items = completer.complete(doc, { line: 0, character: 0 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles multiline with cursor in middle", () => {
@@ -788,7 +787,7 @@ describe("SchemaCompleter", () => {
       "author: test\nversion: 1.0\ntags:\n  - one",
     );
     const items = completer.complete(doc, { line: 1, character: 8 }, schema);
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles schema with array property", () => {
@@ -819,7 +818,7 @@ describe("SchemaCompleter", () => {
     );
     const items = completer.complete(doc, { line: 1, character: 0 }, schema);
     // Should still filter out 'author' even with anchor syntax
-    expect(items).to.be.an("array");
+    expect(Array.isArray(items)).toBe(true);
   });
 
   it("handles non-map YAML content", () => {
@@ -842,6 +841,6 @@ describe("SchemaCompleter", () => {
       "author: me\n",
     );
     const items = completer.complete(doc, { line: 1, character: 0 }, schema);
-    expect(items.map((i) => i.label)).to.not.include("author");
+    expect(items.map((i) => i.label)).not.toContain("author");
   });
 });

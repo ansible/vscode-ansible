@@ -1,9 +1,9 @@
 require("assert");
 
-import { mapError } from "../../../../src/features/lightspeed/handleApiError";
+import { mapError } from "@src/features/lightspeed/handleApiError";
 import assert from "assert";
 import { integer } from "vscode-languageclient";
-import { HTTPError } from "../../../../src/features/lightspeed/utils/errors";
+import { HTTPError } from "@src/features/lightspeed/utils/errors";
 
 function createError(
   http_code: number,

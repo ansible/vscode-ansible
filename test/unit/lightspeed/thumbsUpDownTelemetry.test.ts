@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import type {
   PlaybookFeedbackEvent,
   RoleFeedbackEvent,
-} from "../../../src/interfaces/lightspeed";
-import { ThumbsUpDownAction } from "../../../src/definitions/lightspeed";
+} from "@src/interfaces/lightspeed";
+import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
 import { PROVIDER_TYPES, MODEL_NAMES } from "./testConstants";
-import { sendTelemetry } from "../../../src/utils/telemetryUtils";
+import { sendTelemetry } from "@src/utils/telemetryUtils";
 import type { TelemetryService } from "@redhat-developer/vscode-redhat-telemetry/lib";
 
 describe("Playbook Thumbs Up/Down Telemetry", () => {

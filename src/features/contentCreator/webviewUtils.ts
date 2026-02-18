@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ref, Ref } from "vue";
+import { ref } from "vue";
+import type { Ref } from "vue";
 import { vscodeApi } from "../../../webviews/lightspeed/src/utils";
 
-export interface CommonWebviewState {
+interface CommonWebviewState {
   homeDir: Ref<string>;
   logs: Ref<string>;
   logFileUrl: Ref<string>;
@@ -26,7 +27,7 @@ export function useCommonWebviewState(): CommonWebviewState {
   };
 }
 
-export interface MessageHandlerConfig {
+interface MessageHandlerConfig {
   onHomeDirectory?: (data: string) => void;
   onFolderSelected?: (data: string) => void;
   onFileSelected?: (data: string) => void;

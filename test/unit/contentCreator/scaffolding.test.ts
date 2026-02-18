@@ -13,13 +13,13 @@ vi.mock("vscode", () => ({
   },
 }));
 
-vi.mock("../../../src/extension", () => {
+vi.mock("@src/extension", () => {
   return {
     lightSpeedManager: {},
   };
 });
 
-vi.mock("../../../src/features/lightspeed/vue/views/fileOperations", () => {
+vi.mock("@src/features/lightspeed/vue/views/fileOperations", () => {
   class MockFileOperations {
     openLogFile = vi.fn();
     openFolderInWorkspaceDevcontainer = vi.fn();
@@ -30,20 +30,17 @@ vi.mock("../../../src/features/lightspeed/vue/views/fileOperations", () => {
   };
 });
 
-vi.mock(
-  "../../../src/features/lightspeed/vue/views/ansibleCreatorUtils",
-  () => {
-    class MockAnsibleCreatorOperations {
-      isADEPresent = vi.fn().mockResolvedValue(true);
-    }
-    return {
-      AnsibleCreatorOperations: MockAnsibleCreatorOperations,
-    };
-  },
-);
+vi.mock("@src/features/lightspeed/vue/views/ansibleCreatorUtils", () => {
+  class MockAnsibleCreatorOperations {
+    isADEPresent = vi.fn().mockResolvedValue(true);
+  }
+  return {
+    AnsibleCreatorOperations: MockAnsibleCreatorOperations,
+  };
+});
 
 import * as vscode from "vscode";
-import { WebviewMessageHandlers } from "../../../src/features/lightspeed/vue/views/webviewMessageHandlers";
+import { WebviewMessageHandlers } from "@src/features/lightspeed/vue/views/webviewMessageHandlers";
 
 describe("Content Creator Scaffolding", () => {
   let messageHandlers: WebviewMessageHandlers;

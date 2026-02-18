@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AnsibleContextProcessor } from "../../../src/features/lightspeed/ansibleContext.js";
-import type { AnsibleContext } from "../../../src/features/lightspeed/ansibleContext.js";
+import { AnsibleContextProcessor } from "@src/features/lightspeed/ansibleContext.js";
+import type { AnsibleContext } from "@src/features/lightspeed/ansibleContext.js";
 import { ANSIBLE_CONTENT, TEST_PROMPTS } from "./testConstants.js";
 
 describe("AnsibleContextProcessor", () => {

@@ -3,15 +3,14 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
-import tsdocPlugin from "eslint-plugin-tsdoc";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
-import pluginChaiFriendly from "eslint-plugin-chai-friendly";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import { createRequire } from "module";
+import importPlugin from "eslint-plugin-import";
 
 const require = createRequire(import.meta.url);
 const noUnsafeSpawnRule = require("./test/eslint/no-unsafe-spawn.cjs");
@@ -80,6 +79,7 @@ export default defineConfig(
       },
     },
   },
+  importPlugin.flatConfigs.recommended,
   eslint.configs.recommended,
   prettierRecommendedConfig,
   tseslint.configs.recommended,
@@ -91,6 +91,24 @@ export default defineConfig(
       "test/**/*.{js,ts,tsx}",
     ],
   })),
+  // Root .mjs config files: parse with TS parser but without project (not in tsconfig)
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2017,
+      },
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: "module",
+      },
+    },
+    rules: {
+      "import/no-unresolved": "off",
+    },
+  },
   {
     files: [
       "**/*.{js,ts,tsx}",
@@ -113,11 +131,27 @@ export default defineConfig(
     plugins: {
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
-      tsdoc: tsdocPlugin,
       "custom-rules": noUnsafeSpawnRule,
     },
     rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          name: "chai",
+          message:
+            "No direct import from chain, use vitest or node:assert alternatives.",
+        },
+      ],
+      // temporary until we address these
+      "import/enforce-node-protocol-usage": "off",
+      // "import/no-unresolved": [
+      //   "error",
+      //   { commonjs: true, ignore: ["^vitest/config", "uuid"] },
+      // ],
+      "import/no-named-as-default-member": "off",
+      // https://github.com/import-js/eslint-plugin-import/issues/3199
       eqeqeq: ["error", "smart"],
+      // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
@@ -150,7 +184,6 @@ export default defineConfig(
       "no-control-regex": "error",
       "no-empty-function": "error",
       "no-prototype-builtins": "error",
-      "tsdoc/syntax": "error",
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",
@@ -160,15 +193,12 @@ export default defineConfig(
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
     },
-  },
-  {
-    plugins: { "chai-friendly": pluginChaiFriendly },
-    files: ["**/test/**/*.{js,ts,tsx}"],
-    rules: {
-      "no-unused-expressions": "off",
-      "@typescript-eslint/no-unused-expressions": "off",
-      "@typescript-eslint/no-require-imports": "off",
-      "chai-friendly/no-unused-expressions": "error",
+    settings: {
+      // workaround for vscode imports in test files
+      "import/core-modules": ["vscode"],
+      "import/resolver": {
+        typescript: { alwaysTryTypes: true },
+      },
     },
   },
   {

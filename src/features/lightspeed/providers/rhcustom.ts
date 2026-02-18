@@ -29,7 +29,7 @@ import {
   OpenAIClientError,
 } from "../clients/openaiCompatibleClient";
 
-export interface RHCustomConfig {
+interface RHCustomConfig {
   apiKey: string;
   modelName: string;
   baseURL: string;
@@ -77,6 +77,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       if (error instanceof TypeError) {
         throw new Error(
           `Invalid base URL format: ${config.baseURL}. Please provide a valid URL (e.g., https://example.com).`,
+          { cause: error },
         );
       }
       throw error;

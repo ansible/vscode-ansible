@@ -1,13 +1,13 @@
-import { Position, Range, Uri, commands } from "vscode";
+import { Position, Range, Uri, commands, workspace } from "vscode";
 import {
   activate,
   getDocUriOutsideWorkspace,
   testDiagnostics,
   testHover,
-  waitForDiagnosisCompletion,
+  waitForDiagnosticsFromSource,
+  clearActivationCache,
 } from "../e2e.utils";
-import { workspace } from "vscode";
-import { expect } from "chai";
+import assert from "node:assert/strict";
 import { integer } from "vscode-languageclient";
 
 describe("language services for a playbook that is present outside a workspace", function () {
@@ -16,13 +16,14 @@ describe("language services for a playbook that is present outside a workspace",
 
   before(async function () {
     await commands.executeCommand("workbench.action.closeAllEditors");
+    clearActivationCache();
     await activate(docUri);
   });
 
   it("should confirm that file is present outside the workspace", function () {
     const docUri = Uri.parse(getDocUriOutsideWorkspace(playbook));
     const workspaceFolder = workspace.getWorkspaceFolder(docUri);
-    expect(workspaceFolder).to.be.undefined;
+    assert.strictEqual(workspaceFolder, undefined);
   });
 
   describe("hover functionality", function () {
@@ -47,26 +48,37 @@ describe("language services for a playbook that is present outside a workspace",
 
   describe("diagnostics functionality", function () {
     it("should complain about no task names", async function () {
+      // Re-activate to ensure fresh validation state for diagnostics test
+      // This is important for files outside the workspace where the language
+      // server may need explicit triggering
+      await activate(docUri);
       await commands.executeCommand("workbench.action.files.save");
-      // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint
-      // may take time to start, especially on WSL
-      await waitForDiagnosisCompletion(150, 7000, 3000);
 
-      await testDiagnostics(docUri, [
-        {
-          severity: 0,
-          message: "All tasks should be named.",
-          range: new Range(
-            new Position(3, 0),
-            new Position(3, integer.MAX_VALUE),
-          ),
-          source: "ansible-lint",
-        },
-      ]);
+      // Wait for ansible-lint diagnostics to appear directly instead of relying
+      // on process detection, which is unreliable on WSL. Use a generous timeout
+      // (20s) to handle slow CI environments.
+      await waitForDiagnosticsFromSource(docUri, "ansible-lint", 1, 20000);
+
+      await testDiagnostics(
+        docUri,
+        [
+          {
+            severity: 0,
+            message: "All tasks should be named.",
+            range: new Range(
+              new Position(3, 0),
+              new Position(3, integer.MAX_VALUE),
+            ),
+            source: "ansible-lint",
+          },
+        ],
+        5000, // Additional poll timeout as fallback
+      );
     });
   });
 
   after(async function () {
     await commands.executeCommand("workbench.action.closeAllEditors");
+    clearActivationCache();
   });
 });

@@ -585,18 +585,27 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "--no-input",
         );
 
-        let terminal;
+        let terminal: vscode.Terminal;
         if (
           vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal
         ) {
-          terminal = vscode.window.terminals.find(
-            (terminal) => terminal.name === "Ansible Terminal",
-          ) as vscode.Terminal;
+          const existing = vscode.window.terminals.find(
+            (t) => t.name === "Ansible Terminal",
+          );
+          if (existing) {
+            terminal = existing;
+          } else {
+            terminal = vscode.window.createTerminal({
+              name: "Ansible Terminal",
+              env: env,
+            });
+          }
+        } else {
+          terminal = vscode.window.createTerminal({
+            name: "Ansible Terminal",
+            env: env,
+          });
         }
-        terminal = vscode.window.createTerminal({
-          name: "Ansible Terminal",
-          env: env,
-        });
         terminal.show();
         terminal.sendText(command);
       },

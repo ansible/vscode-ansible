@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { LightspeedExplorerWebviewViewProvider } from "../../../src/features/lightspeed/explorerWebviewViewProvider";
+import { LightspeedExplorerWebviewViewProvider } from "@src/features/lightspeed/explorerWebviewViewProvider";
 
 // Mock WebviewHelper
-vi.mock("../../../src/features/lightspeed/vue/views/helper", () => ({
+vi.mock("@src/features/lightspeed/vue/views/helper", () => ({
   WebviewHelper: {
     setupHtml: vi.fn(() => "<html>Mock Explorer HTML</html>"),
     setupWebviewHooks: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock("../../../src/features/lightspeed/vue/views/helper", () => ({
 }));
 
 // Import after mocks
-import { WebviewHelper } from "../../../src/features/lightspeed/vue/views/helper";
+import { WebviewHelper } from "@src/features/lightspeed/vue/views/helper";
 
 describe("LightspeedExplorerWebviewViewProvider", () => {
   let provider: LightspeedExplorerWebviewViewProvider;

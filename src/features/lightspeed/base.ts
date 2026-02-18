@@ -7,6 +7,7 @@ import {
   IDocumentTracker,
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
+  IVarsFileContext,
 } from "../../interfaces/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
@@ -14,7 +15,6 @@ import {
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
-import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";

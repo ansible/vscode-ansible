@@ -17,7 +17,7 @@ export interface ProviderMetadata {
   isExplanation?: boolean;
 }
 
-export interface HttpError {
+interface HttpError {
   status?: number;
   message?: string;
 }

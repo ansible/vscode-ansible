@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { LLMProviderFactory } from "../../../../src/features/lightspeed/providers/factory.js";
-import type { ProviderType } from "../../../../src/definitions/lightspeed.d.ts";
+import { LLMProviderFactory } from "@src/features/lightspeed/providers/factory.js";
+import type { ProviderType } from "@src/definitions/lightspeed.d.ts";
 import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "../testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
@@ -18,7 +18,7 @@ const mockCleanAnsibleOutput = vi.fn((output: string) => {
 });
 
 // Use vi.mock for ES modules - these are hoisted
-vi.mock("../../../../../src/features/lightspeed/ansibleContext", () => ({
+vi.mock("../@src/features/lightspeed/ansibleContext", () => ({
   AnsibleContextProcessor: {
     enhancePromptForAnsible: mockEnhancePromptForAnsible,
     cleanAnsibleOutput: mockCleanAnsibleOutput,
