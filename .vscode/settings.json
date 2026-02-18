@@ -48,6 +48,9 @@
   "editor.formatOnSave": true,
   "eslint.useESLintClass": true,
   "explorer.fileNesting.enabled": true,
+  "files.associations": {
+    "**/tsconfig*.json": "jsonc"
+  },
   "files.exclude": {
     ".task": true,
     ".vscode-test": true,

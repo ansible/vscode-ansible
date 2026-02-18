@@ -90,17 +90,6 @@ repos:
       - id: fix-byte-order-marker
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
-      - id: check-json
-        # does not support JSON with comments
-        exclude: >
-          (?x)^(
-            .vscode/settings.json|
-            jinja-language-configuration.json|
-            ansible-language-configuration.json|
-            packages/ansible-language-server/.vscode/.*|
-            packages/ansible-language-server/tsconfig.json|
-            test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
-          )$
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook

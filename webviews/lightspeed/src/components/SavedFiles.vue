@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { vscodeApi } from '../utils';
 import { GenerationListEntry } from '../../../../src/interfaces/lightspeed';
 
@@ -11,32 +11,28 @@ interface IWriteRoleInWorkspaceOutputEntry {
     command: string,
 }
 
-interface IWriteRoleInWorkspaceResponse {
-    data: IWriteRoleInWorkspaceOutputEntry[],
-    roleLocation?: string,
-}
-
-
 const props = defineProps<{
     files: GenerationListEntry[],
     roleName: string,
     collectionName: string
 }>();
 
-
 const roleLocation = ref<string>('');
+const savedFiles = ref<IWriteRoleInWorkspaceOutputEntry[]>([]);
 
 async function writeRoleInWorkspace() {
     return vscodeApi.postAndReceive('writeRoleInWorkspace', {
         files: props.files.map((i) => [i.path, i.content, i.file_type]),
         collectionName: props.collectionName,
         roleName: props.roleName
-    }).then((data: any) => {
+    }).then((data: unknown) => {
         return data as IWriteRoleInWorkspaceOutputEntry[];
     });
 }
 
-const savedFiles = await writeRoleInWorkspace();
+onMounted(async () => {
+    savedFiles.value = await writeRoleInWorkspace();
+});
 </script>
 
 <template>
