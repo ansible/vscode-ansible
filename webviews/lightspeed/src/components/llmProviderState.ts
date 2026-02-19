@@ -1,5 +1,5 @@
-import { onMounted, ref } from 'vue';
-import { vscodeApi } from '../utils';
+import { onMounted, ref } from "vue";
+import { vscodeApi } from "../utils";
 
 // Types
 export interface ConfigSchemaField {
@@ -26,7 +26,7 @@ type ProviderConfig = Record<string, string>;
 
 export function useProviderSettings() {
   const providers = ref<ProviderInfo[]>([]);
-  const activeProvider = ref<string>('wca');
+  const activeProvider = ref<string>("wca");
   const editingProvider = ref<string | null>(null);
   const isLoading = ref<boolean>(true);
   const saveIndicatorVisible = ref<boolean>(false);
@@ -60,7 +60,7 @@ export function useProviderSettings() {
     if (!provider || !original || !current) return false;
 
     for (const field of provider.configSchema) {
-      if ((current[field.key] || '') !== (original[field.key] || '')) {
+      if ((current[field.key] || "") !== (original[field.key] || "")) {
         return true;
       }
     }
@@ -68,11 +68,8 @@ export function useProviderSettings() {
   };
 
   // Get config value for a field
-  const getConfigValue = (
-    providerType: string,
-    fieldKey: string,
-  ): string => {
-    return providerConfigs.value[providerType]?.[fieldKey] || '';
+  const getConfigValue = (providerType: string, fieldKey: string): string => {
+    return providerConfigs.value[providerType]?.[fieldKey] || "";
   };
 
   // Set config value for a field
@@ -90,7 +87,7 @@ export function useProviderSettings() {
   // Methods
   const loadProviderSettings = () => {
     vscodeApi.postMessage({
-      command: 'getProviderSettings',
+      command: "getProviderSettings",
     });
   };
 
@@ -106,7 +103,7 @@ export function useProviderSettings() {
 
     // Only activate the provider
     vscodeApi.postMessage({
-      command: 'activateProvider',
+      command: "activateProvider",
       provider: providerType,
     });
 
@@ -142,9 +139,9 @@ export function useProviderSettings() {
         providerInfo?.configSchema.forEach((field) => {
           // Use defaultEndpoint for apiEndpoint field, empty string for others
           config[field.key] =
-            field.key === 'apiEndpoint'
-              ? (providerInfo?.defaultEndpoint || '')
-              : '';
+            field.key === "apiEndpoint"
+              ? providerInfo?.defaultEndpoint || ""
+              : "";
         });
         providerConfigs.value[providerType] = config;
       }
@@ -167,11 +164,11 @@ export function useProviderSettings() {
     // Build config object from configSchema fields
     const configToSend: Record<string, string> = {};
     provider.configSchema.forEach((field) => {
-      configToSend[field.key] = config[field.key] || '';
+      configToSend[field.key] = config[field.key] || "";
     });
 
     vscodeApi.postMessage({
-      command: 'saveProviderSettings',
+      command: "saveProviderSettings",
       provider: providerType,
       config: configToSend,
     });
@@ -192,7 +189,7 @@ export function useProviderSettings() {
     activeProvider.value = providerType;
 
     vscodeApi.postMessage({
-      command: 'connectProvider',
+      command: "connectProvider",
       provider: providerType,
     });
   };
@@ -202,9 +199,9 @@ export function useProviderSettings() {
     const message = event.data;
 
     switch (message.command) {
-      case 'providerSettings': {
+      case "providerSettings": {
         providers.value = message.providers || [];
-        activeProvider.value = message.currentProvider || 'wca';
+        activeProvider.value = message.currentProvider || "wca";
         connectionStatuses.value = message.connectionStatuses || {};
 
         // Load configs for ALL providers from backend, using configSchema as the field source
@@ -216,11 +213,11 @@ export function useProviderSettings() {
 
           // Initialize each field from configSchema with backend value or default
           provider.configSchema.forEach((field) => {
-            if (field.key === 'apiEndpoint') {
+            if (field.key === "apiEndpoint") {
               config[field.key] =
-                backendConfig[field.key] || provider.defaultEndpoint || '';
+                backendConfig[field.key] || provider.defaultEndpoint || "";
             } else {
-              config[field.key] = backendConfig[field.key] || '';
+              config[field.key] = backendConfig[field.key] || "";
             }
           });
 
@@ -234,7 +231,7 @@ export function useProviderSettings() {
         break;
       }
 
-      case 'connectionResult':
+      case "connectionResult":
         connectingProvider.value = null;
         if (message.connected) {
           connectionStatuses.value[message.provider] = true;
@@ -250,7 +247,7 @@ export function useProviderSettings() {
 
   onMounted(() => {
     loadProviderSettings();
-    window.addEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
   });
 
   return {
