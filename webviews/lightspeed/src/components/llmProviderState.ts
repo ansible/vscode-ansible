@@ -225,7 +225,7 @@ export function useProviderSettings() {
           });
 
           providerConfigs.value[provider.type] = config;
-          
+
           originalConfigs.value[provider.type] = { ...config };
         });
 
