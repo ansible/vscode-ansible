@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { existsSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 
 export class AnsibleMcpServerProvider {
   private static readonly MCP_SERVER_NAME =
     "Ansible Development Tools MCP Server";
+  private static readonly MCP_PACKAGE_NAME = "@ansible/ansible-mcp-server";
 
   private extensionPath: string;
   private didChangeEmitter = new vscode.EventEmitter<void>();
@@ -136,46 +137,41 @@ export class AnsibleMcpServerProvider {
   }
 
   /**
-   * Find the CLI path - checks local node_modules/.bin first, then PATH
+   * Find the CLI path using Node.js module resolution.
+   * This avoids hardcoded paths and uses the package's bin entry point.
    */
   private findCliPath(): string | null {
-    // First, try to find in local node_modules/.bin (for development)
-    const localBinPath = path.join(
-      this.extensionPath,
-      "node_modules",
-      ".bin",
-      "ansible-mcp-server",
-    );
-    if (existsSync(localBinPath)) {
-      try {
-        const stats = statSync(localBinPath);
+    try {
+      // Use createRequire to resolve the package from the extension's context
+      const require = createRequire(
+        path.join(this.extensionPath, "package.json"),
+      );
+
+      // Resolve the main module of the MCP server package
+      const packageMainPath = require.resolve(
+        AnsibleMcpServerProvider.MCP_PACKAGE_NAME,
+      );
+
+      // The CLI is in the same directory as the main module (server.js -> cli.js)
+      const packageDir = path.dirname(packageMainPath);
+      const cliPath = path.join(packageDir, "cli.js");
+
+      if (fs.existsSync(cliPath)) {
+        const stats = fs.statSync(cliPath);
         if (stats.isFile()) {
-          console.log(`Found MCP server CLI at: ${localBinPath}`);
-          return localBinPath;
+          console.log(`Found MCP server CLI via module resolution: ${cliPath}`);
+          return cliPath;
         }
-      } catch (error) {
-        console.error(`Error checking local CLI path: ${error}`);
       }
+
+      console.error(
+        `MCP server CLI not found at resolved path: ${cliPath}`,
+      );
+      return null;
+    } catch (error) {
+      console.error(`Failed to resolve MCP server package: ${error}`);
+      return null;
     }
-    return null;
-  }
-
-  /**
-   * Find the project root by looking for package.json
-   */
-  private findProjectRoot(startPath: string): string {
-    let currentPath = startPath;
-
-    while (currentPath !== path.dirname(currentPath)) {
-      const packageJsonPath = path.join(currentPath, "package.json");
-      if (fs.existsSync(packageJsonPath)) {
-        return currentPath;
-      }
-      currentPath = path.dirname(currentPath);
-    }
-
-    // If not found, return the original path
-    return startPath;
   }
 
   /**
