@@ -24,6 +24,7 @@ export default defineConfig(
     ignores: [
       // do not add ignores here, .yarn is special case as is not our code
       ".yarn/*",
+      ".venv/*",
       // TODO: remove
       "media/walkthroughs/**/*.html",
       "webviews/**/*.html",
@@ -100,7 +101,7 @@ export default defineConfig(
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/prefer-promise-reject-errors": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-base-to-string": "off",
+      "@typescript-eslint/no-base-to-string": "error",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-redundant-type-constituents": "off",
       "@typescript-eslint/no-confusing-void-expression": "off",
@@ -141,10 +142,12 @@ export default defineConfig(
     },
   },
   {
-    // Test files: unbound-method is noisy (expect(mock.method).toHaveBeenCalledWith etc.)
-    files: ["test/**/*.{js,ts,tsx}"],
+    // Test files rules are more relaxed for convenience
+    files: ["**/test/**/*.{js,ts,tsx}"],
     rules: {
+      // unbound-method is noisy (expect(mock.method).toHaveBeenCalledWith etc.
       "@typescript-eslint/unbound-method": "off",
+      "@typescript-eslint/no-base-to-string": "off",
     },
   },
 );
