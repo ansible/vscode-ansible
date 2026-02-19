@@ -8,6 +8,7 @@
 .idea
 .nyc_output
 .pytest_cache
+.venv
 *.pyc
 *.pyo
 .task
