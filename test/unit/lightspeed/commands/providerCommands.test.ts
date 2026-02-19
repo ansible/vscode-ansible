@@ -343,14 +343,8 @@ describe("ProviderCommands", () => {
       );
 
       // Verify LlmProviderSettings updates
-      const setProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.setProvider,
-      );
-      const set = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.set,
-      );
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
+      const set = vi.mocked(mockLlmProviderSettings.set);
       expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
       expect(set).toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
@@ -418,16 +412,10 @@ describe("ProviderCommands", () => {
       await (providerCommands as any).configureLlmProvider();
 
       expect(vscode.window.showInputBox).toHaveBeenCalled();
-      const setProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.setProvider,
-      );
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
       expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
       // Should not update apiKey or refresh providers if cancelled
-      const set = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.set,
-      );
+      const set = vi.mocked(mockLlmProviderSettings.set);
       expect(set).not.toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
         "apiKey",
@@ -493,10 +481,7 @@ describe("ProviderCommands", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
-      const set = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.set,
-      );
+      const set = vi.mocked(mockLlmProviderSettings.set);
       expect(set).toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
         "apiEndpoint",
@@ -770,10 +755,7 @@ describe("ProviderCommands", () => {
       );
 
       // Verify LlmProviderSettings was used for provider
-      const setProvider = vi.mocked(
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        mockLlmProviderSettings.setProvider,
-      );
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
       expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
       // Verify VS Code config was used for enabled
       expect(mockConfig.update).toHaveBeenCalledWith(

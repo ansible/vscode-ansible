@@ -65,7 +65,7 @@ export class LlmProviderPanel {
     this.messageHandlers.sendProviderSettings();
   }
 
-   // Renders the LLM Provider panel or reveals it if already open.
+  // Renders the LLM Provider panel or reveals it if already open.
   public static render(
     context: ExtensionContext,
     deps: LlmProviderDependencies,

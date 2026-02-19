@@ -100,13 +100,9 @@ describe("LlmProviderMessageHandlers", () => {
   const mockedWindow = vi.mocked(window);
 
   const mockedGetSupportedProviders = vi.mocked(
-    // eslint-disable-next-line @typescript-eslint/unbound-method
     providerFactory.getSupportedProviders,
   );
-  const mockedCreateProvider = vi.mocked(
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    providerFactory.createProvider,
-  );
+  const mockedCreateProvider = vi.mocked(providerFactory.createProvider);
 
   beforeEach(() => {
     vi.clearAllMocks();

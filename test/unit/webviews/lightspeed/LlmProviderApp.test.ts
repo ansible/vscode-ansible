@@ -71,7 +71,8 @@ describe("LlmProviderApp", () => {
         type: "wca",
         name: "wca",
         displayName: "IBM watsonx",
-        description: "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+        description:
+          "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
         defaultEndpoint: "https://c.ai.ansible.redhat.com",
         configSchema: [
           {
