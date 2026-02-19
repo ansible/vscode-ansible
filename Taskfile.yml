@@ -226,6 +226,7 @@ tasks:
       - pyproject.toml
       - test/ui-selenium/**/*
       - uv.lock
+      - "out/data/ansible-latest.vsix"
     generates:
       - out/junit/ui-selenium-test-results.xml
     cmds:
@@ -263,6 +264,7 @@ tasks:
       - yarn.lock
     generates:
       - "out/*.vsix"
+      - "out/data/ansible-latest.vsix"
       - "out/@ansible-ansible-mcp-server*.tgz"
       - "out/@ansible-ansible-language-server*.tgz"
     cmds:
