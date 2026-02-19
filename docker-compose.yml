@@ -13,7 +13,7 @@ services:
       - "5999:5999"
     volumes:
       # apparently podman does not want to mount file as container root
-      - ${VSX_FILE:-./out/data/ansible-latest.vsix}:/data/ansible-latest.vsix:ro
+      - ${VSX_FILE:-./out/data/ansible-latest.vsix}:/home/selenium/ansible-latest.vsix:ro
       - ./.vscode-test/user-data/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw
       - ./out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw
     restart: "no"
