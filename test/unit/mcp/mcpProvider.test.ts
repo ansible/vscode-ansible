@@ -9,6 +9,7 @@ import { AnsibleMcpServerProvider } from "@src/utils/mcpProvider";
 vi.mock("fs", () => ({
   default: {
     existsSync: vi.fn(),
+    statSync: vi.fn(),
     accessSync: vi.fn(),
     constants: {
       F_OK: 0,
@@ -16,6 +17,7 @@ vi.mock("fs", () => ({
     },
   },
   existsSync: vi.fn(),
+  statSync: vi.fn(),
   accessSync: vi.fn(),
   constants: {
     F_OK: 0,
@@ -248,6 +250,132 @@ describe("AnsibleMcpServerProvider", function () {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
       const result = (provider as any).findProjectRoot(workspaceRoot);
       expect(result).toBe(projectRoot);
+    });
+  });
+
+  describe("findCliPath - CLI discovery for packaged and development environments", function () {
+    it("should find CLI at packaged path (out/mcp/cli.js)", function () {
+      const expectedPackagedPath = path.join(
+        mockExtensionPath,
+        "out/mcp/cli.js",
+      );
+
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === expectedPackagedPath,
+      );
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => true,
+      } as fs.Stats);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBe(expectedPackagedPath);
+    });
+
+    it("should fall back to development path when packaged path not found", function () {
+      const workspaceRoot = "/workspace/project";
+      const expectedDevPath = path.join(
+        workspaceRoot,
+        "packages/ansible-mcp-server/out/server/src/cli.js",
+      );
+      const packageJsonPath = path.join(workspaceRoot, "package.json");
+      const packagedPath = path.join(mockExtensionPath, "out/mcp/cli.js");
+
+      // Mock workspace folders
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [
+          {
+            uri: { fsPath: workspaceRoot } as vscode.Uri,
+            name: "project",
+            index: 0,
+          },
+        ],
+        configurable: true,
+      });
+
+      // Mock fs.existsSync for both CLI path checking and findProjectRoot
+      vi.mocked(fs.existsSync).mockImplementation((filePath) => {
+        const fp = filePath.toString();
+        // Packaged path doesn't exist
+        if (fp === packagedPath) {
+          return false;
+        }
+        // Development path exists
+        if (fp === expectedDevPath) {
+          return true;
+        }
+        // package.json at workspace root (for findProjectRoot)
+        if (fp === packageJsonPath) {
+          return true;
+        }
+        return false;
+      });
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => true,
+      } as fs.Stats);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBe(expectedDevPath);
+    });
+
+    it("should return null when CLI not found at either location", function () {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
+    });
+
+    it("should prioritize packaged path over development path", function () {
+      const workspaceRoot = "/workspace/project";
+      const packagedPath = path.join(mockExtensionPath, "out/mcp/cli.js");
+      const devPath = path.join(
+        workspaceRoot,
+        "packages/ansible-mcp-server/out/server/src/cli.js",
+      );
+
+      // Mock workspace folders
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [
+          {
+            uri: { fsPath: workspaceRoot } as vscode.Uri,
+            name: "project",
+            index: 0,
+          },
+        ],
+        configurable: true,
+      });
+
+      // Both paths exist
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) =>
+          filePath.toString() === packagedPath ||
+          filePath.toString() === devPath,
+      );
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => true,
+      } as fs.Stats);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      // Should return packaged path since it's checked first
+      expect(result).toBe(packagedPath);
+    });
+
+    it("should handle statSync errors gracefully", function () {
+      const packagedPath = path.join(mockExtensionPath, "out/mcp/cli.js");
+
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === packagedPath,
+      );
+      vi.mocked(fs.statSync).mockImplementation(() => {
+        throw new Error("Permission denied");
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
     });
   });
 });
