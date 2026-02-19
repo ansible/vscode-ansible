@@ -17,9 +17,7 @@ export class LlmProviderPanel {
   private _disposables: Disposable[] = [];
   private readonly messageHandlers: LlmProviderMessageHandlers;
 
-  /**
-   * Get panel title based on active provider.
-   */
+  // Get panel title based on active provider.
   private static getPanelTitle(deps: LlmProviderDependencies): string {
     const activeProviderType =
       deps.settingsManager.settings.lightSpeedService.provider;
@@ -67,9 +65,7 @@ export class LlmProviderPanel {
     this.messageHandlers.sendProviderSettings();
   }
 
-  /**
-   * Renders the LLM Provider panel or reveals it if already open.
-   */
+   // Renders the LLM Provider panel or reveals it if already open.
   public static render(
     context: ExtensionContext,
     deps: LlmProviderDependencies,
