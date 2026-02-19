@@ -13,13 +13,14 @@ from pathlib import Path
 
 import pytest
 
+from test.selenium.const import CONTAINER_NAME
 from test.selenium.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
 
 # Project root (vscode-ansible), assuming conftest at test/selenium/conftest.py
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__package__)
+logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
 pytest_plugins = [
     # For screenshot_on_fail - must be loaded before fixtures that import it
@@ -83,8 +84,26 @@ def pytest_sessionfinish(
     session: pytest.Session, exitstatus: pytest.ExitCode
 ) -> None:  # pragma: no cover
     """Teardown the selenium server after tests on CI."""
-    subprocess.run(
-        "podman-compose stats --no-stream --no-reset", check=False, shell=True
+    result = subprocess.run(
+        f"podman-compose stats --no-stream --no-reset {CONTAINER_NAME}",
+        text=True,
+        capture_output=True,
+        check=False,
+        shell=True,
     )
+    if result.returncode:
+        logger.info("podman-compose stats :\n%s\n%s", result.stdout, result.stderr)
     if os.environ.get("CI"):
-        subprocess.run("podman-compose down", check=False, shell=True)
+        result = subprocess.run(
+            f"podman stop {CONTAINER_NAME} 2>/dev/null || true",
+            # Apparently compose down can fail with various errors but stopping container works
+            # "podman-compose down",
+            capture_output=True,
+            check=False,
+            shell=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            logger.error(
+                "Failed to stop selenium server:\n%s\n%s", result.stdout, result.stderr
+            )

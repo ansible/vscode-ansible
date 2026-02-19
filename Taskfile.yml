@@ -230,7 +230,19 @@ tasks:
     generates:
       - out/junit/ui-selenium-test-results.xml
     cmds:
-      - pytest {{.CLI_ARGS}}
+      - >
+        pytest
+        -m=vscode
+        --cov-branch
+        --cov-context=test
+        --cov-report=term-missing
+        --cov-report=xml:out/coverage/ui-selenium/coverage.xml
+        --cov=test
+        --junit-xml=out/junit/ui-selenium-test-results.xml
+        --no-cov-on-fail
+        {{.CLI_ARGS}}
+      # --reruns-delay=120
+      # --reruns=3
       - defer: podman-compose down
     interactive: true
   unit:

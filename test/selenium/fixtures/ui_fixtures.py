@@ -1,6 +1,6 @@
 """This module is a fixtures for the ui testing."""
 
-# cspell: ignore capmanager capturemanager pluginmanager getplugin
+# cspell: ignore capmanager capturemanager pluginmanager getplugin healthcheck
 # pylint: disable=E0401
 import contextlib
 import logging
@@ -15,6 +15,8 @@ import pytest
 from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
+
+from test.selenium.const import CONTAINER_NAME
 
 if TYPE_CHECKING:
     from _pytest.capture import CaptureManager
@@ -31,7 +33,19 @@ from test.selenium.utils.ui_utils import (
 )
 
 # Initialize logging
-log = logging.getLogger(__name__)
+log = logging.getLogger(__package__)
+
+
+def is_container_healthy() -> bool:
+    """Check if the selenium container is healthy."""
+    result = subprocess.run(
+        f"podman healthcheck run {CONTAINER_NAME}",
+        shell=True,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    return result.returncode == 0
 
 
 @pytest.fixture(scope="session")
@@ -46,15 +60,33 @@ def browser_setup(
     capmanager: CaptureManager = request.config.pluginmanager.getplugin(
         "capturemanager"
     )  # type: ignore[name-defined]
-    log.info(
-        "Starting selenium server at http://localhost:4444 and vnc://localhost:5999"
-    )
-    with capmanager.global_and_fixture_disabled():
+    if not is_container_healthy():
         subprocess.run(
-            "podman-compose up --remove-orphans --timeout 5 -d selenium-vscode",
-            check=True,
+            f"podman stop {CONTAINER_NAME} 2>/dev/null || true",
             shell=True,
+            check=False,
+            text=True,
+            capture_output=True,
         )
+        log.info(
+            "Starting selenium server at http://localhost:4444 and vnc://localhost:5999"
+        )
+        with capmanager.global_and_fixture_disabled():
+            subprocess.run(
+                f"podman-compose up --quiet-pull --remove-orphans --timeout 5 -d {CONTAINER_NAME}",
+                check=True,
+                shell=True,
+            )
+        count = 0
+        while True:
+            if is_container_healthy():
+                break
+            count += 1
+            time.sleep(1)
+            log.info(
+                "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
+            )
+
     browser = os.environ.get("BROWSER_TYPE")
     options: ArgOptions  # type: ignore[name-defined]
     if browser == "chrome":
