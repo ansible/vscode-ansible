@@ -4,6 +4,7 @@ import { activate, sleep, updateSettings, clearActivationCache } from "../e2e.ut
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import * as path from "path";
+import { createRequire } from "node:module";
 import { PROJECT_ROOT } from "../../setup";
 
 describe("MCP server activation and availability (AAP-64488)", function () {
@@ -24,34 +25,49 @@ describe("MCP server activation and availability (AAP-64488)", function () {
   });
 
   describe("MCP server CLI availability", function () {
-    it("should have MCP CLI available at packaged path (out/mcp/cli.js)", function () {
+    it("should have MCP server package resolvable via module resolution", function () {
       const extension = vscode.extensions.getExtension("redhat.ansible");
       assert.ok(extension, "Extension should be found");
 
       const extensionPath = extension.extensionPath;
-      const packagedCliPath = path.join(extensionPath, "out", "mcp", "cli.js");
 
-      // In the built/packaged extension, CLI should be at out/mcp/cli.js
-      // During development, it may be at packages/ansible-mcp-server/out/server/src/cli.js
-      const devCliPath = path.join(
-        extensionPath,
-        "packages",
-        "ansible-mcp-server",
-        "out",
-        "server",
-        "src",
-        "cli.js",
-      );
+      // The MCP server should be resolvable via Node.js module resolution
+      // from the extension's context
+      try {
+        const require = createRequire(path.join(extensionPath, "package.json"));
+        const serverPath = require.resolve("@ansible/ansible-mcp-server");
+        assert.ok(serverPath, "MCP server package should be resolvable");
 
-      const hasPackagedCli = existsSync(packagedCliPath);
-      const hasDevCli = existsSync(devCliPath);
+        // CLI should be in the same directory as the main module
+        const cliPath = path.join(path.dirname(serverPath), "cli.js");
+        assert.ok(
+          existsSync(cliPath),
+          `MCP CLI should exist at: ${cliPath}`,
+        );
+      } catch (error) {
+        // If module resolution fails, check for legacy paths as fallback
+        const packagedCliPath = path.join(extensionPath, "out", "mcp", "cli.js");
+        const devCliPath = path.join(
+          extensionPath,
+          "packages",
+          "ansible-mcp-server",
+          "out",
+          "server",
+          "src",
+          "cli.js",
+        );
 
-      assert.ok(
-        hasPackagedCli || hasDevCli,
-        `MCP CLI should exist at either:\n` +
-          `  - Packaged: ${packagedCliPath} (exists: ${hasPackagedCli})\n` +
-          `  - Development: ${devCliPath} (exists: ${hasDevCli})`,
-      );
+        const hasPackagedCli = existsSync(packagedCliPath);
+        const hasDevCli = existsSync(devCliPath);
+
+        assert.ok(
+          hasPackagedCli || hasDevCli,
+          `MCP CLI should be resolvable via module resolution or exist at:\n` +
+            `  - Packaged: ${packagedCliPath} (exists: ${hasPackagedCli})\n` +
+            `  - Development: ${devCliPath} (exists: ${hasDevCli})\n` +
+            `  - Module resolution error: ${error}`,
+        );
+      }
     });
   });
 
