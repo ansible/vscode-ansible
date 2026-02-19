@@ -365,7 +365,7 @@ describe("LlmProviderApp", () => {
 
     it("logs error on failed connection", async () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(vi.fn());
-      const wrapper = mount(LlmProviderApp);
+      mount(LlmProviderApp);
       await flushPromises();
 
       const mockProviders = [

@@ -22,7 +22,7 @@ export interface ProviderInfo {
   requiresApiKey?: boolean;
 }
 
-export type ProviderConfig = Record<string, string>;
+type ProviderConfig = Record<string, string>;
 
 export function useProviderSettings() {
   const providers = ref<ProviderInfo[]>([]);
