@@ -226,10 +226,23 @@ tasks:
       - pyproject.toml
       - test/ui-selenium/**/*
       - uv.lock
+      - "out/data/ansible-latest.vsix"
     generates:
       - out/junit/ui-selenium-test-results.xml
     cmds:
-      - pytest {{.CLI_ARGS}}
+      - >
+        pytest
+        -m=vscode
+        --cov-branch
+        --cov-context=test
+        --cov-report=term-missing
+        --cov-report=xml:out/coverage/ui-selenium/coverage.xml
+        --cov=test
+        --junit-xml=out/junit/ui-selenium-test-results.xml
+        --no-cov-on-fail
+        {{.CLI_ARGS}}
+      # --reruns-delay=120
+      # --reruns=3
       - defer: podman-compose down
     interactive: true
   unit:
@@ -263,6 +276,7 @@ tasks:
       - yarn.lock
     generates:
       - "out/*.vsix"
+      - "out/data/ansible-latest.vsix"
       - "out/@ansible-ansible-mcp-server*.tgz"
       - "out/@ansible-ansible-language-server*.tgz"
     cmds:

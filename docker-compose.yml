@@ -2,7 +2,6 @@
 
 # Override VSIX path: VSX_FILE=./out/ansible-1.2.3.vsix
 # cspell: ignore healthcheck
-version: "3.8"
 services:
   selenium-vscode:
     image: quay.io/tshinhar/selenium-vscode-multi:latest
@@ -13,7 +12,8 @@ services:
       - "4444:4444"
       - "5999:5999"
     volumes:
-      - ${VSX_FILE:-./out/ansible-latest.vsix}:/ansible-latest.vsix:ro
+      # apparently podman does not want to mount file as container root
+      - ${VSX_FILE:-./out/data/ansible-latest.vsix}:/data/ansible-latest.vsix:ro
       - ./.vscode-test/user-data/User/settings.json:/home/selenium/.local/share/code-server/User/settings.json:rw
       - ./out/ui-selenium/logs:/home/selenium/.local/share/code-server/logs:rw
     restart: "no"

@@ -62,21 +62,7 @@ exclude = "(.ansible|out|syntaxes).*"
 [tool.pytest]
 # do not add options here as this will likely break either console runs or IDE
 # integration like vscode or pycharm
-addopts = [
-  "--cov-branch",  # no parallel support with selenium
-  "--cov-context=test",
-  "--cov-report=term-missing",
-  "--cov-report=xml:out/coverage/ui-selenium/coverage.xml",
-  "--cov=test",
-  "--durations=10",
-  "--junit-xml=out/junit/ui-selenium-test-results.xml",
-  "--no-cov-on-fail",
-  "--reruns-delay=120",
-  "--reruns=3",
-  "-m=vscode",
-  "-n0",
-  "-v"
-]
+addopts = ["--durations-min=10", "--durations=10", "-n0", "-v"]
 filterwarnings = [
   "error",
   "once::pytest.PytestWarning",

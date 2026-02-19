@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__package__)
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 USER_SETTINGS_PATH = PROJECT_ROOT / ".vscode-test/user-data/User/settings.json"

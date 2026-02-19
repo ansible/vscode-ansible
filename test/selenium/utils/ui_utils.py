@@ -400,7 +400,7 @@ def vscode_install_vsix(driver: WebDriver) -> None:
             vscode_run_command(driver, ">Extensions: Install from VSix")
             vsix_file = wait_displayed(
                 driver,
-                "//span[text()='ansible-latest.vsix']",
+                "//span[text()='/data/ansible-latest.vsix']",
                 timeout=10,
             )
             vsix_file.click()
