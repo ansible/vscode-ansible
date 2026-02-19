@@ -131,7 +131,7 @@ describe("LLMProviderFactory", () => {
       expect(wcaProvider).toBeDefined();
       expect(wcaProvider?.type).toBe(PROVIDER_TYPES.WCA);
       expect(wcaProvider?.name).toBe("wca");
-      expect(wcaProvider?.displayName).toContain("Red Hat Ansible Lightspeed");
+      expect(wcaProvider?.displayName).toContain("IBM watsonx");
     });
 
     it("should include Google provider", () => {

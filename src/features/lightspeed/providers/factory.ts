@@ -48,6 +48,7 @@ export class LLMProviderFactory implements ProviderFactory {
             `Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.`,
           );
         }
+
         return new GoogleProvider({
           apiKey: config.apiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
@@ -66,11 +67,13 @@ export class LLMProviderFactory implements ProviderFactory {
       {
         type: "wca",
         name: "wca",
-        displayName:
-          "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+        displayName: "IBM watsonx",
         description:
           "Official Red Hat Ansible Lightspeed service with IBM watsonx Code Assistant",
         defaultEndpoint: WCA_API_ENDPOINT_DEFAULT,
+        defaultModel: undefined, // WCA uses organization default
+        usesOAuth: true,
+        requiresApiKey: false,
         configSchema: [
           {
             key: "apiEndpoint",
@@ -88,13 +91,25 @@ export class LLMProviderFactory implements ProviderFactory {
         displayName: "Google Gemini",
         description: "Direct access to Google Gemini models",
         defaultEndpoint: GOOGLE_API_ENDPOINT,
+        defaultModel: GOOGLE_DEFAULT_MODEL,
+        usesOAuth: false,
+        requiresApiKey: true,
         configSchema: [
+          {
+            key: "apiEndpoint",
+            label: "API Endpoint",
+            type: "string",
+            required: false,
+            placeholder: GOOGLE_API_ENDPOINT,
+            description:
+              "API endpoint URL (leave empty for default, only localhost URLs supported for testing)",
+          },
           {
             key: "apiKey",
             label: "API Key",
             type: "password",
             required: true,
-            placeholder: "AIza...",
+            placeholder: "",
             description: "Your Google AI API key",
           },
           {

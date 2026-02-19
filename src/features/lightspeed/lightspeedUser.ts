@@ -412,8 +412,9 @@ export class LightspeedUser {
     }
 
     // Skip user details check for LLM providers (only needed for WCA)
+    // But allow if explicitly requesting auth (createIfNone = true)
     const provider = this._settingsManager.settings.lightSpeedService.provider;
-    if (provider && provider !== "wca") {
+    if (!createIfNone && provider && provider !== "wca") {
       return undefined;
     }
     if (

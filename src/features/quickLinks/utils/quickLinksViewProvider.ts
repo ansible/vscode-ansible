@@ -8,13 +8,17 @@ import {
   WebviewViewResolveContext,
 } from "vscode";
 import { getSystemDetails } from "../../utils/getSystemDetails";
+import { LlmProviderSettings } from "../../lightspeed/llmProviderSettings";
+import { providerFactory } from "../../lightspeed/providers/factory";
 
 export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "ansible-home";
+  private _webviewView: WebviewView | undefined;
 
   constructor(
     private readonly _extensionUri: Uri,
     private readonly _context: ExtensionContext,
+    private readonly _llmProviderSettings?: LlmProviderSettings,
   ) {
     // no action
   }
@@ -26,6 +30,8 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _token: CancellationToken,
   ) {
+    this._webviewView = webviewView;
+
     // Allow scripts in the webview
     webviewView.webview.options = {
       // Enable JavaScript in the webview
@@ -44,6 +50,15 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
       webviewView.webview,
       this._extensionUri,
     );
+  }
+
+  /**
+   * Refresh the webview with updated provider info
+   */
+  public refreshProviderInfo() {
+    if (this._webviewView && this._llmProviderSettings) {
+      this.sendActiveProviderInfo(this._webviewView.webview);
+    }
   }
 
   private _getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
@@ -76,7 +91,37 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
           command: "systemDetails",
           arguments: currentSystemInfo,
         });
+      } else if (command === "getActiveProvider") {
+        this.sendActiveProviderInfo(webview);
       }
     }, undefined);
+  }
+
+  private sendActiveProviderInfo(webview: Webview) {
+    if (!this._llmProviderSettings) {
+      webview.postMessage({
+        command: "activeProviderInfo",
+        providerType: "wca",
+        providerDisplayName: "Watson Code Assistant",
+        isConnected: false,
+      });
+      return;
+    }
+
+    const providerType = this._llmProviderSettings.getProvider();
+    const isConnected =
+      this._llmProviderSettings.getConnectionStatus(providerType);
+
+    // Get display name from provider factory
+    const providers = providerFactory.getSupportedProviders();
+    const providerInfo = providers.find((p) => p.type === providerType);
+    const displayName = providerInfo?.displayName || providerType;
+
+    webview.postMessage({
+      command: "activeProviderInfo",
+      providerType: providerType,
+      providerDisplayName: displayName,
+      isConnected: isConnected,
+    });
   }
 }
