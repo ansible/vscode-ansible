@@ -45,8 +45,8 @@ const requirementFailures = ref([]);
 
 const isFormValid = computed(() => {
   return (
-    namespace.value.trim() !== "" &&
-    collectionName.value.trim() !== "" &&
+    namespace.value.trim().length > 2 &&
+    collectionName.value.trim().length > 2 &&
     (initPath.value.trim() !== "" || defaultInitPath.value.trim() !== "")
   );
 });
@@ -79,12 +79,12 @@ const handleCreate = createActionWrapper(
   commonState.createButtonDisabled,
   () => {
     const actualInitPath = initPath.value.trim() || defaultInitPath.value;
-    const actualLogFilePath = commonState.logFilePath.value || commonState.defaultLogFilePath.value;
+    const actualLogFilePath = (commonState.logFilePath.value || commonState.defaultLogFilePath.value || '').trim();
 
     const payload = {
       initPath: actualInitPath,
-      namespaceName: namespace.value,
-      collectionName: collectionName.value,
+      namespaceName: namespace.value.trim(),
+      collectionName: collectionName.value.trim(),
       verbosity: verbosity.value,
       logToFile: logToFile.value,
       logFileAppend: logFileAppend.value,

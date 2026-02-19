@@ -127,15 +127,14 @@ describe("CollectionSelector", () => {
   });
 
   it("emits update:collectionName when selection changes", async () => {
-    let wrapper: VueWrapper<InstanceType<typeof CollectionSelector>>;
-    wrapper = mount(CollectionSelector, {
+    const wrapper = mount(CollectionSelector, {
       props: {
         collectionName: "",
         "onUpdate:collectionName": (value: string | undefined): void => {
           wrapper.setProps({ collectionName: value ?? "" });
         },
       },
-    });
+    }) as VueWrapper<InstanceType<typeof CollectionSelector>>;
 
     const onCalls = vi.mocked(vscodeApi.on).mock.calls;
     const collectionHandler = onCalls.find(

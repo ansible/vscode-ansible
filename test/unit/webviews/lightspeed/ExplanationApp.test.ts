@@ -149,9 +149,7 @@ describe("ExplanationApp", () => {
       )?.[1];
 
       setRoleDataHandler?.({
-        files: [
-          { path: "tasks/main.yml", content: "- debug: msg=hello" },
-        ],
+        files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         roleName: "my_role",
       });
       await flushPromises();
@@ -169,9 +167,7 @@ describe("ExplanationApp", () => {
         (call) => call[0] === "setRoleData",
       )?.[1];
       setRoleDataHandler?.({
-        files: [
-          { path: "tasks/main.yml", content: "- debug: msg=hello" },
-        ],
+        files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         roleName: "my_role",
       });
       await flushPromises();

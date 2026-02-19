@@ -65,6 +65,7 @@ app.use(PrimeVue, {
   },
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mutationObserver = new MutationObserver((mutationsList, observer) => {
   const isDark = document
     .querySelector("body")
@@ -79,22 +80,22 @@ app.component("ProgressSpinner", ProgressSpinner);
 app.mount("#app");
 
 // Set up message handlers for explorer commands
-vscodeApi.on('connect', () => {
-  vscodeApi.post('command', { command: 'connect' });
+vscodeApi.on("connect", () => {
+  vscodeApi.post("command", { command: "connect" });
 });
 
-vscodeApi.on('generate', () => {
-  vscodeApi.post('command', { command: 'generate' });
+vscodeApi.on("generate", () => {
+  vscodeApi.post("command", { command: "generate" });
 });
 
-vscodeApi.on('explain', () => {
-  vscodeApi.post('command', { command: 'explain' });
+vscodeApi.on("explain", () => {
+  vscodeApi.post("command", { command: "explain" });
 });
 
-vscodeApi.on('generateRole', () => {
-  vscodeApi.post('command', { command: 'generateRole' });
+vscodeApi.on("generateRole", () => {
+  vscodeApi.post("command", { command: "generateRole" });
 });
 
-vscodeApi.on('explainRole', () => {
-  vscodeApi.post('command', { command: 'explainRole' });
+vscodeApi.on("explainRole", () => {
+  vscodeApi.post("command", { command: "explainRole" });
 });

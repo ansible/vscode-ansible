@@ -7,131 +7,70 @@ import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
-import html from "@html-eslint/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
-
+import { includeIgnoreFile } from "@eslint/compat";
 const require = createRequire(import.meta.url);
-const noUnsafeSpawnRule = require("./test/eslint/no-unsafe-spawn.cjs");
+const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
+const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
+  includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
   {
     ignores: [
-      "**/.mocharc.js",
-      "**/.vscode-test/*",
-      "**/coverage/**",
-      "**/dist/",
-      "**/out/",
-      ".ansible/*",
-      ".cache/*",
-      ".trunk/*",
-      ".venv/*",
-      ".vscode-test/*",
+      // do not add ignores here, .yarn is special case as is not our code
       ".yarn/*",
-      "commitlint.config.js",
+      // TODO: remove
       "media/walkthroughs/**/*.html",
-      "site/*",
-      "webviews/**",
-      "test/unit/webviews/lightspeed/**",
-      "test/unit/webviews/vitestSetup.ts",
+      "webviews/**/*.html",
     ],
   },
+  ...[
+    importPlugin.flatConfigs.recommended,
+    eslint.configs.recommended,
+    prettierRecommendedConfig,
+    tseslint.configs.recommended,
+    tseslint.configs.strict,
+    // TODO: enable later
+    // tseslint.configs.stylistic,
+  ],
   {
-    // Configuration for ESLint rule files (TypeScript)
-    // Must come before TypeScript configs to override parser
-    files: ["test/eslint/**/*.ts"],
+    // .mjs files (e.g. .vscode-test.mjs): TS parser without project (not in tsconfig)
+    files: ["**/*.mjs", ".*.mjs"],
     languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.es2017,
-      },
-      // Use TypeScript parser for rule files, but without project for type checking
-      // since rule files don't need full type checking
+      globals: { ...globals.node, ...globals.es2022 },
       parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "module",
-      },
+      parserOptions: { ecmaVersion: 2022, sourceType: "module" },
     },
-    rules: {
-      // Allow some TypeScript-specific rules for rule files, but disable strict ones
-      "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/no-unsafe-call": "off",
-      "@typescript-eslint/no-unsafe-return": "off",
-      "@typescript-eslint/no-unsafe-argument": "off",
-    },
+    rules: { "import/no-unresolved": "off" },
   },
   {
-    // CommonJS rule file: Node globals (module, require, exports)
-    files: ["test/eslint/**/*.cjs"],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "script",
-      },
-    },
-  },
-  importPlugin.flatConfigs.recommended,
-  eslint.configs.recommended,
-  prettierRecommendedConfig,
-  tseslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked.map((config) => ({
-    ...config,
+    /** Files that use type-aware linting (TS/JS in src, packages, test). */
     files: [
       "**/*.{js,ts,tsx}",
       "packages/**/*.{js,ts,tsx}",
-      "test/**/*.{js,ts,tsx}",
-    ],
-  })),
-  // Root .mjs config files: parse with TS parser but without project (not in tsconfig)
-  {
-    files: ["**/*.mjs"],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.es2017,
-      },
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 2022,
-        sourceType: "module",
-      },
-    },
-    rules: {
-      "import/no-unresolved": "off",
-    },
-  },
-  {
-    files: [
-      "**/*.{js,ts,tsx}",
-      "packages/**/*.{js,ts,tsx}",
-      "test/**/*.{js,ts,tsx}",
+      "test/**/*.{js,ts,tsx,cjs}",
     ],
     languageOptions: {
       globals: {
+        ...globals.browser,
         ...globals.node,
         ...globals.mocha,
         ...globals.commonjs,
-        ...globals.es2017,
+        ...globals.es2022,
       },
       parser: tsParser,
       parserOptions: {
-        project: true,
+        projectService: true,
         tsconfigRootDir: __dirname,
       },
     },
     plugins: {
-      // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
-      // "@typescript-eslint": ts,
-      "custom-rules": noUnsafeSpawnRule,
+      local: eslintPluginLocal,
     },
     rules: {
       "no-restricted-imports": [
@@ -178,7 +117,7 @@ export default defineConfig(
       "@typescript-eslint/await-thenable": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
       "@typescript-eslint/only-throw-error": "off",
-      "custom-rules/no-unsafe-spawn": "error",
+      "local/no-unsafe-spawn": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
       "no-control-regex": "error",
@@ -202,24 +141,10 @@ export default defineConfig(
     },
   },
   {
-    // Special configuration for MCP server package
-    files: ["packages/ansible-mcp-server/**/*.{js,ts,tsx}"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ["./packages/ansible-mcp-server/tsconfig.json"],
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
-  {
-    files: ["**/*.html"],
-    plugins: {
-      "@html-eslint": html,
-    },
+    // Test files: unbound-method is noisy (expect(mock.method).toHaveBeenCalledWith etc.)
+    files: ["test/**/*.{js,ts,tsx}"],
     rules: {
-      ...html.configs["flat/recommended"].rules,
-      "@html-eslint/indent": ["error", 2],
+      "@typescript-eslint/unbound-method": "off",
     },
   },
 );

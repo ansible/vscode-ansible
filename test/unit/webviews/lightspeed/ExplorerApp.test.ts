@@ -105,7 +105,9 @@ describe("ExplorerApp", () => {
       await flushPromises();
 
       expect(
-        wrapper.find("#lightspeed-explorer-playbook-generation-submit").exists(),
+        wrapper
+          .find("#lightspeed-explorer-playbook-generation-submit")
+          .exists(),
       ).toBe(true);
       expect(
         wrapper
@@ -275,9 +277,7 @@ describe("ExplorerApp", () => {
       await flushPromises();
 
       // Button should now be enabled
-      button = wrapper.find(
-        "#lightspeed-explorer-playbook-explanation-submit",
-      );
+      button = wrapper.find("#lightspeed-explorer-playbook-explanation-submit");
       const disabledAttr = button.attributes("disabled");
       expect(
         disabledAttr === undefined || disabledAttr === "false",
@@ -300,9 +300,7 @@ describe("ExplorerApp", () => {
       await flushPromises();
 
       // Button should be disabled
-      let button = wrapper.find(
-        "#lightspeed-explorer-role-explanation-submit",
-      );
+      let button = wrapper.find("#lightspeed-explorer-role-explanation-submit");
       expect(button.attributes("disabled")).toBeDefined();
 
       // Simulate state change
