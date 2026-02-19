@@ -147,7 +147,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
         await commands.executeCommand("ansible.mcpServer.enabled");
         // If no error thrown, command executed successfully
         assert.ok(true, "MCP enable command executed successfully");
-      } catch (error) {
+      } catch {
         // Command may show info message about already enabled, which is fine
         assert.ok(true, "MCP enable command responded");
       }
