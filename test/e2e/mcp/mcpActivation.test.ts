@@ -1,5 +1,4 @@
-import * as vscode from "vscode";
-import { commands, workspace } from "vscode";
+import { commands, extensions, Uri, workspace } from "vscode";
 import { activate, sleep, updateSettings, clearActivationCache } from "../e2e.utils";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
@@ -8,7 +7,7 @@ import { createRequire } from "node:module";
 import { PROJECT_ROOT } from "../../setup";
 
 describe("MCP server activation and availability (AAP-64488)", function () {
-  const playbookPath = vscode.Uri.file(
+  const playbookPath = Uri.file(
     path.resolve(PROJECT_ROOT, "test", "testFixtures", "diagnostics", "playbook_1.yml"),
   );
 
@@ -26,7 +25,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
 
   describe("MCP server CLI availability", function () {
     it("should have MCP server package resolvable via module resolution", function () {
-      const extension = vscode.extensions.getExtension("redhat.ansible");
+      const extension = extensions.getExtension("redhat.ansible");
       assert.ok(extension, "Extension should be found");
 
       const extensionPath = extension.extensionPath;
@@ -132,7 +131,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
       // The MCP provider is registered via vscode.lm.registerMcpServerDefinitionProvider
       // We can't directly query registered providers, but we can verify the extension
       // exports indicate successful activation
-      const extension = vscode.extensions.getExtension("redhat.ansible");
+      const extension = extensions.getExtension("redhat.ansible");
       assert.ok(extension, "Extension should be found");
       assert.ok(extension.isActive, "Extension should be active");
     });
