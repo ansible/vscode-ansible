@@ -98,8 +98,7 @@ export default defineConfig({
       include: [
         "src/**/**.{js,jsx,ts,tsx}",
         "webviews/**/*.{ts,vue}",
-        "test/**/*.{ts,tsx}",
-      ], // Include source files, webviews, and tests for coverage
+      ], // Include source files and webviews for coverage
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: "./out/coverage/unit",
