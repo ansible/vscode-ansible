@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
-import * as path from "path";
 import type { McpServerDefinition } from "vscode";
 import * as vscode from "vscode";
 import { AnsibleMcpServerProvider } from "@src/utils/mcpProvider";
@@ -9,6 +8,7 @@ import { AnsibleMcpServerProvider } from "@src/utils/mcpProvider";
 vi.mock("fs", () => ({
   default: {
     existsSync: vi.fn(),
+    statSync: vi.fn(),
     accessSync: vi.fn(),
     constants: {
       F_OK: 0,
@@ -16,11 +16,20 @@ vi.mock("fs", () => ({
     },
   },
   existsSync: vi.fn(),
+  statSync: vi.fn(),
   accessSync: vi.fn(),
   constants: {
     F_OK: 0,
     R_OK: 4,
   },
+}));
+
+// Mock node:module for createRequire
+const mockRequireResolve = vi.fn();
+vi.mock("node:module", () => ({
+  createRequire: vi.fn(() => ({
+    resolve: mockRequireResolve,
+  })),
 }));
 
 describe("AnsibleMcpServerProvider", function () {
@@ -34,6 +43,9 @@ describe("AnsibleMcpServerProvider", function () {
 
     // Setup default mocks
     mockGetConfiguration = vi.mocked(vscode.workspace.getConfiguration);
+
+    // Reset the require.resolve mock
+    mockRequireResolve.mockReset();
 
     provider = new AnsibleMcpServerProvider(mockExtensionPath);
   });
@@ -201,53 +213,93 @@ describe("AnsibleMcpServerProvider", function () {
     });
   });
 
-  describe("findProjectRoot - locating project root by traversing up directory tree", function () {
-    it("should find project root when package.json exists", function () {
-      const startPath = "/some/nested/path";
-      const projectRoot = "/some";
+  describe("findCliPath - CLI discovery via module resolution", function () {
+    it("should find CLI via module resolution", function () {
+      const resolvedServerPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
+      const expectedCliPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
 
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          // Return true for package.json at project root
-          if (filePath === path.join(projectRoot, "package.json")) {
-            return true;
-          }
-          // Also return true for package.json at startPath to test the search logic
-          if (filePath === path.join(startPath, "package.json")) {
-            return false;
-          }
-          return false;
-        },
+      // Mock require.resolve to return the server module path
+      mockRequireResolve.mockReturnValue(resolvedServerPath);
+
+      // Mock fs to verify CLI exists
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === expectedCliPath,
       );
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => true,
+      } as fs.Stats);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (provider as any).findProjectRoot(startPath);
-      expect(result).toBe(projectRoot);
+      const result = (provider as any).findCliPath();
+      expect(result).toBe(expectedCliPath);
+      expect(mockRequireResolve).toHaveBeenCalledWith(
+        "@ansible/ansible-mcp-server",
+      );
     });
 
-    it("should return start path when package.json is not found", function () {
-      const startPath = "/some/nested/path";
-
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
+    it("should return null when package cannot be resolved", function () {
+      // Mock require.resolve to throw (package not found)
+      mockRequireResolve.mockImplementation(() => {
+        throw new Error("Cannot find module '@ansible/ansible-mcp-server'");
+      });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (provider as any).findProjectRoot(startPath);
-      expect(result).toBe(startPath);
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
     });
 
-    it("should find project root at workspace root when package.json exists there", function () {
-      const workspaceRoot = "/workspace/root";
-      const projectRoot = "/workspace/root";
+    it("should return null when CLI file does not exist at resolved path", function () {
+      const resolvedServerPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
 
-      (fs.existsSync as ReturnType<typeof vi.fn>).mockImplementation(
-        (filePath: string) => {
-          return filePath === path.join(projectRoot, "package.json");
-        },
+      mockRequireResolve.mockReturnValue(resolvedServerPath);
+
+      // CLI file doesn't exist
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
+    });
+
+    it("should handle statSync errors gracefully", function () {
+      const resolvedServerPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
+      const expectedCliPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
+
+      mockRequireResolve.mockReturnValue(resolvedServerPath);
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === expectedCliPath,
       );
+      vi.mocked(fs.statSync).mockImplementation(() => {
+        throw new Error("Permission denied");
+      });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accessing private method for testing
-      const result = (provider as any).findProjectRoot(workspaceRoot);
-      expect(result).toBe(projectRoot);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
+    });
+
+    it("should return null when resolved file is not a file", function () {
+      const resolvedServerPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
+      const expectedCliPath =
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
+
+      mockRequireResolve.mockReturnValue(resolvedServerPath);
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === expectedCliPath,
+      );
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => false, // It's a directory, not a file
+      } as fs.Stats);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBeNull();
     });
   });
 });

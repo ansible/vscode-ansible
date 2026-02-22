@@ -12,7 +12,6 @@ const config: KnipConfig = {
   },
   includeEntryExports: true,
   ignoreDependencies: [
-    "@ansible/ansible-mcp-server",
     "@biomejs/biome",
     "@tomjs/vite-plugin-vue",
     "@types/vscode",
