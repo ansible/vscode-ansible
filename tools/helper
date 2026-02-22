@@ -3,12 +3,12 @@
 """Utility that helps with extension building and testing."""
 
 import argparse
-import glob
 import logging
 import pathlib
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 
 
 def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
@@ -127,7 +127,8 @@ def cli() -> None:
         sys.exit(0)
     pre_release_arg = "--pre-release" if pre_release else ""
     if opt.publish:
-        vsix_files = glob.glob("out/*.vsix")
+        # glob pattern does match ansible-latest.vsix on purpose
+        vsix_files = list(Path("out").glob("ansible-[0-9]*.vsix"))
         if len(vsix_files) != 1:
             msg = (
                 "Publish command requires presence of exactly one '.vsix' on disk, found:"
@@ -160,6 +161,10 @@ def cli() -> None:
         run(
             f"vsce package --no-update-package-json --out={vsix_file} {pre_release_arg} {version}"
         )
+        vsix_file_fixed = Path("out/data/ansible-latest.vsix")
+        vsix_file_fixed.parent.mkdir(parents=True, exist_ok=True)
+        vsix_file_fixed.unlink(missing_ok=True)
+        vsix_file_fixed.hardlink_to(Path(vsix_file))
         # --yarn needed to avoid a warning message as package.json config does not prevent it
         # run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
