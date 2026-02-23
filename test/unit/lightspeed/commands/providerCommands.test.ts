@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { ProviderCommands } from "@src/features/lightspeed/commands/providerCommands";
-import type { LightSpeedManager } from "@src/features/lightspeed/base";
-import type { ProviderManager } from "@src/features/lightspeed/providerManager";
-import { ProviderStatus } from "@src/features/lightspeed/providers/base";
+import { ProviderCommands } from "../../../../src/features/lightspeed/commands/providerCommands";
+import type { LightSpeedManager } from "../../../../src/features/lightspeed/base";
+import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
+import type { LlmProviderSettings } from "../../../../src/features/lightspeed/llmProviderSettings";
+import { ProviderStatus } from "../../../../src/features/lightspeed/providers/base";
 import {
   PROVIDER_TYPES,
   TEST_API_KEYS,
@@ -54,6 +55,7 @@ describe("ProviderCommands", () => {
   let mockContext: vscode.ExtensionContext;
   let mockLightSpeedManager: LightSpeedManager;
   let mockProviderManager: ProviderManager;
+  let mockLlmProviderSettings: LlmProviderSettings;
   let mockSubscriptions: vscode.Disposable[];
 
   beforeEach(() => {
@@ -82,6 +84,31 @@ describe("ProviderCommands", () => {
       },
     } as unknown as LightSpeedManager;
 
+    // Setup mock LLM provider settings
+    mockLlmProviderSettings = {
+      getProvider: vi.fn().mockReturnValue("wca"),
+      setProvider: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockImplementation((provider: string, key: string) => {
+        if (key === "apiEndpoint")
+          return Promise.resolve("https://c.ai.ansible.redhat.com");
+        if (key === "modelName") return Promise.resolve("");
+        if (key === "apiKey") return Promise.resolve("");
+        return Promise.resolve("");
+      }),
+      set: vi.fn().mockResolvedValue(undefined),
+      setApiEndpoint: vi.fn().mockResolvedValue(undefined),
+      getApiKey: vi.fn().mockResolvedValue(""),
+      setApiKey: vi.fn().mockResolvedValue(undefined),
+      getAllSettings: vi.fn().mockResolvedValue({
+        provider: "wca",
+        modelName: undefined,
+        apiEndpoint: "https://c.ai.ansible.redhat.com",
+        apiKey: "",
+      }),
+      setAllSettings: vi.fn().mockResolvedValue(undefined),
+      clearAllSettings: vi.fn().mockResolvedValue(undefined),
+    } as unknown as LlmProviderSettings;
+
     // Setup mock workspace configuration
     const mockConfig = {
       get: vi.fn(),
@@ -91,7 +118,11 @@ describe("ProviderCommands", () => {
       mockConfig as unknown as vscode.WorkspaceConfiguration,
     );
 
-    providerCommands = new ProviderCommands(mockContext, mockLightSpeedManager);
+    providerCommands = new ProviderCommands(
+      mockContext,
+      mockLightSpeedManager,
+      mockLlmProviderSettings,
+    );
   });
 
   describe("registerCommands", () => {
@@ -311,16 +342,14 @@ describe("ProviderCommands", () => {
         },
       );
 
-      // Verify configuration updates
-      expect(mockConfig.update).toHaveBeenCalledWith(
-        "provider",
+      // Verify LlmProviderSettings updates
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
+      const set = vi.mocked(mockLlmProviderSettings.set);
+      expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
+      expect(set).toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
-        vscode.ConfigurationTarget.Workspace,
-      );
-      expect(mockConfig.update).toHaveBeenCalledWith(
         "apiKey",
         TEST_API_KEYS.GOOGLE,
-        vscode.ConfigurationTarget.Workspace,
       );
       const refreshProviders = vi.mocked(mockProviderManager.refreshProviders);
       expect(refreshProviders).toHaveBeenCalled();
@@ -383,15 +412,13 @@ describe("ProviderCommands", () => {
       await (providerCommands as any).configureLlmProvider();
 
       expect(vscode.window.showInputBox).toHaveBeenCalled();
-      expect(mockConfig.update).toHaveBeenCalledWith(
-        "provider",
-        PROVIDER_TYPES.GOOGLE,
-        vscode.ConfigurationTarget.Workspace,
-      );
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
+      expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
       // Should not update apiKey or refresh providers if cancelled
-      expect(mockConfig.update).not.toHaveBeenCalledWith(
+      const set = vi.mocked(mockLlmProviderSettings.set);
+      expect(set).not.toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
         "apiKey",
-        expect.anything(),
         expect.anything(),
       );
       const refreshProviders4 = vi.mocked(mockProviderManager.refreshProviders);
@@ -454,10 +481,11 @@ describe("ProviderCommands", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
-      expect(mockConfig.update).toHaveBeenCalledWith(
+      const set = vi.mocked(mockLlmProviderSettings.set);
+      expect(set).toHaveBeenCalledWith(
+        PROVIDER_TYPES.GOOGLE,
         "apiEndpoint",
         "https://generativelanguage.googleapis.com/v1beta",
-        vscode.ConfigurationTarget.Workspace,
       );
     });
 
@@ -726,11 +754,10 @@ describe("ProviderCommands", () => {
         },
       );
 
-      expect(mockConfig.update).toHaveBeenCalledWith(
-        "provider",
-        PROVIDER_TYPES.GOOGLE,
-        vscode.ConfigurationTarget.Workspace,
-      );
+      // Verify LlmProviderSettings was used for provider
+      const setProvider = vi.mocked(mockLlmProviderSettings.setProvider);
+      expect(setProvider).toHaveBeenCalledWith(PROVIDER_TYPES.GOOGLE);
+      // Verify VS Code config was used for enabled
       expect(mockConfig.update).toHaveBeenCalledWith(
         "enabled",
         true,

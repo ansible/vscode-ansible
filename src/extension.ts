@@ -4,12 +4,7 @@ import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
-import {
-  LightSpeedCommands,
-  UserAction,
-  GOOGLE_API_ENDPOINT,
-  WCA_API_ENDPOINT_DEFAULT,
-} from "./definitions/lightspeed";
+import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -63,6 +58,7 @@ import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
+import { LlmProviderPanel } from "./features/lightspeed/vue/views/llmProviderPanel";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
@@ -85,6 +81,7 @@ import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { ProviderCommands } from "./features/lightspeed/commands/providerCommands";
+import { LlmProviderSettings } from "./features/lightspeed/llmProviderSettings";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
@@ -118,8 +115,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const telemetry = new TelemetryManager(context);
   await telemetry.initTelemetryService();
 
+  // Initialize LLM provider settings (uses globalState and secrets)
+  const llmProviderSettings = new LlmProviderSettings(context);
+
   // Initialize settings
   const extSettings = new SettingsManager();
+  extSettings.setLlmProviderSettings(llmProviderSettings);
   await extSettings.initialize();
 
   // Vault encrypt/decrypt handler
@@ -200,10 +201,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
   /**
    * Handle "Ansible Lightspeed" in the extension
    */
-  lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
+  lightSpeedManager = new LightSpeedManager(
+    context,
+    extSettings,
+    telemetry,
+    llmProviderSettings,
+  );
 
   // Register provider management commands
-  const providerCommands = new ProviderCommands(context, lightSpeedManager);
+  const providerCommands = new ProviderCommands(
+    context,
+    lightSpeedManager,
+    llmProviderSettings,
+  );
   providerCommands.registerCommands();
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
@@ -350,8 +360,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }
-        // Send explorer state update when editor changes
-        await updateExplorerState(lightSpeedManager);
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );
@@ -406,41 +415,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
         );
       }
 
-      // Check if Lightspeed provider changed - refresh explorer panel and set apiEndpoint
-      if (event.affectsConfiguration("ansible.lightspeed.provider")) {
-        const config = workspace.getConfiguration("ansible.lightspeed");
-        const provider = config.get<string>("provider");
-
-        // Determine the configuration target (folder takes precedence over workspace, which takes precedence over global)
-        const providerInspect = config.inspect<string>("provider");
-        let configTarget: vscode.ConfigurationTarget | undefined;
-
-        if (providerInspect?.workspaceFolderValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.WorkspaceFolder;
-        } else if (providerInspect?.workspaceValue !== undefined) {
-          configTarget = vscode.ConfigurationTarget.Workspace;
-        } else {
-          configTarget = vscode.ConfigurationTarget.Global;
-        }
-
-        // Auto-set apiEndpoint based on provider type
-        if (provider === "google") {
-          await config.update("apiEndpoint", GOOGLE_API_ENDPOINT, configTarget);
-        } else if (provider === "wca") {
-          // For WCA, use default if not set; otherwise keep user's value (for on-prem)
-          const currentEndpoint = config.get<string>("apiEndpoint");
-          if (!currentEndpoint || currentEndpoint.trim() === "") {
-            await config.update(
-              "apiEndpoint",
-              WCA_API_ENDPOINT_DEFAULT,
-              configTarget,
-            );
-          }
-          // If endpoint is already set, keep it (user's custom on-prem WCA deployment)
-        }
-        await updateExplorerState(lightSpeedManager);
-      }
-
       await updateConfigurationChanges(
         metaData,
         pythonInterpreterManager,
@@ -468,26 +442,43 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
+  // Initialize QuickLinks provider early so it's available in auth callback
+  const quickLinksHome = new QuickLinksWebviewViewProvider(
+    context.extensionUri,
+    context,
+    llmProviderSettings,
+  );
+
   context.subscriptions.push(
     vscode.authentication.onDidChangeSessions(async (e) => {
       if (!LightspeedUser.isLightspeedUserAuthProviderType(e.provider.id)) {
         return;
       }
       await lightSpeedManager.lightspeedAuthenticatedUser.refreshLightspeedUser();
-      if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
+      const isAuthenticated =
+        await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+
+      if (!isAuthenticated) {
         lightSpeedManager.currentModelValue = undefined;
       }
+
+      // Update WCA connection status based on auth state
+      await llmProviderSettings.setConnectionStatus(isAuthenticated, "wca");
+
+      // Refresh LLM Provider Panel if it's open
+      if (LlmProviderPanel.currentPanel) {
+        await LlmProviderPanel.currentPanel.refreshWebView();
+      }
+
+      // Refresh QuickLinks sidebar to update provider status
+      quickLinksHome.refreshProviderInfo();
+
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      await updateExplorerState(lightSpeedManager);
+      lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
-  );
-
-  const quickLinksHome = new QuickLinksWebviewViewProvider(
-    context.extensionUri,
-    context,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(
@@ -496,6 +487,22 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(quickLinksDisposable);
+
+  // Register LLM Provider Settings panel command
+  const openLlmProviderSettingsCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_OPEN_LLM_PROVIDER_SETTINGS,
+    () => {
+      LlmProviderPanel.render(context, {
+        settingsManager: extSettings,
+        providerManager: lightSpeedManager.providerManager,
+        llmProviderSettings: llmProviderSettings,
+        lightspeedUser: lightSpeedManager.lightspeedAuthenticatedUser,
+        quickLinksProvider: quickLinksHome,
+      });
+    },
+  );
+
+  context.subscriptions.push(openLlmProviderSettingsCommand);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
@@ -984,7 +991,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       async () => {
         console.log("Refreshing Lightspeed Explorer View");
         await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
-        await updateExplorerState(lightSpeedManager);
+        lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       },
     ),
   );
@@ -1223,15 +1230,6 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
-}
-
-/**
- * Updates the explorer state and sends it to the explorer webview if it's open
- */
-async function updateExplorerState(
-  lightSpeedManager: LightSpeedManager,
-): Promise<void> {
-  lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
 }
 
 const handleMcpServerConfigurationChange = async (
