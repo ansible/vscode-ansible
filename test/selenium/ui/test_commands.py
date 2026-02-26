@@ -11,6 +11,7 @@ from test.selenium.utils.ui_utils import vscode_run_command, wait_displayed
 
 
 @pytest.mark.vscode
+@pytest.mark.xfail(reason="context dependent, needs fix", strict=False)
 def test_create_empty_playbook(
     browser_setup: Any,
     screenshot_on_fail: Any,

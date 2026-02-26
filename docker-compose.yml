@@ -4,8 +4,8 @@
 # cspell: ignore healthcheck
 services:
   selenium-vscode:
-    image: quay.io/tshinhar/selenium-vscode-multi:latest
-    pull_policy: missing
+    image: ghcr.io/ansible/selenium-adt:main
+    pull_policy: always
     container_name: selenium-vscode
     shm_size: "10g"
     ports:

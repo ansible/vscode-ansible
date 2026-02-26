@@ -60,50 +60,54 @@ def browser_setup(
     capmanager: CaptureManager = request.config.pluginmanager.getplugin(
         "capturemanager"
     )  # type: ignore[name-defined]
-    if not is_container_healthy():
-        subprocess.run(
-            f"podman stop {CONTAINER_NAME} 2>/dev/null || true",
-            shell=True,
-            check=False,
-            text=True,
-            capture_output=True,
-        )
-        log.info(
-            "Starting selenium server at http://localhost:4444 and vnc://localhost:5999"
-        )
-        with capmanager.global_and_fixture_disabled():
+    try:
+        if not is_container_healthy() or True:
             subprocess.run(
-                f"podman-compose up --quiet-pull --remove-orphans --timeout 5 -d {CONTAINER_NAME}",
-                check=True,
+                f"podman rm -f {CONTAINER_NAME} 2>/dev/null || true",
                 shell=True,
+                check=False,
+                text=True,
+                capture_output=True,
             )
-        count = 0
-        while True:
-            if is_container_healthy():
-                break
-            count += 1
-            time.sleep(1)
             log.info(
-                "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
+                "Starting selenium server at http://localhost:4444 and vnc://localhost:5999"
             )
+            with capmanager.global_and_fixture_disabled():
+                subprocess.run(
+                    f"podman-compose up --force-recreate --quiet-pull --remove-orphans --timeout 5 -d {CONTAINER_NAME}",
+                    check=True,
+                    shell=True,
+                )
+            count = 0
+            while True:
+                if is_container_healthy():
+                    break
+                count += 1
+                time.sleep(1)
+                log.info(
+                    "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
+                )
 
-    browser = os.environ.get("BROWSER_TYPE")
-    options: ArgOptions  # type: ignore[name-defined]
-    if browser == "chrome":
-        options = webdriver.ChromeOptions()
-    else:
-        options = webdriver.FirefoxOptions()
-        options.set_preference("privacy.trackingprotection.enabled", False)  # noqa: FBT003
-    options.add_argument("--ignore-ssl-errors=yes")
-    options.add_argument("--ignore-certificate-errors")
-    driver = webdriver.Remote(
-        command_executor="http://localhost:4444/wd/hub",
-        options=options,
-    )
-    driver.maximize_window()
+        browser = os.environ.get("BROWSER_TYPE")
+        options: ArgOptions  # type: ignore[name-defined]
+        if browser == "chrome":
+            options = webdriver.ChromeOptions()
+        else:
+            options = webdriver.FirefoxOptions()
+            options.set_preference("privacy.trackingprotection.enabled", False)  # noqa: FBT003
+        options.add_argument("--ignore-ssl-errors=yes")
+        options.add_argument("--ignore-certificate-errors")
+        driver = webdriver.Remote(
+            command_executor="http://localhost:4444/wd/hub",
+            options=options,
+        )
+        driver.maximize_window()
 
-    yield driver, "https://stage.ai.ansible.redhat.com/login"
-    close_all_tabs(driver)
+        yield driver, "https://stage.ai.ansible.redhat.com/login"
+        close_all_tabs(driver)
+    except subprocess.CalledProcessError as e:
+        # log.error("Error in browser_setup: %s", e)
+        pytest.exit(f"Failed to setup test database: {e}", returncode=2)
 
 
 @pytest.fixture

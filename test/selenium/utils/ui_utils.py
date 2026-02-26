@@ -439,8 +439,9 @@ def vscode_connect(
     """
     driver.get("http://127.0.0.1:8080")
 
-    if install_vsix:
-        vscode_install_vsix(driver)
+    # we rely on container backed in auto installation logic for our extension
+    # if install_vsix:
+    #     vscode_install_vsix(driver)
 
     ansible_button = wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
 
