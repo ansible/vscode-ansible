@@ -142,7 +142,6 @@ tomlsort
 towerhost
 trackingprotection
 tryfirst
-tshinhar
 unsubed
 uuidv
 virt

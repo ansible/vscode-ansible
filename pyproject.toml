@@ -23,7 +23,7 @@ dev = [
   "prek>=0.3.1",
   "pygithub>=2.8.1",
   "pytest-coverage>=0.0",
-  "pytest-github-actions-annotate-failures>=0.3.0",
+  "pytest-github-actions-annotate-failures>=0.4.0",
   "pytest-rerunfailures>=16.1",
   "selenium>=4.40.0",
   "typing-inspect>=0.8.0,<0.10.0",
@@ -62,7 +62,7 @@ exclude = "(.ansible|out|syntaxes).*"
 [tool.pytest]
 # do not add options here as this will likely break either console runs or IDE
 # integration like vscode or pycharm
-addopts = ["--durations-min=10", "--durations=10", "-n0", "-v"]
+addopts = ["--durations-min=10", "--durations=10", "-n0", "-rx", "-v"]
 filterwarnings = [
   "error",
   "once::pytest.PytestWarning",
