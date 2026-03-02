@@ -28,7 +28,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/ansible/actions
-    rev: v0.5.1
+    rev: v1.0.0
     hooks:
       - id: toml
       - id: mypy
