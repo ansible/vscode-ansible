@@ -72,7 +72,7 @@ jobs:
               - uv.lock
 
       - name: task setup
-        timeout-minutes: 2 # expected under 10s for container builds
+        timeout-minutes: 5 # expected under 10s for container builds
         run: |
           set -ex
           pwd
@@ -80,7 +80,7 @@ jobs:
           mise install
           mise list
           mise cfg
-          mise exec -- which python3
+          mise exec -v -- which python3
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
 

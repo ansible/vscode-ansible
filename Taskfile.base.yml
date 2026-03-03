@@ -29,6 +29,7 @@ tasks:
       - pyproject.toml
       - uv.lock
       - tools/uv.sh
+      - .config/mise.toml
     run: once
     interactive: true
   setup:
