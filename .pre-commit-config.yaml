@@ -18,6 +18,9 @@ ci:
     - shellcheck # missing uv
     - toml # missing uv
     - yamllint # missing uv
+# default_install_hook_types:
+#   - pre-push
+#   - commit-msg
 exclude: >
   (?x)^(
     .*.svg
@@ -28,12 +31,12 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/ansible/actions
-    rev: v0.5.1
+    rev: v1.0.0
     hooks:
       - id: toml
       - id: mypy
       - id: ruff
-      - id: codespell
+      # - id: codespell
       - id: cspell
       - id: yamllint
       - id: md
@@ -42,6 +45,21 @@ repos:
       - id: renovate-config-validator
   - repo: local
     hooks:
+    #     - repo: https://github.com/compilerla/conventional-pre-commit
+    # rev: v4.4.0
+    # hooks:
+      - id: conventional-pre-commit
+        name: conventional-pre-commit
+        alias: commit
+        language: python
+        entry: >
+          sh -ec 'if [ -f .git/COMMIT_EDITMSG ];
+          then cat .git/COMMIT_EDITMSG;
+          else git log -1 -q --pretty=format:" %s";
+          fi | uv tool run conventional-pre-commit --verbose --strict /dev/stdin'
+        stages: [commit-msg, pre-commit]
+        args: [--strict]
+
       - id: biome
         name: biome
         alias: biome

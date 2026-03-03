@@ -3,8 +3,4 @@ rules:
   indentation:
     level: error
     indent-sequences: true
-ignore: |
-  .tox
-  test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-  packages/ansible-language-server/test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-  packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
+ignore-from-file: .gitignore
