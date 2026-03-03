@@ -69,13 +69,13 @@ filterwarnings = [
   "error",
   "once::pytest.PytestWarning",
 ]
+junit_family = "legacy"  # https://docs.codecov.com/docs/test-analytics
 junit_logging = "all"
 log_cli = true
 log_cli_level = "INFO"
 markers = [
   "lightspeed: mark tests related to lightspeed that require backend credentials",
   "modify_settings: modify vscode settings.json before/after test",
-  "vscode: mark tests for vscode extension",
   "vscode_trial: mark tests related to lightspeed trial",
 ]
 minversion = "9.0"  # toml config changes

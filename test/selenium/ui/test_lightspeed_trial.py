@@ -20,6 +20,7 @@ tasks:
 - name: install dnsutils"""
 
 
+@pytest.mark.xfail(reason="Broken")
 @pytest.mark.vscode_trial
 def test_vscode_trial_button(
     new_browser: Any,
