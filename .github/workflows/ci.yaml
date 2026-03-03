@@ -34,6 +34,8 @@ env:
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
+  # help pytest output be colored on GHA
+  FORCE_COLOR: "1"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -365,8 +367,8 @@ jobs:
           task build --status
         env:
           # defined inside 'ci' environment
-          LIGHTSPEED_API_ENDPOINT: ${{ secrets.LIGHTSPEED_API_ENDPOINT }}
-          LIGHTSPEED_USER: ${{ secrets.LIGHTSPEED_USER }}
+          LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
+          LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
           LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
