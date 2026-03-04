@@ -71,7 +71,7 @@ tasks:
       - exclude: "**/None/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
       - exclude: "test/**/__pycache__/**/*"
-      - exclude: "test/selenium/**/*"
+      - exclude: "test/ui/**/*"
       - exclude: "test/testFixtures/.vscode/**/*"
       - exclude: "test/testFixtures/common/collections/ansible_collections/**/*"
       - exclude: "test/testFixtures/hover/with_ee/collections/ansible_collections/**/*"
@@ -217,27 +217,28 @@ tasks:
       - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
-  ui-selenium:
+  ui:
     desc: Run UI tests (Selenium)
     deps:
       - package
     sources:
       - "*.vsix"
       - pyproject.toml
-      - test/ui-selenium/**/*
+      - test/ui/**/*
       - uv.lock
       - "out/data/ansible-latest.vsix"
     generates:
-      - out/junit/ui-selenium-test-results.xml
+      - out/junit/ui-test-results.xml
     cmds:
       - >
         pytest
+        -v
         --cov-branch
         --cov-context=test
         --cov-report=term-missing:skip-covered
-        --cov-report=xml:out/coverage/ui-selenium/coverage.xml
+        --cov-report=xml:out/coverage/ui/coverage.xml
         --cov=test
-        --junit-xml=out/junit/ui-selenium-test-results.xml
+        --junit-xml=out/junit/ui-test-results.xml
         --no-cov-on-fail
         {{.CLI_ARGS}}
       # --reruns-delay=120
@@ -269,7 +270,7 @@ tasks:
       - CHANGELOG.md
       - README.md
       - exclude: "**/.ansible/**/*"
-      - exclude: "test/selenium/ui/**/*"
+      - exclude: "test/ui/**/*"
       - package*.json
       - tools/helper
       - yarn.lock

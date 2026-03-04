@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     admin_portal_logout,
     click_and_wait,
     get_vscode_attribution,

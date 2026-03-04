@@ -5,7 +5,7 @@
 import time
 from typing import Any
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     vscode_run_command,
     wait_displayed,

@@ -99,7 +99,7 @@ norecursedirs = [
 ]
 strict_markers = true
 # strict_xfail = true
-testpaths = ["test/selenium/ui"]
+testpaths = ["test/ui"]
 
 [tool.ruff]
 cache-dir = "./.cache/.ruff"

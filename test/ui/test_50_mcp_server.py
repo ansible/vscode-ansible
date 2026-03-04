@@ -13,7 +13,7 @@ import pytest
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     find_element_across_iframes,
     vscode_run_command,

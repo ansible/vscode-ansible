@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from test.selenium.const import CONTAINER_NAME
-from test.selenium.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
+from test.ui.const import CONTAINER_NAME
+from test.ui.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
 
 # Project root (vscode-ansible), assuming conftest at test/selenium/conftest.py
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -23,9 +23,9 @@ logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
 pytest_plugins = [
     # For screenshot_on_fail - must be loaded before fixtures that import it
-    "test.selenium.hooks.logging_hook",
-    "test.selenium.fixtures",
-    "test.selenium.fixtures.ui_fixtures",
+    "test.ui.hooks.logging_hook",
+    "test.ui.fixtures",
+    "test.ui.fixtures.ui_fixtures",
 ]
 
 
@@ -58,15 +58,15 @@ def pytest_collection_modifyitems(
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Prepare dirs and settings for UI/Selenium tests (replaces Taskfile rimraf/mkdir/cp)."""
     for dir_path in (
-        _PROJECT_ROOT / "out" / "ui-selenium" / "logs",
-        _PROJECT_ROOT / "out" / "ui-selenium" / "coder-logs",
+        _PROJECT_ROOT / "out" / "ui" / "logs",
+        _PROJECT_ROOT / "out" / "ui" / "coder-logs",
     ):
         if dir_path.exists():  # pragma: no cover
             shutil.rmtree(dir_path)
     for dir_path in (
         _PROJECT_ROOT / ".vscode-test" / "user-data" / "User",
-        _PROJECT_ROOT / "out" / "ui-selenium" / "logs",
-        _PROJECT_ROOT / "out" / "ui-selenium" / "coder-logs",
+        _PROJECT_ROOT / "out" / "ui" / "logs",
+        _PROJECT_ROOT / "out" / "ui" / "coder-logs",
     ):
         dir_path.mkdir(parents=True, exist_ok=True)
     settings_src = _PROJECT_ROOT / "test" / "testFixtures" / "settings.json"
