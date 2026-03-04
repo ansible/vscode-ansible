@@ -86,7 +86,7 @@ tasks:
     desc: Forced install of extension in your code instance
     cmds:
       - task: package
-      - code --force --install-extension *.vsix
+      - code --force --install-extension out/*.vsix
   deps:
     desc: Update dependencies
     env:
