@@ -63,6 +63,29 @@ def wait_displayed(driver: WebDriver, xpath: str, timeout: int = 10) -> WebEleme
     return elm
 
 
+def ensure_vscode_ready(driver: WebDriver, timeout: int = 120) -> None:
+    """Navigate to code-server if needed and wait for full extension readiness.
+
+    Waits for the Ansible sidebar icon, then waits for the sidebar content
+    to fully render (the 'Getting Started' link), which signals that the
+    extension has completed activation and initialization.
+
+    Args:
+        driver: WebDriver instance
+        timeout: Maximum time to wait for extension readiness in seconds
+    """
+    driver.switch_to.default_content()
+    if "127.0.0.1:8080" not in driver.current_url:
+        driver.get("http://127.0.0.1:8080")
+    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
+    vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
+    find_element_across_iframes(
+        driver,
+        "//a[contains(@title, 'Ansible Development Tools welcome page')]",
+        retries=timeout,
+    )
+
+
 def click_and_wait(
     driver: WebDriver,
     element: WebElement,

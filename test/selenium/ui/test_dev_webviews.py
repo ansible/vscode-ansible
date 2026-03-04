@@ -6,16 +6,15 @@ from typing import Any
 import pytest
 
 from test.selenium.utils.ui_utils import (
+    ensure_vscode_ready,
     find_element_across_iframes,
     vscode_button_click,
     vscode_run_command,
     vscode_textfield_interact,
-    wait_displayed,
 )
 
 
 @pytest.mark.vscode
-@pytest.mark.xfail(reason="context dependent, needs fix", strict=False)
 def test_devfile_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -24,9 +23,7 @@ def test_devfile_webview(
     """Test the devfile creation webview elements and workflow."""
     driver, _ = browser_setup
 
-    driver.get("http://127.0.0.1:8080")
-
-    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
+    ensure_vscode_ready(driver)
 
     vscode_run_command(driver, ">Ansible: Create a Devfile")
 
@@ -62,7 +59,6 @@ def test_devfile_webview(
 
 
 @pytest.mark.vscode
-@pytest.mark.xfail(reason="context dependent, needs fix", strict=False)
 def test_devcontainer_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -71,9 +67,7 @@ def test_devcontainer_webview(
     """Test the devcontainer creation webview elements and workflow."""
     driver, _ = browser_setup
 
-    driver.get("http://127.0.0.1:8080")
-
-    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
+    ensure_vscode_ready(driver)
 
     vscode_run_command(driver, ">Ansible: Create a Devcontainer")
 
