@@ -145,6 +145,8 @@ sort_table_keys = true
 [tool.uv]
 package = false
 default-groups = "all"
+# might help with https://github.com/astral-sh/setup-uv/issues/325
+required-version = ">=0.9.26"
 
 [tool.uv.pip]
 annotation-style = "line"
