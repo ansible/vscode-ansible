@@ -25,7 +25,7 @@
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "antsibull-docs": "^1.1.4",
-    "glob": "^13.0.5",
+    "glob": "^13.0.6",
     "ini": "^6.0.0",
     "lodash": "^4.17.23",
     "uuid": "^13.0.0",
@@ -39,7 +39,7 @@
   "description": "Ansible language server",
   "devDependencies": {
     "@types/ini": "^4.1.1",
-    "@types/lodash": "^4.17.23",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^24.10.2",
     "@types/vscode": "^1.85.0",
     "fuse.js": "^7.1.0",
