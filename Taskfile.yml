@@ -232,10 +232,9 @@ tasks:
     cmds:
       - >
         pytest
-        -m=vscode
         --cov-branch
         --cov-context=test
-        --cov-report=term-missing
+        --cov-report=term-missing:skip-covered
         --cov-report=xml:out/coverage/ui-selenium/coverage.xml
         --cov=test
         --junit-xml=out/junit/ui-selenium-test-results.xml

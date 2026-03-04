@@ -5,8 +5,6 @@
 import time
 from typing import Any
 
-import pytest
-
 from test.selenium.utils.ui_utils import (
     ensure_vscode_ready,
     vscode_run_command,
@@ -14,7 +12,6 @@ from test.selenium.utils.ui_utils import (
 )
 
 
-@pytest.mark.vscode
 def test_create_empty_playbook(
     browser_setup: Any,
     screenshot_on_fail: Any,

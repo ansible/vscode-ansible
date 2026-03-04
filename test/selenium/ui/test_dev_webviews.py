@@ -3,8 +3,6 @@
 # pylint: disable=E0401, W0613, R0801
 from typing import Any
 
-import pytest
-
 from test.selenium.utils.ui_utils import (
     ensure_vscode_ready,
     find_element_across_iframes,
@@ -14,7 +12,6 @@ from test.selenium.utils.ui_utils import (
 )
 
 
-@pytest.mark.vscode
 def test_devfile_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -58,7 +55,6 @@ def test_devfile_webview(
     vscode_button_click(driver, "reset-button")
 
 
-@pytest.mark.vscode
 def test_devcontainer_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
