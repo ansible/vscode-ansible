@@ -1,5 +1,6 @@
 # secured workflow to analyze results from insecure 'ci' workflow that
 # builds and test the project.
+# cspell:ignore -Dsonar
 name: post
 on:
   workflow_run:

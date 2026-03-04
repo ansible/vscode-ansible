@@ -149,7 +149,7 @@ tasks:
     desc: Lint the project
     interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/prek run -a"
+      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v"
       - defer: { task: finish }
     silent: true
     sources:
