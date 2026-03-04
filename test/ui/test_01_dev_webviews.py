@@ -3,7 +3,7 @@
 # pylint: disable=E0401, W0613, R0801
 from typing import Any
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     find_element_across_iframes,
     vscode_button_click,

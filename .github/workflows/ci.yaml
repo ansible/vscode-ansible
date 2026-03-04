@@ -359,11 +359,11 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui-selenium
+      - name: task ui (selenium)
         # runner.os=Linux even on windows if the runner was started from inside wsl!
         if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
         run: |
-          task ui-selenium
+          task ui
           task build --status
         env:
           # defined inside 'ci' environment

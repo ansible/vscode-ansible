@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from test.selenium.utils.ui_utils import vscode_login, vscode_trial_button
+from test.ui.utils.ui_utils import vscode_login, vscode_trial_button
 
 pytestmark = pytest.mark.lightspeed
 
