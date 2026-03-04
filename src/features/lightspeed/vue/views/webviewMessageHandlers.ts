@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import { randomUUID } from "crypto";
 import { TextEncoder } from "util";
 import { lightSpeedManager } from "../../../../extension";
-import { isError, UNKNOWN_ERROR } from "../../utils/errors";
+import { formatErrorDetail, isError, UNKNOWN_ERROR } from "../../utils/errors";
 import { getOneClickTrialProvider } from "../../utils/oneClickTrial";
 import {
   FeedbackRequestParams,
@@ -361,7 +361,7 @@ export class WebviewMessageHandlers {
     if (isError(response)) {
       const oneClickTrialProvider = getOneClickTrialProvider();
       if (!(await oneClickTrialProvider.showPopup(response))) {
-        const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+        const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${formatErrorDetail(response.detail)}`;
         window.showErrorMessage(errorMessage);
       }
       this.sendErrorMessage(
@@ -396,7 +396,7 @@ export class WebviewMessageHandlers {
     if (isError(response)) {
       const oneClickTrialProvider = getOneClickTrialProvider();
       if (!(await oneClickTrialProvider.showPopup(response))) {
-        const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+        const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${formatErrorDetail(response.detail)}`;
         window.showErrorMessage(errorMessage);
       }
       this.sendErrorMessage(
