@@ -74,7 +74,7 @@ jobs:
               - uv.lock
 
       - name: task setup
-        timeout-minutes: 5 # expected under 10s for container builds
+        timeout-minutes: 7 # expected under 10s for container builds
         run: |
           set -ex
           pwd
