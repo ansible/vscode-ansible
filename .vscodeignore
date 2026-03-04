@@ -1,6 +1,7 @@
 # Everything is excluded unless we add it manually, preventing accidental
 # inclusion of unwanted files.
 # See https://github.com/Microsoft/vscode-mono-debug/blob/main/.vscodeignore
+# cspell:ignore fileicon
 *
 */**
 **/.DS_Store

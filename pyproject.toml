@@ -20,7 +20,7 @@ dev = [
   "pip>26.0.0",  # security reasons
   "pipx>=1.8.0",
   "podman-compose>=1.5.0",
-  "prek>=0.3.1",
+  "prek>=0.3.4",
   "pygithub>=2.8.1",
   "pytest-coverage>=0.0",
   "pytest-github-actions-annotate-failures>=0.4.0",

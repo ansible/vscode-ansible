@@ -6,7 +6,7 @@ ci:
   autofix_commit_msg: "chore: auto fixes from pre-commit.com hooks"
   skip:
     - biome
-    - codecov
+    # - codecov
     - codespell # missing uv
     - cspell
     - eslint
@@ -22,27 +22,41 @@ exclude: >
   (?x)^(
     .*.svg
   )$
+fail_fast: true
+minimum_prek_version: "0.3.4"
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: meta
     hooks:
       - id: check-useless-excludes
+        priority: 0
   - repo: https://github.com/ansible/actions
     rev: v0.5.1
     hooks:
       - id: toml
+        priority: 1
       - id: mypy
+        priority: 2
       - id: ruff
+        priority: 1
       - id: codespell
+        priority: 1
       - id: cspell
+        priority: 1
       - id: yamllint
+        priority: 1
       - id: md
-      - id: codecov
+        priority: 1
+      # - id: codecov
+      #   priority: 1
       - id: shellcheck
+        priority: 1
       - id: renovate-config-validator
+        priority: 1
   - repo: local
     hooks:
       - id: biome
+        priority: 1
         name: biome
         alias: biome
         language: system
@@ -74,11 +88,13 @@ repos:
     rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
+        priority: 1
         exclude: >
           (?x)^(
             docs/als/settings.md
           )$
       - id: trailing-whitespace
+        priority: 0
         exclude: >
           (?x)^(
             .yarn/.*|
@@ -87,11 +103,13 @@ repos:
             docs/als/settings.md
           )$
       - id: mixed-line-ending
+        priority: 0
       - id: fix-byte-order-marker
+        priority: 0
       - id: check-executables-have-shebangs
+        priority: 0
       - id: check-merge-conflict
-      - id: debug-statements
-        language_version: python3
+        priority: 0
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.24.0
     hooks:

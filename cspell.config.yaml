@@ -13,8 +13,10 @@ dictionaries:
   - "!cryptocurrencies"
   - "!cpp"
 enabled: true
+enableGlobDot: true
 useGitignore: true
 ignorePaths:
+  - .git
   - "**/*-artifact-*.json"
   - "*.svg"
   - ./vscode-ansible.Containerfile

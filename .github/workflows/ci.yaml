@@ -1,4 +1,4 @@
-# cspell:ignore oidc
+# cspell:ignore oidc mxschmitt userns cgroupfs dorny
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -282,7 +282,7 @@ jobs:
       # Workaround for: https://github.com/actions/runner/issues/1864
       - name: Ensure HOME is defined
         run: |
-          set -exuo pipefail
+          set -euxo pipefail
           if [ -z "${HOME:-}" ]; then
             HOME=$(getent passwd "$(id -u)" | cut -d: -f6)
             export HOME
