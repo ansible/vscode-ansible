@@ -26,6 +26,7 @@ _.path = ["./node_modules/.bin"]
 experimental = true
 idiomatic_version_file_enable_tools = ["python"]
 lockfile = true
+http_retries = 5
 
 [tools]
 gh = "latest"
