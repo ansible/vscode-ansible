@@ -7,11 +7,14 @@ from typing import Any
 
 import pytest
 
-from test.selenium.utils.ui_utils import vscode_run_command, wait_displayed
+from test.selenium.utils.ui_utils import (
+    ensure_vscode_ready,
+    vscode_run_command,
+    wait_displayed,
+)
 
 
 @pytest.mark.vscode
-@pytest.mark.xfail(reason="context dependent, needs fix", strict=False)
 def test_create_empty_playbook(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -20,10 +23,7 @@ def test_create_empty_playbook(
     """Test the 'Create an empty Ansible playbook' command."""
     driver, _ = browser_setup
 
-    # Navigate to VSCode if not already there
-    if "127.0.0.1:8080" not in driver.current_url:
-        driver.get("http://127.0.0.1:8080")
-        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=10)
+    ensure_vscode_ready(driver)
 
     vscode_run_command(driver, ">ansible.create-empty-playbook")
 
