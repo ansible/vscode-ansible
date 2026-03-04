@@ -26,10 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log notice "Building container image..."
-docker build --build-arg GITHUB_TOKEN="${GITHUB_TOKEN:-}" -f Containerfile -t $IMAGE_TAG-unsquashed .
-
-log notice "Squashing image..."
-uvx docker-squash -t $IMAGE_TAG $IMAGE_TAG-unsquashed
+docker build --build-arg GITHUB_TOKEN="${GITHUB_TOKEN:-}" -f Containerfile -t $IMAGE_TAG .
 
 log notice "Preparing code for container build testing..."
 set -x
