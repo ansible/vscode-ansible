@@ -16,15 +16,15 @@ from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from test.selenium.const import CONTAINER_NAME
+from test.ui.const import CONTAINER_NAME
 
 if TYPE_CHECKING:
     from _pytest.capture import CaptureManager
     from selenium.webdriver.common.options import ArgOptions
 
-from test.selenium.hooks.logging_hook import phase_report_key
-from test.selenium.utils.settings_utils import ensure_settings, reset_settings
-from test.selenium.utils.ui_utils import (
+from test.ui.hooks.logging_hook import phase_report_key
+from test.ui.utils.settings_utils import ensure_settings, reset_settings
+from test.ui.utils.ui_utils import (
     TimeOutError,
     clear_text,
     close_all_tabs,

@@ -257,8 +257,8 @@ describe(__filename, function () {
         ),
       );
       assert.match(res, new RegExp("An error occurred"));
-      // eslint-disable-next-line no-control-regex
-      assert.match(res, new RegExp('{\n {2}"cheese": "edam"\n}'));
+
+      assert.match(res, new RegExp('{"cheese":"edam"}'));
     });
 
     it("no suggestion with error - undefined", async function () {

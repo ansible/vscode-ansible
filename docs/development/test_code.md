@@ -18,13 +18,10 @@ There are three types of tests for the extension:
    of the extension, run the whole workflow from launching the extension,
    loading Ansible files in the editor, activating the language server, using
    the language features, and asserting the outcome.
-3. **UI tests:** Check the presence and functionality of various UI elements in
-   the VS Code interface, from the status bar and activity bar to web-views and
-   terminal views.
-4. **UI-Selenium tests:** Similar to the UI tests, but they run in a `code-server`
+3. **UI tests (selenium):**  Run in a `code-server`
    (a.k.a VSCode in a Webbrowser) instance embedded in a container. The web browser
    is Firefox and the interactions are handled by Selenium.
-   Some tests require a secret. You cannot run them locally.
+   Some tests require a secret.
 
 ## Language server tests
 
@@ -41,11 +38,7 @@ Each type of test has its own script and can be run by `task <command>`:
 
 1. `task unit`: Runs the unit tests for the extension.
 2. `task e2e`: Runs the end-to-end tests for the extension.
-3. `task ui`: Runs the UI tests on the latest version of VS Code
-   against the code packaged as a `.vsix` file.
-4. `task ui-oldest`: Runs the UI tests on the oldest supported version of VS
-   Code against the code packaged as a `.vsix` file.
-5. `task ui-selenium`: Runs the Selenium-based UI tests.
+3. `task ui`: Runs the Selenium-based UI tests.
 
 !!! tip
 

@@ -5,14 +5,13 @@ from typing import Any
 
 import pytest
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     find_element_across_iframes,
     vscode_run_command,
 )
 
 
-@pytest.mark.vscode
 @pytest.mark.modify_settings({"ansible.lightspeed.enabled": False})
 def test_sidebar_nav(
     browser_setup: Any,
@@ -44,7 +43,6 @@ def test_sidebar_nav(
     )
 
 
-@pytest.mark.vscode
 def test_header_and_subtitle(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -78,7 +76,6 @@ def test_header_and_subtitle(
     )
 
 
-@pytest.mark.vscode
 def test_mcp_section(
     browser_setup: Any,
     screenshot_on_fail: Any,

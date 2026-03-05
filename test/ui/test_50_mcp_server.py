@@ -13,7 +13,7 @@ import pytest
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
-from test.selenium.utils.ui_utils import (
+from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     find_element_across_iframes,
     vscode_run_command,
@@ -58,7 +58,6 @@ def _assert_disable_notification(driver: Any) -> None:
     )
 
 
-@pytest.mark.vscode
 def test_mcp_server_enable_via_command(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -72,7 +71,6 @@ def test_mcp_server_enable_via_command(
     _assert_enable_notification(driver)
 
 
-@pytest.mark.vscode
 def test_mcp_server_disable(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -86,7 +84,6 @@ def test_mcp_server_disable(
     _assert_disable_notification(driver)
 
 
-@pytest.mark.vscode
 @pytest.mark.modify_settings({"ansible.mcpServer.enabled": True})
 def test_mcp_server_enabled_via_settings(
     browser_setup: Any,
@@ -102,7 +99,6 @@ def test_mcp_server_enabled_via_settings(
     _assert_enable_notification(driver)
 
 
-@pytest.mark.vscode
 def test_mcp_server_usable(
     browser_setup: Any,
     screenshot_on_fail: Any,

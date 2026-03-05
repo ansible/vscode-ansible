@@ -1,6 +1,6 @@
 // https://github.com/microsoft/vscode-test-cli
 // Used by e2e tests
-
+// cspell:ignore alefragnani eamodio ritwickdey
 import { defineConfig } from "@vscode/test-cli";
 
 /**

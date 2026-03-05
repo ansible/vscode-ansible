@@ -20,7 +20,7 @@ dev = [
   "pip>26.0.0",  # security reasons
   "pipx>=1.8.0",
   "podman-compose>=1.5.0",
-  "prek>=0.3.1",
+  "prek>=0.3.4",
   "pygithub>=2.8.1",
   "pytest-coverage>=0.0",
   "pytest-github-actions-annotate-failures>=0.4.0",
@@ -69,13 +69,13 @@ filterwarnings = [
   "error",
   "once::pytest.PytestWarning",
 ]
+junit_family = "legacy"  # https://docs.codecov.com/docs/test-analytics
 junit_logging = "all"
 log_cli = true
 log_cli_level = "INFO"
 markers = [
   "lightspeed: mark tests related to lightspeed that require backend credentials",
   "modify_settings: modify vscode settings.json before/after test",
-  "vscode: mark tests for vscode extension",
   "vscode_trial: mark tests related to lightspeed trial",
 ]
 minversion = "9.0"  # toml config changes
@@ -99,7 +99,7 @@ norecursedirs = [
 ]
 strict_markers = true
 # strict_xfail = true
-testpaths = ["test/selenium/ui"]
+testpaths = ["test/ui"]
 
 [tool.ruff]
 cache-dir = "./.cache/.ruff"
