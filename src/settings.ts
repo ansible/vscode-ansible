@@ -1,9 +1,18 @@
 import * as vscode from "vscode";
 
 import { ExtensionSettings } from "./interfaces/extensionSettings";
+import { LlmProviderSettings } from "./features/lightspeed/llmProviderSettings";
 
 export class SettingsManager {
   public settings = {} as ExtensionSettings;
+  private llmProviderSettings: LlmProviderSettings | undefined;
+
+  /**
+   * Set the LlmProviderSettings instance for reading LLM provider configuration
+   */
+  public setLlmProviderSettings(settings: LlmProviderSettings): void {
+    this.llmProviderSettings = settings;
+  }
 
   /**
    * Initialize the extension settings required at the client
@@ -20,6 +29,17 @@ export class SettingsManager {
       vscode.workspace.getConfiguration("ansible.playbook");
     const mcpServerSettings =
       vscode.workspace.getConfiguration("ansible.mcpServer");
+
+    // Get LLM provider settings from the dedicated storage if available
+    const llmSettings = this.llmProviderSettings
+      ? await this.llmProviderSettings.getAllSettings()
+      : {
+          provider: "wca",
+          apiEndpoint: "https://c.ai.ansible.redhat.com",
+          modelName: undefined,
+          apiKey: "",
+        };
+
     this.settings = {
       activationScript: (await ansibleSettings.get(
         "python.activationScript",
@@ -43,24 +63,10 @@ export class SettingsManager {
       },
       lightSpeedService: {
         enabled: lightSpeedSettings.get("enabled", true),
-        provider: lightSpeedSettings.get("provider", "wca"),
-        apiEndpoint: (() => {
-          const provider = lightSpeedSettings.get("provider", "wca");
-          const endpoint = lightSpeedSettings.get(
-            "apiEndpoint",
-            lightSpeedSettings.get("URL", ""),
-          );
-          // Default to WCA endpoint if provider is WCA and no endpoint set
-          if (provider === "wca" && !endpoint) {
-            return "https://c.ai.ansible.redhat.com";
-          }
-          return endpoint;
-        })(),
-        modelName: lightSpeedSettings.get(
-          "modelName",
-          lightSpeedSettings.get("modelIdOverride", undefined),
-        ), // Backward compatibility
-        apiKey: lightSpeedSettings.get("apiKey", ""),
+        provider: llmSettings.provider,
+        apiEndpoint: llmSettings.apiEndpoint,
+        modelName: llmSettings.modelName,
+        apiKey: llmSettings.apiKey,
         timeout: lightSpeedSettings.get("timeout", 30000),
         suggestions: {
           enabled:
