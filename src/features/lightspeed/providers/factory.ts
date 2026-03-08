@@ -51,43 +51,51 @@ export class LLMProviderFactory implements ProviderFactory {
         } as GoogleConfig);
       }
 
-      case "rhcustom": {
-        if (!config.apiKey || config.apiKey.trim() === "") {
-          throw new Error(
-            "API Key is required for Red Hat Custom. Please set it in the provider settings.",
-          );
-        }
-        if (!config.modelName || config.modelName.trim() === "") {
-          throw new Error(
-            "Model name is required for Red Hat Custom. Please set it in the provider settings.",
-          );
-        }
-        if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
-          throw new Error(
-            "API endpoint is required for Red Hat Custom. Please set it in the provider settings.",
-          );
-        }
-        const maxTokens =
-          typeof config.maxTokens === "number"
-            ? config.maxTokens
-            : config.maxTokens !== undefined &&
-                config.maxTokens !== null &&
-                String(config.maxTokens).trim() !== ""
-              ? parseInt(String(config.maxTokens).trim(), 10)
-              : 1600;
-        const baseURL = config.apiEndpoint.trim().replace(/\/+$/, "");
-        return new RHCustomProvider({
-          apiKey: config.apiKey,
-          modelName: config.modelName,
-          baseURL,
-          timeout: config.timeout || 30000,
-          maxTokens,
-        } as RHCustomConfig);
-      }
+      case "rhcustom":
+        return this.createRHCustomProvider(config);
 
       default:
         throw new Error(`Unsupported provider type: ${type}`);
     }
+  }
+
+  private static parseMaxTokens(
+    value: number | string | undefined | null,
+    defaultValue = 1600,
+  ): number {
+    if (typeof value === "number") return value;
+    const trimmed =
+      value !== undefined && value !== null ? String(value).trim() : "";
+    return trimmed !== "" ? Number.parseInt(trimmed, 10) : defaultValue;
+  }
+
+  private createRHCustomProvider(
+    config: LightSpeedServiceSettings,
+  ): RHCustomProvider {
+    if (!config.apiKey || config.apiKey.trim() === "") {
+      throw new Error(
+        "API Key is required for Red Hat Custom. Please set it in the provider settings.",
+      );
+    }
+    if (!config.modelName || config.modelName.trim() === "") {
+      throw new Error(
+        "Model name is required for Red Hat Custom. Please set it in the provider settings.",
+      );
+    }
+    if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
+      throw new Error(
+        "API endpoint is required for Red Hat Custom. Please set it in the provider settings.",
+      );
+    }
+    const maxTokens = LLMProviderFactory.parseMaxTokens(config.maxTokens);
+    const baseURL = config.apiEndpoint.trim().replace(/\/+$/, "");
+    return new RHCustomProvider({
+      apiKey: config.apiKey,
+      modelName: config.modelName,
+      baseURL,
+      timeout: config.timeout || 30000,
+      maxTokens,
+    } as RHCustomConfig);
   }
 
   getSupportedProviders(): ProviderInfo[] {
