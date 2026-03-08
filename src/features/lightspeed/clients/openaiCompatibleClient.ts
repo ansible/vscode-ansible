@@ -131,7 +131,7 @@ export class OpenAICompatibleClient {
         throw error;
       }
 
-      throw new Error("Unknown error occurred");
+      throw new Error("Unknown error occurred", { cause: error });
     }
   }
 }
