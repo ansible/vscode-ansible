@@ -94,7 +94,10 @@ export class LLMProviderFactory implements ProviderFactory {
       );
     }
     const maxTokens = LLMProviderFactory.parseMaxTokens(config.maxTokens);
-    const baseURL = config.apiEndpoint.trim().replace(/\/+$/, "");
+    let baseURL = config.apiEndpoint.trim();
+    while (baseURL.endsWith("/")) {
+      baseURL = baseURL.slice(0, -1);
+    }
     return new RHCustomProvider({
       apiKey: config.apiKey,
       modelName: config.modelName,
