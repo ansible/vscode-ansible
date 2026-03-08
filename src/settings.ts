@@ -69,7 +69,7 @@ export class SettingsManager {
         modelName: llmSettings.modelName,
         apiKey: llmSettings.apiKey,
         maxTokens: llmSettings.maxTokens
-          ? parseInt(llmSettings.maxTokens, 10)
+          ? Number.parseInt(llmSettings.maxTokens, 10)
           : undefined,
         timeout: lightSpeedSettings.get("timeout", 30000),
         suggestions: {
