@@ -34,10 +34,11 @@ export interface PlaybookSettings {
 // Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
   enabled: boolean;
-  provider: string; // 'wca' | 'google' | 'custom'
+  provider: string; // 'wca' | 'google' | 'rhcustom'
   apiEndpoint: string;
   modelName: string | undefined;
-  apiKey: string; // For third-party providers like Google
+  apiKey: string; // For third-party providers like Google, Red Hat Custom
+  maxTokens?: number; // For Red Hat Custom and other API-key providers
   timeout: number; // Request timeout in milliseconds
   suggestions: { enabled: boolean; waitWindow: number };
 }

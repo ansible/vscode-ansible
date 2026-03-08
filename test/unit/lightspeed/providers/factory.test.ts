@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { LLMProviderFactory } from "@src/features/lightspeed/providers/factory.js";
-import type { ProviderType } from "@src/definitions/lightspeed.d.ts";
-import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "../testConstants.js";
+import { LLMProviderFactory } from "../../../../src/features/lightspeed/providers/factory.js";
+import type { ProviderType } from "../../../../src/definitions/lightspeed.d.ts";
+import {
+  PROVIDER_TYPES,
+  TEST_LIGHTSPEED_SETTINGS,
+  API_ENDPOINTS,
+} from "../testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
 const mockEnhancePromptForAnsible = vi.fn(
@@ -18,7 +22,7 @@ const mockCleanAnsibleOutput = vi.fn((output: string) => {
 });
 
 // Use vi.mock for ES modules - these are hoisted
-vi.mock("../@src/features/lightspeed/ansibleContext", () => ({
+vi.mock("../../../../../src/features/lightspeed/ansibleContext", () => ({
   AnsibleContextProcessor: {
     enhancePromptForAnsible: mockEnhancePromptForAnsible,
     cleanAnsibleOutput: mockCleanAnsibleOutput,
@@ -76,18 +80,14 @@ describe("LLMProviderFactory", () => {
         }).toThrow("API Key is required for Google Gemini");
       });
 
-      it("should throw error when custom API endpoint is provided", () => {
+      it("should accept custom API endpoint for Google provider", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL,
-          apiEndpoint: "https://custom-endpoint.example.com",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_CUSTOM_ENDPOINT;
 
-        expect(() => {
-          factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
-        }).toThrow(
-          "Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.",
-        );
+        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("google");
       });
     });
 
@@ -99,6 +99,125 @@ describe("LLMProviderFactory", () => {
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.WCA, config);
         }).toThrow("WCA provider should be handled by existing LightSpeedAPI");
+      });
+    });
+
+    describe("RHCustom provider", () => {
+      it("should create RHCustom provider with full config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_FULL;
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should create RHCustom provider with minimal config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should throw error when API key is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiKey: "",
+        };
+
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+        }).toThrow("API Key is required for Red Hat Custom");
+      });
+
+      it("should throw error when model name is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: "",
+        };
+
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+        }).toThrow("Model name is required for Red Hat Custom");
+      });
+
+      it("should throw error when API endpoint is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: "",
+        };
+
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+        }).toThrow("API endpoint is required for Red Hat Custom");
+      });
+
+      it("should throw error when API key is only whitespace", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiKey: "   ",
+        };
+
+        expect(() => {
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+        }).toThrow("API Key is required for Red Hat Custom");
+      });
+
+      it("should use numeric maxTokens directly", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: 2048,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+        expect(provider).toBeDefined();
+      });
+
+      it("should default maxTokens to 1600 when not provided", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: undefined,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+        expect(provider).toBeDefined();
+      });
+
+      it("should strip trailing slashes from apiEndpoint", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: API_ENDPOINTS.RHCUSTOM + "///",
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
       });
     });
 
@@ -161,6 +280,53 @@ describe("LLMProviderFactory", () => {
       });
     });
 
+    it("should include RHCustom provider", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+      const rhcustomProvider = providers.find(
+        (p) => p.type === PROVIDER_TYPES.RHCUSTOM,
+      );
+
+      expect(rhcustomProvider).toBeDefined();
+      expect(rhcustomProvider?.type).toBe(PROVIDER_TYPES.RHCUSTOM);
+      expect(rhcustomProvider?.name).toBe("rhcustom");
+      expect(rhcustomProvider?.displayName).toBe("Red Hat Custom");
+    });
+
+    it("should have correct RHCustom config schema", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+      const rhcustomProvider = providers.find(
+        (p) => p.type === PROVIDER_TYPES.RHCUSTOM,
+      );
+
+      expect(rhcustomProvider?.configSchema).toHaveLength(4);
+      const schemaKeys = rhcustomProvider?.configSchema.map((f) => f.key);
+      expect(schemaKeys).toEqual([
+        "apiEndpoint",
+        "apiKey",
+        "modelName",
+        "maxTokens",
+      ]);
+
+      const maxTokensField = rhcustomProvider?.configSchema.find(
+        (f) => f.key === "maxTokens",
+      );
+      expect(maxTokensField?.type).toBe("number");
+      expect(maxTokensField?.required).toBe(false);
+    });
+
+    it("should mark RHCustom as requiring API key", () => {
+      const factory = LLMProviderFactory.getInstance();
+      const providers = factory.getSupportedProviders();
+      const rhcustomProvider = providers.find(
+        (p) => p.type === PROVIDER_TYPES.RHCUSTOM,
+      );
+
+      expect(rhcustomProvider?.requiresApiKey).toBe(true);
+      expect(rhcustomProvider?.usesOAuth).toBe(false);
+    });
+
     it("should have config schema with required fields", () => {
       const factory = LLMProviderFactory.getInstance();
       const providers = factory.getSupportedProviders();
@@ -215,6 +381,65 @@ describe("LLMProviderFactory", () => {
         );
 
         expect(isValid).toBe(true);
+      });
+    });
+
+    describe("RHCustom provider validation", () => {
+      it("should return true for valid RHCustom config", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should return false when required apiKey is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiKey: "",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return false when required apiEndpoint is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: "",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return false when required modelName is missing", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: "",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(isValid).toBe(false);
       });
     });
 

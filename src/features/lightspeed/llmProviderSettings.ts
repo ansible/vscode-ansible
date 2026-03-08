@@ -175,18 +175,21 @@ export class LlmProviderSettings {
     apiEndpoint: string;
     modelName: string | undefined;
     apiKey: string;
+    maxTokens?: string;
     connectionStatuses: Record<string, boolean>;
   }> {
     const currentProvider = this.getProvider();
     const apiEndpoint = await this.get(currentProvider, "apiEndpoint");
     const modelName = await this.get(currentProvider, "modelName");
     const apiKey = await this.get(currentProvider, "apiKey");
+    const maxTokens = await this.get(currentProvider, "maxTokens");
 
     return {
       provider: currentProvider,
       apiEndpoint,
       modelName: modelName || undefined,
       apiKey,
+      maxTokens: maxTokens || undefined,
       connectionStatuses: this.getAllConnectionStatuses(),
     };
   }

@@ -38,6 +38,7 @@ export class SettingsManager {
           apiEndpoint: "https://c.ai.ansible.redhat.com",
           modelName: undefined,
           apiKey: "",
+          maxTokens: undefined,
         };
 
     this.settings = {
@@ -67,6 +68,9 @@ export class SettingsManager {
         apiEndpoint: llmSettings.apiEndpoint,
         modelName: llmSettings.modelName,
         apiKey: llmSettings.apiKey,
+        maxTokens: llmSettings.maxTokens
+          ? parseInt(llmSettings.maxTokens, 10)
+          : undefined,
         timeout: lightSpeedSettings.get("timeout", 30000),
         suggestions: {
           enabled:

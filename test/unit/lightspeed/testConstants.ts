@@ -2,7 +2,7 @@
  * Test constants and mock data for provider factory and base provider tests
  */
 
-import type { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings.js";
+import type { LightSpeedServiceSettings } from "../../../src/interfaces/extensionSettings.js";
 
 // Model names
 export const MODEL_NAMES = {
@@ -155,6 +155,13 @@ export const TEST_LIGHTSPEED_SETTINGS = {
     provider: PROVIDER_TYPES.GOOGLE,
     apiKey: "",
     apiEndpoint: "",
+  } as LightSpeedServiceSettings,
+  GOOGLE_WITH_CUSTOM_ENDPOINT: {
+    ...BASE_LIGHTSPEED_SETTINGS,
+    provider: PROVIDER_TYPES.GOOGLE,
+    apiKey: TEST_API_KEYS.GOOGLE,
+    modelName: MODEL_NAMES.GEMINI_PRO,
+    apiEndpoint: "https://custom-gemini-proxy.example.com/v1beta",
   } as LightSpeedServiceSettings,
   WCA: {
     ...BASE_LIGHTSPEED_SETTINGS,

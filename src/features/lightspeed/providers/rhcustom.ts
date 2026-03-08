@@ -29,7 +29,7 @@ import {
   OpenAIClientError,
 } from "../clients/openaiCompatibleClient";
 
-interface RHCustomConfig {
+export interface RHCustomConfig {
   apiKey: string;
   modelName: string;
   baseURL: string;
@@ -45,7 +45,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   private readonly modelName: string;
   private readonly maxTokens: number;
   private readonly logger = getLightspeedLogger();
-  private lastValidationError?: string;
 
   constructor(config: RHCustomConfig) {
     super(config, config.timeout || 30000);
@@ -77,7 +76,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       if (error instanceof TypeError) {
         throw new Error(
           `Invalid base URL format: ${config.baseURL}. Please provide a valid URL (e.g., https://example.com).`,
-          { cause: error },
         );
       }
       throw error;
@@ -231,15 +229,13 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       this.lastValidationError = undefined;
       return true;
     } catch (error) {
-      const errorMsg = `Config validation failed: ${error instanceof Error ? error.message : "Unknown error"}`;
-      console.log("[RHCustom Provider] Config validation failed:", errorMsg);
-      console.log("[RHCustom Provider] Error details:", error);
+      const formattedError = this.handleRHCustomError(error, "config validation");
+      this.lastValidationError = formattedError.message;
 
-      this.logger.error(`[RHCustom Provider] ${errorMsg}`);
+      this.logger.error(`[RHCustom Provider] ${formattedError.message}`);
       this.logger.error(
         `[RHCustom Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
       );
-      this.lastValidationError = errorMsg;
       return false;
     }
   }

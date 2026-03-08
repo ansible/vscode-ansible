@@ -261,6 +261,7 @@ describe("LlmProviderMessageHandlers", () => {
     });
 
     it("should handle connectProvider message for OAuth provider", async () => {
+      vi.useFakeTimers();
       const message = {
         command: "connectProvider",
         provider: PROVIDER_TYPES.WCA,
@@ -272,7 +273,10 @@ describe("LlmProviderMessageHandlers", () => {
       expect(mockedCommands.executeCommand).toHaveBeenCalledWith(
         "ansible.lightspeed.oauth",
       );
+
+      await vi.advanceTimersByTimeAsync(2000);
       expect(mockIsAuthenticated).toHaveBeenCalled();
+      vi.useRealTimers();
     });
 
     it("should not process messages when webview is not set", async () => {
@@ -415,6 +419,7 @@ describe("LlmProviderMessageHandlers", () => {
     });
 
     it("should handle successful OAuth connection", async () => {
+      vi.useFakeTimers();
       mockIsAuthenticated.mockResolvedValue(true);
 
       await messageHandlers.handleMessage({
@@ -422,13 +427,17 @@ describe("LlmProviderMessageHandlers", () => {
         provider: PROVIDER_TYPES.WCA,
       });
 
+      await vi.advanceTimersByTimeAsync(2000);
+
       expect(mockSetConnectionStatus).toHaveBeenCalledWith(
         true,
         PROVIDER_TYPES.WCA,
       );
+      vi.useRealTimers();
     });
 
     it("should handle failed OAuth connection", async () => {
+      vi.useFakeTimers();
       mockIsAuthenticated.mockResolvedValue(false);
 
       await messageHandlers.handleMessage({
@@ -436,11 +445,14 @@ describe("LlmProviderMessageHandlers", () => {
         provider: PROVIDER_TYPES.WCA,
       });
 
+      await vi.advanceTimersByTimeAsync(2000);
+
       expect(mockSetConnectionStatus).toHaveBeenCalledWith(
         false,
         PROVIDER_TYPES.WCA,
       );
       expect(mockedWindow.showErrorMessage).toHaveBeenCalled();
+      vi.useRealTimers();
     });
   });
 

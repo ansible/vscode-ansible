@@ -104,6 +104,8 @@ export abstract class BaseLLMProvider<
 > implements LLMProvider {
   protected config: TConfig;
   protected timeout: number;
+  /** Set by validateConfig() on failure; used by getStatusWithValidation for the error message. */
+  protected lastValidationError?: string;
 
   constructor(config: TConfig, timeout: number = 30000) {
     this.config = config;
@@ -170,7 +172,10 @@ export abstract class BaseLLMProvider<
       if (!isValid) {
         return {
           connected: false,
-          error: lastValidationError || defaultErrorMessage,
+          error:
+            this.lastValidationError ||
+            lastValidationError ||
+            defaultErrorMessage,
         };
       }
 

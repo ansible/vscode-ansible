@@ -61,6 +61,13 @@ def test_llm_provider_webview_lists_providers(
     )
     assert google_provider is not None, "Google Gemini provider should be listed"
 
+    rhcustom_provider = find_element_across_iframes(
+        driver,
+        "//*[contains(@class, 'provider-name') and contains(., 'Red Hat Custom')]",
+        retries=10,
+    )
+    assert rhcustom_provider is not None, "Red Hat Custom provider should be listed"
+
 
 def test_llm_provider_webview_edit_button(
     browser_setup: Any,
@@ -92,3 +99,37 @@ def test_llm_provider_webview_edit_button(
         "//button[contains(., 'Save')]",
         retries=10,
     )
+
+
+def test_rhcustom_provider_config_fields(
+    browser_setup: Any,
+    screenshot_on_fail: Any,
+    close_editors: Any,
+) -> None:
+    """Test that Red Hat Custom provider edit reveals config fields."""
+    driver, _ = browser_setup
+
+    ensure_vscode_ready(driver)
+
+    vscode_run_command(driver, ">Ansible Lightspeed: Open LLM Provider Settings")
+
+    find_element_across_iframes(
+        driver,
+        "//h1[text()='LLM Provider Settings']",
+        retries=15,
+    )
+
+    rhcustom_edit = find_element_across_iframes(
+        driver,
+        "//*[contains(@class, 'provider-row') and .//*[contains(text(), 'Red Hat Custom')]]"
+        "//button[contains(@class, 'edit-btn')]",
+        retries=10,
+    )
+    rhcustom_edit.click()
+
+    max_tokens_label = find_element_across_iframes(
+        driver,
+        "//*[contains(text(), 'Max Tokens')]",
+        retries=10,
+    )
+    assert max_tokens_label is not None, "Max Tokens field should be present"

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as Module from "module";
-import { RHCustomProvider } from "@src/features/lightspeed/providers/rhcustom.js";
-import type { CompletionRequestParams } from "@src/interfaces/lightspeed.js";
+import { RHCustomProvider } from "../../../../src/features/lightspeed/providers/rhcustom.js";
+import type { CompletionRequestParams } from "../../../../src/interfaces/lightspeed.js";
 import type {
   ChatRequestParams,
   GenerationRequestParams,
-} from "@src/features/lightspeed/providers/base.js";
+} from "../../../../src/features/lightspeed/providers/base.js";
 import {
   TEST_API_KEYS,
   MODEL_NAMES,
@@ -16,12 +16,12 @@ import {
   API_ENDPOINTS,
   DEFAULT_TIMEOUTS,
 } from "../testConstants.js";
-import { OpenAIClientError } from "@src/features/lightspeed/clients/openaiCompatibleClient.js";
-import { getLightspeedLogger } from "@src/utils/logger.js";
+import { OpenAIClientError } from "../../../../src/features/lightspeed/clients/openaiCompatibleClient.js";
+import { getLightspeedLogger } from "../../../../src/utils/logger.js";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "@src/features/lightspeed/utils/outlineGenerator.js";
+} from "../../../../src/features/lightspeed/utils/outlineGenerator.js";
 
 // Mock AnsibleContextProcessor
 const mockEnhancePromptForAnsible = vi.fn(
@@ -77,21 +77,24 @@ const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   return { mockChatCompletion, MockOpenAICompatibleClient };
 });
 
-vi.mock("@src/features/lightspeed/clients/openaiCompatibleClient", () => {
-  return {
-    OpenAICompatibleClient: MockOpenAICompatibleClient,
-    OpenAIClientError: class OpenAIClientError extends Error {
-      status: number;
-      constructor(message: string, status: number) {
-        super(message);
-        this.name = "OpenAIClientError";
-        this.status = status;
-      }
-    },
-  };
-});
+vi.mock(
+  "../../../../src/features/lightspeed/clients/openaiCompatibleClient",
+  () => {
+    return {
+      OpenAICompatibleClient: MockOpenAICompatibleClient,
+      OpenAIClientError: class OpenAIClientError extends Error {
+        status: number;
+        constructor(message: string, status: number) {
+          super(message);
+          this.name = "OpenAIClientError";
+          this.status = status;
+        }
+      },
+    };
+  },
+);
 
-vi.mock("@src/utils/logger", () => {
+vi.mock("../../../../src/utils/logger", () => {
   const loggerMock = {
     info: vi.fn(),
     error: vi.fn(),
@@ -106,7 +109,7 @@ vi.mock("@src/utils/logger", () => {
   };
 });
 
-vi.mock("@src/features/lightspeed/utils/outlineGenerator", () => ({
+vi.mock("../../../../src/features/lightspeed/utils/outlineGenerator", () => ({
   generateOutlineFromPlaybook: vi.fn(() => {
     return "1. Task one\n2. Task two";
   }),
@@ -374,6 +377,7 @@ describe("RHCustomProvider", () => {
         metadata: { isExplanation: true },
       });
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("EXPLANATION"),
       );
@@ -394,7 +398,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.chatRequest(params)).rejects.toThrow();
-
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -726,7 +730,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.generatePlaybook(params)).rejects.toThrow();
-
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -823,7 +827,7 @@ describe("RHCustomProvider", () => {
       };
 
       await expect(provider.generateRole(params)).rejects.toThrow();
-
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });

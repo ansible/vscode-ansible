@@ -69,11 +69,11 @@ import {
   ChatResponseParams,
   GenerationRequestParams,
   GenerationResponseParams,
-} from "@src/features/lightspeed/providers/base.js";
+} from "../../../../src/features/lightspeed/providers/base.js";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "@src/interfaces/lightspeed.js";
+} from "../../../../src/interfaces/lightspeed.js";
 import {
   TEST_PROVIDER_INFO,
   TEST_PROMPTS,
@@ -88,9 +88,25 @@ class TestProvider extends BaseLLMProvider {
   readonly name = "test";
   readonly displayName = "Test Provider";
 
-  // Minimal implementations of abstract methods - not tested here, only needed for instantiation
+  private _validateResult: boolean | undefined;
+  private _validateThrow: Error | undefined;
+
   async validateConfig(): Promise<boolean> {
+    if (this._validateThrow) {
+      throw this._validateThrow;
+    }
+    if (this._validateResult !== undefined) {
+      return this._validateResult;
+    }
     return true;
+  }
+
+  setValidateConfigResult(result: boolean) {
+    this._validateResult = result;
+  }
+
+  setValidateConfigThrow(error: Error) {
+    this._validateThrow = error;
   }
 
   async getStatus(): Promise<ProviderStatus> {
@@ -152,6 +168,26 @@ class TestProvider extends BaseLLMProvider {
     providerName?: string,
   ): Error {
     return this.handleHttpError(error, operation, providerName);
+  }
+
+  setLastValidationError(error: string | undefined) {
+    this.lastValidationError = error;
+  }
+
+  getLastValidationError() {
+    return this.lastValidationError;
+  }
+
+  testGetStatusWithValidation(
+    modelName: string,
+    lastValidationError: string | undefined,
+    defaultErrorMessage: string,
+  ) {
+    return this.getStatusWithValidation(
+      modelName,
+      lastValidationError,
+      defaultErrorMessage,
+    );
   }
 }
 
@@ -443,6 +479,119 @@ describe("BaseLLMProvider", () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
+    });
+  });
+
+  describe("lastValidationError", () => {
+    it("should be undefined by default", () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      expect(provider.getLastValidationError()).toBeUndefined();
+    });
+
+    it("should store validation error on the base class", () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setLastValidationError("Config validation failed: bad key");
+      expect(provider.getLastValidationError()).toBe(
+        "Config validation failed: bad key",
+      );
+    });
+
+    it("should allow clearing the validation error", () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setLastValidationError("some error");
+      provider.setLastValidationError(undefined);
+      expect(provider.getLastValidationError()).toBeUndefined();
+    });
+  });
+
+  describe("getStatusWithValidation", () => {
+    it("should return connected status when validation passes", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        undefined,
+        "default error",
+      );
+
+      expect(status.connected).toBe(true);
+      expect(status.modelInfo?.name).toBe("test-model");
+      expect(status.modelInfo?.capabilities).toEqual([
+        "completion",
+        "chat",
+        "generation",
+      ]);
+    });
+
+    it("should use lastValidationError from base class when validation fails", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setValidateConfigResult(false);
+      provider.setLastValidationError("Base class error message");
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        "param error",
+        "default error",
+      );
+
+      expect(status.connected).toBe(false);
+      expect(status.error).toBe("Base class error message");
+    });
+
+    it("should fall back to parameter lastValidationError when base class error is unset", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setValidateConfigResult(false);
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        "param error",
+        "default error",
+      );
+
+      expect(status.connected).toBe(false);
+      expect(status.error).toBe("param error");
+    });
+
+    it("should fall back to default error message when no validation errors set", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setValidateConfigResult(false);
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        undefined,
+        "default error",
+      );
+
+      expect(status.connected).toBe(false);
+      expect(status.error).toBe("default error");
+    });
+
+    it("should handle exception thrown during validation", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setValidateConfigThrow(new Error("Validation exploded"));
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        undefined,
+        "default error",
+      );
+
+      expect(status.connected).toBe(false);
+      expect(status.error).toBe("Validation exploded");
+    });
+
+    it("should handle non-Error exception during validation", async () => {
+      const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
+      provider.setValidateConfigThrow("string error" as unknown as Error);
+
+      const status = await provider.testGetStatusWithValidation(
+        "test-model",
+        undefined,
+        "default error",
+      );
+
+      expect(status.connected).toBe(false);
+      expect(status.error).toBe("Unknown error");
     });
   });
 });
