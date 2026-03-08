@@ -251,7 +251,9 @@ export class LlmProviderMessageHandlers {
     await this.llmProviderSettings.setConnectionStatus(connected, providerType);
 
     if (connected) {
-      window.showInformationMessage(`Successfully connected to ${displayName}.`);
+      window.showInformationMessage(
+        `Successfully connected to ${displayName}.`,
+      );
     } else {
       window.showErrorMessage(`Failed to connect to ${displayName}: ${error}`);
     }
@@ -302,8 +304,7 @@ export class LlmProviderMessageHandlers {
     providerInfo: ProviderInfo | undefined,
   ): Promise<void> {
     const result = await this.validateProviderConnection(providerType);
-    const displayName =
-      providerInfo?.displayName || providerType.toUpperCase();
+    const displayName = providerInfo?.displayName || providerType.toUpperCase();
 
     await this.handleConnectionResult(
       providerType,

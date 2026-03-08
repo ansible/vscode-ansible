@@ -230,7 +230,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       this.lastValidationError = undefined;
       return true;
     } catch (error) {
-      const formattedError = this.handleRHCustomError(error, "config validation");
+      const formattedError = this.handleRHCustomError(
+        error,
+        "config validation",
+      );
       this.lastValidationError = formattedError.message;
 
       this.logger.error(`[RHCustom Provider] ${formattedError.message}`);
