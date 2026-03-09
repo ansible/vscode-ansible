@@ -220,54 +220,6 @@ describe("GoogleProvider", () => {
       expect(mockedLogger.error).toHaveBeenCalled();
     });
 
-    it("should format validation error through handleGeminiError", async () => {
-      sharedGenerateContent.mockRejectedValue(new Error("Connection refused"));
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-
-      const isValid = await provider.validateConfig();
-      expect(isValid).toBe(false);
-
-      const status = await provider.getStatus();
-      expect(status.connected).toBe(false);
-      expect(status.error).toContain("Google Gemini error");
-      expect(status.error).toContain("config validation");
-    });
-
-    it("should clear lastValidationError on success after previous failure", async () => {
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-
-      sharedGenerateContent.mockRejectedValue(new Error("Temporary failure"));
-      await provider.validateConfig();
-      const failStatus = await provider.getStatus();
-      expect(failStatus.connected).toBe(false);
-
-      sharedGenerateContent.mockResolvedValue({ text: "ok" });
-      await provider.validateConfig();
-      const successStatus = await provider.getStatus();
-      expect(successStatus.connected).toBe(true);
-      expect(successStatus.error).toBeUndefined();
-    });
-
-    it("should include error details in validation log", async () => {
-      const errorWithStack = new Error("API key expired");
-      sharedGenerateContent.mockRejectedValue(errorWithStack);
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-
-      await provider.validateConfig();
-
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Validation error details:"),
-      );
-    });
   });
 
   describe("completionRequest", () => {

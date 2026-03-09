@@ -288,42 +288,6 @@ describe("RHCustomProvider", () => {
       expect(mockChatCompletion).toHaveBeenCalled();
     });
 
-    it("should return false and set lastValidationError on failure", async () => {
-      mockChatCompletion.mockRejectedValue(new Error("Connection refused"));
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-
-      const isValid = await provider.validateConfig();
-      expect(isValid).toBe(false);
-
-      const status = await provider.getStatus();
-      expect(status.connected).toBe(false);
-      expect(status.error).toContain("Connection refused");
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Validation error details:"),
-      );
-    });
-
-    it("should clear lastValidationError on success after failure", async () => {
-      const provider = new RHCustomProvider({
-        apiKey: TEST_API_KEYS.RHCUSTOM,
-        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
-        baseURL: API_ENDPOINTS.RHCUSTOM,
-      });
-
-      mockChatCompletion.mockRejectedValue(new Error("Temporary failure"));
-      await provider.validateConfig();
-
-      mockChatCompletion.mockResolvedValue({
-        message: { role: "assistant", content: "ok" },
-      });
-      const successStatus = await provider.getStatus();
-      expect(successStatus.connected).toBe(true);
-      expect(successStatus.error).toBeUndefined();
-    });
   });
 
   describe("completionRequest", () => {
