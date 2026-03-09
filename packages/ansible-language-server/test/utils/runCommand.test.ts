@@ -1,7 +1,7 @@
-import { CommandRunner } from "../../src/utils/commandRunner.js";
+import { CommandRunner } from "@src/utils/commandRunner.js";
 import { expect, it } from "vitest";
 import { AssertionError } from "assert";
-import { WorkspaceManager } from "../../src/services/workspaceManager.js";
+import { WorkspaceManager } from "@src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "../helper.js";
 import * as path from "path";

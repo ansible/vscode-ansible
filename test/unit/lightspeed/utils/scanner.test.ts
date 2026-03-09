@@ -1,5 +1,5 @@
 import assert from "assert";
-import { PROJECT_ROOT } from "../../../setup";
+import { PROJECT_ROOT } from "@test/setup";
 import { CollectionFinder } from "@src/features/lightspeed/utils/scanner";
 
 describe(__filename, function () {

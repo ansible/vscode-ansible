@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
 import { LightSpeedAPI } from "./api";
-import { TelemetryManager } from "../../utils/telemetryUtils";
-import { SettingsManager } from "../../settings";
+import { TelemetryManager } from "@src/utils/telemetryUtils";
+import { SettingsManager } from "@src/settings";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
   IDocumentTracker,
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
   IVarsFileContext,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
@@ -17,9 +17,9 @@ import {
 import { LightspeedStatusBar } from "./statusBar";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import { LightspeedUser } from "./lightspeedUser";
-import { Log } from "../../utils/logger";
+import { Log } from "@src/utils/logger";
 import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
 import { ProviderManager } from "./providerManager";
 import { LlmProviderSettings } from "./llmProviderSettings";

@@ -17,7 +17,7 @@ import {
 import { v4 as uuid } from "uuid";
 import crypto from "crypto";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
-import { SettingsManager } from "../../settings";
+import { SettingsManager } from "@src/settings";
 import {
   generateCodeVerifier,
   UriEventHandler,
@@ -32,11 +32,11 @@ import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LightSpeedCommands,
-} from "../../definitions/lightspeed";
-import { LightspeedAuthSession } from "../../interfaces/lightspeed";
-import { lightSpeedManager } from "../../extension";
-import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { Log } from "../../utils/logger";
+} from "@src/definitions/lightspeed";
+import { LightspeedAuthSession } from "@src/interfaces/lightspeed";
+import { lightSpeedManager } from "@src/extension";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@src/definitions/constants";
+import { Log } from "@src/utils/logger";
 import { getFetch } from "./api";
 
 // Lazy initialization to avoid module loading order issues

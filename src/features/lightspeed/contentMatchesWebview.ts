@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { LightSpeedAPI } from "./api";
-import { SettingsManager } from "../../settings";
+import { SettingsManager } from "@src/settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
@@ -8,7 +8,7 @@ import {
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
 import { parsePlays } from "./utils/parsePlays";

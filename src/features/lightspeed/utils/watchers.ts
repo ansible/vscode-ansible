@@ -5,7 +5,7 @@ import { LightSpeedManager } from "../base";
 import { getRoleNamePathFromFilePath } from "./getRoleNamePathFromFilePath";
 import { updateRoleContext, updateRolesContext } from "./updateRolesContext";
 
-import { StandardRolePaths } from "../../../definitions/constants";
+import { StandardRolePaths } from "@src/definitions/constants";
 
 export function watchRolesDirectory(
   lightSpeedManager: LightSpeedManager,

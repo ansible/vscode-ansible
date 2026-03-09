@@ -7,7 +7,7 @@ import {
   ansibleMetaDataType,
   getAnsibleMetaData,
   getResultsThroughCommandRunner,
-} from "../../src/utils/getAnsibleMetaData.js";
+} from "@src/utils/getAnsibleMetaData.js";
 import {
   createTestWorkspaceManager,
   disableExecutionEnvironmentSettings,

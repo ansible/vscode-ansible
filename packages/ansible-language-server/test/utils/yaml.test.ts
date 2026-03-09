@@ -12,7 +12,7 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from "../../src/utils/yaml.js";
+} from "@src/utils/yaml.js";
 import { getDoc, isWindows } from "../helper.js";
 
 function getPathInFile(yamlFile: string, line: number, character: number) {

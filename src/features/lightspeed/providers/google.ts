@@ -10,7 +10,7 @@ import {
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
   ANSIBLE_SYSTEM_PROMPT_ROLE,
@@ -19,8 +19,8 @@ import {
   ANSIBLE_SYSTEM_PROMPT_COMPLETION,
   ANSIBLE_PLAYBOOK_GENERATION_TEMPLATE,
   ANSIBLE_ROLE_GENERATION_TEMPLATE,
-} from "../../../definitions/constants";
-import { getLightspeedLogger } from "../../../utils/logger";
+} from "@src/definitions/constants";
+import { getLightspeedLogger } from "@src/utils/logger";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,

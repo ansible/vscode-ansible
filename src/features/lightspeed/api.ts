@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { SettingsManager } from "../../settings";
+import { SettingsManager } from "@src/settings";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
@@ -14,7 +14,7 @@ import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   RoleExplanationRequestParams,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
   LIGHTSPEED_PLAYBOOK_GENERATION_URL,
@@ -24,9 +24,9 @@ import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
   UserAction,
-} from "../../definitions/lightspeed";
+} from "@src/definitions/lightspeed";
 import { getBaseUri } from "./utils/webUtils";
-import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@src/definitions/constants";
 import { formatErrorDetail, HTTPError, IError } from "./utils/errors";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
@@ -35,7 +35,7 @@ import {
   OneClickTrialProvider,
 } from "./utils/oneClickTrial";
 import { mapError } from "./handleApiError";
-import { Log } from "../../utils/logger";
+import { Log } from "@src/utils/logger";
 import { ProviderStatus } from "./providers/base";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";

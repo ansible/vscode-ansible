@@ -50,6 +50,9 @@ export default defineConfig({
       },
       {
         extends: true,
+        resolve: {
+          alias: { "@src": path.resolve(als_root, "src") },
+        },
         test: {
           name: "als",
           globals: true,
@@ -71,6 +74,9 @@ export default defineConfig({
       },
       {
         extends: true,
+        resolve: {
+          alias: { "@src": path.resolve(mcp_root, "src") },
+        },
         test: {
           name: "mcp",
           globals: true,
@@ -129,6 +135,8 @@ export default defineConfig({
       vscode: path.resolve(__dirname, "./test/unit/mocks/vscode.ts"),
       "@src": path.resolve(__dirname, "src"),
       "@webviews": path.resolve(__dirname, "webviews"),
+      "@test": path.resolve(__dirname, "test"),
+      "@root": path.resolve(__dirname),
       "@primeuix/themes": path.resolve(
         __dirname,
         "node_modules/@primeuix/themes/dist",

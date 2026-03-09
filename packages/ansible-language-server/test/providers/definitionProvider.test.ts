@@ -9,9 +9,9 @@ import {
   setFixtureAnsibleCollectionPathEnv,
 } from "../helper.js";
 import { Position } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
-import { getDefinition } from "../../src/providers/definitionProvider.js";
-import { fileExists } from "../../src/utils/misc.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { getDefinition } from "@src/providers/definitionProvider.js";
+import { fileExists } from "@src/utils/misc.js";
 import { URI } from "vscode-uri";
 
 function testModuleNamesForDefinition(

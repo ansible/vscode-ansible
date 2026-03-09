@@ -5,9 +5,9 @@
 
 import { expect, beforeAll, afterAll } from "vitest";
 import { EOL } from "os";
-import { doCompletionResolve } from "../../src/providers/completionProvider.js";
-import {} from "../../src/providers/validationProvider.js";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+import { doCompletionResolve } from "@src/providers/completionProvider.js";
+import {} from "@src/providers/validationProvider.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
   createTestWorkspaceManager,
   enableExecutionEnvironmentSettings,

@@ -5,7 +5,7 @@ import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
 } from "./llmProviderMessageHandlers";
-import { providerFactory } from "../../providers/factory";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 /**
  * Main panel for LLM Provider settings.

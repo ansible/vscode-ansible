@@ -5,7 +5,7 @@ import {
   disposePanelResources,
   createOrRevealPanel,
 } from "./panelUtils";
-import { checkContentCreatorRequirements } from "../../utils";
+import { checkContentCreatorRequirements } from "@src/features/contentCreator/utils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;

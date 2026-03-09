@@ -8,9 +8,9 @@ import {
 import {
   doCompletion,
   doCompletionResolve,
-} from "../../src/providers/completionProvider.js";
-import {} from "../../src/providers/validationProvider.js";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+} from "@src/providers/completionProvider.js";
+import {} from "@src/providers/validationProvider.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
   createTestWorkspaceManager,
   getDoc,

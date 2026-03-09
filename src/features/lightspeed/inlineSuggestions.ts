@@ -7,13 +7,13 @@ import _ from "lodash";
 import * as yaml from "yaml";
 import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
-import { lightSpeedManager } from "../../extension";
+import { lightSpeedManager } from "@src/extension";
 import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
   IAnsibleFileType,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   LightSpeedCommands,
   LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
@@ -21,7 +21,7 @@ import {
   MULTI_TASK_REGEX_EP,
   SINGLE_TASK_REGEX_EP,
   UserAction,
-} from "../../definitions/lightspeed";
+} from "@src/definitions/lightspeed";
 import {
   shouldRequestInlineSuggestions,
   shouldTriggerMultiTaskSuggestion,
@@ -31,7 +31,7 @@ import {
   getContentWithMultiLinePromptForMultiTasksSuggestions,
 } from "./utils/multiLinePromptForMultiTasks";
 import { getAnsibleFileType } from "../utils/ansible";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};

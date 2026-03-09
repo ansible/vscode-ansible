@@ -5,7 +5,7 @@ import {
   getFullAgentsGuidelines,
   getAvailableTopics,
   searchGuidelines,
-} from "../../src/resources/agents.js";
+} from "@src/resources/agents.js";
 
 describe("agents.ts resource", () => {
   beforeEach(() => {

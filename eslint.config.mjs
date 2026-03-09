@@ -88,7 +88,9 @@ export default defineConfig(
           patterns: [
             {
               group: [
-                // "./*", "../*", "../../*", "../../../*",
+                // "./*", "../*",
+                "../../*",
+                "../../../*",
                 "../../../../*",
               ],
               message:
@@ -164,5 +166,10 @@ export default defineConfig(
       "@typescript-eslint/unbound-method": "off",
       "@typescript-eslint/no-base-to-string": "off",
     },
+  },
+  {
+    // Package tests use @src alias resolved by Vitest; ESLint resolver uses root tsconfig
+    files: ["packages/**/test/**/*.{js,ts,tsx}"],
+    rules: { "import/no-unresolved": "off" },
   },
 );

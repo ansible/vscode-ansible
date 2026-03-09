@@ -1,5 +1,5 @@
-import { LightSpeedAPI } from "../../api";
-import { IError } from "../../utils/errors";
+import { LightSpeedAPI } from "@src/features/lightspeed/api";
+import { IError } from "@src/features/lightspeed/utils/errors";
 import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,

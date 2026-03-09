@@ -16,7 +16,7 @@ import {
   isError,
   UNKNOWN_ERROR,
 } from "@src/features/lightspeed/utils/errors";
-import { getOneClickTrialProvider } from "../../utils/oneClickTrial";
+import { getOneClickTrialProvider } from "@src/features/lightspeed/utils/oneClickTrial";
 import {
   FeedbackRequestParams,
   GenerationListEntry,
@@ -31,7 +31,7 @@ import {
   DevfileFormInterface,
   AnsibleExecutionEnvInterface,
   PostMessageEvent,
-} from "../../../contentCreator/types";
+} from "@src/features/contentCreator/types";
 
 import {
   explainPlaybook,
@@ -51,15 +51,18 @@ import {
 } from "./fileOperations";
 import { AnsibleCreatorOperations } from "./ansibleCreatorUtils";
 import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
-import { expandPath, runCommand } from "../../../contentCreator/utils";
-import { withInterpreter } from "../../../utils/commandRunner";
+import { expandPath, runCommand } from "@src/features/contentCreator/utils";
+import { withInterpreter } from "@src/features/utils/commandRunner";
 import {
   DevcontainerImages,
   DevcontainerRecommendedExtensions,
   DevfileImages,
 } from "@src/definitions/constants";
 import { sendTelemetry } from "@src/utils/telemetryUtils";
-import { isPlaybook, isDocumentInRole } from "../../utils/explanationUtils";
+import {
+  isPlaybook,
+  isDocumentInRole,
+} from "@src/features/lightspeed/utils/explanationUtils";
 
 interface WebviewMessage {
   type: string;

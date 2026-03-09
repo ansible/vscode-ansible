@@ -8,14 +8,14 @@ import {
   RoleFormInterface,
   PluginFormInterface,
   PostMessageEvent,
-} from "../../../contentCreator/types";
+} from "@src/features/contentCreator/types";
 import {
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
   runCommand,
-} from "../../../contentCreator/utils";
-import { withInterpreter } from "../../../utils/commandRunner";
+} from "@src/features/contentCreator/utils";
+import { withInterpreter } from "@src/features/utils/commandRunner";
 import { SettingsManager } from "@src/settings";
 import {
   ADE_ISOLATION_MODE_MIN,

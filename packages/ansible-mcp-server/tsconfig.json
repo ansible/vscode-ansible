@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "./out/server",
+    "paths": {
+      "@src/*": ["./src/*"]
+    },
     "resolveJsonModule": true,
     "target": "ES2022"
   },

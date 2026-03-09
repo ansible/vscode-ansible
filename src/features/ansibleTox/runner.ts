@@ -11,7 +11,7 @@ import {
   ANSIBLE_TOX_LIST_ENV_COMMAND,
   ANSIBLE_TOX_RUN_COMMAND,
 } from "./constants";
-import { PythonEnvironmentService } from "../../services/PythonEnvironmentService";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 
 const exec = util.promisify(child_process.exec);
 

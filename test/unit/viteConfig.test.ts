@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import viteConfig from "../../vite.config";
+import viteConfig from "@root/vite.config";
 
 describe("vite.config.ts", () => {
   describe("experimental.renderBuiltUrl", () => {

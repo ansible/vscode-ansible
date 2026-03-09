@@ -9,8 +9,8 @@ import {
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
 } from "../helper.js";
-import { doHover } from "../../src/providers/hoverProvider.js";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+import { doHover } from "@src/providers/hoverProvider.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 function get_hover_value(hover: Hover | undefined | null): string {
   if (hover) {

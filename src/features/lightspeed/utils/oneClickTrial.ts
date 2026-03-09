@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { IError } from "./errors";
-import { LightSpeedCommands } from "../../../definitions/lightspeed";
+import { LightSpeedCommands } from "@src/definitions/lightspeed";
 
 export class OneClickTrialProvider {
   public async showPopup(error?: IError): Promise<boolean> {

@@ -1,17 +1,17 @@
 import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
-import { SettingsManager } from "../../../settings";
+import { SettingsManager } from "@src/settings";
 import {
   LightspeedSessionModelInfo,
   LightspeedSessionUserInfo,
   LightspeedUserDetails,
   LightspeedSessionInfo,
-} from "../../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   LIGHTSPEED_USER_TYPE,
   WCA_API_ENDPOINT_DEFAULT,
-} from "../../../definitions/lightspeed";
-import { lightSpeedManager } from "../../../extension";
+} from "@src/definitions/lightspeed";
+import { lightSpeedManager } from "@src/extension";
 
 // Also defined in package.json in "".contributes.authentication"
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = "auth-lightspeed";

@@ -1,13 +1,13 @@
 import { LLMProvider } from "./base";
 import { GoogleProvider, GoogleConfig } from "./google";
-import { LightSpeedServiceSettings } from "../../../interfaces/extensionSettings";
+import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,
   WCA_API_ENDPOINT_DEFAULT,
   GOOGLE_DEFAULT_MODEL,
   ProviderType,
-} from "../../../definitions/lightspeed";
-import { ProviderFactory, ProviderInfo } from "../../../interfaces/lightspeed";
+} from "@src/definitions/lightspeed";
+import { ProviderFactory, ProviderInfo } from "@src/interfaces/lightspeed";
 
 export class LLMProviderFactory implements ProviderFactory {
   private static instance: LLMProviderFactory;

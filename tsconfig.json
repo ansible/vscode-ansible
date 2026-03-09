@@ -9,7 +9,9 @@
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
       "@src/*": ["./src/*"],
-      "@webviews/*": ["./webviews/*"]
+      "@webviews/*": ["./webviews/*"],
+      "@test/*": ["./test/*"],
+      "@root/*": ["./*"]
     }
   },
   "exclude": [

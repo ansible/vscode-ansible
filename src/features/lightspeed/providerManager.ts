@@ -8,12 +8,12 @@ import {
 } from "./providers/base";
 import { providerFactory } from "./providers/factory";
 import type { ProviderType } from "@src/definitions/lightspeed.d.ts";
-import { SettingsManager } from "../../settings";
+import { SettingsManager } from "@src/settings";
 import { LightSpeedAPI } from "./api";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import { isError } from "./utils/errors";
 
 export class ProviderManager {

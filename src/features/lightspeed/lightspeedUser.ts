@@ -9,15 +9,15 @@ import {
   LIGHTSPEED_MARKDOWN_ME_AUTH_URL,
   LIGHTSPEED_ME_AUTH_URL,
   LightSpeedCommands,
-} from "../../definitions/lightspeed";
-import { SettingsManager } from "../../settings";
-import { LightspeedUserDetails } from "../../interfaces/lightspeed";
+} from "@src/definitions/lightspeed";
+import { SettingsManager } from "@src/settings";
+import { LightspeedUserDetails } from "@src/interfaces/lightspeed";
 import {
   LightSpeedAuthenticationProvider,
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
-import { Log } from "../../utils/logger";
-import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { Log } from "@src/utils/logger";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@src/definitions/constants";
 import { getFetch } from "./api";
 
 class LightspeedAccessDenied extends Error {

@@ -3,13 +3,13 @@ import { mkdtempSync, rmSync, readFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { createDefineAndBuildExecutionEnvHandler } from "../../src/handlers.js";
+import { createDefineAndBuildExecutionEnvHandler } from "@src/handlers.js";
 import {
   buildEEStructureFromPrompt,
   generateExecutionEnvironment,
   formatExecutionEnvResult,
-} from "../../src/tools/executionEnv.js";
-import type { ExecutionEnvResult } from "../../src/tools/executionEnv.js";
+} from "@src/tools/executionEnv.js";
+import type { ExecutionEnvResult } from "@src/tools/executionEnv.js";
 
 describe("Execution Environment Tool", () => {
   describe("Handler - Two-Step Flow", () => {
