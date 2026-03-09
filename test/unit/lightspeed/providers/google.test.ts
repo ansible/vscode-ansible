@@ -219,7 +219,6 @@ describe("GoogleProvider", () => {
 
       expect(mockedLogger.error).toHaveBeenCalled();
     });
-
   });
 
   describe("completionRequest", () => {

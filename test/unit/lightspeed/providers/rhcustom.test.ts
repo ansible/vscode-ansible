@@ -287,7 +287,6 @@ describe("RHCustomProvider", () => {
       ]);
       expect(mockChatCompletion).toHaveBeenCalled();
     });
-
   });
 
   describe("completionRequest", () => {
