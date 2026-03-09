@@ -16,12 +16,12 @@ import {
   runCommand,
 } from "../../../contentCreator/utils";
 import { withInterpreter } from "../../../utils/commandRunner";
-import { SettingsManager } from "../../../../settings";
+import { SettingsManager } from "@src/settings";
 import {
   ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
   ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
-} from "../../../../definitions/constants";
+} from "@src/definitions/constants";
 
 export class AnsibleCreatorOperations {
   private checkVersionWithError(

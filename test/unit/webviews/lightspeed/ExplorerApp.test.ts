@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import ExplorerApp from "../../../../webviews/lightspeed/src/ExplorerApp.vue";
-import { vscodeApi } from "../../../../webviews/lightspeed/src/utils/vscode";
+import ExplorerApp from "@webviews/lightspeed/src/ExplorerApp.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 // Get the mocked vscodeApi
-vi.mock("../../../../webviews/lightspeed/src/utils/vscode", () => ({
+vi.mock("@webviews/lightspeed/src/utils/vscode", () => ({
   vscodeApi: {
     post: vi.fn(),
     on: vi.fn(),

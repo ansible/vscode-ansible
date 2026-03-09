@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import PromptField from "../../../../../../webviews/lightspeed/src/components/lightspeed/PromptField.vue";
-import { vscodeApi } from "../../../../../../webviews/lightspeed/src/utils/vscode";
+import PromptField from "@webviews/lightspeed/src/components/lightspeed/PromptField.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("PromptField", () => {
   beforeEach(() => {

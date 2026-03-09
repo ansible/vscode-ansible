@@ -9,14 +9,14 @@ import {
   RoleExplanationRequestParams,
   RoleGenerationRequestParams,
   RoleFileType,
-} from "../../../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   LightSpeedCommands,
   ThumbsUpDownAction,
-} from "../../../../definitions/lightspeed";
-import { ANSIBLE_PLAYBOOK_EXPLANATION_TEMPLATE } from "../../../../definitions/constants";
+} from "@src/definitions/lightspeed";
+import { ANSIBLE_PLAYBOOK_EXPLANATION_TEMPLATE } from "@src/definitions/constants";
 import { commands, ExtensionContext } from "vscode";
-import { lightSpeedManager } from "../../../../extension";
+import { lightSpeedManager } from "@src/extension";
 
 export async function explainPlaybook(
   apiInstance: LightSpeedAPI,

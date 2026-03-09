@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import GeneratedFileEntry from "../../../../../../webviews/lightspeed/src/components/lightspeed/GeneratedFileEntry.vue";
+import GeneratedFileEntry from "@webviews/lightspeed/src/components/lightspeed/GeneratedFileEntry.vue";
 import { RoleFileType } from "@src/interfaces/lightspeed";
 
 describe("GeneratedFileEntry", () => {

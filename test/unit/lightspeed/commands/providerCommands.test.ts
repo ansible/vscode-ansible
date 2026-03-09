@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { ProviderCommands } from "../../../../src/features/lightspeed/commands/providerCommands";
-import type { LightSpeedManager } from "../../../../src/features/lightspeed/base";
-import type { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
-import type { LlmProviderSettings } from "../../../../src/features/lightspeed/llmProviderSettings";
-import { ProviderStatus } from "../../../../src/features/lightspeed/providers/base";
+import { ProviderCommands } from "@src/features/lightspeed/commands/providerCommands";
+import type { LightSpeedManager } from "@src/features/lightspeed/base";
+import type { ProviderManager } from "@src/features/lightspeed/providerManager";
+import type { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import { ProviderStatus } from "@src/features/lightspeed/providers/base";
 import {
   PROVIDER_TYPES,
   TEST_API_KEYS,

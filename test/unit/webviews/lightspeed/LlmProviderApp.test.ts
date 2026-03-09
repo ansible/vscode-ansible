@@ -5,13 +5,13 @@ const { mockPostMessage } = vi.hoisted(() => ({
   mockPostMessage: vi.fn(),
 }));
 
-vi.mock("../../../../webviews/lightspeed/src/utils", () => ({
+vi.mock("@webviews/lightspeed/src/utils", () => ({
   vscodeApi: {
     postMessage: mockPostMessage,
   },
 }));
 
-import LlmProviderApp from "../../../../webviews/LlmProviderApp.vue";
+import LlmProviderApp from "@webviews/LlmProviderApp.vue";
 
 describe("LlmProviderApp", () => {
   let messageHandler: ((event: MessageEvent) => void) | null = null;

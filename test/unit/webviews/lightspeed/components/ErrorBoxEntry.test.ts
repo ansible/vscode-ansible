@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import ErrorBoxEntry from "../../../../../webviews/lightspeed/src/components/ErrorBoxEntry.vue";
+import ErrorBoxEntry from "@webviews/lightspeed/src/components/ErrorBoxEntry.vue";
 
 describe("ErrorBoxEntry", () => {
   it("renders the error message", () => {

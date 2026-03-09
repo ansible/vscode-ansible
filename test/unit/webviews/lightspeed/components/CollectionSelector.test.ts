@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises, type VueWrapper } from "@vue/test-utils";
-import CollectionSelector from "../../../../../webviews/lightspeed/src/components/CollectionSelector.vue";
-import { vscodeApi } from "../../../../../webviews/lightspeed/src/utils/vscode";
+import CollectionSelector from "@webviews/lightspeed/src/components/CollectionSelector.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("CollectionSelector", () => {
   beforeEach(() => {

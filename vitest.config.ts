@@ -127,7 +127,12 @@ export default defineConfig({
   resolve: {
     alias: {
       vscode: path.resolve(__dirname, "./test/unit/mocks/vscode.ts"),
-      "@src": path.resolve(__dirname, "src/"),
+      "@src": path.resolve(__dirname, "src"),
+      "@webviews": path.resolve(__dirname, "webviews"),
+      "@primeuix/themes": path.resolve(
+        __dirname,
+        "node_modules/@primeuix/themes/dist",
+      ),
     },
   },
 });
