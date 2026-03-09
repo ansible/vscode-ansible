@@ -82,17 +82,12 @@ export default defineConfig(
             {
               name: "chai",
               message:
-                "No direct import from chain, use vitest or node:assert alternatives.",
+                "No direct import from chai, use vitest or node:assert alternatives.",
             },
           ],
           patterns: [
             {
-              group: [
-                // "./*", "../*",
-                "../../*",
-                "../../../*",
-                "../../../../*",
-              ],
+              group: ["./*", "../*", "../../*", "../../../*", "../../../../*"],
               message:
                 "Do not use relative imports; use path aliases or absolute imports.",
             },
@@ -168,8 +163,8 @@ export default defineConfig(
     },
   },
   {
-    // Package tests use @src alias resolved by Vitest; ESLint resolver uses root tsconfig
-    files: ["packages/**/test/**/*.{js,ts,tsx}"],
+    // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root
+    files: ["packages/**/*.{js,ts,tsx}"],
     rules: { "import/no-unresolved": "off" },
   },
 );

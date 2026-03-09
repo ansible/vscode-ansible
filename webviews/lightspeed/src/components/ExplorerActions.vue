@@ -15,31 +15,53 @@ const emit = defineEmits<{
 <template>
   <div class="active-session">
     <div class="button-container">
-      <vscode-button @click="emit('generatePlaybook')" id="lightspeed-explorer-playbook-generation-submit"
-        class="lightspeedExplorerButton">
+      <vscode-button
+        @click="emit('generatePlaybook')"
+        id="lightspeed-explorer-playbook-generation-submit"
+        class="lightspeedExplorerButton"
+      >
         Generate a playbook
       </vscode-button>
     </div>
 
     <div class="button-container">
-      <vscode-button @click="emit('explainPlaybook')" id="lightspeed-explorer-playbook-explanation-submit"
-        class="lightspeedExplorerButton" :disabled="!hasPlaybookOpened"
-        :title="!hasPlaybookOpened ? 'The file in the active editor view is not an Ansible playbook' : ''">
+      <vscode-button
+        @click="emit('explainPlaybook')"
+        id="lightspeed-explorer-playbook-explanation-submit"
+        class="lightspeedExplorerButton"
+        :disabled="!hasPlaybookOpened"
+        :title="
+          !hasPlaybookOpened
+            ? 'The file in the active editor view is not an Ansible playbook'
+            : ''
+        "
+      >
         Explain the current playbook
       </vscode-button>
     </div>
 
     <div class="button-container">
-      <vscode-button @click="emit('generateRole')" id="lightspeed-explorer-role-generation-submit"
-        class="lightspeedExplorerButton">
+      <vscode-button
+        @click="emit('generateRole')"
+        id="lightspeed-explorer-role-generation-submit"
+        class="lightspeedExplorerButton"
+      >
         Generate a role
       </vscode-button>
     </div>
 
     <div class="button-container">
-      <vscode-button @click="emit('explainRole')" id="lightspeed-explorer-role-explanation-submit"
-        class="lightspeedExplorerButton" :disabled="!hasRoleOpened"
-        :title="!hasRoleOpened ? 'The file in the active editor view is not part of an Ansible role' : ''">
+      <vscode-button
+        @click="emit('explainRole')"
+        id="lightspeed-explorer-role-explanation-submit"
+        class="lightspeedExplorerButton"
+        :disabled="!hasRoleOpened"
+        :title="
+          !hasRoleOpened
+            ? 'The file in the active editor view is not part of an Ansible role'
+            : ''
+        "
+      >
         Explain the current role
       </vscode-button>
     </div>

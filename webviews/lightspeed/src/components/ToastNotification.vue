@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
+import "@vscode/codicons/dist/codicon.css";
 
 defineProps<{
   visible: boolean;
@@ -29,7 +29,9 @@ defineProps<{
   font-weight: 500;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   pointer-events: none;
 }
 

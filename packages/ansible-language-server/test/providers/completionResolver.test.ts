@@ -15,7 +15,7 @@ import {
   setFixtureAnsibleCollectionPathEnv,
   resolveDocUri,
   getDoc,
-} from "../helper.js";
+} from "@test/helper.js";
 
 function testFQCNEnabled(context: WorkspaceFolderContext) {
   const tests = [

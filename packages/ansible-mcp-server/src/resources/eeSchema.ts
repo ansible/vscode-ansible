@@ -2,7 +2,7 @@
  * The schema is packaged with the extension for offline access.
  */
 import fs from "node:fs/promises";
-import { resolveResourcePath } from "../utils/resourcePath.js";
+import { resolveResourcePath } from "@src/utils/resourcePath.js";
 
 /**
  * Get the path to execution-environment-schema.json file.

@@ -51,7 +51,10 @@ export default defineConfig({
       {
         extends: true,
         resolve: {
-          alias: { "@src": path.resolve(als_root, "src") },
+          alias: {
+            "@src": path.resolve(als_root, "src"),
+            "@test": path.resolve(als_root, "test"),
+          },
         },
         test: {
           name: "als",
@@ -75,7 +78,10 @@ export default defineConfig({
       {
         extends: true,
         resolve: {
-          alias: { "@src": path.resolve(mcp_root, "src") },
+          alias: {
+            "@src": path.resolve(mcp_root, "src"),
+            "@test": path.resolve(mcp_root, "test"),
+          },
         },
         test: {
           name: "mcp",

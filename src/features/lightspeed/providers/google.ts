@@ -6,7 +6,7 @@ import {
   GenerationRequestParams,
   GenerationResponseParams,
   ProviderStatus,
-} from "./base";
+} from "@src/features/lightspeed/providers/base";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
@@ -24,7 +24,7 @@ import { getLightspeedLogger } from "@src/utils/logger";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,
-} from "../utils/outlineGenerator";
+} from "@src/features/lightspeed/utils/outlineGenerator";
 
 export interface GoogleConfig {
   apiKey: string;

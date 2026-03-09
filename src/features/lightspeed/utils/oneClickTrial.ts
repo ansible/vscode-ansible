@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { IError } from "./errors";
+import { IError } from "@src/features/lightspeed/utils/errors";
 import { LightSpeedCommands } from "@src/definitions/lightspeed";
 
 export class OneClickTrialProvider {

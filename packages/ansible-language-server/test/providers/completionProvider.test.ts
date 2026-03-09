@@ -22,7 +22,7 @@ import {
   setAnsibleConfigEnv,
   unsetAnsibleConfigEnv,
   skipEE,
-} from "../helper.js";
+} from "@test/helper.js";
 
 function testPlayKeywords(
   context: WorkspaceFolderContext | undefined,

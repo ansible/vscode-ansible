@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import type { ExtensionContext, SecretStorage, Memento } from "vscode";
-import { PROVIDER_TYPES, TEST_API_KEYS } from "./testConstants";
+import {
+  PROVIDER_TYPES,
+  TEST_API_KEYS,
+} from "@test/unit/lightspeed/testConstants";
 
 vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockWcaProvider = {

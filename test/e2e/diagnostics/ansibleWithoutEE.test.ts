@@ -8,7 +8,7 @@ import {
   waitForDiagnosticsFromSource,
   clearActivationCache,
   sleep,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 
 describe("ansible-diag-no-ee", function () {
   const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");

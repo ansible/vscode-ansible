@@ -14,7 +14,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper.js";
+} from "@test/helper.js";
 import { ValidationManager } from "@src/services/validationManager.js";
 
 function testValidationFromCache(

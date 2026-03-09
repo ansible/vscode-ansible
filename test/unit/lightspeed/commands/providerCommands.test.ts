@@ -10,7 +10,7 @@ import {
   TEST_API_KEYS,
   MODEL_NAMES,
   GOOGLE_PROVIDER,
-} from "../testConstants";
+} from "@test/unit/lightspeed/testConstants";
 
 vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockProviderInfo = {

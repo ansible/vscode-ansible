@@ -4,7 +4,7 @@ import {
   sleep,
   updateSettings,
   clearActivationCache,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import * as path from "path";

@@ -1,7 +1,7 @@
 // prevent knip from reporting entrypoints for vscode extension
 import { describe, it, expect } from "vitest";
 import { activate, deactivate } from "@src/extension";
-import { resetSettings } from "../utils";
+import { resetSettings } from "@test/utils";
 
 describe("entrypoints", () => {
   it("should export activate as a function", () => {

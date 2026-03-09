@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "./panelUtils";
+} from "@src/features/contentCreator/vue/views/panelUtils";
 import { checkContentCreatorRequirements } from "@src/features/contentCreator/utils";
 
 export class MainPanel {

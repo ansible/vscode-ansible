@@ -4,15 +4,15 @@ import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
-import { AnsibleConfig } from "./ansibleConfig.js";
-import { ImagePuller } from "../utils/imagePuller.js";
-import { asyncExec } from "../utils/misc.js";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { AnsibleConfig } from "@src/services/ansibleConfig.js";
+import { ImagePuller } from "@src/utils/imagePuller.js";
+import { asyncExec } from "@src/utils/misc.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
   ExtensionSettings,
   IContainerEngine,
   IVolumeMounts,
-} from "../interfaces/extensionSettings.js";
+} from "@src/interfaces/extensionSettings.js";
 
 /* We are forced to ignore coverage because we can only measure it if we do
 it on all 3 platforms: linux, macos, wsl. Currently macos runners do not

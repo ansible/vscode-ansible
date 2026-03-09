@@ -6,10 +6,8 @@ defineProps<{
 </script>
 
 <template>
-  <p v-if="userContent && provider == 'wca'" v-html="userContent">
-  </p>
-  <p v-else>Using {{ provider }} provider
-  </p>
+  <p v-if="userContent && provider == 'wca'" v-html="userContent"></p>
+  <p v-else>Using {{ provider }} provider</p>
 </template>
 
 <style scoped>

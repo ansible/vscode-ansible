@@ -4,7 +4,7 @@
  * returning only relevant content based on user queries.
  */
 import fs from "node:fs/promises";
-import { resolveResourcePath } from "../utils/resourcePath.js";
+import { resolveResourcePath } from "@src/utils/resourcePath.js";
 
 /**
  * Get the path to agents.md file.

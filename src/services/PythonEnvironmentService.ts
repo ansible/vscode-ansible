@@ -15,7 +15,7 @@ import {
   DidChangeEnvironmentEventArgs,
   GetEnvironmentScope,
   PYTHON_ENVS_EXTENSION_ID,
-} from "../types/pythonEnvApi";
+} from "@src/types/pythonEnvApi";
 
 export class PythonEnvironmentService implements vscode.Disposable {
   private static _instance: PythonEnvironmentService | undefined;

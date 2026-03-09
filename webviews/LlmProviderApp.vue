@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { useProviderSettings } from './lightspeed/src/components/llmProviderState';
-import ProviderConfigForm from './lightspeed/src/components/ProviderConfigForm.vue';
-import SpinnerLoading from './lightspeed/src/components/SpinnerLoading.vue';
-import ToastNotification from './lightspeed/src/components/ToastNotification.vue';
+import "@vscode/codicons/dist/codicon.css";
+import { useProviderSettings } from "@webviews/lightspeed/src/components/llmProviderState";
+import ProviderConfigForm from "@webviews/lightspeed/src/components/ProviderConfigForm.vue";
+import SpinnerLoading from "@webviews/lightspeed/src/components/SpinnerLoading.vue";
+import ToastNotification from "@webviews/lightspeed/src/components/ToastNotification.vue";
 
 const {
   providers,
@@ -28,7 +28,10 @@ const {
     <div class="settings-wrapper">
       <header class="settings-header">
         <h1>LLM Provider Settings</h1>
-        <p>Configure which AI provider powers Ansible Lightspeed features like code completion and playbook generation.</p>
+        <p>
+          Configure which AI provider powers Ansible Lightspeed features like
+          code completion and playbook generation.
+        </p>
       </header>
 
       <SpinnerLoading v-if="isLoading" message="Loading provider settings..." />
@@ -47,7 +50,10 @@ const {
               <div class="provider-name">
                 {{ provider.displayName }}
                 <!-- Configured badge: shown when connected -->
-                <span v-if="isConnected(provider.type)" class="configured-badge">
+                <span
+                  v-if="isConnected(provider.type)"
+                  class="configured-badge"
+                >
                   <span class="codicon codicon-check"></span>
                   Configured
                 </span>
@@ -58,7 +64,7 @@ const {
             <div class="provider-actions">
               <button
                 class="action-btn edit-btn"
-                :class="{ 'active': editingProvider === provider.type }"
+                :class="{ active: editingProvider === provider.type }"
                 @click="toggleEdit(provider.type)"
                 title="Edit configuration"
               >
@@ -75,7 +81,7 @@ const {
                 title="Connect to provider"
               >
                 <span class="codicon codicon-plug"></span>
-                {{ isConnecting(provider.type) ? 'Connecting...' : 'Connect' }}
+                {{ isConnecting(provider.type) ? "Connecting..." : "Connect" }}
               </button>
 
               <!-- Switch button: shown when connected but not active -->
@@ -102,7 +108,10 @@ const {
             :provider="provider"
             :get-config-value="getConfigValue"
             :has-changes="hasUnsavedChanges(provider.type)"
-            @update:field="(fieldKey: string, value: string) => setConfigValue(provider.type, fieldKey, value)"
+            @update:field="
+              (fieldKey: string, value: string) =>
+                setConfigValue(provider.type, fieldKey, value)
+            "
             @save="saveProviderConfig(provider.type)"
             @cancel="toggleEdit(provider.type)"
           />
@@ -110,7 +119,10 @@ const {
       </div>
 
       <!-- Save indicator -->
-      <ToastNotification :visible="saveIndicatorVisible" message="Settings saved" />
+      <ToastNotification
+        :visible="saveIndicatorVisible"
+        message="Settings saved"
+      />
     </div>
   </div>
 </template>
@@ -281,7 +293,10 @@ const {
   color: var(--vscode-editor-background);
 }
 
-.configured-badge .codicon { font-size: 12px; }
-.active-badge .codicon { font-size: 14px; }
-
+.configured-badge .codicon {
+  font-size: 12px;
+}
+.active-badge .codicon {
+  font-size: 14px;
+}
 </style>

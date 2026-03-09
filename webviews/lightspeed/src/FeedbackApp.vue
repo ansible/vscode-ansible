@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { vscodeApi } from "./utils";
-import '@vscode/codicons/dist/codicon.css';
-
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
+import "@vscode/codicons/dist/codicon.css";
 
 // Sentiment feedback state
 const selectedSentiment = ref<number | null>(null);
@@ -38,8 +37,13 @@ const canSubmitSentiment = computed(() => {
 const canSubmitIssue = computed(() => {
   if (!feedbackDataSharingAccepted.value) return false;
 
-  if (issueType.value === "bug-report" || issueType.value === "feature-request") {
-    return issueTitle.value.trim() !== "" && issueDescription.value.trim() !== "";
+  if (
+    issueType.value === "bug-report" ||
+    issueType.value === "feature-request"
+  ) {
+    return (
+      issueTitle.value.trim() !== "" && issueDescription.value.trim() !== ""
+    );
   } else if (issueType.value === "suggestion-feedback") {
     return (
       suggestionPrompt.value.trim() !== "" &&
@@ -102,7 +106,10 @@ const submitSentiment = () => {
 
 const submitIssue = () => {
   if (!canSubmitIssue.value) {
-    if (issueType.value === "bug-report" || issueType.value === "feature-request") {
+    if (
+      issueType.value === "bug-report" ||
+      issueType.value === "feature-request"
+    ) {
       if (issueTitle.value.trim() === "") {
         errorMessage.value = "Enter an issue title.";
       } else if (issueDescription.value.trim() === "") {
@@ -110,13 +117,15 @@ const submitIssue = () => {
       }
     } else if (issueType.value === "suggestion-feedback") {
       if (suggestionPrompt.value.trim() === "") {
-        errorMessage.value = "Enter details about prompt used for recommendation.";
+        errorMessage.value =
+          "Enter details about prompt used for recommendation.";
       } else if (suggestionProvided.value.trim() === "") {
         errorMessage.value = "Enter details about recommendation provided.";
       } else if (suggestionExpected.value.trim() === "") {
         errorMessage.value = "Enter details about expected recommendation.";
       } else if (suggestionAdditionalComment.value.trim() === "") {
-        errorMessage.value = "Enter details on why the modification was required.";
+        errorMessage.value =
+          "Enter details on why the modification was required.";
       }
     }
     return;
@@ -124,7 +133,10 @@ const submitIssue = () => {
 
   errorMessage.value = "";
 
-  if (issueType.value === "bug-report" || issueType.value === "feature-request") {
+  if (
+    issueType.value === "bug-report" ||
+    issueType.value === "feature-request"
+  ) {
     vscodeApi.post("issueFeedback", {
       type: issueType.value,
       title: issueTitle.value,
@@ -206,7 +218,9 @@ vscodeApi.on("feedbackSuccess", () => {
           resize="both"
           id="sentiment-comment"
           :value="sentimentComment"
-          @input="sentimentComment = ($event.target as HTMLTextAreaElement).value"
+          @input="
+            sentimentComment = ($event.target as HTMLTextAreaElement).value
+          "
         ></vscode-textarea>
       </section>
 
@@ -255,7 +269,9 @@ vscodeApi.on("feedbackSuccess", () => {
         </section>
 
         <!-- Bug Report / Feature Request Form -->
-        <template v-if="issueType === 'bug-report' || issueType === 'feature-request'">
+        <template
+          v-if="issueType === 'bug-report' || issueType === 'feature-request'"
+        >
           <section class="component-section">
             <p class="required">Title</p>
             <vscode-textfield
@@ -268,7 +284,11 @@ vscodeApi.on("feedbackSuccess", () => {
           </section>
           <section class="component-section">
             <p class="required">
-              {{ issueType === "bug-report" ? "Steps to reproduce" : "Description" }}
+              {{
+                issueType === "bug-report"
+                  ? "Steps to reproduce"
+                  : "Description"
+              }}
             </p>
             <vscode-textarea
               id="issue-description"
@@ -277,7 +297,9 @@ vscodeApi.on("feedbackSuccess", () => {
               placeholder="Enter details."
               resize="both"
               :value="issueDescription"
-              @input="issueDescription = ($event.target as HTMLTextAreaElement).value"
+              @input="
+                issueDescription = ($event.target as HTMLTextAreaElement).value
+              "
             />
           </section>
         </template>
@@ -292,7 +314,9 @@ vscodeApi.on("feedbackSuccess", () => {
               placeholder="The contents of the playbook until the name of the task used for a recommendation."
               resize="both"
               :value="suggestionPrompt"
-              @input="suggestionPrompt = ($event.target as HTMLTextAreaElement).value"
+              @input="
+                suggestionPrompt = ($event.target as HTMLTextAreaElement).value
+              "
             />
           </section>
           <section class="component-section">
@@ -303,7 +327,10 @@ vscodeApi.on("feedbackSuccess", () => {
               placeholder="The recommendation content provided by Ansible Lightspeed."
               resize="both"
               :value="suggestionProvided"
-              @input="suggestionProvided = ($event.target as HTMLTextAreaElement).value"
+              @input="
+                suggestionProvided = ($event.target as HTMLTextAreaElement)
+                  .value
+              "
             />
           </section>
           <section class="component-section">
@@ -314,7 +341,10 @@ vscodeApi.on("feedbackSuccess", () => {
               placeholder="The recommendation that you expected -- edit the response with what you expected the result to be."
               resize="both"
               :value="suggestionExpected"
-              @input="suggestionExpected = ($event.target as HTMLTextAreaElement).value"
+              @input="
+                suggestionExpected = ($event.target as HTMLTextAreaElement)
+                  .value
+              "
             />
           </section>
           <section class="component-section">
@@ -325,7 +355,11 @@ vscodeApi.on("feedbackSuccess", () => {
               placeholder="Enter details."
               resize="both"
               :value="suggestionAdditionalComment"
-              @input="suggestionAdditionalComment = ($event.target as HTMLTextAreaElement).value"
+              @input="
+                suggestionAdditionalComment = (
+                  $event.target as HTMLTextAreaElement
+                ).value
+              "
             />
           </section>
         </template>

@@ -8,7 +8,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper.js";
+} from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 

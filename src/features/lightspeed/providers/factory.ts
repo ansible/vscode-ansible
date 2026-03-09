@@ -1,5 +1,8 @@
-import { LLMProvider } from "./base";
-import { GoogleProvider, GoogleConfig } from "./google";
+import { LLMProvider } from "@src/features/lightspeed/providers/base";
+import {
+  GoogleProvider,
+  GoogleConfig,
+} from "@src/features/lightspeed/providers/google";
 import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,

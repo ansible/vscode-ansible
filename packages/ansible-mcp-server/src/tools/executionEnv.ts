@@ -7,7 +7,7 @@ import {
   getExecutionEnvironmentSchema,
   getEERules,
   getSampleExecutionEnvironment,
-} from "../resources/eeSchema.js";
+} from "@src/resources/eeSchema.js";
 
 interface ExecutionEnvInputs {
   baseImage: string;

@@ -4,8 +4,14 @@ defineProps<{ prompt: string }>();
 
 <template>
   <div>
-    "<span id="prompt">{{ prompt }}</span>"&nbsp;
-    <a class="backAnchor" id="backAnchorPrompt" v-on:click="$emit('restartWizard')">Edit</a>
+    "<span id="prompt">{{ prompt }}</span
+    >"&nbsp;
+    <a
+      class="backAnchor"
+      id="backAnchorPrompt"
+      v-on:click="$emit('restartWizard')"
+      >Edit</a
+    >
   </div>
 </template>
 

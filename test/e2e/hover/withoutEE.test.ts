@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getDocUri, activate, testHover } from "../e2e.utils";
+import { getDocUri, activate, testHover } from "@test/e2e/e2e.utils";
 
 describe("hover-no-ee", function () {
   const docUri1 = getDocUri("hover/without_ee/1.yml");

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { PROJECT_ROOT } from "./setup";
+import { PROJECT_ROOT } from "@test/setup";
 
 const userSettingsPath = path.join(
   PROJECT_ROOT,

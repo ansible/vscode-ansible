@@ -1,7 +1,7 @@
 import "@vscode-elements/elements/dist/vscode-button";
 
 import { createApp } from "vue";
-import App from "./ExplorerApp.vue";
+import App from "@webviews/lightspeed/src/ExplorerApp.vue";
 
 import hljs from "highlight.js/lib/core";
 import yaml from "highlight.js/lib/languages/yaml";
@@ -10,7 +10,7 @@ import ProgressSpinner from "primevue/progressspinner";
 import PrimeVue from "primevue/config";
 import { definePreset } from "@primeuix/themes";
 import Nora from "@primeuix/themes/nora";
-import { vscodeApi } from "./utils";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 
 hljs.registerLanguage("yaml", yaml);
 

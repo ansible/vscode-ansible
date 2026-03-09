@@ -41,15 +41,15 @@ import {
   thumbsUpDown,
   contentMatch,
   updatePromptHistory,
-} from "./lightspeedUtils";
+} from "@src/features/lightspeed/vue/views/lightspeedUtils";
 import {
   openNewPlaybookEditor,
   getCollectionsFromWorkspace,
   getRoleBaseDir,
   fileExists,
   FileOperations,
-} from "./fileOperations";
-import { AnsibleCreatorOperations } from "./ansibleCreatorUtils";
+} from "@src/features/lightspeed/vue/views/fileOperations";
+import { AnsibleCreatorOperations } from "@src/features/lightspeed/vue/views/ansibleCreatorUtils";
 import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
 import { expandPath, runCommand } from "@src/features/contentCreator/utils";
 import { withInterpreter } from "@src/features/utils/commandRunner";

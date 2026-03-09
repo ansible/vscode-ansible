@@ -1,2 +1,2 @@
-export * from "./vscode";
-export * from "./outlineLineNumbers";
+export * from "@webviews/lightspeed/src/utils/vscode";
+export * from "@webviews/lightspeed/src/utils/outlineLineNumbers";

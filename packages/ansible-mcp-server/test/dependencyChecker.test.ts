@@ -4,7 +4,7 @@ import {
   formatDependencyError,
   COMMON_DEPENDENCIES,
   type Dependency,
-} from "../src/dependencyChecker.js";
+} from "@src/dependencyChecker.js";
 
 describe("Dependency Checker", () => {
   describe("checkDependencies", () => {

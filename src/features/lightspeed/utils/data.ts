@@ -5,7 +5,7 @@ import {
   GenerationListEntry,
   RoleFileType,
 } from "@src/interfaces/lightspeed";
-import { readVarFiles } from "./readVarFiles";
+import { readVarFiles } from "@src/features/lightspeed/utils/readVarFiles";
 import {
   tasksFileKeywords,
   tasksInPlaybookKeywords,

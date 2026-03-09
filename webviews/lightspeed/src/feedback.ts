@@ -6,7 +6,7 @@ import "@vscode-elements/elements/dist/vscode-textarea";
 import "@vscode-elements/elements/dist/vscode-textfield";
 
 import { createApp } from "vue";
-import App from "./FeedbackApp.vue";
+import App from "@webviews/lightspeed/src/FeedbackApp.vue";
 
 import PrimeVue from "primevue/config";
 import { definePreset } from "@primeuix/themes";

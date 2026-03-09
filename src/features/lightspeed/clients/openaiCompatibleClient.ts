@@ -1,6 +1,6 @@
 /** OpenAI-compatible API client for Red Hat AI Platform and other providers **/
 
-import { getFetch } from "../api";
+import { getFetch } from "@src/features/lightspeed/api";
 import { getLightspeedLogger } from "@src/utils/logger";
 
 export class OpenAIClientError extends Error {

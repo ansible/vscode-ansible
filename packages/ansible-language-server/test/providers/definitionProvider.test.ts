@@ -7,7 +7,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper.js";
+} from "@test/helper.js";
 import { Position } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";

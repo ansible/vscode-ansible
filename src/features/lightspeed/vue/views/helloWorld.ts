@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "./panelUtils";
+} from "@src/features/lightspeed/vue/views/panelUtils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;

@@ -5,7 +5,8 @@
     "moduleResolution": "bundler",
     "outDir": "./out/server",
     "paths": {
-      "@src/*": ["./src/*"]
+      "@src/*": ["./src/*"],
+      "@test/*": ["./test/*"]
     },
     "resolveJsonModule": true,
     "target": "ES2022"

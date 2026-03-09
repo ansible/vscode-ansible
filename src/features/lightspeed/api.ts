@@ -25,18 +25,22 @@ import {
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
   UserAction,
 } from "@src/definitions/lightspeed";
-import { getBaseUri } from "./utils/webUtils";
+import { getBaseUri } from "@src/features/lightspeed/utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "@src/definitions/constants";
-import { formatErrorDetail, HTTPError, IError } from "./utils/errors";
-import { LightspeedUser } from "./lightspeedUser";
-import { inlineSuggestionHideHandler } from "./inlineSuggestions";
+import {
+  formatErrorDetail,
+  HTTPError,
+  IError,
+} from "@src/features/lightspeed/utils/errors";
+import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { inlineSuggestionHideHandler } from "@src/features/lightspeed/inlineSuggestions";
 import {
   getOneClickTrialProvider,
   OneClickTrialProvider,
-} from "./utils/oneClickTrial";
-import { mapError } from "./handleApiError";
+} from "@src/features/lightspeed/utils/oneClickTrial";
+import { mapError } from "@src/features/lightspeed/handleApiError";
 import { Log } from "@src/utils/logger";
-import { ProviderStatus } from "./providers/base";
+import { ProviderStatus } from "@src/features/lightspeed/providers/base";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 

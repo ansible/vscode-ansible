@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createAnsibleMcpServer } from "../src/server.js";
+import { createAnsibleMcpServer } from "@src/server.js";
 import { z } from "zod";
 
 /**

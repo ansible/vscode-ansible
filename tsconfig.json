@@ -8,10 +8,10 @@
     "outDir": "out/client",
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
+      "@root/*": ["./*"],
       "@src/*": ["./src/*"],
-      "@webviews/*": ["./webviews/*"],
       "@test/*": ["./test/*"],
-      "@root/*": ["./*"]
+      "@webviews/*": ["./webviews/*"]
     }
   },
   "exclude": [

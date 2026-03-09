@@ -11,7 +11,7 @@ import {
   PythonEnvironmentApi,
   TerminalActivationStateEventArgs,
   PYTHON_ENVS_EXTENSION_ID,
-} from "../types/pythonEnvApi";
+} from "@src/types/pythonEnvApi";
 
 interface CommandResult {
   output: string;

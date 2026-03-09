@@ -6,7 +6,7 @@ import {
   IWorkSpaceRolesContext,
   VarType,
 } from "@src/interfaces/lightspeed";
-import { readVarFiles } from "./readVarFiles";
+import { readVarFiles } from "@src/features/lightspeed/utils/readVarFiles";
 
 function getVarsFromRoles(
   rolePath: string,

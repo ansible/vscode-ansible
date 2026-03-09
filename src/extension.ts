@@ -2,15 +2,15 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
-import { Vault } from "./features/vault";
-import { AnsibleCommands } from "./definitions/constants";
-import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
+import { Vault } from "@src/features/vault";
+import { AnsibleCommands } from "@src/definitions/constants";
+import { LightSpeedCommands, UserAction } from "@src/definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
   TelemetryManager,
   sendTelemetry,
-} from "./utils/telemetryUtils";
+} from "@src/utils/telemetryUtils";
 
 /* third-party */
 import {
@@ -23,22 +23,22 @@ import {
 } from "vscode-languageclient/node";
 
 /* local */
-import { SettingsManager } from "./settings";
-import { AnsiblePlaybookRunProvider } from "./features/runner";
+import { SettingsManager } from "@src/settings";
+import { AnsiblePlaybookRunProvider } from "@src/features/runner";
 import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
-} from "./extensionConflicts";
-import { AnsibleMcpServerProvider } from "./utils/mcpProvider";
-import { languageAssociation } from "./features/fileAssociation";
-import { MetadataManager } from "./features/ansibleMetaData";
-import { updateConfigurationChanges } from "./utils/settings";
-import { registerCommandWithTelemetry } from "./utils/registerCommands";
+} from "@src/extensionConflicts";
+import { AnsibleMcpServerProvider } from "@src/utils/mcpProvider";
+import { languageAssociation } from "@src/features/fileAssociation";
+import { MetadataManager } from "@src/features/ansibleMetaData";
+import { updateConfigurationChanges } from "@src/utils/settings";
+import { registerCommandWithTelemetry } from "@src/utils/registerCommands";
 import {
   isDocumentInRole,
   isPlaybook,
-} from "./features/lightspeed/utils/explanationUtils";
-import { LightSpeedManager } from "./features/lightspeed/base";
+} from "@src/features/lightspeed/utils/explanationUtils";
+import { LightSpeedManager } from "@src/features/lightspeed/base";
 import {
   ignorePendingSuggestion,
   inlineSuggestionCommitHandler,
@@ -49,47 +49,47 @@ import {
   LightSpeedInlineSuggestionProvider,
   rejectPendingSuggestion,
   setDocumentChanged,
-} from "./features/lightspeed/inlineSuggestions";
-import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
-import { PythonInterpreterManager } from "./features/pythonMetadata";
-import { PythonEnvironmentService } from "./services/PythonEnvironmentService";
-import { TerminalService } from "./services/TerminalService";
-import { AnsibleToxController } from "./features/ansibleTox/controller";
-import { AnsibleToxProvider } from "./features/ansibleTox/provider";
-import { findProjectDir } from "./features/ansibleTox/utils";
-import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
-import { LlmProviderPanel } from "./features/lightspeed/vue/views/llmProviderPanel";
-import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
-import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
-import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
-import { withInterpreter } from "./features/utils/commandRunner";
+} from "@src/features/lightspeed/inlineSuggestions";
+import { ContentMatchesWebview } from "@src/features/lightspeed/contentMatchesWebview";
+import { PythonInterpreterManager } from "@src/features/pythonMetadata";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
+import { TerminalService } from "@src/services/TerminalService";
+import { AnsibleToxController } from "@src/features/ansibleTox/controller";
+import { AnsibleToxProvider } from "@src/features/ansibleTox/provider";
+import { findProjectDir } from "@src/features/ansibleTox/utils";
+import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
+import { LlmProviderPanel } from "@src/features/lightspeed/vue/views/llmProviderPanel";
+import { LightspeedFeedbackWebviewViewProvider } from "@src/features/lightspeed/feedbackWebviewViewProvider";
+import { LightspeedFeedbackWebviewProvider } from "@src/features/lightspeed/feedbackWebviewProvider";
+import { WelcomePagePanel } from "@src/features/welcomePage/welcomePagePanel";
+import { withInterpreter } from "@src/features/utils/commandRunner";
 import { ExecException, execSync } from "node:child_process";
-// import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
+// import { LightspeedExplorerWebviewViewProvider } from '@src/features/lightspeed/explorerWebviewViewProvider';
 import {
   LightspeedUser,
   AuthProviderType,
-} from "./features/lightspeed/lightspeedUser";
+} from "@src/features/lightspeed/lightspeedUser";
 import {
   PlaybookFeedbackEvent,
   RoleFeedbackEvent,
-} from "./interfaces/lightspeed";
-import { MainPanel as CreateDevfilePanel } from "./features/contentCreator/vue/views/createDevfilePanel";
-import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
-import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
-import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
-import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
-import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
-import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
-import { ProviderCommands } from "./features/lightspeed/commands/providerCommands";
-import { LlmProviderSettings } from "./features/lightspeed/llmProviderSettings";
-import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
-import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
-import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
-import { MainPanel as createRolePanel } from "./features/contentCreator/vue/views/createRolePanel";
-import { MainPanel as createDevcontainerPanel } from "./features/contentCreator/vue/views/createDevcontainerPanel";
-import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
-import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
-import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
+} from "@src/interfaces/lightspeed";
+import { MainPanel as CreateDevfilePanel } from "@src/features/contentCreator/vue/views/createDevfilePanel";
+import { CreateExecutionEnv } from "@src/features/contentCreator/createExecutionEnvPage";
+import { rightClickEEBuildCommand } from "@src/features/utils/buildExecutionEnvironment";
+import { MainPanel as RoleGenerationPanel } from "@src/features/lightspeed/vue/views/roleGenPanel";
+import { MainPanel as PlaybookGenerationPanel } from "@src/features/lightspeed/vue/views/playbookGenPanel";
+import { MainPanel as ExplanationPanel } from "@src/features/lightspeed/vue/views/explanationPanel";
+import { MainPanel as HelloWorldPanel } from "@src/features/lightspeed/vue/views/helloWorld";
+import { ProviderCommands } from "@src/features/lightspeed/commands/providerCommands";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import { MainPanel as createAnsibleCollectionPanel } from "@src/features/contentCreator/vue/views/createAnsibleCollectionPanel";
+import { MainPanel as createAnsibleProjectPanel } from "@src/features/contentCreator/vue/views/createAnsibleProjectPanel";
+import { MainPanel as addPluginPanel } from "@src/features/contentCreator/vue/views/addPluginPagePanel";
+import { MainPanel as createRolePanel } from "@src/features/contentCreator/vue/views/createRolePanel";
+import { MainPanel as createDevcontainerPanel } from "@src/features/contentCreator/vue/views/createDevcontainerPanel";
+import { getRoleNameFromFilePath } from "@src/features/lightspeed/utils/getRoleNameFromFilePath";
+import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
+import { getRoleYamlFiles } from "@src/features/lightspeed/utils/data";
 
 let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
