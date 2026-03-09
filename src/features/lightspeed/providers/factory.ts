@@ -66,7 +66,9 @@ export class LLMProviderFactory implements ProviderFactory {
     if (typeof value === "number") return value;
     const trimmed =
       value !== undefined && value !== null ? String(value).trim() : "";
-    return trimmed !== "" ? Number.parseInt(trimmed, 10) : defaultValue;
+    if (trimmed === "") return defaultValue;
+    const parsed = Number.parseInt(trimmed, 10);
+    return Number.isNaN(parsed) ? defaultValue : parsed;
   }
 
   private createRHCustomProvider(
