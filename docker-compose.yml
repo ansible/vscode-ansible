@@ -8,6 +8,8 @@ services:
     pull_policy: always
     container_name: selenium-vscode
     shm_size: "10g"
+    security_opt:
+      - label=disable
     ports:
       - "4444:4444"
       - "5999:5999"
