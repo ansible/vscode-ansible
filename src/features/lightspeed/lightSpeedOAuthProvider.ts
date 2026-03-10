@@ -426,6 +426,8 @@ export class LightSpeedAuthenticationProvider
           name: err.name,
           message: err.message,
           stack: err.stack,
+          cause: (err as any).cause, // undici errors often have a cause
+          code: (err as any).code, // network error codes
         },
       );
       throw err;
@@ -502,6 +504,8 @@ export class LightSpeedAuthenticationProvider
               name: err.name,
               message: err.message,
               stack: err.stack,
+              cause: (err as any).cause, // undici errors often have a cause
+              code: (err as any).code, // network error codes
             },
           );
           throw err;

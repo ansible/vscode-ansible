@@ -46,14 +46,18 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch() {
   try {
-    const electronFetch = require("electron")?.net?.fetch;
-    if (electronFetch) {
+    // Try to get electron from global scope first (better for bundled extensions)
+    const electron = (globalThis as any).require?.('electron') ?? require('electron');
+    const electronFetch = electron?.net?.fetch;
+    if (electronFetch && typeof electronFetch === 'function') {
+      console.debug('[getFetch] Using electron.net.fetch');
       return electronFetch;
     }
-  } catch {
-    // electron not available (e.g., in tests or web environment)
+  } catch (error) {
+    console.debug('[getFetch] Electron not available, falling back to globalThis.fetch:', error);
   }
   // Fallback to global fetch
+  console.debug('[getFetch] Using globalThis.fetch (Node.js undici)');
   return globalThis.fetch;
 }
 
