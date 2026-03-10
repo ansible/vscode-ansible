@@ -140,6 +140,10 @@ const config = {
     extensionAlias: {
       ".js": [".ts", ".js"],
     },
+    // Path aliases used by ansible-language-server (entry.server); webpack resolves these
+    alias: {
+      "@src": path.resolve(__dirname, "packages/ansible-language-server/src"),
+    },
   },
   stats: {
     errorDetails: true,

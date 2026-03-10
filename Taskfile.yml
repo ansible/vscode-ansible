@@ -83,10 +83,12 @@ tasks:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
       NODE_OPTIONS: "--no-deprecation"
-    desc: Forced install of extension in your code instance
+    desc: Forced install of extension in your code instance and restarts it
     cmds:
       - task: package
+      - pkill -9 -f "Visual Studio Code" || true
       - code --force --install-extension out/*.vsix
+      - code examples/
   deps:
     desc: Update dependencies
     env:
