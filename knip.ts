@@ -55,6 +55,10 @@ const config: KnipConfig = {
     },
   },
   treatConfigHintsAsErrors: true,
+  // Definition/constant exports are used from extension.ts, Vue, and runtime
+  ignoreIssues: {
+    "src/definitions/**": ["exports", "nsExports"],
+  },
 };
 
 export default config;
