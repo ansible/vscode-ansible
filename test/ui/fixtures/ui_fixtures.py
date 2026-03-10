@@ -16,6 +16,7 @@ from selenium import webdriver
 from selenium.common import WebDriverException
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from test.ui.conftest import _PROJECT_ROOT
 from test.ui.const import CONTAINER_NAME
 
 if TYPE_CHECKING:
@@ -77,6 +78,7 @@ def browser_setup(
                     f"podman-compose up --force-recreate --quiet-pull --remove-orphans --timeout 5 -d {CONTAINER_NAME}",
                     check=True,
                     shell=True,
+                    cwd=_PROJECT_ROOT,
                 )
             count = 0
             while True:

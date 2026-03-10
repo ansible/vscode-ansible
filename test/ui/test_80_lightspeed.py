@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+from test.ui.conftest import skip_if_missing_lightspeed_credentials
 from test.ui.utils.ui_utils import (
     find_element_across_iframes,
     vscode_explanation,
@@ -45,8 +46,21 @@ def vscode_login_wrapper(driver: Any) -> None:
     logged_in_flag = True
 
 
-# @pytest.mark.flaky(reruns=6, reruns_delay=10)
-@pytest.mark.xfail(reason="Broken")
+def test_has_ls_credentials() -> None:
+    """Test that the user has LS credentials."""
+    assert skip_if_missing_lightspeed_credentials(), "User has no LS credentials"
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Automatically skip tests marked with 'lightspeed' if credentials are missing."""
+    assert skip_if_missing_lightspeed_credentials(), (
+        "LIGHTSPEED_PASSWORD or LIGHTSPEED_USER environment variables are not defined."
+    )
+
+
+@pytest.mark.dependency(depends=["test_has_ls_credentials"])
 def test_vscode_widget(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -74,7 +88,7 @@ def test_vscode_widget(
     )
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.dependency(depends=["test_vscode_widget"])
 def test_vscode_playbook_explanation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -105,7 +119,7 @@ def test_vscode_playbook_explanation(
         assert phrase in explanation, msg
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.dependency(depends=["test_vscode_widget"])
 def test_vscode_playbook_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -127,7 +141,7 @@ def test_vscode_playbook_generation(
     assert all(txt in playbook for txt in expected_playbook), "Error- bad playbook"
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.dependency(depends=["test_vscode_widget"])
 def test_vscode_role_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -144,7 +158,7 @@ def test_vscode_role_generation(
     assert "ansible.builtin.package" in tasks
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.dependency(depends=["test_vscode_widget"])
 def test_vscode_lightspeed_explorer(
     browser_setup: Any,
     screenshot_on_fail: Any,

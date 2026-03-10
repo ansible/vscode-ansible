@@ -2101,6 +2101,16 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-dependency"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/ea/84509533e0f6477960b8a9179d240d93c909c6543e4dd8209932026d7815/pytest_dependency-0.6.1.tar.gz", hash = "sha256:246c24d2a5fc743a942cec4408853640e56a05ba58d46e5b213a1d4b738a2464", size = 20837, upload-time = "2026-02-15T18:08:43.927Z" }
+
+[[package]]
 name = "pytest-github-actions-annotate-failures"
 version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2998,6 +3008,7 @@ dev = [
     { name = "prek" },
     { name = "pygithub" },
     { name = "pytest-coverage" },
+    { name = "pytest-dependency" },
     { name = "pytest-github-actions-annotate-failures" },
     { name = "pytest-rerunfailures" },
     { name = "selenium" },
@@ -3032,6 +3043,7 @@ dev = [
     { name = "prek", specifier = ">=0.3.4" },
     { name = "pygithub", specifier = ">=2.8.1" },
     { name = "pytest-coverage", specifier = ">=0.0" },
+    { name = "pytest-dependency", specifier = ">=0.6" },
     { name = "pytest-github-actions-annotate-failures", specifier = ">=0.4.0" },
     { name = "pytest-rerunfailures", specifier = ">=16.1" },
     { name = "selenium", specifier = ">=4.40.0" },

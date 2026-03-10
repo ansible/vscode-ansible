@@ -9,11 +9,13 @@ import shutil
 import subprocess
 from functools import lru_cache
 from pathlib import Path
-
-import pytest
+from typing import TYPE_CHECKING
 
 from test.ui.const import CONTAINER_NAME
 from test.ui.utils.ui_utils import LIGHTSPEED_PASSWORD, LIGHTSPEED_USER
+
+if TYPE_CHECKING:
+    import pytest
 
 # Project root (vscode-ansible), assuming conftest at test/selenium/conftest.py
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -42,21 +44,9 @@ def skip_if_missing_lightspeed_credentials() -> bool:
     return skip
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
-    """Automatically skip tests marked with 'lightspeed' if credentials are missing."""
-    if skip_if_missing_lightspeed_credentials():  # pragma: no cover
-        skip_marker = pytest.mark.skip(
-            reason="LIGHTSPEED_PASSWORD or LIGHTSPEED_USER environment variables are not defined."
-        )
-        for item in items:
-            if "lightspeed" in item.keywords:
-                item.add_marker(skip_marker)
-
-
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Prepare dirs and settings for UI/Selenium tests (replaces Taskfile rimraf/mkdir/cp)."""
+    os.chdir(_PROJECT_ROOT)
     for dir_path in (
         _PROJECT_ROOT / "out" / "ui" / "logs",
         _PROJECT_ROOT / "out" / "ui" / "coder-logs",
@@ -82,6 +72,7 @@ def pytest_sessionfinish(
     """Teardown the selenium server after tests on CI."""
     result = subprocess.run(
         f"podman-compose stats --no-stream --no-reset {CONTAINER_NAME}",
+        cwd=_PROJECT_ROOT,
         text=True,
         capture_output=True,
         check=False,
@@ -94,6 +85,7 @@ def pytest_sessionfinish(
             f"podman stop {CONTAINER_NAME} 2>/dev/null || true",
             # Apparently compose down can fail with various errors but stopping container works
             # "podman-compose down",
+            cwd=_PROJECT_ROOT,
             capture_output=True,
             check=False,
             shell=True,
