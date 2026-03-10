@@ -62,6 +62,10 @@
     "./interfaces/extensionSettings": {
       "types": "./out/server/src/interfaces/extensionSettings.d.ts",
       "default": "./out/server/src/interfaces/extensionSettings.js"
+    },
+    "./services/settingsManager": {
+      "types": "./out/server/src/services/settingsManager.d.ts",
+      "default": "./out/server/src/services/settingsManager.js"
     }
   },
   "files": [

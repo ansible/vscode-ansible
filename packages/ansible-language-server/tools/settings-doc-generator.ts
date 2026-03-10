@@ -1,11 +1,11 @@
 import Handlebars from "handlebars";
 import * as fs from "fs";
-import { SettingsManager } from "@src/services/settingsManager.js";
+import { SettingsManager } from "@ansible/ansible-language-server/services/settingsManager";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import _ from "lodash";
-import { ExtensionSettingsWithDescriptionBase } from "@src/interfaces/extensionSettings.js";
+import { ExtensionSettingsWithDescriptionBase } from "@ansible/ansible-language-server/interfaces/extensionSettings";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

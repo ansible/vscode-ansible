@@ -22,6 +22,7 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "src/**/*.ts",
+    "tools/**/*.ts",
     "test/**/*.ts",
     "test/**/*.cjs",
     "webviews/**/*.ts",
