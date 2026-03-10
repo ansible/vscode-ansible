@@ -219,7 +219,7 @@ describe("GoogleProvider", () => {
 
       expect(mockedLogger.error).toHaveBeenCalled();
     });
-    
+
     it("should format error using handleGeminiError on 403 failure", async () => {
       sharedGenerateContent.mockRejectedValue({
         status: HTTP_STATUS_CODES.FORBIDDEN,
