@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import ExplanationApp from "../../../../webviews/lightspeed/src/ExplanationApp.vue";
-import { vscodeApi } from "../../../../webviews/lightspeed/src/utils/vscode";
+import ExplanationApp from "@webviews/lightspeed/src/ExplanationApp.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("ExplanationApp", () => {
   beforeEach(() => {

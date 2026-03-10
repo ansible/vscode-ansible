@@ -5,13 +5,13 @@ import * as child_process from "child_process";
 import * as util from "util";
 import * as os from "os";
 import * as path from "path";
-import { getTerminal } from "./utils";
+import { getTerminal } from "@src/features/ansibleTox/utils";
 import {
   ANSIBLE_TOX_FILE_NAME,
   ANSIBLE_TOX_LIST_ENV_COMMAND,
   ANSIBLE_TOX_RUN_COMMAND,
-} from "./constants";
-import { PythonEnvironmentService } from "../../services/PythonEnvironmentService";
+} from "@src/features/ansibleTox/constants";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 
 const exec = util.promisify(child_process.exec);
 

@@ -1,19 +1,31 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
+import "@vscode/codicons/dist/codicon.css";
 
 import { ref, toRaw, watch } from "vue";
 import * as marked from "marked";
 import { v4 as uuidv4 } from "uuid";
-import { vscodeApi } from "./utils";
-import { getObjectKeys } from "../../../src/features/lightspeed/utils/explanationUtils";
-import { ExplanationRequestParams, ExplanationResponseParams, FeedbackRequestParams, GenerationListEntry, RoleExplanationRequestParams } from "../../../src/interfaces/lightspeed";
-import FeedbackBox from "./components/lightspeed/FeedbackBox.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
+import { getObjectKeys } from "@src/features/lightspeed/utils/explanationUtils";
+import {
+  ExplanationRequestParams,
+  ExplanationResponseParams,
+  FeedbackRequestParams,
+  GenerationListEntry,
+  RoleExplanationRequestParams,
+} from "@src/interfaces/lightspeed";
+import FeedbackBox from "@webviews/lightspeed/src/components/lightspeed/FeedbackBox.vue";
 
 const loadingExplanation = ref(true);
 const noTasksInPlaybook = ref(false);
 const explanationType = ref<"playbook" | "role" | null>(null);
-const playbookData = ref<{ content: string | null; fileName: string | null }>({ content: null, fileName: null });
-const roleData = ref<{ files: GenerationListEntry[] | []; roleName: string | null }>({ files: [], roleName: null });
+const playbookData = ref<{ content: string | null; fileName: string | null }>({
+  content: null,
+  fileName: null,
+});
+const roleData = ref<{
+  files: GenerationListEntry[] | [];
+  roleName: string | null;
+}>({ files: [], roleName: null });
 const errorMessage = ref<string | null>(null);
 const explanationHtml = ref<string | null>(null);
 const explanationId = uuidv4();
@@ -38,11 +50,11 @@ async function fetchPlaybookExplanation() {
 
   const feedbackRequest: FeedbackRequestParams = {
     playbookExplanation: {
-      explanationId: explanationId
-    }
-  }
+      explanationId: explanationId,
+    },
+  };
 
-  vscodeApi.post("feedback", { request: feedbackRequest })
+  vscodeApi.post("feedback", { request: feedbackRequest });
 
   const explanationRequest: ExplanationRequestParams = {
     content: playbookData.value.content,
@@ -59,9 +71,9 @@ async function fetchRoleExplanation() {
 
   const feedbackRequest: FeedbackRequestParams = {
     roleExplanation: {
-      explanationId: explanationId
-    }
-  }
+      explanationId: explanationId,
+    },
+  };
 
   vscodeApi.post("feedback", { request: feedbackRequest });
 
@@ -93,21 +105,27 @@ vscodeApi.on("explainRole", (data: ExplanationResponseParams) => {
   explanationHtml.value = html_snippet;
 });
 
-vscodeApi.on("setPlaybookData", (data: { content: string, fileName: string }) => {
-  explanationType.value = "playbook";
-  playbookData.value = {
-    content: data.content,
-    fileName: data.fileName
-  };
-});
+vscodeApi.on(
+  "setPlaybookData",
+  (data: { content: string; fileName: string }) => {
+    explanationType.value = "playbook";
+    playbookData.value = {
+      content: data.content,
+      fileName: data.fileName,
+    };
+  },
+);
 
-vscodeApi.on("setRoleData", (data: { files: GenerationListEntry[], roleName: string }) => {
-  explanationType.value = "role";
-  roleData.value = {
-    files: data.files,
-    roleName: data.roleName
-  };
-});
+vscodeApi.on(
+  "setRoleData",
+  (data: { files: GenerationListEntry[]; roleName: string }) => {
+    explanationType.value = "role";
+    roleData.value = {
+      files: data.files,
+      roleName: data.roleName,
+    };
+  },
+);
 
 vscodeApi.on("errorMessage", (message: string) => {
   loadingExplanation.value = false;
@@ -121,31 +139,48 @@ vscodeApi.on("telemetryStatus", (data: { enabled: boolean }) => {
 // Request feedback status on component load
 vscodeApi.post("getTelemetryStatus", {});
 
-watch(() => roleData.value, (newValue) => {
-  if (newValue && newValue.files && newValue.files.length > 0 && newValue.roleName) {
-    loadingExplanation.value = true;
-    noTasksInPlaybook.value = false;
-    explanationHtml.value = null;
-    fetchRoleExplanation();
-  }
-}, { immediate: true });
+watch(
+  () => roleData.value,
+  (newValue) => {
+    if (
+      newValue &&
+      newValue.files &&
+      newValue.files.length > 0 &&
+      newValue.roleName
+    ) {
+      loadingExplanation.value = true;
+      noTasksInPlaybook.value = false;
+      explanationHtml.value = null;
+      fetchRoleExplanation();
+    }
+  },
+  { immediate: true },
+);
 
-watch(() => playbookData.value, (newValue) => {
-  if (newValue && newValue.content && newValue.fileName) {
-    loadingExplanation.value = true;
-    noTasksInPlaybook.value = false;
-    explanationHtml.value = null;
-    fetchPlaybookExplanation();
-  }
-}, { immediate: true });
+watch(
+  () => playbookData.value,
+  (newValue) => {
+    if (newValue && newValue.content && newValue.fileName) {
+      loadingExplanation.value = true;
+      noTasksInPlaybook.value = false;
+      explanationHtml.value = null;
+      fetchPlaybookExplanation();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
   <div v-if="loadingExplanation" id="icons">
     <span class="codicon codicon-loading codicon-modifier-spin"></span>
-    <span v-if="playbookData.fileName">&nbsp;Generating the explanation for
-      {{ playbookData.fileName.split("/").at(-1) }}</span>
-    <span v-if="roleData.roleName">&nbsp;Generating the explanation for role: {{ roleData.roleName }}</span>
+    <span v-if="playbookData.fileName"
+      >&nbsp;Generating the explanation for
+      {{ playbookData.fileName.split("/").at(-1) }}</span
+    >
+    <span v-if="roleData.roleName"
+      >&nbsp;Generating the explanation for role: {{ roleData.roleName }}</span
+    >
   </div>
   <div class="explanation" v-else-if="errorMessage">
     <p>
@@ -156,12 +191,17 @@ watch(() => playbookData.value, (newValue) => {
   <div class="explanation" v-else-if="noTasksInPlaybook">
     <p>
       <span class="codicon codicon-info"></span>
-      &nbsp;Explaining a playbook with no tasks in the playbook is not supported.
+      &nbsp;Explaining a playbook with no tasks in the playbook is not
+      supported.
     </p>
   </div>
   <div v-else-if="explanationHtml">
     <div class="explanation" v-html="explanationHtml"></div>
-    <FeedbackBox :explanationId="explanationId" :explanationType="explanationType || 'playbook'" :telemetryEnabled="telemetryEnabled" />
+    <FeedbackBox
+      :explanationId="explanationId"
+      :explanationType="explanationType || 'playbook'"
+      :telemetryEnabled="telemetryEnabled"
+    />
   </div>
   <div class="explanation" v-else>
     <p>No explanation available.</p>

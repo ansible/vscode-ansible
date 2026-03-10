@@ -1,11 +1,14 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { LightSpeedManager } from "../base";
-import { getRoleNamePathFromFilePath } from "./getRoleNamePathFromFilePath";
-import { updateRoleContext, updateRolesContext } from "./updateRolesContext";
+import { LightSpeedManager } from "@src/features/lightspeed/base";
+import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
+import {
+  updateRoleContext,
+  updateRolesContext,
+} from "@src/features/lightspeed/utils/updateRolesContext";
 
-import { StandardRolePaths } from "../../../definitions/constants";
+import { StandardRolePaths } from "@src/definitions/constants";
 
 export function watchRolesDirectory(
   lightSpeedManager: LightSpeedManager,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { onMounted, ref, computed, watch } from 'vue';
-import { vscodeApi } from './lightspeed/src/utils';
+import "@vscode/codicons/dist/codicon.css";
+import { onMounted, ref, computed, watch } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 import {
   useCommonWebviewState,
   openFolderExplorer,
@@ -10,22 +10,22 @@ import {
   setupMessageHandler,
   clearAllFields,
   createFormValidator,
-  createActionWrapper
-} from './../src/features/contentCreator/webviewUtils';
-import FormPageLayout from './FormPageLayout.vue';
+  createActionWrapper,
+} from "@src/features/contentCreator/webviewUtils";
+import FormPageLayout from "@webviews/FormPageLayout.vue";
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
 const isCreating = commonState.isCreating;
 
 // Form fields
-const destinationPath = ref('');
-const baseImage = ref('');
-const customBaseImage = ref('');
-const collections = ref('');
-const systemPackages = ref('');
-const pythonPackages = ref('');
-const tag = ref('');
-const verbosity = ref('Off');
+const destinationPath = ref("");
+const baseImage = ref("");
+const customBaseImage = ref("");
+const collections = ref("");
+const systemPackages = ref("");
+const pythonPackages = ref("");
+const tag = ref("");
+const verbosity = ref("Off");
 const isOverwritten = ref(false);
 const createContext = ref(false);
 const buildImage = ref(false);
@@ -33,23 +33,25 @@ const initEEProject = ref(false);
 
 // Suggested collections
 const suggestedCollections = ref({
-  'amazon.aws': false,
-  'ansible.network': false,
-  'ansible.posix': false,
-  'ansible.utils': false,
-  'kubernetes.core': false
+  "amazon.aws": false,
+  "ansible.network": false,
+  "ansible.posix": false,
+  "ansible.utils": false,
+  "kubernetes.core": false,
 });
 
 // State
-const homeDir = ref('');
-const projectUrl = ref('');
+const homeDir = ref("");
+const projectUrl = ref("");
 const openFileButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
 
 // Computed properties
 const displayDestinationPath = computed(() => {
   const path = destinationPath.value.trim() || homeDir.value;
-  return path ? `${path}/execution-environment.yml` : "No folders are open in the workspace - Enter a destination directory.";
+  return path
+    ? `${path}/execution-environment.yml`
+    : "No folders are open in the workspace - Enter a destination directory.";
 });
 
 const isCreateContextDisabled = computed(() => {
@@ -58,27 +60,32 @@ const isCreateContextDisabled = computed(() => {
 
 const isFormValid = createFormValidator({
   mainValidation: () => {
-    const isDestinationPathProvided = destinationPath.value.trim() !== '' || homeDir.value !== '';
-    const isTagProvided = tag.value.trim() !== '';
-    const isBaseImageProvided = baseImage.value.trim() !== '' || customBaseImage.value.trim() !== '';
+    const isDestinationPathProvided =
+      destinationPath.value.trim() !== "" || homeDir.value !== "";
+    const isTagProvided = tag.value.trim() !== "";
+    const isBaseImageProvided =
+      baseImage.value.trim() !== "" || customBaseImage.value.trim() !== "";
     const isInitEEProjectEnabled = initEEProject.value;
 
     // Original logic: enabled if initEEProject is checked OR (destination + tag + baseImage)
-    return isInitEEProjectEnabled || (isDestinationPathProvided && isTagProvided && isBaseImageProvided);
-  }
+    return (
+      isInitEEProjectEnabled ||
+      (isDestinationPathProvided && isTagProvided && isBaseImageProvided)
+    );
+  },
 });
 
 // Watchers
 watch([baseImage], () => {
-  if (baseImage.value.trim() !== '') {
-    customBaseImage.value = '';
+  if (baseImage.value.trim() !== "") {
+    customBaseImage.value = "";
   }
   updateCreateButtonState();
 });
 
 watch([customBaseImage], () => {
-  if (customBaseImage.value.trim() !== '') {
-    baseImage.value = '';
+  if (customBaseImage.value.trim() !== "") {
+    baseImage.value = "";
   }
   updateCreateButtonState();
 });
@@ -91,9 +98,12 @@ watch([buildImage], () => {
   // The disabled state is handled by the computed property isCreateContextDisabled
 });
 
-watch([destinationPath, tag, baseImage, customBaseImage, initEEProject, isCreating], () => {
-  updateCreateButtonState();
-});
+watch(
+  [destinationPath, tag, baseImage, customBaseImage, initEEProject, isCreating],
+  () => {
+    updateCreateButtonState();
+  },
+);
 
 function updateCreateButtonState() {
   createButtonDisabled.value = !isFormValid() || isCreating.value;
@@ -101,11 +111,9 @@ function updateCreateButtonState() {
 
 // Handlers
 const handleOpenFolderExplorer = () => {
-  openFolderExplorer(
-    destinationPath.value || homeDir.value,
-    homeDir.value,
-    { selectOption: 'folder' }
-  );
+  openFolderExplorer(destinationPath.value || homeDir.value, homeDir.value, {
+    selectOption: "folder",
+  });
 };
 
 const handleCreate = createActionWrapper(
@@ -131,12 +139,15 @@ const handleCreate = createActionWrapper(
       .map(([name, _]) => name);
 
     const additionalCollections = collections.value.trim()
-      ? collections.value.split(',').map(c => c.trim()).filter(c => c.length > 0)
+      ? collections.value
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
       : [];
 
     const finalCollections = [...selectedSuggested, ...additionalCollections]
-      .filter(c => c.length > 0)
-      .join(', ');
+      .filter((c) => c.length > 0)
+      .join(", ");
 
     const payload = {
       destinationPath: destinationPath.value.trim(),
@@ -154,16 +165,16 @@ const handleCreate = createActionWrapper(
     };
 
     vscodeApi.postMessage({
-      command: 'init-create-execution-env',
+      command: "init-create-execution-env",
       payload,
     });
-  }
+  },
 );
 
 const handleOpenFile = () => {
   if (!projectUrl.value) return;
   vscodeApi.postMessage({
-    command: 'init-open-scaffolded-file',
+    command: "init-open-scaffolded-file",
     payload: {
       projectUrl: projectUrl.value,
     },
@@ -172,22 +183,35 @@ const handleOpenFile = () => {
 
 const onClear = () => {
   const componentFields = {
-    destinationPath, baseImage, customBaseImage, collections, systemPackages,
-    pythonPackages, tag, verbosity, isOverwritten, createContext, buildImage,
-    initEEProject, logs, projectUrl
+    destinationPath,
+    baseImage,
+    customBaseImage,
+    collections,
+    systemPackages,
+    pythonPackages,
+    tag,
+    verbosity,
+    isOverwritten,
+    createContext,
+    buildImage,
+    initEEProject,
+    logs,
+    projectUrl,
   };
   const defaults = {
-    verbosity: 'Off',
+    verbosity: "Off",
     isOverwritten: false,
     createContext: false,
     buildImage: false,
-    initEEProject: false
+    initEEProject: false,
   };
   clearAllFields(componentFields, defaults);
 
   // Reset suggested collections
   (
-    Object.keys(suggestedCollections.value) as (keyof typeof suggestedCollections.value)[]
+    Object.keys(
+      suggestedCollections.value,
+    ) as (keyof typeof suggestedCollections.value)[]
   ).forEach((key) => {
     suggestedCollections.value[key] = false;
   });
@@ -220,10 +244,10 @@ onMounted(() => {
       destinationPath.value = data;
     },
     onExecutionLog: (args) => {
-      logs.value = stripAnsiCodes(args.commandOutput || '');
-      projectUrl.value = args.projectUrl || '';
+      logs.value = stripAnsiCodes(args.commandOutput || "");
+      projectUrl.value = args.projectUrl || "";
 
-      if (args.status === 'passed') {
+      if (args.status === "passed") {
         openFileButtonDisabled.value = false;
       } else {
         openFileButtonDisabled.value = true;
@@ -231,20 +255,20 @@ onMounted(() => {
 
       isCreating.value = false;
       updateCreateButtonState();
-    }
+    },
   });
 
   // Listen for additional message types specific to EE webview
-  window.addEventListener('message', (event) => {
+  window.addEventListener("message", (event) => {
     const message = event.data;
     switch (message.command) {
-      case 'disable-build-button':
+      case "disable-build-button":
         createButtonDisabled.value = true;
         break;
-      case 'enable-build-button':
+      case "enable-build-button":
         updateCreateButtonState();
         break;
-      case 'enable-open-file-button':
+      case "enable-open-file-button":
         openFileButtonDisabled.value = false;
         break;
     }
@@ -261,7 +285,6 @@ onMounted(() => {
   >
     <form id="init-form">
       <section class="component-container">
-
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Destination path</span>
@@ -285,7 +308,9 @@ onMounted(() => {
         </vscode-form-group>
 
         <div id="full-destination-path" class="full-destination-path">
-          <p>Execution-environment file path:&nbsp;{{ displayDestinationPath }}</p>
+          <p>
+            Execution-environment file path:&nbsp;{{ displayDestinationPath }}
+          </p>
         </div>
 
         <div class="verbose-div">
@@ -300,9 +325,17 @@ onMounted(() => {
               position="below"
             >
               <vscode-option value="">-- Select Base Image --</vscode-option>
-              <vscode-option value="quay.io/fedora/fedora-minimal:41">quay.io/fedora/fedora-minimal:41</vscode-option>
-              <vscode-option value="quay.io/centos/centos:stream10">quay.io/centos/centos:stream10</vscode-option>
-              <vscode-option value="registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest">registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest (requires an active Red Hat registry login)</vscode-option>
+              <vscode-option value="quay.io/fedora/fedora-minimal:41"
+                >quay.io/fedora/fedora-minimal:41</vscode-option
+              >
+              <vscode-option value="quay.io/centos/centos:stream10"
+                >quay.io/centos/centos:stream10</vscode-option
+              >
+              <vscode-option
+                value="registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
+                >registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+                (requires an active Red Hat registry login)</vscode-option
+              >
             </vscode-single-select>
           </div>
         </div>
@@ -328,33 +361,58 @@ onMounted(() => {
               <vscode-checkbox
                 v-model="suggestedCollections['amazon.aws']"
                 :checked="suggestedCollections['amazon.aws']"
-                @change="suggestedCollections['amazon.aws'] = ($event.target as HTMLInputElement).checked"
+                @change="
+                  suggestedCollections['amazon.aws'] = (
+                    $event.target as HTMLInputElement
+                  ).checked
+                "
                 value="amazon.aws"
-              >amazon.aws</vscode-checkbox>
+                >amazon.aws</vscode-checkbox
+              >
               <vscode-checkbox
                 v-model="suggestedCollections['ansible.network']"
                 :checked="suggestedCollections['ansible.network']"
-                @change="suggestedCollections['ansible.network'] = ($event.target as HTMLInputElement).checked"
+                @change="
+                  suggestedCollections['ansible.network'] = (
+                    $event.target as HTMLInputElement
+                  ).checked
+                "
                 value="ansible.network"
-              >ansible.network</vscode-checkbox>
+                >ansible.network</vscode-checkbox
+              >
               <vscode-checkbox
                 v-model="suggestedCollections['ansible.posix']"
                 :checked="suggestedCollections['ansible.posix']"
-                @change="suggestedCollections['ansible.posix'] = ($event.target as HTMLInputElement).checked"
+                @change="
+                  suggestedCollections['ansible.posix'] = (
+                    $event.target as HTMLInputElement
+                  ).checked
+                "
                 value="ansible.posix"
-              >ansible.posix</vscode-checkbox>
+                >ansible.posix</vscode-checkbox
+              >
               <vscode-checkbox
                 v-model="suggestedCollections['ansible.utils']"
                 :checked="suggestedCollections['ansible.utils']"
-                @change="suggestedCollections['ansible.utils'] = ($event.target as HTMLInputElement).checked"
+                @change="
+                  suggestedCollections['ansible.utils'] = (
+                    $event.target as HTMLInputElement
+                  ).checked
+                "
                 value="ansible.utils"
-              >ansible.utils</vscode-checkbox>
+                >ansible.utils</vscode-checkbox
+              >
               <vscode-checkbox
                 v-model="suggestedCollections['kubernetes.core']"
                 :checked="suggestedCollections['kubernetes.core']"
-                @change="suggestedCollections['kubernetes.core'] = ($event.target as HTMLInputElement).checked"
+                @change="
+                  suggestedCollections['kubernetes.core'] = (
+                    $event.target as HTMLInputElement
+                  ).checked
+                "
                 value="kubernetes.core"
-              >kubernetes.core</vscode-checkbox>
+                >kubernetes.core</vscode-checkbox
+              >
             </div>
           </div>
         </div>
@@ -432,10 +490,14 @@ onMounted(() => {
             id="createContext-checkbox"
             :checked="createContext"
             :disabled="isCreateContextDisabled"
-            @change="createContext = ($event.target as HTMLInputElement).checked"
+            @change="
+              createContext = ($event.target as HTMLInputElement).checked
+            "
             form="init-form"
           >
-            Create context <br><i>Create context for the execution-environment.</i>
+            Create context <br /><i
+              >Create context for the execution-environment.</i
+            >
           </vscode-checkbox>
         </div>
 
@@ -446,7 +508,9 @@ onMounted(() => {
             @change="buildImage = ($event.target as HTMLInputElement).checked"
             form="init-form"
           >
-            Build image <br><i>Build the image of the execution-environment.</i>
+            Build image <br /><i
+              >Build the image of the execution-environment.</i
+            >
           </vscode-checkbox>
         </div>
 
@@ -454,10 +518,14 @@ onMounted(() => {
           <vscode-checkbox
             id="initEE-checkbox"
             :checked="initEEProject"
-            @change="initEEProject = ($event.target as HTMLInputElement).checked"
+            @change="
+              initEEProject = ($event.target as HTMLInputElement).checked
+            "
             form="init-form"
           >
-            Include full project files <br><i>Initialize entire structure of execution-environment project.</i>
+            Include full project files <br /><i
+              >Initialize entire structure of execution-environment project.</i
+            >
           </vscode-checkbox>
         </div>
 
@@ -465,10 +533,14 @@ onMounted(() => {
           <vscode-checkbox
             id="overwrite-checkbox"
             :checked="isOverwritten"
-            @change="isOverwritten = ($event.target as HTMLInputElement).checked"
+            @change="
+              isOverwritten = ($event.target as HTMLInputElement).checked
+            "
             form="init-form"
           >
-            Overwrite <br><i>Overwrite an existing execution-environment.yml file.</i>
+            Overwrite <br /><i
+              >Overwrite an existing execution-environment.yml file.</i
+            >
           </vscode-checkbox>
         </div>
 
@@ -489,7 +561,7 @@ onMounted(() => {
             form="init-form"
           >
             <span class="codicon codicon-run-all"></span>
-            &nbsp; {{ isCreating ? 'Building...' : 'Build' }}
+            &nbsp; {{ isCreating ? "Building..." : "Build" }}
           </vscode-button>
         </div>
 
@@ -531,7 +603,6 @@ onMounted(() => {
             &nbsp; Open Execution Environment file
           </vscode-button>
         </div>
-
       </section>
     </form>
   </FormPageLayout>

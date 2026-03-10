@@ -1,6 +1,6 @@
 // utils function to resolve executable path
 import * as path from "path";
-import { ExtensionSettings } from "../interfaces/extensionSettings.js";
+import { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
 /**
  * A method to return the path to the provided executable

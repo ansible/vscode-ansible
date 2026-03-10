@@ -6,7 +6,7 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { parseDocument, isMap, Scalar } from "yaml";
-import { JSONSchema } from "./schemaCache.js";
+import { JSONSchema } from "@src/services/schemaCache.js";
 
 /**
  * Provides completion suggestions from JSON schema.

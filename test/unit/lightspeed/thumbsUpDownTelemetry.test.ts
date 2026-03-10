@@ -4,7 +4,10 @@ import type {
   RoleFeedbackEvent,
 } from "@src/interfaces/lightspeed";
 import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
-import { PROVIDER_TYPES, MODEL_NAMES } from "./testConstants";
+import {
+  PROVIDER_TYPES,
+  MODEL_NAMES,
+} from "@test/unit/lightspeed/testConstants";
 import { sendTelemetry } from "@src/utils/telemetryUtils";
 import type { TelemetryService } from "@redhat-developer/vscode-redhat-telemetry/lib";
 

@@ -1,15 +1,18 @@
 import * as vscode from "vscode";
-import { LightSpeedAPI } from "./api";
-import { SettingsManager } from "../../settings";
+import { LightSpeedAPI } from "@src/features/lightspeed/api";
+import { SettingsManager } from "@src/settings";
 import {
   LightSpeedCommands,
   LIGHTSPEED_MODEL_DEFAULT,
   LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
-} from "../../definitions/lightspeed";
-import { getLoggedInUserDetails, getUserTypeLabel } from "./utils/webUtils";
-import { lightSpeedManager } from "../../extension";
-import { LightspeedUser } from "./lightspeedUser";
-import { LightspeedSessionUserInfo } from "../../interfaces/lightspeed";
+} from "@src/definitions/lightspeed";
+import {
+  getLoggedInUserDetails,
+  getUserTypeLabel,
+} from "@src/features/lightspeed/utils/webUtils";
+import { lightSpeedManager } from "@src/extension";
+import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { LightspeedSessionUserInfo } from "@src/interfaces/lightspeed";
 
 interface StatusBarTooltipParams {
   userInfo?: LightspeedSessionUserInfo;

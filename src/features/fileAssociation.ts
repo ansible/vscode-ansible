@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
-import { applyFileInspectionForKeywords } from "./utils/applyFileInspectionForKeywords";
-import { configureModelines, searchModelines } from "./utils/applyModelines";
+import { applyFileInspectionForKeywords } from "@src/features/utils/applyFileInspectionForKeywords";
+import {
+  configureModelines,
+  searchModelines,
+} from "@src/features/utils/applyModelines";
 
 /**
  * Function to dynamically set document language by inspecting the file. This is based on 2 things:

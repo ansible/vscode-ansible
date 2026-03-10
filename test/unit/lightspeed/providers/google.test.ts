@@ -130,7 +130,7 @@ import {
   TEST_CONTENT,
   GOOGLE_PROVIDER,
   HTTP_STATUS_CODES,
-} from "../testConstants.js";
+} from "@test/unit/lightspeed/testConstants.js";
 
 // Get the mocked modules
 import { GoogleGenAI } from "@google/genai";

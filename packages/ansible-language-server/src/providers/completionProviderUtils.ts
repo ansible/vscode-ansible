@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { isScalar, Node, YAMLMap, YAMLSeq, parseDocument } from "yaml";
-import { AncestryBuilder, isPlayParam } from "../utils/yaml.js";
+import { AncestryBuilder, isPlayParam } from "@src/utils/yaml.js";
 import * as pathUri from "path";
 import { existsSync, readFileSync } from "fs";
 

@@ -31,7 +31,8 @@ cat <<EOF > package.json
 EOF
 npm add "${PROJECT_ROOT}"/out/@ansible-ansible-language-server-*.tgz
 npm install
-ts-node "${PACKAGE_ROOT}/test/validate-ls.ts"
+# Use npx so ts-node is found from repo root node_modules when run via task package
+npx ts-node "${PACKAGE_ROOT}/test/validate-ls.ts"
 popd
 
 

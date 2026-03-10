@@ -23,6 +23,12 @@ export default defineConfig({
     }),
   ],
   publicDir: "media",
+  resolve: {
+    alias: {
+      "@webviews": path.resolve(__dirname, "webviews"),
+      "@src": path.resolve(__dirname, "src"),
+    },
+  },
   experimental: {
     renderBuiltUrl(filename) {
       if (filename.startsWith("assets/codicon.ttf")) {

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { onMounted, ref, computed } from 'vue';
-import { vscodeApi } from './lightspeed/src/utils';
+import "@vscode/codicons/dist/codicon.css";
+import { onMounted, ref, computed } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 
-const systemReadinessStatus = ref('');
-const systemReadinessIcon = ref('');
-const systemReadinessDescription = ref('');
+const systemReadinessStatus = ref("");
+const systemReadinessIcon = ref("");
+const systemReadinessDescription = ref("");
 interface Walkthrough {
   id: string;
   title: string;
@@ -15,52 +15,52 @@ interface Walkthrough {
 
 const walkthroughs = ref<Walkthrough[]>([]);
 const isLoading = ref(true);
-const logoUrl = ref('');
+const logoUrl = ref("");
 
-const ansibleVersionStatus = ref('');
-const ansibleLocationStatus = ref('');
-const pythonVersionStatus = ref('');
-const pythonLocationStatus = ref('');
-const ansibleCreatorVersionStatus = ref('');
-const ansibleDevEnvironmentStatus = ref('');
+const ansibleVersionStatus = ref("");
+const ansibleLocationStatus = ref("");
+const pythonVersionStatus = ref("");
+const pythonLocationStatus = ref("");
+const ansibleCreatorVersionStatus = ref("");
+const ansibleDevEnvironmentStatus = ref("");
 
 const hasSystemStatus = computed(() => {
-  return systemReadinessStatus.value !== '';
+  return systemReadinessStatus.value !== "";
 });
 
 const isSystemReady = computed(() => {
-  return systemReadinessIcon.value === 'pass';
+  return systemReadinessIcon.value === "pass";
 });
 
 const handleWalkthroughClick = (walkthroughId: string) => {
   vscodeApi.postMessage({
-    type: 'walkthrough-click',
-    payload: { id: walkthroughId }
+    type: "walkthrough-click",
+    payload: { id: walkthroughId },
   });
 };
 
 const handleCommandClick = (command: string) => {
   vscodeApi.postMessage({
-    type: 'command-click',
-    payload: { command }
+    type: "command-click",
+    payload: { command },
   });
 };
 
 const handleExternalLink = (url: string) => {
   vscodeApi.postMessage({
-    type: 'external-link',
-    payload: { url }
+    type: "external-link",
+    payload: { url },
   });
 };
 
 const updateAnsibleCreatorAvailabilityStatus = () => {
   vscodeApi.postMessage({
-    type: 'check-system-status'
+    type: "check-system-status",
   });
 };
 
 const handleSystemStatusUpdate = (data: any) => {
-  console.log('Received system status update:', data);
+  console.log("Received system status update:", data);
 
   if (data.systemReadiness) {
     systemReadinessStatus.value = data.systemReadiness.status;
@@ -69,16 +69,18 @@ const handleSystemStatusUpdate = (data: any) => {
   }
 
   if (data.details) {
-    ansibleVersionStatus.value = data.details.ansibleVersion || '';
-    ansibleLocationStatus.value = data.details.ansibleLocation || '';
-    pythonVersionStatus.value = data.details.pythonVersion || '';
-    pythonLocationStatus.value = data.details.pythonLocation || '';
-    ansibleCreatorVersionStatus.value = data.details.ansibleCreatorVersion || '';
-    ansibleDevEnvironmentStatus.value = data.details.ansibleDevEnvironment || '';
+    ansibleVersionStatus.value = data.details.ansibleVersion || "";
+    ansibleLocationStatus.value = data.details.ansibleLocation || "";
+    pythonVersionStatus.value = data.details.pythonVersion || "";
+    pythonLocationStatus.value = data.details.pythonLocation || "";
+    ansibleCreatorVersionStatus.value =
+      data.details.ansibleCreatorVersion || "";
+    ansibleDevEnvironmentStatus.value =
+      data.details.ansibleDevEnvironment || "";
   }
 
-    if (data.walkthroughs) {
-    console.log('Setting walkthroughs:', data.walkthroughs);
+  if (data.walkthroughs) {
+    console.log("Setting walkthroughs:", data.walkthroughs);
     walkthroughs.value = data.walkthroughs;
   }
 
@@ -90,12 +92,11 @@ const handleSystemStatusUpdate = (data: any) => {
 };
 
 onMounted(() => {
-
-  window.addEventListener('message', (event) => {
+  window.addEventListener("message", (event) => {
     const message = event.data;
 
     switch (message.type) {
-      case 'system-status-update':
+      case "system-status-update":
         handleSystemStatusUpdate(message.payload);
         break;
     }
@@ -109,14 +110,19 @@ onMounted(() => {
   <div class="playbookGenerationContainer" :class="{ loading: isLoading }">
     <div class="playbookGenerationSlideCategories">
       <div class="playbookGenerationCategoriesContainer">
-
         <!-- Header Section -->
         <div class="header">
           <h1 class="title caption">Ansible Development Tools</h1>
-          <p class="subtitle description">Create, test and deploy Ansible content in your IT environment</p>
+          <p class="subtitle description">
+            Create, test and deploy Ansible content in your IT environment
+          </p>
 
           <!-- System Readiness Display -->
-          <div v-if="hasSystemStatus" id="system-readiness" class="statusDisplay">
+          <div
+            v-if="hasSystemStatus"
+            id="system-readiness"
+            class="statusDisplay"
+          >
             <span v-if="isSystemReady" class="codicon codicon-pass"></span>
             <span v-else class="codicon codicon-error"></span>
             <div class="system-description">
@@ -127,50 +133,95 @@ onMounted(() => {
 
         <!-- Left Column - Start and Learn Sections -->
         <div class="categories-column-left">
-
           <!-- Start Section -->
           <div class="index-list start-container">
             <h2>Start</h2>
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleCommandClick('ansible.mcpServer.enabled')">
-                  <span class="codicon codicon-wand"></span> Ansible Development Tools MCP Server (AI)
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleCommandClick('ansible.mcpServer.enabled')
+                  "
+                >
+                  <span class="codicon codicon-wand"></span> Ansible Development
+                  Tools MCP Server (AI)
                 </a>
               </h3>
-              <p>Provides native VS Code AI integration, enabling AI assistants to interact with Ansible content and developer tools.</p>
+              <p>
+                Provides native VS Code AI integration, enabling AI assistants
+                to interact with Ansible content and developer tools.
+              </p>
             </div>
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleCommandClick('ansible.lightspeed.playbookGeneration')">
-                  <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleCommandClick('ansible.lightspeed.playbookGeneration')
+                  "
+                >
+                  <span class="codicon codicon-file-code"></span> Playbook with
+                  Ansible Lightspeed
                 </a>
               </h3>
-              <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
+              <p>
+                Create a lists of tasks that automatically execute for your
+                specified inventory or groups of hosts.
+              </p>
             </div>
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleCommandClick('ansible.content-creator.create-ansible-project')">
-                  <span class="codicon codicon-file-zip"></span> New playbook project
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleCommandClick(
+                      'ansible.content-creator.create-ansible-project',
+                    )
+                  "
+                >
+                  <span class="codicon codicon-file-zip"></span> New playbook
+                  project
                 </a>
               </h3>
-              <p>Create a foundational framework and structure for setting your Ansible project with playbooks, roles, variables, templates, and other files.</p>
+              <p>
+                Create a foundational framework and structure for setting your
+                Ansible project with playbooks, roles, variables, templates, and
+                other files.
+              </p>
             </div>
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleCommandClick('ansible.content-creator.create-ansible-collection')">
-                  <span class="codicon codicon-file-zip"></span> New collection project
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleCommandClick(
+                      'ansible.content-creator.create-ansible-collection',
+                    )
+                  "
+                >
+                  <span class="codicon codicon-file-zip"></span> New collection
+                  project
                 </a>
               </h3>
-              <p>Create a structure for your Ansible collection that includes modules, plugins, molecule scenarios and tests.</p>
+              <p>
+                Create a structure for your Ansible collection that includes
+                modules, plugins, molecule scenarios and tests.
+              </p>
             </div>
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleCommandClick('ansible.create-playbook-options')">
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleCommandClick('ansible.create-playbook-options')
+                  "
+                >
                   <span class="codicon codicon-new-file"></span> New playbook
                 </a>
               </h3>
@@ -179,11 +230,22 @@ onMounted(() => {
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleExternalLink('https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide')">
-                  <span class="codicon codicon-symbol-property"></span> Go to Ansible code bot
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleExternalLink(
+                      'https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide',
+                    )
+                  "
+                >
+                  <span class="codicon codicon-symbol-property"></span> Go to
+                  Ansible code bot
                 </a>
               </h3>
-              <p>Scans your code repositories to recommend code quality improvements.</p>
+              <p>
+                Scans your code repositories to recommend code quality
+                improvements.
+              </p>
             </div>
           </div>
 
@@ -193,7 +255,12 @@ onMounted(() => {
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com')">
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleExternalLink('https://docs.ansible.com')
+                  "
+                >
                   Ansible documentation
                   <span class="codicon codicon-link-external"></span>
                 </a>
@@ -203,17 +270,30 @@ onMounted(() => {
 
             <div class="catalogue">
               <h3>
-                <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com/projects/ansible/latest/getting_started/index.html')">
+                <a
+                  href="#"
+                  @click.prevent="
+                    handleExternalLink(
+                      'https://docs.ansible.com/projects/ansible/latest/getting_started/index.html',
+                    )
+                  "
+                >
                   Learn Ansible development
                   <span class="codicon codicon-link-external"></span>
                 </a>
               </h3>
-              <p>End to end course that will help you master automation development.</p>
+              <p>
+                End to end course that will help you master automation
+                development.
+              </p>
             </div>
 
             <div class="catalogue">
               <h3>Once you are in the YAML file:</h3>
-              <p>click Ctrl+L to fire the Ansible Lightspeed AI assistance for editing and explaining code.</p>
+              <p>
+                click Ctrl+L to fire the Ansible Lightspeed AI assistance for
+                editing and explaining code.
+              </p>
             </div>
           </div>
 
@@ -240,11 +320,21 @@ onMounted(() => {
                   <button>
                     <div class="main-content">
                       <div class="icon-widget">
-                        <img v-if="logoUrl" :src="logoUrl" alt="Ansible" class="category-icon" />
+                        <img
+                          v-if="logoUrl"
+                          :src="logoUrl"
+                          alt="Ansible"
+                          class="category-icon"
+                        />
                       </div>
                       <div class="category-title">{{ walkthrough.title }}</div>
                     </div>
-                    <div class="description-content" v-if="walkthrough.description">{{ walkthrough.description }}</div>
+                    <div
+                      class="description-content"
+                      v-if="walkthrough.description"
+                    >
+                      {{ walkthrough.description }}
+                    </div>
                   </button>
                 </li>
               </ul>
@@ -264,7 +354,6 @@ onMounted(() => {
         <div class="footer">
           <p></p>
         </div>
-
       </div>
     </div>
   </div>
@@ -315,7 +404,7 @@ a .codicon {
 
 .codicon.codicon-pass {
   margin: 0 8px 0 0;
-  color: #73C991;
+  color: #73c991;
   font-size: 16px;
   align-self: flex-start;
 }
@@ -399,8 +488,16 @@ a .codicon {
   margin: 0px;
 }
 
-.monaco-workbench.hc-black .part.editor>.content .playbookGenerationContainer .subtitle,
-.monaco-workbench.hc-light .part.editor>.content .playbookGenerationContainer .subtitle {
+.monaco-workbench.hc-black
+  .part.editor
+  > .content
+  .playbookGenerationContainer
+  .subtitle,
+.monaco-workbench.hc-light
+  .part.editor
+  > .content
+  .playbookGenerationContainer
+  .subtitle {
   font-weight: 200;
 }
 
@@ -449,26 +546,41 @@ a .codicon {
   padding: 12px 24px;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>* {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > * {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column>div {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .categories-column
+  > div {
   margin-bottom: 32px;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-left {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .categories-column-left {
   grid-area: left-column;
   margin-top: 25px;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-right {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .categories-column-right {
   grid-area: right-column;
   margin-top: 25px;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer {
   display: grid;
   height: 100%;
   max-width: 1200px;
@@ -482,38 +594,56 @@ a .codicon {
     ". footer footer footer .";
 }
 
-.playbookGenerationContainer.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+.playbookGenerationContainer.width-constrained
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer {
   grid-template-rows: auto min-content minmax(min-content, auto) min-content;
   grid-template-columns: 1fr;
   grid-template-areas: "header" "left-column" "right-column" "footer";
 }
 
-.playbookGenerationContainer.height-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+.playbookGenerationContainer.height-constrained
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer {
   grid-template-rows: auto minmax(min-content, auto) min-content;
   grid-template-areas: "header" "left-column right-column" "footer footer";
 }
 
-.playbookGenerationContainer.height-constrained.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+.playbookGenerationContainer.height-constrained.width-constrained
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer {
   grid-template-rows: min-content minmax(min-content, auto) min-content;
   grid-template-columns: 1fr;
   grid-template-areas: "left-column" "right-column" "footer";
 }
 
-.playbookGenerationContainer.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header,
-.playbookGenerationContainer.height-constrained .playbookGenerationCategoriesContainer>.header {
+.playbookGenerationContainer.width-constrained
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .header,
+.playbookGenerationContainer.height-constrained
+  .playbookGenerationCategoriesContainer
+  > .header {
   display: none;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .header {
   grid-area: header;
   align-self: end;
 }
 
 .playbookGenerationContainer .playbookGenerationSlideCategories .gap {
-  flex: 150px 0 1000
+  flex: 150px 0 1000;
 }
 
-.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer > .header > .subtitle {
+.playbookGenerationContainer
+  .playbookGenerationSlideCategories
+  > .playbookGenerationCategoriesContainer
+  > .header
+  > .subtitle {
   font-size: 1em;
 }
 
@@ -631,7 +761,7 @@ ul#walkthrough-list > .walkthrough-item .hide-category-button {
   visibility: hidden;
 }
 
-.codicon[class*=codicon-] {
+.codicon[class*="codicon-"] {
   font-size: 16px;
 }
 
@@ -740,13 +870,13 @@ body {
 }
 
 .menu .menu-item img {
-  background-color: #3A3D41;
+  background-color: #3a3d41;
   padding: 20px;
   width: 45px;
   height: auto;
 }
 
 .menu .menu-item img:hover {
-  background-color: #45494E;
+  background-color: #45494e;
 }
 </style>

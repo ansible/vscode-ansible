@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import SavedFilesEntry from "../../../../../webviews/lightspeed/src/components/SavedFilesEntry.vue";
+import SavedFilesEntry from "@webviews/lightspeed/src/components/SavedFilesEntry.vue";
 
 describe("SavedFilesEntry", () => {
   const defaultProps = {

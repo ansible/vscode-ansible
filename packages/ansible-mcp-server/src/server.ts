@@ -16,19 +16,19 @@ import {
   createADTCheckEnvHandler,
   createDefineAndBuildExecutionEnvHandler,
   createAgentsGuidelinesHandler,
-} from "./handlers.js";
+} from "@src/handlers.js";
 import {
   checkDependencies,
   formatDependencyError,
   type Dependency,
-} from "./dependencyChecker.js";
-import { createProjectsHandler } from "./tools/creator.js";
+} from "@src/dependencyChecker.js";
+import { createProjectsHandler } from "@src/tools/creator.js";
 import {
   getEERules,
   getExecutionEnvironmentSchema,
   getSampleExecutionEnvironment,
-} from "./resources/eeSchema.js";
-import { getFullAgentsGuidelines } from "./resources/agents.js";
+} from "@src/resources/eeSchema.js";
+import { getFullAgentsGuidelines } from "@src/resources/agents.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({

@@ -6,7 +6,7 @@ import {
   testHover,
   waitForDiagnosticsFromSource,
   clearActivationCache,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 import assert from "node:assert/strict";
 import { integer } from "vscode-languageclient";
 

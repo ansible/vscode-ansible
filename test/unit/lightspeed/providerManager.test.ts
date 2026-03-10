@@ -14,7 +14,7 @@ import {
   TEST_PROMPTS,
   TEST_CONTENT,
   TEST_RESPONSES,
-} from "./testConstants";
+} from "@test/unit/lightspeed/testConstants";
 
 vi.mock("@src/features/lightspeed/providers/factory", () => {
   const mockGoogleProvider: LLMProvider = {

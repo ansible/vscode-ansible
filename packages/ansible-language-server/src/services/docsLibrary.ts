@@ -1,26 +1,26 @@
 import { Connection } from "vscode-languageserver";
 import { Node } from "yaml";
-import { getDeclaredCollections } from "../utils/yaml.js";
-import { findDocumentation, findPluginRouting } from "../utils/docsFinder.js";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
+import { getDeclaredCollections } from "@src/utils/yaml.js";
+import { findDocumentation, findPluginRouting } from "@src/utils/docsFinder.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
   IPluginRoute,
   IPluginRoutesByType,
   IPluginRoutingByCollection,
-} from "../interfaces/pluginRouting.js";
+} from "@src/interfaces/pluginRouting.js";
 import {
   processDocumentationFragments,
   processRawDocumentation,
-} from "../utils/docsParser.js";
-import { IModuleMetadata } from "../interfaces/module.js";
+} from "@src/utils/docsParser.js";
+import { IModuleMetadata } from "@src/interfaces/module.js";
 import * as path from "path";
 import { existsSync, lstatSync } from "fs";
 import { URI } from "vscode-uri";
 import {
   findModulesUtils,
   getModuleFqcnsUtils,
-} from "./docsLibraryUtilsForPAC.js";
-import { globArray } from "../utils/pathUtils.js";
+} from "@src/services/docsLibraryUtilsForPAC.js";
+import { globArray } from "@src/utils/pathUtils.js";
 export class DocsLibrary {
   private connection: Connection;
   private modules = new Map<string, IModuleMetadata>();

@@ -3,8 +3,8 @@ import { Connection } from "vscode-languageserver";
 import { DidChangeWatchedFilesParams } from "vscode-languageserver-protocol";
 import { URI } from "vscode-uri";
 import { parseAllDocuments } from "yaml";
-import { IDocumentMetadata } from "../interfaces/documentMeta.js";
-import { fileExists, hasOwnProperty } from "../utils/misc.js";
+import { IDocumentMetadata } from "@src/interfaces/documentMeta.js";
+import { fileExists, hasOwnProperty } from "@src/utils/misc.js";
 export class MetadataLibrary {
   private connection: Connection;
 

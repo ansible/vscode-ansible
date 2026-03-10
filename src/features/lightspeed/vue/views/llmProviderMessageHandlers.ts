@@ -1,13 +1,13 @@
 import type { Webview } from "vscode";
 import { window, commands } from "vscode";
-import { SettingsManager } from "../../../../settings";
-import { providerFactory } from "../../providers/factory";
-import { ProviderManager } from "../../providerManager";
-import { LlmProviderSettings } from "../../llmProviderSettings";
-import { LightSpeedCommands } from "../../../../definitions/lightspeed";
-import { LightspeedUser } from "../../lightspeedUser";
-import { QuickLinksWebviewViewProvider } from "../../../quickLinks/utils/quickLinksViewProvider";
-import { ProviderInfo } from "../../../../interfaces/lightspeed";
+import { SettingsManager } from "@src/settings";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
+import { ProviderManager } from "@src/features/lightspeed/providerManager";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import { LightSpeedCommands } from "@src/definitions/lightspeed";
+import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
+import { ProviderInfo } from "@src/interfaces/lightspeed";
 
 interface LlmProviderMessage {
   command: string;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import LoginPrompt from "../../../../../webviews/lightspeed/src/components/LoginPrompt.vue";
+import LoginPrompt from "@webviews/lightspeed/src/components/LoginPrompt.vue";
 
 describe("LoginPrompt", () => {
   it("renders the login form", () => {

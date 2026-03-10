@@ -3,7 +3,7 @@ import * as path from "path";
 import findProcess from "find-process";
 
 import { rmSync } from "fs";
-import { PROJECT_ROOT } from "../setup";
+import { PROJECT_ROOT } from "@test/setup";
 
 import assert from "node:assert/strict";
 let doc: vscode.TextDocument;

@@ -9,7 +9,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   unSetFixtureAnsibleCollectionPathEnv,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 
 describe("ee", function () {
   before(async function () {

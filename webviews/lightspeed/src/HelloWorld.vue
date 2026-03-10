@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { ref, watch } from 'vue';
-import type { Ref } from 'vue'
+import "@vscode/codicons/dist/codicon.css";
+import { ref, watch } from "vue";
+import type { Ref } from "vue";
 
-import ErrorBox from './components/ErrorBox.vue';
+import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
 
-const errorMessages: Ref<string[]> = ref([])
+const errorMessages: Ref<string[]> = ref([]);
 
-
-
-errorMessages.value.push("An error message example to demonstrate how to use the ErrorBox component!");
-
+errorMessages.value.push(
+  "An error message example to demonstrate how to use the ErrorBox component!",
+);
 </script>
 
 <template>

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { createProjectsHandler } from "../../src/tools/creator.js";
+import { createProjectsHandler } from "@src/tools/creator.js";
 
 describe("creator", () => {
   describe("create_ansible_projects - playbook", () => {

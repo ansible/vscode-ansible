@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import ErrorBox from "../../../../../webviews/lightspeed/src/components/ErrorBox.vue";
-import { vscodeApi } from "../../../../../webviews/lightspeed/src/utils/vscode";
+import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("ErrorBox", () => {
   beforeEach(() => {

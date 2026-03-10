@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import FeedbackApp from "../../../../webviews/lightspeed/src/FeedbackApp.vue";
+import FeedbackApp from "@webviews/lightspeed/src/FeedbackApp.vue";
 
 // Mock the vscodeApi
 const mockPost = vi.fn();
 const mockOn = vi.fn();
 
-vi.mock("../../../../webviews/lightspeed/src/utils", () => ({
+vi.mock("@webviews/lightspeed/src/utils", () => ({
   vscodeApi: {
     post: (type: string, data: unknown) => mockPost(type, data),
     on: (type: string, callback: (data: unknown) => void) =>

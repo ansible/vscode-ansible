@@ -11,19 +11,19 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   doCompletion,
   doCompletionResolve,
-} from "./providers/completionProvider.js";
-import { getDefinition } from "./providers/definitionProvider.js";
-import { doHover } from "./providers/hoverProvider.js";
+} from "@src/providers/completionProvider.js";
+import { getDefinition } from "@src/providers/definitionProvider.js";
+import { doHover } from "@src/providers/hoverProvider.js";
 import {
   doSemanticTokens,
   tokenModifiers,
   tokenTypes,
-} from "./providers/semanticTokenProvider.js";
-import { doValidate } from "./providers/validationProvider.js";
-import { SchemaService } from "./services/schemaService.js";
-import { ValidationManager } from "./services/validationManager.js";
-import { WorkspaceManager } from "./services/workspaceManager.js";
-import { getAnsibleMetaData } from "./utils/getAnsibleMetaData.js";
+} from "@src/providers/semanticTokenProvider.js";
+import { doValidate } from "@src/providers/validationProvider.js";
+import { SchemaService } from "@src/services/schemaService.js";
+import { ValidationManager } from "@src/services/validationManager.js";
+import { WorkspaceManager } from "@src/services/workspaceManager.js";
+import { getAnsibleMetaData } from "@src/utils/getAnsibleMetaData.js";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.

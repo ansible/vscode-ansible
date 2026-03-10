@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { LightSpeedManager } from "../base";
-import { providerFactory } from "../providers/factory";
-import { LlmProviderSettings } from "../llmProviderSettings";
+import { LightSpeedManager } from "@src/features/lightspeed/base";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 
 export class ProviderCommands {
   constructor(

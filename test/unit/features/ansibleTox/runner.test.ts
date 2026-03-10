@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
-import { runTox } from "../../../../src/features/ansibleTox/runner";
+import { runTox } from "@src/features/ansibleTox/runner";
 
 // Mock the utils module
 vi.mock("../../../../src/features/ansibleTox/utils", () => ({

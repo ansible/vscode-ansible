@@ -10,7 +10,11 @@ import type { ProviderManager } from "@src/features/lightspeed/providerManager";
 import type { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import type { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import type { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
-import { PROVIDER_TYPES, TEST_API_KEYS, API_ENDPOINTS } from "../testConstants";
+import {
+  PROVIDER_TYPES,
+  TEST_API_KEYS,
+  API_ENDPOINTS,
+} from "@test/unit/lightspeed/testConstants";
 
 const mockWcaProvider = {
   type: "wca" as const,

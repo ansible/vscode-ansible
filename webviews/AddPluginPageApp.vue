@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { onMounted, ref, computed } from 'vue';
-import { vscodeApi } from './lightspeed/src/utils';
+import "@vscode/codicons/dist/codicon.css";
+import { onMounted, ref, computed } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 import {
   useCommonWebviewState,
   openFolderExplorer,
@@ -10,9 +10,10 @@ import {
   setupMessageHandler,
   clearAllFields,
   createActionWrapper,
-  createFormValidator} from './../src/features/contentCreator/webviewUtils';
-import RequirementsBanner from './RequirementsBanner.vue';
-import FormPageLayout from './FormPageLayout.vue';
+  createFormValidator,
+} from "@src/features/contentCreator/webviewUtils";
+import RequirementsBanner from "@webviews/RequirementsBanner.vue";
+import FormPageLayout from "@webviews/FormPageLayout.vue";
 
 const commonState = useCommonWebviewState();
 const homeDir = commonState.homeDir;
@@ -27,7 +28,7 @@ const pluginTypeDropdown = ref("Action");
 const verboseDropdown = ref("Off");
 
 const canCreate = createFormValidator({
-  pluginName: () => pluginNameTextField.value.trim() !== ""
+  pluginName: () => pluginNameTextField.value.trim() !== "",
 });
 
 const requirementsMet = ref(true);
@@ -56,48 +57,55 @@ const handleCreate = createActionWrapper(
         pluginType: pluginTypeDropdown.value.trim(),
         collectionPath: initPath.value.trim() || homeDir.value.trim(),
         verbosity: verboseDropdown.value.trim(),
-        isOverwritten: isOverwritten.value
-      }
+        isOverwritten: isOverwritten.value,
+      },
     });
-  }
+  },
 );
 
 const onClear = () => {
   const componentFields = {
-    pluginTypeDropdown, pluginNameTextField, initPath, verboseDropdown, isOverwritten
+    pluginTypeDropdown,
+    pluginNameTextField,
+    initPath,
+    verboseDropdown,
+    isOverwritten,
   };
   const defaults = {
     pluginTypeDropdown: "Action",
     verboseDropdown: "Off",
-    isOverwritten: false
+    isOverwritten: false,
   };
   clearAllFields(componentFields, defaults);
   clearAllFields({
-    logs: commonState.logs
+    logs: commonState.logs,
   });
   commonState.createButtonDisabled.value = false;
   initializeUI();
 };
 
 onMounted(() => {
-  vscodeApi.postMessage({ type: 'request-requirements-status' });
-  window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'requirements-status') {
+  vscodeApi.postMessage({ type: "request-requirements-status" });
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "requirements-status") {
       requirementsMet.value = event.data.met;
       requirementFailures.value = event.data.failures || [];
     }
   });
-  setupMessageHandler({
-    onFolderSelected: (data) => {
-      initPath.value = data;
+  setupMessageHandler(
+    {
+      onFolderSelected: (data) => {
+        initPath.value = data;
+      },
+      onExecutionLog: (args) => {
+        if (commonState.isCreating.value) {
+          openScaffoldedFolderButtonDisabled.value = args.status !== "passed";
+          projectUrl.value = args.projectUrl || "";
+        }
+      },
     },
-    onExecutionLog: (args) => {
-      if (commonState.isCreating.value) {
-        openScaffoldedFolderButtonDisabled.value = args.status !== "passed";
-        projectUrl.value = args.projectUrl || "";
-      }
-    }
-  }, commonState);
+    commonState,
+  );
   initializeUI();
 });
 </script>
@@ -109,26 +117,34 @@ onMounted(() => {
     :requirementsMet="requirementsMet"
   >
     <template #banner>
-      <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+      <RequirementsBanner
+        v-if="!requirementsMet"
+        :failures="requirementFailures"
+      />
     </template>
 
     <form id="init-form">
       <section class="component-container">
-
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Collection root directory *</span>
           </vscode-label>
-          <vscode-textfield id="path-url" class="required" form="init-form" :placeholder="homeDir"  v-model="initPath"
-                      size="512">
-                      <vscode-icon
-                        slot="content-after"
-                        id="folder-explorer"
-                        name="folder-opened"
-                        @click="openFolderExplorer(initPath || homeDir)"
-                        action-icon
-                      ></vscode-icon>
-                    </vscode-textfield>
+          <vscode-textfield
+            id="path-url"
+            class="required"
+            form="init-form"
+            :placeholder="homeDir"
+            v-model="initPath"
+            size="512"
+          >
+            <vscode-icon
+              slot="content-after"
+              id="folder-explorer"
+              name="folder-opened"
+              @click="openFolderExplorer(initPath || homeDir)"
+              action-icon
+            ></vscode-icon>
+          </vscode-textfield>
         </vscode-form-group>
 
         <div class="plugin-type-div name-div">
@@ -136,7 +152,10 @@ onMounted(() => {
             <vscode-label for="plugin-dropdown">
               <span class="normal">Plugin type *</span>
             </vscode-label>
-            <vscode-single-select id="plugin-dropdown" v-model="pluginTypeDropdown">
+            <vscode-single-select
+              id="plugin-dropdown"
+              v-model="pluginTypeDropdown"
+            >
               <vscode-option>Action</vscode-option>
               <vscode-option>Filter</vscode-option>
               <vscode-option>Lookup</vscode-option>
@@ -170,38 +189,50 @@ onMounted(() => {
             <vscode-label for="verbosity-dropdown">
               <span class="normal">Output Verbosity</span>
             </vscode-label>
-            <vscode-single-select id="verbosity-dropdown" v-model="verboseDropdown">
+            <vscode-single-select
+              id="verbosity-dropdown"
+              v-model="verboseDropdown"
+            >
               <vscode-option>Off</vscode-option>
               <vscode-option>Low</vscode-option>
               <vscode-option>Medium</vscode-option>
               <vscode-option>High</vscode-option>
             </vscode-single-select>
-
           </div>
         </div>
 
         <div class="checkbox-div">
-            <vscode-checkbox
-              :checked="isOverwritten"
-              @change="isOverwritten = $event.target.checked"
-              form="init-form"
-              id="overwrite-checkbox"
+          <vscode-checkbox
+            :checked="isOverwritten"
+            @change="isOverwritten = $event.target.checked"
+            form="init-form"
+            id="overwrite-checkbox"
+          >
+            Overwrite <br />
+            <i
+              >Overwriting will remove the existing content in the specified
+              directory and replace it with the files from the Ansible
+              project.</i
             >
-              Overwrite <br />
-              <i
-                >Overwriting will remove the existing content in the specified
-                directory and replace it with the files from the Ansible
-                project.</i
-              >
-            </vscode-checkbox>
-          </div>
+          </vscode-checkbox>
+        </div>
 
         <div class="group-buttons">
-          <vscode-button id="clear-button" form="init-form" secondary @click.prevent="onClear">
+          <vscode-button
+            id="clear-button"
+            form="init-form"
+            secondary
+            @click.prevent="onClear"
+          >
             <span class="codicon codicon-clear-all"></span>
             &nbsp; Clear All
           </vscode-button>
-          <vscode-button id="create-button" form="init-form" @click.prevent="handleCreate" :disabled="!canCreate">
+          <vscode-button
+            id="create-button"
+            form="init-form"
+            @click.prevent="handleCreate"
+            :disabled="!canCreate"
+          >
             <span class="codicon codicon-run-all"></span>
             &nbsp; Create
           </vscode-button>
@@ -224,11 +255,21 @@ onMounted(() => {
         </vscode-form-group>
 
         <div class="group-buttons">
-          <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs(commonState.logs)">
+          <vscode-button
+            id="clear-logs-button"
+            form="init-form"
+            secondary
+            @click.prevent="clearLogs(commonState.logs)"
+          >
             <span class="codicon codicon-clear-all"></span>
             &nbsp; Clear Logs
           </vscode-button>
-          <vscode-button id="open-folder-button" form="init-form" :disabled="openScaffoldedFolderButtonDisabled" @click.prevent="handleOpenScaffoldedFolder">
+          <vscode-button
+            id="open-folder-button"
+            form="init-form"
+            :disabled="openScaffoldedFolderButtonDisabled"
+            @click.prevent="handleOpenScaffoldedFolder"
+          >
             <span class="codicon codicon-go-to-file"></span>
             &nbsp; Open Plugin
           </vscode-button>
@@ -237,7 +278,6 @@ onMounted(() => {
         <div id="required-fields" class="required-fields">
           <p>Fields marked with an asterisk (*) are required</p>
         </div>
-
       </section>
     </form>
   </FormPageLayout>

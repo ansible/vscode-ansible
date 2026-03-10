@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import App from "./WelcomePageApp.vue";
+import App from "@webviews/WelcomePageApp.vue";
 
 const app = createApp(App);
 

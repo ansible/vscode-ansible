@@ -10,8 +10,8 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
-import { CommandRunner } from "../utils/commandRunner.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { CommandRunner } from "@src/utils/commandRunner.js";
 
 /**
  * Acts as an interface to ansible-playbook command.

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
-import { TerminalService } from "../../../src/services/TerminalService";
+import { TerminalService } from "@src/services/TerminalService";
 
 describe("TerminalService", function () {
   let service: TerminalService;

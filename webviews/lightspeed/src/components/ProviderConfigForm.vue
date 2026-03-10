@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import type { ProviderInfo } from './llmProviderState';
+import "@vscode/codicons/dist/codicon.css";
+import type { ProviderInfo } from "@webviews/lightspeed/src/components/llmProviderState";
 
 defineProps<{
   provider: ProviderInfo;
@@ -9,7 +9,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'update:field': [fieldKey: string, value: string];
+  "update:field": [fieldKey: string, value: string];
   save: [];
   cancel: [];
 }>();
@@ -29,7 +29,13 @@ const emit = defineEmits<{
       <input
         :id="`${field.key}-${provider.type}`"
         :value="getConfigValue(provider.type, field.key)"
-        @input="emit('update:field', field.key, ($event.target as HTMLInputElement).value)"
+        @input="
+          emit(
+            'update:field',
+            field.key,
+            ($event.target as HTMLInputElement).value,
+          )
+        "
         :type="field.type === 'password' ? 'password' : 'text'"
         class="text-input"
         :placeholder="field.placeholder || ''"
@@ -57,9 +63,7 @@ const emit = defineEmits<{
       >
         Cancel
       </button>
-      <span v-if="hasChanges" class="unsaved-indicator">
-        Unsaved changes
-      </span>
+      <span v-if="hasChanges" class="unsaved-indicator"> Unsaved changes </span>
     </div>
   </div>
 </template>
@@ -74,8 +78,14 @@ const emit = defineEmits<{
 }
 
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Form fields */
@@ -175,7 +185,10 @@ const emit = defineEmits<{
 .save-btn.has-changes {
   background-color: var(--vscode-inputValidation-warningBackground);
   border-color: var(--vscode-inputValidation-warningBorder);
-  color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+  color: var(
+    --vscode-inputValidation-warningForeground,
+    var(--vscode-foreground)
+  );
 }
 
 .cancel-btn {
@@ -190,7 +203,10 @@ const emit = defineEmits<{
 
 .unsaved-indicator {
   font-size: 12px;
-  color: var(--vscode-inputValidation-warningForeground, var(--vscode-editorWarning-foreground));
+  color: var(
+    --vscode-inputValidation-warningForeground,
+    var(--vscode-editorWarning-foreground)
+  );
   font-style: italic;
 }
 </style>

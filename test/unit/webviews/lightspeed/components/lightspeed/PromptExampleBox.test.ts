@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import PromptExampleBox from "../../../../../../webviews/lightspeed/src/components/lightspeed/PromptExampleBox.vue";
+import PromptExampleBox from "@webviews/lightspeed/src/components/lightspeed/PromptExampleBox.vue";
 
 describe("PromptExampleBox", () => {
   it("renders the examples container", () => {

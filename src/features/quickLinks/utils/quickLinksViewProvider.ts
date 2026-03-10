@@ -7,9 +7,9 @@ import {
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
-import { getSystemDetails } from "../../utils/getSystemDetails";
-import { LlmProviderSettings } from "../../lightspeed/llmProviderSettings";
-import { providerFactory } from "../../lightspeed/providers/factory";
+import { getSystemDetails } from "@src/features/utils/getSystemDetails";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "ansible-home";

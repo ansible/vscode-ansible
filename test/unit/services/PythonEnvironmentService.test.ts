@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
-import { PythonEnvironmentService } from "../../../src/services/PythonEnvironmentService";
-import { PYTHON_ENVS_EXTENSION_ID } from "../../../src/types/pythonEnvApi";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
+import { PYTHON_ENVS_EXTENSION_ID } from "@src/types/pythonEnvApi";
 
 describe("PythonEnvironmentService", function () {
   let service: PythonEnvironmentService;

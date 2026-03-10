@@ -3,9 +3,9 @@ import _ from "lodash";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
-import { CommandRunner } from "../utils/commandRunner.js";
-import { ansibleMetaDataType } from "../utils/getAnsibleMetaData.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { CommandRunner } from "@src/utils/commandRunner.js";
+import { ansibleMetaDataType } from "@src/utils/getAnsibleMetaData.js";
 
 export class AnsibleConfig {
   private connection: Connection;

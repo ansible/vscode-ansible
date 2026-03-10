@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ref } from "vue";
 import type { Ref } from "vue";
-import { vscodeApi } from "../../../webviews/lightspeed/src/utils";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 
 interface CommonWebviewState {
   homeDir: Ref<string>;

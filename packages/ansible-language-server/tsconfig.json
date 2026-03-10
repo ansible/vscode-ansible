@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "declaration": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "outDir": "./out/server",
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@test/*": ["./test/*"]
+    },
     "resolveJsonModule": true
   },
   "exclude": ["node_modules", "out", "vscode-ansible"],

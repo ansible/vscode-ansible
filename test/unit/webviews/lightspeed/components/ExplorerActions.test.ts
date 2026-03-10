@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import ExplorerActions from "../../../../../webviews/lightspeed/src/components/ExplorerActions.vue";
+import ExplorerActions from "@webviews/lightspeed/src/components/ExplorerActions.vue";
 
 describe("ExplorerActions", () => {
   const defaultProps = {

@@ -6,7 +6,7 @@ import {
   getStringBetweenNewlines,
   shouldRemoveLine,
   calculateNewCursorPosition,
-} from "../../../../webviews/lightspeed/src/utils/outlineLineNumbers";
+} from "@webviews/lightspeed/src/utils/outlineLineNumbers";
 
 describe("outlineLineNumbers.ts", function () {
   describe("textIsOnlyLineNumber", function () {

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
-import { ExtensionSettings } from "./interfaces/extensionSettings";
-import { LlmProviderSettings } from "./features/lightspeed/llmProviderSettings";
+import { ExtensionSettings } from "@src/interfaces/extensionSettings";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 
 export class SettingsManager {
   public settings = {} as ExtensionSettings;

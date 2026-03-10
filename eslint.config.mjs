@@ -12,6 +12,7 @@ import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
 import { includeIgnoreFile } from "@eslint/compat";
 const require = createRequire(import.meta.url);
+/** @type {import('eslint').Linter.Plugin} */
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -77,9 +78,20 @@ export default defineConfig(
       "no-restricted-imports": [
         "error",
         {
-          name: "chai",
-          message:
-            "No direct import from chain, use vitest or node:assert alternatives.",
+          paths: [
+            {
+              name: "chai",
+              message:
+                "No direct import from chai, use vitest or node:assert alternatives.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["./*", "../*", "../../*", "../../../*", "../../../../*"],
+              message:
+                "Do not use relative imports; use path aliases or absolute imports.",
+            },
+          ],
         },
       ],
       // temporary until we address these
@@ -149,5 +161,10 @@ export default defineConfig(
       "@typescript-eslint/unbound-method": "off",
       "@typescript-eslint/no-base-to-string": "off",
     },
+  },
+  {
+    // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root
+    files: ["packages/**/*.{js,ts,tsx}"],
+    rules: { "import/no-unresolved": "off" },
   },
 );

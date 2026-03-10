@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
+import "@vscode/codicons/dist/codicon.css";
 
 defineProps<{
   message?: string;
@@ -9,7 +9,7 @@ defineProps<{
 <template>
   <div class="loading">
     <span class="codicon codicon-loading codicon-modifier-spin"></span>
-    {{ message || 'Loading...' }}
+    {{ message || "Loading..." }}
   </div>
 </template>
 
@@ -28,6 +28,8 @@ defineProps<{
 }
 
 @keyframes spin {
-  100% { transform: rotate(360deg); }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

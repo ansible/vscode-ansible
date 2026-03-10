@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createAnsibleMcpServer } from "../src/server.js";
+import { createAnsibleMcpServer } from "@src/server.js";
 
 describe("MCP Server Error Handling", () => {
   it("should provide helpful error message with available tools when requesting non-existent tool", async () => {

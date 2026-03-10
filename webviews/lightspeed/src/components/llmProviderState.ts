@@ -1,5 +1,5 @@
 import { onMounted, ref } from "vue";
-import { vscodeApi } from "../utils";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 
 // Types
 export interface ConfigSchemaField {

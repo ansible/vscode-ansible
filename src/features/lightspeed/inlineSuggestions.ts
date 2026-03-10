@@ -5,15 +5,15 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 import * as yaml from "yaml";
-import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
-import { getCurrentUTCDateTime } from "../utils/dateTime";
-import { lightSpeedManager } from "../../extension";
+import { adjustInlineSuggestionIndent } from "@src/features/utils/lightspeed";
+import { getCurrentUTCDateTime } from "@src/features/utils/dateTime";
+import { lightSpeedManager } from "@src/extension";
 import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
   IAnsibleFileType,
-} from "../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 import {
   LightSpeedCommands,
   LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
@@ -21,18 +21,18 @@ import {
   MULTI_TASK_REGEX_EP,
   SINGLE_TASK_REGEX_EP,
   UserAction,
-} from "../../definitions/lightspeed";
+} from "@src/definitions/lightspeed";
 import {
   shouldRequestInlineSuggestions,
   shouldTriggerMultiTaskSuggestion,
-} from "./utils/data";
+} from "@src/features/lightspeed/utils/data";
 import {
   shouldRequestForPromptPosition,
   getContentWithMultiLinePromptForMultiTasksSuggestions,
-} from "./utils/multiLinePromptForMultiTasks";
-import { getAnsibleFileType } from "../utils/ansible";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
-import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
+} from "@src/features/lightspeed/utils/multiLinePromptForMultiTasks";
+import { getAnsibleFileType } from "@src/features/utils/ansible";
+import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
+import { SuggestionDisplayed } from "@src/features/lightspeed/inlineSuggestion/suggestionDisplayed";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;

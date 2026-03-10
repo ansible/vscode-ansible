@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import process from "node:process";
-import { runStdio } from "./server.js";
+import { runStdio } from "@src/server.js";
 
 const args = new Set(process.argv.slice(2));
 const root = process.env.WORKSPACE_ROOT || process.cwd();
