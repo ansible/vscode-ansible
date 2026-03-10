@@ -69,11 +69,11 @@ import {
   ChatResponseParams,
   GenerationRequestParams,
   GenerationResponseParams,
-} from "../../../../src/features/lightspeed/providers/base.js";
+} from "@src/features/lightspeed/providers/base.js";
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../../src/interfaces/lightspeed.js";
+} from "@src/interfaces/lightspeed.js";
 import {
   TEST_PROVIDER_INFO,
   TEST_PROMPTS,
