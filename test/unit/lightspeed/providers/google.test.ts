@@ -219,6 +219,69 @@ describe("GoogleProvider", () => {
 
       expect(mockedLogger.error).toHaveBeenCalled();
     });
+
+    it("should format error using handleGeminiError on 403 failure", async () => {
+      sharedGenerateContent.mockRejectedValue({
+        status: HTTP_STATUS_CODES.FORBIDDEN,
+        message: "Forbidden",
+      });
+
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+      });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(false);
+      expect(status.connected).toBe(false);
+      expect(status.error).toContain("Forbidden");
+      expect(status.error).toContain("403");
+    });
+
+    it("should format error using handleGeminiError for error without status", async () => {
+      sharedGenerateContent.mockRejectedValue({
+        message: "Connection refused",
+      });
+
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+      });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(false);
+      expect(status.connected).toBe(false);
+      expect(status.error).toContain("Connection refused");
+    });
+
+    it("should clear lastValidationError on successful validation", async () => {
+      sharedGenerateContent.mockRejectedValue({
+        status: HTTP_STATUS_CODES.FORBIDDEN,
+        message: "Forbidden",
+      });
+
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+      });
+
+      const failedResult = await provider.validateConfig();
+      expect(failedResult).toBe(false);
+
+      sharedGenerateContent.mockResolvedValue({ text: "test response" });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(true);
+      expect(status.connected).toBe(true);
+      expect(status.error).toBeUndefined();
+    });
+
   });
 
   describe("completionRequest", () => {

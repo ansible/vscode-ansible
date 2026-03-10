@@ -219,6 +219,101 @@ describe("LLMProviderFactory", () => {
         expect(provider).toBeDefined();
         expect(provider.name).toBe("rhcustom");
       });
+      it("should handle string maxTokens via type coercion", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: "2048" as unknown as number,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should default maxTokens when empty string is provided", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: "" as unknown as number,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should handle zero as maxTokens", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: 0,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should handle negative number as maxTokens", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: -500,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should default maxTokens for special characters input", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: "!@#" as unknown as number,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
+
+      it("should handle Number.MIN_SAFE_INTEGER as maxTokens", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: Number.MIN_SAFE_INTEGER,
+        };
+
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+        );
+
+        expect(provider).toBeDefined();
+        expect(provider.name).toBe("rhcustom");
+      });
     });
 
     describe("Unsupported provider", () => {
