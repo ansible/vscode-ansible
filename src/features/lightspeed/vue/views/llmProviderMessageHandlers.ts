@@ -4,10 +4,7 @@ import { SettingsManager } from "@src/settings";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
 import { ProviderManager } from "@src/features/lightspeed/providerManager";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
-import {
-  LightSpeedCommands,
-  ProviderType,
-} from "@src/definitions/lightspeed";
+import { LightSpeedCommands, ProviderType } from "@src/definitions/lightspeed";
 import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { ProviderInfo } from "@src/interfaces/lightspeed";

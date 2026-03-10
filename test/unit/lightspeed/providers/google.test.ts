@@ -281,7 +281,6 @@ describe("GoogleProvider", () => {
       expect(status.connected).toBe(true);
       expect(status.error).toBeUndefined();
     });
-
   });
 
   describe("completionRequest", () => {
