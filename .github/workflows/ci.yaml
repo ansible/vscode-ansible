@@ -51,7 +51,6 @@ jobs:
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
-      builder_files: ${{ steps.paths.outputs.builder_files }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -61,19 +60,6 @@ jobs:
       - name: Workaround for https://github.com/actions/runner/issues/2033
         run: |
           chown -R $(id -u):$(id -g) $PWD
-
-      - name: Check for builder-related file changes
-        id: paths
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            builder_files:
-              - .config/mise.toml
-              - .git/workflows/ci.yaml
-              - Containerfile
-              - pyproject.toml
-              - tools/builder.sh
-              - uv.lock
 
       - name: task setup
         timeout-minutes: 7 # expected under 10s for container builds
@@ -154,14 +140,27 @@ jobs:
       - name: task finish
         run: task finish
 
-      - name: Upload packages archive
-        uses: ansible/actions/upload-artifact@main
+      - name: Upload vsix artifact
+        uses: actions/upload-artifact@v7
         with:
-          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
-          path: |
-            out/ansible-*.vsix
-            out/*.tgz
+          path: out/ansible-*.vsix
+          archive: false
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload @ansible-ansible-language-server npm package
+        uses: actions/upload-artifact@v7
+        with:
+          path: out/@ansible-ansible-language-server-*.tgz
+          archive: false
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload @ansible-ansible-mcp-server npm package
+        uses: actions/upload-artifact@v7
+        with:
+          path: out/@ansible-ansible-mcp-server-*.tgz
+          archive: false
           if-no-files-found: error
           retention-days: 90
 
@@ -445,11 +444,6 @@ jobs:
   builder-image:
     runs-on: ubuntu-24.04
     needs: [preflight]
-    if: >
-      needs.preflight.outputs.builder_files == 'true' ||
-      github.ref_type == 'tag' ||
-      (github.event_name == 'release' && github.event.action == 'published') ||
-      github.event.inputs.publish == 'true'
     permissions:
       contents: read
       packages: write
@@ -499,7 +493,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Download artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@v8
         with:
           path: .
 
@@ -581,12 +575,13 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
+      - uses: jdx/mise-action@v3
 
       - name: Download the artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@v8
         with:
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          pattern: "ansible-*.vsix"
+          skip-decompress: true
           path: out
 
       - name: Attach vsix to Github release
@@ -629,14 +624,27 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download the artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@v8
         with:
-          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          pattern: "@ansible-*.tgz"
+          skip-decompress: true
+          merge-multiple: true
           path: out
 
-      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
+      - name: Attach npm package to Github release
+        # cspell: ignore softprops
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        if: github.ref_type == 'tag'
+        with:
+          files: "out/*.tgz"
 
-      - run: npm publish --access public out/@ansible-ansible-language-server-*.tgz
+      - uses: jdx/mise-action@v3
+
+      - name: Publish npm packages to npmjs.com
+        run: |
+          for file in out/@ansible-*.tgz; do
+            npm publish --access public "$file"
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
