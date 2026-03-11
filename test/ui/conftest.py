@@ -57,6 +57,7 @@ def pytest_collection_modifyitems(
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Prepare dirs and settings for UI/Selenium tests (replaces Taskfile rimraf/mkdir/cp)."""
+    os.chdir(_PROJECT_ROOT)
     for dir_path in (
         _PROJECT_ROOT / "out" / "ui" / "logs",
         _PROJECT_ROOT / "out" / "ui" / "coder-logs",
@@ -82,6 +83,7 @@ def pytest_sessionfinish(
     """Teardown the selenium server after tests on CI."""
     result = subprocess.run(
         f"podman-compose stats --no-stream --no-reset {CONTAINER_NAME}",
+        cwd=_PROJECT_ROOT,
         text=True,
         capture_output=True,
         check=False,
@@ -94,6 +96,7 @@ def pytest_sessionfinish(
             f"podman stop {CONTAINER_NAME} 2>/dev/null || true",
             # Apparently compose down can fail with various errors but stopping container works
             # "podman-compose down",
+            cwd=_PROJECT_ROOT,
             capture_output=True,
             check=False,
             shell=True,
