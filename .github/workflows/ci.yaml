@@ -587,13 +587,14 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          path: out
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         if: github.ref_type == 'tag'
         with:
-          files: "*.vsix"
+          files: "out/*.vsix"
 
       - run: |
           yarn install --immutable
@@ -624,14 +625,18 @@ jobs:
       issues: write
       checks: read
     steps:
+      - name: Checkout Source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Download the artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
+          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
+          path: out
 
       - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3.6.1
 
-      - run: npm publish --access public @ansible-ansible-language-server-*.tgz
+      - run: npm publish --access public out/@ansible-ansible-language-server-*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
