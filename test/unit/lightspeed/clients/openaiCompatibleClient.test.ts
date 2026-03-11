@@ -4,7 +4,7 @@ import {
   TEST_API_KEYS,
   API_ENDPOINTS,
   DEFAULT_TIMEOUTS,
-} from "../testConstants.js";
+} from "@test/unit/lightspeed/testConstants.js";
 import {
   OpenAICompatibleClient,
   OpenAIClientError,

@@ -1,5 +1,5 @@
 // Global setup that runs once before all tests
-import { isWindows, console } from "./helper.js";
+import { isWindows, console } from "@test/helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import path from "path";
 import { createRequire } from "module";

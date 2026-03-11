@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { createTestServer } from "../testWrapper.js";
+import { createTestServer } from "@test/testWrapper.js";
 
 vi.mock("../../src/tools/adeTools.js", async (importOriginal) => {
   const original =

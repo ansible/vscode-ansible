@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import App from "./QuickLinksApp.vue";
+import App from "@webviews/QuickLinksApp.vue";
 
 const app = createApp(App);
 

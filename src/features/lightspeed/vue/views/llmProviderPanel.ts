@@ -1,11 +1,11 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, Uri, window } from "vscode";
-import { disposePanelResources } from "./panelUtils";
+import { disposePanelResources } from "@src/features/lightspeed/vue/views/panelUtils";
 import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
-} from "./llmProviderMessageHandlers";
-import { providerFactory } from "../../providers/factory";
+} from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 /**
  * Main panel for LLM Provider settings.

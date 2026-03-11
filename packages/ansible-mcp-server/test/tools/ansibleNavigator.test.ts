@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createAnsibleNavigatorHandler } from "../../src/handlers.js";
+import { createAnsibleNavigatorHandler } from "@src/handlers.js";
 import { join, dirname } from "node:path";
 import { writeFile, unlink } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

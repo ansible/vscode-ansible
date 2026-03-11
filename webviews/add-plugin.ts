@@ -10,7 +10,7 @@ import "@vscode-elements/elements/dist/vscode-textarea";
 import "@vscode-elements/elements/dist/vscode-textfield";
 
 import { createApp } from "vue";
-import App from "./AddPluginPageApp.vue";
+import App from "@webviews/AddPluginPageApp.vue";
 
 const app = createApp(App);
 

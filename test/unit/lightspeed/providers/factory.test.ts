@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { LLMProviderFactory } from "../../../../src/features/lightspeed/providers/factory.js";
-import type { ProviderType } from "../../../../src/definitions/lightspeed.d.ts";
+import { LLMProviderFactory } from "@src/features/lightspeed/providers/factory.js";
+import type { ProviderType } from "@src/definitions/lightspeed.d.ts";
 import {
   PROVIDER_TYPES,
   TEST_LIGHTSPEED_SETTINGS,
   API_ENDPOINTS,
-} from "../testConstants.js";
+} from "@test/unit/lightspeed/testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
 const mockEnhancePromptForAnsible = vi.fn(

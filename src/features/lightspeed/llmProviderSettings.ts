@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
-import { providerFactory } from "./providers/factory";
+import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
 /**
  * Service for managing LLM provider settings.

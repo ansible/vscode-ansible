@@ -8,7 +8,10 @@
     "outDir": "out/client",
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
-      "@src/*": ["./src/*"]
+      "@root/*": ["./*"],
+      "@src/*": ["./src/*"],
+      "@test/*": ["./test/*"],
+      "@webviews/*": ["./webviews/*"]
     }
   },
   "exclude": [
@@ -19,6 +22,7 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "src/**/*.ts",
+    "tools/**/*.ts",
     "test/**/*.ts",
     "test/**/*.cjs",
     "webviews/**/*.ts",

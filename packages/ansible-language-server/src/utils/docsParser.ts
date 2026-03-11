@@ -6,14 +6,14 @@ import {
   IModuleDocumentation,
   IModuleMetadata,
   IOption,
-} from "../interfaces/module.js";
-import { hasOwnProperty, isObject } from "./misc.js";
+} from "@src/interfaces/module.js";
+import { hasOwnProperty, isObject } from "@src/utils/misc.js";
 import {
   IPluginRoute,
   IPluginRoutesByName,
   IPluginRoutesByType,
   IPluginTypes,
-} from "../interfaces/pluginRouting.js";
+} from "@src/interfaces/pluginRouting.js";
 
 const DOCUMENTATION = "DOCUMENTATION";
 

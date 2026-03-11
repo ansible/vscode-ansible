@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
-import { PythonInterpreterManager } from "../../../src/features/pythonMetadata";
-import { PythonEnvironmentService } from "../../../src/services/PythonEnvironmentService";
+import { PythonInterpreterManager } from "@src/features/pythonMetadata";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 
 // Mock PythonEnvironmentService
-vi.mock("../../../src/services/PythonEnvironmentService", () => ({
+vi.mock("@src/services/PythonEnvironmentService", () => ({
   PythonEnvironmentService: {
     getInstance: vi.fn(),
   },

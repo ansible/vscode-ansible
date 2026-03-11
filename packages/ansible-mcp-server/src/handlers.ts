@@ -1,22 +1,22 @@
-import { ZEN_OF_ANSIBLE } from "./constants.js";
-import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
+import { ZEN_OF_ANSIBLE } from "@src/constants.js";
+import { runAnsibleLint, formatLintingResult } from "@src/tools/ansibleLint.js";
 import {
   runAnsibleNavigator,
   formatNavigatorResult,
-} from "./tools/ansibleNavigator.js";
+} from "@src/tools/ansibleNavigator.js";
 import {
   getEnvironmentInfo,
   setupDevelopmentEnvironment,
   checkAndInstallADT,
   formatEnvironmentInfo,
   type SystemInfo,
-} from "./tools/adeTools.js";
+} from "@src/tools/adeTools.js";
 import {
   generateExecutionEnvironment,
   formatExecutionEnvResult,
   buildEEStructureFromPrompt,
-} from "./tools/executionEnv.js";
-import { getAgentsGuidelines } from "./resources/agents.js";
+} from "@src/tools/executionEnv.js";
+import { getAgentsGuidelines } from "@src/resources/agents.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {

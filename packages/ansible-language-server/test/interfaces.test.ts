@@ -1,4 +1,4 @@
-import { IPullPolicy } from "../src/interfaces/extensionSettings.js";
+import { IPullPolicy } from "@src/interfaces/extensionSettings.js";
 
 describe("interfaces", function () {
   describe("IPullPolicy", function () {

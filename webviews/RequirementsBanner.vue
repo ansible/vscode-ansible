@@ -4,18 +4,29 @@
     <div class="banner-content">
       <div class="banner-title">Requirements Not Met</div>
       <div class="banner-message">
-        <template v-if="failures.length === 1 && failures[0].type === 'ansible-creator'">
+        <template
+          v-if="failures.length === 1 && failures[0].type === 'ansible-creator'"
+        >
           This feature requires ansible-creator version <b>25.0.1</b> or higher.
-          To upgrade or install ansible-creator, please refer to the official installation and upgrade <a href="https://docs.ansible.com/projects/creator/installing/">guide</a>.
+          To upgrade or install ansible-creator, please refer to the official
+          installation and upgrade
+          <a href="https://docs.ansible.com/projects/creator/installing/"
+            >guide</a
+          >.
         </template>
         <template v-else>
           <ul>
             <li v-for="failure in failures" :key="failure.type">
               <span v-if="failure.type === 'ansible-creator'">
-                ansible-creator version <b>{{ failure.required }}</b> required (found: <b>{{ failure.current }}</b>)
+                ansible-creator version <b>{{ failure.required }}</b> required
+                (found: <b>{{ failure.current }}</b
+                >)
               </span>
               <span v-else>
-                {{ failure.type }}: required <b>{{ failure.required }}</b> (found: <b>{{ failure.current }}</b>)
+                {{ failure.type }}: required
+                <b>{{ failure.required }}</b> (found:
+                <b>{{ failure.current }}</b
+                >)
               </span>
             </li>
           </ul>
@@ -27,7 +38,9 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ failures: Array<{ type: string; required: string; current: string }> }>();
+defineProps<{
+  failures: Array<{ type: string; required: string; current: string }>;
+}>();
 </script>
 
 <style scoped>
@@ -39,7 +52,7 @@ defineProps<{ failures: Array<{ type: string; required: string; current: string 
   border-radius: 6px;
   padding: 18px 20px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.04);
   gap: 18px;
 }
 .banner-icon {

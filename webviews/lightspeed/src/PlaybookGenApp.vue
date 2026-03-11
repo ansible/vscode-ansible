@@ -1,29 +1,37 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { ref, watch } from 'vue';
-import type { Ref } from 'vue'
-import { vscodeApi } from './utils';
+import "@vscode/codicons/dist/codicon.css";
+import { ref, watch } from "vue";
+import type { Ref } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 
-import { PlaybookGenerationResponseParams, RoleFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
-import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
+import {
+  PlaybookGenerationResponseParams,
+  RoleFileType,
+  FeedbackRequestParams,
+} from "@src/interfaces/lightspeed";
+import { WizardGenerationActionType } from "@src/definitions/lightspeed";
 
-import OutlineReview from './components/lightspeed/OutlineReview.vue';
-import GeneratedFileEntry from "./components/lightspeed/GeneratedFileEntry.vue";
-import ErrorBox from './components/ErrorBox.vue';
-import PromptExampleBox from './components/lightspeed/PromptExampleBox.vue';
-import PromptField from './components/lightspeed/PromptField.vue';
-import StatusBoxPrompt from './components/lightspeed/StatusBoxPrompt.vue';
+import OutlineReview from "@webviews/lightspeed/src/components/lightspeed/OutlineReview.vue";
+import GeneratedFileEntry from "@webviews/lightspeed/src/components/lightspeed/GeneratedFileEntry.vue";
+import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
+import PromptExampleBox from "@webviews/lightspeed/src/components/lightspeed/PromptExampleBox.vue";
+import PromptField from "@webviews/lightspeed/src/components/lightspeed/PromptField.vue";
+import StatusBoxPrompt from "@webviews/lightspeed/src/components/lightspeed/StatusBoxPrompt.vue";
 
 const page = ref(1);
-const prompt = ref('');
+const prompt = ref("");
 const response: Ref<PlaybookGenerationResponseParams | undefined> = ref();
-const outline = ref('');
-const errorMessages: Ref<string[]> = ref([])
+const outline = ref("");
+const errorMessages: Ref<string[]> = ref([]);
 const loadingNewResponse = ref(false);
 const filesWereSaved = ref(false);
 let wizardId = crypto.randomUUID();
 
-async function sendActionEvent(action: WizardGenerationActionType, fromPage: undefined | number = undefined, toPage: undefined | number = undefined) {
+async function sendActionEvent(
+  action: WizardGenerationActionType,
+  fromPage: undefined | number = undefined,
+  toPage: undefined | number = undefined,
+) {
   const request: FeedbackRequestParams = {
     playbookGenerationAction: {
       wizardId,
@@ -31,8 +39,8 @@ async function sendActionEvent(action: WizardGenerationActionType, fromPage: und
       fromPage: fromPage,
       toPage: toPage,
     },
-  }
-  vscodeApi.post('feedback', { request });
+  };
+  vscodeApi.post("feedback", { request });
 }
 
 async function nextPage() {
@@ -41,18 +49,24 @@ async function nextPage() {
     return;
   }
   loadingNewResponse.value = true;
-  await vscodeApi.post('generatePlaybook', { text: prompt.value, outline: outline.value });
-
+  await vscodeApi.post("generatePlaybook", {
+    text: prompt.value,
+    outline: outline.value,
+  });
 }
 
 async function openEditor() {
   if (response && response.value && response.value.playbook) {
-    await vscodeApi.post('openEditor', { content: response.value.playbook });
-    sendActionEvent(WizardGenerationActionType.CLOSE_ACCEPT, page.value, undefined);
+    await vscodeApi.post("openEditor", { content: response.value.playbook });
+    sendActionEvent(
+      WizardGenerationActionType.CLOSE_ACCEPT,
+      page.value,
+      undefined,
+    );
   }
 }
 
-vscodeApi.on('generatePlaybook', (data: any) => {
+vscodeApi.on("generatePlaybook", (data: any) => {
   response.value = undefined; // To disable the watchers
   outline.value = data["outline"] || outline.value;
   if (Array.isArray(data["warnings"])) {
@@ -63,7 +77,7 @@ vscodeApi.on('generatePlaybook', (data: any) => {
   page.value++;
 });
 
-vscodeApi.on('errorMessage', (data: string) => {
+vscodeApi.on("errorMessage", (data: string) => {
   loadingNewResponse.value = false; // Stop loading spinner
   errorMessages.value = [data]; // Show error in ErrorBox
 });
@@ -72,8 +86,8 @@ vscodeApi.on('errorMessage', (data: string) => {
 watch(page, (toPage, fromPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
-  sendActionEvent(WizardGenerationActionType.TRANSITION, fromPage, toPage)
-})
+  sendActionEvent(WizardGenerationActionType.TRANSITION, fromPage, toPage);
+});
 
 watch(prompt, (newPrompt) => {
   if (response.value !== undefined) {
@@ -81,13 +95,16 @@ watch(prompt, (newPrompt) => {
     outline.value = "";
   }
   wizardId = crypto.randomUUID();
-})
+});
 
 watch(outline, (newOutline) => {
-  if (response.value !== undefined && response.value["outline"] !== newOutline) {
+  if (
+    response.value !== undefined &&
+    response.value["outline"] !== newOutline
+  ) {
     response.value = undefined;
   }
-})
+});
 
 sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
 </script>
@@ -101,7 +118,10 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <ProgressSpinner v-if="loadingNewResponse" />
 
   <div v-else-if="page === 1">
-    <PromptField v-model:prompt="prompt" placeholder="I want to write a playbook that will..." />
+    <PromptField
+      v-model:prompt="prompt"
+      placeholder="I want to write a playbook that will..."
+    />
 
     <div>
       <vscode-button @click.once="nextPage" :disabled="prompt === ''">
@@ -114,29 +134,34 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <div v-else-if="page === 2">
     <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
 
-    <OutlineReview :outline type="playbook"
-      @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
+    <OutlineReview
+      :outline
+      type="playbook"
+      @outline-update="
+        (newOutline: string) => {
+          console.log(`new outline: ${newOutline}`);
+          outline = newOutline;
+        }
+      "
+    />
 
     <div>
-      <vscode-button @click.once="nextPage">
-        Continue
-      </vscode-button>
-      <vscode-button secondary @click="page--">
-        Back
-      </vscode-button>
+      <vscode-button @click.once="nextPage"> Continue </vscode-button>
+      <vscode-button secondary @click="page--"> Back </vscode-button>
     </div>
   </div>
 
   <div v-else-if="page === 3">
     <GeneratedFileEntry
-      :file="{ 'content': response ? response.playbook : '', 'path': 'new_playbook.yaml', 'file_type': RoleFileType.Playbook }" />
+      :file="{
+        content: response ? response.playbook : '',
+        path: 'new_playbook.yaml',
+        file_type: RoleFileType.Playbook,
+      }"
+    />
     <div>
-      <vscode-button @click="openEditor">
-        Open editor
-      </vscode-button>
-      <vscode-button secondary @click="page--">
-        Back
-      </vscode-button>
+      <vscode-button @click="openEditor"> Open editor </vscode-button>
+      <vscode-button secondary @click="page--"> Back </vscode-button>
     </div>
   </div>
 </template>

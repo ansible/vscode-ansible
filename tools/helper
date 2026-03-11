@@ -137,13 +137,13 @@ def cli() -> None:
             logging.error(msg)
             sys.exit(2)
         run(
-            f"vsce publish {pre_release_arg} --skip-duplicate --packagePath"
+            f"npx vsce publish {pre_release_arg} --skip-duplicate --packagePath"
             f" {vsix_files[0]} --readme-path docs/README.md"
         )
-        run(f"ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
+        run(f"npx ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
-        run("rimraf ./out/*.vsix")
+        run("npx rimraf ./out/*.vsix")
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
@@ -159,7 +159,7 @@ def cli() -> None:
         # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
         vsix_file = f"out/ansible-{version}.vsix"
         run(
-            f"vsce package --no-update-package-json --out={vsix_file} {pre_release_arg} {version}"
+            f"npx vsce package --no-update-package-json --out={vsix_file} {pre_release_arg} {version}"
         )
         vsix_file_fixed = Path("out/data/ansible-latest.vsix")
         vsix_file_fixed.parent.mkdir(parents=True, exist_ok=True)

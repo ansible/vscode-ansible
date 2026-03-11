@@ -1,4 +1,4 @@
-import { HTTPError, IError } from "./utils/errors";
+import { HTTPError, IError } from "@src/features/lightspeed/utils/errors";
 
 class Error implements IError {
   readonly code: string;

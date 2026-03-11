@@ -1,28 +1,31 @@
 import * as vscode from "vscode";
-import { LightSpeedAPI } from "./api";
-import { TelemetryManager } from "../../utils/telemetryUtils";
-import { SettingsManager } from "../../settings";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
+import { LightSpeedAPI } from "@src/features/lightspeed/api";
+import { TelemetryManager } from "@src/utils/telemetryUtils";
+import { SettingsManager } from "@src/settings";
+import { LightSpeedAuthenticationProvider } from "@src/features/lightspeed/lightSpeedOAuthProvider";
 import {
   IDocumentTracker,
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
   IVarsFileContext,
-} from "../../interfaces/lightspeed";
-import { ContentMatchesWebview } from "./contentMatchesWebview";
+} from "@src/interfaces/lightspeed";
+import { ContentMatchesWebview } from "@src/features/lightspeed/contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
-} from "./utils/webUtils";
-import { LightspeedStatusBar } from "./statusBar";
-import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
-import { watchRolesDirectory } from "./utils/watchers";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
-import { LightspeedUser } from "./lightspeedUser";
-import { Log } from "../../utils/logger";
-import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
-import { ProviderManager } from "./providerManager";
-import { LlmProviderSettings } from "./llmProviderSettings";
+} from "@src/features/lightspeed/utils/webUtils";
+import { LightspeedStatusBar } from "@src/features/lightspeed/statusBar";
+import {
+  getCustomRolePaths,
+  getCommonRoles,
+} from "@src/features/utils/ansible";
+import { watchRolesDirectory } from "@src/features/lightspeed/utils/watchers";
+import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
+import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { Log } from "@src/utils/logger";
+import { LightspeedExplorerWebviewViewProvider } from "@src/features/lightspeed/explorerWebviewViewProvider";
+import { ProviderManager } from "@src/features/lightspeed/providerManager";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 
 export class LightSpeedManager {
   private context;

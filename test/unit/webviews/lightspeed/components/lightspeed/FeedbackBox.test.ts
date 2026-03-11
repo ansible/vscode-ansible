@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import FeedbackBox from "../../../../../../webviews/lightspeed/src/components/lightspeed/FeedbackBox.vue";
-import { vscodeApi } from "../../../../../../webviews/lightspeed/src/utils/vscode";
+import FeedbackBox from "@webviews/lightspeed/src/components/lightspeed/FeedbackBox.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("FeedbackBox", () => {
   const defaultProps = {

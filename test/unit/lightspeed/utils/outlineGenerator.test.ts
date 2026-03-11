@@ -4,7 +4,7 @@ import {
   generateOutlineFromRole,
   parseOutlineToTaskList,
 } from "@src/features/lightspeed/utils/outlineGenerator.js";
-import { ANSIBLE_CONTENT } from "../testConstants.js";
+import { ANSIBLE_CONTENT } from "@test/unit/lightspeed/testConstants.js";
 
 describe("outlineGenerator", () => {
   beforeEach(() => {

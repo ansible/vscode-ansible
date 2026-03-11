@@ -445,7 +445,11 @@ jobs:
   builder-image:
     runs-on: ubuntu-24.04
     needs: [preflight]
-    if: needs.preflight.outputs.builder_files == 'true'
+    if: >
+      needs.preflight.outputs.builder_files == 'true' ||
+      github.ref_type == 'tag' ||
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      github.event.inputs.publish == 'true'
     permissions:
       contents: read
       packages: write
@@ -551,7 +555,13 @@ jobs:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish:
-    if: github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') || github.event.inputs.publish == 'true' || github.event.inputs.publish == true
+    # be warned that job will skip if any other job from same workflow is
+    # skipped due to implicit `success() &&` condition GHA is injecting.
+    # Be sure build-image runs too.
+    if: >
+      github.ref_type == 'tag' ||
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
     environment: release
     needs:

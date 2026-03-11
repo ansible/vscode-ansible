@@ -4,12 +4,12 @@ import {
   sleep,
   updateSettings,
   clearActivationCache,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import * as path from "path";
 import { createRequire } from "node:module";
-import { PROJECT_ROOT } from "../../setup";
+import { PROJECT_ROOT } from "@test/setup";
 
 describe("MCP server activation and availability (AAP-64488)", function () {
   const playbookPath = Uri.file(

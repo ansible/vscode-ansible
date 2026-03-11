@@ -10,14 +10,18 @@ import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { randomUUID } from "crypto";
 import { TextEncoder } from "util";
-import { lightSpeedManager } from "../../../../extension";
-import { formatErrorDetail, isError, UNKNOWN_ERROR } from "../../utils/errors";
-import { getOneClickTrialProvider } from "../../utils/oneClickTrial";
+import { lightSpeedManager } from "@src/extension";
+import {
+  formatErrorDetail,
+  isError,
+  UNKNOWN_ERROR,
+} from "@src/features/lightspeed/utils/errors";
+import { getOneClickTrialProvider } from "@src/features/lightspeed/utils/oneClickTrial";
 import {
   FeedbackRequestParams,
   GenerationListEntry,
-} from "../../../../interfaces/lightspeed";
-import { SettingsManager } from "../../../../settings";
+} from "@src/interfaces/lightspeed";
+import { SettingsManager } from "@src/settings";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -27,7 +31,7 @@ import {
   DevfileFormInterface,
   AnsibleExecutionEnvInterface,
   PostMessageEvent,
-} from "../../../contentCreator/types";
+} from "@src/features/contentCreator/types";
 
 import {
   explainPlaybook,
@@ -37,25 +41,28 @@ import {
   thumbsUpDown,
   contentMatch,
   updatePromptHistory,
-} from "./lightspeedUtils";
+} from "@src/features/lightspeed/vue/views/lightspeedUtils";
 import {
   openNewPlaybookEditor,
   getCollectionsFromWorkspace,
   getRoleBaseDir,
   fileExists,
   FileOperations,
-} from "./fileOperations";
-import { AnsibleCreatorOperations } from "./ansibleCreatorUtils";
-import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
-import { expandPath, runCommand } from "../../../contentCreator/utils";
-import { withInterpreter } from "../../../utils/commandRunner";
+} from "@src/features/lightspeed/vue/views/fileOperations";
+import { AnsibleCreatorOperations } from "@src/features/lightspeed/vue/views/ansibleCreatorUtils";
+import { ThumbsUpDownAction } from "@src/definitions/lightspeed";
+import { expandPath, runCommand } from "@src/features/contentCreator/utils";
+import { withInterpreter } from "@src/features/utils/commandRunner";
 import {
   DevcontainerImages,
   DevcontainerRecommendedExtensions,
   DevfileImages,
-} from "../../../../definitions/constants";
-import { sendTelemetry } from "../../../../utils/telemetryUtils";
-import { isPlaybook, isDocumentInRole } from "../../utils/explanationUtils";
+} from "@src/definitions/constants";
+import { sendTelemetry } from "@src/utils/telemetryUtils";
+import {
+  isPlaybook,
+  isDocumentInRole,
+} from "@src/features/lightspeed/utils/explanationUtils";
 
 interface WebviewMessage {
   type: string;

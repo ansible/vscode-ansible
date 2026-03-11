@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AnsibleContextProcessor } from "@src/features/lightspeed/ansibleContext.js";
 import type { AnsibleContext } from "@src/features/lightspeed/ansibleContext.js";
-import { ANSIBLE_CONTENT, TEST_PROMPTS } from "./testConstants.js";
+import {
+  ANSIBLE_CONTENT,
+  TEST_PROMPTS,
+} from "@test/unit/lightspeed/testConstants.js";
 
 describe("AnsibleContextProcessor", () => {
   // Mock console.warn to avoid noise in test output

@@ -1,7 +1,7 @@
 import {
   CompletionRequestParams,
   CompletionResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 
 export interface ProviderMetadata {
   ansibleFileType?:

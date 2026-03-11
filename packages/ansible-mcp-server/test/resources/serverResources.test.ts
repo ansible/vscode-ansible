@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createTestServer } from "../testWrapper.js";
+import { createTestServer } from "@test/testWrapper.js";
 import fs from "node:fs/promises";
 
 describe("Server Resource Registration", () => {

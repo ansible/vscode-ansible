@@ -1,6 +1,6 @@
 import * as child_process from "child_process";
 import { Connection } from "vscode-languageserver";
-import { WorkspaceFolderContext } from "../services/workspaceManager.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 /* v8 ignore start */
 export class ImagePuller {

@@ -5,7 +5,7 @@ import {
   activate,
   testDiagnostics,
   waitForDiagnosticsFromSource,
-} from "../e2e.utils";
+} from "@test/e2e/e2e.utils";
 
 describe("yaml-diag-no-ee", function () {
   const docUri1 = getDocUri("diagnostics/yaml/invalid_yaml.yml");

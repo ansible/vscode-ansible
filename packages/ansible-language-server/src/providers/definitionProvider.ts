@@ -2,15 +2,15 @@ import { DefinitionLink, Range } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 import { isScalar } from "yaml";
-import { DocsLibrary } from "../services/docsLibrary.js";
-import { toLspRange } from "../utils/misc.js";
+import { DocsLibrary } from "@src/services/docsLibrary.js";
+import { toLspRange } from "@src/utils/misc.js";
 import {
   AncestryBuilder,
   getOrigRange,
   getPathAt,
   isTaskParam,
   parseAllDocuments,
-} from "../utils/yaml.js";
+} from "@src/utils/yaml.js";
 
 export async function getDefinition(
   document: TextDocument,

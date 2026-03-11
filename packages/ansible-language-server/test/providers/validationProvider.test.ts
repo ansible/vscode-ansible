@@ -4,8 +4,8 @@ import { Diagnostic, Position, integer } from "vscode-languageserver";
 import {
   doValidate,
   getYamlValidation,
-} from "../../src/providers/validationProvider.js";
-import { WorkspaceFolderContext } from "../../src/services/workspaceManager.js";
+} from "@src/providers/validationProvider.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
   createTestValidationManager,
   createTestWorkspaceManager,
@@ -14,8 +14,8 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper.js";
-import { ValidationManager } from "../../src/services/validationManager.js";
+} from "@test/helper.js";
+import { ValidationManager } from "@src/services/validationManager.js";
 
 function testValidationFromCache(
   validationManager: ValidationManager,

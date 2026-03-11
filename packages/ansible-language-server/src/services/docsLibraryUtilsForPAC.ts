@@ -6,19 +6,19 @@
  */
 
 import { Node } from "yaml";
-import { IModuleMetadata } from "../interfaces/module.js";
+import { IModuleMetadata } from "@src/interfaces/module.js";
 import {
   IPluginRoute,
   IPluginRoutesByType,
   IPluginRoutingByCollection,
-} from "../interfaces/pluginRouting.js";
-import { findDocumentation, findPluginRouting } from "../utils/docsFinder.js";
+} from "@src/interfaces/pluginRouting.js";
+import { findDocumentation, findPluginRouting } from "@src/utils/docsFinder.js";
 import {
   processDocumentationFragments,
   processRawDocumentation,
-} from "../utils/docsParser.js";
-import { getDeclaredCollections } from "../utils/yaml.js";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
+} from "@src/utils/docsParser.js";
+import { getDeclaredCollections } from "@src/utils/yaml.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 const playbookAdjacentPluginRouting: IPluginRoutingByCollection = new Map<
   string,

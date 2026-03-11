@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { onMounted, ref, computed, watch } from 'vue';
-import { vscodeApi } from './lightspeed/src/utils';
+import "@vscode/codicons/dist/codicon.css";
+import { onMounted, ref, computed, watch } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 import {
   useCommonWebviewState,
   openFolderExplorer,
@@ -10,34 +10,41 @@ import {
   setupMessageHandler,
   clearAllFields,
   createFormValidator,
-  createActionWrapper
-} from './../src/features/contentCreator/webviewUtils';
-import FormPageLayout from './FormPageLayout.vue';
+  createActionWrapper,
+} from "@src/features/contentCreator/webviewUtils";
+import FormPageLayout from "@webviews/FormPageLayout.vue";
 
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
 const isCreating = commonState.isCreating;
 
-const homeDir = ref('');
-const destinationPath = ref('');
-const selectedImage = ref('upstream');
+const homeDir = ref("");
+const destinationPath = ref("");
+const selectedImage = ref("upstream");
 const isOverwritten = ref(false);
-const projectUrl = ref('');
+const projectUrl = ref("");
 const openDevcontainerButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
-const defaultDestinationPath = ref('');
+const defaultDestinationPath = ref("");
 const requirementsMet = ref(true);
 const requirementFailures = ref([]);
 
 const isFormValid = createFormValidator({
   destinationPath: () => {
     // Match original logic: valid if field has value or placeholder is available
-    return destinationPath.value.trim() !== '' || (defaultDestinationPath.value || homeDir.value) !== '';
-  }
+    return (
+      destinationPath.value.trim() !== "" ||
+      (defaultDestinationPath.value || homeDir.value) !== ""
+    );
+  },
 });
 
 const displayPath = computed(() => {
-  return destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
+  return (
+    destinationPath.value.trim() ||
+    defaultDestinationPath.value ||
+    homeDir.value
+  );
 });
 
 const devcontainerPath = computed(() => {
@@ -52,7 +59,7 @@ const handleOpenFolderExplorer = () => {
   openFolderExplorer(
     destinationPath.value || defaultDestinationPath.value || homeDir.value,
     homeDir.value,
-    { selectOption: 'folder' }
+    { selectOption: "folder" },
   );
 };
 
@@ -86,19 +93,19 @@ const handleCreate = createActionWrapper(
       isOverwritten: isOverwritten.value,
     };
     vscodeApi.postMessage({
-      type: 'init-create-devcontainer',
+      type: "init-create-devcontainer",
       payload,
     });
-  }
+  },
 );
 
 const onClear = () => {
   // Match original implementation: reset field to placeholder value
   destinationPath.value = defaultDestinationPath.value || homeDir.value;
-  selectedImage.value = 'upstream';
+  selectedImage.value = "upstream";
   isOverwritten.value = false;
-  logs.value = '';
-  projectUrl.value = '';
+  logs.value = "";
+  projectUrl.value = "";
 
   openDevcontainerButtonDisabled.value = true;
   createButtonDisabled.value = !isFormValid() || isCreating.value;
@@ -110,9 +117,9 @@ watch([destinationPath, isCreating], () => {
 });
 
 onMounted(() => {
-  vscodeApi.postMessage({ type: 'request-requirements-status' });
-  window.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'requirements-status') {
+  vscodeApi.postMessage({ type: "request-requirements-status" });
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "requirements-status") {
       requirementsMet.value = event.data.met;
       requirementFailures.value = event.data.failures || [];
     }
@@ -135,17 +142,17 @@ onMounted(() => {
       destinationPath.value = data;
     },
     onExecutionLog: (args) => {
-      logs.value = args.commandOutput || '';
-      projectUrl.value = args.projectUrl || '';
+      logs.value = args.commandOutput || "";
+      projectUrl.value = args.projectUrl || "";
 
-      if (args.status === 'passed') {
+      if (args.status === "passed") {
         openDevcontainerButtonDisabled.value = false;
       } else {
         openDevcontainerButtonDisabled.value = true;
       }
       isCreating.value = false;
       createButtonDisabled.value = !isFormValid() || isCreating.value;
-    }
+    },
   });
   initializeUI();
 });
@@ -162,7 +169,6 @@ const descriptionHtml = `Devcontainers are json files used for building containe
   >
     <form id="devcontainer-form">
       <section class="component-container">
-
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Destination directory </span>
@@ -198,14 +204,17 @@ const descriptionHtml = `Devcontainers are json files used for building containe
             <vscode-single-select
               id="image-dropdown"
               :value="selectedImage"
-              @change="selectedImage = ($event.target as HTMLSelectElement).value"
+              @change="
+                selectedImage = ($event.target as HTMLSelectElement).value
+              "
               position="below"
             >
               <vscode-option value="upstream">
                 Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)
               </vscode-option>
               <vscode-option value="downstream">
-                Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)
+                Downstream
+                (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)
               </vscode-option>
             </vscode-single-select>
           </div>
@@ -215,10 +224,12 @@ const descriptionHtml = `Devcontainers are json files used for building containe
           <vscode-checkbox
             id="overwrite-checkbox"
             :checked="isOverwritten"
-            @change="isOverwritten = ($event.target as HTMLInputElement).checked"
+            @change="
+              isOverwritten = ($event.target as HTMLInputElement).checked
+            "
             form="devcontainer-form"
           >
-            Overwrite <br>
+            Overwrite <br />
             <i>Overwrite an existing devcontainer.</i>
           </vscode-checkbox>
         </div>
@@ -240,7 +251,7 @@ const descriptionHtml = `Devcontainers are json files used for building containe
             form="devcontainer-form"
           >
             <span class="codicon codicon-run-all"></span>
-            &nbsp; {{ isCreating ? 'Creating...' : 'Create' }}
+            &nbsp; {{ isCreating ? "Creating..." : "Create" }}
           </vscode-button>
         </div>
 
@@ -248,17 +259,17 @@ const descriptionHtml = `Devcontainers are json files used for building containe
 
         <vscode-form-group variant="vertical">
           <vscode-label id="vscode-logs-label" for="log-text-area">
-          <span class="normal">Logs</span>
+            <span class="normal">Logs</span>
           </vscode-label>
           <vscode-textarea
-          id="log-text-area"
-          v-model="logs"
-          cols="90"
-          rows="15"
-          placeholder="Output of the command execution"
-          resize="vertical"
-          readonly
-          style="width: 100%; height: 200px;"
+            id="log-text-area"
+            v-model="logs"
+            cols="90"
+            rows="15"
+            placeholder="Output of the command execution"
+            resize="vertical"
+            readonly
+            style="width: 100%; height: 200px"
           ></vscode-textarea>
         </vscode-form-group>
 
@@ -287,7 +298,6 @@ const descriptionHtml = `Devcontainers are json files used for building containe
         <div id="required-fields" class="required-fields">
           <p>Fields marked with an asterisk (*) are required</p>
         </div>
-
       </section>
     </form>
   </FormPageLayout>

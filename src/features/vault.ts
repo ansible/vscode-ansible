@@ -6,9 +6,9 @@ import * as util from "util";
 import * as vscode from "vscode";
 
 /* local */
-import * as utilAnsibleCfg from "./utils/ansibleCfg";
-import { SettingsManager } from "../settings";
-import { withInterpreter } from "./utils/commandRunner";
+import * as utilAnsibleCfg from "@src/features/utils/ansibleCfg";
+import { SettingsManager } from "@src/settings";
+import { withInterpreter } from "@src/features/utils/commandRunner";
 
 const execAsync = util.promisify(cp.exec);
 

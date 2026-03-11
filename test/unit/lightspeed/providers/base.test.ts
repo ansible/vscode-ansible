@@ -81,7 +81,7 @@ import {
   HTTP_STATUS_CODES,
   DEFAULT_TIMEOUTS,
   TEST_CONFIGS,
-} from "../testConstants.js";
+} from "@test/unit/lightspeed/testConstants.js";
 
 // This is needed because BaseLLMProvider is abstract and cannot be instantiated directly
 class TestProvider extends BaseLLMProvider {

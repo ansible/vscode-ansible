@@ -6,10 +6,10 @@ import {
   StatusBarAlignment,
   ThemeColor,
 } from "vscode";
-import { TelemetryManager } from "../utils/telemetryUtils";
-import { SettingsManager } from "../settings";
-import { AnsibleCommands } from "../definitions/constants";
-import { PythonEnvironmentService } from "../services/PythonEnvironmentService";
+import { TelemetryManager } from "@src/utils/telemetryUtils";
+import { SettingsManager } from "@src/settings";
+import { AnsibleCommands } from "@src/definitions/constants";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 
 export class PythonInterpreterManager {
   private context;

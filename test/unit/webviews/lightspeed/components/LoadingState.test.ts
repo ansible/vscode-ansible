@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import LoadingState from "../../../../../webviews/lightspeed/src/components/LoadingState.vue";
+import LoadingState from "@webviews/lightspeed/src/components/LoadingState.vue";
 
 describe("LoadingState", () => {
   it("renders default loading message", () => {

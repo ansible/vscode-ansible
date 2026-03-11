@@ -9,10 +9,10 @@ import {
 } from "vscode";
 import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
-import { TelemetryManager, sendTelemetry } from "../utils/telemetryUtils";
-import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
-import { compareObjects, getValueFromObject } from "./utils/data";
-import { SettingsManager } from "../settings";
+import { TelemetryManager, sendTelemetry } from "@src/utils/telemetryUtils";
+import { formatAnsibleMetaData } from "@src/features/utils/formatAnsibleMetaData";
+import { compareObjects, getValueFromObject } from "@src/features/utils/data";
+import { SettingsManager } from "@src/settings";
 
 interface ansibleMetadataEvent {
   ansibleVersion: string;

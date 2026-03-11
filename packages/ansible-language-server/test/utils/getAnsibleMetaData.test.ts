@@ -7,7 +7,7 @@ import {
   ansibleMetaDataType,
   getAnsibleMetaData,
   getResultsThroughCommandRunner,
-} from "../../src/utils/getAnsibleMetaData.js";
+} from "@src/utils/getAnsibleMetaData.js";
 import {
   createTestWorkspaceManager,
   disableExecutionEnvironmentSettings,
@@ -15,7 +15,7 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
-} from "../helper.js";
+} from "@test/helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

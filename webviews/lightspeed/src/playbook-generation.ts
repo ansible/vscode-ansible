@@ -1,7 +1,7 @@
 import "@vscode-elements/elements/dist/vscode-button";
 
 import { createApp } from "vue";
-import App from "./PlaybookGenApp.vue";
+import App from "@webviews/lightspeed/src/PlaybookGenApp.vue";
 
 import hljs from "highlight.js/lib/core";
 import yaml from "highlight.js/lib/languages/yaml";

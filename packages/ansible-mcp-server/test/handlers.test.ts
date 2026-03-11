@@ -5,8 +5,8 @@ import {
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
   createAgentsGuidelinesHandler,
-} from "../src/handlers.js";
-import { ZEN_OF_ANSIBLE } from "../src/constants.js";
+} from "@src/handlers.js";
+import { ZEN_OF_ANSIBLE } from "@src/constants.js";
 
 // Mock the adeTools module
 vi.mock("../src/tools/adeTools.js", () => ({

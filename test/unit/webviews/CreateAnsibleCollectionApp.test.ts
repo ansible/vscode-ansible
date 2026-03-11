@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import CreateAnsibleCollectionApp from "../../../webviews/CreateAnsibleCollectionApp.vue";
+import CreateAnsibleCollectionApp from "@webviews/CreateAnsibleCollectionApp.vue";
 
 const { mockPostMessage } = vi.hoisted(() => ({
   mockPostMessage: vi.fn(),
 }));
 
-vi.mock("../../../webviews/lightspeed/src/utils/vscode", () => ({
+vi.mock("@webviews/lightspeed/src/utils/vscode", () => ({
   vscodeApi: {
     postMessage: mockPostMessage,
     post: vi.fn(),

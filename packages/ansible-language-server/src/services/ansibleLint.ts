@@ -10,9 +10,9 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { fileExists } from "../utils/misc.js";
-import { WorkspaceFolderContext } from "./workspaceManager.js";
-import { CommandRunner } from "../utils/commandRunner.js";
+import { fileExists } from "@src/utils/misc.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { CommandRunner } from "@src/utils/commandRunner.js";
 
 /**
  * Acts as and interface to ansible-lint and a cache of its output.

@@ -17,7 +17,7 @@ import {
   TEST_CONTENT,
   PROVIDER_TYPES,
   ANSIBLE_CONTENT,
-} from "../testConstants";
+} from "@test/unit/lightspeed/testConstants";
 
 // Mock extension module - use string literal to avoid hoisting issues
 vi.mock("@src/extension", () => {

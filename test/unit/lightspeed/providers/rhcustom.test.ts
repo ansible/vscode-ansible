@@ -15,9 +15,9 @@ import {
   HTTP_STATUS_CODES,
   API_ENDPOINTS,
   DEFAULT_TIMEOUTS,
-} from "../testConstants.js";
-import { OpenAIClientError } from "../../../../src/features/lightspeed/clients/openaiCompatibleClient.js";
-import { getLightspeedLogger } from "../../../../src/utils/logger.js";
+} from "@test/unit/lightspeed/testConstants.js";
+import { OpenAIClientError } from "@src/features/lightspeed/clients/openaiCompatibleClient.js";
+import { getLightspeedLogger } from "@src/utils/logger.js";
 import {
   generateOutlineFromPlaybook,
   generateOutlineFromRole,

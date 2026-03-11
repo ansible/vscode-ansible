@@ -2,10 +2,10 @@ import { expect } from "vitest";
 import sinon from "sinon";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Connection, DiagnosticSeverity } from "vscode-languageserver";
-import { SchemaService } from "../../src/services/schemaService.js";
-import { SchemaValidator } from "../../src/services/schemaValidator.js";
-import { SchemaCompleter } from "../../src/services/schemaCompleter.js";
-import { JSONSchema, SchemaCache } from "../../src/services/schemaCache.js";
+import { SchemaService } from "@src/services/schemaService.js";
+import { SchemaValidator } from "@src/services/schemaValidator.js";
+import { SchemaCompleter } from "@src/services/schemaCompleter.js";
+import { JSONSchema, SchemaCache } from "@src/services/schemaCache.js";
 
 const mockConnection = {
   console: {

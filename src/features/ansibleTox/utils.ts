@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { TerminalService } from "../../services/TerminalService";
+import { TerminalService } from "@src/services/TerminalService";
 
 export function findProjectDir(): string | undefined {
   const docUri = vscode.window.activeTextEditor?.document.uri;

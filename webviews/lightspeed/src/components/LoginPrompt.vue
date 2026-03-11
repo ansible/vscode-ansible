@@ -4,17 +4,25 @@ const emit = defineEmits<{
 }>();
 
 const handleConnect = () => {
-  emit('connect');
+  emit("connect");
 };
 </script>
 
 <template>
   <div class="login-form">
-    <p>Experience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook.
-      <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank">Learn more</a>
+    <p>
+      Experience smarter automation using Ansible Lightspeed with watsonx Code
+      Assistant solutions for your playbook.
+      <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank"
+        >Learn more</a
+      >
     </p>
     <div class="button-container">
-      <vscode-button @click="handleConnect" id="lightspeed-explorer-connect" class="lightspeedExplorerButton">
+      <vscode-button
+        @click="handleConnect"
+        id="lightspeed-explorer-connect"
+        class="lightspeedExplorerButton"
+      >
         Connect
       </vscode-button>
     </div>

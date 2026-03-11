@@ -2,7 +2,7 @@ import "@vscode-elements/elements/dist/vscode-button";
 import "@vscode-elements/elements/dist/vscode-textfield";
 
 import { createApp } from "vue";
-import App from "./RoleGenApp.vue";
+import App from "@webviews/lightspeed/src/RoleGenApp.vue";
 
 import hljs from "highlight.js/lib/core";
 import yaml from "highlight.js/lib/languages/yaml";

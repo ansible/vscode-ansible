@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import '@vscode/codicons/dist/codicon.css';
-import { ref, onMounted } from 'vue';
-import type { Ref } from 'vue'
-import { vscodeApi } from './utils';
+import "@vscode/codicons/dist/codicon.css";
+import { ref, onMounted } from "vue";
+import type { Ref } from "vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils";
 import * as marked from "marked";
 
-import ErrorBox from './components/ErrorBox.vue';
-import LoadingState from './components/LoadingState.vue';
-import LoginPrompt from './components/LoginPrompt.vue';
-import ExplorerActions from './components/ExplorerActions.vue';
-import ExplorerInfoBox from './components/ExplorerInfoBox.vue';
+import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
+import LoadingState from "@webviews/lightspeed/src/components/LoadingState.vue";
+import LoginPrompt from "@webviews/lightspeed/src/components/LoginPrompt.vue";
+import ExplorerActions from "@webviews/lightspeed/src/components/ExplorerActions.vue";
+import ExplorerInfoBox from "@webviews/lightspeed/src/components/ExplorerInfoBox.vue";
 
-const errorMessages: Ref<string[]> = ref([])
-const provider = ref('wca');
+const errorMessages: Ref<string[]> = ref([]);
+const provider = ref("wca");
 
 // WCA Only
 const isAuthenticated = ref(false);
-const userContent = ref('');
+const userContent = ref("");
 
 const hasPlaybookOpened = ref(false);
 const hasRoleOpened = ref(false);
@@ -24,22 +24,21 @@ const loading = ref(true);
 
 onMounted(async () => {
   // Request initial state from extension
-  vscodeApi.post('getExplorerState', {});
+  vscodeApi.post("getExplorerState", {});
 });
 
 // Listen for state updates from extension
-vscodeApi.on('userRefreshExplorerState', (data: any) => {
-  vscodeApi.post('getExplorerState', {});
+vscodeApi.on("userRefreshExplorerState", (data: any) => {
+  vscodeApi.post("getExplorerState", {});
 });
 
-
 // Listen for state updates from extension
-vscodeApi.on('explorerStateUpdate', (data: any) => {
-  provider.value = data.provider || '';
+vscodeApi.on("explorerStateUpdate", (data: any) => {
+  provider.value = data.provider || "";
 
   // WCA Only
   isAuthenticated.value = data.isAuthenticated || false;
-  userContent.value = marked.parseInline(data.userContent || '') as string;
+  userContent.value = marked.parseInline(data.userContent || "") as string;
 
   hasPlaybookOpened.value = data.hasPlaybookOpened || false;
   hasRoleOpened.value = data.hasRoleOpened || false;
@@ -47,35 +46,34 @@ vscodeApi.on('explorerStateUpdate', (data: any) => {
 });
 
 // Handle messages for state changes
-vscodeApi.on('playbookOpenedStateChanged', (data: any) => {
+vscodeApi.on("playbookOpenedStateChanged", (data: any) => {
   hasPlaybookOpened.value = data.hasPlaybookOpened || false;
 });
 
-vscodeApi.on('roleOpenedStateChanged', (data: any) => {
+vscodeApi.on("roleOpenedStateChanged", (data: any) => {
   hasRoleOpened.value = data.hasRoleOpened || false;
 });
 
 // Button handlers
 const handleConnect = () => {
-  vscodeApi.post('explorerConnect', {});
+  vscodeApi.post("explorerConnect", {});
 };
 
 const handleGeneratePlaybook = () => {
-  vscodeApi.post('explorerGeneratePlaybook', {});
+  vscodeApi.post("explorerGeneratePlaybook", {});
 };
 
 const handleExplainPlaybook = () => {
-  vscodeApi.post('explorerExplainPlaybook', {});
+  vscodeApi.post("explorerExplainPlaybook", {});
 };
 
 const handleGenerateRole = () => {
-  vscodeApi.post('explorerGenerateRole', {});
+  vscodeApi.post("explorerGenerateRole", {});
 };
 
 const handleExplainRole = () => {
-  vscodeApi.post('explorerExplainRole', {});
+  vscodeApi.post("explorerExplainRole", {});
 };
-
 </script>
 
 <template>
@@ -84,13 +82,21 @@ const handleExplainRole = () => {
 
     <LoadingState v-if="loading" />
 
-    <LoginPrompt v-else-if="provider == 'wca' && !isAuthenticated" @connect="handleConnect" />
+    <LoginPrompt
+      v-else-if="provider == 'wca' && !isAuthenticated"
+      @connect="handleConnect"
+    />
 
     <template v-else>
       <ExplorerInfoBox :provider="provider" :user-content="userContent" />
-      <ExplorerActions :has-playbook-opened="hasPlaybookOpened" :has-role-opened="hasRoleOpened"
-        @generate-playbook="handleGeneratePlaybook" @explain-playbook="handleExplainPlaybook"
-        @generate-role="handleGenerateRole" @explain-role="handleExplainRole" />
+      <ExplorerActions
+        :has-playbook-opened="hasPlaybookOpened"
+        :has-role-opened="hasRoleOpened"
+        @generate-playbook="handleGeneratePlaybook"
+        @explain-playbook="handleExplainPlaybook"
+        @generate-role="handleGenerateRole"
+        @explain-role="handleExplainRole"
+      />
     </template>
   </div>
 </template>

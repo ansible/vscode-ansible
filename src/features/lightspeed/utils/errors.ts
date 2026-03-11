@@ -2,7 +2,7 @@ import {
   ExplanationResponseParams,
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
-} from "../../../interfaces/lightspeed";
+} from "@src/interfaces/lightspeed";
 
 export interface IError {
   code: string;

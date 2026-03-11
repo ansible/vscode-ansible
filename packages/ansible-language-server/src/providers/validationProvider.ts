@@ -6,12 +6,12 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { ValidationManager } from "../services/validationManager.js";
-import { WorkspaceFolderContext } from "../services/workspaceManager.js";
-import { isPlaybook, parseAllDocuments } from "../utils/yaml.js";
-import { CommandRunner } from "../utils/commandRunner.js";
-import { SchemaService } from "../services/schemaService.js";
-import { SchemaValidator } from "../services/schemaValidator.js";
+import { ValidationManager } from "@src/services/validationManager.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { isPlaybook, parseAllDocuments } from "@src/utils/yaml.js";
+import { CommandRunner } from "@src/utils/commandRunner.js";
+import { SchemaService } from "@src/services/schemaService.js";
+import { SchemaValidator } from "@src/services/schemaValidator.js";
 
 /**
  * Validates the given document.

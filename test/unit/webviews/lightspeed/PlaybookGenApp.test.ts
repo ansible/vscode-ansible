@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
-import PlaybookGenApp from "../../../../webviews/lightspeed/src/PlaybookGenApp.vue";
-import { vscodeApi } from "../../../../webviews/lightspeed/src/utils/vscode";
+import PlaybookGenApp from "@webviews/lightspeed/src/PlaybookGenApp.vue";
+import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
 describe("PlaybookGenApp", () => {
   beforeEach(() => {

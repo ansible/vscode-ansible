@@ -1,4 +1,4 @@
-import { createAnsibleMcpServer } from "../src/server.js";
+import { createAnsibleMcpServer } from "@src/server.js";
 
 /**
  * Test wrapper that provides test-friendly methods for the MCP server

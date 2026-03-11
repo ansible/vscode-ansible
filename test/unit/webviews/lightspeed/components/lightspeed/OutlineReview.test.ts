@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import OutlineReview from "../../../../../../webviews/lightspeed/src/components/lightspeed/OutlineReview.vue";
+import OutlineReview from "@webviews/lightspeed/src/components/lightspeed/OutlineReview.vue";
 
 describe("OutlineReview", () => {
   const defaultProps = {

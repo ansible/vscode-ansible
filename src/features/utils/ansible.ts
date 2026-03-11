@@ -7,9 +7,9 @@ import {
   AnsibleFileTypes,
   PlaybookKeywords,
   StandardRolePaths,
-} from "../../definitions/constants";
+} from "@src/definitions/constants";
 
-import { IAnsibleFileType } from "../../interfaces/lightspeed";
+import { IAnsibleFileType } from "@src/interfaces/lightspeed";
 
 export function getAnsibleFileType(
   filePath: string,

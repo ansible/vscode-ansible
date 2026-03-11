@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import StatusBoxPrompt from "../../../../../../webviews/lightspeed/src/components/lightspeed/StatusBoxPrompt.vue";
+import StatusBoxPrompt from "@webviews/lightspeed/src/components/lightspeed/StatusBoxPrompt.vue";
 
 describe("StatusBoxPrompt", () => {
   it("renders the prompt text", () => {

@@ -6,7 +6,7 @@ defineProps<{
 
 <template>
   <div class="loading">
-    <p>{{ message || 'Loading...' }}</p>
+    <p>{{ message || "Loading..." }}</p>
   </div>
 </template>
 
