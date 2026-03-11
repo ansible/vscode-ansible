@@ -381,7 +381,7 @@ describe("RHCustomProvider", () => {
         "Inline suggestions are not supported",
       );
       await expect(provider.completionRequest(params)).rejects.toThrow(
-        "Red Hat Custom provider",
+        "Red Hat AI provider",
       );
     });
   });

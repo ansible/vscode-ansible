@@ -37,8 +37,8 @@ export interface LightSpeedServiceSettings {
   provider: string; // 'wca' | 'google' | 'rhcustom'
   apiEndpoint: string;
   modelName: string | undefined;
-  apiKey: string; // For third-party providers like Google, Red Hat Custom
-  maxTokens?: number; // For Red Hat Custom and other API-key providers
+  apiKey: string; // For third-party providers like Google, Red Hat AI
+  maxTokens?: number; // For Red Hat AI and other API-key providers
   timeout: number; // Request timeout in milliseconds
   suggestions: { enabled: boolean; waitWindow: number };
 }

@@ -202,8 +202,8 @@ export const GOOGLE_PROVIDER = {
 // RHCustom provider specific constants
 export const RHCUSTOM_PROVIDER = {
   NAME: "rhcustom",
-  DISPLAY_NAME: "Red Hat Custom",
-  PROVIDER_NAME: "Red Hat Custom",
+  DISPLAY_NAME: "Red Hat AI",
+  PROVIDER_NAME: "Red Hat AI",
 } as const;
 
 // Ansible test content

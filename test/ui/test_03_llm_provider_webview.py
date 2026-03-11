@@ -63,10 +63,10 @@ def test_llm_provider_webview_lists_providers(
 
     rhcustom_provider = find_element_across_iframes(
         driver,
-        "//*[contains(@class, 'provider-name') and contains(., 'Red Hat Custom')]",
+        "//*[contains(@class, 'provider-name') and contains(., 'Red Hat AI')]",
         retries=10,
     )
-    assert rhcustom_provider is not None, "Red Hat Custom provider should be listed"
+    assert rhcustom_provider is not None, "Red Hat AI provider should be listed"
 
 
 def test_llm_provider_webview_edit_button(
@@ -106,7 +106,7 @@ def test_rhcustom_provider_config_fields(
     screenshot_on_fail: Any,
     close_editors: Any,
 ) -> None:
-    """Test that Red Hat Custom provider edit reveals config fields."""
+    """Test that Red Hat AI provider edit reveals config fields."""
     driver, _ = browser_setup
 
     ensure_vscode_ready(driver)
@@ -121,7 +121,7 @@ def test_rhcustom_provider_config_fields(
 
     rhcustom_edit = find_element_across_iframes(
         driver,
-        "//*[contains(@class, 'provider-row') and .//*[contains(text(), 'Red Hat Custom')]]"
+        "//*[contains(@class, 'provider-row') and .//*[contains(text(), 'Red Hat AI')]]"
         "//button[contains(@class, 'edit-btn')]",
         retries=10,
     )

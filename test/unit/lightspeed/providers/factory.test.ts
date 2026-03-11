@@ -138,7 +138,7 @@ describe("LLMProviderFactory", () => {
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
-        }).toThrow("API Key is required for Red Hat Custom");
+        }).toThrow("API Key is required for Red Hat AI");
       });
 
       it("should throw error when model name is missing", () => {
@@ -150,7 +150,7 @@ describe("LLMProviderFactory", () => {
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
-        }).toThrow("Model name is required for Red Hat Custom");
+        }).toThrow("Model name is required for Red Hat AI");
       });
 
       it("should throw error when API endpoint is missing", () => {
@@ -162,7 +162,7 @@ describe("LLMProviderFactory", () => {
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
-        }).toThrow("API endpoint is required for Red Hat Custom");
+        }).toThrow("API endpoint is required for Red Hat AI");
       });
 
       it("should throw error when API key is only whitespace", () => {
@@ -174,7 +174,7 @@ describe("LLMProviderFactory", () => {
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
-        }).toThrow("API Key is required for Red Hat Custom");
+        }).toThrow("API Key is required for Red Hat AI");
       });
 
       it("should use numeric maxTokens directly", () => {
@@ -385,7 +385,7 @@ describe("LLMProviderFactory", () => {
       expect(rhcustomProvider).toBeDefined();
       expect(rhcustomProvider?.type).toBe(PROVIDER_TYPES.RHCUSTOM);
       expect(rhcustomProvider?.name).toBe("rhcustom");
-      expect(rhcustomProvider?.displayName).toBe("Red Hat Custom");
+      expect(rhcustomProvider?.displayName).toBe("Red Hat AI");
     });
 
     it("should have correct RHCustom config schema", () => {

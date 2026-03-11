@@ -82,17 +82,17 @@ export class LLMProviderFactory implements ProviderFactory {
   ): RHCustomProvider {
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
-        "API Key is required for Red Hat Custom. Please set it in the provider settings.",
+        "API Key is required for Red Hat AI. Please set it in the provider settings.",
       );
     }
     if (!config.modelName || config.modelName.trim() === "") {
       throw new Error(
-        "Model name is required for Red Hat Custom. Please set it in the provider settings.",
+        "Model name is required for Red Hat AI. Please set it in the provider settings.",
       );
     }
     if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
       throw new Error(
-        "API endpoint is required for Red Hat Custom. Please set it in the provider settings.",
+        "API endpoint is required for Red Hat AI. Please set it in the provider settings.",
       );
     }
     const maxTokens = LLMProviderFactory.parseMaxTokens(config.maxTokens);
@@ -173,7 +173,7 @@ export class LLMProviderFactory implements ProviderFactory {
       {
         type: "rhcustom",
         name: "rhcustom",
-        displayName: "Red Hat Custom",
+        displayName: "Red Hat AI",
         description: "Connect to custom OpenAI-compatible Red Hat AI models",
         defaultEndpoint: "",
         defaultModel: undefined,
