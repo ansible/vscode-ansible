@@ -46,7 +46,7 @@ def vscode_login_wrapper(driver: Any) -> None:
 
 
 # @pytest.mark.flaky(reruns=6, reruns_delay=10)
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
 def test_vscode_widget(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -74,7 +74,7 @@ def test_vscode_widget(
     )
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
 def test_vscode_playbook_explanation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -105,7 +105,7 @@ def test_vscode_playbook_explanation(
         assert phrase in explanation, msg
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
 def test_vscode_playbook_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -127,7 +127,7 @@ def test_vscode_playbook_generation(
     assert all(txt in playbook for txt in expected_playbook), "Error- bad playbook"
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
 def test_vscode_role_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -144,7 +144,7 @@ def test_vscode_role_generation(
     assert "ansible.builtin.package" in tasks
 
 
-@pytest.mark.xfail(reason="Broken")
+@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
 def test_vscode_lightspeed_explorer(
     browser_setup: Any,
     screenshot_on_fail: Any,
