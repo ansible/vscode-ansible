@@ -133,10 +133,6 @@
         "title": "Ansible Lightspeed: Clear Training Matches"
       },
       {
-        "command": "ansible.lightspeed.feedback",
-        "title": "Ansible Lightspeed: Feedback"
-      },
-      {
         "command": "ansible.lightspeed.signInWithRedHat",
         "title": "Ansible Lightspeed: Sign in with Red Hat"
       },
@@ -777,13 +773,6 @@
           "id": "ansible-home",
           "name": "Ansible Development Tools",
           "type": "webview"
-        },
-        {
-          "icon": "$(comment-discussion)",
-          "id": "lightspeed-feedback-webview",
-          "name": "Ansible Lightspeed WCA Provider Feedback",
-          "type": "webview",
-          "when": "config.ansible.lightspeed.enabled"
         }
       ],
       "lightspeed-training-match-panel": [

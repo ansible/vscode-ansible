@@ -59,8 +59,7 @@ import { AnsibleToxProvider } from "@src/features/ansibleTox/provider";
 import { findProjectDir } from "@src/features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { LlmProviderPanel } from "@src/features/lightspeed/vue/views/llmProviderPanel";
-import { LightspeedFeedbackWebviewViewProvider } from "@src/features/lightspeed/feedbackWebviewViewProvider";
-import { LightspeedFeedbackWebviewProvider } from "@src/features/lightspeed/feedbackWebviewProvider";
+
 import { WelcomePagePanel } from "@src/features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "@src/features/utils/commandRunner";
 import { ExecException, execSync } from "node:child_process";
@@ -504,29 +503,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(openLlmProviderSettingsCommand);
-
-  // handle lightSpeed feedback
-  const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
-    context,
-  );
-
-  // Register the Lightspeed provider for a Webview View
-  const lightspeedFeedbackDisposable = window.registerWebviewViewProvider(
-    LightspeedFeedbackWebviewViewProvider.viewType,
-    lightspeedFeedbackProvider,
-  );
-
-  context.subscriptions.push(lightspeedFeedbackDisposable);
-
-  // Register the Lightspeed provider for a Webview
-  const lightspeedFeedbackCommand = vscode.commands.registerCommand(
-    LightSpeedCommands.LIGHTSPEED_FEEDBACK,
-    () => {
-      LightspeedFeedbackWebviewProvider.render(context);
-    },
-  );
-
-  context.subscriptions.push(lightspeedFeedbackCommand);
 
   // Register the Sign in with Red Hat command
   const lightspeedSignInWithRedHatCommand = vscode.commands.registerCommand(

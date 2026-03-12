@@ -682,10 +682,9 @@ describe("WebviewMessageHandlers", () => {
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "gpt-4",
-        sentimentFeedback: {
-          value: 5,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        playbookExplanation: {
+          explanationId: "test-id",
+        },
       };
 
       const message = {
@@ -752,10 +751,9 @@ describe("WebviewMessageHandlers", () => {
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "wca-model",
-        sentimentFeedback: {
-          value: 5,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        playbookExplanation: {
+          explanationId: "test-id",
+        },
       };
 
       const message = {
