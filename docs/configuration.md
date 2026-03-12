@@ -67,40 +67,58 @@ any level (User, Remote, Workspace and/or Folder).
 ### Core Settings
 
 - `ansible.lightspeed.enabled`: Enable/disable Ansible Lightspeed.
-- `ansible.lightspeed.provider`: Select AI provider (`wca`, `google`).
-  - `wca`: Red Hat Ansible Lightspeed with IBM watsonx Code Assistant (default)
-  - `google`: Google Gemini API access
+- `ansible.lightspeed.timeout`: Request timeout in milliseconds (default:
+  30000).
 
-- `ansible.lightspeed.apiEndpoint`: API endpoint URL for the selected provider.
-  - For WCA: `https://c.ai.ansible.redhat.com` (default)
-  - For Google: `https://generativelanguage.googleapis.com/v1beta`
+### LLM Provider Settings
 
-- `ansible.lightspeed.modelName`: Model name/ID to use.
-  - Not used for WCA.
-  - For LLM providers: Required model identifier (e.g., `gemini-2.5-flash`)
+Provider configuration is managed through the LLM Provider Settings panel. Open
+it from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) with:
 
-- `ansible.lightspeed.apiKey`: API key for LLM providers.
-  - Not used for WCA (uses OAuth2 authentication)
-  - Required for `google` provider
+```text
+Ansible Lightspeed: Open LLM Provider Settings
+```
 
-- `ansible.lightspeed.timeout`: Request timeout in milliseconds (default: 30000).
+The panel supports three providers:
+
+- **IBM watsonx (WCA):** Red Hat Ansible Lightspeed with IBM watsonx Code
+  Assistant (default). Uses OAuth2 authentication.
+- **Google Gemini:** Direct access to Google Gemini models. Requires an API key.
+- **Red Hat AI:** Supports models hosted on the Red Hat AI platform through any
+  OpenAI-compatible endpoint. Requires an API endpoint, API key, and model name.
+
+Provider settings (API endpoint, API key, model name) are stored securely using
+VS Code's secret storage for sensitive fields and global state for other values.
+
+See [LLM Provider Documentation](llm-providers.md) for detailed setup
+instructions and examples.
 
 ### Inline Suggestions
 
 - `ansible.lightspeed.suggestions.enabled`: Enable inline suggestions.
-  - Note: Currently only supported with WCA provider
+  - Note: Currently only supported with the WCA provider
 
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
   sending an inline suggestion request.
 
-### Backward Compatibility
+### Deprecated Settings
 
-The following legacy settings are still supported for backward compatibility:
+The following settings are deprecated and will be removed in a future release.
+Use the LLM Provider Settings panel instead.
 
-- `ansible.lightspeed.URL`: Mapped to `ansible.lightspeed.apiEndpoint`
-- `ansible.lightspeed.modelIdOverride`: Mapped to `ansible.lightspeed.modelName`
+- `ansible.lightspeed.provider`: Select AI provider. Use the LLM Provider
+  Settings panel.
+- `ansible.lightspeed.apiEndpoint`: API endpoint URL. Use the LLM Provider
+  Settings panel.
+- `ansible.lightspeed.modelName`: Model name/ID. Use the LLM Provider Settings
+  panel.
+- `ansible.lightspeed.apiKey`: API key. Use the LLM Provider Settings panel for
+  secure storage.
+- `ansible.lightspeed.URL`: Legacy alias for `apiEndpoint`.
+- `ansible.lightspeed.modelIdOverride`: Legacy alias for `modelName`.
 
-See [LLM Provider Documentation](llm-providers.md) for detailed setup instructions and examples.
+Existing values from deprecated settings are automatically migrated to the panel
+storage on first activation.
 
 ## Completion & Language Server Settings
 
