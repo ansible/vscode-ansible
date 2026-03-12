@@ -144,9 +144,8 @@ def cli() -> None:
         sys.exit()
     if opt.package:
         run("npx rimraf ./out/*.vsix")
-        run("yarn run webpack")
-        # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-        run("yarn run vite-build")
+        run("pnpm run webpack")
+        run("pnpm run vite-build")
         # Build and stage the MCP server into out/mcp so it is included in the VSIX
         # We only need to copy the resource data files that are loaded at runtime
         # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
@@ -165,8 +164,6 @@ def cli() -> None:
         vsix_file_fixed.parent.mkdir(parents=True, exist_ok=True)
         vsix_file_fixed.unlink(missing_ok=True)
         vsix_file_fixed.hardlink_to(Path(vsix_file))
-        # --yarn needed to avoid a warning message as package.json config does not prevent it
-        # run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
         size = pathlib.Path(vsix_file).stat().st_size / 1024 / 1024
         vsx_size_limit_mb = 8.0

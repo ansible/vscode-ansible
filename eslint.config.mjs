@@ -23,8 +23,9 @@ export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
   {
     ignores: [
-      // do not add ignores here, .yarn is special case as is not our code
-      ".yarn/*",
+      // pnpm store / workspace layout
+      "node_modules/.pnpm/*",
+      ".pnpm-store/*",
       ".venv/*",
       // TODO: remove
       "media/walkthroughs/**/*.html",

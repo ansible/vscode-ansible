@@ -40,7 +40,7 @@ VERSION=$(jq -r '.version' "${PACKAGE_ROOT}/package.json")
 # VIEW=$(npm view "@ansible/ansible-language-server@${VERSION}")
 
 if npm view "@ansible/ansible-language-server@${VERSION}" > /dev/null 2>&1; then
-    echo "::error::ansible-language-server@${VERSION} was already published, you cannot publish without updating the version number in 'package.json' file. Run 'yarn workspace @ansible/ansible-language-server version <version>' and make a pull request to bump it first."
+    echo "::error::ansible-language-server@${VERSION} was already published, you cannot publish without updating the version number in 'package.json' file. Run 'pnpm --filter @ansible/ansible-language-server version <version>' and make a pull request to bump it first."
     exit 2
 else
     if grep -q "## v${VERSION}" "$PACKAGE_ROOT/changelog.md"; then

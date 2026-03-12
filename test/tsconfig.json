@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "@root/*": ["../*"],
+      "@src/*": ["../src/*"],
+      "@test/*": ["./*"],
+      "@webviews/*": ["../webviews/*"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "exclude": ["node_modules"],
+  "extends": "../tsconfig.base.json",
+  "include": ["**/*.ts", "**/*.cjs"]
+}

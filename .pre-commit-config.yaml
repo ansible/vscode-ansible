@@ -97,7 +97,8 @@ repos:
         priority: 0
         exclude: >
           (?x)^(
-            .yarn/.*|
+            \.pnpm-store/.*|
+            node_modules/\.pnpm/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
             examples/playbooks/example.yml|
             docs/als/settings.md

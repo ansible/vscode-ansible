@@ -19,12 +19,17 @@ runs:
       run: corepack enable
       shell: bash
 
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        cache: true
+
     - name: Runner image version
       run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}-$(uname -m)" >> "$GITHUB_ENV"
       shell: bash
 
     - name: Enable caching for python
-      # left out due to having their own caching: yarn, node_modules, mise
+      # left out due to having their own caching: pnpm, node_modules, mise
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         # we cache only wheels because http cache cannot be cleaned well
@@ -42,30 +47,30 @@ runs:
           ~/.cache/prek/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
-    - name: Get yarn cache directory path
-      id: yarn-cache-dir-path
-      run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+    - name: Get pnpm store directory path
+      id: pnpm-cache-dir-path
+      run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Enable cache for yarn
+    - name: Enable cache for pnpm
       uses: actions/cache@v5
-      id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      id: pnpm-cache
       with:
-        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-yarn-
+          ${{ runner.os }}-pnpm-
 
     - name: Enable caching for vscode resources
       if: "${{ contains(matrix.name, 'test') }}"
-      # left out due to having their own caching: yarn, node_modules, mise
+      # left out due to having their own caching: pnpm, node_modules, mise
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       with:
         path: |
           .vscode-test/extensions
           .vscode-test/vscode-*
           out/ext
-        key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
+        key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}
     # - name: Enable caching for podman-machine
     #   if: "contains(matrix.os, 'macos')"
     #   uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
@@ -73,7 +78,7 @@ runs:
     #     path: |
     #       ~/.local/share/containers
     #       ~/.config/containers
-    #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+    #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
     - name: Remove preinstalled pipx packages that can cause conflicts
       shell: bash

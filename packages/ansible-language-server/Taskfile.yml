@@ -30,7 +30,7 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-      - yarn.lock
+      - ../../pnpm-lock.yaml
     generates:
       - "*.tgz"
     deps:
@@ -44,9 +44,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - yarn run compile
+      - pnpm run compile
     sources:
-      - package-lock.json
       - package.json
       - src/**/*.*
       - test/**/*.*
@@ -62,7 +61,7 @@ tasks:
       - ../../pyproject.toml
       - ../../uv.lock
       - ../../vitest.config.ts
-      - ../../yarn.lock
+      - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
       - test/**/*.*
@@ -107,7 +106,10 @@ tasks:
       - build
     cmds:
       - rm -f '{{ .GIT_ROOT }}/out/@ansible-ansible-language-server-*.tgz'
-      - yarn pack --out '{{ .GIT_ROOT }}/out/%s-%v.tgz'
+      - pnpm pack --pack-destination '{{ .GIT_ROOT }}/out'
+      - |
+        V=$(node -p "require('./package.json').version")
+        mv '{{ .GIT_ROOT }}/out/ansible-ansible-language-server-'$V.tgz '{{ .GIT_ROOT }}/out/@ansible-ansible-language-server-'$V.tgz
     silent: false
   release:
     desc: Create a new release (used by CI)

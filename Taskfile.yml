@@ -58,15 +58,15 @@ tasks:
     cmds:
       - for: sources
         cmd: echo {{ .ITEM }}
-      - yarn workspaces foreach --all -tv run clean
-      - yarn run build
-      - yarn run vite-build
+      - pnpm -r run clean
+      - pnpm run build
+      - pnpm run vite-build
     sources:
       - package.json
       - "{src,test}/**/*"
       - tsconfig*.json
       - webpack.config.ts
-      - yarn.lock
+      - pnpm-lock.yaml
       - exclude: "**/.ansible/**/*"
       - exclude: "**/None/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
@@ -97,17 +97,14 @@ tasks:
     cmds:
       - task: "deps:python"
       - task: setup
-      # upgrade yarn itself
-      - yarn set version latest
+      # upgrade pnpm itself via corepack
+      - corepack prepare pnpm@latest --activate
       # bumps some developments dependencies
       - task: "deps:node"
-      # disabled because it does not work recursively
-      # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
-      - yarn up "@types/vscode@${VSCODE_VERSION}"
-      - yarn dedupe
+      - pnpm update "@types/vscode@${VSCODE_VERSION}"
       # running install after upgrade is needed in order to update the lock file
-      - task: shared:install
+      - task: pnpm
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -116,8 +113,8 @@ tasks:
     desc: Update node dependencies
     interactive: true # needed for ncu prompts
     cmds:
-      - yarn ncu -u --workspaces -i
-      - yarn knip
+      - pnpm exec npm-check-updates -u --workspaces -i
+      - pnpm run knip
   "deps:python":
     desc: Update python dependencies
     cmds:
@@ -276,7 +273,7 @@ tasks:
       - exclude: "test/ui/**/*"
       - package*.json
       - tools/helper
-      - yarn.lock
+      - pnpm-lock.yaml
     generates:
       - "out/*.vsix"
       - "out/data/ansible-latest.vsix"

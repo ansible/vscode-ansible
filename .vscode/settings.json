@@ -52,9 +52,9 @@
     "**/tsconfig*.json": "jsonc"
   },
   "files.exclude": {
+    ".pnpm-store": true,
     ".task": true,
     ".vscode-test": true,
-    ".yarn": true,
     "**/out": true
   },
   "files.watcherExclude": {

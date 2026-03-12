@@ -12,8 +12,6 @@ ln -fs "$creator_resources_path/common/devfile/devfile.yaml.j2" "resources/conte
 ln -fs "$creator_resources_path/common/devcontainer/.devcontainer" "resources/contentCreator/createDevcontainer/"
 
 log notice "Using $(python3 --version) from $(uv run which python3)"
-printenv VIRTUAL_ENV
-printenv PATH
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     log warning "Virtualenv broken $(which python3) != ${VIRTUAL_ENV}/bin/python3, trying to recreate it ..."
     uv venv --clear "${VIRTUAL_ENV}"
@@ -25,7 +23,7 @@ if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     fi
 fi
 # Fail fast if user has broken dependencies
-uv pip check || {
+uv pip check -q || {
         log error "pip check failed with exit code $?"
         if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
             exit 98

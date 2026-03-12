@@ -1120,9 +1120,8 @@
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=24.13.1",
-    "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.85.0",
-    "yarn": ">=4.5.1"
+    "pnpm": ">=9.0.0",
+    "vscode": "^1.85.0"
   },
   "extensionDependencies": [
     "ms-python.vscode-python-envs",
@@ -1138,18 +1137,20 @@
   "license": "MIT",
   "main": "./out/vitebuild/extension/extension.js",
   "name": "ansible",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "pnpm@9.15.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
-  "resolutions": {
-    "rollup": "npm:@rollup/wasm-node@*"
+  "pnpm": {
+    "overrides": {
+      "rollup": "npm:@rollup/wasm-node@*"
+    }
   },
   "scripts": {
-    "build": "yarn workspaces foreach --all -tvv run compile",
+    "build": "pnpm -r run compile",
     "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "knip": "knip",
@@ -1159,8 +1160,8 @@
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-preview": "vite preview",
     "watch": "tsc -b -w",
-    "webpack": "yarn run clean && yarn run build && webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run build && webpack --mode development --config ./webpack.config.ts",
+    "webpack": "pnpm run clean && pnpm run build && webpack --mode production --config ./webpack.config.ts",
+    "webpack-dev": "pnpm run build && webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch"
   },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
@@ -1171,10 +1172,6 @@
     "followSymlinks": true,
     "gitTagVersion": false,
     "readmePath": "docs/README.md",
-    "updatePackageJson": false,
-    "yarn": true
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+    "updatePackageJson": false
+  }
 }

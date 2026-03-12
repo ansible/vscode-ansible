@@ -82,7 +82,10 @@ tasks:
       - "../../out/@ansible-ansible-mcp-server*.tgz"
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/@ansible-ansible-mcp-server*.tgz
-      - yarn pack --out '{{ .GIT_ROOT }}/out/%s-%v.tgz'
+      - pnpm pack --pack-destination '{{ .GIT_ROOT }}/out'
+      - |
+        V=$(node -p "require('./package.json').version")
+        mv '{{ .GIT_ROOT }}/out/ansible-ansible-mcp-server-'$V.tgz '{{ .GIT_ROOT }}/out/@ansible-ansible-mcp-server-'$V.tgz
     silent: false
   clean:
     desc: Clean build artifacts

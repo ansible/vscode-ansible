@@ -61,8 +61,7 @@ jobs:
         run: |
           chown -R $(id -u):$(id -g) $PWD
 
-      - name: task setup
-        timeout-minutes: 7 # expected under 10s for container builds
+      - name: mise install
         run: |
           set -ex
           pwd
@@ -72,7 +71,13 @@ jobs:
           mise cfg
           mise exec -v -- which python3
           mise exec -- printenv NODE_OPTIONS || true
-          task setup && task setup --status
+
+      - name: task uv
+        run: task uv -v
+
+      - name: task setup
+        timeout-minutes: 20 # expected under 10s for container builds
+        run: task setup -v && task setup --status
 
       - name: Extract commit context from conventional commit
         id: extract_context
@@ -592,7 +597,7 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          yarn install --immutable
+          pnpm install --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces

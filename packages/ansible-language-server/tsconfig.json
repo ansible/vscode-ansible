@@ -11,6 +11,6 @@
     },
     "resolveJsonModule": true
   },
-  "exclude": ["node_modules", "out", "vscode-ansible"],
+  "exclude": ["node_modules", "out", "vscode-ansible", "test"],
   "extends": "../../tsconfig.base.json"
 }

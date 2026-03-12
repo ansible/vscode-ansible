@@ -14,13 +14,13 @@
       "!jinja-language-configuration.json",
       "!syntaxes/external/jinja.tmLanguage.json",
       "!docs/als/settings.md",
-      "!.yarn",
+      "!node_modules/.pnpm",
       "!**/*.css",
       "!**/*.js",
       "!**/*.mjs",
       "!**/*.ts",
       "!**/*.vue",
-      "!.yarn"
+      "!node_modules/.pnpm"
     ]
   },
   "formatter": {

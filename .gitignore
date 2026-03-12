@@ -17,13 +17,9 @@ node_modules
 out
 site
 
-# https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+# pnpm
+node_modules/.pnpm
+.pnpm-store
 
 # TODO: Seek to remove these from this file:
 .ansible

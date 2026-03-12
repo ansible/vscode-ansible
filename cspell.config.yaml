@@ -21,11 +21,13 @@ ignorePaths:
   - "**/*-artifact-*.json"
   - "*.svg"
   - ./vscode-ansible.Containerfile
-  - .yarn/
+  - .pnpm-store/
+  - node_modules/.pnpm
   - dist/
   - media
   - out/
   - package.json
+  - pnpm-lock.yaml
   - syntaxes
   - syntaxes/external/*.*
   - test/testFixtures/lightspeed/*.yml

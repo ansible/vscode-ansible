@@ -30,9 +30,9 @@ http_retries = 5
 
 [tools]
 gh = "latest"
-# do not add tools unsupported on windows such: gh, yarn
+# do not add tools unsupported on windows such: gh, pnpm
 node = "24.13.1"
 python = "3.13"
+pnpm = "latest"
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
-yarn = "latest"
