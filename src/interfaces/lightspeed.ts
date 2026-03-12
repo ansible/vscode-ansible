@@ -55,24 +55,6 @@ export interface InlineSuggestionEvent {
   activityId?: string;
 }
 
-export interface SentimentFeedbackEvent {
-  value: number;
-  feedback: string;
-}
-
-export interface SuggestionQualityEvent {
-  prompt: string;
-  providedSuggestion: string;
-  expectedSuggestion: string;
-  additionalComment: string;
-}
-
-export interface IssueFeedbackEvent {
-  type: "bug-report" | "feature-request";
-  title: string;
-  description: string;
-}
-
 export interface PlaybookExplanationEvent {
   explanationId?: string;
 }
@@ -109,9 +91,6 @@ export interface RoleFeedbackEvent {
 
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
-  sentimentFeedback?: SentimentFeedbackEvent;
-  suggestionQualityFeedback?: SuggestionQualityEvent;
-  issueFeedback?: IssueFeedbackEvent;
   playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
