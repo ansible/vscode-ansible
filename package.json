@@ -1038,7 +1038,7 @@
     "@highlightjs/vue-plugin": "2.1.0",
     "@primeuix/themes": "^2.0.3",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
-    "@tomjs/vite-plugin-vscode": "^4.2.1",
+    "@tomjs/vite-plugin-vscode": "^5.2.1",
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
