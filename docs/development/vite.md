@@ -44,7 +44,7 @@ Copy the following example files to match the name of your new webview:
   <script type="module" src="./src/hello-world.ts"></script>
   ```
 
-- Now you need to register your new VueJs file in the `vite.config.ts`, this way
+- Now you need to register your new VueJs file in the `vite.config.mts`, this way
   the page will be render when `yarn vite-build` is called.
 
 At this stage, the ViteJs side is ready and you should be able to call

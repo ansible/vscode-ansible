@@ -29,6 +29,9 @@ export default defineConfig(
       // TODO: remove
       "media/walkthroughs/**/*.html",
       "webviews/**/*.html",
+      // TODO: remove once we go full ESM
+      "vite.config.mts",
+      "test/unit/viteConfig.test.ts",
     ],
   },
   ...[

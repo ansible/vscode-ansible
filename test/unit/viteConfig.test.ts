@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
+// Resolve without .mts so we are not type-checked by tsc -b (which uses moduleResolution node).
+// Vitest loads the built config at runtime.
 import viteConfig from "@root/vite.config";
 
-describe("vite.config.ts", () => {
+describe("vite.config.mts", () => {
   describe("experimental.renderBuiltUrl", () => {
     const renderBuiltUrl = viteConfig.experimental?.renderBuiltUrl;
 
