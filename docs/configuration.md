@@ -72,8 +72,10 @@ any level (User, Remote, Workspace and/or Folder).
 
 ### LLM Provider Settings
 
-Provider configuration is managed through the LLM Provider Settings panel. Open
-it from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) with:
+Provider configuration is managed through the LLM Provider Settings panel. It
+can be accessed from the Ansible Development Tools (ADT) sidebar under the
+Generative AI section, or from the Command Palette (`Ctrl+Shift+P` /
+`Cmd+Shift+P`) with:
 
 ```text
 Ansible Lightspeed: Open LLM Provider Settings
@@ -101,6 +103,13 @@ instructions and examples.
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
   sending an inline suggestion request.
 
+### Backward Compatibility
+
+The following legacy settings are still supported for backward compatibility:
+
+- `ansible.lightspeed.URL`: Mapped to `ansible.lightspeed.apiEndpoint`
+- `ansible.lightspeed.modelIdOverride`: Mapped to `ansible.lightspeed.modelName`
+
 ### Deprecated Settings
 
 The following settings are deprecated and will be removed in a future release.
@@ -114,8 +123,6 @@ Use the LLM Provider Settings panel instead.
   panel.
 - `ansible.lightspeed.apiKey`: API key. Use the LLM Provider Settings panel for
   secure storage.
-- `ansible.lightspeed.URL`: Legacy alias for `apiEndpoint`.
-- `ansible.lightspeed.modelIdOverride`: Legacy alias for `modelName`.
 
 Existing values from deprecated settings are automatically migrated to the panel
 storage on first activation.

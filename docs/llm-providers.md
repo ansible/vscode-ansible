@@ -55,7 +55,7 @@ token.
 
 **Configuration:**
 
-- Provider: `rhcustom`
+- Provider: `Red Hat AI`
 - API Endpoint: Base URL of your deployment (required)
 - API Key: Your API key for the endpoint (required)
 - Model Name: The model to use, e.g., `Granite-3.3-8B-Instruct` (required)
@@ -70,8 +70,9 @@ token.
 
 ### Method 1: LLM Provider Settings Panel (Recommended)
 
-The LLM Provider Settings panel is the recommended way to configure all
-providers.
+The LLM Provider Settings panel provides a visual interface to configure all
+providers. It can be accessed from the Ansible Development Tools (ADT) sidebar
+under the Generative AI section, or from the Command Palette.
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run: `Ansible Lightspeed: Open LLM Provider Settings`
@@ -87,7 +88,10 @@ Provider settings are stored securely: API keys use VS Code's secret storage,
 and other values are kept in global state. This approach avoids storing sensitive
 credentials in plain-text settings files.
 
-### Method 2: Guided Configuration
+### Method 2: Guided Configuration (Command Palette)
+
+This method uses a step-by-step Command Palette flow with input prompts instead
+of the visual panel.
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run: `Ansible Lightspeed: Configure LLM Provider`
@@ -116,7 +120,7 @@ Settings managed through the LLM Provider Settings panel:
 
 | Setting      | Description                | Default                           | Applicable To        |
 | ------------ | -------------------------- | --------------------------------- | -------------------- |
-| API Endpoint | API endpoint URL           | `https://c.ai.ansible.redhat.com` | WCA, Red Hat AI      |
+| API Endpoint | API endpoint URL           | WCA: `https://c.ai.ansible.redhat.com`<br>Google: `https://generativelanguage.googleapis.com/v1beta`<br>Red Hat AI: required, no default | WCA, Google, Red Hat AI |
 | API Key      | API key for authentication |                                   | Google, Red Hat AI   |
 | Model Name   | Model name/ID to use       |                                   | Google, Red Hat AI   |
 | Max Tokens   | Max tokens per response    | `1600`                            | Red Hat AI           |
