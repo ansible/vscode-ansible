@@ -71,7 +71,7 @@ export async function resolveResourcePath(
   const baseDir = getResourceBaseDir(callerUrl);
 
   // Resources are in data/ relative to base directory:
-  // - Dev: out/server/src/resources/agents.js -> out/server/src/resources/data/
+  // - Dev: src/resources/agents.js -> src/resources/data/
   const resourcePath = path.join(baseDir, "data", relativePath);
 
   try {
@@ -93,7 +93,7 @@ export async function resolveResourcePath(
       }
     }
 
-    // Fallback: if in out/server/src/utils/, try out/server/src/resources/data/
+    // Fallback: if in src/utils/, try src/resources/data/
     if (
       baseDir.includes(
         "out" + path.sep + "server" + path.sep + "src" + path.sep + "utils",

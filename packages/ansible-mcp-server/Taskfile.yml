@@ -33,7 +33,8 @@ tasks:
     cmds:
       - npm run compile
     generates:
-      - out/server/**/*.*
+      - lib/**/*.*
+      - dist/**/*.*
     sources:
       - ../../vitest.config.ts
       - package-lock.json
@@ -88,5 +89,4 @@ tasks:
     desc: Clean build artifacts
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
-      - rm -rf out/server
       - rm -rf node_modules/.cache

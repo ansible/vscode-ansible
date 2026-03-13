@@ -1095,6 +1095,7 @@
     "sinon": "^21.0.2",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
@@ -1139,7 +1140,7 @@
   },
   "scripts": {
     "build": "yarn workspaces foreach --all -tvv run compile",
-    "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "knip": "knip",
     "package": "./tools/helper --package",

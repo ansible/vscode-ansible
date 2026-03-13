@@ -287,20 +287,6 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
 ---
 
-### Step 4: Update Build Script (if needed)
-
-If your resource needs to be copied during build, the existing `copy-resources` script in `package.json` handles this:
-
-```json
-{
-  "scripts": {
-    "copy-resources": "mkdir -p out/server/src/resources/data && cp -r src/resources/data/* out/server/src/resources/data/"
-  }
-}
-```
-
----
-
 ### Best Practices for Resources
 
 - Keep resource files in `src/resources/data/`.
@@ -402,7 +388,7 @@ npm run dev:stdio
 Or after building:
 
 ```bash
-node out/server/src/cli.js --stdio
+npm exec -- ansible-mcp-server --stdio
 ```
 
 #### Send Manual JSON-RPC Requests
