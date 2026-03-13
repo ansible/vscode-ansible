@@ -23,6 +23,9 @@ export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
   {
     ignores: [
+      "**/dist/**/*",
+      "**/lib/**/*",
+      "packages/**/tsup.config.ts",
       // do not add ignores here, .yarn is special case as is not our code
       ".yarn/*",
       ".venv/*",

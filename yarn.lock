@@ -61,7 +61,7 @@ __metadata:
     yaml: "npm:^2.8.2"
     zod: "npm:^3.23.8"
   bin:
-    ansible-mcp-server: out/server/src/cli.js
+    ansible-mcp-server: dist/cli.js
   languageName: unknown
   linkType: soft
 
@@ -3622,6 +3622,7 @@ __metadata:
     sinon: "npm:^21.0.2"
     ts-loader: "npm:^9.5.4"
     ts-node: "npm:^10.9.2"
+    tsup: "npm:^8.5.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.57.0"
@@ -11317,7 +11318,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.5.0":
+"tsup@npm:^8.5.0, tsup@npm:^8.5.1":
   version: 8.5.1
   resolution: "tsup@npm:8.5.1"
   dependencies:

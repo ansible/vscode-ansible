@@ -147,14 +147,7 @@ def cli() -> None:
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("yarn run vite-build")
-        # Build and stage the MCP server into out/mcp so it is included in the VSIX
-        # We only need to copy the resource data files that are loaded at runtime
-        # The bundled code uses __dirname which will be out/mcp/, so resources should be at out/mcp/data/
         run("task build")
-        run("mkdir -p out/mcp/data")
-        run(
-            "cp -r packages/ansible-mcp-server/src/resources/data/* out/mcp/data/ 2>/dev/null || true"
-        )
 
         # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
         vsix_file = f"out/ansible-{version}.vsix"

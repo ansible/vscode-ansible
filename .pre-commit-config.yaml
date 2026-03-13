@@ -80,8 +80,9 @@ repos:
           - --format=gha
           - --fix
           - --max-warnings=0
-          - --cache
-          - --cache-strategy=content
+          - --concurrency=2
+          # - --cache
+          # - --cache-strategy=content
         pass_filenames: false
         always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks.git

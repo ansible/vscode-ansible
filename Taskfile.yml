@@ -56,8 +56,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - for: sources
-        cmd: echo {{ .ITEM }}
+      # - for: sources
+      #   cmd: echo {{ .ITEM }}
       - yarn workspaces foreach --all -tv run clean
       - yarn run build
       - yarn run vite-build
@@ -152,7 +152,7 @@ tasks:
     desc: Lint the project
     interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v"
+      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v --color=always"
       - defer: { task: finish }
     silent: true
     sources:

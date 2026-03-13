@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "outDir": "./out/server",
+    "outDir": "lib",
     "paths": {
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"]
@@ -12,5 +13,6 @@
     "target": "ES2022"
   },
   "exclude": ["node_modules", "out", "coverage"],
-  "extends": "../../tsconfig.base.json"
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts", "test/**/*.ts", "*.ts"]
 }
