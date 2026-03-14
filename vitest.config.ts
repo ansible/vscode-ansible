@@ -102,6 +102,7 @@ export default defineConfig({
     globals: true,
     silent: true,
     coverage: {
+      // cannot be configured for sub-projects
       allowExternal: false,
       cleanOnRerun: true,
       clean: true,
@@ -110,7 +111,7 @@ export default defineConfig({
       include: ["src/**/**.{js,jsx,ts,tsx}", "webviews/**/*.{ts,vue}"], // Include source files and webviews for coverage
       provider: "v8",
       reportOnFailure: false,
-      reportsDirectory: "./out/coverage/unit",
+      reportsDirectory: `${__dirname}/out/coverage/unit`,
       reporter: ["cobertura", "lcovonly", "text-summary", "text"], // text-summary shows only overall coverage stats, skipping per-file details
       skipFull: true,
       thresholds: {
@@ -129,6 +130,7 @@ export default defineConfig({
       },
     },
     outputFile: {
+      // cannot be configured for sub-projects
       junit: resolve(__dirname, "out/junit/unit-test-results.xml"),
     },
     reporters: ["default", "junit"],

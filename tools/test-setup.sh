@@ -397,33 +397,42 @@ command -v ovsx >/dev/null 2>&1 || {
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
-tee "out/log/manifest-${HOSTNAME}.yml" <<EOF
-system:
-  uname: $(uname)
-env:
-  ARCH: ${ARCH:-null}  # taskfile
-  OS: ${OS:-null}    # taskfile
-  OSTYPE: ${OSTYPE}
-tools:
-  ansible-lint: $(get_version ansible-lint)
-  ansible: $(get_version ansible)
-  bash: $(get_version bash)
-  gh: $(get_version gh || echo null)
-  git: $(get_version git)
-  node: $(get_version node)
-  npm: $(get_version npm)
-  prek: $(get_version prek)
-  python: $(get_version python3)
-  task: $(get_version task)
-  yarn: $(npx --yes yarn --version || echo null)
-containers:
-  podman: ${PODMAN_VERSION}
-  docker: ${DOCKER_VERSION}
-community-ansible-dev-tools:
-  ansible: ${EE_ANSIBLE_VERSION}
-  ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
+cat <<EOF > "out/log/manifest-${HOSTNAME}.json"
+{
+  "system": {
+    "uname": "$(uname)"
+  },
+  "env": {
+    "ARCH": "${ARCH:-null}",
+    "OS": "${OS:-null}",
+    "OSTYPE": "${OSTYPE}"
+  },
+  "tools": {
+    "ansible-lint": "$(get_version ansible-lint)",
+    "ansible": "$(get_version ansible)",
+    "bash": "$(get_version bash)",
+    "gh": "$(get_version gh || echo null)",
+    "git": "$(get_version git)",
+    "node": "$(get_version node)",
+    "npm": "$(get_version npm)",
+    "prek": "$(get_version prek)",
+    "python": "$(get_version python3)",
+    "task": "$(get_version task)",
+    "yarn": "$(npx --yes yarn --version || echo null)"
+  },
+  "containers": {
+    "podman": "${PODMAN_VERSION}",
+    "docker": "${DOCKER_VERSION}"
+  },
+  "community-ansible-dev-tools": {
+    "ansible": "${EE_ANSIBLE_VERSION}",
+    "ansible-lint": "${EE_ANSIBLE_LINT_VERSION}"
+  }
+}
 EOF
+node -p "require('./out/log/manifest-${HOSTNAME}.json')"
+# node -e "x = require('./out/log/manifest-${HOSTNAME}.json'); console.log(JSON.stringify(x, null, null));"
 
 [[ $ERR -eq 0 ]] && level=notice || level=error
-log "${level}" "${0##*/} -> out/log/manifest-$HOSTNAME.yml and returned ${ERR}"
+log "${level}" "${0##*/} -> out/log/manifest-$HOSTNAME.json and returned ${ERR}"
 exit "${ERR}"

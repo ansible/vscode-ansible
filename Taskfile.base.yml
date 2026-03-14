@@ -8,6 +8,8 @@ tasks:
   yarn:
     cmds:
       - yarn install --immutable --silent
+    deps:
+      - mise
     dir: "{{ .TASKFILE_DIR }}"
     generates:
       - node_modules/.yarn-state.yml
@@ -21,6 +23,8 @@ tasks:
     cmds:
       - uv sync --no-progress -q --active
       - bash ./tools/uv.sh
+    deps:
+      - mise
     generates:
       - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
       - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"
@@ -39,7 +43,6 @@ tasks:
       OS: "{{OS}}"
       ARCH: "{{ARCH}}"
     deps:
-      - mise
       - yarn
       - uv
     dir: "{{ .TASKFILE_DIR }}"
@@ -51,7 +54,7 @@ tasks:
       - pyproject.toml
       - tools/test-setup.sh
     generates:
-      - out/log/manifest-*.yml
+      - out/log/manifest-*.json
     run: once
     interactive: true
   mise:
@@ -61,5 +64,5 @@ tasks:
     status:
       - '[ "$SKIP_MISE" == "1" ] || [ "$CI" == "true" ]'
     cmds:
-      - "type mise >/dev/null >>/dev/null || { echo ''ERROR: mise not found in PATH'' >&2; exit 1; }"
-      - "mise doctor >>/dev/null || { mise doctor || echo 'ERROR: mise doctor failed, resolve reported problems.' >&2 && exit 1; }"
+      - "type mise >/dev/null 2>&1 || { echo ''ERROR: mise not found in PATH'' >&2; exit 1; }"
+      - "mise doctor >/dev/null 2>&1 || { mise doctor || echo 'ERROR: mise doctor failed, resolve reported problems.' >&2 && exit 1; }"
