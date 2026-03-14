@@ -66,7 +66,7 @@ Add the following configuration to your Claude Desktop settings:
     "ansible": {
       "command": "node",
       "args": [
-        "/path/to/vscode-ansible/out/mcp/index.js"
+        "ansible-mcp-server"
       ],
       "env": {
         "WORKSPACE_ROOT": "/path/to/your/ansible/project"

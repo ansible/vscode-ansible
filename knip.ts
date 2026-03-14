@@ -42,7 +42,7 @@ const config: KnipConfig = {
         "test/**/*.ts",
         "webviews/**/*.{ts,tsx,vue,js,html}",
       ],
-      ignore: [".yarn/**"],
+      ignore: [".yarn/**", "**/dist/**", "**/lib/**"],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },
     "packages/ansible-language-server": {

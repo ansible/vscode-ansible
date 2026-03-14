@@ -395,7 +395,6 @@ jobs:
             out/e2e
             out/junit
             out/log
-            out/mcp
             out/ui*
             out/unit
             out/server
