@@ -151,6 +151,41 @@ describe("getDocumentSymbols()", () => {
     });
   });
 
+  describe("play without name", () => {
+    const textDoc = getDoc("documentSymbol/no_name_play.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should fall back to hosts-based name", () => {
+      assert(symbols);
+      expect(symbols).toHaveLength(1);
+      expect(symbols[0].name).toBe("Play [hosts: all]");
+      expect(symbols[0].kind).toBe(SymbolKind.Struct);
+    });
+  });
+
+  describe("block without name", () => {
+    const textDoc = getDoc("documentSymbol/no_name_block.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should use 'block' as fallback name", () => {
+      assert(symbols);
+      const block = symbols[0].children?.find((c) => c.name === "tasks")
+        ?.children?.[0];
+      assert(block);
+      expect(block.name).toBe("block");
+      expect(block.kind).toBe(SymbolKind.Namespace);
+    });
+  });
+
+  describe("non-sequence YAML", () => {
+    const textDoc = getDoc("documentSymbol/non_yaml.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should return null for non-sequence root", () => {
+      expect(symbols).toBeNull();
+    });
+  });
+
   describe("empty file", () => {
     const textDoc = getDoc("documentSymbol/empty.yml");
     const symbols = getDocumentSymbols(textDoc);

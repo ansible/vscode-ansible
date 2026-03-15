@@ -75,33 +75,7 @@ function createPlaySymbol(
 
   const name = getScalarValue(map, "name") ?? getPlayFallbackName(map);
   const selectionRange = getKeyRange(map, "name", document) ?? range;
-
-  const children: DocumentSymbol[] = [];
-
-  for (const pair of map.items) {
-    if (!isScalar(pair.key)) continue;
-    const key = String(pair.key.value);
-
-    if (key === "roles" && isSeq(pair.value)) {
-      const sectionSymbol = createSectionSymbol(
-        key,
-        pair.key,
-        pair.value,
-        document,
-        processRoles,
-      );
-      if (sectionSymbol) children.push(sectionSymbol);
-    } else if (taskSectionKeys.test(key) && isSeq(pair.value)) {
-      const sectionSymbol = createSectionSymbol(
-        key,
-        pair.key,
-        pair.value,
-        document,
-        processTaskList,
-      );
-      if (sectionSymbol) children.push(sectionSymbol);
-    }
-  }
+  const children = collectPlayChildren(map, document);
 
   return DocumentSymbol.create(
     name,
@@ -111,6 +85,32 @@ function createPlaySymbol(
     selectionRange,
     children.length > 0 ? children : undefined,
   );
+}
+
+function collectPlayChildren(
+  map: YAMLMap,
+  document: TextDocument,
+): DocumentSymbol[] {
+  const children: DocumentSymbol[] = [];
+
+  for (const pair of map.items) {
+    if (!isScalar(pair.key)) continue;
+    if (!isSeq(pair.value)) continue;
+    const key = String(pair.key.value);
+    const processor = key === "roles" ? processRoles :
+      taskSectionKeys.test(key) ? processTaskList : null;
+    if (!processor) continue;
+    const sectionSymbol = createSectionSymbol(
+      key,
+      pair.key,
+      pair.value,
+      document,
+      processor,
+    );
+    if (sectionSymbol) children.push(sectionSymbol);
+  }
+
+  return children;
 }
 
 function createSectionSymbol(
