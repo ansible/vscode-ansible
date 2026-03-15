@@ -111,6 +111,7 @@ tombi
 tomjs
 tomlsort
 towerhost
+tsup
 unsubed
 uuidv
 vite
