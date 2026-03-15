@@ -13,6 +13,10 @@ import {
   doCompletionResolve,
 } from "@src/providers/completionProvider.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
+import {
+  getDocumentSymbols,
+  flattenSymbols,
+} from "@src/providers/documentSymbolProvider.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import {
   doSemanticTokens,
@@ -79,6 +83,7 @@ export class AnsibleLanguageService {
             resolveProvider: true,
           },
           definitionProvider: true,
+          documentSymbolProvider: true,
           workspace: {},
         },
       };
@@ -323,6 +328,26 @@ export class AnsibleLanguageService {
         }
       } catch (error) {
         this.handleError(error, "onDefinition");
+      }
+      return null;
+    });
+
+    this.connection.onDocumentSymbol(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          const symbols = getDocumentSymbols(document);
+          if (!symbols) return null;
+          const supportsHierarchy =
+            this.workspaceManager.clientCapabilities.textDocument
+              ?.documentSymbol?.hierarchicalDocumentSymbolSupport ?? false;
+          if (supportsHierarchy) {
+            return symbols;
+          }
+          return flattenSymbols(symbols, params.textDocument.uri);
+        }
+      } catch (error) {
+        this.handleError(error, "onDocumentSymbol");
       }
       return null;
     });
