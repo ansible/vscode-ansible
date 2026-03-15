@@ -177,6 +177,48 @@ describe("getDocumentSymbols()", () => {
     });
   });
 
+  describe("task with no name and only task keywords", () => {
+    const textDoc = getDoc("documentSymbol/task_no_name_no_module.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should fall back to 'Task' when no name or module is present", () => {
+      assert(symbols);
+      const play = symbols[0];
+      const tasksSection = play.children?.find((c) => c.name === "tasks");
+      assert(tasksSection?.children);
+      expect(tasksSection.children).toHaveLength(1);
+      expect(tasksSection.children[0].name).toBe("Task");
+      expect(tasksSection.children[0].kind).toBe(SymbolKind.Function);
+    });
+  });
+
+  describe("play without hosts", () => {
+    const textDoc = getDoc("documentSymbol/play_no_hosts.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should fall back to 'Play' when hosts is absent", () => {
+      assert(symbols);
+      expect(symbols).toHaveLength(1);
+      expect(symbols[0].name).toBe("Play");
+      expect(symbols[0].kind).toBe(SymbolKind.Struct);
+    });
+  });
+
+  describe("roles with name key instead of role key", () => {
+    const textDoc = getDoc("documentSymbol/roles_name_key.yml");
+    const symbols = getDocumentSymbols(textDoc);
+
+    it("should use name key for role name", () => {
+      assert(symbols);
+      const play = symbols[0];
+      const rolesSection = play.children?.find((c) => c.name === "roles");
+      assert(rolesSection?.children);
+      expect(rolesSection.children).toHaveLength(1);
+      expect(rolesSection.children[0].name).toBe("my_role");
+      expect(rolesSection.children[0].kind).toBe(SymbolKind.Package);
+    });
+  });
+
   describe("non-sequence YAML", () => {
     const textDoc = getDoc("documentSymbol/non_yaml.yml");
     const symbols = getDocumentSymbols(textDoc);
