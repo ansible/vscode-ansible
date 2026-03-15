@@ -97,8 +97,12 @@ function collectPlayChildren(
     if (!isScalar(pair.key)) continue;
     if (!isSeq(pair.value)) continue;
     const key = String(pair.key.value);
-    const processor = key === "roles" ? processRoles :
-      taskSectionKeys.test(key) ? processTaskList : null;
+    const processor =
+      key === "roles"
+        ? processRoles
+        : taskSectionKeys.test(key)
+          ? processTaskList
+          : null;
     if (!processor) continue;
     const sectionSymbol = createSectionSymbol(
       key,
