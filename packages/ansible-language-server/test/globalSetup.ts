@@ -6,7 +6,7 @@ import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 // Resolve root package.json from repo root (tests run with cwd = workspace root)
-const pkg = require(path.join(process.cwd(), "package.json"));
+const pkg = require(path.join(__dirname, "..", "..", "..", "package.json"));
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
