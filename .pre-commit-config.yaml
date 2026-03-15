@@ -65,7 +65,7 @@ repos:
         entry: npx biome check --write --unsafe
       - id: knip
         name: knip (typescript declutter)
-        entry: npx knip --fix
+        entry: bash -c 'yarn run prepare && npx knip --fix'
         language: system
         pass_filenames: false
         always_run: true

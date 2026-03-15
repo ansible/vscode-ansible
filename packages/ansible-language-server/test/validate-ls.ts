@@ -1,12 +1,14 @@
 import * as cp from "child_process";
 import * as rpc from "vscode-jsonrpc/node.js";
+import { quote } from "shell-quote";
 
-const lspProcess = cp.spawn("npm", [
-  "exec",
-  "--",
-  "ansible-language-server",
-  "--stdio",
-]);
+const lspProcess = cp.spawn(
+  quote(["npm", "exec", "--", "ansible-language-server", "--stdio"]),
+  {
+    shell: true, // keep it
+    env: process.env,
+  },
+);
 
 const exit = async (languageServer: rpc.MessageConnection) => {
   const ret = new Promise((resolve) => {

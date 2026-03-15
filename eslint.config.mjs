@@ -136,7 +136,7 @@ export default defineConfig(
       "@typescript-eslint/await-thenable": "off",
       "@typescript-eslint/restrict-template-expressions": "off",
       "@typescript-eslint/only-throw-error": "off",
-      "local/no-unsafe-spawn": "error",
+      "local/node-DEP0190": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
       "no-control-regex": "error",

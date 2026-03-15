@@ -2,6 +2,7 @@ import { spawn, execSync } from "node:child_process";
 import { access, stat } from "node:fs/promises";
 import { resolve, isAbsolute, join } from "node:path";
 import { existsSync } from "node:fs";
+import { quote } from "shell-quote";
 
 /**
  * Check if ansible-navigator is available in PATH or virtual environments
@@ -372,7 +373,10 @@ export async function runAnsibleNavigator(
     args.push("--log-file", "/dev/null");
 
     // Use the found path (could be from venv)
-    const navProcess = spawn(navigatorPath, args);
+    const navProcess = spawn(quote([navigatorPath, ...args]), {
+      shell: true, // keep it
+      env: process.env,
+    });
 
     let stdoutData = "";
     let stderrData = "";
