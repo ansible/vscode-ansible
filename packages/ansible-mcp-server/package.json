@@ -48,9 +48,9 @@
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "rimraf dist lib",
-    "compile": "tsc -p . && tsup",
+    "compile": "tsc -p . && tsup --silent",
     "dev:stdio": "tsx src/cli.ts --stdio",
-    "prepare": "npm run compile && env NODE_ENV=production tsup",
+    "prepare": "npm run compile && env NODE_ENV=production tsup --silent",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",
     "test:ade": "vitest run --project=mcp test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",
