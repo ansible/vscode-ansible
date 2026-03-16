@@ -8,36 +8,26 @@ import {
 } from "@src/interfaces/lightspeed";
 import { readVarFiles } from "@src/features/lightspeed/utils/readVarFiles";
 
-function getVarsFromRoles(
+async function getVarsFromRoles(
   rolePath: string,
   varType: VarType,
-): IVarsContext | undefined {
+): Promise<IVarsContext | undefined> {
   const varsRootPath = path.join(rolePath, varType);
-  if (!fs.existsSync(varsRootPath)) {
-    return;
-  }
-  let dirContent;
+  let dirContent: string[];
   try {
-    dirContent = fs.readdirSync(varsRootPath);
-  } catch (err) {
-    console.error(`Failed to read a var directory with error ${err}`);
+    dirContent = await fs.promises.readdir(varsRootPath);
+  } catch {
     return;
   }
 
-  const varsFiles =
-    dirContent
-      .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
-      .map((name) => name)
-      .map((name) => path.join(varsRootPath, name)) || [];
+  const varsFiles = dirContent
+    .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
+    .map((name) => path.join(varsRootPath, name));
   for (const varsFile of varsFiles) {
-    if (!fs.existsSync(varsFile)) {
-      continue;
-    }
-
     try {
       const varsContext: IVarsContext = {};
       const varsFileName = path.basename(varsFile);
-      const varsFileContent = readVarFiles(varsFile);
+      const varsFileContent = await readVarFiles(varsFile);
       if (varsFileContent) {
         varsContext[varsFileName] = varsFileContent;
         return varsContext;
@@ -50,35 +40,40 @@ function getVarsFromRoles(
   return;
 }
 
-export function updateRolesContext(
+export async function updateRolesContext(
   ansibleRolesCache: IWorkSpaceRolesContext,
   rolesRootPath: string,
   workSpaceRoot: string,
-): IWorkSpaceRolesContext | undefined {
-  if (!fs.existsSync(rolesRootPath) || !rolesRootPath.endsWith("roles")) {
+): Promise<IWorkSpaceRolesContext | undefined> {
+  if (!rolesRootPath.endsWith("roles")) {
     return;
   }
-  let dirContent;
+  let dirContent: string[];
   try {
-    dirContent = fs.readdirSync(rolesRootPath);
+    dirContent = await fs.promises.readdir(rolesRootPath);
   } catch (error) {
     console.error(`Cannot read the directory: ${error}`);
     return;
   }
 
-  const roleNames = dirContent.filter((name) =>
-    fs.statSync(path.join(rolesRootPath, name)).isDirectory(),
-  );
-  for (const roleName of roleNames) {
-    const rolePath = path.join(rolesRootPath, roleName);
-    updateRoleContext(ansibleRolesCache, rolePath, workSpaceRoot);
+  for (const name of dirContent) {
+    try {
+      const stat = await fs.promises.stat(path.join(rolesRootPath, name));
+      if (stat.isDirectory()) {
+        const rolePath = path.join(rolesRootPath, name);
+        await updateRoleContext(ansibleRolesCache, rolePath, workSpaceRoot);
+      }
+    } catch {
+      // skip entries that can't be stat'd
+    }
   }
 }
-export function updateRoleContext(
+
+export async function updateRoleContext(
   ansibleRolesCache: IWorkSpaceRolesContext,
   rolePath: string,
   workSpaceRoot: string,
-) {
+): Promise<void> {
   if (!ansibleRolesCache[workSpaceRoot]) {
     ansibleRolesCache[workSpaceRoot] = {};
   }
@@ -89,21 +84,18 @@ export function updateRoleContext(
 
   // Get all the task files in the tasks directory
   const tasksPath = path.join(rolePath, "tasks");
-  if (fs.existsSync(tasksPath)) {
-    try {
-      const dirContent = fs.readdirSync(tasksPath);
-
-      const taskNames = dirContent
-        .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
-        .map((name) => path.basename(name, path.extname(name)));
-      rolesContext[rolePath]["tasks"] = taskNames;
-    } catch (err) {
-      console.error(`Failed to read "tasks" directory with error ${err}`);
-    }
+  try {
+    const dirContent = await fs.promises.readdir(tasksPath);
+    const taskNames = dirContent
+      .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
+      .map((name) => path.basename(name, path.extname(name)));
+    rolesContext[rolePath]["tasks"] = taskNames;
+  } catch {
+    // tasks directory doesn't exist or can't be read
   }
 
   rolesContext[rolePath]["roleVars"] = {
-    defaults: getVarsFromRoles(rolePath, "defaults") || {},
-    vars: getVarsFromRoles(rolePath, "vars") || {},
+    defaults: (await getVarsFromRoles(rolePath, "defaults")) || {},
+    vars: (await getVarsFromRoles(rolePath, "vars")) || {},
   };
 }

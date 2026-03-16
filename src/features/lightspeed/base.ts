@@ -47,6 +47,8 @@ export class LightSpeedManager {
     | undefined;
   public providerManager: ProviderManager;
   private logger: Log;
+  private _watchers: vscode.Disposable[] = [];
+  private _contextInitAbort: AbortController | null = null;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -112,8 +114,8 @@ export class LightSpeedManager {
     // Generative AI features are now in the LLM Provider Settings panel
     this.lightspeedExplorerProvider = undefined;
 
-    // create workspace context for ansible roles
-    this.setContext();
+    // create workspace context for ansible roles (async, non-blocking)
+    void this.setContext();
 
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
@@ -133,7 +135,7 @@ export class LightSpeedManager {
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
       this.statusBarProvider.setLightSpeedStatusBarTooltip();
-      this.setContext();
+      await this.setContext();
     }
 
     // set custom when clause for controlling visibility of views
@@ -143,22 +145,52 @@ export class LightSpeedManager {
   private resetContext(): void {
     this.ansibleVarFilesCache = {};
     this.ansibleRolesCache = {};
+    for (const d of this._watchers) {
+      d.dispose();
+    }
+    this._watchers = [];
+    this._contextInitAbort?.abort();
+    this._contextInitAbort = null;
   }
 
-  private setContext(): void {
+  private async setContext(): Promise<void> {
+    this._contextInitAbort?.abort();
+    const abort = new AbortController();
+    this._contextInitAbort = abort;
+
+    const newWatchers: vscode.Disposable[] = [];
+
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders) {
       for (const workspaceFolder of workspaceFolders) {
+        if (abort.signal.aborted) return;
         const workSpaceRoot = workspaceFolder.uri.fsPath;
-        const rolesPath = getCustomRolePaths(workSpaceRoot);
+        const rolesPath = await getCustomRolePaths(workSpaceRoot);
         for (const rolePath of rolesPath) {
-          watchRolesDirectory(this, rolePath, workSpaceRoot);
+          if (abort.signal.aborted) return;
+          const disposables = await watchRolesDirectory(
+            this,
+            rolePath,
+            workSpaceRoot,
+          );
+          newWatchers.push(...disposables);
         }
       }
     }
+
     const commonRolesPath = getCommonRoles() || [];
     for (const rolePath of commonRolesPath) {
-      watchRolesDirectory(this, rolePath);
+      if (abort.signal.aborted) return;
+      const disposables = await watchRolesDirectory(this, rolePath);
+      newWatchers.push(...disposables);
+    }
+
+    if (!abort.signal.aborted) {
+      this._watchers = newWatchers;
+    } else {
+      for (const d of newWatchers) {
+        d.dispose();
+      }
     }
   }
 
