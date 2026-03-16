@@ -1102,7 +1102,7 @@
     "vitest": "^v4.1.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.105.4",
-    "webpack-cli": "^6.0.1",
+    "webpack-cli": "^7.0.0",
     "winston": "^3.19.0"
   },
   "displayName": "Ansible",
