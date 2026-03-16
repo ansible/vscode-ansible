@@ -4,12 +4,14 @@
     "@modelcontextprotocol/sdk": "^1.27.1",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
+    "shell-quote": "^1.8.3",
     "yaml": "^2.8.2",
     "zod": "^3.23.8"
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
     "@types/node": "^24.10.2",
+    "@types/shell-quote": "^1",
     "@vitest/ui": "^4.1.0",
     "rimraf": "^6.1.3",
     "tsx": "^4.21.0",
@@ -48,7 +50,7 @@
     "clean": "rimraf dist lib",
     "compile": "tsc -p . && tsup",
     "dev:stdio": "tsx src/cli.ts --stdio",
-    "prepack": "npm run compile && rimraf dist && env NODE_ENV=production tsup",
+    "prepare": "npm run compile && env NODE_ENV=production tsup",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",
     "test:ade": "vitest run --project=mcp test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",

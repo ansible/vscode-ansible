@@ -3,6 +3,7 @@ import { isWindows, console } from "@test/helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import path from "path";
 import { createRequire } from "module";
+import { quote } from "shell-quote";
 
 const require = createRequire(import.meta.url);
 // Resolve root package.json from repo root (tests run with cwd = workspace root)
@@ -30,8 +31,9 @@ function execWithTimeout(
   timeoutMs: number = 5000,
 ): Promise<{ status: number | null; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    const proc = spawn(command, args, {
-      shell: true,
+    const cmd = quote([command, ...args]);
+    const proc = spawn(cmd, {
+      shell: true, // keep it
       env: process.env,
     });
 
@@ -86,15 +88,12 @@ export async function setup() {
     );
   }
 
-  // We don't require colors in the stdout of the command results.
-  process.env["NO_COLOR"] = "1";
-
   // ALWAYS use 'shell: true' when we execute external commands inside the
   // extension because some of the tools may be installed in a way that does
   // not make them available without a shell, common examples tools that may
   // do this are: mise, asdf, pyenv.
   const command = "ansible-lint";
-  const args = ["--version", "--offline"];
+  const args = ["--nocolor", "--version", "--offline"];
   try {
     const result = await execWithTimeout(command, args, 5000);
     if (result.status === 0) {

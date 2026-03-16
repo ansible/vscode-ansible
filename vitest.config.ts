@@ -11,6 +11,31 @@ import vue from "@vitejs/plugin-vue";
 const als_root = resolve(__dirname, "packages", "ansible-language-server");
 const mcp_root = resolve(__dirname, "packages", "ansible-mcp-server");
 
+const reporters = ["default", "junit"]; // text-summary shows only overall coverage stats, skipping per-file details
+if (process.env.GITHUB_ACTIONS) {
+  reporters.push("github-actions");
+}
+const coverage_reporters = ["cobertura", "lcovonly", "text-summary", "text"];
+
+// Disable coverage when the user is running a targeted subset of tests, e.g.:
+//   vitest -t "my test name"
+//   vitest run src/foo.test.ts
+// Partial runs produce misleading (always-low) coverage numbers and slow down
+// the interactive feedback loop.
+const vitestSubcommands = new Set([
+  "run",
+  "watch",
+  "dev",
+  "bench",
+  "list",
+  "typecheck",
+]);
+const isFiltered = process.argv.slice(2).some((arg) => {
+  if (arg === "-t" || arg === "--testNamePattern") return true;
+  // A positional arg that is not a flag and not a vitest subcommand is a file filter
+  return !arg.startsWith("-") && !vitestSubcommands.has(arg);
+});
+
 export default defineConfig({
   test: {
     name: "ext",
@@ -106,13 +131,13 @@ export default defineConfig({
       allowExternal: false,
       cleanOnRerun: true,
       clean: true,
-      enabled: true,
+      enabled: !isFiltered,
       exclude: [],
       include: ["src/**/**.{js,jsx,ts,tsx}", "webviews/**/*.{ts,vue}"], // Include source files and webviews for coverage
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: `${__dirname}/out/coverage/unit`,
-      reporter: ["cobertura", "lcovonly", "text-summary", "text"], // text-summary shows only overall coverage stats, skipping per-file details
+      reporter: coverage_reporters,
       skipFull: true,
       thresholds: {
         // We cannot enable until we normalize the results across all platforms.
@@ -133,7 +158,7 @@ export default defineConfig({
       // cannot be configured for sub-projects
       junit: resolve(__dirname, "out/junit/unit-test-results.xml"),
     },
-    reporters: ["default", "junit"],
+    reporters: reporters,
     slowTestThreshold: 25000,
     testTimeout: 30003,
     watch: false,
