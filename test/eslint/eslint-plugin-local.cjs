@@ -1,125 +1,67 @@
 "use strict";
 /**
- * ESLint rule to detect unsafe child_process spawn/spawnSync calls
- * that use a single string argument instead of separate command and args array.
+ * ESLint rule corresponding to Node.js DEP0190.
  *
- * This prevents shell injection vulnerabilities and ensures proper argument handling.
+ * When spawn/spawnSync is called with `shell: true`, do NOT pass a separate
+ * args array. Instead build the full shell command string up front and pass
+ * it as the sole command argument, using `quote()` from the shell-quote
+ * package to compose it safely without shell-injection risk.
+ *
+ * Bad:  spawn('ls', ['-la', dir], { shell: true })   // array literal
+ * Bad:  spawn('ls', args,         { shell: true })   // identifier
+ * Bad:  spawn('ls', getArgs(),    { shell: true })   // call expression
+ * Good: spawn(quote(['ls', '-la', dir]), { shell: true })
  */
 
 const rule = {
   create(context) {
-    /**
-     * Check if a call expression is spawn or spawnSync
-     */
-    function isSpawnCall(node) {
-      if (node.type !== "CallExpression" || !("callee" in node)) {
-        return false;
-      }
+    function getMethodName(node) {
       const callee = node.callee;
-      // Check for: spawnSync(...) or spawn(...) as identifier
       if (callee.type === "Identifier") {
-        return callee.name === "spawnSync" || callee.name === "spawn";
+        return callee.name;
       }
-      // Check for: child_process.spawnSync(...) or cp.spawnSync(...)
       if (
         callee.type === "MemberExpression" &&
-        "property" in callee &&
-        callee.property &&
-        callee.property.type === "Identifier"
+        callee.property?.type === "Identifier"
       ) {
-        const methodName = callee.property.name;
-        return methodName === "spawnSync" || methodName === "spawn";
+        return callee.property.name;
       }
-      return false;
+      return null;
     }
-    /**
-     * Check if the call is unsafe (command string instead of command + args array)
-     */
-    function isUnsafeCall(node) {
+
+    function isSpawnCall(node) {
+      if (node.type !== "CallExpression") return false;
+      const name = getMethodName(node);
+      return name === "spawn" || name === "spawnSync";
+    }
+
+    function hasShellTrue(optionsNode) {
+      if (!optionsNode || optionsNode.type !== "ObjectExpression") return false;
+      return optionsNode.properties.some(
+        (prop) =>
+          prop.type === "Property" &&
+          prop.key?.type === "Identifier" &&
+          prop.key.name === "shell" &&
+          prop.value?.type === "Literal" &&
+          prop.value.value === true,
+      );
+    }
+
+    function isViolation(node) {
       const args = node.arguments;
-      if (!args || args.length === 0) {
-        return false;
-      }
-      const firstArg = args[0];
-      if (!firstArg) {
-        return false;
-      }
-      // If there's a second argument that's an array, it's safe (proper usage)
-      if (args.length > 1 && args[1].type === "ArrayExpression") {
-        return false;
-      }
-      // Check if second argument is an options object with shell: true
-      // This is unsafe because it goes through shell interpretation
-      if (
-        args.length > 1 &&
-        args[1].type === "ObjectExpression" &&
-        "properties" in args[1]
-      ) {
-        const properties = args[1].properties;
-        for (const prop of properties) {
-          if (
-            prop.type === "Property" &&
-            "key" in prop &&
-            prop.key.type === "Identifier" &&
-            prop.key.name === "shell" &&
-            "value" in prop &&
-            prop.value.type === "Literal" &&
-            prop.value.value === true
-          ) {
-            // shell: true is unsafe - flag it
-            return true;
-          }
-        }
-      }
-      // Check if first argument is a string literal with spaces
-      if (firstArg.type === "Literal" && typeof firstArg.value === "string") {
-        const value = firstArg.value.trim();
-        // Flag if it contains spaces (command + args) but allow single commands
-        return value.includes(" ") && value.length > 0;
-      }
-      // Check if it's a template literal
-      if (firstArg.type === "TemplateLiteral") {
-        const quasis = firstArg.quasis || [];
-        for (const quasi of quasis) {
-          const raw = ("value" in quasi && quasi.value?.raw) || "";
-          // If template literal contains spaces, flag it
-          if (raw.includes(" ")) {
-            return true;
-          }
-        }
-      }
-      // Check if first argument is a variable and second is options (not array)
-      // This is potentially unsafe - we can't know the variable's value statically,
-      // but if it's not followed by an array, it's likely a command string
-      if (
-        firstArg.type === "Identifier" &&
-        args.length > 1 &&
-        args[1].type === "ObjectExpression"
-      ) {
-        // Variable with options object (not array) - likely unsafe
-        return true;
-      }
-      return false;
+      // spawn(cmd, args, { shell: true }) — any second argument (array literal,
+      // identifier, call expression, …) combined with shell: true in options
+      return args.length >= 3 && hasShellTrue(args[2]);
     }
+
     return {
       CallExpression(node) {
-        if (!isSpawnCall(node)) {
-          return;
-        }
-        // Check if it's an unsafe call
-        if (isUnsafeCall(node)) {
-          const methodName =
-            node.callee.type === "Identifier"
-              ? node.callee.name
-              : node.callee.type === "MemberExpression" &&
-                  "property" in node.callee &&
-                  node.callee.property &&
-                  node.callee.property.type === "Identifier"
-                ? node.callee.property.name
-                : "spawn";
+        if (!isSpawnCall(node)) return;
+        if (isViolation(node)) {
+          const name = getMethodName(node);
           context.report({
             messageId:
-              methodName === "spawnSync" ? "unsafeSpawnSync" : "unsafeSpawn",
+              name === "spawnSync" ? "shellArgsSpawnSync" : "shellArgsSpawn",
             node,
           });
         }
@@ -130,15 +72,15 @@ const rule = {
     docs: {
       category: "Security",
       description:
-        "disallow child_process.spawn/spawnSync with single string argument containing spaces",
+        "disallow child_process.spawn/spawnSync with shell: true combined with a separate args array (Node.js DEP0190)",
       recommended: true,
     },
     fixable: undefined,
     messages: {
-      unsafeSpawn:
-        "Use spawn(command, args[]) instead of spawn(commandString). Split the command string into command and args array to prevent shell injection.",
-      unsafeSpawnSync:
-        "Use spawnSync(command, args[]) instead of spawnSync(commandString). Split the command string into command and args array to prevent shell injection.",
+      shellArgsSpawn:
+        "Node DEP0190: When spawn is called with shell: true, do not pass a separate args array. Build the full shell command with quote([cmd, ...args]) from shell-quote instead.",
+      shellArgsSpawnSync:
+        "Node DEP0190: When spawnSync is called with shell: true, do not pass a separate args array. Build the full shell command with quote([cmd, ...args]) from shell-quote instead.",
     },
     schema: [],
     type: "problem",
@@ -146,6 +88,6 @@ const rule = {
 };
 module.exports = {
   rules: {
-    "no-unsafe-spawn": rule,
+    "node-DEP0190": rule,
   },
 };

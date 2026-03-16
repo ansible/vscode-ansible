@@ -1143,6 +1143,7 @@
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "knip": "knip",
+    "prepare": "yarn workspaces foreach --all -tvv run prepare",
     "package": "./tools/helper --package",
     "preinstall": "",
     "vite-build": "vue-tsc --noEmit && vite build",
