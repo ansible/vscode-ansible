@@ -4,7 +4,7 @@ import { SettingsManager } from "@src/settings";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
 import { ProviderManager } from "@src/features/lightspeed/providerManager";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
-import { LightSpeedCommands } from "@src/definitions/lightspeed";
+import { LightSpeedCommands, ProviderType } from "@src/definitions/lightspeed";
 import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { ProviderInfo } from "@src/interfaces/lightspeed";
@@ -275,15 +275,22 @@ export class LlmProviderMessageHandlers {
   ): Promise<void> {
     await commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
 
-    const isAuth = await this.lightspeedUser.isAuthenticated();
-    const displayName = providerInfo?.displayName || providerType.toUpperCase();
+    // Wait for the OAuth flow to complete, then check status
+    setTimeout(async () => {
+      const isAuth = await this.lightspeedUser.isAuthenticated();
+      const displayName =
+        providerInfo?.displayName || providerType.toUpperCase();
+      const error = isAuth
+        ? undefined
+        : "Authentication failed or was cancelled.";
 
-    await this.handleConnectionResult(
-      providerType,
-      displayName,
-      isAuth,
-      isAuth ? undefined : "Authentication failed or was cancelled.",
-    );
+      await this.handleConnectionResult(
+        providerType,
+        displayName,
+        isAuth,
+        error,
+      );
+    }, 2000);
   }
 
   /**
@@ -322,6 +329,10 @@ export class LlmProviderMessageHandlers {
         providerType,
         "apiEndpoint",
       );
+      const maxTokensStr = await this.llmProviderSettings.get(
+        providerType,
+        "maxTokens",
+      );
 
       if (providerInfo?.requiresApiKey && !apiKey) {
         return {
@@ -333,13 +344,17 @@ export class LlmProviderMessageHandlers {
 
       // Use stored endpoint as-is (allows custom endpoints, v2, proxies, etc.)
       const apiEndpoint = storedEndpoint || "";
+      const maxTokens = maxTokensStr?.trim()
+        ? Number.parseInt(maxTokensStr, 10)
+        : undefined;
 
       const provider = providerFactory.createProvider(
-        providerType as "google",
+        providerType as ProviderType,
         {
           apiKey,
           modelName,
           apiEndpoint,
+          maxTokens: Number.isNaN(maxTokens) ? undefined : maxTokens,
           enabled: true,
           provider: providerType,
           timeout: 30000,

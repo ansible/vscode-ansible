@@ -77,21 +77,24 @@ const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   return { mockChatCompletion, MockOpenAICompatibleClient };
 });
 
-vi.mock("@src/features/lightspeed/clients/openaiCompatibleClient", () => {
-  return {
-    OpenAICompatibleClient: MockOpenAICompatibleClient,
-    OpenAIClientError: class OpenAIClientError extends Error {
-      status: number;
-      constructor(message: string, status: number) {
-        super(message);
-        this.name = "OpenAIClientError";
-        this.status = status;
-      }
-    },
-  };
-});
+vi.mock(
+  "../../../../src/features/lightspeed/clients/openaiCompatibleClient",
+  () => {
+    return {
+      OpenAICompatibleClient: MockOpenAICompatibleClient,
+      OpenAIClientError: class OpenAIClientError extends Error {
+        status: number;
+        constructor(message: string, status: number) {
+          super(message);
+          this.name = "OpenAIClientError";
+          this.status = status;
+        }
+      },
+    };
+  },
+);
 
-vi.mock("@src/utils/logger", () => {
+vi.mock("../../../../src/utils/logger", () => {
   const loggerMock = {
     info: vi.fn(),
     error: vi.fn(),
@@ -106,7 +109,7 @@ vi.mock("@src/utils/logger", () => {
   };
 });
 
-vi.mock("@src/features/lightspeed/utils/outlineGenerator", () => ({
+vi.mock("../../../../src/features/lightspeed/utils/outlineGenerator", () => ({
   generateOutlineFromPlaybook: vi.fn(() => {
     return "1. Task one\n2. Task two";
   }),
@@ -284,6 +287,82 @@ describe("RHCustomProvider", () => {
       ]);
       expect(mockChatCompletion).toHaveBeenCalled();
     });
+
+    it("should set error on failure with 403 status via handleRHCustomError", async () => {
+      mockChatCompletion.mockRejectedValue(
+        new OpenAIClientError("Forbidden", HTTP_STATUS_CODES.FORBIDDEN),
+      );
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(false);
+      expect(status.connected).toBe(false);
+      expect(status.error).toContain("Forbidden");
+      expect(status.error).toContain("403");
+    });
+
+    it("should set error on failure without status code via handleRHCustomError", async () => {
+      mockChatCompletion.mockRejectedValue(new Error("Connection refused"));
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(false);
+      expect(status.connected).toBe(false);
+      expect(status.error).toContain("Connection refused");
+    });
+
+    it("should clear lastValidationError on successful validation", async () => {
+      mockChatCompletion.mockRejectedValue(
+        new OpenAIClientError("Forbidden", HTTP_STATUS_CODES.FORBIDDEN),
+      );
+
+      const provider = new RHCustomProvider({
+        apiKey: TEST_API_KEYS.RHCUSTOM,
+        modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        baseURL: API_ENDPOINTS.RHCUSTOM,
+      });
+
+      const failedResult = await provider.validateConfig();
+      expect(failedResult).toBe(false);
+
+      mockChatCompletion.mockResolvedValue({
+        id: "test-id",
+        object: "chat.completion",
+        created: Date.now(),
+        model: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+        choices: [
+          {
+            index: 0,
+            message: {
+              role: "system",
+              content: "test",
+            },
+            finish_reason: "stop",
+          },
+        ],
+      });
+
+      const isValid = await provider.validateConfig();
+      const status = await provider.getStatus();
+
+      expect(isValid).toBe(true);
+      expect(status.connected).toBe(true);
+      expect(status.error).toBeUndefined();
+    });
   });
 
   describe("completionRequest", () => {
@@ -302,7 +381,7 @@ describe("RHCustomProvider", () => {
         "Inline suggestions are not supported",
       );
       await expect(provider.completionRequest(params)).rejects.toThrow(
-        "Red Hat Custom provider",
+        "Red Hat AI provider",
       );
     });
   });

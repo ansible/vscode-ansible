@@ -40,7 +40,6 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
   private readonly client: GoogleGenAI;
   private readonly modelName: string;
   private readonly logger = getLightspeedLogger();
-  private lastValidationError?: string;
 
   constructor(config: GoogleConfig) {
     super(config, config.timeout);
@@ -80,9 +79,13 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       this.lastValidationError = undefined; // Clear any previous error
       return true;
     } catch (error) {
-      const errorMsg = `Config validation failed: ${error instanceof Error ? error.message : "Unknown error"}`;
-      this.logger.error(`[Google Provider] ${errorMsg}`);
-      this.lastValidationError = errorMsg;
+      const formattedError = this.handleGeminiError(error, "config validation");
+      this.lastValidationError = formattedError.message;
+
+      this.logger.error(`[Google Provider] ${formattedError.message}`);
+      this.logger.error(
+        `[Google Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
+      );
       return false;
     }
   }
@@ -91,7 +94,7 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
     return await this.getStatusWithValidation(
       this.modelName,
       this.lastValidationError,
-      "Failed to connect to Google Gemini API. Check your API key.",
+      "Failed to connect to Google Gemini API. Check your API key or endpoint.",
     );
   }
 

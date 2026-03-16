@@ -156,6 +156,13 @@ export const TEST_LIGHTSPEED_SETTINGS = {
     apiKey: "",
     apiEndpoint: "",
   } as LightSpeedServiceSettings,
+  GOOGLE_WITH_CUSTOM_ENDPOINT: {
+    ...BASE_LIGHTSPEED_SETTINGS,
+    provider: PROVIDER_TYPES.GOOGLE,
+    apiKey: TEST_API_KEYS.GOOGLE,
+    modelName: MODEL_NAMES.GEMINI_PRO,
+    apiEndpoint: "https://custom-gemini-proxy.example.com/v1beta",
+  } as LightSpeedServiceSettings,
   WCA: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.WCA,
@@ -195,8 +202,8 @@ export const GOOGLE_PROVIDER = {
 // RHCustom provider specific constants
 export const RHCUSTOM_PROVIDER = {
   NAME: "rhcustom",
-  DISPLAY_NAME: "Red Hat Custom",
-  PROVIDER_NAME: "Red Hat Custom",
+  DISPLAY_NAME: "Red Hat AI",
+  PROVIDER_NAME: "Red Hat AI",
 } as const;
 
 // Ansible test content

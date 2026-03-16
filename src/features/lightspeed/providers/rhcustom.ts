@@ -29,7 +29,7 @@ import {
   OpenAIClientError,
 } from "@src/features/lightspeed/clients/openaiCompatibleClient";
 
-interface RHCustomConfig {
+export interface RHCustomConfig {
   apiKey: string;
   modelName: string;
   baseURL: string;
@@ -39,13 +39,12 @@ interface RHCustomConfig {
 
 export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   readonly name = "rhcustom";
-  readonly displayName = "Red Hat Custom";
+  readonly displayName = "Red Hat AI";
 
   private readonly client: OpenAICompatibleClient;
   private readonly modelName: string;
   private readonly maxTokens: number;
   private readonly logger = getLightspeedLogger();
-  private lastValidationError?: string;
 
   constructor(config: RHCustomConfig) {
     super(config, config.timeout || 30000);
@@ -53,17 +52,17 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     // Validate required fields
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
-        "API Key is required for Red Hat Custom provider. Please set 'ansible.lightspeed.apiKey' in your settings.",
+        "API Key is required for Red Hat AI provider. Please set 'ansible.lightspeed.apiKey' in your settings.",
       );
     }
     if (!config.modelName || config.modelName.trim() === "") {
       throw new Error(
-        "Model name is required for Red Hat Custom provider. Please set 'ansible.lightspeed.modelName' in your settings.",
+        "Model name is required for Red Hat AI provider. Please set 'ansible.lightspeed.modelName' in your settings.",
       );
     }
     if (!config.baseURL || config.baseURL.trim() === "") {
       throw new Error(
-        "Base URL is required for Red Hat Custom provider. Please set 'ansible.lightspeed.apiEndpoint' in your settings.",
+        "Base URL is required for Red Hat AI provider. Please set 'ansible.lightspeed.apiEndpoint' in your settings.",
       );
     }
 
@@ -196,14 +195,14 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         status: error.status,
         message: error.message,
       };
-      return this.handleHttpError(httpError, operation, "Red Hat Custom");
+      return this.handleHttpError(httpError, operation, "Red Hat AI");
     }
 
     // Fallback for other errors
     return this.handleHttpError(
       { message: error instanceof Error ? error.message : "Unknown error" },
       operation,
-      "Red Hat Custom",
+      "Red Hat AI",
     );
   }
 
@@ -231,15 +230,16 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       this.lastValidationError = undefined;
       return true;
     } catch (error) {
-      const errorMsg = `Config validation failed: ${error instanceof Error ? error.message : "Unknown error"}`;
-      console.log("[RHCustom Provider] Config validation failed:", errorMsg);
-      console.log("[RHCustom Provider] Error details:", error);
+      const formattedError = this.handleRHCustomError(
+        error,
+        "config validation",
+      );
+      this.lastValidationError = formattedError.message;
 
-      this.logger.error(`[RHCustom Provider] ${errorMsg}`);
+      this.logger.error(`[RHCustom Provider] ${formattedError.message}`);
       this.logger.error(
         `[RHCustom Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
       );
-      this.lastValidationError = errorMsg;
       return false;
     }
   }
@@ -248,7 +248,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     return await this.getStatusWithValidation(
       this.modelName,
       this.lastValidationError,
-      "Failed to connect to Red Hat Custom API. Check your API key and base URL.",
+      "Failed to connect to Red Hat AI API. Check your API key and base URL.",
     );
   }
 
@@ -256,9 +256,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
-    // Inline suggestions are out of scope for the Red Hat Custom provider currently
+    // Inline suggestions are out of scope for the Red Hat AI provider currently
     throw new Error(
-      "Inline suggestions are not supported for the Red Hat Custom provider.",
+      "Inline suggestions are not supported for the Red Hat AI provider.",
     );
   }
 

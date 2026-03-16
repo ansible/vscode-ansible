@@ -3,6 +3,10 @@ import {
   GoogleProvider,
   GoogleConfig,
 } from "@src/features/lightspeed/providers/google";
+import {
+  RHCustomProvider,
+  RHCustomConfig,
+} from "@src/features/lightspeed/providers/rhcustom";
 import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,
@@ -39,30 +43,70 @@ export class LLMProviderFactory implements ProviderFactory {
             "API Key is required for Google Gemini. Please set 'ansible.lightspeed.apiKey' in your settings.",
           );
         }
-        // Allow localhost URLs for testing, block other custom endpoints
-        const isLocalhostUrl =
-          config.apiEndpoint?.startsWith("http://localhost");
-        if (
-          config.apiEndpoint &&
-          config.apiEndpoint !== GOOGLE_API_ENDPOINT &&
-          !isLocalhostUrl
-        ) {
-          throw new Error(
-            `Custom API endpoints are not supported for Google Gemini provider. The endpoint is automatically configured. Please remove 'ansible.lightspeed.apiEndpoint' from your settings.`,
-          );
-        }
+        // Use custom endpoint if provided (allows v2, proxies, etc.)
+        const customEndpoint =
+          config.apiEndpoint && config.apiEndpoint !== GOOGLE_API_ENDPOINT
+            ? config.apiEndpoint
+            : undefined;
 
         return new GoogleProvider({
           apiKey: config.apiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
-          baseUrl: isLocalhostUrl ? config.apiEndpoint : undefined,
+          baseUrl: customEndpoint,
         } as GoogleConfig);
       }
+
+      case "rhcustom":
+        return this.createRHCustomProvider(config);
 
       default:
         throw new Error(`Unsupported provider type: ${type}`);
     }
+  }
+
+  private static parseMaxTokens(
+    value: number | string | undefined | null,
+    defaultValue = 1600,
+  ): number {
+    if (typeof value === "number") return value;
+    const trimmed =
+      value !== undefined && value !== null ? String(value).trim() : "";
+    if (trimmed === "") return defaultValue;
+    const parsed = Number.parseInt(trimmed, 10);
+    return Number.isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  private createRHCustomProvider(
+    config: LightSpeedServiceSettings,
+  ): RHCustomProvider {
+    if (!config.apiKey || config.apiKey.trim() === "") {
+      throw new Error(
+        "API Key is required for Red Hat AI. Please set it in the provider settings.",
+      );
+    }
+    if (!config.modelName || config.modelName.trim() === "") {
+      throw new Error(
+        "Model name is required for Red Hat AI. Please set it in the provider settings.",
+      );
+    }
+    if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
+      throw new Error(
+        "API endpoint is required for Red Hat AI. Please set it in the provider settings.",
+      );
+    }
+    const maxTokens = LLMProviderFactory.parseMaxTokens(config.maxTokens);
+    let baseURL = config.apiEndpoint.trim();
+    while (baseURL.endsWith("/")) {
+      baseURL = baseURL.slice(0, -1);
+    }
+    return new RHCustomProvider({
+      apiKey: config.apiKey,
+      modelName: config.modelName,
+      baseURL,
+      timeout: config.timeout || 30000,
+      maxTokens,
+    } as RHCustomConfig);
   }
 
   getSupportedProviders(): ProviderInfo[] {
@@ -123,6 +167,51 @@ export class LLMProviderFactory implements ProviderFactory {
             placeholder: "gemini-2.5-flash",
             description:
               "The Gemini model to use (optional, defaults to gemini-2.5-flash)",
+          },
+        ],
+      },
+      {
+        type: "rhcustom",
+        name: "rhcustom",
+        displayName: "Red Hat AI",
+        description: "Connect to custom OpenAI-compatible Red Hat AI models",
+        defaultEndpoint: "",
+        defaultModel: undefined,
+        usesOAuth: false,
+        requiresApiKey: true,
+        configSchema: [
+          {
+            key: "apiEndpoint",
+            label: "API Endpoint",
+            type: "string",
+            required: true,
+            placeholder: "https://your-api.example.com",
+            description: "Base URL of your custom deployment",
+          },
+          {
+            key: "apiKey",
+            label: "API Key",
+            type: "password",
+            required: true,
+            placeholder: "",
+            description: "Your API key for the custom endpoint",
+          },
+          {
+            key: "modelName",
+            label: "Model Name",
+            type: "string",
+            required: true,
+            placeholder: "my-model",
+            description: "The model name to use",
+          },
+          {
+            key: "maxTokens",
+            label: "Max Tokens",
+            type: "number",
+            required: false,
+            placeholder: "1600",
+            description:
+              "Maximum tokens per response (optional, defaults to 1600)",
           },
         ],
       },
