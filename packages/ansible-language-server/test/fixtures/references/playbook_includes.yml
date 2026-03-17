@@ -1,0 +1,21 @@
+---
+- hosts: all
+  vars_files:
+    - vars/defaults.yml
+  tasks:
+    - name: Include tasks
+      ansible.builtin.include_tasks: included_tasks.yml
+
+    - name: Deploy template
+      ansible.builtin.template:
+        src: template.conf.j2
+        dest: /etc/app/config.conf
+
+    - name: Copy file
+      ansible.builtin.copy:
+        src: app.conf
+        dest: /etc/app/app.conf
+
+    - name: Include role
+      ansible.builtin.include_role:
+        name: test_role
