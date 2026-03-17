@@ -1,0 +1,4 @@
+---
+- name: Vendor task
+  ansible.builtin.debug:
+    msg: hello

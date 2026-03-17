@@ -1,3 +1,4 @@
+import * as path from "path";
 import { expect, describe, it } from "vitest";
 import { URI } from "vscode-uri";
 import { resolveDocUri } from "@test/helper.js";
@@ -305,5 +306,62 @@ describe("getRoleContextFromUri() additional cases", () => {
     const result = getRoleContextFromUri(uri);
     expect(result).not.toBeNull();
     expect(result?.roleName).toBe("test_role");
+  });
+});
+
+describe("getRoleContextFromUri() with rolesPaths", () => {
+  it("should detect role context via rolesPaths", () => {
+    const rolesDir = resolveDocUri("references/roles");
+    const fileUri = URI.file(
+      path.join(rolesDir, "test_role/tasks/main.yml"),
+    ).toString();
+    const result = getRoleContextFromUri(fileUri, [rolesDir]);
+    expect(result).not.toBeNull();
+    expect(result?.roleName).toBe("test_role");
+  });
+
+  it("should return null when rolesPaths provided but file not in any", () => {
+    const result = getRoleContextFromUri(
+      "file:///tmp/some/random/file.yml",
+      ["/opt/custom_roles"],
+    );
+    expect(result).toBeNull();
+  });
+
+  it("should fallback to /roles/ detection when rolesPaths don't match", () => {
+    const uri = URI.file(
+      resolveDocUri("references/roles/test_role/tasks/main.yml"),
+    ).toString();
+    const result = getRoleContextFromUri(uri, ["/some/other/path"]);
+    expect(result).not.toBeNull();
+    expect(result?.roleName).toBe("test_role");
+  });
+
+  it("should resolve nested vendor role via rolesPaths", () => {
+    const vendorDir = resolveDocUri("references/roles/vendor");
+    const fileUri = URI.file(
+      path.join(vendorDir, "nested_role/tasks/main.yml"),
+    ).toString();
+
+    // Without rolesPaths — /roles/ fallback picks "vendor", but vendor/ has no tasks/ → null
+    const withoutPaths = getRoleContextFromUri(fileUri);
+    expect(withoutPaths).toBeNull();
+
+    // With rolesPaths — finds nested_role
+    const withPaths = getRoleContextFromUri(fileUri, [vendorDir]);
+    expect(withPaths).not.toBeNull();
+    expect(withPaths?.roleName).toBe("nested_role");
+    expect(withPaths?.rolePath).toBe(path.join(vendorDir, "nested_role"));
+  });
+
+  it("should prefer rolesPaths over /roles/ path detection", () => {
+    const rolesDir = resolveDocUri("references/roles");
+    const fileUri = URI.file(
+      path.join(rolesDir, "test_role/tasks/main.yml"),
+    ).toString();
+    const result = getRoleContextFromUri(fileUri, [rolesDir]);
+    expect(result).not.toBeNull();
+    expect(result?.roleName).toBe("test_role");
+    expect(result?.rolePath).toBe(path.join(rolesDir, "test_role"));
   });
 });

@@ -70,10 +70,27 @@ export function resolveRolePath(
  */
 export function getRoleContextFromUri(
   fileUri: string,
+  rolesPaths?: string[],
 ): { roleName: string; rolePath: string } | null {
   const filePath = URI.parse(fileUri).path;
 
-  // Use lastIndexOf to find the innermost /roles/ segment
+  // 1. Check against rolesPaths (precise — handles nested dirs like ./roles/vendor/role_name/)
+  if (rolesPaths) {
+    for (const rolesDir of rolesPaths) {
+      const normalizedDir = rolesDir.endsWith("/") ? rolesDir : rolesDir + "/";
+      if (!filePath.startsWith(normalizedDir)) continue;
+      const relative = filePath.substring(normalizedDir.length);
+      const slashIdx = relative.indexOf("/");
+      if (slashIdx === -1) continue;
+      const roleName = relative.substring(0, slashIdx);
+      const rolePath = path.join(rolesDir, roleName);
+      if (ROLE_MARKER_DIRS.some((dir) => existsSync(path.join(rolePath, dir)))) {
+        return { roleName, rolePath };
+      }
+    }
+  }
+
+  // 2. Fallback: detect /roles/ segment in path (no config needed)
   const rolesIdx = filePath.lastIndexOf("/roles/");
   if (rolesIdx === -1) {
     return null;

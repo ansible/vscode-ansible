@@ -30,6 +30,7 @@ export function doRename(
   document: TextDocument,
   position: Position,
   newName: string,
+  rolesPaths?: string[],
 ): WorkspaceEdit | null {
   const symbol = getSymbolAtPosition(document, position);
   if (!symbol) return null;
@@ -39,7 +40,7 @@ export function doRename(
   }
 
   let allOccurrences: AnsibleSymbolOccurrence[] = getOccurrencesWithRoleContext(
-    document.uri, document, symbol.name, symbol.kind,
+    document.uri, document, symbol.name, symbol.kind, rolesPaths,
   );
 
   // Apply handler rename matrix

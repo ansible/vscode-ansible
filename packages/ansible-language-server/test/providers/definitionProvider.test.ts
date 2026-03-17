@@ -285,6 +285,20 @@ describe("Symbol-based definitions", () => {
       expect(result).toHaveLength(1);
       expect(result[0].targetUri).toContain("tasks/main.yml");
     });
+
+    it("should resolve role via rolesPaths parameter", async () => {
+      // Same role, but explicitly passing rolesPaths
+      const rolesDir = resolveDocUri("references/roles");
+      const result = await getDefinition(
+        textDoc,
+        Position.create(20, 16),
+        emptyDocsLibrary,
+        [rolesDir],
+      );
+      assert(result);
+      expect(result).toHaveLength(1);
+      expect(result[0].targetUri).toContain("tasks/main.yml");
+    });
   });
 
   describe("cross-file role definitions", () => {

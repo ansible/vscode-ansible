@@ -26,11 +26,12 @@ export async function getDefinition(
   document: TextDocument,
   position: Position,
   docsLibrary: DocsLibrary,
+  rolesPaths?: string[],
 ): Promise<DefinitionLink[] | null> {
   const yamlDocs = parseAllDocuments(document.getText());
 
   // First try new symbol-based definitions
-  const symbolDef = getSymbolDefinition(document, position, yamlDocs);
+  const symbolDef = getSymbolDefinition(document, position, yamlDocs, rolesPaths);
   if (symbolDef) return symbolDef;
 
   // Fall back to existing module definition logic
@@ -80,6 +81,7 @@ function getSymbolDefinition(
   document: TextDocument,
   position: Position,
   yamlDocs?: import("yaml").Document[],
+  rolesPaths?: string[],
 ): DefinitionLink[] | null {
   const symbol = getSymbolAtPosition(document, position, yamlDocs);
   if (!symbol) return null;
@@ -92,7 +94,7 @@ function getSymbolDefinition(
     case "filePath":
       return getFilePathDefinition(document, symbol.name, symbol.range);
     case "role":
-      return getRoleDefinition(document, symbol.name, symbol.range);
+      return getRoleDefinition(document, symbol.name, symbol.range, rolesPaths);
     default:
       return null;
   }
@@ -172,8 +174,9 @@ function getRoleDefinition(
   document: TextDocument,
   roleName: string,
   originRange: Range,
+  rolesPaths?: string[],
 ): DefinitionLink[] | null {
-  const rolePath = resolveRolePath(roleName, document.uri);
+  const rolePath = resolveRolePath(roleName, document.uri, rolesPaths);
   if (!rolePath) return null;
 
   const tasksMain = `${rolePath}/tasks/main.yml`;

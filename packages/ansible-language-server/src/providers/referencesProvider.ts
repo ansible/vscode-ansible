@@ -9,12 +9,13 @@ export function getReferences(
   document: TextDocument,
   position: Position,
   includeDeclaration: boolean,
+  rolesPaths?: string[],
 ): Location[] | null {
   const symbol = getSymbolAtPosition(document, position);
   if (!symbol) return null;
 
   let allOccurrences = getOccurrencesWithRoleContext(
-    document.uri, document, symbol.name, symbol.kind,
+    document.uri, document, symbol.name, symbol.kind, rolesPaths,
   );
 
   if (!includeDeclaration) {

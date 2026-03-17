@@ -260,9 +260,10 @@ export function findAllOccurrencesInRole(
   documentUri: string,
   name: string,
   kind: AnsibleSymbolKind,
+  rolesPaths?: string[],
 ): Map<string, AnsibleSymbolOccurrence[]> {
   const result = new Map<string, AnsibleSymbolOccurrence[]>();
-  const roleCtx = getRoleContextFromUri(documentUri);
+  const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
 
   if (!roleCtx) {
     return result;
@@ -314,10 +315,11 @@ export function getOccurrencesWithRoleContext(
   document: TextDocument | undefined,
   name: string,
   kind: AnsibleSymbolKind,
+  rolesPaths?: string[],
 ): AnsibleSymbolOccurrence[] {
-  const roleCtx = getRoleContextFromUri(documentUri);
+  const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
   if (roleCtx && (kind === "handler" || kind === "variable")) {
-    const occurrenceMap = findAllOccurrencesInRole(documentUri, name, kind);
+    const occurrenceMap = findAllOccurrencesInRole(documentUri, name, kind, rolesPaths);
     const result: AnsibleSymbolOccurrence[] = [];
     for (const [, occs] of occurrenceMap) {
       result.push(...occs);

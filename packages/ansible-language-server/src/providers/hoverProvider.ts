@@ -42,11 +42,12 @@ export async function doHover(
   document: TextDocument,
   position: Position,
   docsLibrary: DocsLibrary,
+  rolesPaths?: string[],
 ): Promise<Hover | null> {
   const yamlDocs = parseAllDocuments(document.getText());
 
   // Try symbol-based hover first
-  const symbolHover = getSymbolHover(document, position, yamlDocs);
+  const symbolHover = getSymbolHover(document, position, yamlDocs, rolesPaths);
   if (symbolHover) return symbolHover;
 
   const path = getPathAt(document, position, yamlDocs);
@@ -145,6 +146,7 @@ function getSymbolHover(
   document: TextDocument,
   position: Position,
   yamlDocs?: import("yaml").Document[],
+  rolesPaths?: string[],
 ): Hover | null {
   const symbol = getSymbolAtPosition(document, position, yamlDocs);
   if (!symbol) return null;
@@ -153,11 +155,11 @@ function getSymbolHover(
     case "handler":
       return getHandlerHover(document, symbol.name, symbol.range);
     case "variable":
-      return getVariableHover(document, symbol.name, symbol.range);
+      return getVariableHover(document, symbol.name, symbol.range, rolesPaths);
     case "filePath":
       return getFilePathHover(document, symbol.name, symbol.range);
     case "role":
-      return getRoleHover(document, symbol.name, symbol.range);
+      return getRoleHover(document, symbol.name, symbol.range, rolesPaths);
     default:
       return null;
   }
@@ -189,9 +191,10 @@ function getVariableHover(
   document: TextDocument,
   name: string,
   range: Range,
+  rolesPaths?: string[],
 ): Hover | null {
   // Check if variable has argument_specs documentation from role
-  const roleCtx = getRoleContextFromUri(document.uri);
+  const roleCtx = getRoleContextFromUri(document.uri, rolesPaths);
   if (roleCtx) {
     const roleVars = getRoleVariables(roleCtx.rolePath, false);
     const roleVar = roleVars.find((v) => v.name === name);
@@ -205,7 +208,7 @@ function getVariableHover(
 
   // Find definition for basic info
   const definitions = getOccurrencesWithRoleContext(
-    document.uri, document, name, "variable",
+    document.uri, document, name, "variable", rolesPaths,
   ).filter((o) => o.isDefinition);
 
   if (definitions.length === 0) return null;
@@ -244,8 +247,9 @@ function getRoleHover(
   document: TextDocument,
   roleName: string,
   range: Range,
+  rolesPaths?: string[],
 ): Hover | null {
-  const rolePath = resolveRolePath(roleName, document.uri);
+  const rolePath = resolveRolePath(roleName, document.uri, rolesPaths);
   if (!rolePath) return null;
 
   const shortDesc = getRoleEntryPointDescription(rolePath);

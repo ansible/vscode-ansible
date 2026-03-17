@@ -174,7 +174,7 @@ export function getVarsCompletion(
 
   // handling role variables
   varPriority = varPriority + 1;
-  const roleCtx = getRoleContextFromUri(documentUri);
+  const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
   if (roleCtx) {
     // Inside role context: defaults + vars, enriched with argument_specs
     const roleVars = getRoleVariables(roleCtx.rolePath, false);

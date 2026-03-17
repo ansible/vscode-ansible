@@ -270,10 +270,15 @@ export class AnsibleLanguageService {
             params.textDocument.uri,
           );
           if (context) {
+            const [docsLibrary, ansibleConfig] = await Promise.all([
+              context.docsLibrary,
+              context.ansibleConfig,
+            ]);
             return await doHover(
               document,
               params.position,
-              await context.docsLibrary,
+              docsLibrary,
+              ansibleConfig.roles_paths,
             );
           }
         }
@@ -329,10 +334,15 @@ export class AnsibleLanguageService {
             params.textDocument.uri,
           );
           if (context) {
+            const [docsLibrary, ansibleConfig] = await Promise.all([
+              context.docsLibrary,
+              context.ansibleConfig,
+            ]);
             return await getDefinition(
               document,
               params.position,
-              await context.docsLibrary,
+              docsLibrary,
+              ansibleConfig.roles_paths,
             );
           }
         }
@@ -366,10 +376,17 @@ export class AnsibleLanguageService {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri,
+          );
+          const rolesPaths = context
+            ? (await context.ansibleConfig).roles_paths
+            : undefined;
           return getReferences(
             document,
             params.position,
             params.context.includeDeclaration,
+            rolesPaths,
           );
         }
       } catch (error) {
@@ -382,7 +399,18 @@ export class AnsibleLanguageService {
       try {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
-          return doRename(document, params.position, params.newName);
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri,
+          );
+          const rolesPaths = context
+            ? (await context.ansibleConfig).roles_paths
+            : undefined;
+          return doRename(
+            document,
+            params.position,
+            params.newName,
+            rolesPaths,
+          );
         }
       } catch (error) {
         this.handleError(error, "onRenameRequest");
@@ -404,7 +432,16 @@ export class AnsibleLanguageService {
 
     this.connection.onWorkspaceSymbol(async (params) => {
       try {
-        return getWorkspaceSymbols(params, this.documents.all());
+        // Get rolesPaths from the first available workspace context
+        let rolesPaths: string[] | undefined;
+        const allDocs = this.documents.all();
+        if (allDocs.length > 0) {
+          const context = this.workspaceManager.getContext(allDocs[0].uri);
+          if (context) {
+            rolesPaths = (await context.ansibleConfig).roles_paths;
+          }
+        }
+        return getWorkspaceSymbols(params, this.documents.all(), rolesPaths);
       } catch (error) {
         this.handleError(error, "onWorkspaceSymbol");
       }

@@ -97,6 +97,7 @@ function getSymbolsForFile(filePath: string, isHandlerFile = false): SymbolInfor
 export function getWorkspaceSymbols(
   params: WorkspaceSymbolParams,
   documents: Iterable<TextDocument>,
+  rolesPaths?: string[],
 ): SymbolInformation[] {
   const query = (params.query ?? "").toLowerCase();
   const allSymbols: SymbolInformation[] = [];
@@ -108,7 +109,7 @@ export function getWorkspaceSymbols(
     allSymbols.push(...getSymbolsForDocument(document));
 
     // If document is inside a role, also scan role files on disk
-    const roleCtx = getRoleContextFromUri(document.uri);
+    const roleCtx = getRoleContextFromUri(document.uri, rolesPaths);
     if (roleCtx && !scannedRoles.has(roleCtx.rolePath)) {
       scannedRoles.add(roleCtx.rolePath);
 
