@@ -18,12 +18,18 @@ import {
   flattenSymbols,
 } from "@src/providers/documentSymbolProvider.js";
 import { doHover } from "@src/providers/hoverProvider.js";
+import { getReferences } from "@src/providers/referencesProvider.js";
+import {
+  prepareRename,
+  doRename,
+} from "@src/providers/renameProvider.js";
 import {
   doSemanticTokens,
   tokenModifiers,
   tokenTypes,
 } from "@src/providers/semanticTokenProvider.js";
 import { doValidate } from "@src/providers/validationProvider.js";
+import { getWorkspaceSymbols } from "@src/providers/workspaceSymbolProvider.js";
 import { SchemaService } from "@src/services/schemaService.js";
 import { ValidationManager } from "@src/services/validationManager.js";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
@@ -83,7 +89,10 @@ export class AnsibleLanguageService {
             resolveProvider: true,
           },
           definitionProvider: true,
+          referencesProvider: true,
+          renameProvider: { prepareProvider: true },
           documentSymbolProvider: true,
+          workspaceSymbolProvider: true,
           workspace: {},
         },
       };
@@ -350,6 +359,55 @@ export class AnsibleLanguageService {
         this.handleError(error, "onDocumentSymbol");
       }
       return null;
+    });
+
+    this.connection.onReferences(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          return getReferences(
+            document,
+            params.position,
+            params.context.includeDeclaration,
+          );
+        }
+      } catch (error) {
+        this.handleError(error, "onReferences");
+      }
+      return null;
+    });
+
+    this.connection.onRenameRequest(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          return doRename(document, params.position, params.newName);
+        }
+      } catch (error) {
+        this.handleError(error, "onRenameRequest");
+      }
+      return null;
+    });
+
+    this.connection.onPrepareRename(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          return prepareRename(document, params.position);
+        }
+      } catch (error) {
+        this.handleError(error, "onPrepareRename");
+      }
+      return null;
+    });
+
+    this.connection.onWorkspaceSymbol(async (params) => {
+      try {
+        return getWorkspaceSymbols(params, this.documents.all());
+      } catch (error) {
+        this.handleError(error, "onWorkspaceSymbol");
+      }
+      return [];
     });
 
     // Custom actions that are performed on receiving special notifications from the client
