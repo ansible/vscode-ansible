@@ -1,11 +1,11 @@
 ---
 # see https://taskfile.dev/#/
-version: "3"
 env:
   # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
 vars:
+  PROJECT: ansible-mcp-server
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 includes:
@@ -13,7 +13,6 @@ includes:
     taskfile: ../../Taskfile.base.yml
     internal: true
     flatten: true
-
 tasks:
   default:
     dir: "{{ .TASKFILE_DIR }}"
@@ -21,10 +20,11 @@ tasks:
     env:
       VERSION:
         sh: node -p "require('./package.json').version"
+    deps:
+      - package
     cmds:
-      - task: package
       - task: test
-      - echo Done ansible-mcp-server {{.VERSION}}!
+      - echo Done {{.PROJECT}} {{.VERSION}}!
   build:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
@@ -33,24 +33,23 @@ tasks:
     cmds:
       - npm run compile
     generates:
-      - out/server/**/*.*
+      - lib/**/*.*
+      - dist/**/*.*
     sources:
-      - ../../vitest.config.ts
-      - package-lock.json
+      - ../../package-lock.json
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
+      - ../../tsconfig*.json
       - exclude: "**/*-artifact-*.json"
   test:
     desc: Run all tests and coverage report
+    dir: "{{ .TASKFILE_DIR }}"
+    interactive: true
     deps:
       - build
-    dir: "{{ .TASKFILE_DIR }}"
     generates:
-      - ../../out/coverage/mcp/cobertura-coverage.xml # codecov.io
-      - ../../out/coverage/mcp/coverage-final.json # IDE plugins
-      - ../../out/coverage/mcp/lcov.info # sonar
       - ../../out/junit/mcp-test-results.xml
     sources:
       - ../../vitest.config.ts
@@ -61,7 +60,6 @@ tasks:
       - exclude: "**/*-artifact-*.json"
     cmds:
       - npm run test
-    interactive: true
   test-watch:
     desc: Run tests in watch mode
     dir: "{{ .TASKFILE_DIR }}"
@@ -69,7 +67,7 @@ tasks:
       - npm run test:watch
     interactive: true
   package:
-    desc: Package MCP server
+    desc: Package {{ .PROJECT }}
     deps:
       - build
     dir: "{{ .TASKFILE_DIR }}"
@@ -78,15 +76,16 @@ tasks:
       - package*.json
       - src/**/*.*
       - tsconfig.json
+      - tsup.config.ts
     generates:
-      - "../../out/@ansible-ansible-mcp-server*.tgz"
+      - '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'
     cmds:
-      - rm -f {{ .GIT_ROOT }}/out/@ansible-ansible-mcp-server*.tgz
+      - rm -f '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'
       - yarn pack --out '{{ .GIT_ROOT }}/out/%s-%v.tgz'
     silent: false
   clean:
     desc: Clean build artifacts
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
-      - rm -rf out/server
       - rm -rf node_modules/.cache
+version: "3"

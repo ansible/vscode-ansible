@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
+import { quote } from "shell-quote";
 
 /**
  * Lints Ansible playbook file using the ansible-lint CLI.
@@ -40,7 +41,10 @@ async function runAnsibleLintWithoutFix(
 ): Promise<{ result: unknown; fixedContent?: string }> {
   return new Promise((resolve, reject) => {
     const args = ["-f", "json", filePath];
-    const lintProcess = spawn("ansible-lint", args);
+    const lintProcess = spawn(quote(["ansible-lint", ...args]), {
+      shell: true, // keep it
+      env: process.env,
+    });
 
     let stdoutData = "";
     let stderrData = "";
@@ -119,7 +123,10 @@ async function runAnsibleLintOnFile(
     }
     args.push(filePath);
 
-    const lintProcess = spawn("ansible-lint", args);
+    const lintProcess = spawn(quote(["ansible-lint", ...args]), {
+      shell: true, // keep it
+      env: process.env,
+    });
 
     let stdoutData = "";
     let stderrData = "";

@@ -56,8 +56,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - for: sources
-        cmd: echo {{ .ITEM }}
+      # - for: sources
+      #   cmd: echo {{ .ITEM }}
       - yarn workspaces foreach --all -tv run clean
       - yarn run build
       - yarn run vite-build
@@ -67,6 +67,7 @@ tasks:
       - tsconfig*.json
       - webpack.config.ts
       - yarn.lock
+      - vite.config.mts
       - exclude: "**/.ansible/**/*"
       - exclude: "**/None/**/*"
       - exclude: "src/vscode_ansible.egg-info/**/*"
@@ -84,8 +85,9 @@ tasks:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
       NODE_OPTIONS: "--no-deprecation"
     desc: Forced install of extension in your code instance and restarts it
+    deps:
+      - package
     cmds:
-      - task: package
       - pkill -9 -f "Visual Studio Code" || true
       - code --force --install-extension out/*.vsix
       - code examples/
@@ -152,7 +154,7 @@ tasks:
     desc: Lint the project
     interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v"
+      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v --color=always"
       - defer: { task: finish }
     silent: true
     sources:
@@ -327,7 +329,9 @@ tasks:
     deps:
       - package
     cmds:
-      - vitest list
+      - vitest list >> /dev/null
+      # checks for a bug that prevented calling vitest from subdirectories
+      - cd packages/ansible-language-server && vitest list >> /dev/null
       - "{{.XVFB}}vscode-test --dry-run --fail-zero || echo 'Ignored failure to run vscode-test as e2e tests do not yet run inside a containers.'"
   collect-logs:
     requires:

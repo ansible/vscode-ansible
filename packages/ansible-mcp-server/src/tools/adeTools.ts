@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { quote } from "shell-quote";
 
 export interface ADEEnvironmentInfo {
   virtualEnv: string | null;
@@ -175,7 +176,8 @@ export async function executeCommand(
   env?: NodeJS.ProcessEnv,
 ): Promise<ADECommandResult> {
   try {
-    const child = spawn(command, args, {
+    const child = spawn(quote([command, ...args]), {
+      shell: true, // keep it
       cwd: cwd || process.cwd(),
       env: { ...process.env, ...env },
       stdio: ["pipe", "pipe", "pipe"],

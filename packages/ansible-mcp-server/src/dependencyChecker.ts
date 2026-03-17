@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { quote } from "shell-quote";
 
 export interface Dependency {
   name: string;
@@ -25,8 +26,9 @@ interface DependencyCheckResult {
  */
 async function commandExists(command: string): Promise<boolean> {
   return new Promise((resolve) => {
-    const child = spawn("which", [command], {
-      shell: true,
+    const child = spawn(quote(["which", command]), {
+      shell: true, // keep it
+      env: process.env,
     });
 
     child.on("error", () => resolve(false));
@@ -42,7 +44,10 @@ async function getCommandVersion(
   parser?: (output: string) => string | null,
 ): Promise<string | null> {
   return new Promise((resolve) => {
-    const child = spawn(versionCommand, [], { shell: true });
+    const child = spawn(versionCommand, {
+      shell: true, // keep it
+      env: process.env,
+    });
     let output = "";
 
     child.stdout?.on("data", (d) => (output += d.toString()));

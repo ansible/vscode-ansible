@@ -395,7 +395,6 @@ jobs:
             out/e2e
             out/junit
             out/log
-            out/mcp
             out/ui*
             out/unit
             out/server
@@ -457,7 +456,7 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -575,7 +574,7 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
 
       - name: Download the artifact
         uses: actions/download-artifact@v8
@@ -586,7 +585,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
@@ -633,12 +632,12 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
 
       - name: Publish npm packages to npmjs.com
         run: |
