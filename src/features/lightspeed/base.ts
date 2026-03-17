@@ -114,9 +114,6 @@ export class LightSpeedManager {
     // Generative AI features are now in the LLM Provider Settings panel
     this.lightspeedExplorerProvider = undefined;
 
-    // create workspace context for ansible roles (async, non-blocking)
-    void this.setContext();
-
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
   }
@@ -153,7 +150,7 @@ export class LightSpeedManager {
     this._contextInitAbort = null;
   }
 
-  private async setContext(): Promise<void> {
+  public async setContext(): Promise<void> {
     this._contextInitAbort?.abort();
     const abort = new AbortController();
     this._contextInitAbort = abort;
@@ -166,31 +163,41 @@ export class LightSpeedManager {
         if (abort.signal.aborted) return;
         const workSpaceRoot = workspaceFolder.uri.fsPath;
         const rolesPath = await getCustomRolePaths(workSpaceRoot);
-        for (const rolePath of rolesPath) {
-          if (abort.signal.aborted) return;
-          const disposables = await watchRolesDirectory(
-            this,
-            rolePath,
-            workSpaceRoot,
-          );
-          newWatchers.push(...disposables);
-        }
+        await this.watchRolePaths(
+          rolesPath,
+          newWatchers,
+          abort.signal,
+          workSpaceRoot,
+        );
       }
     }
 
     const commonRolesPath = getCommonRoles() || [];
-    for (const rolePath of commonRolesPath) {
-      if (abort.signal.aborted) return;
-      const disposables = await watchRolesDirectory(this, rolePath);
-      newWatchers.push(...disposables);
-    }
+    await this.watchRolePaths(commonRolesPath, newWatchers, abort.signal);
 
-    if (!abort.signal.aborted) {
-      this._watchers = newWatchers;
-    } else {
+    if (abort.signal.aborted) {
       for (const d of newWatchers) {
         d.dispose();
       }
+    } else {
+      this._watchers = newWatchers;
+    }
+  }
+
+  private async watchRolePaths(
+    rolePaths: string[],
+    watchers: vscode.Disposable[],
+    signal: AbortSignal,
+    workSpaceRoot?: string,
+  ): Promise<void> {
+    for (const rolePath of rolePaths) {
+      if (signal.aborted) return;
+      const disposables = await watchRolesDirectory(
+        this,
+        rolePath,
+        workSpaceRoot,
+      );
+      watchers.push(...disposables);
     }
   }
 
