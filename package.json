@@ -1083,7 +1083,7 @@
     "find-process": "^2.1.0",
     "glob": "^13.0.6",
     "globals": "^17.4.0",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.0.0",
     "knip": "^5.86.0",
     "lodash": "^4.17.23",
     "mocha-junit-reporter": "^2.2.1",
