@@ -1,4 +1,4 @@
-import { Hover, MarkupContent, MarkupKind } from "vscode-languageserver";
+import { Hover, MarkupContent, MarkupKind, Range } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
 import { isScalar, Scalar } from "yaml";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
@@ -26,6 +26,17 @@ import {
   isTaskParam,
   parseAllDocuments,
 } from "@src/utils/yaml.js";
+import {
+  getSymbolAtPosition,
+  getOccurrencesWithRoleContext,
+} from "@src/utils/ansibleSymbols.js";
+import {
+  getRoleContextFromUri,
+  getRoleEntryPointDescription,
+  getRoleVariables,
+  resolveModuleFilePath,
+  resolveRolePath,
+} from "@src/utils/roleResolver.js";
 
 export async function doHover(
   document: TextDocument,
@@ -33,6 +44,11 @@ export async function doHover(
   docsLibrary: DocsLibrary,
 ): Promise<Hover | null> {
   const yamlDocs = parseAllDocuments(document.getText());
+
+  // Try symbol-based hover first
+  const symbolHover = getSymbolHover(document, position, yamlDocs);
+  if (symbolHover) return symbolHover;
+
   const path = getPathAt(document, position, yamlDocs);
   if (path) {
     const node = path[path.length - 1];
@@ -123,4 +139,123 @@ function getKeywordHover(
       range: range ? toLspRange(range, document) : undefined,
     };
   } else return null;
+}
+
+function getSymbolHover(
+  document: TextDocument,
+  position: Position,
+  yamlDocs?: import("yaml").Document[],
+): Hover | null {
+  const symbol = getSymbolAtPosition(document, position, yamlDocs);
+  if (!symbol) return null;
+
+  switch (symbol.kind) {
+    case "handler":
+      return getHandlerHover(document, symbol.name, symbol.range);
+    case "variable":
+      return getVariableHover(document, symbol.name, symbol.range);
+    case "filePath":
+      return getFilePathHover(document, symbol.name, symbol.range);
+    case "role":
+      return getRoleHover(document, symbol.name, symbol.range);
+    default:
+      return null;
+  }
+}
+
+function getHandlerHover(
+  document: TextDocument,
+  name: string,
+  range: Range,
+): Hover | null {
+  const definitions = getOccurrencesWithRoleContext(
+    document.uri, document, name, "handler",
+  ).filter((o) => o.isDefinition);
+
+  const defInfo = definitions.length > 0
+    ? `defined at line ${definitions[0].range.start.line + 1}`
+    : "definition not found";
+
+  return {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: `**Handler:** \`${name}\`\n\n${defInfo}`,
+    },
+    range,
+  };
+}
+
+function getVariableHover(
+  document: TextDocument,
+  name: string,
+  range: Range,
+): Hover | null {
+  // Check if variable has argument_specs documentation from role
+  const roleCtx = getRoleContextFromUri(document.uri);
+  if (roleCtx) {
+    const roleVars = getRoleVariables(roleCtx.rolePath, false);
+    const roleVar = roleVars.find((v) => v.name === name);
+    if (roleVar?.option) {
+      return {
+        contents: formatOption(roleVar.option, true),
+        range,
+      };
+    }
+  }
+
+  // Find definition for basic info
+  const definitions = getOccurrencesWithRoleContext(
+    document.uri, document, name, "variable",
+  ).filter((o) => o.isDefinition);
+
+  if (definitions.length === 0) return null;
+
+  const def = definitions[0];
+  const defLine = def.range.start.line + 1;
+
+  return {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: `**Variable:** \`${name}\`\n\ndefined at line ${defLine}`,
+    },
+    range,
+  };
+}
+
+function getFilePathHover(
+  document: TextDocument,
+  filePath: string,
+  range: Range,
+): Hover | null {
+  const resolvedPath = resolveModuleFilePath(filePath, "", document.uri);
+
+  return {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: resolvedPath
+        ? `**File:** \`${resolvedPath}\``
+        : `**File:** \`${filePath}\` (not found)`,
+    },
+    range,
+  };
+}
+
+function getRoleHover(
+  document: TextDocument,
+  roleName: string,
+  range: Range,
+): Hover | null {
+  const rolePath = resolveRolePath(roleName, document.uri);
+  if (!rolePath) return null;
+
+  const shortDesc = getRoleEntryPointDescription(rolePath);
+  const desc = shortDesc ? `\n\n${shortDesc}` : "";
+
+  return {
+    contents: {
+      kind: MarkupKind.Markdown,
+      value: `**Role:** \`${roleName}\`${desc}\n\n\`${rolePath}\``,
+    },
+    range,
+  };
 }
