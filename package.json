@@ -1060,7 +1060,6 @@
     "@types/node": "^24.10.2",
     "@types/semver": "^7.7.1",
     "@types/sinon": "^21.0.0",
-    "@types/tmp": "^0.2.6",
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.57.0",

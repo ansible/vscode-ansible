@@ -3,16 +3,16 @@ require("assert");
 import { updateRolesContext } from "@src/features/lightspeed/utils/updateRolesContext";
 import assert from "assert";
 import sinon from "sinon";
-import tmp from "tmp";
 import fs from "fs";
-
+import * as path from "path";
 import { IWorkSpaceRolesContext } from "@src/interfaces/lightspeed";
+import { PROJECT_ROOT } from "@test/setup";
 
 describe("updateRolesContext", function () {
-  const tmpDir = tmp.dirSync();
+  const tmpDir = path.join(PROJECT_ROOT, "out/tmp/updateRolesContext");
 
   after(function () {
-    fs.rmSync(tmpDir.name, { recursive: true, force: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
   it("with no root directory", function () {
@@ -26,7 +26,7 @@ describe("updateRolesContext", function () {
   it("with an empty roles directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/empty`;
+    const root_dir = `${tmpDir}/empty`;
     fs.mkdirSync(`${root_dir}/roles`, { recursive: true });
 
     updateRolesContext(ansibleRolesCache, `${root_dir}/roles`, "my_workSpace");
@@ -37,7 +37,7 @@ describe("updateRolesContext", function () {
   it("with a file called 'roles'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_as_file`;
+    const root_dir = `${tmpDir}/role_as_file`;
     fs.mkdirSync(root_dir, { recursive: true });
     fs.writeFileSync(`${root_dir}/roles`, "");
 
@@ -58,7 +58,7 @@ describe("updateRolesContext", function () {
   it("with a role with just one task'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_with_one_task`;
+    const root_dir = `${tmpDir}/role_with_one_task`;
     fs.mkdirSync(`${root_dir}/roles/my_role/tasks`, { recursive: true });
     fs.writeFileSync(
       `${root_dir}/roles/my_role/tasks/main.yaml`,
@@ -82,7 +82,7 @@ describe("updateRolesContext", function () {
   it("with a role where 'tasks' is a file, not a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_with_a_file_called_tasks`;
+    const root_dir = `${tmpDir}/role_with_a_file_called_tasks`;
     fs.mkdirSync(`${root_dir}/roles/my_role`, { recursive: true });
     fs.writeFileSync(
       `${root_dir}/roles/my_role/tasks`,
@@ -106,7 +106,7 @@ describe("updateRolesContext", function () {
   it("with a role with one task and a vars file'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_with_task_and_var_file`;
+    const root_dir = `${tmpDir}/role_with_task_and_var_file`;
     fs.mkdirSync(`${root_dir}/roles/my_role/tasks`, { recursive: true });
     fs.mkdirSync(`${root_dir}/roles/my_role/vars`, { recursive: true });
     fs.writeFileSync(
@@ -137,7 +137,7 @@ describe("updateRolesContext", function () {
   it("with a role where 'vars' is a file, not a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_where_vars_is_a_file`;
+    const root_dir = `${tmpDir}/role_where_vars_is_a_file`;
     fs.mkdirSync(`${root_dir}/roles/my_role`, { recursive: true });
     fs.writeFileSync(`${root_dir}/roles/my_role/vars`, "some content");
     fs.writeFileSync(`${root_dir}/roles/my_role/defaults`, "some content");
@@ -159,7 +159,7 @@ describe("updateRolesContext", function () {
   it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
-    const root_dir = `${tmpDir.name}/role_where_defaults_is_a_file_and_vars_is_a_directory`;
+    const root_dir = `${tmpDir}/role_where_defaults_is_a_file_and_vars_is_a_directory`;
     fs.mkdirSync(`${root_dir}/roles/my_role/vars`, { recursive: true });
     fs.writeFileSync(`${root_dir}/roles/my_role/defaults`, "some content");
     fs.writeFileSync(
