@@ -42,8 +42,8 @@ Direct access to Google Gemini models.
 **Configuration:**
 
 - Provider: `google`
-- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (default,
-  configurable)
+- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (fixed;
+  custom URLs only for local testing/proxies)
 - API Key: Your Google AI API key (starts with `AIza`)
 - Model Name: e.g., `gemini-2.5-flash`, `gemini-1.5-pro`
 

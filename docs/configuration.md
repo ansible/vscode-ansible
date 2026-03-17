@@ -19,7 +19,7 @@ any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.validation.lint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint`
-  [documentation](https://docs.ansible.com/projects/lint/configuring/). ).
+  [documentation](https://docs.ansible.com/projects/lint/configuring/).
 - `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
@@ -102,13 +102,6 @@ instructions and examples.
 
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
   sending an inline suggestion request.
-
-### Backward Compatibility
-
-The following legacy settings are still supported for backward compatibility:
-
-- `ansible.lightspeed.URL`: Mapped to `ansible.lightspeed.apiEndpoint`
-- `ansible.lightspeed.modelIdOverride`: Mapped to `ansible.lightspeed.modelName`
 
 ### Deprecated Settings
 
