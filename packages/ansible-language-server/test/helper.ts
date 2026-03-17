@@ -11,7 +11,7 @@ import {
   TextDocuments,
 } from "vscode-languageserver/node";
 import { ValidationManager } from "@src/services/validationManager.js";
-import { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
 import Fuse from "fuse.js";
 

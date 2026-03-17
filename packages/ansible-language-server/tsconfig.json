@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "baseUrl": ".",
-    "declaration": true,
-    "module": "esnext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "outDir": "./dist",
+    "outDir": "lib",
     "paths": {
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"]
     },
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "target": "ES2022"
   },
-  "exclude": ["node_modules", "out", "vscode-ansible", "dist"],
-  "extends": "../../tsconfig.base.json"
+  "exclude": ["node_modules", "out", "coverage"],
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts", "test/**/*.ts", "*.ts"]
 }

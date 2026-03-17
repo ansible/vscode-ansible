@@ -3,7 +3,7 @@ import { Connection } from "vscode-languageserver";
 import { withInterpreter, asyncExec } from "@src/utils/misc.js";
 import { getAnsibleCommandExecPath } from "@src/utils/execPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
-import { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
 export class CommandRunner {
   private connection: Connection | undefined;

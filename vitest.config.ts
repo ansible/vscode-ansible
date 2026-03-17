@@ -133,7 +133,12 @@ export default defineConfig({
       clean: true,
       enabled: !isFiltered,
       exclude: [],
-      include: ["src/**/**.{js,jsx,ts,tsx}", "webviews/**/*.{ts,vue}"], // Include source files and webviews for coverage
+      include: [
+        "src/**/**.{js,jsx,ts,tsx}",
+        "packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}",
+        "packages/ansible-mcp-server/src/**/*.{js,jsx,ts,tsx}",
+        "webviews/**/*.{ts,vue}",
+      ], // Include source files, workspace packages, and webviews for coverage
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: `${__dirname}/out/coverage/unit`,

@@ -28,6 +28,8 @@ tasks:
     generates:
       - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
       - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"
+      - resources/contentCreator/createDevfile/devfile-template.txt
+      - resources/contentCreator/createDevcontainer/
     dir: "{{ .TASKFILE_DIR }}"
     sources:
       - pyproject.toml
@@ -66,3 +68,13 @@ tasks:
     cmds:
       - "type mise >/dev/null 2>&1 || { echo ''ERROR: mise not found in PATH'' >&2; exit 1; }"
       - "mise doctor >/dev/null 2>&1 || { mise doctor || echo 'ERROR: mise doctor failed, resolve reported problems.' >&2 && exit 1; }"
+  knip:
+    desc: Run knip
+    interactive: true # no prefix
+    dir: "{{ .TASKFILE_DIR }}" # mandatory because running from subfolder will not enable knip to find its config
+    deps:
+      - package # production needs package, development needs build
+    cmds:
+      - npm exec -- knip || true
+      - npm exec -- knip --production || true
+      - echo "If knip passed locally but fails on CI, try running 'task clean && task knip' locally to flush all caches."

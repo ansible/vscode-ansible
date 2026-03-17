@@ -20,7 +20,7 @@ import {
   getCommonRoles,
 } from "@src/features/utils/ansible";
 import { watchRolesDirectory } from "@src/features/lightspeed/utils/watchers";
-import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
+import type { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import { Log } from "@src/utils/logger";
 import { LightspeedExplorerWebviewViewProvider } from "@src/features/lightspeed/explorerWebviewViewProvider";

@@ -96,14 +96,9 @@ To organize the code, create two separate files:
 
     You can set up communication between the extension and the webview. This is covered in the further section.
 
-### Step 4: Configure webpack
+### Step 4: Build and debug
 
-Set up the Webpack configuration to bundle your extension and Webview assets in
-the `webpack.config.ts` file.
-
-### Step 5: Build and debug
-
-Build the extension using the command `yarn run webpack-dev` and run the
+Build the extension and run the
 extension in debug mode using the configuration `Launch extension`. Make changes
 in the code and reload the extension host window to see the live implementation.
 
@@ -222,9 +217,6 @@ panel.webview.onDidReceiveMessage(
 
    - webview context file:
      [createAnsibleProjectPageApp.ts](https://github.com/ansible/vscode-ansible/blob/main/src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts)
-
-   - webpack config file:
-     [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
 
 2. **External resources:** The best explanation of implementing a webview is
    described by Microsoft. You can look at these:

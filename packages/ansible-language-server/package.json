@@ -3,7 +3,7 @@
     "onLanguage:ansible"
   ],
   "all": true,
-  "bin": "./dist/cli.js",
+  "bin": "dist/cli.js",
   "categories": [
     "Programming Languages"
   ],
@@ -26,6 +26,7 @@
     "ajv-formats": "^3.0.1",
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.6",
+    "handlebars": "^4.7.8",
     "ini": "^6.0.0",
     "lodash": "^4.17.23",
     "uuid": "^13.0.0",
@@ -38,13 +39,9 @@
   },
   "description": "Ansible language server",
   "devDependencies": {
-    "@types/ini": "^4.1.1",
-    "@types/lodash": "^4.17.24",
     "@types/node": "^24.10.2",
-    "@types/shell-quote": "^1",
     "@types/vscode": "^1.85.0",
     "fuse.js": "^7.1.0",
-    "handlebars": "^4.7.8",
     "rimraf": "^6.1.3",
     "shell-quote": "^1.8.3",
     "typescript": "^5.9.3",
@@ -65,14 +62,24 @@
       "types": "./dist/interfaces/extensionSettings.d.ts",
       "default": "./dist/interfaces/extensionSettings.js"
     },
-    "./services/settingsManager": {
-      "types": "./dist/services/settingsManager.d.ts",
-      "default": "./dist/services/settingsManager.js"
+    "./providers/completionProvider": {
+      "types": "./dist/providers/completionProvider.d.ts",
+      "source": "./src/providers/completionProvider.ts",
+      "default": "./dist/providers/completionProvider.js"
+    },
+    "./providers/validationProvider": {
+      "types": "./dist/providers/validationProvider.d.ts",
+      "default": "./dist/providers/validationProvider.js"
+    },
+    "./utils/getAnsibleMetaData": {
+      "types": "./dist/utils/getAnsibleMetaData.d.ts",
+      "default": "./dist/utils/getAnsibleMetaData.js"
     }
   },
   "files": [
     "icon.png",
-    "./dist/**/*"
+    "dist",
+    "lib"
   ],
   "icon": "icon.png",
   "keywords": [
@@ -80,7 +87,9 @@
     "LSP"
   ],
   "license": "MIT",
-  "main": "./dist/server.js",
+  "main": "dist/cli.cjs",
+  "types": "lib/server.d.ts",
+  "module": "lib/cli.js",
   "name": "@ansible/ansible-language-server",
   "publisher": "RedHat Inc.",
   "repository": {
@@ -89,14 +98,18 @@
   },
   "scripts": {
     "//prepare": "Prepare is needed for installation from source",
-    "clean": "rimraf dist lib out/server",
+    "clean": "rimraf dist lib",
     "compile": "tsup --silent",
-    "prepare": "npm run compile",
+    "build:dist": "env NODE_ENV=production npx tsup --silent",
+    "prepack": "npm run compile && npm run build:dist",
     "test": "vitest run --project=als",
     "test-with-ee": "vitest run --project=als -t @ee",
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
     "watch": "tsup --watch"
   },
-  "types": "./dist/server.d.ts",
+  "type": "module",
+  "sideEffects": [
+    "dist/*"
+  ],
   "version": "1.2.4"
 }

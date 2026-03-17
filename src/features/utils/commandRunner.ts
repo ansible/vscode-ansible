@@ -1,7 +1,7 @@
 /* stdlib */
 
 /* local */
-import { ExtensionSettings } from "@src/interfaces/extensionSettings";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings";
 
 /**
  * A helper method to build a command with appropriate environment variables.

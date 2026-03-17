@@ -6,7 +6,8 @@ import * as util from "util";
 import * as vscode from "vscode";
 
 /* local */
-import * as utilAnsibleCfg from "@src/features/utils/ansibleCfg";
+import { getRootPath, getAnsibleCfg } from "@src/features/utils/ansibleCfg";
+import type { AnsibleVaultConfig } from "@src/features/utils/ansibleCfg";
 import { SettingsManager } from "@src/settings";
 import { withInterpreter } from "@src/features/utils/commandRunner";
 
@@ -22,7 +23,7 @@ enum ChompingStyle {
   Keep = "+",
 }
 
-async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
+async function askForVaultId(ansibleCfg: AnsibleVaultConfig) {
   const vaultId = "default";
 
   const identityList = ansibleCfg.defaults.vault_identity_list
@@ -70,10 +71,8 @@ export class Vault {
     const doc = editor.document;
 
     // Read `ansible.cfg` or environment variable
-    const rootPath: string | undefined = utilAnsibleCfg.getRootPath(
-      editor.document.uri,
-    );
-    const ansibleConfig = await utilAnsibleCfg.getAnsibleCfg(rootPath);
+    const rootPath: string | undefined = getRootPath(editor.document.uri);
+    const ansibleConfig = await getAnsibleCfg(rootPath);
 
     if (!ansibleConfig) {
       displayInvalidConfigError();

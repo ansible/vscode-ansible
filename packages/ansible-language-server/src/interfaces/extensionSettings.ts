@@ -10,18 +10,6 @@ export type IContainerEngine = "auto" | "podman" | "docker";
 
 export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
-export interface ExtensionSettingsWithDescriptionBase {
-  [key: string]: SettingsEntry | string | boolean;
-}
-
-export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
-  ansible: AnsibleSettingsWithDescription;
-  completion: CompletionSettingsWithDescription;
-  validation: ValidationSettingsWithDescription;
-  executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
-  python: PythonSettingsWithDescription;
-}
-
 interface ExtensionSettingsType {
   [name: string]:
     | ExtensionSettingsType
@@ -62,24 +50,6 @@ export interface ExtensionSettings extends ExtensionSettingsType {
   python: { interpreterPath: string; activationScript: string };
 }
 
-/**
- * Interface for execution environment settings
- */
-interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
-  containerEngine: {
-    default: IContainerEngine;
-    description: string;
-  };
-  enabled: { default: boolean; description: string };
-  image: { default: string; description: string };
-  pull: {
-    policy: { default: IPullPolicy; description: string };
-    arguments: { default: string; description: string };
-  };
-  volumeMounts: { default: Array<IVolumeMounts>; description: string };
-  containerOptions: { default: string; description: string };
-}
-
 export interface IVolumeMounts {
   src: string;
   dest: string;
@@ -99,6 +69,36 @@ export interface SettingsEntry {
     | string
     | boolean
     | Array<IVolumeMounts>;
+}
+
+/**
+ * Interface for execution environment settings
+ */
+interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
+  containerEngine: {
+    default: IContainerEngine;
+    description: string;
+  };
+  enabled: { default: boolean; description: string };
+  image: { default: string; description: string };
+  pull: {
+    policy: { default: IPullPolicy; description: string };
+    arguments: { default: string; description: string };
+  };
+  volumeMounts: { default: Array<IVolumeMounts>; description: string };
+  containerOptions: { default: string; description: string };
+}
+
+export interface ExtensionSettingsWithDescriptionBase {
+  [key: string]: SettingsEntry | string | boolean;
+}
+
+export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
+  ansible: AnsibleSettingsWithDescription;
+  completion: CompletionSettingsWithDescription;
+  validation: ValidationSettingsWithDescription;
+  executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
+  python: PythonSettingsWithDescription;
 }
 
 interface AnsibleSettingsWithDescription extends SettingsEntry {

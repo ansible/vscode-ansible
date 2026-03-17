@@ -397,7 +397,6 @@ jobs:
             out/log
             out/ui*
             out/unit
-            out/server
             out/client
             out/vitebuild
           # we collect transpiled js files as sonar needs them to compute code coverage

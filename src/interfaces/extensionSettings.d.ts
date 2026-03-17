@@ -3,7 +3,7 @@ import type {
   IContainerEngine,
 } from "@ansible/ansible-language-server/src/interfaces/extensionSettings";
 
-export interface ExtensionSettings {
+interface ExtensionSettings {
   activationScript: string | undefined;
   interpreterPath: string | undefined;
   executionEnvironment: ExecutionEnvironmentSettings;
@@ -18,7 +18,7 @@ interface IVolumeMounts {
   options: string | undefined;
 }
 
-export interface ExecutionEnvironmentSettings {
+interface ExecutionEnvironmentSettings {
   enabled: boolean;
   containerEngine: IContainerEngine;
   containerOptions: string;
@@ -27,12 +27,12 @@ export interface ExecutionEnvironmentSettings {
   volumeMounts: Array<IVolumeMounts>;
 }
 
-export interface PlaybookSettings {
+interface PlaybookSettings {
   arguments: string;
 }
 
 // Settings appear on VS Code Settings UI
-export interface LightSpeedServiceSettings {
+interface LightSpeedServiceSettings {
   enabled: boolean;
   provider: string; // 'wca' | 'google' | 'rhcustom'
   apiEndpoint: string;
@@ -43,6 +43,6 @@ export interface LightSpeedServiceSettings {
   suggestions: { enabled: boolean; waitWindow: number };
 }
 
-export interface McpServerSettings {
+interface McpServerSettings {
   enabled: boolean;
 }

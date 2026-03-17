@@ -8,7 +8,7 @@ import { AnsibleConfig } from "@src/services/ansibleConfig.js";
 import { ImagePuller } from "@src/utils/imagePuller.js";
 import { asyncExec } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
-import {
+import type {
   ExtensionSettings,
   IContainerEngine,
   IVolumeMounts,
