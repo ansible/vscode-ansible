@@ -585,7 +585,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        uses: softprops/action-gh-release@26e8ad27a09a225049a7075d7ec1caa2df6ff332 # v2.6.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
@@ -632,7 +632,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        uses: softprops/action-gh-release@26e8ad27a09a225049a7075d7ec1caa2df6ff332 # v2.6.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"
