@@ -42,12 +42,13 @@ const config: KnipConfig = {
         "test/**/*.ts",
         "webviews/**/*.{ts,tsx,vue,js,html}",
       ],
-      ignore: [".yarn/**", "**/dist/**", "**/lib/**"],
+      ignore: [".yarn/**"],
       project: ["{src,test,webviews}/**/*.{mjs,js,json,ts,tsx}"],
     },
     "packages/ansible-language-server": {
-      entry: ["src/server.ts", "test/**/*.ts"],
-      project: ["**/*.{mjs,js,json,ts,tsx}"],
+      includeEntryExports: false, // bug related to ExtensionSettingsWithDescriptionBase
+      entry: ["test/**/*.ts", "tools/**/*.ts"],
+      project: ["{src,test,tools}/**/*.{mjs,js,json,ts,tsx}"],
     },
     "packages/ansible-mcp-server": {
       entry: ["test/**/*.ts"],

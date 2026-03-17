@@ -10,6 +10,8 @@
   "files": {
     "includes": [
       "**",
+      "!**/dist",
+      "!**/lib",
       "!ansible-language-configuration.json",
       "!jinja-language-configuration.json",
       "!syntaxes/external/jinja.tmLanguage.json",

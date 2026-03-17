@@ -36,7 +36,7 @@ __metadata:
     vscode-uri: "npm:^3.1.0"
     yaml: "npm:^2.8.2"
   bin:
-    ansible-language-server: bin/ansible-language-server
+    ansible-language-server: ./dist/cli.js
   languageName: unknown
   linkType: soft
 
@@ -3523,13 +3523,13 @@ __metadata:
     ini: "npm:^6.0.0"
     js-yaml: "npm:^4.1.1"
     jsdom: "npm:^29.0.0"
-    knip: "npm:^5.86.0"
+    knip: "npm:^5.87.0"
     lodash: "npm:^4.17.23"
     marked: "npm:^17.0.4"
     minimatch: "npm:^10.2.4"
     mocha-junit-reporter: "npm:^2.2.1"
     mocha-multi-reporters: "npm:^1.5.1"
-    npm-check-updates: "npm:^19.6.3"
+    npm-check-updates: "npm:^19.6.5"
     ovsx: "npm:^0.10.9"
     prettier: "npm:^3.8.1"
     primevue: "npm:4.5.4"
@@ -7559,9 +7559,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knip@npm:^5.86.0":
-  version: 5.86.0
-  resolution: "knip@npm:5.86.0"
+"knip@npm:^5.87.0":
+  version: 5.87.0
+  resolution: "knip@npm:5.87.0"
   dependencies:
     "@nodelib/fs.walk": "npm:^1.2.3"
     fast-glob: "npm:^3.3.3"
@@ -7582,7 +7582,7 @@ __metadata:
   bin:
     knip: bin/knip.js
     knip-bun: bin/knip-bun.js
-  checksum: 10/1b8c94f62d2868b0c62499474f462dc09d57e10e73335c01caacff8e0c0b120f441e0881028db30b6a1c185f98a78e2fa727e8faa150bca40c41848263aee04f
+  checksum: 10/dcf7e132959202a4070272fb7fc92c7a472ea96bf0fd660761d2c8e21e3e50771adcf0dc90137e76f2c9612e102ff1d8abd66f80b8c7a027c892746703314e15
   languageName: node
   linkType: hard
 
@@ -8679,13 +8679,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-check-updates@npm:^19.6.3":
-  version: 19.6.3
-  resolution: "npm-check-updates@npm:19.6.3"
+"npm-check-updates@npm:^19.6.5":
+  version: 19.6.5
+  resolution: "npm-check-updates@npm:19.6.5"
   bin:
     ncu: build/cli.js
     npm-check-updates: build/cli.js
-  checksum: 10/984e070dcd7c8fc8c91a1e8b6f6576bd6a0b86f7abd3549586387951f79f176e06f1801c2a06e92789da7ad95261ea5b8cb38be1ba245f81c7578ca5077b4b33
+  checksum: 10/ffd623f2c1e823520e0989da7cfa54d30a00401657308ebe02be70f5621b2ee890ff1b114c770ddc76d67fe487cf80700f7e70850cdcab74f0b10e7eae0b2357
   languageName: node
   linkType: hard
 
