@@ -135,3 +135,7 @@ export function getWorkspaceSymbols(
 
   return allSymbols.filter((s) => s.name.toLowerCase().includes(query));
 }
+
+export function invalidateWorkspaceSymbolCache(uri: string): void {
+  documentCache.delete(uri);
+}

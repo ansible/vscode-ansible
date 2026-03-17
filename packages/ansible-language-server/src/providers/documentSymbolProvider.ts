@@ -5,7 +5,12 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { isMap, isScalar, isSeq, Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
-import { playExclusiveKeywords, isTaskKeyword } from "@src/utils/ansible.js";
+import {
+  playExclusiveKeywords,
+  isTaskKeyword,
+  taskSectionKeyPattern,
+  blockSectionKeyPattern,
+} from "@src/utils/ansible.js";
 import {
   getOrigRange,
   getYamlMapKeys,
@@ -13,9 +18,7 @@ import {
 } from "@src/utils/yaml.js";
 import { toLspRange } from "@src/utils/misc.js";
 
-const taskSectionKeys =
-  /^(tasks|pre_tasks|post_tasks|handlers|block|rescue|always)$/;
-const blockSectionKeys = /^(block|rescue|always)$/;
+
 
 export function getDocumentSymbols(
   document: TextDocument,
@@ -102,7 +105,7 @@ function collectPlayChildren(
     const processor =
       key === "roles"
         ? processRoles
-        : taskSectionKeys.test(key)
+        : taskSectionKeyPattern.test(key)
           ? processTaskList
           : null;
     if (!processor) continue;
@@ -199,7 +202,7 @@ function createBlockSymbol(
   for (const pair of map.items) {
     if (!isScalar(pair.key)) continue;
     const key = String(pair.key.value);
-    if (blockSectionKeys.test(key) && isSeq(pair.value)) {
+    if (blockSectionKeyPattern.test(key) && isSeq(pair.value)) {
       const sectionSymbol = createSectionSymbol(
         key,
         pair.key,

@@ -72,12 +72,18 @@ export function getRoleContextFromUri(
   fileUri: string,
 ): { roleName: string; rolePath: string } | null {
   const filePath = URI.parse(fileUri).path;
-  const match = filePath.match(/\/roles\/([^/]+)\//);
-  if (!match) {
+
+  // Use lastIndexOf to find the innermost /roles/ segment
+  const rolesIdx = filePath.lastIndexOf("/roles/");
+  if (rolesIdx === -1) {
     return null;
   }
-  const roleName = match[1];
-  const rolesIdx = filePath.indexOf("/roles/" + roleName + "/");
+  const afterRoles = filePath.substring(rolesIdx + "/roles/".length);
+  const slashIdx = afterRoles.indexOf("/");
+  if (slashIdx === -1) {
+    return null;
+  }
+  const roleName = afterRoles.substring(0, slashIdx);
   const rolePath = filePath.substring(0, rolesIdx + "/roles/".length + roleName.length);
 
   // Validate: at least one standard role subdirectory must exist

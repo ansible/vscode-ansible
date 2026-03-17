@@ -29,7 +29,7 @@ import {
   tokenTypes,
 } from "@src/providers/semanticTokenProvider.js";
 import { doValidate } from "@src/providers/validationProvider.js";
-import { getWorkspaceSymbols } from "@src/providers/workspaceSymbolProvider.js";
+import { getWorkspaceSymbols, invalidateWorkspaceSymbolCache } from "@src/providers/workspaceSymbolProvider.js";
 import { SchemaService } from "@src/services/schemaService.js";
 import { ValidationManager } from "@src/services/validationManager.js";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
@@ -178,6 +178,7 @@ export class AnsibleLanguageService {
     this.documents.onDidClose((e) => {
       try {
         this.validationManager.handleDocumentClosed(e.document.uri);
+        invalidateWorkspaceSymbolCache(e.document.uri);
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           context.documentSettings.handleDocumentClosed(e.document.uri);

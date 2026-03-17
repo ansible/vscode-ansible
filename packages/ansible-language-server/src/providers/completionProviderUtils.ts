@@ -23,11 +23,11 @@ type varsPromptType = {
  * @param path - array of nodes leading to that position
  * @returns a list of completion items
  */
-export async function getVarsCompletion(
+export function getVarsCompletion(
   documentUri: string,
   path: Node[],
   rolesPaths?: string[],
-): Promise<CompletionItem[]> {
+): CompletionItem[] {
   const varsCompletion: varType[] = [];
   let varPriority = 0;
 
