@@ -4,13 +4,13 @@
     "declaration": true,
     "module": "esnext",
     "moduleResolution": "bundler",
-    "outDir": "./out/server",
+    "outDir": "./dist",
     "paths": {
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"]
     },
     "resolveJsonModule": true
   },
-  "exclude": ["node_modules", "out", "vscode-ansible"],
+  "exclude": ["node_modules", "out", "vscode-ansible", "dist"],
   "extends": "../../tsconfig.base.json"
 }

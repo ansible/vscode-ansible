@@ -60,10 +60,7 @@
   "files.watcherExclude": {
     "**/out": true
   },
-  "mochaExplorer.cwd": "packages/ansible-language-server",
   "redhat.telemetry.enabled": false,
-  "search.exclude": {
-    ".vscode-test": true
-  },
+  "search.useParentIgnoreFiles": true,
   "vitest.maximumConfigs": 10
 }

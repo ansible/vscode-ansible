@@ -3,7 +3,7 @@
     "onLanguage:ansible"
   ],
   "all": true,
-  "bin": "bin/ansible-language-server",
+  "bin": "./dist/cli.js",
   "categories": [
     "Programming Languages"
   ],
@@ -58,21 +58,21 @@
   },
   "exports": {
     ".": {
-      "types": "./out/server/src/server.d.ts",
-      "default": "./out/server/src/server.js"
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
     },
     "./interfaces/extensionSettings": {
-      "types": "./out/server/src/interfaces/extensionSettings.d.ts",
-      "default": "./out/server/src/interfaces/extensionSettings.js"
+      "types": "./dist/interfaces/extensionSettings.d.ts",
+      "default": "./dist/interfaces/extensionSettings.js"
     },
     "./services/settingsManager": {
-      "types": "./out/server/src/services/settingsManager.d.ts",
-      "default": "./out/server/src/services/settingsManager.js"
+      "types": "./dist/services/settingsManager.d.ts",
+      "default": "./dist/services/settingsManager.js"
     }
   },
   "files": [
     "icon.png",
-    "./out/server/src/**/*"
+    "./dist/**/*"
   ],
   "icon": "icon.png",
   "keywords": [
@@ -80,7 +80,7 @@
     "LSP"
   ],
   "license": "MIT",
-  "main": "./out/server/src/server.js",
+  "main": "./dist/server.js",
   "name": "@ansible/ansible-language-server",
   "publisher": "RedHat Inc.",
   "repository": {
@@ -89,15 +89,14 @@
   },
   "scripts": {
     "//prepare": "Prepare is needed for installation from source",
-    "clean": "rimraf out/server && rimraf lib",
-    "compile": "tsc -p .",
-    "prepare": "yarn run compile",
+    "clean": "rimraf dist lib out/server",
+    "compile": "tsup --silent",
+    "prepare": "npm run compile",
     "test": "vitest run --project=als",
     "test-with-ee": "vitest run --project=als -t @ee",
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
-    "watch": "tsc --watch -p ."
+    "watch": "tsup --watch"
   },
-  "type": "module",
-  "types": "./out/server/src/server.d.ts",
+  "types": "./dist/server.d.ts",
   "version": "1.2.4"
 }

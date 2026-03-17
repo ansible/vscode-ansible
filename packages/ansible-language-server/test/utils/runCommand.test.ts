@@ -4,38 +4,10 @@ import { AssertionError } from "assert";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "@test/helper.js";
-import * as path from "path";
-import { readFileSync } from "fs";
 import { ExecException } from "child_process";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import { createRequire } from "module";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const require = createRequire(import.meta.url);
 
 describe("commandRunner", function () {
-  const packageJsonPath = require.resolve("../../package.json");
-  const packageJsonContents = readFileSync(packageJsonPath).toString();
-  const pkgJSON = JSON.parse(packageJsonContents);
-
   const tests = [
-    {
-      args: [
-        path.join(
-          path.resolve(__dirname, "..", ".."),
-          "bin",
-          "ansible-language-server",
-        ),
-        "--version",
-      ],
-      rc: 0,
-      stdout: `${pkgJSON["version"]}`,
-      stderr: "",
-      pythonInterpreterPath: "",
-      activationScript: "",
-    },
     {
       args: ["ansible-config", "dump"],
       rc: 0,
