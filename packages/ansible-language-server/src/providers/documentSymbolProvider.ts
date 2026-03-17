@@ -15,6 +15,7 @@ import { toLspRange } from "@src/utils/misc.js";
 
 const taskSectionKeys =
   /^(tasks|pre_tasks|post_tasks|handlers|block|rescue|always)$/;
+const blockSectionKeys = /^(block|rescue|always)$/;
 
 export function getDocumentSymbols(
   document: TextDocument,
@@ -22,6 +23,7 @@ export function getDocumentSymbols(
   const yamlDocs = parseAllDocuments(document.getText());
   if (yamlDocs.length === 0) return null;
 
+  // Ansible supports only one YAML document per playbook file
   const doc = yamlDocs[0];
   if (!doc.contents || !isSeq(doc.contents)) return null;
 
@@ -49,7 +51,7 @@ export function flattenSymbols(
 function processRootSequence(
   seq: YAMLSeq,
   document: TextDocument,
-): DocumentSymbol[] {
+): DocumentSymbol[] | null {
   const symbols: DocumentSymbol[] = [];
   for (const item of seq.items) {
     if (!isMap(item)) continue;
@@ -63,7 +65,7 @@ function processRootSequence(
       if (symbol) symbols.push(symbol);
     }
   }
-  return symbols.length > 0 ? symbols : (null as unknown as DocumentSymbol[]);
+  return symbols.length > 0 ? symbols : null;
 }
 
 function createPlaySymbol(
@@ -74,7 +76,7 @@ function createPlaySymbol(
   if (!range) return null;
 
   const name = getScalarValue(map, "name") ?? getPlayFallbackName(map);
-  const selectionRange = getKeyRange(map, "name", document) ?? range;
+  const selectionRange = getSelectionRange(map, "name", document) ?? range;
   const children = collectPlayChildren(map, document);
 
   return DocumentSymbol.create(
@@ -170,7 +172,7 @@ function createTaskSymbol(
   }
 
   const name = getScalarValue(map, "name") ?? getTaskModuleName(map) ?? "Task";
-  const selectionRange = getKeyRange(map, "name", document) ?? range;
+  const selectionRange = getSelectionRange(map, "name", document) ?? range;
 
   return DocumentSymbol.create(
     name,
@@ -189,15 +191,15 @@ function createBlockSymbol(
   const blockName = getScalarValue(map, "name");
   const name = blockName ? `block: ${blockName}` : "block";
   const selectionRange =
-    getKeyRange(map, "name", document) ??
-    getKeyRange(map, "block", document) ??
+    getSelectionRange(map, "name", document) ??
+    getSelectionRange(map, "block", document) ??
     range;
 
   const children: DocumentSymbol[] = [];
   for (const pair of map.items) {
     if (!isScalar(pair.key)) continue;
     const key = String(pair.key.value);
-    if (/^(block|rescue|always)$/.test(key) && isSeq(pair.value)) {
+    if (blockSectionKeys.test(key) && isSeq(pair.value)) {
       const sectionSymbol = createSectionSymbol(
         key,
         pair.key,
@@ -243,8 +245,8 @@ function processRoles(seq: YAMLSeq, document: TextDocument): DocumentSymbol[] {
       const roleName =
         getScalarValue(item, "role") ?? getScalarValue(item, "name") ?? "Role";
       const selectionRange =
-        getKeyRange(item, "role", document) ??
-        getKeyRange(item, "name", document) ??
+        getSelectionRange(item, "role", document) ??
+        getSelectionRange(item, "name", document) ??
         range;
       symbols.push(
         DocumentSymbol.create(
@@ -291,7 +293,7 @@ function nodeToRange(node: Node, document: TextDocument) {
   return toLspRange(range, document);
 }
 
-function getKeyRange(map: YAMLMap, key: string, document: TextDocument) {
+function getSelectionRange(map: YAMLMap, key: string, document: TextDocument) {
   for (const pair of map.items) {
     if (isScalar(pair.key) && pair.key.value === key) {
       // Use the value node range for selection if available
