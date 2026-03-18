@@ -185,7 +185,7 @@ def user_is_auth(driver: WebDriver) -> bool:
     return bool(elts)
 
 
-@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
+@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def sso_auth_flow(  # noqa: PLR0913
     driver: WebDriver,
     username: str = LIGHTSPEED_USER,

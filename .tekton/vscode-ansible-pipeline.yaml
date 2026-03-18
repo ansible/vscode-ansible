@@ -381,7 +381,7 @@ spec:
         #   workspaces:
         #       - name: workspace
         #         workspace: workspace
-        # disabled due to stability https://issues.redhat.com/browse/AAP-57514
+        # disabled due to stability https://redhat.atlassian.net/browse/AAP-57514
         # - name: clamav-scan
         #   params:
         #       - name: image-digest

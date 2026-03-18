@@ -532,7 +532,7 @@ jobs:
         with:
           args: ${{ env.SONAR_ARGS }}
         # Temporarily ignore errors if the pull request is from a fork due to lack of upload secrets access
-        # See https://issues.redhat.com/browse/AAP-52660
+        # See https://redhat.atlassian.net/browse/AAP-52660
         continue-on-error: ${{ github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name || github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') || github.event.inputs.publish == 'true' || github.event.inputs.publish == true }}
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
