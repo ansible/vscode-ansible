@@ -67,15 +67,11 @@ any level (User, Remote, Workspace and/or Folder).
 ### Core Settings
 
 - `ansible.lightspeed.enabled`: Enable/disable Ansible Lightspeed.
-- `ansible.lightspeed.timeout`: Request timeout in milliseconds (default:
-  30000).
+- `ansible.lightspeed.timeout`: Request timeout in milliseconds (default: 30000).
 
 ### LLM Provider Settings
 
-Provider configuration is managed through the LLM Provider Settings panel. It
-can be accessed from the Ansible Development Tools (ADT) sidebar under the
-Generative AI section, or from the Command Palette (`Ctrl+Shift+P` /
-`Cmd+Shift+P`) with:
+Provider configuration is managed through the LLM Provider Settings panel. It can be accessed from the Ansible Development Tools (ADT) sidebar under the Generative AI section, or from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) with:
 
 ```text
 Ansible Lightspeed: Open LLM Provider Settings
@@ -83,17 +79,13 @@ Ansible Lightspeed: Open LLM Provider Settings
 
 The panel supports three providers:
 
-- **IBM watsonx (WCA):** Red Hat Ansible Lightspeed with IBM watsonx Code
-  Assistant (default). Uses OAuth2 authentication.
+- **IBM watsonx (WCA):** Red Hat Ansible Lightspeed with IBM watsonx Code Assistant (default). Uses OAuth2 authentication.
 - **Google Gemini:** Direct access to Google Gemini models. Requires an API key.
-- **Red Hat AI:** Supports models hosted on the Red Hat AI platform through any
-  OpenAI-compatible endpoint. Requires an API endpoint, API key, and model name.
+- **Red Hat AI:** Supports models hosted on the Red Hat AI platform through any OpenAI-compatible endpoint. Requires an API endpoint, API key, and model name.
 
-Provider settings (API endpoint, API key, model name) are stored securely using
-VS Code's secret storage for sensitive fields and global state for other values.
+Provider settings (API endpoint, API key, model name) are stored securely using VS Code's secret storage for sensitive fields and global state for other values.
 
-See [LLM Provider Documentation](llm-providers.md) for detailed setup
-instructions and examples.
+See [LLM Provider Documentation](llm-providers.md) for detailed setup instructions and examples.
 
 ### Inline Suggestions
 
@@ -103,22 +95,23 @@ instructions and examples.
 - `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
   sending an inline suggestion request.
 
+### Backward Compatibility
+
+The following legacy settings are still supported for backward compatibility:
+
+- `ansible.lightspeed.URL`: Mapped to `ansible.lightspeed.apiEndpoint`
+- `ansible.lightspeed.modelIdOverride`: Mapped to `ansible.lightspeed.modelName`
+
 ### Deprecated Settings
 
-The following settings are deprecated and will be removed in a future release.
-Use the LLM Provider Settings panel instead.
+The following settings are deprecated and will be removed in a future release. Use the LLM Provider Settings panel instead.
 
-- `ansible.lightspeed.provider`: Select AI provider. Use the LLM Provider
-  Settings panel.
-- `ansible.lightspeed.apiEndpoint`: API endpoint URL. Use the LLM Provider
-  Settings panel.
-- `ansible.lightspeed.modelName`: Model name/ID. Use the LLM Provider Settings
-  panel.
-- `ansible.lightspeed.apiKey`: API key. Use the LLM Provider Settings panel for
-  secure storage.
+- `ansible.lightspeed.provider`: Select AI provider. Use the LLM Provider Settings panel.
+- `ansible.lightspeed.apiEndpoint`: API endpoint URL. Use the LLM Provider Settings panel.
+- `ansible.lightspeed.modelName`: Model name/ID. Use the LLM Provider Settings panel.
+- `ansible.lightspeed.apiKey`: API key. Use the LLM Provider Settings panel for secure storage.
 
-Existing values from deprecated settings are automatically migrated to the panel
-storage on first activation.
+Existing values from deprecated settings are automatically migrated to the panel storage on first activation. See [LLM Provider Documentation](llm-providers.md) for full setup instructions.
 
 ## Completion & Language Server Settings
 

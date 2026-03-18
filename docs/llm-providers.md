@@ -1,14 +1,10 @@
 # LLM Provider Support for Ansible Lightspeed
 
-The Ansible VS Code extension supports multiple LLM providers for Ansible code
-generation and assistance. Available providers include Red Hat Ansible Lightspeed
-with watsonx Code Assistant (WCA), Google Gemini, and Red Hat AI for
-OpenAI-compatible deployments.
+The Ansible VS Code extension supports multiple LLM providers including Red Hat Ansible Lightspeed with watsonx Code Assistant (WCA), Google Gemini, and Red Hat AI for Ansible code generation and assistance.
 
 ## Supported Features
 
-When using LLM providers, the following Ansible Lightspeed features are
-available:
+When using LLM providers, the following Ansible Lightspeed features are available:
 
 **Supported:**
 
@@ -26,8 +22,7 @@ available:
 
 ### IBM watsonx (WCA)
 
-The default provider. Uses Red Hat Ansible Lightspeed with IBM watsonx Code
-Assistant.
+The default provider. Uses Red Hat Ansible Lightspeed with IBM watsonx Code Assistant.
 
 **Configuration:**
 
@@ -42,56 +37,44 @@ Direct access to Google Gemini models.
 **Configuration:**
 
 - Provider: `google`
-- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (fixed;
-  custom URLs only for local testing/proxies)
+- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (fixed; custom URLs only for local testing/proxies)
 - API Key: Your Google AI API key (starts with `AIza`)
 - Model Name: e.g., `gemini-2.5-flash`, `gemini-1.5-pro`
 
 ### Red Hat AI
 
-Supports models hosted on the Red Hat AI platform. This provider communicates
-using the standard `/v1/chat/completions` API and authenticates with a Bearer
-token.
+Supports models hosted on the Red Hat AI platform. This provider communicates using the standard `/v1/chat/completions` API and authenticates with a Bearer token.
 
 **Configuration:**
 
-- Provider: `Red Hat AI`
+- Provider: `rhcustom`
 - API Endpoint: Base URL of your deployment (required)
 - API Key: Your API key for the endpoint (required)
 - Model Name: The model to use, e.g., `Granite-3.3-8B-Instruct` (required)
 - Max Tokens: Maximum tokens per response (optional, defaults to 1600)
 
-> **Note:** The endpoint must expose an OpenAI-compatible
-> `/v1/chat/completions` route. Provide only the base URL (e.g.,
-> `https://my-api.example.com`); the extension appends `/v1/chat/completions`
-> automatically.
+> **Note:** The endpoint must expose an OpenAI-compatible `/v1/chat/completions` route. Provide only the base URL (e.g., `https://my-api.example.com`); the extension appends `/v1/chat/completions` automatically.
 
 ## Setup Instructions
 
 ### Method 1: LLM Provider Settings Panel (Recommended)
 
-The LLM Provider Settings panel provides a visual interface to configure all
-providers. It can be accessed from the Ansible Development Tools (ADT) sidebar
-under the Generative AI section, or from the Command Palette.
+The LLM Provider Settings panel provides a visual interface to configure all providers. It can be accessed from the Ansible Development Tools (ADT) sidebar under the Generative AI section, or from the Command Palette.
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run: `Ansible Lightspeed: Open LLM Provider Settings`
-3. The panel displays all available providers (IBM watsonx, Google Gemini,
-   Red Hat AI)
+3. The panel displays all available providers (IBM watsonx, Google Gemini, Red Hat AI)
 4. Click **Edit** on the provider you want to configure
 5. Fill in the required fields (API Endpoint, API Key, Model Name, etc.)
 6. Click **Save**
 7. Click **Connect** to validate the connection
 8. Click **Switch to this Provider** to make it the active provider
 
-Provider settings are stored securely: API keys use VS Code's secret storage,
-and other values are kept in global state. This approach avoids storing sensitive
-credentials in plain-text settings files.
+Provider settings are stored securely: API keys use VS Code's secret storage, and other values are kept in global state. This approach avoids storing sensitive credentials in plain-text settings files.
 
 ### Method 2: Guided Configuration (Command Palette)
 
-This method uses a step-by-step Command Palette flow with input prompts instead
-of the visual panel.
+This method uses a step-by-step Command Palette flow with input prompts instead of the visual panel.
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Run: `Ansible Lightspeed: Configure LLM Provider`
@@ -101,10 +84,7 @@ of the visual panel.
 
 ### Method 3: Workspace Configuration (Legacy)
 
-> **Note:** The `ansible.lightspeed.provider`, `apiEndpoint`, `modelName`, and
-> `apiKey` settings in `settings.json` are deprecated. Existing values are
-> automatically migrated to the LLM Provider Settings panel on first activation.
-> The Red Hat AI provider is only available through the panel.
+> **Note:** The `ansible.lightspeed.provider`, `apiEndpoint`, `modelName`, and `apiKey` settings in `settings.json` are deprecated. Existing values are automatically migrated to the LLM Provider Settings panel on first activation. The Red Hat AI provider is not available through the legacy `settings.json` settings (the `ansible.lightspeed.provider` enum only includes `wca` and `google`). Use the LLM Provider Settings panel or the `Ansible Lightspeed: Configure LLM Provider` command to set up Red Hat AI.
 
 For WCA, you can still use workspace settings:
 
@@ -118,14 +98,18 @@ For WCA, you can still use workspace settings:
 
 Settings managed through the LLM Provider Settings panel:
 
-| Setting      | Description                | Default                                                      | Applicable To         |
-| ------------ | -------------------------- | ------------------------------------------------------------ | --------------------- |
-| API Endpoint | API endpoint URL           | WCA: `https://c.ai.ansible.redhat.com`                      | WCA                   |
-| API Endpoint | API endpoint URL           | Google: `https://generativelanguage.googleapis.com/v1beta`   | Google                |
-| API Endpoint | API endpoint URL           | Red Hat AI: required, no default                             | Red Hat AI            |
-| API Key      | API key for authentication |                                                              | Google, Red Hat AI    |
-| Model Name   | Model name/ID to use       |                                                              | Google, Red Hat AI    |
-| Max Tokens   | Max tokens per response    | `1600`                                                       | Red Hat AI            |
+| Setting      | Description                | Default                              | Applicable To            |
+| ------------ | -------------------------- | ------------------------------------ | ------------------------ |
+| API Endpoint | API endpoint URL           | Varies per provider (see note below) | WCA, Google, Red Hat AI  |
+| API Key      | API key for authentication |                                      | Google, Red Hat AI       |
+| Model Name   | Model name/ID to use       |                                      | Google, Red Hat AI       |
+| Max Tokens   | Max tokens per response    | `1600`                               | Red Hat AI               |
+
+**API Endpoint defaults:**
+
+- **WCA:** `https://c.ai.ansible.redhat.com`
+- **Google:** `https://generativelanguage.googleapis.com/v1beta` (fixed; custom URLs only for local testing/proxies)
+- **Red Hat AI:** Required, no default. Must point to an OpenAI-compatible endpoint.
 
 Global settings in `settings.json`:
 
@@ -138,8 +122,7 @@ Global settings in `settings.json`:
 
 ## Usage
 
-Once configured, LLM providers work seamlessly with existing Ansible Lightspeed
-features.
+Once configured, LLM providers work seamlessly with existing Ansible Lightspeed features.
 
 ### Playbook Generation
 
@@ -176,20 +159,16 @@ creates an application user, and enables the service
 1. Open an existing Ansible playbook in the editor
 2. Right-click in the editor
 3. Select **Explain the current Ansible playbook with Lightspeed**
-4. The provider returns a Markdown explanation with a titled paragraph for each
-   task, describing its purpose and the parameters used
+4. The provider returns a Markdown explanation with a titled paragraph for each task, describing its purpose and the parameters used
 
-**Example:** Given a playbook that installs and configures Apache, the
-explanation output includes a heading and paragraph for each task with details on
-the modules and parameters involved.
+**Example:** Given a playbook that installs and configures Apache, the explanation output includes a heading and paragraph for each task with details on the modules and parameters involved.
 
 ### Role Explanation
 
 1. Open a file inside an Ansible role (e.g., `tasks/main.yml`)
 2. Right-click in the editor
 3. Select **Explain the current Ansible role with Lightspeed**
-4. The provider aggregates all role files and returns a Markdown explanation
-   covering each task in the role
+4. The provider aggregates all role files and returns a Markdown explanation covering each task in the role
 
 ### Interactive Chat
 
@@ -223,38 +202,29 @@ Or use the quick switch command:
 
 ## Security Considerations
 
-1. **API Key Storage:** API keys entered through the LLM Provider Settings panel
-   are stored in VS Code's secret storage, not in plain-text settings files.
+1. **API Key Storage:** API keys entered through the LLM Provider Settings panel are stored in VS Code's secret storage, not in plain-text settings files.
 
-2. **Data Privacy:** When using LLM providers, your Ansible code and prompts are
-   sent to external services. Review each provider's privacy policy.
+2. **Data Privacy:** When using LLM providers, your Ansible code and prompts are sent to external services. Review each provider's privacy policy.
 
-3. **Workspace Settings:** For team projects, avoid committing API keys to
-   version control. Use the LLM Provider Settings panel or environment
-   variables.
+3. **Workspace Settings:** For team projects, avoid committing API keys to version control. Use the LLM Provider Settings panel or environment variables.
 
-4. **Network Security:** Ensure your network allows HTTPS connections to the
-   provider endpoints.
+4. **Network Security:** Ensure your network allows HTTPS connections to the provider endpoints.
 
 ## Troubleshooting
 
 ### Connection Issues
 
-1. **Test Connection:** Use the **Connect** button in the LLM Provider Settings
-   panel or run:
+1. **Test Connection:** Use the **Connect** button in the LLM Provider Settings panel or run:
 
    ```text
    Command Palette > Ansible Lightspeed: Test Provider Connection
    ```
 
-2. **Check API Key:** Ensure your API key is valid and has sufficient
-   credits/quota.
+2. **Check API Key:** Ensure your API key is valid and has sufficient credits/quota.
 
-3. **Verify Endpoint:** Confirm the API endpoint URL is correct. For Red Hat AI,
-   the endpoint must expose `/v1/chat/completions`.
+3. **Verify Endpoint:** Confirm the API endpoint URL is correct. For Red Hat AI, the endpoint must expose `/v1/chat/completions`.
 
-4. **Network Access:** Check firewall/proxy settings for connectivity to the
-   provider endpoint.
+4. **Network Access:** Check firewall/proxy settings for connectivity to the provider endpoint.
 
 ### Common Error Messages
 
@@ -268,8 +238,7 @@ Or use the quick switch command:
 
 ### Debug Information
 
-Check the "Ansible Support" output channel in VS Code for detailed provider
-logs.
+Check the "Ansible Support" output channel in VS Code for detailed provider logs.
 
 ## Model Recommendations
 
@@ -284,8 +253,7 @@ Uses organization default model. No manual model selection needed.
 
 ### Red Hat AI Models
 
-The supported models in Red Hat AI platform depend on what is deployed at your
-endpoint. Common models include:
+The supported models in Red Hat AI platform depend on what is deployed at your endpoint. Common models include:
 
 - `Granite-3.3-8B-Instruct` (general-purpose Ansible tasks)
 - `DeepSeek-R1-Distill-Qwen-14B-W4A16` (complex reasoning)
@@ -294,19 +262,14 @@ endpoint. Common models include:
 
 ### All Non-WCA Providers
 
-- Content source matching is not available. Only WCA provides training data
-  attribution.
+- Content source matching is not available. Only WCA provides training data attribution.
 
 ### Red Hat AI Limitations
 
-- The API endpoint must be an OpenAI-compatible service exposing
-  `/v1/chat/completions`.
-- There is no default model. You must specify a valid model name available at
-  your endpoint.
-- Max tokens defaults to 1600. Adjust this value based on your model's
-  capabilities.
-- Role generation produces only the `tasks/main.yml` file. Other role
-  directories (handlers, vars, defaults, templates) are not generated.
+- The API endpoint must be an OpenAI-compatible service exposing `/v1/chat/completions`.
+- There is no default model. You must specify a valid model name available at your endpoint.
+- Max tokens defaults to 1600. Adjust this value based on your model's capabilities.
+- Role generation produces only the `tasks/main.yml` file. Other role directories (handlers, vars, defaults, templates) are not generated.
 
 ### Provider-Specific
 
@@ -333,8 +296,6 @@ For issues with LLM provider integration:
 1. Check this documentation
 2. Test your provider configuration using the LLM Provider Settings panel
 3. Review the troubleshooting section
-4. File an issue on the
-   [Ansible VS Code Extension repository](https://github.com/ansible/vscode-ansible/issues)
+4. File an issue on the [Ansible VS Code Extension repository](https://github.com/ansible/vscode-ansible/issues)
 
-For provider-specific issues (API keys, billing, model availability), contact
-your provider's support directly.
+For provider-specific issues (API keys, billing, model availability), contact your provider's support directly.
