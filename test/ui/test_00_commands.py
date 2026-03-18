@@ -2,14 +2,72 @@
 
 # pylint: disable=E0401, W0613, R0801
 
+import logging
 import time
 from typing import Any
+
+from selenium.common import ElementNotInteractableException, NoSuchElementException
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
 
 from test.ui.utils.ui_utils import (
     ensure_vscode_ready,
     vscode_run_command,
     wait_displayed,
 )
+
+log = logging.getLogger(__package__)
+
+EXPECTED_ADT_PACKAGES = [
+    "ansible-core",
+    "ansible-creator",
+    "ansible-dev-environment",
+    "ansible-dev-tools",
+    "ansible-lint",
+    "ansible-navigator",
+    "ansible-sign",
+    "molecule",
+    "pytest-ansible",
+    "tox-ansible",
+]
+
+
+def test_terminal(
+    browser_setup: Any,
+    screenshot_on_fail: Any,
+    close_editors: Any,
+) -> None:
+    """Test terminal functionality."""
+    driver, _ = browser_setup
+
+    ensure_vscode_ready(driver)
+    vscode_run_command(driver, ">workbench.action.terminal.new")
+    vscode_run_command(driver, ">workbench.action.terminal.focus")
+    time.sleep(3)  # allow terminal to start before sending input
+    vscode_run_command(
+        driver, ">workbench.action.terminal.sendSequence", "adt --version\\n"
+    )
+
+    output: WebElement | None = None
+
+    def check_output() -> bool:
+        nonlocal output
+        output = driver.find_element(
+            by="xpath", value="//div[@class='terminal-xterm-host']"
+        )
+        log.info("terminal output: %s", output.text)
+        return "tox-ansible" in output.text
+
+    errors = [NoSuchElementException, ElementNotInteractableException]
+    wait = WebDriverWait(
+        driver, timeout=10, poll_frequency=0.5, ignored_exceptions=errors
+    )
+    wait.until(lambda _: check_output())
+
+    assert isinstance(output, WebElement)
+    text = output.text
+    missing = [pkg for pkg in EXPECTED_ADT_PACKAGES if pkg not in text]
+    assert not missing, f"Missing packages in 'adt --version' output: {missing}"
 
 
 def test_create_empty_playbook(
