@@ -37,9 +37,11 @@ Direct access to Google Gemini models.
 **Configuration:**
 
 - Provider: `google`
-- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (fixed; custom URLs only for local testing/proxies)
+- API Endpoint: `https://generativelanguage.googleapis.com/v1beta` (fixed, not configurable)
 - API Key: Your Google AI API key (starts with `AIza`)
 - Model Name: e.g., `gemini-2.5-flash`, `gemini-1.5-pro`
+
+> **Note:** For Google provider, the API endpoint is automatically set and cannot be changed.
 
 ### Red Hat AI
 
@@ -108,7 +110,7 @@ Settings managed through the LLM Provider Settings panel:
 **API Endpoint defaults:**
 
 - **WCA:** `https://c.ai.ansible.redhat.com`
-- **Google:** `https://generativelanguage.googleapis.com/v1beta` (fixed; custom URLs only for local testing/proxies)
+- **Google:** `https://generativelanguage.googleapis.com/v1beta` (fixed, not configurable)
 - **Red Hat AI:** Required, no default. Must point to an OpenAI-compatible endpoint.
 
 Global settings in `settings.json`:
