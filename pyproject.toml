@@ -64,8 +64,8 @@ exclude = "(.ansible|out|syntaxes).*"
 # integration like vscode or pycharm
 # keep -rA to know what is skipped, failed and passed as these are scenarios
 # and we do not expect to have too many of them.
-# --max-fail=5 is needed to prevent CI jobs being killed when too many test
-# fail, preventing generation and uploading of a junit report.
+# --maxfail=5 is needed to prevent CI jobs being killed when too many tests
+# are failing, preventing generation and uploading of a junit report.
 addopts = [
   "--durations-min=10",
   "--durations=10",
