@@ -18,7 +18,9 @@ WORKDIR /context
 # install ansible-dev-tools specific packages and dependencies while avoiding
 # adding multiple layers to the image.
 # cspell:disable
+# https://docs.docker.com/reference/build-checks/secrets-used-in-arg-or-env/
 RUN \
+--mount=type=secret,id=github_token,env=GITHUB_TOKEN \
 --mount=type=bind,target=. \
 --mount=type=cache,target=/root/.local/share/mise,sharing=locked \
 --mount=type=cache,target=/root/.cache/mise,sharing=locked \
