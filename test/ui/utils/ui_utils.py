@@ -994,12 +994,15 @@ def get_vscode_file_text(driver: WebDriver) -> str:
     return playbook
 
 
-def vscode_run_command(driver: WebDriver, command: str) -> None:
+def vscode_run_command(
+    driver: WebDriver, command: str, command_param: str | None = None
+) -> None:
     """Run a command on vscode.
 
     Args:
         driver: WebDriver instance
         command: Command to run (will be prefixed with '>' if not present)
+        command_param: Parameter to pass to the command (argument)
     """
     driver.switch_to.default_content()
     if not command.startswith(">"):
@@ -1035,6 +1038,8 @@ def vscode_run_command(driver: WebDriver, command: str) -> None:
     # enter
     actions = ActionChains(driver)
     actions.send_keys(Keys.ENTER).perform()
+    if command_param:
+        actions.send_keys(command_param, Keys.ENTER).perform()
 
 
 def get_vscode_attribution(driver: WebDriver, prompt: str) -> dict[str, dict[str, str]]:
