@@ -6,7 +6,8 @@ import {
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
-import { readFileSync, statSync } from "fs";
+import { statSync } from "fs";
+import { readFile } from "fs/promises";
 import {
   collectAllDefinitions,
   AnsibleSymbolOccurrence,
@@ -62,7 +63,7 @@ function getSymbolsForDocument(document: TextDocument): SymbolInformation[] {
   return symbols;
 }
 
-function getSymbolsForFile(filePath: string, isHandlerFile = false): SymbolInformation[] {
+async function getSymbolsForFile(filePath: string, isHandlerFile = false): Promise<SymbolInformation[]> {
   let mtimeMs: number;
   let content: string;
   try {
@@ -73,7 +74,7 @@ function getSymbolsForFile(filePath: string, isHandlerFile = false): SymbolInfor
       return cached.symbols;
     }
 
-    content = readFileSync(filePath, { encoding: "utf8" });
+    content = await readFile(filePath, { encoding: "utf8" });
   } catch {
     return [];
   }
@@ -94,11 +95,11 @@ function getSymbolsForFile(filePath: string, isHandlerFile = false): SymbolInfor
   return symbols;
 }
 
-export function getWorkspaceSymbols(
+export async function getWorkspaceSymbols(
   params: WorkspaceSymbolParams,
   documents: Iterable<TextDocument>,
   rolesPaths?: string[],
-): SymbolInformation[] {
+): Promise<SymbolInformation[]> {
   const query = (params.query ?? "").toLowerCase();
   const allSymbols: SymbolInformation[] = [];
   const scannedRoles = new Set<string>();
@@ -114,10 +115,10 @@ export function getWorkspaceSymbols(
       scannedRoles.add(roleCtx.rolePath);
 
       const handlerFiles = new Set(
-        listRoleYamlFiles(roleCtx.rolePath, "handlers").map((f) => f),
+        (await listRoleYamlFiles(roleCtx.rolePath, "handlers")).map((f) => f),
       );
       const roleFiles = [
-        ...listRoleYamlFiles(roleCtx.rolePath, "tasks"),
+        ...(await listRoleYamlFiles(roleCtx.rolePath, "tasks")),
         ...handlerFiles,
         `${roleCtx.rolePath}/defaults/main.yml`,
         `${roleCtx.rolePath}/vars/main.yml`,
@@ -127,7 +128,7 @@ export function getWorkspaceSymbols(
         const fileUri = URI.file(filePath).toString();
         if (seenFileUris.has(fileUri)) continue;
         seenFileUris.add(fileUri);
-        allSymbols.push(...getSymbolsForFile(filePath, handlerFiles.has(filePath)));
+        allSymbols.push(...(await getSymbolsForFile(filePath, handlerFiles.has(filePath))));
       }
     }
   }

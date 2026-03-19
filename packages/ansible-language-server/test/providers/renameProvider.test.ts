@@ -7,21 +7,21 @@ describe("prepareRename()", () => {
   describe("handler rename", () => {
     const textDoc = getDoc("references/playbook_handlers.yml");
 
-    it("should allow rename on notify value", () => {
+    it("should allow rename on notify value", async () => {
       // line 6: `notify: Restart nginx`
       const range = prepareRename(textDoc, Position.create(6, 14));
       assert(range);
       expect(range.start.line).toBe(6);
     });
 
-    it("should allow rename on handler name", () => {
+    it("should allow rename on handler name", async () => {
       // file line 18 (1-based) = 0-based line 17
       const range = prepareRename(textDoc, Position.create(17, 14));
       assert(range);
       expect(range.start.line).toBe(17);
     });
 
-    it("should allow rename on listen value", () => {
+    it("should allow rename on listen value", async () => {
       // file line 27 (1-based) = 0-based line 26
       const range = prepareRename(textDoc, Position.create(26, 14));
       assert(range);
@@ -32,19 +32,19 @@ describe("prepareRename()", () => {
   describe("variable rename", () => {
     const textDoc = getDoc("references/playbook_variables.yml");
 
-    it("should allow rename on vars key", () => {
+    it("should allow rename on vars key", async () => {
       // line 3: `http_port: 8080`
       const range = prepareRename(textDoc, Position.create(3, 6));
       assert(range);
     });
 
-    it("should allow rename on register value", () => {
+    it("should allow rename on register value", async () => {
       // file line 17 (1-based) = 0-based line 16
       const range = prepareRename(textDoc, Position.create(16, 16));
       assert(range);
     });
 
-    it("should allow rename on Jinja2 variable", () => {
+    it("should allow rename on Jinja2 variable", async () => {
       // file line 13 (1-based) = 0-based line 12
       const range = prepareRename(textDoc, Position.create(12, 28));
       assert(range);
@@ -54,19 +54,19 @@ describe("prepareRename()", () => {
   describe("unsupported renames", () => {
     const textDoc = getDoc("references/playbook_includes.yml");
 
-    it("should return null for filePath", () => {
+    it("should return null for filePath", async () => {
       // line 6: include_tasks value
       const range = prepareRename(textDoc, Position.create(6, 38));
       expect(range).toBeNull();
     });
 
-    it("should return null for role name", () => {
+    it("should return null for role name", async () => {
       // file line 21 (1-based) = 0-based line 20: `name: test_role` in include_role
       const range = prepareRename(textDoc, Position.create(20, 16));
       expect(range).toBeNull();
     });
 
-    it("should return null for non-symbol position", () => {
+    it("should return null for non-symbol position", async () => {
       const range = prepareRename(textDoc, Position.create(0, 0));
       expect(range).toBeNull();
     });
@@ -77,9 +77,9 @@ describe("doRename()", () => {
   describe("handler rename", () => {
     const textDoc = getDoc("references/playbook_handlers.yml");
 
-    it("should rename handler from notify", () => {
+    it("should rename handler from notify", async () => {
       // line 6: `notify: Restart nginx`
-      const edit = doRename(
+      const edit = await doRename(
         textDoc,
         Position.create(6, 14),
         "Restart apache",
@@ -100,9 +100,9 @@ describe("doRename()", () => {
       }
     });
 
-    it("should rename handler from name (updates name + notify only)", () => {
+    it("should rename handler from name (updates name + notify only)", async () => {
       // file line 18 (1-based) = 0-based line 17
-      const edit = doRename(
+      const edit = await doRename(
         textDoc,
         Position.create(17, 14),
         "Restart apache",
@@ -118,9 +118,9 @@ describe("doRename()", () => {
       expect(hasListen).toBe(false);
     });
 
-    it("should rename handler from listen (updates listen + notify only)", () => {
+    it("should rename handler from listen (updates listen + notify only)", async () => {
       // file line 27 (1-based) = 0-based line 26
-      const edit = doRename(
+      const edit = await doRename(
         textDoc,
         Position.create(26, 14),
         "Restart apache",
@@ -140,9 +140,9 @@ describe("doRename()", () => {
   describe("variable rename", () => {
     const textDoc = getDoc("references/playbook_variables.yml");
 
-    it("should rename variable across all occurrences", () => {
+    it("should rename variable across all occurrences", async () => {
       // line 3: `http_port: 8080`
-      const edit = doRename(
+      const edit = await doRename(
         textDoc,
         Position.create(3, 6),
         "server_port",
@@ -162,8 +162,8 @@ describe("doRename()", () => {
   describe("unsupported renames", () => {
     const textDoc = getDoc("references/playbook_includes.yml");
 
-    it("should return null for filePath rename", () => {
-      const edit = doRename(
+    it("should return null for filePath rename", async () => {
+      const edit = await doRename(
         textDoc,
         Position.create(6, 38),
         "new_tasks.yml",
@@ -175,9 +175,9 @@ describe("doRename()", () => {
   describe("handler rename with long block (>20 lines between name and listen)", () => {
     const textDoc = getDoc("references/playbook_handlers_long.yml");
 
-    it("should correctly exclude name when listen exists in same handler block", () => {
+    it("should correctly exclude name when listen exists in same handler block", async () => {
       // line 6: `notify: Restart nginx` — rename from notify
-      const edit = doRename(
+      const edit = await doRename(
         textDoc,
         Position.create(6, 14),
         "Restart apache",

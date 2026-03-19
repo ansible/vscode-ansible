@@ -382,7 +382,7 @@ export class AnsibleLanguageService {
           const rolesPaths = context
             ? (await context.ansibleConfig).roles_paths
             : undefined;
-          return getReferences(
+          return await getReferences(
             document,
             params.position,
             params.context.includeDeclaration,
@@ -405,7 +405,7 @@ export class AnsibleLanguageService {
           const rolesPaths = context
             ? (await context.ansibleConfig).roles_paths
             : undefined;
-          return doRename(
+          return await doRename(
             document,
             params.position,
             params.newName,
@@ -441,7 +441,7 @@ export class AnsibleLanguageService {
             rolesPaths = (await context.ansibleConfig).roles_paths;
           }
         }
-        return getWorkspaceSymbols(params, this.documents.all(), rolesPaths);
+        return await getWorkspaceSymbols(params, this.documents.all(), rolesPaths);
       } catch (error) {
         this.handleError(error, "onWorkspaceSymbol");
       }

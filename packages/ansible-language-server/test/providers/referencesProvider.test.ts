@@ -7,24 +7,24 @@ describe("getReferences()", () => {
   describe("handler references", () => {
     const textDoc = getDoc("references/playbook_handlers.yml");
 
-    it("should find all references for handler from notify", () => {
+    it("should find all references for handler from notify", async () => {
       // line 6: `notify: Restart nginx`
-      const refs = getReferences(textDoc, Position.create(6, 14), true);
+      const refs = await getReferences(textDoc, Position.create(6, 14), true);
       assert(refs);
       expect(refs.length).toBeGreaterThanOrEqual(4);
     });
 
-    it("should find references excluding declaration", () => {
+    it("should find references excluding declaration", async () => {
       // line 6: `notify: Restart nginx`
-      const refs = getReferences(textDoc, Position.create(6, 14), false);
+      const refs = await getReferences(textDoc, Position.create(6, 14), false);
       assert(refs);
       // Excluding definition (handler name), should still have notify + listen
       expect(refs.length).toBeGreaterThanOrEqual(3);
     });
 
-    it("should find references from handler name", () => {
+    it("should find references from handler name", async () => {
       // file line 18 (1-based) = 0-based line 17: `- name: Restart nginx` in handlers
-      const refs = getReferences(textDoc, Position.create(17, 14), true);
+      const refs = await getReferences(textDoc, Position.create(17, 14), true);
       assert(refs);
       expect(refs.length).toBeGreaterThanOrEqual(4);
     });
@@ -33,16 +33,16 @@ describe("getReferences()", () => {
   describe("variable references", () => {
     const textDoc = getDoc("references/playbook_variables.yml");
 
-    it("should find all references for http_port", () => {
+    it("should find all references for http_port", async () => {
       // line 3: `http_port: 8080` in vars
-      const refs = getReferences(textDoc, Position.create(3, 6), true);
+      const refs = await getReferences(textDoc, Position.create(3, 6), true);
       assert(refs);
       expect(refs.length).toBeGreaterThanOrEqual(3);
     });
 
-    it("should find references for registered variable", () => {
+    it("should find references for registered variable", async () => {
       // file line 17 (1-based) = 0-based line 16: `register: cmd_result`
-      const refs = getReferences(textDoc, Position.create(16, 16), true);
+      const refs = await getReferences(textDoc, Position.create(16, 16), true);
       assert(refs);
       expect(refs.length).toBeGreaterThanOrEqual(2);
     });
@@ -51,9 +51,9 @@ describe("getReferences()", () => {
   describe("cross-file handler references in role", () => {
     const textDoc = getDoc("references/roles/test_role/tasks/main.yml");
 
-    it("should find handler references across role files", () => {
+    it("should find handler references across role files", async () => {
       // line 11: `notify: Restart app`
-      const refs = getReferences(textDoc, Position.create(11, 12), true);
+      const refs = await getReferences(textDoc, Position.create(11, 12), true);
       assert(refs);
 
       // Should include occurrences from tasks AND handlers
@@ -65,9 +65,9 @@ describe("getReferences()", () => {
   describe("cross-file variable references in role", () => {
     const textDoc = getDoc("references/roles/test_role/tasks/main.yml");
 
-    it("should find variable references across role files", () => {
+    it("should find variable references across role files", async () => {
       // line 3: `name: "{{ app_user }}"` — cursor on app_user in Jinja2
-      const refs = getReferences(textDoc, Position.create(3, 18), true);
+      const refs = await getReferences(textDoc, Position.create(3, 18), true);
       assert(refs);
       expect(refs.length).toBeGreaterThanOrEqual(1);
     });
@@ -76,9 +76,9 @@ describe("getReferences()", () => {
   describe("returns null for unsupported", () => {
     const textDoc = getDoc("references/playbook_includes.yml");
 
-    it("should return null for non-symbol positions", () => {
+    it("should return null for non-symbol positions", async () => {
       // line 0: `---`
-      const refs = getReferences(textDoc, Position.create(0, 0), true);
+      const refs = await getReferences(textDoc, Position.create(0, 0), true);
       expect(refs).toBeNull();
     });
   });

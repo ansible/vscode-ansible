@@ -1,7 +1,7 @@
 import { Position, Range } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
-import { readFileSync } from "fs";
+import { readFile } from "fs/promises";
 import {
   Document,
   isScalar,
@@ -256,12 +256,12 @@ export function findAllOccurrences(
 // findAllOccurrencesInRole
 // ========================
 
-export function findAllOccurrencesInRole(
+export async function findAllOccurrencesInRole(
   documentUri: string,
   name: string,
   kind: AnsibleSymbolKind,
   rolesPaths?: string[],
-): Map<string, AnsibleSymbolOccurrence[]> {
+): Promise<Map<string, AnsibleSymbolOccurrence[]>> {
   const result = new Map<string, AnsibleSymbolOccurrence[]>();
   const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
 
@@ -272,12 +272,12 @@ export function findAllOccurrencesInRole(
   let filePaths: string[] = [];
   let handlerFiles: Set<string> | undefined;
   if (kind === "handler") {
-    const taskPaths = listRoleYamlFiles(roleCtx.rolePath, "tasks");
-    const handlerPaths = listRoleYamlFiles(roleCtx.rolePath, "handlers");
+    const taskPaths = await listRoleYamlFiles(roleCtx.rolePath, "tasks");
+    const handlerPaths = await listRoleYamlFiles(roleCtx.rolePath, "handlers");
     handlerFiles = new Set(handlerPaths);
     filePaths = [...taskPaths, ...handlerPaths];
   } else if (kind === "variable") {
-    const taskFiles = listRoleYamlFiles(roleCtx.rolePath, "tasks");
+    const taskFiles = await listRoleYamlFiles(roleCtx.rolePath, "tasks");
     const defaultsFile = `${roleCtx.rolePath}/defaults/main.yml`;
     const varsFile = `${roleCtx.rolePath}/vars/main.yml`;
     filePaths = [...taskFiles, defaultsFile, varsFile];
@@ -285,11 +285,10 @@ export function findAllOccurrencesInRole(
     return result;
   }
 
-  // TODO: migrate to async fs when the broader codebase adopts async I/O
   for (const filePath of filePaths) {
     let content: string;
     try {
-      content = readFileSync(filePath, { encoding: "utf8" });
+      content = await readFile(filePath, { encoding: "utf8" });
     } catch {
       continue;
     }
@@ -310,16 +309,16 @@ export function findAllOccurrencesInRole(
 // getOccurrencesWithRoleContext
 // ========================
 
-export function getOccurrencesWithRoleContext(
+export async function getOccurrencesWithRoleContext(
   documentUri: string,
   document: TextDocument | undefined,
   name: string,
   kind: AnsibleSymbolKind,
   rolesPaths?: string[],
-): AnsibleSymbolOccurrence[] {
+): Promise<AnsibleSymbolOccurrence[]> {
   const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
   if (roleCtx && (kind === "handler" || kind === "variable")) {
-    const occurrenceMap = findAllOccurrencesInRole(documentUri, name, kind, rolesPaths);
+    const occurrenceMap = await findAllOccurrencesInRole(documentUri, name, kind, rolesPaths);
     const result: AnsibleSymbolOccurrence[] = [];
     for (const [, occs] of occurrenceMap) {
       result.push(...occs);

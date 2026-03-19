@@ -5,16 +5,16 @@ import {
   getOccurrencesWithRoleContext,
 } from "@src/utils/ansibleSymbols.js";
 
-export function getReferences(
+export async function getReferences(
   document: TextDocument,
   position: Position,
   includeDeclaration: boolean,
   rolesPaths?: string[],
-): Location[] | null {
+): Promise<Location[] | null> {
   const symbol = getSymbolAtPosition(document, position);
   if (!symbol) return null;
 
-  let allOccurrences = getOccurrencesWithRoleContext(
+  let allOccurrences = await getOccurrencesWithRoleContext(
     document.uri, document, symbol.name, symbol.kind, rolesPaths,
   );
 

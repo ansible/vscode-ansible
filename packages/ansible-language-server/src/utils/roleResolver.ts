@@ -1,5 +1,6 @@
 import * as path from "path";
-import { readFileSync, existsSync, readdirSync } from "fs";
+import { existsSync } from "fs";
+import { readFile, readdir } from "fs/promises";
 import { URI } from "vscode-uri";
 import { parseDocument } from "yaml";
 import { IDescription, IOption } from "@src/interfaces/module.js";
@@ -119,16 +120,16 @@ export function getRoleContextFromUri(
  * isExternalContext=false (inside role):
  *   defaults/main.yml + vars/main.yml, enriched with docs from argument_specs (all entry points)
  */
-export function getRoleVariables(
+export async function getRoleVariables(
   rolePath: string,
   isExternalContext: boolean,
   entryPoint: string = "main",
-): RoleVariableInfo[] {
-  const argSpecs = parseArgumentSpecs(rolePath);
-  const defaultsVars = readYamlVarFile(
+): Promise<RoleVariableInfo[]> {
+  const argSpecs = await parseArgumentSpecs(rolePath);
+  const defaultsVars = await readYamlVarFile(
     path.join(rolePath, "defaults", "main.yml"),
   );
-  const varsVars = readYamlVarFile(path.join(rolePath, "vars", "main.yml"));
+  const varsVars = await readYamlVarFile(path.join(rolePath, "vars", "main.yml"));
 
   if (isExternalContext) {
     // Playbook context: argument_specs options first, defaults as fallback
@@ -163,11 +164,11 @@ export function getRoleVariables(
 /**
  * Gets the short_description for a role entry point from argument_specs.
  */
-export function getRoleEntryPointDescription(
+export async function getRoleEntryPointDescription(
   rolePath: string,
   entryPoint: string = "main",
-): string | undefined {
-  const argSpecs = parseArgumentSpecs(rolePath);
+): Promise<string | undefined> {
+  const argSpecs = await parseArgumentSpecs(rolePath);
   return argSpecs.get(entryPoint)?.shortDescription;
 }
 
@@ -232,10 +233,10 @@ export function resolveModuleFilePath(
  * Lists YAML files matching a glob-like pattern within a role directory.
  * Supports simple patterns like "tasks" -> tasks/**\/*.yml
  */
-export function listRoleYamlFiles(
+export async function listRoleYamlFiles(
   rolePath: string,
   subdir: string,
-): string[] {
+): Promise<string[]> {
   const dir = path.join(rolePath, subdir);
   if (!existsSync(dir)) {
     return [];
@@ -245,14 +246,14 @@ export function listRoleYamlFiles(
 
 // --- Internal helpers ---
 
-function collectYamlFiles(dir: string): string[] {
+async function collectYamlFiles(dir: string): Promise<string[]> {
   const result: string[] = [];
   try {
-    const entries = readdirSync(dir, { withFileTypes: true });
+    const entries = await readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        result.push(...collectYamlFiles(fullPath));
+        result.push(...(await collectYamlFiles(fullPath)));
       } else if (
         entry.isFile() &&
         (entry.name.endsWith(".yml") || entry.name.endsWith(".yaml"))
@@ -266,12 +267,12 @@ function collectYamlFiles(dir: string): string[] {
   return result;
 }
 
-function readYamlVarFile(filePath: string): string[] {
+async function readYamlVarFile(filePath: string): Promise<string[]> {
   if (!existsSync(filePath)) {
     return [];
   }
   try {
-    const content = readFileSync(filePath, { encoding: "utf8" });
+    const content = await readFile(filePath, { encoding: "utf8" });
     const doc = parseDocument(content);
     const json = doc.toJSON();
     if (json && typeof json === "object" && !Array.isArray(json)) {
@@ -283,9 +284,9 @@ function readYamlVarFile(filePath: string): string[] {
   return [];
 }
 
-function parseArgumentSpecs(
+async function parseArgumentSpecs(
   rolePath: string,
-): Map<string, RoleEntryPointInfo> {
+): Promise<Map<string, RoleEntryPointInfo>> {
   const result = new Map<string, RoleEntryPointInfo>();
   const specPath = path.join(rolePath, "meta", "argument_specs.yml");
   if (!existsSync(specPath)) {
@@ -293,7 +294,7 @@ function parseArgumentSpecs(
   }
 
   try {
-    const content = readFileSync(specPath, { encoding: "utf8" });
+    const content = await readFile(specPath, { encoding: "utf8" });
     const doc = parseDocument(content);
     const json = doc.toJSON();
     if (!json || typeof json !== "object") {

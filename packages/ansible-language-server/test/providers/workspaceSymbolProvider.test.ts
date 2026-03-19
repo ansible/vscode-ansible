@@ -4,16 +4,16 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { getDoc } from "@test/helper.js";
 import { getWorkspaceSymbols } from "@src/providers/workspaceSymbolProvider.js";
 
-function query(q: string, docs: TextDocument[]) {
-  return getWorkspaceSymbols({ query: q }, docs);
+async function query(q: string, docs: TextDocument[]) {
+  return await getWorkspaceSymbols({ query: q }, docs);
 }
 
 describe("getWorkspaceSymbols()", () => {
   describe("handler symbols", () => {
     const doc = getDoc("references/playbook_handlers.yml");
 
-    it("should find handler definitions", () => {
-      const symbols = query("", [doc]);
+    it("should find handler definitions", async () => {
+      const symbols = await query("", [doc]);
       const handlers = symbols.filter((s) => s.kind === SymbolKind.Function);
       expect(handlers.length).toBe(2);
       expect(handlers.map((s) => s.name).sort()).toEqual([
@@ -22,8 +22,8 @@ describe("getWorkspaceSymbols()", () => {
       ]);
     });
 
-    it("should not include notify usages as handler symbols", () => {
-      const symbols = query("Restart", [doc]);
+    it("should not include notify usages as handler symbols", async () => {
+      const symbols = await query("Restart", [doc]);
       const handlers = symbols.filter((s) => s.kind === SymbolKind.Function);
       // Only the handler definition, not notify references
       expect(handlers.length).toBe(1);
@@ -36,16 +36,16 @@ describe("getWorkspaceSymbols()", () => {
   describe("variable symbols", () => {
     const doc = getDoc("references/playbook_variables.yml");
 
-    it("should find vars definitions", () => {
-      const symbols = query("", [doc]);
+    it("should find vars definitions", async () => {
+      const symbols = await query("", [doc]);
       const vars = symbols.filter((s) => s.kind === SymbolKind.Variable);
       const varNames = vars.map((s) => s.name);
       expect(varNames).toContain("http_port");
       expect(varNames).toContain("app_name");
     });
 
-    it("should find register definitions", () => {
-      const symbols = query("cmd_result", [doc]);
+    it("should find register definitions", async () => {
+      const symbols = await query("cmd_result", [doc]);
       expect(symbols.length).toBeGreaterThanOrEqual(1);
       const reg = symbols.find((s) => s.name === "cmd_result");
       expect(reg).toBeDefined();
@@ -54,8 +54,8 @@ describe("getWorkspaceSymbols()", () => {
       expect(reg!.location.range.start.line).toBe(16);
     });
 
-    it("should find vars_prompt definitions", () => {
-      const symbols = query("user_password", [doc]);
+    it("should find vars_prompt definitions", async () => {
+      const symbols = await query("user_password", [doc]);
       expect(symbols.length).toBeGreaterThanOrEqual(1);
       const prompt = symbols.find((s) => s.name === "user_password");
       expect(prompt).toBeDefined();
@@ -66,16 +66,16 @@ describe("getWorkspaceSymbols()", () => {
   describe("set_fact variables", () => {
     const doc = getDoc("references/playbook_set_fact.yml");
 
-    it("should find set_fact variable definitions", () => {
-      const symbols = query("", [doc]);
+    it("should find set_fact variable definitions", async () => {
+      const symbols = await query("", [doc]);
       const vars = symbols.filter((s) => s.kind === SymbolKind.Variable);
       const varNames = vars.map((s) => s.name);
       expect(varNames).toContain("my_fact");
       expect(varNames).toContain("another_fact");
     });
 
-    it("should not include cacheable as a variable", () => {
-      const symbols = query("cacheable", [doc]);
+    it("should not include cacheable as a variable", async () => {
+      const symbols = await query("cacheable", [doc]);
       expect(symbols.length).toBe(0);
     });
   });
@@ -83,8 +83,8 @@ describe("getWorkspaceSymbols()", () => {
   describe("role symbols", () => {
     const doc = getDoc("references/playbook_includes.yml");
 
-    it("should find role references", () => {
-      const symbols = query("", [doc]);
+    it("should find role references", async () => {
+      const symbols = await query("", [doc]);
       const roles = symbols.filter((s) => s.kind === SymbolKind.Package);
       expect(roles.length).toBeGreaterThanOrEqual(1);
     });
@@ -93,16 +93,16 @@ describe("getWorkspaceSymbols()", () => {
   describe("cross-file role context", () => {
     const doc = getDoc("references/roles/test_role/tasks/main.yml");
 
-    it("should include variables from defaults/main.yml", () => {
-      const symbols = query("app_port", [doc]);
+    it("should include variables from defaults/main.yml", async () => {
+      const symbols = await query("app_port", [doc]);
       expect(symbols.length).toBeGreaterThanOrEqual(1);
       const appPort = symbols.find((s) => s.name === "app_port");
       expect(appPort).toBeDefined();
       expect(appPort!.kind).toBe(SymbolKind.Variable);
     });
 
-    it("should include handler definitions from handlers/main.yml", () => {
-      const symbols = query("Restart app", [doc]);
+    it("should include handler definitions from handlers/main.yml", async () => {
+      const symbols = await query("Restart app", [doc]);
       const handlers = symbols.filter((s) => s.kind === SymbolKind.Function);
       expect(handlers.length).toBeGreaterThanOrEqual(1);
     });
@@ -111,30 +111,30 @@ describe("getWorkspaceSymbols()", () => {
   describe("query filtering", () => {
     const doc = getDoc("references/playbook_variables.yml");
 
-    it("should filter by case-insensitive substring", () => {
-      const symbols = query("HTTP", [doc]);
+    it("should filter by case-insensitive substring", async () => {
+      const symbols = await query("HTTP", [doc]);
       expect(symbols.length).toBeGreaterThanOrEqual(1);
       expect(symbols[0].name).toBe("http_port");
     });
 
-    it("should return all symbols for empty query", () => {
-      const all = query("", [doc]);
+    it("should return all symbols for empty query", async () => {
+      const all = await query("", [doc]);
       expect(all.length).toBeGreaterThanOrEqual(4); // http_port, app_name, user_password, cmd_result
     });
 
-    it("should return empty array for non-matching query", () => {
-      const symbols = query("nonexistent_xyz", [doc]);
+    it("should return empty array for non-matching query", async () => {
+      const symbols = await query("nonexistent_xyz", [doc]);
       expect(symbols.length).toBe(0);
     });
   });
 
   describe("edge cases", () => {
-    it("should return empty array for empty documents list", () => {
-      const symbols = query("", []);
+    it("should return empty array for empty documents list", async () => {
+      const symbols = await query("", []);
       expect(symbols.length).toBe(0);
     });
 
-    it("should handle invalid YAML gracefully", () => {
+    it("should handle invalid YAML gracefully", async () => {
       const badDoc = TextDocument.create(
         "file:///tmp/bad.yml",
         "yaml",
@@ -143,7 +143,7 @@ describe("getWorkspaceSymbols()", () => {
       );
       const goodDoc = getDoc("references/playbook_variables.yml");
       // Should not throw, and should still return symbols from the good doc
-      const symbols = query("", [badDoc, goodDoc]);
+      const symbols = await query("", [badDoc, goodDoc]);
       expect(symbols.length).toBeGreaterThanOrEqual(1);
     });
   });

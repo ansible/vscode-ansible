@@ -31,7 +31,7 @@ export async function getDefinition(
   const yamlDocs = parseAllDocuments(document.getText());
 
   // First try new symbol-based definitions
-  const symbolDef = getSymbolDefinition(document, position, yamlDocs, rolesPaths);
+  const symbolDef = await getSymbolDefinition(document, position, yamlDocs, rolesPaths);
   if (symbolDef) return symbolDef;
 
   // Fall back to existing module definition logic
@@ -77,12 +77,12 @@ export async function getDefinition(
   return null;
 }
 
-function getSymbolDefinition(
+async function getSymbolDefinition(
   document: TextDocument,
   position: Position,
   yamlDocs?: import("yaml").Document[],
   rolesPaths?: string[],
-): DefinitionLink[] | null {
+): Promise<DefinitionLink[] | null> {
   const symbol = getSymbolAtPosition(document, position, yamlDocs);
   if (!symbol) return null;
 
@@ -100,14 +100,14 @@ function getSymbolDefinition(
   }
 }
 
-function getHandlerDefinition(
+async function getHandlerDefinition(
   document: TextDocument,
   name: string,
   originRange: Range,
-): DefinitionLink[] | null {
-  const definitions = getOccurrencesWithRoleContext(
+): Promise<DefinitionLink[] | null> {
+  const definitions = (await getOccurrencesWithRoleContext(
     document.uri, document, name, "handler",
-  ).filter((o) => o.isDefinition);
+  )).filter((o) => o.isDefinition);
 
   if (definitions.length === 0) return null;
 
@@ -119,14 +119,14 @@ function getHandlerDefinition(
   }));
 }
 
-function getVariableDefinition(
+async function getVariableDefinition(
   document: TextDocument,
   name: string,
   originRange: Range,
-): DefinitionLink[] | null {
-  const definitions = getOccurrencesWithRoleContext(
+): Promise<DefinitionLink[] | null> {
+  const definitions = (await getOccurrencesWithRoleContext(
     document.uri, document, name, "variable",
-  ).filter((o) => o.isDefinition);
+  )).filter((o) => o.isDefinition);
 
   if (definitions.length === 0) return null;
 

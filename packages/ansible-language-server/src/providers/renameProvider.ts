@@ -26,12 +26,12 @@ export function prepareRename(
   return symbol.range;
 }
 
-export function doRename(
+export async function doRename(
   document: TextDocument,
   position: Position,
   newName: string,
   rolesPaths?: string[],
-): WorkspaceEdit | null {
+): Promise<WorkspaceEdit | null> {
   const symbol = getSymbolAtPosition(document, position);
   if (!symbol) return null;
 
@@ -39,7 +39,7 @@ export function doRename(
     return null;
   }
 
-  let allOccurrences: AnsibleSymbolOccurrence[] = getOccurrencesWithRoleContext(
+  let allOccurrences: AnsibleSymbolOccurrence[] = await getOccurrencesWithRoleContext(
     document.uri, document, symbol.name, symbol.kind, rolesPaths,
   );
 
