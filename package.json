@@ -375,7 +375,7 @@
             "type": "boolean"
           },
           "ansible.executionEnvironment.image": {
-            "default": "ghcr.io/ansible/community-ansible-dev-tools:latest",
+            "default": "ghcr.io/ansible/community-ansible-dev-tools:26.3.1",
             "markdownDescription": "Specify the name of the execution environment image.",
             "order": 3,
             "scope": "resource",

@@ -131,7 +131,7 @@ Command Palette: Ctrl+Shift+P → search "Ansible: Create a dev container"
 
 Choose image:
 
-- Upstream: ghcr.io/ansible/community-ansible-dev-tools:latest
+- Upstream: ghcr.io/ansible/community-ansible-dev-tools:26.3.1
 
 - Downstream: registry.redhat.io/.../ansible-dev-tools-rhel8:latest
 

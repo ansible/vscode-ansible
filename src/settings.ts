@@ -54,7 +54,7 @@ export class SettingsManager {
         containerOptions: eeSettings.get("containerOptions", ""),
         image: eeSettings.get(
           "image",
-          "ghcr.io/ansible/community-ansible-dev-tools:latest",
+          "ghcr.io/ansible/community-ansible-dev-tools:26.3.1",
         ),
         pull: {
           arguments: eeSettings.get("pull.arguments", ""),
