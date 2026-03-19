@@ -92,9 +92,9 @@ def browser_setup(
 
         browser = os.environ.get("BROWSER_TYPE")
         options: ArgOptions  # type: ignore[name-defined]
-        if browser == "chrome":
+        if browser == "chrome":  # pragma: no cover
             options = webdriver.ChromeOptions()
-        else:
+        else:  # pragma: no cover
             options = webdriver.FirefoxOptions()
             options.set_preference("privacy.trackingprotection.enabled", False)  # noqa: FBT003
         options.add_argument("--ignore-ssl-errors=yes")
