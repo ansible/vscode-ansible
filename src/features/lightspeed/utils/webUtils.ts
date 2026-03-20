@@ -60,12 +60,19 @@ export function getBaseUri(
     lightSpeedManager?.llmProviderSettings?.getProvider() ||
     settingsManager.settings.lightSpeedService.provider;
 
-  // For WCA, always use the default WCA endpoint
+  const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
+
+  // For WCA: use custom endpoint if configured, otherwise use default
   if (provider === "wca") {
+    // If a custom endpoint is configured and differs from default, use it
+    // This allows connecting to stage, test, or on-premise Lightspeed instances
+    if (baseUri && baseUri !== WCA_API_ENDPOINT_DEFAULT) {
+      return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
+    }
+    // Otherwise use the default production WCA endpoint
     return WCA_API_ENDPOINT_DEFAULT;
   }
 
-  const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
 
