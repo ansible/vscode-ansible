@@ -7,10 +7,7 @@ import {
   LightspeedUserDetails,
   LightspeedSessionInfo,
 } from "@src/interfaces/lightspeed";
-import {
-  LIGHTSPEED_USER_TYPE,
-  WCA_API_ENDPOINT_DEFAULT,
-} from "@src/definitions/lightspeed";
+import { LIGHTSPEED_USER_TYPE } from "@src/definitions/lightspeed";
 import { lightSpeedManager } from "@src/extension";
 
 // Also defined in package.json in "".contributes.authentication"
@@ -50,22 +47,37 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(
+export async function getBaseUri(
   settingsManager: SettingsManager,
   providerOverride?: string,
-): string {
-  // Check the provider from globalState via lightSpeedManager if available
-  const provider =
-    providerOverride ||
-    lightSpeedManager?.llmProviderSettings?.getProvider() ||
-    settingsManager.settings.lightSpeedService.provider;
-
-  // For WCA, always use the default WCA endpoint
-  if (provider === "wca") {
-    return WCA_API_ENDPOINT_DEFAULT;
+): Promise<string> {
+  if (!lightSpeedManager?.llmProviderSettings) {
+    throw new Error(
+      "LLM provider settings not initialized. Extension may not have loaded correctly.",
+    );
   }
 
-  const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
+  // Get provider from llmProviderSettings (after migration from legacy settings)
+  const provider =
+    providerOverride || lightSpeedManager.llmProviderSettings.getProvider();
+
+  if (!provider) {
+    throw new Error("Provider is not configured");
+  }
+
+  // Get endpoint from provider-specific settings
+  // Migration from legacy settings happens during extension activation via migrateFromSettingsJson()
+  // Provider factory ensures default endpoints are returned when not configured
+  const baseUri = (
+    await lightSpeedManager.llmProviderSettings.get(provider, "apiEndpoint")
+  ).trim();
+
+  if (!baseUri) {
+    throw new Error(
+      `API endpoint not configured for provider "${provider}". Check provider settings.`,
+    );
+  }
+
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
 

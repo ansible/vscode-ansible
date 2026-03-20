@@ -104,7 +104,7 @@ export class LightSpeedAPI {
       Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     }
 
-    const baseUrl = `${getBaseUri(this.settingsManager)}/api`;
+    const baseUrl = `${await getBaseUri(this.settingsManager)}/api`;
 
     return await fetch(`${baseUrl}/${endpoint}`, {
       method: "POST",
