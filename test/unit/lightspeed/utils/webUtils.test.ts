@@ -17,6 +17,13 @@ vi.mock("@src/extension", () => {
 import { getBaseUri } from "@src/features/lightspeed/utils/webUtils";
 import { lightSpeedManager } from "@src/extension";
 
+// Type for mocked lightSpeedManager to avoid 'any' usage
+type MockedLightSpeedManager = {
+  llmProviderSettings: {
+    getProvider: ReturnType<typeof vi.fn>;
+  } | null;
+};
+
 describe("webUtils - getBaseUri", () => {
   let mockSettingsManager: SettingsManager;
 
@@ -34,7 +41,9 @@ describe("webUtils - getBaseUri", () => {
     } as unknown as SettingsManager;
 
     // Reset llmProviderSettings mock (ensure it's not null first)
-    (lightSpeedManager as any).llmProviderSettings = {
+    (
+      lightSpeedManager as unknown as MockedLightSpeedManager
+    ).llmProviderSettings = {
       getProvider: vi.fn().mockReturnValue("wca"),
     };
   });
@@ -126,7 +135,9 @@ describe("webUtils - getBaseUri", () => {
       const customUrl = "https://override.example.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
       mockSettingsManager.settings.lightSpeedService.provider = "google";
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("google"),
       };
 
@@ -140,7 +151,9 @@ describe("webUtils - getBaseUri", () => {
       const customUrl = "https://custom.example.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
       mockSettingsManager.settings.lightSpeedService.provider = "google";
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
       };
 
@@ -155,7 +168,9 @@ describe("webUtils - getBaseUri", () => {
       const googleUrl = "https://google.ai.example.com";
       mockSettingsManager.settings.lightSpeedService.provider = "google";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = googleUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("google"),
       };
 
@@ -168,7 +183,9 @@ describe("webUtils - getBaseUri", () => {
       const redhatUrl = "https://ai.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "redhat";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = redhatUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("redhat"),
       };
 
@@ -181,7 +198,9 @@ describe("webUtils - getBaseUri", () => {
       const ollamaUrl = "http://localhost:11434";
       mockSettingsManager.settings.lightSpeedService.provider = "ollama";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = ollamaUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("ollama"),
       };
 
@@ -195,7 +214,9 @@ describe("webUtils - getBaseUri", () => {
       const expectedUrl = "https://ai.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "redhat";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = urlWithSlash;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("redhat"),
       };
 
@@ -209,7 +230,9 @@ describe("webUtils - getBaseUri", () => {
       const expectedUrl = "http://localhost:11434";
       mockSettingsManager.settings.lightSpeedService.provider = "ollama";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = urlWithSpace;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("ollama"),
       };
 
@@ -226,7 +249,9 @@ describe("webUtils - getBaseUri", () => {
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
 
       // Simulate llmProviderSettings being null
-      (lightSpeedManager as any).llmProviderSettings = null;
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = null;
 
       const result = getBaseUri(mockSettingsManager);
 
@@ -237,7 +262,9 @@ describe("webUtils - getBaseUri", () => {
       const customUrl = "https://custom.example.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue(null),
       };
 
@@ -251,8 +278,11 @@ describe("webUtils - getBaseUri", () => {
       // Current implementation only removes one trailing slash
       const expectedUrl = "https://stage.ai.ansible.redhat.com//";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
-      mockSettingsManager.settings.lightSpeedService.apiEndpoint = urlWithSlashes;
-      (lightSpeedManager as any).llmProviderSettings = {
+      mockSettingsManager.settings.lightSpeedService.apiEndpoint =
+        urlWithSlashes;
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
       };
 
@@ -267,7 +297,9 @@ describe("webUtils - getBaseUri", () => {
       const stageUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = stageUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
       };
 
@@ -282,7 +314,9 @@ describe("webUtils - getBaseUri", () => {
       const onPremUrl = "https://lightspeed.internal.company.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = onPremUrl;
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
       };
 
@@ -295,7 +329,9 @@ describe("webUtils - getBaseUri", () => {
 
     it("should allow switching between production and stage for WCA", () => {
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
-      (lightSpeedManager as any).llmProviderSettings = {
+      (
+        lightSpeedManager as unknown as MockedLightSpeedManager
+      ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
       };
 
