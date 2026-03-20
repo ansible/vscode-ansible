@@ -1,0 +1,30 @@
+---
+- hosts: all
+  vars:
+    http_port: 8080
+    app_name: myapp
+  vars_prompt:
+    - name: user_password
+      prompt: "Enter password"
+      private: true
+  tasks:
+    - name: Show port
+      ansible.builtin.debug:
+        msg: "Port is {{ http_port }}"
+
+    - name: Register result
+      ansible.builtin.command: whoami
+      register: cmd_result
+
+    - name: Use registered var
+      ansible.builtin.debug:
+        msg: "{{ cmd_result.stdout }}"
+      when: cmd_result is defined
+
+    - name: Use app name
+      ansible.builtin.debug:
+        msg: "App {{ app_name }} on port {{ http_port }}"
+
+    - name: Use password
+      ansible.builtin.debug:
+        msg: "Password set for {{ user_password }}"
