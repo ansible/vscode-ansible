@@ -382,7 +382,7 @@ jobs:
           find out -name '*\?*' -exec rm -r {} \; || true
           find out -name '*"*' -exec rm -r {} \; || true
           find out -name '*:*' -exec rm -r {} \; || true
-          rm -rf out/vitebuild
+          rm -rf dist
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
@@ -398,7 +398,6 @@ jobs:
             out/ui*
             out/unit
             out/client
-            out/vitebuild
           # we collect transpiled js files as sonar needs them to compute code coverage
           if-no-files-found: ignore
           retention-days: 90
