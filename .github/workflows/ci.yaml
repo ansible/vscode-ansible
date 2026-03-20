@@ -405,7 +405,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -415,7 +415,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
         with:
           directory: out/junit
           fail_ci_if_error: true
