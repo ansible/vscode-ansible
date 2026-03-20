@@ -50,17 +50,36 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(
+export async function getBaseUri(
   settingsManager: SettingsManager,
   providerOverride?: string,
-): string {
+): Promise<string> {
   // Check the provider from globalState via lightSpeedManager if available
   const provider =
     providerOverride ||
     lightSpeedManager?.llmProviderSettings?.getProvider() ||
     settingsManager.settings.lightSpeedService.provider;
 
-  const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
+  // Try to get endpoint from new provider-specific settings first
+  let baseUri = "";
+  if (lightSpeedManager?.llmProviderSettings && provider) {
+    try {
+      baseUri = await lightSpeedManager.llmProviderSettings.get(
+        provider,
+        "apiEndpoint",
+      );
+    } catch (error) {
+      console.debug(
+        "[getBaseUri] Failed to get provider-specific endpoint, falling back to legacy settings",
+        error,
+      );
+    }
+  }
+
+  // Fall back to legacy settings if provider-specific setting is not available
+  if (!baseUri) {
+    baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
+  }
 
   // For WCA: use custom endpoint if configured, otherwise use default
   if (provider === "wca") {

@@ -46,6 +46,13 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch() {
   try {
+    // Check if NODE_EXTRA_CA_CERTS is set - if so, use Node.js fetch
+    // because electron.net.fetch doesn't honor custom CAs
+    if (process.env.NODE_EXTRA_CA_CERTS) {
+      console.debug('[getFetch] NODE_EXTRA_CA_CERTS detected, using globalThis.fetch for custom CA support');
+      return globalThis.fetch;
+    }
+
     // Try to get electron from global scope first (better for bundled extensions)
     const electron = (globalThis as any).require?.('electron') ?? require('electron');
     const electronFetch = electron?.net?.fetch;
@@ -103,7 +110,7 @@ export class LightSpeedAPI {
         Object.assign(headers, { Authorization: `Bearer ${authToken}` });
       }
 
-      const baseUrl = `${getBaseUri(this.settingsManager)}/api`;
+      const baseUrl = `${await getBaseUri(this.settingsManager)}/api`;
 
       return fetch(`${baseUrl}/${endpoint}`, {
         method: "POST",

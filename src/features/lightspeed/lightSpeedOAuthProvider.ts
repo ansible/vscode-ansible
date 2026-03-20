@@ -292,7 +292,7 @@ export class LightSpeedAuthenticationProvider
       ["redirect_uri", this._externalRedirectUri],
     ]);
 
-    const base_uri = getBaseUri(this.settingsManager);
+    const base_uri = await getBaseUri(this.settingsManager);
     if (!base_uri) {
       throw new Error(
         "Please enter the Ansible Lightspeed URL under the Ansible Lightspeed settings!",
@@ -385,7 +385,7 @@ export class LightSpeedAuthenticationProvider
       const fetch = getFetch();
 
       const response = await fetch(
-        `${getBaseUri(this.settingsManager)}/o/token/`,
+        `${await getBaseUri(this.settingsManager)}/o/token/`,
         {
           method: "POST",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
@@ -457,7 +457,7 @@ export class LightSpeedAuthenticationProvider
           const fetch = getFetch();
 
           const response = await fetch(
-            `${getBaseUri(this.settingsManager)}/o/token/`,
+            `${await getBaseUri(this.settingsManager)}/o/token/`,
             {
               method: "POST",
               signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
