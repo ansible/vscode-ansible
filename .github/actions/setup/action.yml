@@ -40,6 +40,8 @@ runs:
         path: |
           ~/.cache/pre-commit/
           ~/.cache/prek/
+          ~/.npm
+        # ~/.npm is needed for the prek hooks using 'npx'
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
     - name: Get yarn cache directory path
