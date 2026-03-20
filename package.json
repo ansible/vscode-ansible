@@ -1121,7 +1121,7 @@
     "validation"
   ],
   "license": "MIT",
-  "main": "./out/vitebuild/extension/extension.js",
+  "main": "./dist/extension/extension.js",
   "name": "ansible",
   "packageManager": "yarn@4.12.0",
   "publisher": "redhat",

@@ -281,7 +281,7 @@ tasks:
       - package*.json
       - tools/helper
       - yarn.lock
-      - out/vitebuild/**/*
+      - dist/**/*
     generates:
       - "out/*.vsix"
       - "out/data/ansible-latest.vsix"

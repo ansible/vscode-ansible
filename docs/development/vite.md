@@ -20,8 +20,8 @@ Live rendering, e.g:
 `http://localhost:5173/webviews/lightspeed/role-generation.html`. Adjust the
 port to match your local configuration, it may be `5174`.
 
-In some occasion, the Live Reloading may not work, you can manually kill the
-`vite-dev Task`, clean up the `out/vitebuild/` directory and restart the
+On some occasions, the Live Reloading may not work, you can manually kill the
+`vite-dev Task`, clean up the `dist/` directory and restart the
 `Debug Extension (Vite)` session.
 
 ## How to bootstrap a new Webview
