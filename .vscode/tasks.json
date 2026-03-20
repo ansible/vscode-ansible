@@ -57,22 +57,6 @@
         "kind": "build"
       },
       "isBackground": true,
-      "label": "Webpack Watch",
-      "presentation": {
-        "group": "Build",
-        "panel": "dedicated",
-        "reveal": "never"
-      },
-      "problemMatcher": ["$ts-webpack-watch"],
-      "script": "webpack:watch",
-      "type": "npm"
-    },
-    {
-      "group": {
-        "isDefault": true,
-        "kind": "build"
-      },
-      "isBackground": true,
       "presentation": {
         "reveal": "never"
       },

@@ -397,7 +397,6 @@ jobs:
             out/log
             out/ui*
             out/unit
-            out/server
             out/client
             out/vitebuild
           # we collect transpiled js files as sonar needs them to compute code coverage
@@ -532,7 +531,7 @@ jobs:
         with:
           args: ${{ env.SONAR_ARGS }}
         # Temporarily ignore errors if the pull request is from a fork due to lack of upload secrets access
-        # See https://issues.redhat.com/browse/AAP-52660
+        # See https://redhat.atlassian.net/browse/AAP-52660
         continue-on-error: ${{ github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name || github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') || github.event.inputs.publish == 'true' || github.event.inputs.publish == true }}
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
@@ -585,7 +584,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
@@ -632,7 +631,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@1853d73993c8ca1b2c9c1a7fede39682d0ab5c2a # v2.5.3
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"

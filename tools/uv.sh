@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
@@ -12,8 +12,6 @@ ln -fs "$creator_resources_path/common/devfile/devfile.yaml.j2" "resources/conte
 ln -fs "$creator_resources_path/common/devcontainer/.devcontainer" "resources/contentCreator/createDevcontainer/"
 
 log notice "Using $(python3 --version) from $(uv run which python3)"
-printenv VIRTUAL_ENV
-printenv PATH
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     log warning "Virtualenv broken $(which python3) != ${VIRTUAL_ENV}/bin/python3, trying to recreate it ..."
     uv venv --clear "${VIRTUAL_ENV}"

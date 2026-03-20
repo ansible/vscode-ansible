@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 log notice "Building container image..."
-docker build --build-arg GITHUB_TOKEN="${GITHUB_TOKEN:-}" -f Containerfile -t $IMAGE_TAG .
+docker build --secret id=github_token,env=GITHUB_TOKEN -f Containerfile -t $IMAGE_TAG .
 
 log notice "Preparing code for container build testing..."
 set -x

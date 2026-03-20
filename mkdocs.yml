@@ -70,7 +70,6 @@ plugins:
   - markdown-exec
   - search
   - material/tags
-  - git-revision-date-localized:
 
 markdown_extensions:
   - admonition

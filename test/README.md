@@ -49,9 +49,7 @@ commands to ensure that you have all other remaining dependencies installed
 locally:
 
 ```shell
-    yarn install
-    yarn clean
-    yarn webpack-dev
+    task setup
 ```
 
 ### Running Test Suites
@@ -63,7 +61,7 @@ There are a few different test suites to choose from:
 Run the following command:
 
 ```shell
-    yarn unit
+    task unit
 ```
 
 #### End to End

@@ -93,11 +93,11 @@ def convert_to_plist(
         indent: Number of spaces per level
         context: Context type
 
-    Raises:
-        ValueError: If the element tag is not recognized
-
     Returns:
         Plist formatted string
+
+    Raises:
+        ValueError: If the element tag is not recognized
     """
     if element.tag == "dict":
         # with new level, since indent is appended already here

@@ -350,8 +350,10 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
             is_podman_running
             }
         # validation is done later
+        podman image prune -a -f --filter "until=168h" > /dev/null
         podman info >out/podman.log 2>&1
-        podman run hello-world >out/podman.log 2>&1
+        podman system df >>out/podman.log 2>&1
+        podman run hello-world >>out/podman.log 2>&1
         du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
         podman machine inspect >out/podman.log 2>&1
     fi

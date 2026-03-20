@@ -60,7 +60,9 @@
   "files.watcherExclude": {
     "**/out": true
   },
+  "python.terminal.useEnvFile": true,
   "redhat.telemetry.enabled": false,
   "search.useParentIgnoreFiles": true,
-  "vitest.maximumConfigs": 10
+  "vitest.maximumConfigs": 10,
+  "vitest.shellType": "terminal"
 }

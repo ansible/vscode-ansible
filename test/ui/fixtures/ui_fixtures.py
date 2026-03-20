@@ -12,8 +12,9 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from selenium import webdriver
 from selenium.common import WebDriverException
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from test.ui.conftest import _PROJECT_ROOT
@@ -21,7 +22,6 @@ from test.ui.const import CONTAINER_NAME
 
 if TYPE_CHECKING:
     from _pytest.capture import CaptureManager
-    from selenium.webdriver.common.options import ArgOptions
 
 from test.ui.hooks.logging_hook import phase_report_key
 from test.ui.utils.settings_utils import ensure_settings, reset_settings
@@ -91,15 +91,15 @@ def browser_setup(
                 )
 
         browser = os.environ.get("BROWSER_TYPE")
-        options: ArgOptions  # type: ignore[name-defined]
+        options: FirefoxOptions | ChromeOptions
         if browser == "chrome":
-            options = webdriver.ChromeOptions()
+            options = ChromeOptions()
         else:
-            options = webdriver.FirefoxOptions()
+            options = FirefoxOptions()
             options.set_preference("privacy.trackingprotection.enabled", False)  # noqa: FBT003
         options.add_argument("--ignore-ssl-errors=yes")
         options.add_argument("--ignore-certificate-errors")
-        driver = webdriver.Remote(
+        driver = WebDriver(
             command_executor="http://localhost:4444/wd/hub",
             options=options,
         )
@@ -122,12 +122,12 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
         Tuple of (WebDriver instance or None, login URL, None)
     """
     browser = os.environ.get("BROWSER_TYPE")
-    options: ArgOptions  # type: ignore[name-defined]
+    options: ChromeOptions | FirefoxOptions
     if browser == "chrome":
-        chrome_options = webdriver.ChromeOptions()
+        chrome_options = ChromeOptions()
         options = chrome_options
     else:
-        firefox_options = webdriver.FirefoxOptions()
+        firefox_options = FirefoxOptions()
         firefox_options.set_preference("privacy.trackingprotection.enabled", False)  # noqa: FBT003
         options = firefox_options
     options.add_argument("--ignore-ssl-errors=yes")
@@ -135,7 +135,7 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
 
     driver = None
     try:
-        driver = webdriver.Remote(
+        driver = WebDriver(
             command_executor="http://localhost:4444/wd/hub", options=options
         )
         driver.maximize_window()

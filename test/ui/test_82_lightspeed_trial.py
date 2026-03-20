@@ -20,7 +20,7 @@ tasks:
 - name: install dnsutils"""
 
 
-@pytest.mark.skip(reason="See https://issues.redhat.com/browse/AAP-67210")
+@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 @pytest.mark.vscode_trial
 def test_vscode_trial_button(
     new_browser: Any,

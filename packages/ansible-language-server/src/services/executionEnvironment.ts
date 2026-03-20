@@ -8,7 +8,7 @@ import { AnsibleConfig } from "@src/services/ansibleConfig.js";
 import { ImagePuller } from "@src/utils/imagePuller.js";
 import { asyncExec } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
-import {
+import type {
   ExtensionSettings,
   IContainerEngine,
   IVolumeMounts,
@@ -508,15 +508,27 @@ export class ExecutionEnvironment {
   ): boolean {
     /* v8 ignore next 21 */
     const completeSearchPath = path.join(searchPath, pluginFolderPath);
-    const command = `${this._container_engine} exec ${containerName} ls ${completeSearchPath}`;
+    const engine = this._container_engine;
+    if (!engine) {
+      return false;
+    }
     try {
-      this.connection.console.info(`Executing command ${command}`);
-      const result = child_process
-        .execSync(command, {
+      this.connection.console.info(
+        `Executing command ${engine} exec ${containerName} ls ${completeSearchPath}`,
+      );
+      const result = child_process.spawnSync(
+        engine,
+        ["exec", containerName, "ls", completeSearchPath],
+        {
           encoding: "utf-8",
-        })
-        .trim();
-      return result.trim() !== "";
+          stdio: ["ignore", "pipe", "ignore"],
+          shell: false,
+        },
+      );
+      if (result.status !== 0) {
+        return false;
+      }
+      return (result.stdout?.trim() ?? "") !== "";
     } catch (error) {
       let message: string;
       if (error instanceof Error) {

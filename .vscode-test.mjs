@@ -52,6 +52,6 @@ export default defineConfig({
   },
   coverage: {
     includeAll: true,
-    exclude: ["**/node_modules", "out/server/external", "out/server/webpack/"],
+    exclude: ["**/node_modules", "out/server/external"],
   },
 });

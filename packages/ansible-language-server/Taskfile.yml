@@ -13,7 +13,7 @@ vars:
 includes:
   base:
     taskfile: ../../Taskfile.base.yml
-    internal: true
+    # internal: true
     flatten: true
 tasks:
   default:
@@ -34,10 +34,11 @@ tasks:
       - setup
     cmds:
       - npm run compile
+      - yarn exec -- ansible-language-server --generate-docs ../../docs/als/settings.md
     generates:
-      - dist/**/*.*
+      - lib/**/*.*
     sources:
-      - ../../package-lock.json
+      - ../../yarn.lock
       - package.json
       - src/**/*.*
       - test/**/*.*
@@ -60,10 +61,9 @@ tasks:
       - test/**/*.*
       - tsconfig.json
     generates:
-      - ../../out/coverage/als/cobertura-coverage.xml # codecov.io
-      - ../../out/coverage/als/coverage-final.json # IDE plugins
-      - ../../out/coverage/als/lcov.info # sonar
-      - ../../out/junit/als-test-results.xml
+      - ../../out/coverage/unit/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/unit/lcov.info # sonar
+      - ../../out/junit/unit-test-results.xml
     cmds:
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
   test-with-ee:
@@ -91,9 +91,11 @@ tasks:
     sources:
       - ../../docs/als/changelog.md
       - README.md
-      - package.json
-      - dist/
+      - package*.json
+      - tsconfig.json
+      - tsup.config.ts
     generates:
+      - dist/**/*
       - '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'
     cmds:
       - rm -f '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'

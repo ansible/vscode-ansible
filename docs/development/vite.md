@@ -2,7 +2,6 @@
 
 Some views relies on Vite to be built. As a developer, you need first to:
 
-- run `yarn run webpack`, this way the extension will be able to start
 - then you can run the Extension with the `Debug Extension (Vite)`
   configuration.
 

@@ -7,7 +7,7 @@ import {
   RHCustomProvider,
   RHCustomConfig,
 } from "@src/features/lightspeed/providers/rhcustom";
-import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
+import type { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,
   WCA_API_ENDPOINT_DEFAULT,
