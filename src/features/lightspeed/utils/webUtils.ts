@@ -50,22 +50,48 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(
+export async function getBaseUri(
   settingsManager: SettingsManager,
   providerOverride?: string,
-): string {
+): Promise<string> {
   // Check the provider from globalState via lightSpeedManager if available
   const provider =
     providerOverride ||
     lightSpeedManager?.llmProviderSettings?.getProvider() ||
     settingsManager.settings.lightSpeedService.provider;
 
-  // For WCA, always use the default WCA endpoint
+  // Try to get endpoint from new provider-specific settings first
+  let baseUri = "";
+  if (lightSpeedManager?.llmProviderSettings && provider) {
+    try {
+      baseUri = await lightSpeedManager.llmProviderSettings.get(
+        provider,
+        "apiEndpoint",
+      );
+    } catch (error) {
+      console.debug(
+        "[getBaseUri] Failed to get provider-specific endpoint, falling back to legacy settings",
+        error,
+      );
+    }
+  }
+
+  // Fall back to legacy settings if provider-specific setting is not available
+  if (!baseUri) {
+    baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
+  }
+
+  // For WCA: use custom endpoint if configured, otherwise use default
   if (provider === "wca") {
+    // If a custom endpoint is configured and differs from default, use it
+    // This allows connecting to stage, test, or on-premise Lightspeed instances
+    if (baseUri && baseUri !== WCA_API_ENDPOINT_DEFAULT) {
+      return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
+    }
+    // Otherwise use the default production WCA endpoint
     return WCA_API_ENDPOINT_DEFAULT;
   }
 
-  const baseUri = settingsManager.settings.lightSpeedService.apiEndpoint.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
 

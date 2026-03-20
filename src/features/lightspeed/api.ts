@@ -46,14 +46,25 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch() {
   try {
-    const electronFetch = require("electron")?.net?.fetch;
-    if (electronFetch) {
+    // Check if NODE_EXTRA_CA_CERTS is set - if so, use Node.js fetch
+    // because electron.net.fetch doesn't honor custom CAs
+    if (process.env.NODE_EXTRA_CA_CERTS) {
+      console.debug('[getFetch] NODE_EXTRA_CA_CERTS detected, using globalThis.fetch for custom CA support');
+      return globalThis.fetch;
+    }
+
+    // Try to get electron from global scope first (better for bundled extensions)
+    const electron = (globalThis as any).require?.('electron') ?? require('electron');
+    const electronFetch = electron?.net?.fetch;
+    if (electronFetch && typeof electronFetch === 'function') {
+      console.debug('[getFetch] Using electron.net.fetch');
       return electronFetch;
     }
-  } catch {
-    // electron not available (e.g., in tests or web environment)
+  } catch (error) {
+    console.debug('[getFetch] Electron not available, falling back to globalThis.fetch:', error);
   }
   // Fallback to global fetch
+  console.debug('[getFetch] Using globalThis.fetch (Node.js undici)');
   return globalThis.fetch;
 }
 
@@ -99,7 +110,7 @@ export class LightSpeedAPI {
         Object.assign(headers, { Authorization: `Bearer ${authToken}` });
       }
 
-      const baseUrl = `${getBaseUri(this.settingsManager)}/api`;
+      const baseUrl = `${await getBaseUri(this.settingsManager)}/api`;
 
       return fetch(`${baseUrl}/${endpoint}`, {
         method: "POST",
