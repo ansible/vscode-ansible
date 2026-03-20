@@ -83,7 +83,7 @@ export class LlmProviderPanel {
           enableCommandUris: true,
           retainContextWhenHidden: true,
           localResourceRoots: [
-            Uri.joinPath(context.extensionUri, "out"),
+            Uri.joinPath(context.extensionUri, "dist"),
             Uri.joinPath(context.extensionUri, "media"),
           ],
         },
