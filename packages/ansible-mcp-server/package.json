@@ -38,7 +38,7 @@
     "ai-assistant"
   ],
   "license": "MIT",
-  "main": "lib/cli.js",
+  "main": "dist/cli.cjs",
   "types": "lib/cli.d.ts",
   "module": "lib/cli.js",
   "name": "@ansible/ansible-mcp-server",
@@ -50,7 +50,7 @@
     "clean": "rimraf dist lib",
     "compile": "tsc -p . && tsup --silent",
     "dev:stdio": "tsx src/cli.ts --stdio",
-    "prepare": "npm run compile && env NODE_ENV=production tsup --silent",
+    "prepack": "npm run compile && env NODE_ENV=production tsup --silent",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",
     "test:ade": "vitest run --project=mcp test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",

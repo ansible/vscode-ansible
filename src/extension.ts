@@ -1,6 +1,6 @@
 /* "stdlib" */
-import * as vscode from "vscode";
 import * as path from "node:path";
+import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "@src/features/vault";
 import { AnsibleCommands } from "@src/definitions/constants";
@@ -1131,17 +1131,31 @@ const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager,
 ) => {
-  const serverModule = context.asAbsolutePath(
-    path.join("out", "server", "src", "server.js"),
+  // Prefer the server shipped in the vsix (packages/ansible-language-server/dist/); otherwise
+  // use the workspace package (e.g. when running from source).
+  const bundledServer = path.join(
+    context.extensionPath,
+    "packages",
+    "ansible-language-server",
+    "dist",
+    "cli.cjs",
+  );
+  const packageServer = path.join(
+    context.extensionPath,
+    "node_modules",
+    "@ansible",
+    "ansible-language-server",
+    "dist",
+    "cli.js",
   );
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
 
   const serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: { module: bundledServer, transport: TransportKind.ipc },
     debug: {
-      module: serverModule,
+      module: packageServer,
       transport: TransportKind.ipc,
       options: debugOptions,
     },

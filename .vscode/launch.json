@@ -55,16 +55,18 @@
       "env": {
         "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
       },
-      "name": "Launch Extension (webpacked)",
+      "name": "Launch Extension (packed)",
       "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
-      "preLaunchTask": "Webpack Watch",
+      "preLaunchTask": "npm: watch",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost"
     },
     {
       "name": "Attach to Server",
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
+      "outFiles": [
+        "${workspaceRoot}/packages/ansible-language-server/lib/**/*.js"
+      ],
       "port": 6010,
       "request": "attach",
       "restart": true,

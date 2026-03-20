@@ -5,7 +5,7 @@ import { SettingsManager } from "@src/settings";
 import sinon from "sinon";
 import assert from "assert";
 
-import {
+import type {
   ExtensionSettings,
   LightSpeedServiceSettings,
 } from "@src/interfaces/extensionSettings";

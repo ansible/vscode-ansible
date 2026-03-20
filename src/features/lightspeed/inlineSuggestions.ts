@@ -31,7 +31,7 @@ import {
   getContentWithMultiLinePromptForMultiTasksSuggestions,
 } from "@src/features/lightspeed/utils/multiLinePromptForMultiTasks";
 import { getAnsibleFileType } from "@src/features/utils/ansible";
-import { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
+import type { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import { SuggestionDisplayed } from "@src/features/lightspeed/inlineSuggestion/suggestionDisplayed";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};

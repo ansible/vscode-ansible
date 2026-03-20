@@ -38,13 +38,15 @@ tasks:
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
+      - echo "Cleaning up... <disabled>"
+      - yarn workspaces foreach --all -tv run clean
       - git clean -dxf
   finish:
     desc: Commands to run at the end of build and test processes
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
-      - task: ci_clean_cache
+      # - task: ci_clean_cache
       # we also need to be sure that at the end of build and test we do not produce undesired side effects
       - ./tools/precheck.sh
       # ensure that `vitest list` works and does not display any warnings (stderr)
@@ -58,14 +60,14 @@ tasks:
     cmds:
       # - for: sources
       #   cmd: echo {{ .ITEM }}
-      - yarn workspaces foreach --all -tv run clean
+      - task: yarn
       - yarn run build
+      - yarn workspace @ansible/ansible-language-server run build:dist
       - yarn run vite-build
     sources:
       - package.json
       - "{src,test}/**/*"
       - tsconfig*.json
-      - webpack.config.ts
       - yarn.lock
       - vite.config.mts
       - exclude: "**/.ansible/**/*"
@@ -79,7 +81,8 @@ tasks:
       - exclude: "test/testFixtures/hover/without_ee/collections/ansible_collections/**/*"
     generates:
       - out/client/**/*
-      - out/server/**/*
+      - packages/ansible-language-server/lib/**/*
+      - packages/ansible-language-server/dist/**/*
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
@@ -119,7 +122,7 @@ tasks:
     interactive: true # needed for ncu prompts
     cmds:
       - yarn ncu -u --workspaces -i
-      - yarn knip
+      - task: knip
   "deps:python":
     desc: Update python dependencies
     cmds:
@@ -134,20 +137,17 @@ tasks:
     desc: Build the documentation
     deps:
       - setup
-      - build
     sources:
       - docs/**/*
       - media/**/*
       - mkdocs.yml
-      - packages/ansible-language-server/tools/settings-doc-generator.ts
       - pyproject.toml
     generates:
       - out/html/**/*
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
-      - git fetch --tags --force
-      - npx tsx packages/ansible-language-server/tools/settings-doc-generator.ts
+      - git fetch --tags || git fetch --tags --force
       - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
       - defer: { task: finish }
   lint:
@@ -268,6 +268,8 @@ tasks:
   package:
     desc: Package extension
     deps:
+      - als:package
+      - mcp:package
       - build
     sources:
       - "{src,media,webviews}/**/*" # do not include 'test' as they do not get into the package
@@ -279,17 +281,15 @@ tasks:
       - package*.json
       - tools/helper
       - yarn.lock
+      - out/vitebuild/**/*
     generates:
       - "out/*.vsix"
       - "out/data/ansible-latest.vsix"
-      - "out/@ansible-ansible-mcp-server*.tgz"
-      - "out/@ansible-ansible-language-server*.tgz"
     cmds:
       # we want to build both all the time:
-      - task: als:package
-      - task: mcp:package # to produce the tgz file that can-release is using (implies install)
       - ./tools/helper --package
       - packages/ansible-language-server/tools/can-release.sh
+      - task: knip
       - defer: { task: finish }
     silent: true
   pr:

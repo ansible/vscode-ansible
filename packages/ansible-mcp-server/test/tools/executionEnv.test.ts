@@ -9,7 +9,7 @@ import {
   generateExecutionEnvironment,
   formatExecutionEnvResult,
 } from "@src/tools/executionEnv.js";
-import type { ExecutionEnvResult } from "@src/tools/executionEnv.js";
+import type { ExecutionEnvResult } from "@src/tools/executionEnv";
 
 describe("Execution Environment Tool", () => {
   describe("Handler - Two-Step Flow", () => {

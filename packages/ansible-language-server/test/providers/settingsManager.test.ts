@@ -4,7 +4,7 @@ import {
   WorkspaceManager,
 } from "@src/services/workspaceManager.js";
 import { createTestWorkspaceManager } from "@test/helper.js";
-import { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import { ConfigurationItem } from "vscode-languageclient";
 
 function simulateClientSettings(

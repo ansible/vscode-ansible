@@ -11,7 +11,7 @@ vars:
 includes:
   base:
     taskfile: ../../Taskfile.base.yml
-    internal: true
+    # internal: true
     flatten: true
 tasks:
   default:
@@ -34,13 +34,13 @@ tasks:
       - npm run compile
     generates:
       - lib/**/*.*
-      - dist/**/*.*
     sources:
-      - ../../package-lock.json
+      - ../../yarn.lock
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
+      - tsup.config.ts
       - ../../tsconfig*.json
       - exclude: "**/*-artifact-*.json"
   test:
@@ -49,8 +49,6 @@ tasks:
     interactive: true
     deps:
       - build
-    generates:
-      - ../../out/junit/mcp-test-results.xml
     sources:
       - ../../vitest.config.ts
       - package.json
@@ -58,6 +56,10 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - exclude: "**/*-artifact-*.json"
+    generates:
+      - ../../out/coverage/unit/cobertura-coverage.xml # codecov.io
+      - ../../out/coverage/unit/lcov.info # sonar
+      - ../../out/junit/unit-test-results.xml
     cmds:
       - npm run test
   test-watch:
@@ -74,10 +76,10 @@ tasks:
     sources:
       - README.md
       - package*.json
-      - src/**/*.*
       - tsconfig.json
       - tsup.config.ts
     generates:
+      - dist/**/*
       - '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'
     cmds:
       - rm -f '{{ .GIT_ROOT }}/out/@ansible-{{ .PROJECT }}-*.tgz'

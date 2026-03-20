@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-/// <reference types="@tomjs/vite-plugin-vue/env" />
+/// <reference types="@tomjs/vite-plugin-vscode/env" />
 
 declare module "*.svg" {
   const content: string;

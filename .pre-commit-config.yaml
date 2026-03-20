@@ -77,7 +77,7 @@ repos:
           # - --cache
           # - --cache-strategy=content
         pass_filenames: false
-        priority: 2  # after knip
+        priority: 1
         always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v6.0.0
