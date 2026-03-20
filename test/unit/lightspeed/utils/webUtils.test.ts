@@ -8,6 +8,7 @@ vi.mock("@src/extension", () => {
     lightSpeedManager: {
       llmProviderSettings: {
         getProvider: vi.fn(),
+        get: vi.fn(),
       },
     },
   };
@@ -21,6 +22,7 @@ import { lightSpeedManager } from "@src/extension";
 type MockedLightSpeedManager = {
   llmProviderSettings: {
     getProvider: ReturnType<typeof vi.fn>;
+    get: ReturnType<typeof vi.fn>;
   } | null;
 };
 
@@ -45,6 +47,7 @@ describe("webUtils - getBaseUri", () => {
       lightSpeedManager as unknown as MockedLightSpeedManager
     ).llmProviderSettings = {
       getProvider: vi.fn().mockReturnValue("wca"),
+      get: vi.fn().mockResolvedValue(""),
     };
   });
 
@@ -56,82 +59,82 @@ describe("webUtils - getBaseUri", () => {
       ).mockReturnValue("wca");
     });
 
-    it("should return default WCA endpoint when apiEndpoint is default", () => {
+    it("should return default WCA endpoint when apiEndpoint is default", async () => {
       mockSettingsManager.settings.lightSpeedService.apiEndpoint =
         WCA_API_ENDPOINT_DEFAULT;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(WCA_API_ENDPOINT_DEFAULT);
     });
 
-    it("should return default WCA endpoint when apiEndpoint is empty", () => {
+    it("should return default WCA endpoint when apiEndpoint is empty", async () => {
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = "";
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(WCA_API_ENDPOINT_DEFAULT);
     });
 
-    it("should return custom endpoint for stage environment", () => {
+    it("should return custom endpoint for stage environment", async () => {
       const stageUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = stageUrl;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(stageUrl);
     });
 
-    it("should return custom endpoint for test environment", () => {
+    it("should return custom endpoint for test environment", async () => {
       const testUrl = "https://test.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = testUrl;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(testUrl);
     });
 
-    it("should return custom endpoint for on-premise installation", () => {
+    it("should return custom endpoint for on-premise installation", async () => {
       const onPremUrl = "https://lightspeed.company.internal";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = onPremUrl;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(onPremUrl);
     });
 
-    it("should remove trailing slash from custom WCA endpoint", () => {
+    it("should remove trailing slash from custom WCA endpoint", async () => {
       const urlWithSlash = "https://stage.ai.ansible.redhat.com/";
       const expectedUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = urlWithSlash;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
 
-    it("should handle custom endpoint with whitespace", () => {
+    it("should handle custom endpoint with whitespace", async () => {
       const urlWithSpace = "  https://stage.ai.ansible.redhat.com  ";
       const expectedUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = urlWithSpace;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
 
-    it("should handle custom endpoint with whitespace and trailing slash", () => {
+    it("should handle custom endpoint with whitespace and trailing slash", async () => {
       const urlWithSpaceAndSlash = "  https://stage.ai.ansible.redhat.com/  ";
       const expectedUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint =
         urlWithSpaceAndSlash;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
 
-    it("should use provider override parameter when provided", () => {
+    it("should use provider override parameter when provided", async () => {
       const customUrl = "https://override.example.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
       mockSettingsManager.settings.lightSpeedService.provider = "google";
@@ -139,15 +142,16 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("google"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager, "wca");
+      const result = await getBaseUri(mockSettingsManager, "wca");
 
       // Should use WCA logic despite settings saying google
       expect(result).toBe(customUrl);
     });
 
-    it("should prefer llmProviderSettings provider over settingsManager provider", () => {
+    it("should prefer llmProviderSettings provider over settingsManager provider", async () => {
       const customUrl = "https://custom.example.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
       mockSettingsManager.settings.lightSpeedService.provider = "google";
@@ -155,16 +159,17 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(customUrl);
     });
   });
 
   describe("non-WCA providers", () => {
-    it("should return custom endpoint for Google provider", () => {
+    it("should return custom endpoint for Google provider", async () => {
       const googleUrl = "https://google.ai.example.com";
       mockSettingsManager.settings.lightSpeedService.provider = "google";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = googleUrl;
@@ -172,14 +177,15 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("google"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(googleUrl);
     });
 
-    it("should return custom endpoint for Red Hat AI provider", () => {
+    it("should return custom endpoint for Red Hat AI provider", async () => {
       const redhatUrl = "https://ai.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "redhat";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = redhatUrl;
@@ -187,14 +193,15 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("redhat"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(redhatUrl);
     });
 
-    it("should return custom endpoint for Ollama provider", () => {
+    it("should return custom endpoint for Ollama provider", async () => {
       const ollamaUrl = "http://localhost:11434";
       mockSettingsManager.settings.lightSpeedService.provider = "ollama";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = ollamaUrl;
@@ -202,14 +209,15 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("ollama"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(ollamaUrl);
     });
 
-    it("should remove trailing slash for non-WCA providers", () => {
+    it("should remove trailing slash for non-WCA providers", async () => {
       const urlWithSlash = "https://ai.redhat.com/";
       const expectedUrl = "https://ai.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "redhat";
@@ -218,14 +226,15 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("redhat"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
 
-    it("should handle whitespace for non-WCA providers", () => {
+    it("should handle whitespace for non-WCA providers", async () => {
       const urlWithSpace = "  http://localhost:11434  ";
       const expectedUrl = "http://localhost:11434";
       mockSettingsManager.settings.lightSpeedService.provider = "ollama";
@@ -234,16 +243,17 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("ollama"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
   });
 
   describe("edge cases", () => {
-    it("should handle when llmProviderSettings is null", () => {
+    it("should handle when llmProviderSettings is null", async () => {
       const customUrl = "https://custom.example.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
@@ -253,12 +263,12 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = null;
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(customUrl);
     });
 
-    it("should use settingsManager provider when llmProviderSettings getProvider returns null", () => {
+    it("should use settingsManager provider when llmProviderSettings getProvider returns null", async () => {
       const customUrl = "https://custom.example.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = customUrl;
@@ -266,14 +276,15 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue(null),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(customUrl);
     });
 
-    it("should handle URLs with multiple trailing slashes", () => {
+    it("should handle URLs with multiple trailing slashes", async () => {
       const urlWithSlashes = "https://stage.ai.ansible.redhat.com///";
       // Current implementation only removes one trailing slash
       const expectedUrl = "https://stage.ai.ansible.redhat.com//";
@@ -284,16 +295,17 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       expect(result).toBe(expectedUrl);
     });
   });
 
   describe("regression tests for OAuth bug (AAP-69248)", () => {
-    it("should NOT ignore custom stage URL for WCA provider", () => {
+    it("should NOT ignore custom stage URL for WCA provider", async () => {
       const stageUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = stageUrl;
@@ -301,16 +313,17 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       // This should return the stage URL, NOT the default production URL
       expect(result).toBe(stageUrl);
       expect(result).not.toBe(WCA_API_ENDPOINT_DEFAULT);
     });
 
-    it("should NOT ignore custom on-premise URL for WCA provider", () => {
+    it("should NOT ignore custom on-premise URL for WCA provider", async () => {
       const onPremUrl = "https://lightspeed.internal.company.com";
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = onPremUrl;
@@ -318,40 +331,91 @@ describe("webUtils - getBaseUri", () => {
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
-      const result = getBaseUri(mockSettingsManager);
+      const result = await getBaseUri(mockSettingsManager);
 
       // This should return the on-prem URL, NOT the default production URL
       expect(result).toBe(onPremUrl);
       expect(result).not.toBe(WCA_API_ENDPOINT_DEFAULT);
     });
 
-    it("should allow switching between production and stage for WCA", () => {
+    it("should allow switching between production and stage for WCA", async () => {
       mockSettingsManager.settings.lightSpeedService.provider = "wca";
       (
         lightSpeedManager as unknown as MockedLightSpeedManager
       ).llmProviderSettings = {
         getProvider: vi.fn().mockReturnValue("wca"),
+        get: vi.fn().mockResolvedValue(""),
       };
 
       // First use production
       mockSettingsManager.settings.lightSpeedService.apiEndpoint =
         WCA_API_ENDPOINT_DEFAULT;
-      const productionResult = getBaseUri(mockSettingsManager);
+      const productionResult = await getBaseUri(mockSettingsManager);
       expect(productionResult).toBe(WCA_API_ENDPOINT_DEFAULT);
 
       // Then switch to stage
       const stageUrl = "https://stage.ai.ansible.redhat.com";
       mockSettingsManager.settings.lightSpeedService.apiEndpoint = stageUrl;
-      const stageResult = getBaseUri(mockSettingsManager);
+      const stageResult = await getBaseUri(mockSettingsManager);
       expect(stageResult).toBe(stageUrl);
 
       // Then switch back to production
       mockSettingsManager.settings.lightSpeedService.apiEndpoint =
         WCA_API_ENDPOINT_DEFAULT;
-      const backToProductionResult = getBaseUri(mockSettingsManager);
+      const backToProductionResult = await getBaseUri(mockSettingsManager);
       expect(backToProductionResult).toBe(WCA_API_ENDPOINT_DEFAULT);
+    });
+  });
+
+  describe("provider-specific settings (new feature)", () => {
+    it("should use provider-specific apiEndpoint when available", async () => {
+      const providerSpecificUrl = "https://provider-specific.example.com";
+      mockSettingsManager.settings.lightSpeedService.provider = "wca";
+      mockSettingsManager.settings.lightSpeedService.apiEndpoint =
+        "https://legacy.example.com";
+
+      vi.mocked(lightSpeedManager.llmProviderSettings.get).mockResolvedValue(
+        providerSpecificUrl,
+      );
+
+      const result = await getBaseUri(mockSettingsManager);
+
+      expect(result).toBe(providerSpecificUrl);
+      expect(lightSpeedManager.llmProviderSettings.get).toHaveBeenCalledWith(
+        "wca",
+        "apiEndpoint",
+      );
+    });
+
+    it("should fall back to legacy settings when provider-specific get fails", async () => {
+      const legacyUrl = "https://legacy.example.com";
+      mockSettingsManager.settings.lightSpeedService.provider = "wca";
+      mockSettingsManager.settings.lightSpeedService.apiEndpoint = legacyUrl;
+
+      vi.mocked(lightSpeedManager.llmProviderSettings.get).mockRejectedValue(
+        new Error("Setting not found"),
+      );
+
+      const result = await getBaseUri(mockSettingsManager);
+
+      expect(result).toBe(legacyUrl);
+    });
+
+    it("should fall back to legacy settings when provider-specific returns empty string", async () => {
+      const legacyUrl = "https://legacy.example.com";
+      mockSettingsManager.settings.lightSpeedService.provider = "wca";
+      mockSettingsManager.settings.lightSpeedService.apiEndpoint = legacyUrl;
+
+      vi.mocked(lightSpeedManager.llmProviderSettings.get).mockResolvedValue(
+        "",
+      );
+
+      const result = await getBaseUri(mockSettingsManager);
+
+      expect(result).toBe(legacyUrl);
     });
   });
 });
