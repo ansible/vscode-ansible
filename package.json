@@ -1135,13 +1135,13 @@
   },
   "scripts": {
     "build": "yarn workspaces foreach --all -tvv run compile",
-    "clean": "rimraf out/client out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
+    "clean": "rimraf out/client out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap",
     "prepare": "yarn workspaces foreach --all -tvv run prepare",
     "package": "./tools/helper --package",
     "preinstall": "",
     "vite-build": "vue-tsc --noEmit && vite build",
-    "vite-dev": "vite build && vue-tsc --noEmit && vite",
+    "vite-dev": "yarn run vite-build && vite",
     "vite-preview": "vite preview",
     "watch": "tsc -b -w"
   },
