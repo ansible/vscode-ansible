@@ -30,8 +30,14 @@
 !out/client/webview/apps/contentCreator/addPluginPageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js
-!out/vitebuild/**/*
-!packages/ansible-language-server/dist/cli.js
+!out/vitebuild/extension/**/*
+!out/vitebuild/webview/assets/**/*
+!out/vitebuild/webview/codicons/**/*
+!out/vitebuild/webview/contentCreator/**/*
+!out/vitebuild/webview/quickLinks/**/*
+!out/vitebuild/webview/style.css
+!out/vitebuild/webview/webviews/**/*
+!out/vitebuild/webview/welcomePage/**/*
 !packages/ansible-language-server/dist/cli.cjs
 !package.json
 !package.nls.json
