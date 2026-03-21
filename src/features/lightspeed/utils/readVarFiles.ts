@@ -1,12 +1,11 @@
 import * as fs from "fs";
 import * as yaml from "yaml";
 
-export function readVarFiles(varFile: string): string | undefined {
+export async function readVarFiles(
+  varFile: string,
+): Promise<string | undefined> {
   try {
-    if (!fs.existsSync(varFile)) {
-      return undefined;
-    }
-    const contents = fs.readFileSync(varFile, "utf8");
+    const contents = await fs.promises.readFile(varFile, "utf8");
     const parsedAnsibleVars = yaml.parse(contents, {
       keepSourceTokens: true,
     });
