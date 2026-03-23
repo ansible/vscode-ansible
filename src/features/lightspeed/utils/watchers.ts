@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
 import { LightSpeedManager } from "@src/features/lightspeed/base";
 import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
 import {
@@ -10,11 +9,11 @@ import {
 
 import { StandardRolePaths } from "@src/definitions/constants";
 
-export function watchRolesDirectory(
+export async function watchRolesDirectory(
   lightSpeedManager: LightSpeedManager,
   rolesPath: string,
   workspaceRoot?: string,
-) {
+): Promise<vscode.Disposable[]> {
   if (!workspaceRoot) {
     workspaceRoot = "common";
   }
@@ -24,31 +23,31 @@ export function watchRolesDirectory(
     rolesPath in ansibleRolesCache[workspaceRoot]
   ) {
     console.log(`Directory ${rolesPath} is already being watched`);
-    updateRolesContext(
+    await updateRolesContext(
       lightSpeedManager.ansibleRolesCache,
       rolesPath,
       workspaceRoot,
     );
-    return;
-  } else {
-    updateRolesContext(
-      lightSpeedManager.ansibleRolesCache,
-      rolesPath,
-      workspaceRoot,
-    );
-    console.log(`Created roles cache for ${rolesPath}`);
+    return [];
   }
+
+  await updateRolesContext(
+    lightSpeedManager.ansibleRolesCache,
+    rolesPath,
+    workspaceRoot,
+  );
+  console.log(`Created roles cache for ${rolesPath}`);
 
   const watcher = vscode.workspace.createFileSystemWatcher(
     path.join(rolesPath, "**/*"),
   );
 
-  watcher.onDidChange((uri) => {
+  watcher.onDidChange(async (uri) => {
     const currentWorkspaceRoot = vscode.workspace.workspaceFolders;
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
       const rolePath = getRoleNamePathFromFilePath(uri.fsPath);
-      updateRoleContext(
+      await updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,
         workspaceRoot,
@@ -58,36 +57,41 @@ export function watchRolesDirectory(
   });
 
   watcher.onDidDelete((uri) => {
-    let dirPath = uri.fsPath;
-    const stats = fs.statSync(dirPath);
-    if (stats.isFile()) {
-      dirPath = path.dirname(dirPath);
-    }
-    if (dirPath in StandardRolePaths) {
-      delete ansibleRolesCache["common"][dirPath];
+    const dirPath = path.extname(uri.fsPath)
+      ? path.dirname(uri.fsPath)
+      : uri.fsPath;
+
+    if (StandardRolePaths.includes(dirPath)) {
+      const commonCache = lightSpeedManager.ansibleRolesCache["common"];
+      if (commonCache) {
+        delete commonCache[dirPath];
+      }
     } else {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (workspaceFolders) {
         const workspaceFolder = workspaceFolders[0].uri.fsPath;
-        if (dirPath in ansibleRolesCache[workspaceFolder]) {
-          delete ansibleRolesCache[workspaceFolder][dirPath];
+        const wsCache = lightSpeedManager.ansibleRolesCache[workspaceFolder];
+        if (wsCache && dirPath in wsCache) {
+          delete wsCache[dirPath];
         }
       }
     }
     console.log(`Directory ${dirPath} has been deleted`);
   });
 
-  watcher.onDidCreate((uri) => {
+  watcher.onDidCreate(async (uri) => {
     const currentWorkspaceRoot = vscode.workspace.workspaceFolders;
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
       const rolePath = getRoleNamePathFromFilePath(uri.fsPath);
-      updateRoleContext(
+      await updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,
         workspaceRoot,
       );
-      console.log(`Directory ${uri.fsPath} has been changed`);
+      console.log(`Directory ${uri.fsPath} has been created`);
     }
   });
+
+  return [watcher];
 }

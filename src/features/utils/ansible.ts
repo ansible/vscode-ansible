@@ -1,4 +1,4 @@
-import * as glob from "glob";
+import { glob } from "glob";
 import * as path from "path";
 import * as fs from "fs";
 import * as yaml from "yaml";
@@ -48,16 +48,18 @@ export function getAnsibleFileType(
   return "other";
 }
 
-export function getCustomRolePaths(workspacePath?: string): string[] {
+export async function getCustomRolePaths(
+  workspacePath?: string,
+): Promise<string[]> {
   const rolePaths: string[] = [];
 
   if (workspacePath) {
     const pattern = path.join(workspacePath, "**/roles");
-    const options = {
+    const workspaceRolePaths = await glob(pattern, {
       ignore: ["**/node_modules/**", "**/.git/**"],
       absolute: true,
-    };
-    const workspaceRolePaths = glob.sync(pattern, options);
+      maxDepth: 6,
+    });
     rolePaths.push(...workspaceRolePaths);
   }
 

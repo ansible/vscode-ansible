@@ -47,6 +47,8 @@ export class LightSpeedManager {
     | undefined;
   public providerManager: ProviderManager;
   private logger: Log;
+  private _watchers: vscode.Disposable[] = [];
+  private _contextInitAbort: AbortController | null = null;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -112,9 +114,6 @@ export class LightSpeedManager {
     // Generative AI features are now in the LLM Provider Settings panel
     this.lightspeedExplorerProvider = undefined;
 
-    // create workspace context for ansible roles
-    this.setContext();
-
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
   }
@@ -133,7 +132,7 @@ export class LightSpeedManager {
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
       this.statusBarProvider.setLightSpeedStatusBarTooltip();
-      this.setContext();
+      await this.setContext();
     }
 
     // set custom when clause for controlling visibility of views
@@ -143,22 +142,62 @@ export class LightSpeedManager {
   private resetContext(): void {
     this.ansibleVarFilesCache = {};
     this.ansibleRolesCache = {};
+    for (const d of this._watchers) {
+      d.dispose();
+    }
+    this._watchers = [];
+    this._contextInitAbort?.abort();
+    this._contextInitAbort = null;
   }
 
-  private setContext(): void {
+  public async setContext(): Promise<void> {
+    this._contextInitAbort?.abort();
+    const abort = new AbortController();
+    this._contextInitAbort = abort;
+
+    const newWatchers: vscode.Disposable[] = [];
+
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders) {
       for (const workspaceFolder of workspaceFolders) {
+        if (abort.signal.aborted) return;
         const workSpaceRoot = workspaceFolder.uri.fsPath;
-        const rolesPath = getCustomRolePaths(workSpaceRoot);
-        for (const rolePath of rolesPath) {
-          watchRolesDirectory(this, rolePath, workSpaceRoot);
-        }
+        const rolesPath = await getCustomRolePaths(workSpaceRoot);
+        await this.watchRolePaths(
+          rolesPath,
+          newWatchers,
+          abort.signal,
+          workSpaceRoot,
+        );
       }
     }
+
     const commonRolesPath = getCommonRoles() || [];
-    for (const rolePath of commonRolesPath) {
-      watchRolesDirectory(this, rolePath);
+    await this.watchRolePaths(commonRolesPath, newWatchers, abort.signal);
+
+    if (abort.signal.aborted) {
+      for (const d of newWatchers) {
+        d.dispose();
+      }
+    } else {
+      this._watchers = newWatchers;
+    }
+  }
+
+  private async watchRolePaths(
+    rolePaths: string[],
+    watchers: vscode.Disposable[],
+    signal: AbortSignal,
+    workSpaceRoot?: string,
+  ): Promise<void> {
+    for (const rolePath of rolePaths) {
+      if (signal.aborted) return;
+      const disposables = await watchRolesDirectory(
+        this,
+        rolePath,
+        workSpaceRoot,
+      );
+      watchers.push(...disposables);
     }
   }
 

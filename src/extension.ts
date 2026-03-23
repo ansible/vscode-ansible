@@ -1125,6 +1125,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
   context.subscriptions.push(eeBuilderCommand);
+
+  // Initialize workspace context for ansible roles (async, at the end of activate
+  // to avoid blocking early extension host initialization)
+  await lightSpeedManager.setContext();
 }
 
 const startClient = async (
