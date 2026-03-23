@@ -5,6 +5,7 @@
     "jsx": "preserve", // required for vue
     "jsxImportSource": "vue", // required for vue
     "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
     "outDir": "lib",
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
