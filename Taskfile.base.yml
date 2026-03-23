@@ -75,6 +75,6 @@ tasks:
     deps:
       - package # production needs package, development needs build
     cmds:
-      - npm exec -- knip || true
-      - npm exec -- knip --production || true
+      - npm exec -- knip
+      - npm exec -- knip --production
       - echo "If knip passed locally but fails on CI, try running 'task clean && task knip' locally to flush all caches."

@@ -24,13 +24,13 @@ const config: KnipConfig = {
     "@typescript-eslint/eslint-plugin",
     "@vscode/test-electron",
     "@vscode/vsce",
+    "cspell-cli",
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
-    "ts-node", // Used by Mocha test runners via string-based require
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:
     //   • root workspace: webviews/ are not analyzed (not in package.json main/bin)
@@ -47,7 +47,6 @@ const config: KnipConfig = {
           "@vscode-elements/elements",
           "@vscode/codicons",
           "highlight.js",
-          // "ini",
           "js-yaml",
           "marked",
           "minimatch",
@@ -66,9 +65,6 @@ const config: KnipConfig = {
         ]
       : []),
   ],
-  mocha: {
-    entry: ["test/e2e/rootMochaHooks.ts", "test/e2e/e2e.utils.ts"],
-  },
   typescript: {
     config: ["**/tsconfig*.json"],
   },
@@ -81,9 +77,12 @@ const config: KnipConfig = {
         "webviews/**/*.{ts,tsx,vue,js}",
       ],
       ignore: [".yarn/**"],
+      mocha: {
+        entry: ["test/**/*.ts!"],
+      },
       project: [
         "{src,webviews}/**/*.{mjs,js,json,ts,tsx,vue}",
-        "!test/**/*.ts",
+        "test/**/*.ts!",
       ],
     },
     "packages/ansible-language-server": {

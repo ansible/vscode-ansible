@@ -31,8 +31,5 @@
     "webviews/**/*.vue",
     "*.js",
     "*.ts"
-  ],
-  "ts-node": {
-    "files": true
-  }
+  ]
 }

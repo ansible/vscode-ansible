@@ -7,11 +7,12 @@ import fs from "fs";
 import * as path from "path";
 import { IWorkSpaceRolesContext } from "@src/interfaces/lightspeed";
 import { PROJECT_ROOT } from "@test/setup";
+import { afterAll } from "vitest";
 
 describe("updateRolesContext", function () {
   const tmpDir = path.join(PROJECT_ROOT, "out/tmp/updateRolesContext");
 
-  after(function () {
+  afterAll(function () {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 

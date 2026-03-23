@@ -7,7 +7,7 @@ This document provides guidelines for AI agents working on this codebase.
 ### Code Validation
 
 - **Always validate changes**: Run `task lint` and `task test` and resolve any reported build issues.
-- **Avoid `__dirname`**: Do not use `__dirname` in new code. It doesn't work well with transpiled code as relative paths differ when files are transpiled vs. run directly with `ts-node`. Use `PROJECT_ROOT` from `test/setup.ts` instead.
+- **Avoid `__dirname`**: Do not use `__dirname` in new code. It doesn't work well with transpiled code as relative paths differ when files are transpiled. Use `PROJECT_ROOT` from `test/setup.ts` instead.
 
 ## Pull Request Checklist
 
