@@ -27,10 +27,13 @@ class LightspeedAccessDenied extends Error {
   }
 }
 
-export enum AuthProviderType {
-  rhsso = RHSSO_AUTH_ID,
-  lightspeed = ANSIBLE_LIGHTSPEED_AUTH_ID,
-}
+export const AuthProviderType = {
+  rhsso: RHSSO_AUTH_ID,
+  lightspeed: ANSIBLE_LIGHTSPEED_AUTH_ID,
+} as const;
+
+export type AuthProviderType =
+  (typeof AuthProviderType)[keyof typeof AuthProviderType];
 
 const ExtensionHost = {
   WebWorker: "WebWorker",

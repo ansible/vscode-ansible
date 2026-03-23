@@ -64,13 +64,13 @@ export function watchRolesDirectory(
       dirPath = path.dirname(dirPath);
     }
     if (dirPath in StandardRolePaths) {
-      delete ansibleRolesCache["common"][dirPath];
+      Reflect.deleteProperty(ansibleRolesCache["common"], dirPath);
     } else {
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (workspaceFolders) {
         const workspaceFolder = workspaceFolders[0].uri.fsPath;
         if (dirPath in ansibleRolesCache[workspaceFolder]) {
-          delete ansibleRolesCache[workspaceFolder][dirPath];
+          Reflect.deleteProperty(ansibleRolesCache[workspaceFolder], dirPath);
         }
       }
     }
