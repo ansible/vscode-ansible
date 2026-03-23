@@ -356,7 +356,9 @@ export class TerminalService implements vscode.Disposable {
   }
 
   public dispose(): void {
-    this._disposables.forEach((d) => d.dispose());
+    this._disposables.forEach((d) => {
+      d.dispose();
+    });
     this._disposables = [];
   }
 }

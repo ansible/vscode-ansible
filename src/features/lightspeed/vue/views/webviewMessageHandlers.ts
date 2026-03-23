@@ -181,7 +181,6 @@ export class WebviewMessageHandlers {
       type: "homeDirectory",
       data: workspaceDir,
     });
-    return message.data;
   }
 
   private handleUiMounted(message: any, webview: vscode.Webview) {

@@ -189,7 +189,12 @@ export class WelcomePagePanel {
         title: walkthrough.title,
         description: walkthrough.description,
         icon: walkthrough.icon || "compass-active",
-      }));
+      })) as Array<{
+        id: string;
+        title: string;
+        description: string;
+        icon: string;
+      }>;
     } catch (error) {
       console.error("Error getting walkthroughs:", error);
       return [];

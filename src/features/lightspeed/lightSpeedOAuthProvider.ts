@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
   authentication,
   AuthenticationProvider,
@@ -315,27 +313,27 @@ export class LightSpeedAuthenticationProvider
         location: ProgressLocation.Notification,
         cancellable: true,
       },
-      async (_, token) =>
-        Promise.race([
-          receivedRedirectUrl,
-          new Promise<OAuthAccount>((_, reject) => {
-            setTimeout(() => {
-              reject(
-                new Error(
-                  "Cancelling the Ansible Lightspeed login after 60s. Try again.",
-                ),
-              );
-            }, LIGHTSPEED_SERVICE_LOGIN_TIMEOUT);
-          }),
-          promiseFromEvent<any, any>(
-            token.onCancellationRequested,
-            (_, __, reject) => {
+      async (_, token): Promise<OAuthAccount> => {
+        try {
+          return await Promise.race<OAuthAccount>([
+            receivedRedirectUrl,
+            new Promise<OAuthAccount>((_, reject) => {
+              setTimeout(() => {
+                reject(
+                  new Error(
+                    "Cancelling the Ansible Lightspeed login after 60s. Try again.",
+                  ),
+                );
+              }, LIGHTSPEED_SERVICE_LOGIN_TIMEOUT);
+            }),
+            promiseFromEvent(token.onCancellationRequested, (_, __, reject) => {
               reject("User Cancelled");
-            },
-          ).promise,
-        ]).finally(() => {
+            }).promise as Promise<OAuthAccount>,
+          ]);
+        } finally {
           cancelWaitingForRedirectUrl.fire();
-        }),
+        }
+      },
     );
 
     return account;

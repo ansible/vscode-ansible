@@ -44,9 +44,12 @@ import { ProviderStatus } from "@src/features/lightspeed/providers/base";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
-export function getFetch() {
+export function getFetch(): typeof globalThis.fetch {
   try {
-    const electronFetch = require("electron")?.net?.fetch;
+    const electron = require("electron") as
+      | { net?: { fetch?: typeof globalThis.fetch } }
+      | undefined;
+    const electronFetch = electron?.net?.fetch;
     if (electronFetch) {
       return electronFetch;
     }
@@ -79,37 +82,36 @@ export class LightSpeedAPI {
     this.logger = logger;
   }
 
-  private async lightspeedPost(endpoint: string, body: string) {
-    try {
-      const fetch = getFetch();
+  private async lightspeedPost(
+    endpoint: string,
+    body: string,
+  ): Promise<Response> {
+    const fetch = getFetch();
 
-      const authToken =
-        await this.lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+    const authToken =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
 
-      // Check if WCA provider and auth token is required
-      const provider = this.settingsManager.settings.lightSpeedService.provider;
-      if (provider === "wca" && authToken === undefined) {
-        throw new Error("Ansible Lightspeed authentication failed.");
-      }
-
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      if (authToken !== undefined) {
-        Object.assign(headers, { Authorization: `Bearer ${authToken}` });
-      }
-
-      const baseUrl = `${getBaseUri(this.settingsManager)}/api`;
-
-      return fetch(`${baseUrl}/${endpoint}`, {
-        method: "POST",
-        signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
-        body,
-        headers,
-      });
-    } catch (err) {
-      return err;
+    // Check if WCA provider and auth token is required
+    const provider = this.settingsManager.settings.lightSpeedService.provider;
+    if (provider === "wca" && authToken === undefined) {
+      throw new Error("Ansible Lightspeed authentication failed.");
     }
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (authToken !== undefined) {
+      Object.assign(headers, { Authorization: `Bearer ${authToken}` });
+    }
+
+    const baseUrl = `${getBaseUri(this.settingsManager)}/api`;
+
+    return await fetch(`${baseUrl}/${endpoint}`, {
+      method: "POST",
+      signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+      body,
+      headers,
+    });
   }
 
   public async completionRequest(
@@ -159,7 +161,7 @@ export class LightSpeedAPI {
       this.logger.debug(
         `[ansible-lightspeed] Completion response: ${JSON.stringify(data)}`,
       );
-      return data;
+      return data as CompletionResponseParams;
     } catch (error) {
       isCompletionSuccess = false;
       const mappedError: IError = mapError(error as Error);
@@ -244,7 +246,7 @@ export class LightSpeedAPI {
         vscode.window.showInformationMessage("Thanks for your feedback!");
       }
 
-      return data;
+      return data as FeedbackResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       const errorMessage: string = `${mappedError.message ?? UNKNOWN_ERROR} ${formatErrorDetail(mappedError.detail)}`;
@@ -291,7 +293,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data);
       }
 
-      return data;
+      return data as ContentMatchesResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;
@@ -324,7 +326,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data);
       }
 
-      return data;
+      return data as ExplanationResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;
@@ -357,7 +359,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data);
       }
 
-      return data;
+      return data as PlaybookGenerationResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;
@@ -393,7 +395,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data);
       }
 
-      return data;
+      return data as RoleGenerationResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;
@@ -426,7 +428,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data);
       }
 
-      return data;
+      return data as ExplanationResponseParams;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;

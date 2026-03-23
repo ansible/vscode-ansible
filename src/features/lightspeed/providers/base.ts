@@ -147,7 +147,7 @@ export abstract class BaseLLMProvider<
       prompt,
       metadata?.context || "",
       ansibleContext,
-    );
+    ) as string;
   }
 
   /**
@@ -155,7 +155,7 @@ export abstract class BaseLLMProvider<
    */
   protected cleanAnsibleOutput(output: string): string {
     const { AnsibleContextProcessor } = require("../ansibleContext");
-    return AnsibleContextProcessor.cleanAnsibleOutput(output);
+    return AnsibleContextProcessor.cleanAnsibleOutput(output) as string;
   }
 
   /**

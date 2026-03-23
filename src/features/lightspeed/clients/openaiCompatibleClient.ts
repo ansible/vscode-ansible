@@ -115,7 +115,7 @@ export class OpenAICompatibleClient {
         throw new OpenAIClientError(errorMessage, response.status);
       }
 
-      return body;
+      return body as ChatCompletionResponse;
     } catch (error) {
       clearTimeout(timeoutId);
 

@@ -232,15 +232,18 @@ def screenshot_on_fail(request: pytest.FixtureRequest) -> Generator[None, None, 
 
 def _close_all_editors_without_saving(driver: WebDriver) -> None:
     """Close all editors and handle save dialog if it appears."""
-    vscode_run_command(driver, ">View: Close All Editors")
+    try:
+        vscode_run_command(driver, ">View: Close All Editors")
 
-    time.sleep(0.5)
+        time.sleep(0.5)
 
-    for elm in driver.find_elements(
-        by="xpath",
-        value='//*[normalize-space(.)="Don\'t Save"]',
-    ):
-        elm.click()
+        for elm in driver.find_elements(
+            by="xpath",
+            value='//*[normalize-space(.)="Don\'t Save"]',
+        ):
+            elm.click()
+    except (WebDriverException, TimeoutException):  # pragma: no cover
+        pass
 
 
 @pytest.fixture(autouse=False)
