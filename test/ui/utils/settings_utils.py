@@ -28,7 +28,11 @@ def ensure_settings(settings: dict[str, Any]) -> None:
         try:
             with USER_SETTINGS_PATH.open(encoding="utf-8") as f:
                 current_settings = json.load(f)
-        except Exception as err:  # pylint: disable=broad-except  # noqa: BLE001
+        except (
+            json.JSONDecodeError,
+            OSError,
+            UnicodeDecodeError,
+        ) as err:  # pragma: no cover
             log.warning("Failed to parse settings at %s: %s", USER_SETTINGS_PATH, err)
 
     changed_settings: dict[str, Any] = {}

@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from selenium.common import WebDriverException
+from selenium.common import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.remote.webdriver import WebDriver
@@ -107,7 +107,7 @@ def browser_setup(
 
         yield driver, "https://stage.ai.ansible.redhat.com/login"
         close_all_tabs(driver)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as e:  # pragma: no cover
         # log.error("Error in browser_setup: %s", e)
         pytest.exit(f"Failed to setup test database: {e}", returncode=2)
 
@@ -149,13 +149,13 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
                     try:
                         driver.switch_to.window(tab)
                         driver.close()
-                    except Exception:  # noqa: BLE001
+                    except (WebDriverException, TimeoutException):  # pragma: no cover
                         pass  # Continue cleanup even if individual tab close fails
 
                 # Quit the driver to properly terminate the session
                 driver.quit()
                 log.info("✓ Browser session properly closed")
-            except Exception as e:  # noqa: BLE001
+            except (WebDriverException, TimeoutException) as e:  # pragma: no cover
                 log.warning("Warning during browser cleanup: %s", e)
                 # Force quit even if regular cleanup fails
                 with contextlib.suppress(Exception):
@@ -202,7 +202,7 @@ def take_screenshot(driver: WebDriver, name: str) -> str:
     )
     try:
         driver.save_screenshot(f"{file_name}")
-    except WebDriverException:
+    except (WebDriverException, TimeoutException):  # pragma: no cover
         driver.switch_to.parent_frame()
         driver.save_screenshot(f"{file_name}")
     return file_name
@@ -221,10 +221,10 @@ def screenshot_on_fail(request: pytest.FixtureRequest) -> Generator[None, None, 
     request.node.stash[phase_report_key]
 
     report = request.node.stash[phase_report_key]
-    if report["call"].failed:
+    if "call" in report and report["call"].failed:
         try:
             driver = request.node.funcargs["browser_setup"][0]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             driver = request.node.funcargs["new_browser"][0]
         file_name = take_screenshot(driver, request.node.name)
         log.info("screenshot taken: %s", file_name)
@@ -256,7 +256,7 @@ def close_editors(request: pytest.FixtureRequest) -> Generator[None, None, None]
             driver, _ = request.getfixturevalue("browser_setup")
         elif "new_browser" in request.fixturenames:
             driver, _, _ = request.getfixturevalue("new_browser")
-    except Exception:  # pylint: disable=broad-except  # noqa: BLE001
+    except (WebDriverException, TimeoutException):  # pragma: no cover
         # No browser fixture in this test, skip cleanup
         yield
         return
