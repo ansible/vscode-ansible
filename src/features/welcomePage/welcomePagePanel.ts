@@ -55,7 +55,7 @@ export class WelcomePagePanel {
           enableCommandUris: true,
           retainContextWhenHidden: true,
           localResourceRoots: [
-            vscode.Uri.joinPath(context.extensionUri, "out"),
+            vscode.Uri.joinPath(context.extensionUri, "dist"),
             vscode.Uri.joinPath(context.extensionUri, "media"),
             vscode.Uri.joinPath(context.extensionUri, "images"),
           ],

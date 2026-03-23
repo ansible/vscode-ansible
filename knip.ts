@@ -101,7 +101,7 @@ const config: KnipConfig = {
       entry: ["test/**/*.ts"],
       project: [
         "{src,tools}/**/*.{mjs,js,json,ts,tsx}!",
-        "!test/**/*.{mjs,js,json,ts,tsx}!",
+        "test/**/*.{mjs,js,json,ts,tsx}!",
       ],
     },
   },
@@ -127,7 +127,7 @@ const config: KnipConfig = {
     // All mcp-server source files are unreachable in production mode because
     // knip's canonical entry resolves to lib/cli.js which still contains
     // @src/* path aliases that cannot be followed without the workspace tsconfig.
-    "packages/ansible-mcp-server/src/**": ["files"],
+    // "packages/ansible-mcp-server/src/**": ["files"],
     // These helpers are exported for test access only; test files are excluded
     // in production mode. They live in package.json#exports entry files so
     // includeEntryExports:false should suppress them, but the global true wins.
@@ -140,6 +140,12 @@ const config: KnipConfig = {
     "packages/ansible-language-server/src/utils/getAnsibleMetaData.ts": [
       "exports",
     ],
+    "packages/ansible-mcp-server/src/constants.ts": ["exports", "types"],
+    "packages/ansible-mcp-server/src/dependencyChecker.ts": ["exports"],
+    "packages/ansible-mcp-server/src/resources/agents.ts": ["exports"],
+    "packages/ansible-mcp-server/src/server.ts": ["exports"],
+    "packages/ansible-mcp-server/src/tools/adeTools.ts": ["types", "exports"],
+    "packages/ansible-mcp-server/src/tools/executionEnv.ts": ["types"],
   },
 };
 

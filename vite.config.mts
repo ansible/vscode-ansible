@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     minify: false,
-    outDir: "out/vitebuild",
+    outDir: "dist", // keep default
     rollupOptions: {
       // https://cn.vitejs.dev/guide/build.html#multi-page-app
       input: {

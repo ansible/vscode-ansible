@@ -407,7 +407,12 @@ def get_connect_button(driver: WebDriver) -> WebElement:
                 "//vscode-button[normalize-space(.)='Connect']",
                 retries=10,
             )
-        except (NoSuchElementException, TimeOutError, ValueError, WebDriverException):
+        except (
+            NoSuchElementException,
+            TimeOutError,
+            ValueError,
+            WebDriverException,
+        ):  # pragma: no cover
             if attempt == max_attempts - 1:
                 raise
             driver.refresh()
@@ -443,7 +448,11 @@ def vscode_install_vsix(driver: WebDriver) -> None:
                 "//a[@aria-label='Clear Notification (Delete)']",
                 timeout=10,
             )
-        except (TimeoutException, TimeOutError, ElementClickInterceptedException):
+        except (
+            TimeoutException,
+            TimeOutError,
+            ElementClickInterceptedException,
+        ):  # pragma: no cover
             if i == max_attempts - 1:
                 raise
         else:
@@ -712,7 +721,11 @@ def vscode_trial_button(
     """
     try:  # in case explorer is already open
         wait_displayed(driver, f"//span[text()='{file_name}']", timeout=1).click()
-    except (TimeoutException, TimeOutError, ElementClickInterceptedException):
+    except (
+        TimeoutException,
+        TimeOutError,
+        ElementClickInterceptedException,
+    ):  # pragma: no cover
         # go to explorer
         explorer = wait_displayed(
             driver,
@@ -723,7 +736,7 @@ def vscode_trial_button(
         # open the playbook
         try:
             wait_displayed(driver, f"//span[text()='{file_name}']", timeout=60).click()
-        except ElementClickInterceptedException:
+        except ElementClickInterceptedException:  # pragma: no cover
             ActionChains(driver).move_to_element(explorer).move_by_offset(
                 0,
                 50,
@@ -753,7 +766,7 @@ def vscode_trial_button(
                 "//a[contains(text(), 'Start a trial')]",
                 timeout=10,
             )
-        except TimeoutException:
+        except TimeoutException:  # pragma: no cover
             if n == max_attempts - 1:
                 raise
     return None
@@ -1028,7 +1041,7 @@ def vscode_run_command(
             TimeOutError,
             NoSuchElementException,
             StaleElementReferenceException,
-        ):
+        ):  # pragma: no cover
             if i == max_attempts - 1:
                 raise
             time.sleep(1)
@@ -1137,7 +1150,7 @@ def side_nav(driver: WebDriver, page_name: str) -> None:
     # validate the side menu is open
     try:
         wait_displayed(driver, "//p[text()='Ansible Lightspeed with']", timeout=5)
-    except TimeoutException:
+    except TimeoutException:  # pragma: no cover
         side_button = wait_displayed(driver, "//button[@id='nav-toggle']", timeout=5)
         side_button.click()
     admin_button = wait_displayed(
