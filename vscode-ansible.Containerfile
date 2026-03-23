@@ -13,8 +13,12 @@ WORKDIR /usr/src/app
 # cspell:disable-next-line
 RUN apt-get update && apt-get install -q -y golang-github-go-enry-go-oniguruma-dev sudo curl
 COPY . .
-RUN --mount=type=cache,target=/root/.local/share/mise,sharing=locked \
+RUN \
+--mount=type=secret,id=github_token,env=GITHUB_TOKEN \
+--mount=type=cache,target=/root/.local/share/mise,sharing=locked \
 --mount=type=cache,target=/root/.cache/mise,sharing=locked \
+--mount=type=cache,target=/var/cache/apt/archives/,sharing=locked \
+--mount=type=cache,target=/var/lib/apt/lists/,sharing=locked \
 mise install && \
 mise list && \
 mise exec -- uv sync --no-progress -q --active && \
