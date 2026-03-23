@@ -20,7 +20,6 @@ ignorePaths:
   - "**/*-artifact-*.json"
   - "**/lib/"
   - "*.svg"
-  - ./vscode-ansible.Containerfile
   - .git
   - .yarn/
   - dist/

@@ -1,4 +1,4 @@
-# Used by both Containerfile and vscode-ansible.Containerfile
+# Used by Containerfile
 *.vsix
 .cache/
 .ruff_cache/
