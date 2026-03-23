@@ -7,7 +7,7 @@ import {
   GenerationResponseParams,
 } from "@src/features/lightspeed/providers/base";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
-import type { ProviderType } from "@src/definitions/lightspeed.d.ts";
+import type { ProviderType } from "@src/definitions/lightspeed";
 import { SettingsManager } from "@src/settings";
 import { LightSpeedAPI } from "@src/features/lightspeed/api";
 import {

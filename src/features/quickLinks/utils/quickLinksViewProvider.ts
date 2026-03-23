@@ -39,7 +39,7 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
       // Restrict the webview to only load resources from the `out` and `media` directory
       enableCommandUris: true,
       localResourceRoots: [
-        Uri.joinPath(this._extensionUri, "out"),
+        Uri.joinPath(this._extensionUri, "dist"),
         Uri.joinPath(this._extensionUri, "media"),
       ],
     };

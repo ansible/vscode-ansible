@@ -115,7 +115,6 @@ tsup
 unsubed
 uuidv
 vite
-vitebuild
 vitest
 vscodeignore
 vscoss

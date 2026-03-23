@@ -31,7 +31,7 @@ import {
   checkPythonVersionAvailable,
   reportMissingPython,
   type ADEEnvironmentInfo,
-} from "@src/tools/adeTools.js";
+} from "@src/tools/adeTools";
 import * as fs from "node:fs/promises";
 
 describe("ADE Tools", () => {
