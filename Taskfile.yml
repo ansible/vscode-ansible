@@ -309,10 +309,6 @@ tasks:
     desc: Build container image used for building the extension
     cmds:
       - ./tools/builder.sh
-  image-konflux:
-    desc: Build container image used for building the extension for Konflux CI
-    cmds:
-      - podman build --build-arg GITHUB_TOKEN -f vscode-ansible.Containerfile --format=docker
   ci_clean_cache:
     desc: Clean up caches (only runs when CI=true)
     status:
