@@ -41,6 +41,38 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
+
+      # needed by our prek system hooks like toml
+      - name: Install uv (cache)
+        uses: astral-sh/setup-uv@v7
+
+      # needed by our prek systems hooks like biome
+      - name: Install node (cache)
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: "24"
+
+      - name: Run prek
+        uses: j178/prek-action@v2
+        # ideally prek should run in under 30s, but we keep a hard limit of 3
+        # minutes to count for slower hooks and uncached data. If a hook is
+        # slower, even occasionally it should be moved outside and included in
+        # another build step, like 'build' or 'package'.
+        timeout-minutes: 3
+        with:
+          # show-verbose-logs: true
+          # we want to run in verbose to report speed of each hook
+          extra-args: "--all-files -v"
+          install-only: false
+          prek-version: ">=0.3.8"
+
   preflight:
     runs-on: ubuntu-24.04
     container:
@@ -118,15 +150,6 @@ jobs:
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
-      - name: task dry
-        run: |
-          task dry
-
-      - name: task lint
-        timeout-minutes: 4
-        run: |
-          task lint
-
       - name: task docs
         timeout-minutes: 1
         run: |
@@ -136,6 +159,17 @@ jobs:
         timeout-minutes: 2
         run: |
           task package && task package --status
+
+      - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
+        run: task dry
+
+      # this is kept here just to ensure 'task lint' command does not drift but
+      # our main linting is run directly by 'prek' job, without involving task.
+      - name: task lint
+        # keep linting before any other task, to allow it be faster and independent
+        timeout-minutes: 3
+        run: |
+          task lint
 
       - name: task finish
         run: task finish
@@ -172,6 +206,10 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
+    # Keep 'preflight' as a dependency because 'build' is resource-intensive;
+    # running it only after preflight succeeds prevents wasting matrix capacity.
+    needs:
+      - lint
 
     environment: ci
     env:
@@ -441,7 +479,7 @@ jobs:
 
   builder-image:
     runs-on: ubuntu-24.04
-    needs: [preflight]
+    needs: [preflight, lint]
     permissions:
       contents: read
       packages: write
@@ -468,6 +506,8 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     needs:
+      - lint
+      - preflight
       - build
       - builder-image
     if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')

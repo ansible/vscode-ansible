@@ -1,22 +1,4 @@
 ---
-ci:
-  # format compatible with commitlint
-  autoupdate_commit_msg: "chore: pre-commit autoupdate"
-  autoupdate_schedule: monthly
-  autofix_commit_msg: "chore: auto fixes from pre-commit.com hooks"
-  skip:
-    - biome
-    # - codecov
-    - codespell # missing uv
-    - cspell
-    - eslint
-    - md # missing uv
-    - mypy # missing uv
-    - renovate-config-validator # network
-    - ruff # missing uv
-    - shellcheck # missing uv
-    - toml # missing uv
-    - yamllint # missing uv
 exclude: >
   (?x)^(
     .*.svg
@@ -54,6 +36,14 @@ repos:
         priority: 1
   - repo: local
     hooks:
+      - id: yarn-install
+        priority: 0
+        name: yarn-install
+        alias: yarn
+        entry: yarn install --immutable --silent
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: biome
         priority: 1
         name: biome
@@ -64,18 +54,8 @@ repos:
         entry: npx biome check --write --unsafe
       - id: eslint
         name: eslint
-        entry: npx
+        entry: yarn exec eslint --no-warn-ignored --color --format=gha --fix --max-warnings=0 --concurrency=2
         language: system
-        args:
-          - eslint
-          - --no-warn-ignored
-          - --color
-          - --format=gha
-          - --fix
-          - --max-warnings=0
-          - --concurrency=2
-          # - --cache
-          # - --cache-strategy=content
         pass_filenames: false
         priority: 1
         always_run: true
