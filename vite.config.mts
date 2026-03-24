@@ -1,6 +1,49 @@
+import fs from "node:fs";
 import path from "node:path";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+
+/**
+ * Writes the dev server URL to a marker file so the extension host can
+ * detect it and serve webview HTML directly from the dev server (enabling HMR).
+ */
+function viteDevServerUrl(): Plugin {
+  const markerPath = path.resolve(__dirname, ".vite-dev-server-url");
+  const pidPath = path.resolve(__dirname, ".vite-dev.pid");
+  return {
+    buildEnd() {
+      // Clean up marker file during production builds
+      try {
+        fs.unlinkSync(markerPath);
+      } catch {
+        // ignore if not present
+      }
+    },
+    configureServer(server) {
+      server.httpServer?.once("listening", () => {
+        const address = server.httpServer?.address();
+        if (address && typeof address === "object") {
+          const url = `http://localhost:${address.port}`;
+          fs.writeFileSync(markerPath, url, "utf8");
+          fs.writeFileSync(pidPath, String(process.pid), "utf8");
+        }
+      });
+      server.httpServer?.once("close", () => {
+        try {
+          fs.unlinkSync(markerPath);
+        } catch {
+          // ignore if not present
+        }
+        try {
+          fs.unlinkSync(pidPath);
+        } catch {
+          // ignore if not present
+        }
+      });
+    },
+    name: "vscode-dev-server-url",
+  };
+}
 
 export default defineConfig({
   build: {
@@ -63,6 +106,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    viteDevServerUrl(),
     vue({
       template: {
         compilerOptions: {
@@ -77,5 +121,11 @@ export default defineConfig({
       "@src": path.resolve(__dirname, "src"),
       "@webviews": path.resolve(__dirname, "webviews"),
     },
+  },
+  server: {
+    cors: true,
+    origin: "http://localhost:5173",
+    port: 5173,
+    strictPort: true,
   },
 });

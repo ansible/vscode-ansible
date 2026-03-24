@@ -111,9 +111,18 @@ vi.mock("vscode", () => {
     extensions: {
       getExtension: vi.fn(),
     },
+    ExtensionMode: {
+      Production: 1,
+      Development: 2,
+      Test: 3,
+    },
     Uri: {
-      file: vi.fn(),
+      file: vi.fn((path: string) => ({ fsPath: path, path })),
       parse: vi.fn(),
+      joinPath: vi.fn((base: { path: string }, ...segments: string[]) => {
+        const joined = [base.path, ...segments].join("/");
+        return { fsPath: joined, path: joined, toString: () => joined };
+      }),
     },
     ViewColumn: {
       One: 1,

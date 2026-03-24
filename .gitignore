@@ -3,6 +3,8 @@
 # about not not using or creating files from user home directory directly (~).
 !media/
 .DS_Store
+.vite-dev-server-url
+.vite-dev.pid
 .cache
 .eslintcache
 .idea
