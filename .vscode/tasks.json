@@ -63,22 +63,49 @@
       "problemMatcher": {
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^.*extension build start*$",
-          "endsPattern": "^.*extension (build|rebuild) success.*$"
+          "beginsPattern": "^\\s*VITE v",
+          "endsPattern": "^\\s*➜\\s+Local:"
         },
         "fileLocation": "relative",
-        "owner": "typescript",
+        "owner": "vite",
         "pattern": {
-          "code": 5,
-          "column": 4,
-          "file": 1,
-          "line": 3,
-          "message": 6,
-          "regexp": "^([a-zA-Z]\\:/?([\\w\\-]/?)+\\.\\w+):(\\d+):(\\d+): (ERROR|WARNING)\\: (.*)$"
+          "regexp": "^$"
         }
       },
       "script": "vite-dev",
       "type": "npm"
+    },
+    {
+      "label": "build-then-vite-dev",
+      "type": "shell",
+      "command": "yarn run build:extension && yarn run vite-dev",
+      "group": "build",
+      "isBackground": true,
+      "problemMatcher": {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*VITE v",
+          "endsPattern": "^\\s*➜\\s+Local:"
+        },
+        "fileLocation": "relative",
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        }
+      }
+    },
+    {
+      "label": "kill-vite-dev",
+      "type": "shell",
+      "command": "kill $(lsof -ti :5173) 2>/dev/null; echo 'Vite stopped'",
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "build:extension",
+      "group": "build",
+      "problemMatcher": [],
+      "type": "shell",
+      "command": "yarn run build:extension"
     },
     {
       "group": {
