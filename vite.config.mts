@@ -1,7 +1,36 @@
 /// <reference path="node_modules/vite/dist/node/index.d.ts" />
+import fs from "node:fs";
 import path from "node:path";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+
+/**
+ * Writes the dev server URL to a marker file so the extension host can
+ * detect it and serve webview HTML directly from the dev server (enabling HMR).
+ */
+function viteDevServerUrl(): Plugin {
+  const markerPath = path.resolve(__dirname, ".vite-dev-server-url");
+  return {
+    name: "vscode-dev-server-url",
+    configureServer(server) {
+      server.httpServer?.once("listening", () => {
+        const address = server.httpServer!.address();
+        if (address && typeof address === "object") {
+          const url = `http://localhost:${address.port}`;
+          fs.writeFileSync(markerPath, url, "utf8");
+        }
+      });
+    },
+    buildEnd() {
+      // Clean up marker file during production builds
+      try {
+        fs.unlinkSync(markerPath);
+      } catch {
+        // ignore if not present
+      }
+    },
+  };
+}
 
 export default defineConfig({
   build: {
@@ -64,6 +93,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    viteDevServerUrl(),
     vue({
       template: {
         compilerOptions: {
@@ -72,6 +102,10 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    cors: true,
+    origin: "http://localhost:5173",
+  },
   publicDir: "media",
   resolve: {
     alias: {
