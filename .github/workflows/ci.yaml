@@ -38,6 +38,8 @@ env:
   HOSTNAME: gha
   # help pytest output be colored on GHA
   FORCE_COLOR: "1"
+  XDG_CACHE_HOME: "${{ github.workspace }}/.cache" # https://github.com/actions/cache/issues/1332
+  PIP_CACHE_DIR: "${{ github.workspace }}/.cache/pip" # https://github.com/actions/cache/issues/1332
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

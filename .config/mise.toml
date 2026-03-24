@@ -29,8 +29,7 @@ lockfile = true
 http_retries = 5
 
 [tools]
-gh = "latest"
-# do not add tools unsupported on windows such: gh, yarn
+github-cli = "latest"
 node = "24.14.1"
 python = "3.13"
 task = "latest"  # >=3.45 but mise does not support minimal condition

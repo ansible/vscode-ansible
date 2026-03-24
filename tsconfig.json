@@ -1,13 +1,10 @@
 {
   "compilerOptions": {
-    // https://github.com/vuejs/tsconfig/blob/main/tsconfig.json
-    "allowImportingTsExtensions": true,
     "allowJs": true, // needed by eslint to find .cjs files
     "jsx": "preserve", // required for vue
     "jsxImportSource": "vue", // required for vue
     "lib": ["ES2022", "DOM"],
     "module": "ESNext",
-    "noEmit": true,
     "outDir": "lib",
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
@@ -19,14 +16,16 @@
   },
   "extends": "./tsconfig.base.json",
   "include": [
-    "src/**/*.ts",
-    "tools/**/*.ts",
-    "test/**/*.ts",
-    "test/**/*.cjs",
-    "webviews/**/*.ts",
-    "webviews/**/*.vue",
     "*.js",
+    "*.mjs",
+    "*.mts",
     "*.ts",
-    "*.mts"
+    ".*.mjs",
+    "src/**/*.ts",
+    "test/**/*.cjs",
+    "test/**/*.ts",
+    "tools/**/*.ts",
+    "webviews/**/*.ts",
+    "webviews/**/*.vue"
   ]
 }

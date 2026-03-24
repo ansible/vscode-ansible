@@ -12,7 +12,7 @@ import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
 import { includeIgnoreFile } from "@eslint/compat";
 const require = createRequire(import.meta.url);
-/** @type {import('eslint').Linter.Plugin} */
+/** @type {import('eslint').ESLint.Plugin} */
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -23,18 +23,8 @@ export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
   {
     ignores: [
-      "**/dist/**/*",
-      "**/lib/**/*",
-      "packages/**/tsup.config.ts",
       // do not add ignores here, .yarn is special case as is not our code
       ".yarn/*",
-      ".venv/*",
-      // TODO: remove
-      "media/walkthroughs/**/*.html",
-      "webviews/**/*.html",
-      // TODO: remove once we go full ESM
-      "vite.config.mts",
-      "test/unit/viteConfig.test.ts",
     ],
   },
   ...[
@@ -47,22 +37,8 @@ export default defineConfig(
     // tseslint.configs.stylistic,
   ],
   {
-    // .mjs files (e.g. .vscode-test.mjs): TS parser without project (not in tsconfig)
-    files: ["**/*.mjs", ".*.mjs"],
-    languageOptions: {
-      globals: { ...globals.node, ...globals.es2022 },
-      parser: tsParser,
-      parserOptions: { ecmaVersion: 2022, sourceType: "module" },
-    },
-    rules: { "import/no-unresolved": "off" },
-  },
-  {
     /** Files that use type-aware linting (TS/JS in src, packages, test). */
-    files: [
-      "**/*.{js,ts,tsx}",
-      "packages/**/*.{js,ts,tsx}",
-      "test/**/*.{js,ts,tsx,cjs}",
-    ],
+    files: ["**/*.{js,mjs,ts,tsx,mts,cjs}"],
     languageOptions: {
       globals: {
         ...globals.browser,

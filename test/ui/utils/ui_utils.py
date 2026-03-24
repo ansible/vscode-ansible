@@ -1021,7 +1021,7 @@ def vscode_run_command(
     if not command.startswith(">"):
         command = ">" + command
     # click the command box
-    max_attempts = 4
+    max_attempts = 6  # we seen timeout issue on GHA with 4 seconds
     command_input = None
     for i in range(max_attempts):
         try:
