@@ -7,6 +7,7 @@ vi.mock("../../../webviews/lightspeed/src/utils/vscode", () => ({
     post: vi.fn(),
     on: vi.fn(),
     postAndReceive: vi.fn().mockResolvedValue([]),
+    postMessage: vi.fn(),
   },
 }));
 

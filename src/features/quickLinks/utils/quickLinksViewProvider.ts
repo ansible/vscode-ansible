@@ -7,6 +7,7 @@ import {
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
+import { getWebviewHtml } from "@src/webviewHtml";
 import { getSystemDetails } from "@src/features/utils/getSystemDetails";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
@@ -71,10 +72,7 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     extensionUri: Uri,
   ) {
-    return __getWebviewHtml__({
-      // vite dev mode
-      serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/quick-links.html`,
-      // vite prod mode
+    return getWebviewHtml({
       webview,
       context: this._context,
       inputName: "quick-links",

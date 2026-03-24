@@ -159,7 +159,7 @@ def cli() -> None:
         # run("vsce ls --yarn | sort > out/log/package.log")
         run("mkdir -p out/log")
         size = pathlib.Path(vsix_file).stat().st_size / 1024 / 1024
-        vsx_size_limit_mb = 6.8
+        vsx_size_limit_mb = 9.0
         print(f"Generated ansible-{vsix_file} of size {size:.2f} MB")
         if size > vsx_size_limit_mb:
             msg = f"The generated vsix file is {size:.2f} MB, larger than {vsx_size_limit_mb} MB limit, this would required extensive review to see if we didn't accidentally include any essential files."

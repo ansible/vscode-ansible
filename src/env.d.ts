@@ -1,5 +1,3 @@
-/// <reference types="@tomjs/vite-plugin-vscode/env" />
-
 declare module "*.vue" {
   import type { DefineComponent } from "vue";
 
