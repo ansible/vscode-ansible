@@ -1,6 +1,5 @@
 /// <reference path="node_modules/vite/dist/node/index.d.ts" />
 import path from "node:path";
-import vscode from "@tomjs/vite-plugin-vscode";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
@@ -65,15 +64,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    vscode({
-      extension: {
-        entry: "src/extension.ts",
-        //minify: false,
-      },
-      webview: {
-        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}}; img-src 'self' {{cspSource}} https: data:;">`,
-      },
-    }),
     vue({
       template: {
         compilerOptions: {

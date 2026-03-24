@@ -20,7 +20,7 @@ const config: KnipConfig = {
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",
-    "@types/vscode-webview", // provides acquireVsCodeApi
+    "@types/vscode-webview", // provides acquireVsCodeApi type declarations
     "@typescript-eslint/eslint-plugin",
     "@vscode/test-electron",
     "@vscode/vsce",
@@ -43,7 +43,6 @@ const config: KnipConfig = {
           "@highlightjs/vue-plugin",
           "@primeuix/themes",
           "@redhat-developer/vscode-redhat-telemetry",
-          "@tomjs/vscode-webview",
           "@vscode-elements/elements",
           "@vscode/codicons",
           "highlight.js",
@@ -73,7 +72,6 @@ const config: KnipConfig = {
       entry: [
         ".vscode-test.mjs",
         "src/**/env.d.ts",
-        "src/extension.ts",
         "webviews/**/*.{ts,tsx,vue,js}",
       ],
       ignore: [".yarn/**"],
