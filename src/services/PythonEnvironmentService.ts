@@ -308,7 +308,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   public dispose(): void {
-    this._disposables.forEach((d) => d.dispose());
+    this._disposables.forEach((d) => {
+      d.dispose();
+    });
     this._disposables = [];
     this._onDidChangeEnvironment.dispose();
   }

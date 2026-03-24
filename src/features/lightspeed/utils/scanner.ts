@@ -31,18 +31,25 @@ export class CollectionFinder {
   async readCollectionMetaInformation(collectionPath: string) {
     const galaxyFile = path.join(collectionPath, "galaxy.yml");
     const fromGalaxyFile = readFile(galaxyFile, "utf8")
-      .then((content) => YAML.parse(content))
+      .then((content) => YAML.parse(content) as Record<string, unknown>)
       .then((info) => {
-        return { namespace: info["namespace"], name: info["name"] };
+        return {
+          namespace: String(info["namespace"]),
+          name: String(info["name"]),
+        };
       });
 
     const MANIFESTFile = path.join(collectionPath, "MANIFEST.json");
     const fromMANIFESTFile = readFile(MANIFESTFile, "utf8")
-      .then((content) => JSON.parse(content))
+      .then((content) => JSON.parse(content) as Record<string, unknown>)
       .then((info) => {
+        const collectionInfo = info["collection_info"] as Record<
+          string,
+          unknown
+        >;
         return {
-          namespace: info["collection_info"]["namespace"],
-          name: info["collection_info"]["name"],
+          namespace: String(collectionInfo["namespace"]),
+          name: String(collectionInfo["name"]),
         };
       });
 

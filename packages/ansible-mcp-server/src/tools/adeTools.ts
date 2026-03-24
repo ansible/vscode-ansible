@@ -252,10 +252,8 @@ export async function checkADTInstalled(
   );
   if (result.success) {
     try {
-      const packages = JSON.parse(result.output);
-      return packages.some(
-        (pkg: { name: string }) => pkg.name === "ansible-dev-tools",
-      );
+      const packages = JSON.parse(result.output) as Array<{ name: string }>;
+      return packages.some((pkg) => pkg.name === "ansible-dev-tools");
     } catch {
       return false;
     }

@@ -40,7 +40,7 @@ const connectionProxy = new Proxy(connection, {
         docChangeHandlers.push(handler);
       };
     } else {
-      return Reflect.get(target, p, receiver);
+      return Reflect.get(target, p, receiver) as unknown;
     }
   },
 });

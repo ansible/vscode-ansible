@@ -27,6 +27,7 @@ function isObject(object: any): boolean {
   return object != null && typeof object === "object";
 }
 
+/* eslint-disable @typescript-eslint/no-unsafe-return -- nested dynamic path access; return type is intentionally loose */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getValueFromObject(obj: any, path: string[]): any {
   return path.reduce(
@@ -34,3 +35,4 @@ export function getValueFromObject(obj: any, path: string[]): any {
     obj,
   );
 }
+/* eslint-enable @typescript-eslint/no-unsafe-return */

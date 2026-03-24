@@ -208,7 +208,7 @@ export class LightspeedUser {
       );
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { content: string };
         return data.content;
       } else {
         this._logger.error(

@@ -80,7 +80,8 @@ export class AnsiblePlaybookRunProvider {
    * A property representing the `ansible-navigator` executable.
    */
   private get ansibleNavigatorExecutablePath(): string {
-    return vscode.workspace.getConfiguration("ansible.ansibleNavigator").path;
+    return vscode.workspace.getConfiguration("ansible.ansibleNavigator")
+      .path as string;
   }
 
   /**

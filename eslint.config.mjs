@@ -121,7 +121,7 @@ export default defineConfig(
       // "@typescript-eslint/no-floating-promises": "error", // ~100 errors
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
-      // "@typescript-eslint/no-unsafe-return": "error",
+      "@typescript-eslint/no-unsafe-return": "error",
     },
     settings: {
       // workaround for vscode imports in test files
@@ -133,11 +133,13 @@ export default defineConfig(
   },
   {
     // Test files rules are more relaxed for convenience
-    files: ["**/test/**/*.{js,ts,tsx}"],
+    files: ["**/test/**/*.{js,ts,tsx,cjs}"],
     rules: {
       // unbound-method is noisy (expect(mock.method).toHaveBeenCalledWith etc.
       "@typescript-eslint/unbound-method": "off",
       "@typescript-eslint/no-base-to-string": "off",
+      // Mocks and dynamic fixtures routinely return `any`
+      "@typescript-eslint/no-unsafe-return": "off",
     },
   },
   {

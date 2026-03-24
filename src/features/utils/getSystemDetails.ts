@@ -69,5 +69,5 @@ export async function getSystemDetails() {
       .toString()
       .trim();
   }
-  return systemInfo;
+  return systemInfo as Record<string, string | undefined>;
 }

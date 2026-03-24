@@ -75,7 +75,10 @@ function docFragmentMergeCustomizer(
     ["notes", "requirements", "seealso"].includes(key) &&
     _.isArray(objValue)
   ) {
-    return objValue.concat(srcValue);
+    return (objValue as unknown[]).concat(srcValue as unknown[]) as Record<
+      string,
+      unknown
+    >[];
   }
 }
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  type CallToolResult,
   ErrorCode,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
@@ -932,9 +933,14 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         const handlerArgs = request.params.arguments || {};
 
         if (toolName === "ansible_navigator") {
-          return await handlers[toolName].handler(handlerArgs, workspaceRoot);
+          return (await handlers[toolName].handler(
+            handlerArgs,
+            workspaceRoot,
+          )) as CallToolResult;
         }
-        return await handlers[toolName].handler(handlerArgs);
+        return (await handlers[toolName].handler(
+          handlerArgs,
+        )) as CallToolResult;
       }
 
       // Log available tools for debugging
