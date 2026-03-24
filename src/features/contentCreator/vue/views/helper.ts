@@ -1,15 +1,9 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
+import { getWebviewHtml } from "@src/webviewHtml";
 import { WebviewMessageHandlers } from "@src/features/lightspeed/vue/views/webviewMessageHandlers";
 
 function setupHtml(webview: Webview, context: ExtensionContext, name: string) {
-  return __getWebviewHtml__({
-    // vite dev mode
-    serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/${name}.html`,
-    // vite prod mode
-    webview,
-    context,
-    inputName: name,
-  });
+  return getWebviewHtml({ webview, context, inputName: name });
 }
 
 async function setupWebviewHooks(

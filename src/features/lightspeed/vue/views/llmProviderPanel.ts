@@ -1,5 +1,6 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, Uri, window } from "vscode";
+import { getWebviewHtml } from "@src/webviewHtml";
 import { disposePanelResources } from "@src/features/lightspeed/vue/views/panelUtils";
 import {
   LlmProviderMessageHandlers,
@@ -105,8 +106,7 @@ export class LlmProviderPanel {
   }
 
   private _getWebviewContent(context: ExtensionContext): string {
-    return __getWebviewHtml__({
-      serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/llm-provider.html`,
+    return getWebviewHtml({
       webview: this._panel.webview,
       context,
       inputName: "llm-provider",
