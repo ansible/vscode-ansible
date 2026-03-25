@@ -84,13 +84,18 @@ export class LightspeedUser {
           ? ExtensionHost.Local
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
-    this.logAuthProviderDebugHints();
     this._getUserInfoCache = { time: 0, token: "", locked: false };
+    // Log debug hints asynchronously (don't block constructor)
+    this.logAuthProviderDebugHints().catch((error) => {
+      this._logger.error(
+        `[ansible-lightspeed-user] Failed to log auth provider debug hints: ${error}`,
+      );
+    });
   }
 
-  private logAuthProviderDebugHints() {
+  private async logAuthProviderDebugHints(): Promise<void> {
     const provider = this._settingsManager.settings.lightSpeedService.provider;
-    const lightspeedUri = getBaseUri(this._settingsManager);
+    const lightspeedUri = await getBaseUri(this._settingsManager);
     this._logger.info(
       `[ansible-lightspeed-user] Initializing LightspeedUser with provider: ${provider}, URI: ${lightspeedUri || "(none)"}, extension host: ${this._extensionHost}`,
     );
@@ -143,7 +148,7 @@ export class LightspeedUser {
 
     try {
       const response = await fetch(
-        `${getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
+        `${await getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
           method: "GET",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
@@ -197,7 +202,7 @@ export class LightspeedUser {
       const fetch = getFetch();
 
       const response = await fetch(
-        `${getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
+        `${await getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
         {
           method: "GET",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
@@ -258,7 +263,7 @@ export class LightspeedUser {
         return [AuthProviderType.rhsso, AuthProviderType.lightspeed];
       }
     }
-    const lightspeedUri = getBaseUri(this._settingsManager);
+    const lightspeedUri = await getBaseUri(this._settingsManager);
     // Prefer RHSSO when we know Lightspeed auth will be broken.
     // Prefer Lightspeed auth all other times.
     if (
