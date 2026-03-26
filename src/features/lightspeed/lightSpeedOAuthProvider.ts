@@ -14,6 +14,8 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import crypto from "crypto";
+import http from "http";
+import { AddressInfo } from "net";
 import {
   PromiseAdapter,
   promiseFromEvent,
@@ -90,6 +92,7 @@ export class LightSpeedAuthenticationProvider
   private _authId: string;
   private _authName: string;
   private _externalRedirectUri: string;
+  private _activeRedirectUri: string | undefined;
 
   constructor(
     private readonly context: ExtensionContext,
@@ -276,19 +279,78 @@ export class LightSpeedAuthenticationProvider
     }
   }
 
+  /**
+   * Start a local HTTP server to receive the OAuth callback.
+   * Returns a promise that resolves with the authorization code and
+   * a cleanup function to shut down the server.
+   */
+  private async startLocalCallbackServer(): Promise<{
+    redirectUri: string;
+    codePromise: Promise<string>;
+    close: () => void;
+  }> {
+    let resolveCode: (code: string) => void;
+    let rejectCode: (err: Error) => void;
+    const codePromise = new Promise<string>((resolve, reject) => {
+      resolveCode = resolve;
+      rejectCode = reject;
+    });
+
+    const server = http.createServer((req, res) => {
+      const url = new URL(req.url || "/", `http://${req.headers.host}`);
+      if (url.pathname !== "/callback") {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+
+      const code = url.searchParams.get("code");
+      const error = url.searchParams.get("error");
+
+      res.writeHead(200, { "Content-Type": "text/html" });
+      if (code) {
+        res.end(
+          "<html><body><h1>Authentication successful</h1><p>You can close this tab and return to your editor.</p></body></html>",
+        );
+        resolveCode(code);
+      } else {
+        const errorMsg =
+          error || "No authorization code received from the server";
+        res.end(
+          `<html><body><h1>Authentication failed</h1><p>${errorMsg}</p></body></html>`,
+        );
+        rejectCode(new Error(errorMsg));
+      }
+    });
+
+    await new Promise<void>((resolve) => {
+      server.listen(0, "127.0.0.1", () => resolve());
+    });
+
+    const port = (server.address() as AddressInfo).port;
+    const redirectUri = `http://127.0.0.1:${port}/callback`;
+
+    this._logger.debug(
+      `[ansible-lightspeed-oauth] Local callback server listening on ${redirectUri}`,
+    );
+
+    const close = () => {
+      server.close();
+    };
+
+    return { redirectUri, codePromise, close };
+  }
+
+  private static readonly LOOPBACK_CALLBACK_HOSTS = [
+    "https://c.ai.ansible.redhat.com",
+    "https://stage.ai.ansible.redhat.com",
+  ];
+
   /* Log in to the Ansible Lightspeed auth service */
   private async login(scopes: string[] = []) {
     this._logger.debug("[ansible-lightspeed-oauth] Logging in...");
 
     await this.setExternalRedirectUri();
-
-    const searchParams = new URLSearchParams([
-      ["response_type", "code"],
-      ["code_challenge", getCodeChallenge()],
-      ["code_challenge_method", "S256"],
-      ["client_id", LIGHTSPEED_CLIENT_ID],
-      ["redirect_uri", this._externalRedirectUri],
-    ]);
 
     const base_uri = await getBaseUri(this.settingsManager);
     if (!base_uri) {
@@ -297,13 +359,48 @@ export class LightSpeedAuthenticationProvider
       );
     }
 
+    const useLoopback =
+      LightSpeedAuthenticationProvider.LOOPBACK_CALLBACK_HOSTS.includes(
+        base_uri,
+      );
+
+    let localServer:
+      | Awaited<ReturnType<typeof this.startLocalCallbackServer>>
+      | undefined;
+    let redirectUri: string;
+
+    if (useLoopback) {
+      localServer = await this.startLocalCallbackServer();
+      redirectUri = localServer.redirectUri;
+      this._logger.debug(
+        `[ansible-lightspeed-oauth] Using local callback redirect URI: ${redirectUri}`,
+      );
+    } else {
+      redirectUri = this._externalRedirectUri;
+      this._logger.debug(
+        `[ansible-lightspeed-oauth] Using external redirect URI: ${redirectUri}`,
+      );
+    }
+
+    const searchParams = new URLSearchParams([
+      ["response_type", "code"],
+      ["code_challenge", getCodeChallenge()],
+      ["code_challenge_method", "S256"],
+      ["client_id", LIGHTSPEED_CLIENT_ID],
+      ["redirect_uri", redirectUri],
+    ]);
+
     const query = searchParams.toString();
     const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
+    // Also listen on the vscode:// URI handler as a fallback
     const {
       promise: receivedRedirectUrl,
       cancel: cancelWaitingForRedirectUrl,
     } = promiseFromEvent(this._uriHandler.event, this.handleUriForCode(scopes));
+
+    // Store the redirect URI used for the token exchange
+    this._activeRedirectUri = redirectUri;
 
     await env.openExternal(uri);
 
@@ -315,7 +412,7 @@ export class LightSpeedAuthenticationProvider
       },
       async (_, token): Promise<OAuthAccount> => {
         try {
-          return await Promise.race<OAuthAccount>([
+          const candidates: Promise<OAuthAccount>[] = [
             receivedRedirectUrl,
             new Promise<OAuthAccount>((_, reject) => {
               setTimeout(() => {
@@ -329,9 +426,21 @@ export class LightSpeedAuthenticationProvider
             promiseFromEvent(token.onCancellationRequested, (_, __, reject) => {
               reject("User Cancelled");
             }).promise as Promise<OAuthAccount>,
-          ]);
+          ];
+
+          if (localServer) {
+            candidates.push(
+              localServer.codePromise.then(async (code) => {
+                return await this.requestOAuthAccountFromCode(code);
+              }) as Promise<OAuthAccount>,
+            );
+          }
+
+          return await Promise.race<OAuthAccount>(candidates);
         } finally {
+          localServer?.close();
           cancelWaitingForRedirectUrl.fire();
+          this._activeRedirectUri = undefined;
         }
       },
     );
@@ -387,7 +496,7 @@ export class LightSpeedAuthenticationProvider
         {
           method: "POST",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
-          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._activeRedirectUri || this._externalRedirectUri)}`,
           headers,
         },
       );
