@@ -131,6 +131,10 @@ describe("LlmProviderPanel", () => {
       lightspeedUser: {
         isAuthenticated: vi.fn().mockResolvedValue(true),
       } as unknown as LightspeedUser,
+      lightSpeedAuthenticationProvider: {
+        getSessions: vi.fn().mockResolvedValue([]),
+        removeSession: vi.fn().mockResolvedValue(undefined),
+      } as unknown as import("@src/features/lightspeed/lightSpeedOAuthProvider").LightSpeedAuthenticationProvider,
     };
   });
 

@@ -97,10 +97,24 @@ export class ProviderCommands {
   }
 
   /**
+   * Remove all OAuth sessions (equivalent to "Sign Out" in VSCode accounts menu).
+   */
+  private async signOutOAuthSessions(): Promise<void> {
+    const sessions =
+      await this.lightSpeedManager.lightSpeedAuthenticationProvider.getSessions();
+    for (const session of sessions) {
+      await this.lightSpeedManager.lightSpeedAuthenticationProvider.removeSession(
+        session.id,
+      );
+    }
+  }
+
+  /**
    * Configure LLM provider through guided setup
    */
   private async configureLlmProvider(): Promise<void> {
     try {
+      const previousProvider = this.llmProviderSettings.getProvider();
       const supportedProviders = providerFactory.getSupportedProviders();
 
       // Step 1: Select provider type
@@ -127,6 +141,11 @@ export class ProviderCommands {
       await this.llmProviderSettings.setProvider(
         selectedProvider.provider.type,
       );
+
+      // Sign out OAuth sessions if provider changed
+      if (selectedProvider.provider.type !== previousProvider) {
+        await this.signOutOAuthSessions();
+      }
 
       const providerType = selectedProvider.provider.type;
 
@@ -277,10 +296,17 @@ export class ProviderCommands {
     }
 
     try {
+      const previousProvider = this.llmProviderSettings.getProvider();
+
       // Switch to selected provider using LlmProviderSettings
       await this.llmProviderSettings.setProvider(
         selectedProvider.provider.type,
       );
+
+      // Sign out OAuth sessions if provider changed
+      if (selectedProvider.provider.type !== previousProvider) {
+        await this.signOutOAuthSessions();
+      }
 
       // Enable lightspeed in VS Code settings
       const config = vscode.workspace.getConfiguration("ansible.lightspeed");
