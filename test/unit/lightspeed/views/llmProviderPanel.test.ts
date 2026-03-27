@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { ExtensionContext, WebviewPanel, Webview } from "vscode";
 import { ViewColumn, window, Uri } from "vscode";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).__getWebviewHtml__ = vi
-  .fn()
-  .mockReturnValue("<html></html>");
+vi.mock("@src/webviewHtml", () => ({
+  getWebviewHtml: vi.fn().mockReturnValue("<html></html>"),
+}));
 import type { LlmProviderDependencies } from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
 import type { SettingsManager } from "@src/settings";
 import type { ProviderManager } from "@src/features/lightspeed/providerManager";
@@ -132,6 +131,10 @@ describe("LlmProviderPanel", () => {
       lightspeedUser: {
         isAuthenticated: vi.fn().mockResolvedValue(true),
       } as unknown as LightspeedUser,
+      lightSpeedAuthenticationProvider: {
+        getSessions: vi.fn().mockResolvedValue([]),
+        removeSession: vi.fn().mockResolvedValue(undefined),
+      } as unknown as import("@src/features/lightspeed/lightSpeedOAuthProvider").LightSpeedAuthenticationProvider,
     };
   });
 
