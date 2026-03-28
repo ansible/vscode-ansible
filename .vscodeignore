@@ -20,13 +20,8 @@
 !media/quickLinks/lightspeed.png
 !media/welcomePage/logo.png
 !dist/extension/**/*
-!dist/webview/assets/**/*
-!dist/webview/codicons/**/*
-!dist/webview/contentCreator/**/*
-!dist/webview/quickLinks/**/*
-!dist/webview/style.css
-!dist/webview/webviews/**/*
-!dist/webview/welcomePage/**/*
+!dist/assets/**/*
+!dist/webviews/**/*
 !packages/ansible-language-server/dist/cli.cjs
 !package.json
 !package.nls.json
