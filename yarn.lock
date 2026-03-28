@@ -2839,51 +2839,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tomjs/logger@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@tomjs/logger@npm:1.4.0"
-  dependencies:
-    chalk: "npm:^4.1.2"
-    dayjs: "npm:^1.11.13"
-    log-symbols: "npm:^4.1.0"
-    strip-ansi: "npm:^6.0.1"
-  checksum: 10/4cec69a16c6e86d35a5b656527301d84fb99291945d42717bce2ded2bf0c042ce2991c809aa9d819fea3aaaf3148ca3a92ff6dac07f241dc0232a1e299c42223
-  languageName: node
-  linkType: hard
-
-"@tomjs/node@npm:^2.2.3":
-  version: 2.2.3
-  resolution: "@tomjs/node@npm:2.2.3"
-  checksum: 10/fb572c9fbe0f5deeaa1620e74e4392797363e1f52f67140dea7648b93831bd6be2ad7cc305099d7ccb93605d196502fc24e7b3179588f76b7181ac50cb1649e2
-  languageName: node
-  linkType: hard
-
-"@tomjs/vite-plugin-vscode@npm:^4.2.1":
-  version: 4.3.0
-  resolution: "@tomjs/vite-plugin-vscode@npm:4.3.0"
-  dependencies:
-    "@tomjs/logger": "npm:^1.4.0"
-    "@tomjs/node": "npm:^2.2.3"
-    dayjs: "npm:^1.11.13"
-    execa: "npm:^5.1.1"
-    kolorist: "npm:^1.8.0"
-    lodash.clonedeep: "npm:^4.5.0"
-    lodash.merge: "npm:^4.6.2"
-    node-html-parser: "npm:^7.0.1"
-    tsup: "npm:^8.5.0"
-  peerDependencies:
-    vite: ">=2"
-  checksum: 10/4197764390dd67eda754406f55df3bda19140176de6ca15199870490c2b6f8bc4ea6201d650d5eb735f41c8997977c4db1cc46bdf734e9eabb281b9e27f8003f
-  languageName: node
-  linkType: hard
-
-"@tomjs/vscode-webview@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@tomjs/vscode-webview@npm:2.0.2"
-  checksum: 10/ec0b4f7790ed2fa0a22330ce9b9ca72fc03d831e42e69a1af8f2ddc53ac8839bebbd1aa78055709daf44624ab514ee06d23c4c7803b900b1d7a9a4ea0aca5cd5
-  languageName: node
-  linkType: hard
-
 "@tybys/wasm-util@npm:^0.10.0, @tybys/wasm-util@npm:^0.10.1":
   version: 0.10.1
   resolution: "@tybys/wasm-util@npm:0.10.1"
@@ -4042,8 +3997,6 @@ __metadata:
     "@highlightjs/vue-plugin": "npm:2.1.0"
     "@primeuix/themes": "npm:^2.0.3"
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.10.2"
-    "@tomjs/vite-plugin-vscode": "npm:^4.2.1"
-    "@tomjs/vscode-webview": "npm:^2.0.2"
     "@types/ini": "npm:^4.1.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^28.0.1"
@@ -4067,6 +4020,7 @@ __metadata:
     cspell-cli: "npm:^9.7.0"
     cypress-multi-reporters: "npm:^2.0.5"
     electron: "npm:^41.0.3"
+    esbuild: "npm:^0.27.4"
     eslint: "npm:^10.1.0"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-formatter-gha: "npm:^2.0.1"
@@ -4997,7 +4951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.3, cross-spawn@npm:^7.0.5, cross-spawn@npm:^7.0.6":
+"cross-spawn@npm:^7.0.0, cross-spawn@npm:^7.0.5, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
   dependencies:
@@ -5266,13 +5220,6 @@ __metadata:
     es-errors: "npm:^1.3.0"
     is-data-view: "npm:^1.0.1"
   checksum: 10/fa3bdfa0968bea6711ee50375094b39f561bce3f15f9e558df59de9c25f0bdd4cddc002d9c1d70ac7772ebd36854a7e22d1761e7302a934e6f1c2263bcf44aa2
-  languageName: node
-  linkType: hard
-
-"dayjs@npm:^1.11.13":
-  version: 1.11.20
-  resolution: "dayjs@npm:1.11.20"
-  checksum: 10/5347533f21a55b8bb1b1ef559be9b805514c3a8fb7e68b75fb7e73808131c59e70909c073aa44ce8a0d159195cd110cdd4081cf87ab96cb06fee3edacae791c6
   languageName: node
   linkType: hard
 
@@ -5792,7 +5739,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.27.0, esbuild@npm:~0.27.0":
+"esbuild@npm:^0.27.0, esbuild@npm:^0.27.4, esbuild@npm:~0.27.0":
   version: 0.27.4
   resolution: "esbuild@npm:0.27.4"
   dependencies:
@@ -6236,23 +6183,6 @@ __metadata:
     signal-exit: "npm:^3.0.2"
     strip-final-newline: "npm:^2.0.0"
   checksum: 10/ed58e41fe424797f3d837c8fb622548eeb72fa03324f2676af95f806568904eb55f196127a097f87d4517cab524c169ece13e6c9e201867de57b089584864b8f
-  languageName: node
-  linkType: hard
-
-"execa@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "execa@npm:5.1.1"
-  dependencies:
-    cross-spawn: "npm:^7.0.3"
-    get-stream: "npm:^6.0.0"
-    human-signals: "npm:^2.1.0"
-    is-stream: "npm:^2.0.0"
-    merge-stream: "npm:^2.0.0"
-    npm-run-path: "npm:^4.0.1"
-    onetime: "npm:^5.1.2"
-    signal-exit: "npm:^3.0.3"
-    strip-final-newline: "npm:^2.0.0"
-  checksum: 10/8ada91f2d70f7dff702c861c2c64f21dfdc1525628f3c0454fd6f02fce65f7b958616cbd2b99ca7fa4d474e461a3d363824e91b3eb881705231abbf387470597
   languageName: node
   linkType: hard
 
@@ -6849,13 +6779,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-stream@npm:^6.0.0":
-  version: 6.0.1
-  resolution: "get-stream@npm:6.0.1"
-  checksum: 10/781266d29725f35c59f1d214aedc92b0ae855800a980800e2923b3fbc4e56b3cb6e462c42e09a1cf1a00c64e056a78fa407cbe06c7c92b7e5cd49b4b85c2a497
-  languageName: node
-  linkType: hard
-
 "get-symbol-description@npm:^1.1.0":
   version: 1.1.0
   resolution: "get-symbol-description@npm:1.1.0"
@@ -7145,7 +7068,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"he@npm:1.2.0, he@npm:^1.2.0":
+"he@npm:^1.2.0":
   version: 1.2.0
   resolution: "he@npm:1.2.0"
   bin:
@@ -7268,13 +7191,6 @@ __metadata:
   version: 1.1.1
   resolution: "human-signals@npm:1.1.1"
   checksum: 10/6a58224dffcef5588910b1028bda8623c9a7053460a1fe3367e61921a6b5f6b93aba30f323868a958f968d7de3f5f78421f11d4d9f7e9563b1bd2b00ed9a4deb
-  languageName: node
-  linkType: hard
-
-"human-signals@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "human-signals@npm:2.1.0"
-  checksum: 10/df59be9e0af479036798a881d1f136c4a29e0b518d4abb863afbd11bf30efa3eeb1d0425fc65942dcc05ab3bf40205ea436b0ff389f2cd20b75b8643d539bf86
   languageName: node
   linkType: hard
 
@@ -8194,13 +8110,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kolorist@npm:^1.8.0":
-  version: 1.8.0
-  resolution: "kolorist@npm:1.8.0"
-  checksum: 10/71d5d122951cc65f2f14c3e1d7f8fd91694b374647d4f6deec3816d018cd04a44edd9578d93e00c82c2053b925e5d30a0565746c4171f4ca9fce1a13bd5f3315
-  languageName: node
-  linkType: hard
-
 "kuler@npm:^2.0.0":
   version: 2.0.0
   resolution: "kuler@npm:2.0.0"
@@ -8433,13 +8342,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.clonedeep@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "lodash.clonedeep@npm:4.5.0"
-  checksum: 10/957ed243f84ba6791d4992d5c222ffffca339a3b79dbe81d2eaf0c90504160b500641c5a0f56e27630030b18b8e971ea10b44f928a977d5ced3c8948841b555f
-  languageName: node
-  linkType: hard
-
 "lodash.includes@npm:^4.3.0":
   version: 4.3.0
   resolution: "lodash.includes@npm:4.3.0"
@@ -8479,13 +8381,6 @@ __metadata:
   version: 4.0.1
   resolution: "lodash.isstring@npm:4.0.1"
   checksum: 10/eaac87ae9636848af08021083d796e2eea3d02e80082ab8a9955309569cb3a463ce97fd281d7dc119e402b2e7d8c54a23914b15d2fc7fff56461511dc8937ba0
-  languageName: node
-  linkType: hard
-
-"lodash.merge@npm:^4.6.2":
-  version: 4.6.2
-  resolution: "lodash.merge@npm:4.6.2"
-  checksum: 10/d0ea2dd0097e6201be083865d50c3fb54fbfbdb247d9cc5950e086c991f448b7ab0cdab0d57eacccb43473d3f2acd21e134db39f22dac2d6c9ba6bf26978e3d6
   languageName: node
   linkType: hard
 
@@ -9190,16 +9085,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-html-parser@npm:^7.0.1":
-  version: 7.1.0
-  resolution: "node-html-parser@npm:7.1.0"
-  dependencies:
-    css-select: "npm:^5.1.0"
-    he: "npm:1.2.0"
-  checksum: 10/370569dd329e56bc46883aa6f7123dd67c2f428325ec71788c167c1d216e1d45832fd75e068ce9f08be2750f692178e74391ea0921ad11fea6b990d58006bf6c
-  languageName: node
-  linkType: hard
-
 "node-sarif-builder@npm:^3.2.0":
   version: 3.4.0
   resolution: "node-sarif-builder@npm:3.4.0"
@@ -9267,7 +9152,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-run-path@npm:^4.0.0, npm-run-path@npm:^4.0.1":
+"npm-run-path@npm:^4.0.0":
   version: 4.0.1
   resolution: "npm-run-path@npm:4.0.1"
   dependencies:
@@ -9396,7 +9281,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"onetime@npm:^5.1.0, onetime@npm:^5.1.2":
+"onetime@npm:^5.1.0":
   version: 5.1.2
   resolution: "onetime@npm:5.1.2"
   dependencies:
@@ -10883,7 +10768,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signal-exit@npm:^3.0.2, signal-exit@npm:^3.0.3":
+"signal-exit@npm:^3.0.2":
   version: 3.0.7
   resolution: "signal-exit@npm:3.0.7"
   checksum: 10/a2f098f247adc367dffc27845853e9959b9e88b01cb301658cfe4194352d8d2bb32e18467c786a7fe15f1d44b233ea35633d076d5e737870b7139949d1ab6318
@@ -11640,7 +11525,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.5.0, tsup@npm:^8.5.1":
+"tsup@npm:^8.5.1":
   version: 8.5.1
   resolution: "tsup@npm:8.5.1"
   dependencies:

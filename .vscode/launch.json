@@ -23,7 +23,8 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "name": "Debug Extension (Vite)",
       "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "npm: vite-dev",
+      "postDebugTask": "kill-vite-dev",
+      "preLaunchTask": "build-then-vite-dev",
       "request": "launch",
       "type": "extensionHost"
     },
@@ -41,8 +42,8 @@
         "${workspaceFolder}/examples"
       ],
       "name": "Launch Extension",
-      "outFiles": ["${workspaceFolder}/lib/src/**/*.js"],
-      "preLaunchTask": "npm: watch",
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
+      "preLaunchTask": "build:extension",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost"
@@ -56,8 +57,8 @@
         "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
       },
       "name": "Launch Extension (packed)",
-      "outFiles": ["${workspaceFolder}/lib/src/**/*.js"],
-      "preLaunchTask": "npm: watch",
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
+      "preLaunchTask": "build:extension",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost"
