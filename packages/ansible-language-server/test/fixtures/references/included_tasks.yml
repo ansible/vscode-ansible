@@ -1,0 +1,7 @@
+---
+- name: Included task one
+  ansible.builtin.debug:
+    msg: "This is an included task"
+
+- name: Included task two
+  ansible.builtin.command: echo hello
