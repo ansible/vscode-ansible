@@ -184,6 +184,10 @@ describe("LlmProviderMessageHandlers", () => {
       providerManager: mockProviderManager,
       llmProviderSettings: mockLlmProviderSettings,
       lightspeedUser: mockLightspeedUser,
+      lightSpeedAuthenticationProvider: {
+        getSessions: vi.fn().mockResolvedValue([]),
+        removeSession: vi.fn().mockResolvedValue(undefined),
+      } as unknown as import("@src/features/lightspeed/lightSpeedOAuthProvider").LightSpeedAuthenticationProvider,
       quickLinksProvider: mockQuickLinksProvider,
     };
 

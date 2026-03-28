@@ -6,6 +6,7 @@ import { ProviderManager } from "@src/features/lightspeed/providerManager";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import { LightSpeedCommands, ProviderType } from "@src/definitions/lightspeed";
 import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
+import { LightSpeedAuthenticationProvider } from "@src/features/lightspeed/lightSpeedOAuthProvider";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { ProviderInfo } from "@src/interfaces/lightspeed";
 
@@ -23,6 +24,7 @@ export interface LlmProviderDependencies {
   providerManager: ProviderManager;
   llmProviderSettings: LlmProviderSettings;
   lightspeedUser: LightspeedUser;
+  lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   quickLinksProvider?: QuickLinksWebviewViewProvider;
 }
 
@@ -35,6 +37,7 @@ export class LlmProviderMessageHandlers {
   private readonly providerManager: ProviderManager;
   private readonly llmProviderSettings: LlmProviderSettings;
   private readonly lightspeedUser: LightspeedUser;
+  private readonly lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   private readonly quickLinksProvider?: QuickLinksWebviewViewProvider;
   private webview?: Webview;
 
@@ -43,6 +46,8 @@ export class LlmProviderMessageHandlers {
     this.providerManager = deps.providerManager;
     this.llmProviderSettings = deps.llmProviderSettings;
     this.lightspeedUser = deps.lightspeedUser;
+    this.lightSpeedAuthenticationProvider =
+      deps.lightSpeedAuthenticationProvider;
     this.quickLinksProvider = deps.quickLinksProvider;
   }
 
@@ -127,6 +132,17 @@ export class LlmProviderMessageHandlers {
   }
 
   /**
+   * Remove all OAuth sessions (equivalent to "Sign Out" in VSCode accounts menu).
+   */
+  private async signOutOAuthSessions(): Promise<void> {
+    const sessions =
+      await this.lightSpeedAuthenticationProvider.getSessions();
+    for (const session of sessions) {
+      await this.lightSpeedAuthenticationProvider.removeSession(session.id);
+    }
+  }
+
+  /**
    * Common pattern for updating UI and refreshing providers after changes.
    */
   private async updateAndNotify(): Promise<void> {
@@ -151,6 +167,13 @@ export class LlmProviderMessageHandlers {
     if (!message.provider || !message.config) return;
 
     try {
+      // Detect provider or endpoint change to sign out stale OAuth sessions
+      const previousProvider = this.llmProviderSettings.getProvider();
+      const previousEndpoint = await this.llmProviderSettings.get(
+        message.provider,
+        "apiEndpoint",
+      );
+
       const providerInfo = this.getProviderInfo(message.provider);
 
       // Update active provider
@@ -173,6 +196,18 @@ export class LlmProviderMessageHandlers {
         }
       }
 
+      // Sign out if provider or endpoint changed
+      const newEndpoint = message.config["apiEndpoint"];
+      if (
+        message.provider !== previousProvider ||
+        (newEndpoint !== undefined && newEndpoint !== previousEndpoint)
+      ) {
+        console.log(
+          `[LlmProviderMessageHandlers] Provider or endpoint changed, signing out OAuth sessions`,
+        );
+        await this.signOutOAuthSessions();
+      }
+
       // Reset connection status when settings are changed (require re-connect)
       await this.llmProviderSettings.setConnectionStatus(
         false,
@@ -190,7 +225,16 @@ export class LlmProviderMessageHandlers {
    */
   private async handleActivateProvider(providerType: string): Promise<void> {
     try {
+      const previousProvider = this.llmProviderSettings.getProvider();
       await this.llmProviderSettings.setProvider(providerType);
+
+      if (providerType !== previousProvider) {
+        console.log(
+          `[LlmProviderMessageHandlers] Provider activated: ${previousProvider} -> ${providerType}, signing out OAuth sessions`,
+        );
+        await this.signOutOAuthSessions();
+      }
+
       await this.updateAndNotify();
     } catch (error) {
       console.error("Failed to activate provider:", error);
@@ -208,7 +252,16 @@ export class LlmProviderMessageHandlers {
     );
 
     try {
+      const previousProvider = this.llmProviderSettings.getProvider();
       await this.llmProviderSettings.setProvider(providerType);
+
+      if (providerType !== previousProvider) {
+        console.log(
+          `[LlmProviderMessageHandlers] Provider connecting: ${previousProvider} -> ${providerType}, signing out OAuth sessions`,
+        );
+        await this.signOutOAuthSessions();
+      }
+
       const providerInfo = this.getProviderInfo(providerType);
 
       if (providerInfo?.usesOAuth) {
