@@ -1,8 +1,8 @@
-import { vi } from "vitest";
+import { type Mock, vi } from "vitest";
 
-const mockAppendLine = vi.fn();
-const mockDispose = vi.fn();
-const mockClear = vi.fn();
+const mockAppendLine: Mock = vi.fn();
+const mockDispose: Mock = vi.fn();
+const mockClear: Mock = vi.fn();
 
 const mockOutputChannel = {
   appendLine: mockAppendLine,
@@ -10,8 +10,16 @@ const mockOutputChannel = {
   clear: mockClear,
 };
 
+type MockTerminal = {
+  name: string;
+  processId: Promise<number>;
+  show: Mock;
+  sendText: Mock;
+  dispose: Mock;
+};
+
 // Mock terminal
-const mockTerminal = {
+const mockTerminal: MockTerminal = {
   name: "Test Terminal",
   processId: Promise.resolve(12345),
   show: vi.fn(),
@@ -19,32 +27,42 @@ const mockTerminal = {
   dispose: vi.fn(),
 };
 
-const window = {
+const window: {
+  createOutputChannel: Mock;
+  showInformationMessage: Mock;
+  showWarningMessage: Mock;
+  showErrorMessage: Mock;
+  createTerminal: Mock;
+  terminals: MockTerminal[];
+} = {
   createOutputChannel: vi.fn().mockReturnValue(mockOutputChannel),
   showInformationMessage: vi.fn(),
   showWarningMessage: vi.fn(),
   showErrorMessage: vi.fn(),
   createTerminal: vi.fn().mockReturnValue(mockTerminal),
-  terminals: [] as (typeof mockTerminal)[],
+  terminals: [] as MockTerminal[],
 };
 
-const workspace = {
+const workspace: {
+  getConfiguration: Mock;
+  workspaceFolders: { uri: { fsPath: string } }[] | undefined;
+} = {
   getConfiguration: vi.fn(),
-  workspaceFolders: undefined as { uri: { fsPath: string } }[] | undefined,
+  workspaceFolders: undefined,
 };
 
 // Mock extensions API
-const extensions = {
+const extensions: { getExtension: Mock } = {
   getExtension: vi.fn(),
 };
 
 // Mock commands API
-const commands = {
+const commands: { executeCommand: Mock } = {
   executeCommand: vi.fn(),
 };
 
 // Mock env API
-const env = {
+const env: { openExternal: Mock } = {
   openExternal: vi.fn(),
 };
 

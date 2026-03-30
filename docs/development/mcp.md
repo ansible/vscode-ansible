@@ -382,7 +382,7 @@ Manual testing is useful for validating behavior in real MCP clients.
 
 ```bash
 cd packages/ansible-mcp-server
-npm run dev:stdio
+pnpm run dev:stdio
 ```
 
 Or after building:

@@ -124,7 +124,11 @@ export async function setup() {
   }
 
   try {
-    const result = await execWithTimeout("./tools/get-image-version", [], 5000);
+    const result = await execWithTimeout(
+      "node ./tools/get-image-version.mts",
+      [],
+      5000,
+    );
     if (result.status === 0) {
       console.info(`EE_VERSION: ${result.stdout}`);
       EE_VERSION = result.stdout.trim();

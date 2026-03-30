@@ -55,11 +55,24 @@ jobs:
       - name: Install uv (cache)
         uses: astral-sh/setup-uv@v7
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          cache: true
+          run_install: |
+            - recursive: true
+              args: [--frozen-lockfile, --silent]
+
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: "24"
+
+      - name: Debug
+        run: |
+          which -a pnpm
+          pnpm --version
 
       - name: Run prek
         uses: j178/prek-action@v2
@@ -184,18 +197,18 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Upload @ansible-ansible-language-server npm package
+      - name: Upload ansible-ansible-language-server npm package
         uses: actions/upload-artifact@v7
         with:
-          path: out/@ansible-ansible-language-server-*.tgz
+          path: out/ansible-ansible-language-server-*.tgz
           archive: false
           if-no-files-found: error
           retention-days: 90
 
-      - name: Upload @ansible-ansible-mcp-server npm package
+      - name: Upload ansible-ansible-mcp-server npm package
         uses: actions/upload-artifact@v7
         with:
-          path: out/@ansible-ansible-mcp-server-*.tgz
+          path: out/ansible-ansible-mcp-server-*.tgz
           archive: false
           if-no-files-found: error
           retention-days: 90
@@ -610,7 +623,6 @@ jobs:
 
       - name: node post install
         run: |
-          corepack enable
           npm config set fund false
 
       - uses: jdx/mise-action@v4
@@ -630,7 +642,7 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          yarn install --immutable
+          pnpm install --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces
@@ -664,7 +676,7 @@ jobs:
       - name: Download the artifact
         uses: actions/download-artifact@v8
         with:
-          pattern: "@ansible-*.tgz"
+          pattern: "ansible-*.tgz"
           skip-decompress: true
           merge-multiple: true
           path: out
@@ -680,7 +692,7 @@ jobs:
 
       - name: Publish npm packages to npmjs.com
         run: |
-          for file in out/@ansible-*.tgz; do
+          for file in out/ansible-*.tgz; do
             npm publish --access public "$file"
           done
         env:

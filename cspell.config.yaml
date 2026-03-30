@@ -21,11 +21,11 @@ ignorePaths:
   - "**/lib/"
   - "*.svg"
   - .git
-  - .yarn/
   - dist/
   - media
   - out/
   - package.json
+  - pnpm-lock.yaml
   - syntaxes
   - syntaxes/external/*.*
   - test/testFixtures/lightspeed/*.yml

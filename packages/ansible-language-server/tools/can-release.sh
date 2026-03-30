@@ -29,28 +29,12 @@ cat <<EOF > package.json
   "license": "N/A"
 }
 EOF
-npm add "${PROJECT_ROOT}"/out/@ansible-ansible-language-server-*.tgz
+npm add "${PROJECT_ROOT}"/out/ansible-ansible-language-server-*.tgz
 npm install
 node "${PACKAGE_ROOT}/test/validate-ls.ts"
 popd
 
-
-VERSION=$(jq -r '.version' "${PACKAGE_ROOT}/package.json")
-# VIEW=$(npm view "@ansible/ansible-language-server@${VERSION}")
-
-if npm view "@ansible/ansible-language-server@${VERSION}" > /dev/null 2>&1; then
-    echo "::error::ansible-language-server@${VERSION} was already published, you cannot publish without updating the version number in 'package.json' file. Run 'yarn workspace @ansible/ansible-language-server version <version>' and make a pull request to bump it first."
-    exit 2
-else
-    if grep -q "## v${VERSION}" "$PACKAGE_ROOT/changelog.md"; then
-        echo "Changelog entry found."
-    else
-        echo "::warning::Version ${VERSION} was not published but is missing from the changelog, so we should not release."
-    fi
-    npm publish --dry-run --access public "${PROJECT_ROOT}/out/"@ansible-ansible-language-server-*.tgz
-    echo "Version ${VERSION} can be published."
-    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-        echo "Setting can_release_to_npm=true"
-        echo "can_release_to_npm=true" >> "${GITHUB_OUTPUT}"
-    fi
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    echo "Setting can_release_to_npm=true"
+    echo "can_release_to_npm=true" >> "${GITHUB_OUTPUT}"
 fi

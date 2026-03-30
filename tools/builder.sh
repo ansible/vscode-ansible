@@ -35,7 +35,7 @@ git config --list --show-origin
 git status
 rm -rf out/context
 mkdir -p out/context
-git config advice.detachedHead false
+git config set advice.detachedHead false
 git clone --template= --no-hardlinks . out/context/
 
 log notice "Running build inside the container..."

@@ -4,19 +4,21 @@ version: "3"
 vars:
   GIT_ROOT:
     sh: git rev-parse --show-toplevel
+  VERSION:
+    sh: "{{ .GIT_ROOT }}/tools/version.mts"
 tasks:
-  yarn:
+  pnpm:
     cmds:
-      - yarn install --immutable --silent
+      - pnpm install --frozen-lockfile --silent
     deps:
       - mise
     dir: "{{ .TASKFILE_DIR }}"
     generates:
-      - node_modules/.yarn-state.yml
+      - node_modules/.modules.yaml
     sources:
       - package.json
       - packages/*/package.json
-      - yarn.lock
+      - pnpm-lock.yaml
     run: once
     interactive: true
   uv:
@@ -45,7 +47,7 @@ tasks:
       OS: "{{OS}}"
       ARCH: "{{ARCH}}"
     deps:
-      - yarn
+      - pnpm
       - uv
     dir: "{{ .TASKFILE_DIR }}"
     cmds:

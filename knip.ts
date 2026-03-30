@@ -20,7 +20,6 @@ const config: KnipConfig = {
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",
-    "@types/vscode-webview", // provides acquireVsCodeApi type declarations
     "@typescript-eslint/eslint-plugin",
     "@vscode/test-electron",
     "@vscode/vsce",
@@ -74,7 +73,7 @@ const config: KnipConfig = {
         "src/**/env.d.ts",
         "webviews/**/*.{ts,tsx,vue,js}",
       ],
-      ignore: [".yarn/**"],
+      ignore: [],
       mocha: {
         entry: ["test/**/*.ts!"],
       },

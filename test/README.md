@@ -33,18 +33,9 @@ forget to install `node`.
 | :----------------- |
 | nvm install node   |
 
-#### Installing Yarn
-
-Once you have `npm` installed you can run the following both to install and
-upgrade `Yarn`:
-
-| :memo: Cheat Sheet        |
-| :------------------------ |
-| npm install --global yarn |
-
 #### Installing Remaining Dependencies
 
-Now that you have `yarn` installed, all we have to do is run the following
+Now that you have `pnpm` available, all we have to do is run the following
 commands to ensure that you have all other remaining dependencies installed
 locally:
 

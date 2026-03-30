@@ -33,13 +33,14 @@ tasks:
       - task: docs
       - echo {{.TASK}}
   version:
+    silent: true
     cmds:
-      - ./tools/helper --version
+      - echo {{ .VERSION }}
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - echo "Cleaning up... <disabled>"
-      - yarn workspaces foreach --all -tv run clean
+      - pnpm -r run clean
       - git clean -dxf
   finish:
     desc: Commands to run at the end of build and test processes
@@ -60,16 +61,16 @@ tasks:
     cmds:
       # - for: sources
       #   cmd: echo {{ .ITEM }}
-      - task: yarn
-      - yarn run build
-      - yarn workspace @ansible/ansible-language-server run build:dist
-      - yarn run vite-build
-      - yarn run build:extension
+      - task: pnpm
+      - pnpm run build
+      - pnpm --filter @ansible/ansible-language-server run build:dist
+      - pnpm run vite-build
+      - pnpm run build:extension
     sources:
       - package.json
       - "{src,test}/**/*"
       - tsconfig*.json
-      - yarn.lock
+      - pnpm-lock.yaml
       - vite.config.mts
       - exclude: "**/.ansible/**/*"
       - exclude: "**/None/**/*"
@@ -103,17 +104,15 @@ tasks:
     cmds:
       - task: "deps:python"
       - task: setup
-      # upgrade yarn itself
-      - yarn set version latest
       # bumps some developments dependencies
       - task: "deps:node"
       # disabled because it does not work recursively
-      # - yarn upgrade-interactive
+      # - pnpm update --interactive
       # restores a potential update of @types/vscode
-      - yarn up "@types/vscode@${VSCODE_VERSION}"
-      - yarn dedupe
+      - pnpm up "@types/vscode@${VSCODE_VERSION}" -w
+      - pnpm dedupe
       # running install after upgrade is needed in order to update the lock file
-      - task: shared:install
+      - task: pnpm
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -122,7 +121,7 @@ tasks:
     desc: Update node dependencies
     interactive: true # needed for ncu prompts
     cmds:
-      - yarn ncu -u --workspaces -i
+      - pnpm up -i -r
       - task: knip
   "deps:python":
     desc: Update python dependencies
@@ -281,7 +280,7 @@ tasks:
       - exclude: "test/ui/**/*"
       - package*.json
       - tools/helper
-      - yarn.lock
+      - pnpm-lock.yaml
       - dist/**/*
     generates:
       - "out/*.vsix"

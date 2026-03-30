@@ -44,19 +44,10 @@ Copy the following example files to match the name of your new webview:
   ```
 
 - Now you need to register your new VueJs file in the `vite.config.mts`, this way
-  the page will be render when `yarn vite-build` is called.
+  the page will be render when `pnpm vite-build` is called.
 
 At this stage, the ViteJs side is ready and you should be able to call
-`yarn vite-dev` and you should get an output similar too this:
-
-```console
-  VITE v6.3.5  ready in 542 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-  ➜  press h + enter to show help
-18:36:40 [tomjs:vscode] extension build success
-```
+`pnpm vite-dev`.
 
 Open a Webbrowser and point to
 <http://localhost:5173/webviews/lightspeed/hello-world.html> adjust the port and

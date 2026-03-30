@@ -21,12 +21,6 @@ const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
-  {
-    ignores: [
-      // do not add ignores here, .yarn is special case as is not our code
-      ".yarn/*",
-    ],
-  },
   ...[
     importPlugin.flatConfigs.recommended,
     eslint.configs.recommended,

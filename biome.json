@@ -16,13 +16,11 @@
       "!jinja-language-configuration.json",
       "!syntaxes/external/jinja.tmLanguage.json",
       "!docs/als/settings.md",
-      "!.yarn",
       "!**/*.css",
       "!**/*.js",
       "!**/*.mjs",
       "!**/*.ts",
-      "!**/*.vue",
-      "!.yarn"
+      "!**/*.vue"
     ]
   },
   "formatter": {

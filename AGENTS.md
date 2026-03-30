@@ -35,7 +35,7 @@ This document provides guidelines for AI agents working on this codebase.
 - [ ] **All tests passing**: All tests must pass. If a failure doesn't look related to your change, double-check. You may need a preparatory PR to fix the issue first.
 - [ ] **Build artifacts**: Ensure build jobs produce at least 3 artifacts matching these patterns:
   - `logs*`
-  - `@ansible-language-server*.tgz`
+  - `ansible-language-server*.tgz`
   - `ansible-extension-build-*.zip`
 
 ### Documentation

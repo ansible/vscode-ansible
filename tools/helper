@@ -145,7 +145,7 @@ def cli() -> None:
     if opt.package:
         run("npx rimraf ./out/*.vsix")
         run("task build")
-        # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
+        # --no-dependencies needed due to https://github.com/microsoft/vscode-vsce/issues/439
         # most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
         vsix_file = f"out/ansible-{version}.vsix"
         run(
@@ -155,8 +155,7 @@ def cli() -> None:
         vsix_file_fixed.parent.mkdir(parents=True, exist_ok=True)
         vsix_file_fixed.unlink(missing_ok=True)
         vsix_file_fixed.hardlink_to(Path(vsix_file))
-        # --yarn needed to avoid a warning message as package.json config does not prevent it
-        # run("vsce ls --yarn | sort > out/log/package.log")
+        # run("vsce ls | sort > out/log/package.log")
         run("mkdir -p out/log")
         size = pathlib.Path(vsix_file).stat().st_size / 1024 / 1024
         vsx_size_limit_mb = 9.0
