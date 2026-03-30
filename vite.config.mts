@@ -1,4 +1,3 @@
-/// <reference path="node_modules/vite/dist/node/index.d.ts" />
 import path from "node:path";
 import vscode from "@tomjs/vite-plugin-vscode";
 import vue from "@vitejs/plugin-vue";

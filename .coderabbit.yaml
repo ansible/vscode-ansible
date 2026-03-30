@@ -1,7 +1,7 @@
 reviews:
   auto_review:
     enabled: true
-    drafts: true
+    drafts: false  # will exceed rate limits if enabled
   auto_title_instructions: Use conventional commits structure
   fail_commit_status: true
   high_level_summary_instructions: |
@@ -13,3 +13,7 @@ reviews:
   in_progress_fortune: false
   request_changes_workflow: true
   review_status: false
+  tools:
+    github-checks:
+      enabled: true
+      timeout_ms: 900000  # waits 15 minutes for github checks to complete, cannot be bigger than this

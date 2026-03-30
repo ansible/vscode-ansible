@@ -29,8 +29,8 @@ runs:
       with:
         # we cache only wheels because http cache cannot be cleaned well
         path: |
-          ~/.cache/pip/wheels
-          ~/.cache/uv
+          ${{ github.workspace }}/.cache/pip/wheels
+          ${{ github.workspace }}/.cache/uv
         key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.id }}-${{ hashFiles('uv.lock', '.python-version') }}
 
     - name: Enable caching for prek
