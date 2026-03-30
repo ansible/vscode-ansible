@@ -1045,7 +1045,7 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@biomejs/biome": "^2.4.10",
-    "@eslint/compat": "^2.0.3",
+    "@eslint/compat": "^2.0.4",
     "@eslint/js": "^10.0.1",
     "@types/ini": "^4.1.1",
     "@types/js-yaml": "^4.0.9",
@@ -1069,8 +1069,8 @@
     "cspell-cli": "^9.7.0",
     "cypress-multi-reporters": "^2.0.5",
     "electron": "^41.1.0",
-    "esbuild": "^0.27.4",
-    "eslint": "^10.1.0",
+    "esbuild": "^0.27.7",
+    "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-formatter-gha": "^2.0.1",
     "eslint-formatter-unix": "^9.0.1",
@@ -1082,7 +1082,7 @@
     "globals": "^17.4.0",
     "ini": "^6.0.0",
     "jsdom": "^29.0.1",
-    "knip": "^6.1.1",
+    "knip": "^6.3.0",
     "lodash": "^4.17.23",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
@@ -1148,7 +1148,12 @@
           "mocha": "*"
         }
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "protobufjs"
+    ]
   },
   "scripts": {
     "build": "pnpm -r run compile",
