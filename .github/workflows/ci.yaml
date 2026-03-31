@@ -693,7 +693,7 @@ jobs:
 
       - name: Publish npm packages to npmjs.com
         run: |
-          for file in out/ansible-*.tgz; do
+          for file in ./out/ansible-*.tgz; do
             npm publish "$file"
           done
 
