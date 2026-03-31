@@ -1018,7 +1018,7 @@ def vscode_run_command(
         command_param: Parameter to pass to the command (argument)
     """
     driver.switch_to.default_content()
-    if not command.startswith(">"):
+    if not command.startswith(">"):  # pragma: no cover
         command = ">" + command
     # click the command box
     max_attempts = 6  # we seen timeout issue on GHA with 4 seconds
