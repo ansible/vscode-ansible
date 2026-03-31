@@ -92,7 +92,6 @@ export class LightSpeedAuthenticationProvider
   private _authId: string;
   private _authName: string;
   private _externalRedirectUri: string;
-  private _activeRedirectUri: string | undefined;
 
   constructor(
     private readonly context: ExtensionContext,
@@ -314,12 +313,12 @@ export class LightSpeedAuthenticationProvider
         );
         resolveCode(code);
       } else {
-        const errorMsg =
-          error || "No authorization code received from the server";
         res.end(
-          `<html><body><h1>Authentication failed</h1><p>${errorMsg}</p></body></html>`,
+          "<html><body><h1>Authentication failed</h1><p>Something went wrong. Return to your editor for details.</p></body></html>",
         );
-        rejectCode(new Error(errorMsg));
+        rejectCode(
+          new Error(error || "No authorization code received from the server"),
+        );
       }
     });
 
@@ -393,14 +392,13 @@ export class LightSpeedAuthenticationProvider
     const query = searchParams.toString();
     const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
-    // Also listen on the vscode:// URI handler as a fallback
     const {
       promise: receivedRedirectUrl,
       cancel: cancelWaitingForRedirectUrl,
-    } = promiseFromEvent(this._uriHandler.event, this.handleUriForCode(scopes));
-
-    // Store the redirect URI used for the token exchange
-    this._activeRedirectUri = redirectUri;
+    } = promiseFromEvent(
+      this._uriHandler.event,
+      this.handleUriForCode(redirectUri),
+    );
 
     await env.openExternal(uri);
 
@@ -430,9 +428,9 @@ export class LightSpeedAuthenticationProvider
 
           if (localServer) {
             candidates.push(
-              localServer.codePromise.then(async (code) => {
-                return await this.requestOAuthAccountFromCode(code);
-              }) as Promise<OAuthAccount>,
+              localServer.codePromise.then((code) =>
+                this.requestOAuthAccountFromCode(code, redirectUri),
+              ) as Promise<OAuthAccount>,
             );
           }
 
@@ -440,7 +438,6 @@ export class LightSpeedAuthenticationProvider
         } finally {
           localServer?.close();
           cancelWaitingForRedirectUrl.fire();
-          this._activeRedirectUri = undefined;
         }
       },
     );
@@ -450,9 +447,9 @@ export class LightSpeedAuthenticationProvider
 
   /* Handle the redirect to VS Code (after sign in from the Ansible Lightspeed auth service) */
   private handleUriForCode: (
-    scopes: readonly string[],
+    redirectUri: string,
   ) => PromiseAdapter<Uri, OAuthAccount> =
-    () => async (uri, resolve, reject) => {
+    (redirectUri) => async (uri, resolve, reject) => {
       const query = new URLSearchParams(uri.query);
       const code = query.get("code");
 
@@ -465,7 +462,7 @@ export class LightSpeedAuthenticationProvider
         return;
       }
 
-      const account = await this.requestOAuthAccountFromCode(code);
+      const account = await this.requestOAuthAccountFromCode(code, redirectUri);
 
       if (!account) {
         reject(new Error("Unable to form account"));
@@ -478,6 +475,7 @@ export class LightSpeedAuthenticationProvider
   /* Request access token from server using code */
   private async requestOAuthAccountFromCode(
     code: string,
+    redirectUri: string,
   ): Promise<OAuthAccount | undefined> {
     const headers = {
       "Cache-Control": "no-cache",
@@ -496,7 +494,7 @@ export class LightSpeedAuthenticationProvider
         {
           method: "POST",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
-          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._activeRedirectUri || this._externalRedirectUri)}`,
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(redirectUri)}`,
           headers,
         },
       );
