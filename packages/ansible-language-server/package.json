@@ -91,6 +91,9 @@
   "types": "lib/server.d.ts",
   "module": "lib/cli.js",
   "name": "@ansible/ansible-language-server",
+  "publishConfig": {
+    "access": "public"
+  },
   "publisher": "RedHat Inc.",
   "repository": {
     "type": "git",

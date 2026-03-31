@@ -9,7 +9,7 @@ vars:
 tasks:
   pnpm:
     cmds:
-      - pnpm install --frozen-lockfile --silent
+      - pnpm -r install --frozen-lockfile
     deps:
       - mise
     dir: "{{ .TASKFILE_DIR }}"
