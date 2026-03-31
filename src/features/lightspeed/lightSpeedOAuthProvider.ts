@@ -318,8 +318,8 @@ export class LightSpeedAuthenticationProvider
       const escapeHtml = (value: string) =>
         value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
 
-      res.writeHead(200, { "Content-Type": "text/html" });
       if (code) {
+        res.writeHead(200, { "Content-Type": "text/html" });
         res.end(
           "<html><body><h1>Authorization received</h1><p>Return to your editor to finish signing in.</p></body></html>",
         );
@@ -327,6 +327,7 @@ export class LightSpeedAuthenticationProvider
       } else {
         const errorMsg =
           error || "No authorization code received from the server";
+        res.writeHead(400, { "Content-Type": "text/html" });
         res.end(
           `<html><body><h1>Authentication failed</h1><p>${escapeHtml(errorMsg)}</p></body></html>`,
         );
