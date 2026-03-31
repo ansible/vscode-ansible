@@ -48,6 +48,7 @@ tasks:
       - build
     sources:
       - ../../vitest.config.ts
+      - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
       - test/**/*.*
@@ -81,7 +82,7 @@ tasks:
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
       - npm version {{ .VERSION }} --no-git-tag-version
-      - pnpm pack --pack-destination '{{ .GIT_ROOT }}/out'
+      - npm pack --silent --pack-destination '{{ .GIT_ROOT }}/out'
       - defer: npm version 0.0.0 --no-git-tag-version
     silent: false
   clean:
