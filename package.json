@@ -1104,7 +1104,7 @@
     "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=24.13.1",
     "npm": "\n\nERROR: Please use pnpm instead of npm for this repository.!!!\n\n",
-    "pnpm": ">=10.0.0",
+    "pnpm": ">=10.28.2",
     "vscode": "^1.85.0"
   },
   "extensionDependencies": [
@@ -1121,7 +1121,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@10.28.2",
   "publisher": "redhat",
   "qna": false,
   "repository": {
