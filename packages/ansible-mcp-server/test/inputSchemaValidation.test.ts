@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createAnsibleMcpServer } from "@src/server.js";
+import { ZodMiniObject } from "zod/mini";
 import { z } from "zod";
 
 /**
@@ -51,21 +52,19 @@ describe("MCP Tool InputSchema Validation", () => {
   }
 
   /**
-   * Helper to validate arguments against a Zod schema
+   * Helper to validate arguments against a Zod schema.
+   * Uses z.safeParse so validation works with Zod 4 (thrown errors may be $ZodError,
+   * which does not satisfy `instanceof z.ZodError`) and with MCP-registered mini schemas.
    */
   function validateWithZodSchema(
-    schema: z.ZodObject<z.ZodRawShape>,
+    schema: z.core.$ZodType,
     args: Record<string, unknown>,
   ): { success: boolean; error?: z.ZodError } {
-    try {
-      schema.parse(args);
+    const result = z.safeParse(schema, args);
+    if (result.success) {
       return { success: true };
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return { success: false, error };
-      }
-      throw error;
     }
+    return { success: false, error: result.error };
   }
 
   /**
@@ -94,7 +93,7 @@ describe("MCP Tool InputSchema Validation", () => {
     expect(tool).toBeDefined();
     expect(tool.inputSchema).toBeDefined();
 
-    const schema = tool.inputSchema as z.ZodObject<z.ZodRawShape>;
+    const schema = tool.inputSchema as z.core.$ZodType;
     const result = validateWithZodSchema(schema, args);
 
     expect(result.success).toBe(expectedSuccess);
@@ -451,9 +450,11 @@ describe("MCP Tool InputSchema Validation", () => {
         expect(tool).toBeDefined();
         expect(tool.inputSchema).toBeDefined();
 
-        // Verify the schema is a Zod object
+        // MCP SDK may register classic ZodObject or Zod 4 mini object schemas
         const schema = tool.inputSchema;
-        expect(schema).toBeInstanceOf(z.ZodObject);
+        expect(
+          schema instanceof z.ZodObject || schema instanceof ZodMiniObject,
+        ).toBe(true);
 
         // Verify tool has required properties
         expect(tool.handler).toBeDefined();
