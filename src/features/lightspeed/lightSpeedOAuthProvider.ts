@@ -308,24 +308,45 @@ export class LightSpeedAuthenticationProvider
       const code = url.searchParams.get("code");
       const error = url.searchParams.get("error");
 
+      const entities: Record<string, string> = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      };
+      const escapeHtml = (value: string) =>
+        value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
+
       res.writeHead(200, { "Content-Type": "text/html" });
       if (code) {
         res.end(
-          "<html><body><h1>Authentication successful</h1><p>You can close this tab and return to your editor.</p></body></html>",
+          "<html><body><h1>Authorization received</h1><p>Return to your editor to finish signing in.</p></body></html>",
         );
         resolveCode(code);
       } else {
+        const errorMsg =
+          error || "No authorization code received from the server";
         res.end(
-          "<html><body><h1>Authentication failed</h1><p>Something went wrong. Return to your editor for details.</p></body></html>",
+          `<html><body><h1>Authentication failed</h1><p>${escapeHtml(errorMsg)}</p></body></html>`,
         );
-        rejectCode(
-          new Error(error || "No authorization code received from the server"),
-        );
+        rejectCode(new Error(errorMsg));
       }
     });
 
-    await new Promise<void>((resolve) => {
-      server.listen(0, "127.0.0.1", () => resolve());
+    await new Promise<void>((resolve, reject) => {
+      const onError = (err: Error) => {
+        server.off("listening", onListening);
+        reject(err);
+      };
+      const onListening = () => {
+        server.off("error", onError);
+        resolve();
+      };
+
+      server.once("error", onError);
+      server.once("listening", onListening);
+      server.listen(0, "127.0.0.1");
     });
 
     const port = (server.address() as AddressInfo).port;
@@ -394,13 +415,17 @@ export class LightSpeedAuthenticationProvider
     const query = searchParams.toString();
     const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
-    const {
-      promise: receivedRedirectUrl,
-      cancel: cancelWaitingForRedirectUrl,
-    } = promiseFromEvent(
-      this._uriHandler.event,
-      this.handleUriForCode(redirectUri),
-    );
+    let receivedRedirectUrl: Promise<OAuthAccount> | undefined;
+    let cancelWaitingForRedirectUrl: EventEmitter<void> | undefined;
+
+    if (!useLoopback) {
+      const result = promiseFromEvent(
+        this._uriHandler.event,
+        this.handleUriForCode(redirectUri),
+      );
+      receivedRedirectUrl = result.promise;
+      cancelWaitingForRedirectUrl = result.cancel;
+    }
 
     await env.openExternal(uri);
 
@@ -413,7 +438,6 @@ export class LightSpeedAuthenticationProvider
       async (_, token): Promise<OAuthAccount> => {
         try {
           const candidates: Promise<OAuthAccount>[] = [
-            receivedRedirectUrl,
             new Promise<OAuthAccount>((_, reject) => {
               setTimeout(() => {
                 reject(
@@ -436,10 +460,16 @@ export class LightSpeedAuthenticationProvider
             );
           }
 
+          if (receivedRedirectUrl) {
+            candidates.push(receivedRedirectUrl);
+          }
+
           return await Promise.race<OAuthAccount>(candidates);
         } finally {
           localServer?.close();
-          cancelWaitingForRedirectUrl.fire();
+          if (cancelWaitingForRedirectUrl) {
+            cancelWaitingForRedirectUrl.fire();
+          }
         }
       },
     );
