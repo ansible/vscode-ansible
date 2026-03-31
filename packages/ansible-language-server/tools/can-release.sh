@@ -14,7 +14,7 @@ PROJECT_ROOT=$( cd -P "$( dirname "$SOURCE" )/../../.." > /dev/null 2>&1 && pwd 
 # in order to check if we packaged everything needed.
 mkdir -p "${PROJECT_ROOT}/out/test-als"
 pushd "${PROJECT_ROOT}/out/test-als"
-git init
+git init --initial-branch=main
 cat <<EOF > package.json
 {
   "name": "test-als",
@@ -30,7 +30,7 @@ cat <<EOF > package.json
 }
 EOF
 npm add "${PROJECT_ROOT}"/out/ansible-ansible-language-server-*.tgz
-npm install
+npm install --no-fund --no-audit
 node "${PACKAGE_ROOT}/test/validate-ls.ts"
 popd
 
