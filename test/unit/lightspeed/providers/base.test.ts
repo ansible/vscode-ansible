@@ -114,28 +114,22 @@ class TestProvider extends BaseLLMProvider {
   }
 
   async completionRequest(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     throw new Error("Not implemented in test provider");
   }
 
-  async chatRequest(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _params: ChatRequestParams,
-  ): Promise<ChatResponseParams> {
+  async chatRequest(_params: ChatRequestParams): Promise<ChatResponseParams> {
     throw new Error("Not implemented in test provider");
   }
 
   async generatePlaybook(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: GenerationRequestParams,
   ): Promise<GenerationResponseParams> {
     throw new Error("Not implemented in test provider");
   }
 
   async generateRole(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: GenerationRequestParams,
   ): Promise<GenerationResponseParams> {
     throw new Error("Not implemented in test provider");

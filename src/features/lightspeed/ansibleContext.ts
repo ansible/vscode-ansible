@@ -141,7 +141,7 @@ Generate Ansible inventory content with:
    */
   private static preprocessAnsibleContent(
     content: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _fileType: string,
   ): string {
     try {
