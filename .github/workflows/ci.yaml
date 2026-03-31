@@ -61,7 +61,7 @@ jobs:
           cache: true
           run_install: |
             - recursive: true
-              args: [--frozen-lockfile, --silent]
+              args: [--frozen-lockfile]
 
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
@@ -666,9 +666,10 @@ jobs:
       - build
       - check
     permissions:
-      contents: write
-      issues: write
       checks: read
+      contents: write
+      id-token: write # Required for OIDC
+      issues: write
     steps:
       - name: Checkout Source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -693,10 +694,8 @@ jobs:
       - name: Publish npm packages to npmjs.com
         run: |
           for file in out/ansible-*.tgz; do
-            npm publish --access public "$file"
+            npm publish "$file"
           done
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
