@@ -169,13 +169,15 @@ export class LightSpeedAuthenticationProvider
 
   /**
    * Create a new auth session
-   * @param scopes - Scopes
+   * @param _scopes - Scopes
    * @returns
    */
-  public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
+  public async createSession(
+    _scopes: string[],
+  ): Promise<LightspeedAuthSession> {
     try {
       lightSpeedManager.currentModelValue = undefined;
-      const account = await this.login(scopes);
+      const account = await this.login();
 
       if (!account) {
         throw new Error(`Ansible Lightspeed login failure`);
@@ -346,7 +348,7 @@ export class LightSpeedAuthenticationProvider
   ];
 
   /* Log in to the Ansible Lightspeed auth service */
-  private async login(_scopes: string[] = []) {
+  private async login() {
     this._logger.debug("[ansible-lightspeed-oauth] Logging in...");
 
     await this.setExternalRedirectUri();
