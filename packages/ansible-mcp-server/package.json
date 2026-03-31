@@ -1,7 +1,7 @@
 {
   "bin": "dist/cli.js",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "shell-quote": "^1.8.3",
@@ -12,11 +12,11 @@
   "devDependencies": {
     "@types/node": "^24.10.2",
     "@types/shell-quote": "^1",
-    "@vitest/ui": "^4.1.0",
+    "@vitest/ui": "^4.1.2",
     "rimraf": "^6.1.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=24.0"
