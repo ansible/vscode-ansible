@@ -8,6 +8,7 @@ reviews:
     Describe the main change in the pull request in 60 words max. Explain what was changed, why it was needed, and the approach taken.
     Use single level bullet points to list individual changes.
     Include a plain-text issue reference line using one of the formats `fixes: #<issue_number>`, `closes: #<issue_number>`, or `related: #<issue_number|AAP-number>`.
+    Do not self-reference the pull request in the summary.
     Do not include full or partial URLs for these issue references.
     The summary must not start with any heading or title.
   in_progress_fortune: false

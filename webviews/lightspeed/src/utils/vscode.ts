@@ -4,7 +4,6 @@
 // Based on @tomjs/vscode-webview v2.0.2 by Tom Gao <tom@tomgao.cc>
 // Licensed under the MIT License.
 // https://www.npmjs.com/package/@tomjs/vscode-webview
-
 type PostMessageListener<T> = (data: T) => void | Promise<void>;
 
 interface PostMessageOptions {

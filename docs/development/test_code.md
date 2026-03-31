@@ -44,7 +44,7 @@ Each type of test has its own script and can be run by `task <command>`:
 
     To run a single UI test case, you can use `MOCHA_GREP` environment variable as follows:
 
-    `MOCHA_GREP="your test case name in describe statement" yarn ui-current`
+    `MOCHA_GREP="your test case name in describe statement" pnpm ui-current`
 
 ### Language server test scripts
 

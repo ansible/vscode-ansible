@@ -46,11 +46,11 @@
     "access": "public"
   },
   "scripts": {
-    "build": "npm run clean && npm run compile",
+    "build": "pnpm run clean && pnpm run compile",
     "clean": "rimraf dist lib",
     "compile": "tsc -p . && tsup --silent",
-    "dev:stdio": "tsx src/cli.ts --stdio",
-    "prepack": "npm run compile && env NODE_ENV=production tsup --silent",
+    "dev:stdio": "pnpm exec -- tsx src/cli.ts --stdio",
+    "prepack": "pnpm run compile && env NODE_ENV=production tsup --silent",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",
     "test:ade": "vitest run --project=mcp test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",
@@ -64,5 +64,5 @@
   "sideEffects": [
     "dist/*"
   ],
-  "version": "0.1.0"
+  "version": "0.0.0"
 }

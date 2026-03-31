@@ -97,7 +97,7 @@ export class AnsibleMcpServerProvider {
       const isAvailable = await this.isMcpServerAvailable();
       if (!isAvailable) {
         const errorMessage =
-          "MCP server is not available. Please ensure the server is built by running 'yarn build'.";
+          "MCP server is not available. Please ensure the server is built by running 'pnpm build'.";
         vscode.window.showErrorMessage(errorMessage);
         console.error(errorMessage);
         return undefined;

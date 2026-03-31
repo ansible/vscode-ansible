@@ -1051,6 +1051,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^28.0.1",
     "@types/lodash": "^4.17.24",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.10.2",
     "@types/semver": "^7.7.1",
     "@types/sinon": "^21.0.0",
@@ -1085,7 +1086,6 @@
     "lodash": "^4.17.23",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
-    "npm-check-updates": "^19.6.5",
     "ovsx": "^0.10.9",
     "prettier": "^3.8.1",
     "rimraf": "^6.1.3",
@@ -1103,9 +1103,9 @@
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=24.13.1",
-    "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.85.0",
-    "yarn": ">=4.5.1"
+    "npm": "\n\nERROR: Please use pnpm instead of npm for this repository.!!!\n\n",
+    "pnpm": ">=10.0.0",
+    "vscode": "^1.85.0"
   },
   "extensionDependencies": [
     "ms-python.vscode-python-envs",
@@ -1121,26 +1121,45 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "yarn@4.13.0",
+  "packageManager": "pnpm@10.15.1",
   "publisher": "redhat",
   "qna": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
-  "resolutions": {
-    "rollup": "npm:@rollup/wasm-node@*"
+  "pnpm": {
+    "overrides": {
+      "rollup": "npm:@rollup/wasm-node@*"
+    },
+    "packageExtensions": {
+      "cypress-multi-reporters@*": {
+        "dependencies": {
+          "mocha": "*"
+        }
+      },
+      "mocha-junit-reporter@*": {
+        "dependencies": {
+          "mocha": "*"
+        }
+      },
+      "mocha-multi-reporters@*": {
+        "dependencies": {
+          "mocha": "*"
+        }
+      }
+    }
   },
   "scripts": {
-    "build": "yarn workspaces foreach --all -tvv run compile",
+    "build": "pnpm -r run compile",
     "clean": "rimraf lib out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap",
-    "prepare": "yarn workspaces foreach --all -tvv run prepare",
+    "prepare": "pnpm -r run prepare",
     "package": "./tools/helper --package",
     "preinstall": "",
     "build:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension/extension.js --format=cjs --platform=node --target=es2022 --external:vscode --alias:@src=./src --alias:@webviews=./webviews --alias:@root=. --sourcemap",
     "vite-build": "vue-tsc --noEmit && vite build",
-    "vite-dev": "yarn run vite-build && vite",
+    "vite-dev": "pnpm run vite-build && vite",
     "vite-preview": "vite preview",
     "watch": "tsc -b -w"
   },
@@ -1153,9 +1172,6 @@
     "gitTagVersion": false,
     "readmePath": "docs/README.md",
     "updatePackageJson": false,
-    "yarn": true
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+    "yarn": false
+  }
 }

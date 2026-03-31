@@ -36,11 +36,11 @@ repos:
         priority: 1
   - repo: local
     hooks:
-      - id: yarn-install
+      - id: pnpm-install
         priority: 0
-        name: yarn-install
-        alias: yarn
-        entry: yarn install --immutable --silent
+        name: pnpm-install
+        alias: pnpm
+        entry: pnpm install --frozen-lockfile --silent
         language: system
         pass_filenames: false
         always_run: true
@@ -54,7 +54,7 @@ repos:
         entry: npx biome check --write --unsafe
       - id: eslint
         name: eslint
-        entry: yarn exec eslint --no-warn-ignored --color --format=gha --fix --max-warnings=0 --concurrency=2
+        entry: pnpm exec eslint --no-warn-ignored --color --format=gha --fix --max-warnings=0 --concurrency=2
         language: system
         pass_filenames: false
         priority: 1
@@ -72,7 +72,7 @@ repos:
         priority: 0
         exclude: >
           (?x)^(
-            .yarn/.*|
+            node_modules/.pnpm/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
             examples/playbooks/example.yml|
             docs/als/settings.md

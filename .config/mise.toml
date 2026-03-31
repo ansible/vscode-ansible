@@ -1,6 +1,4 @@
 [env]
-# https://github.com/nodejs/corepack/issues/550
-COREPACK_ENABLE_DOWNLOAD_PROMPT = 0
 # hack installing mkdocs-ansible correctly on macOS
 # https://github.com/squidfunk/mkdocs-material/issues/5121
 DYLD_FALLBACK_LIBRARY_PATH = "{% if os() == 'macos' %}/opt/homebrew/lib{% endif %}"
@@ -34,4 +32,4 @@ node = "24.14.1"
 python = "3.13"
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
-yarn = "latest"
+pnpm = "latest"

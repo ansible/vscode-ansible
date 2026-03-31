@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns pwsh
+# cSpell:ignore RPMS xorg cmdtest xrandr nocolor userns pwsh
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -13,7 +13,7 @@ PROJECT_ROOT="$(dirname "$DIR")"
 
 # inside containers ARCH might not be set
 ARCH=${ARCH:-$(uname -m)}
-IMAGE_VERSION=$(./tools/get-image-version)
+IMAGE_VERSION=$(./tools/get-image-version.mts)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 ERR=0
 EE_ANSIBLE_VERSION=null
@@ -190,13 +190,6 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
-    # Remove undesirable packages, like cmdtest which provides another "yarn"
-    DEBS=(cmdtest)
-    for DEB in "${DEBS[@]}"; do
-        [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
-            "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
-            $SUDO apt-get -qq remove -y "$DEB"
-    done
 fi
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -260,7 +253,7 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
     exit 101
 fi
 
-if [[ -f yarn.lock ]]; then
+if [[ -f pnpm-lock.yaml ]]; then
     # Check if npm has permissions to install packages (system installed does not)
     # Share https://stackoverflow.com/a/59227497/99834
     test -w "$(npm config get prefix)" || {
@@ -420,7 +413,7 @@ cat <<EOF > "out/log/manifest-${HOSTNAME}.json"
     "prek": "$(get_version prek)",
     "python": "$(get_version python3)",
     "task": "$(get_version task)",
-    "yarn": "$(npx --yes yarn --version || echo null)"
+    "pnpm": "$(command -v pnpm >/dev/null && pnpm --version || echo null)"
   },
   "containers": {
     "podman": "${PODMAN_VERSION}",

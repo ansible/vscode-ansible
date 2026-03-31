@@ -54,7 +54,6 @@
   "files.exclude": {
     ".task": true,
     ".vscode-test": true,
-    ".yarn": true,
     "**/out": true
   },
   "files.watcherExclude": {

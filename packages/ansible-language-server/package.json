@@ -100,8 +100,8 @@
     "//prepare": "Prepare is needed for installation from source",
     "clean": "rimraf dist lib",
     "compile": "tsup --silent",
-    "build:dist": "env NODE_ENV=production npx tsup --silent",
-    "prepack": "npm run compile && npm run build:dist",
+    "build:dist": "env NODE_ENV=production tsup --silent",
+    "prepack": "pnpm run compile && pnpm run build:dist",
     "test": "vitest run --project=als",
     "test-with-ee": "vitest run --project=als -t @ee",
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
@@ -111,5 +111,5 @@
   "sideEffects": [
     "dist/*"
   ],
-  "version": "1.2.4"
+  "version": "0.0.0"
 }

@@ -12,7 +12,8 @@
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@webviews/*": ["./webviews/*"]
-    }
+    },
+    "types": ["@types/mocha", "vscode-webview"]
   },
   "extends": "./tsconfig.base.json",
   "include": [
@@ -24,6 +25,7 @@
     "src/**/*.ts",
     "test/**/*.cjs",
     "test/**/*.ts",
+    "tools/**/*.mts",
     "tools/**/*.ts",
     "webviews/**/*.ts",
     "webviews/**/*.vue"

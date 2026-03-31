@@ -2,6 +2,6 @@
 description = "Global Allowlist"
 # Ignore based on any subset of the file path
 paths = [
-  # Ignore yarn
-  '''\.yarn''',
+  # Ignore pnpm virtual store (if present under project)
+  '''node_modules/\.pnpm''',
 ]
