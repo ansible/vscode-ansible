@@ -63,22 +63,49 @@
       "problemMatcher": {
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "^.*extension build start*$",
-          "endsPattern": "^.*extension (build|rebuild) success.*$"
+          "beginsPattern": "^\\s*VITE v",
+          "endsPattern": "^\\s*➜\\s+Local:"
         },
         "fileLocation": "relative",
-        "owner": "typescript",
+        "owner": "vite",
         "pattern": {
-          "code": 5,
-          "column": 4,
-          "file": 1,
-          "line": 3,
-          "message": 6,
-          "regexp": "^([a-zA-Z]\\:/?([\\w\\-]/?)+\\.\\w+):(\\d+):(\\d+): (ERROR|WARNING)\\: (.*)$"
+          "regexp": "^$"
         }
       },
       "script": "vite-dev",
       "type": "npm"
+    },
+    {
+      "command": "pnpm run vite-dev",
+      "group": "build",
+      "isBackground": true,
+      "label": "build-then-vite-dev",
+      "problemMatcher": {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*VITE v",
+          "endsPattern": "^\\s*➜\\s+Local:"
+        },
+        "fileLocation": "relative",
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^$"
+        }
+      },
+      "type": "shell"
+    },
+    {
+      "command": "node -e \"try { const pid = require('fs').readFileSync('.vite-dev.pid','utf8').trim(); process.kill(Number(pid)); require('fs').unlinkSync('.vite-dev.pid'); console.log('Vite stopped (pid '+pid+')'); } catch(e) { console.log('No Vite process found'); }\"",
+      "label": "kill-vite-dev",
+      "presentation": { "reveal": "silent" },
+      "type": "shell"
+    },
+    {
+      "command": "pnpm run build:extension",
+      "group": "build",
+      "label": "build:extension",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
       "group": {

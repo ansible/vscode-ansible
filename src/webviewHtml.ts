@@ -1,7 +1,12 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
-import { type ExtensionContext, type Webview, Uri } from "vscode";
+import {
+  ExtensionMode,
+  type ExtensionContext,
+  type Webview,
+  Uri,
+} from "vscode";
 
 interface WebviewHtmlOptions {
   webview: Webview;
@@ -9,7 +14,7 @@ interface WebviewHtmlOptions {
   inputName?: string;
 }
 
-function findHtmlFile(distDir: string, inputName: string): string {
+export function findHtmlFile(distDir: string, inputName: string): string {
   const filename = `${inputName}.html`;
   // Walk dist/ recursively to find the matching HTML file
   function search(dir: string): string | undefined {
@@ -31,12 +36,74 @@ function findHtmlFile(distDir: string, inputName: string): string {
 }
 
 /**
+ * Returns the Vite dev server URL if the dev server is running, or undefined
+ * for production builds. The dev server writes its URL to a marker file.
+ */
+export function getDevServerUrl(extensionPath: string): string | undefined {
+  const markerPath = path.join(extensionPath, ".vite-dev-server-url");
+  try {
+    const raw = fs.readFileSync(markerPath, "utf8").trim();
+    const parsed = new URL(raw);
+    if (
+      parsed.protocol !== "http:" ||
+      parsed.hostname !== "localhost" ||
+      !parsed.port
+    ) {
+      return undefined;
+    }
+    return parsed.origin;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolves the entry script path on the Vite dev server for a given input name.
+ * Matches the multi-page input structure in vite.config.mts.
+ */
+export function resolveDevEntryScript(
+  extensionPath: string,
+  inputName: string,
+): string {
+  const lightspeedEntry = path.join(
+    extensionPath,
+    "webviews",
+    "lightspeed",
+    "src",
+    `${inputName}.ts`,
+  );
+  if (fs.existsSync(lightspeedEntry)) {
+    return `webviews/lightspeed/src/${inputName}.ts`;
+  }
+  return `webviews/${inputName}.ts`;
+}
+
+/**
  * Reads the built HTML file for a webview, injects a CSP meta tag with a
  * fresh nonce, and rewrites asset paths to use webview URIs.
+ *
+ * In dev mode (Vite dev server running), returns an HTML shell that loads
+ * directly from the dev server, enabling HMR.
  */
 export function getWebviewHtml(options: WebviewHtmlOptions): string {
   const { webview, context, inputName = "index" } = options;
   const nonce = crypto.randomBytes(16).toString("base64");
+
+  const devServerUrl = getDevServerUrl(context.extensionPath);
+  if (context.extensionMode === ExtensionMode.Development && devServerUrl) {
+    const entryScript = resolveDevEntryScript(context.extensionPath, inputName);
+    return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' http://localhost:*; style-src ${webview.cspSource} 'unsafe-inline' http://localhost:*; font-src ${webview.cspSource} http://localhost:*; img-src 'self' ${webview.cspSource} https: data: http://localhost:*; connect-src ws://localhost:* http://localhost:*;">
+  </head>
+  <body>
+    <div id="app"></div>
+    <script nonce="${nonce}" type="module" src="${devServerUrl}/@vite/client"></script>
+    <script nonce="${nonce}" type="module" src="${devServerUrl}/${entryScript}"></script>
+  </body>
+</html>`;
+  }
 
   const distDir = path.join(context.extensionPath, "dist");
   const htmlPath = findHtmlFile(distDir, inputName);
