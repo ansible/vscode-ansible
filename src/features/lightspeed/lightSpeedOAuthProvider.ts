@@ -346,7 +346,7 @@ export class LightSpeedAuthenticationProvider
   ];
 
   /* Log in to the Ansible Lightspeed auth service */
-  private async login(scopes: string[] = []) {
+  private async login(_scopes: string[] = []) {
     this._logger.debug("[ansible-lightspeed-oauth] Logging in...");
 
     await this.setExternalRedirectUri();
