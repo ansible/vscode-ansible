@@ -65,12 +65,6 @@
     },
     {
       "branchTopic": "npm",
-      "ignoreDeps": ["@vitejs/plugin-vue", "zod"],
-      "matchDepTypes": ["dependencies"],
-      "matchManagers": ["npm"]
-    },
-    {
-      "branchTopic": "npm",
       "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "major"]
