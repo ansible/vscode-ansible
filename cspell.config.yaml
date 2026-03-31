@@ -31,6 +31,8 @@ ignorePaths:
   - test/testFixtures/lightspeed/*.yml
   - tsconfig*.json
   - uv.lock
+  - .claude/settings.local.json
+  - ./src/webviewHtml.ts
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

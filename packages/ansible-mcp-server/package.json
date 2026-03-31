@@ -6,7 +6,7 @@
     "ajv-formats": "^3.0.1",
     "shell-quote": "^1.8.3",
     "yaml": "^2.8.3",
-    "zod": "^3.23.8"
+    "zod": "^4.3.6"
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
