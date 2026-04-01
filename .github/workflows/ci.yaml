@@ -455,7 +455,7 @@ jobs:
           retention-days: 90
 
       - name: Upload test coverage data to codecov.io
-        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' }}
+        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         with:
           name: ${{ matrix.name }}
@@ -465,7 +465,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload junit test results to codecov.io
-        if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' }}
+        if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
         with:
           directory: out/junit
