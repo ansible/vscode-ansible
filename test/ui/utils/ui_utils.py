@@ -1020,6 +1020,12 @@ def vscode_run_command(
     driver.switch_to.default_content()
     if not command.startswith(">"):
         command = ">" + command
+
+    # Dismiss any leftover palette/dialog from a previous call to avoid
+    # blocking the command-center click with an overlay.
+    ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+    time.sleep(0.3)
+
     # click the command box
     max_attempts = 6  # we seen timeout issue on GHA with 4 seconds
     command_input = None
@@ -1033,7 +1039,7 @@ def vscode_run_command(
                 driver,
                 command_box,
                 "//input[@aria-controls='quickInput_list']",
-                timeout=1,
+                timeout=2,
             )
             break
         except (
@@ -1048,7 +1054,9 @@ def vscode_run_command(
 
     if command_input:
         command_input.send_keys(command)
-    # enter
+        # Let the palette finish filtering results before pressing Enter,
+        # otherwise the keystroke can arrive before a match is highlighted.
+        time.sleep(0.5)
     actions = ActionChains(driver)
     actions.send_keys(Keys.ENTER).perform()
     if command_param:
