@@ -25,6 +25,8 @@ describe("MCP server activation and availability (AAP-64488)", function () {
   before(async function () {
     await commands.executeCommand("workbench.action.closeAllEditors");
     clearActivationCache();
+    // Ensure extension is activated before checking for command registration
+    await activate(playbookPath);
   });
 
   after(async function () {
