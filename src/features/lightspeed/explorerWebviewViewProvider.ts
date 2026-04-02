@@ -21,9 +21,9 @@ export class LightspeedExplorerWebviewViewProvider implements WebviewViewProvide
 
   public async resolveWebviewView(
     webviewView: WebviewView,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _resolveContext: WebviewViewResolveContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _token: CancellationToken,
   ) {
     this._view = webviewView;

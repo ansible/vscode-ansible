@@ -14,6 +14,8 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import crypto from "crypto";
+import http from "http";
+import { AddressInfo } from "net";
 import {
   PromiseAdapter,
   promiseFromEvent,
@@ -167,13 +169,15 @@ export class LightSpeedAuthenticationProvider
 
   /**
    * Create a new auth session
-   * @param scopes - Scopes
+   * @param _scopes - Scopes
    * @returns
    */
-  public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
+  public async createSession(
+    _scopes: string[],
+  ): Promise<LightspeedAuthSession> {
     try {
       lightSpeedManager.currentModelValue = undefined;
-      const account = await this.login(scopes);
+      const account = await this.login();
 
       if (!account) {
         throw new Error(`Ansible Lightspeed login failure`);
@@ -276,19 +280,100 @@ export class LightSpeedAuthenticationProvider
     }
   }
 
+  /**
+   * Start a local HTTP server to receive the OAuth callback.
+   * Returns a promise that resolves with the authorization code and
+   * a cleanup function to shut down the server.
+   */
+  private async startLocalCallbackServer(): Promise<{
+    redirectUri: string;
+    codePromise: Promise<string>;
+    close: () => void;
+  }> {
+    let resolveCode: (code: string) => void;
+    let rejectCode: (err: Error) => void;
+    const codePromise = new Promise<string>((resolve, reject) => {
+      resolveCode = resolve;
+      rejectCode = reject;
+    });
+
+    const server = http.createServer((req, res) => {
+      const url = new URL(req.url || "/", `http://${req.headers.host}`);
+      if (url.pathname !== "/callback") {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+
+      const code = url.searchParams.get("code");
+      const error = url.searchParams.get("error");
+
+      const entities: Record<string, string> = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      };
+      const escapeHtml = (value: string) =>
+        value.replace(/[&<>"']/g, (char) => entities[char] ?? char);
+
+      if (code) {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(
+          "<html><body><h1>Authorization received</h1><p>Return to your editor to finish signing in.</p></body></html>",
+        );
+        resolveCode(code);
+      } else {
+        const errorMsg =
+          error || "No authorization code received from the server";
+        res.writeHead(400, { "Content-Type": "text/html" });
+        res.end(
+          `<html><body><h1>Authentication failed</h1><p>${escapeHtml(errorMsg)}</p></body></html>`,
+        );
+        rejectCode(new Error(errorMsg));
+      }
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const onError = (err: Error) => {
+        server.off("listening", onListening);
+        reject(err);
+      };
+      const onListening = () => {
+        server.off("error", onError);
+        resolve();
+      };
+
+      server.once("error", onError);
+      server.once("listening", onListening);
+      server.listen(0, "127.0.0.1");
+    });
+
+    const port = (server.address() as AddressInfo).port;
+    const redirectUri = `http://127.0.0.1:${port}/callback`;
+
+    this._logger.debug(
+      `[ansible-lightspeed-oauth] Local callback server listening on ${redirectUri}`,
+    );
+
+    const close = () => {
+      server.close();
+    };
+
+    return { redirectUri, codePromise, close };
+  }
+
+  private static readonly LOOPBACK_CALLBACK_HOSTS = [
+    "https://c.ai.ansible.redhat.com",
+    "https://stage.ai.ansible.redhat.com",
+  ];
+
   /* Log in to the Ansible Lightspeed auth service */
-  private async login(scopes: string[] = []) {
+  private async login() {
     this._logger.debug("[ansible-lightspeed-oauth] Logging in...");
 
     await this.setExternalRedirectUri();
-
-    const searchParams = new URLSearchParams([
-      ["response_type", "code"],
-      ["code_challenge", getCodeChallenge()],
-      ["code_challenge_method", "S256"],
-      ["client_id", LIGHTSPEED_CLIENT_ID],
-      ["redirect_uri", this._externalRedirectUri],
-    ]);
 
     const base_uri = await getBaseUri(this.settingsManager);
     if (!base_uri) {
@@ -297,13 +382,51 @@ export class LightSpeedAuthenticationProvider
       );
     }
 
+    const useLoopback =
+      LightSpeedAuthenticationProvider.LOOPBACK_CALLBACK_HOSTS.includes(
+        base_uri,
+      );
+
+    let localServer:
+      | Awaited<ReturnType<typeof this.startLocalCallbackServer>>
+      | undefined;
+    let redirectUri: string;
+
+    if (useLoopback) {
+      localServer = await this.startLocalCallbackServer();
+      redirectUri = localServer.redirectUri;
+      this._logger.debug(
+        `[ansible-lightspeed-oauth] Using local callback redirect URI: ${redirectUri}`,
+      );
+    } else {
+      redirectUri = this._externalRedirectUri;
+      this._logger.debug(
+        `[ansible-lightspeed-oauth] Using external redirect URI: ${redirectUri}`,
+      );
+    }
+
+    const searchParams = new URLSearchParams([
+      ["response_type", "code"],
+      ["code_challenge", getCodeChallenge()],
+      ["code_challenge_method", "S256"],
+      ["client_id", LIGHTSPEED_CLIENT_ID],
+      ["redirect_uri", redirectUri],
+    ]);
+
     const query = searchParams.toString();
     const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
-    const {
-      promise: receivedRedirectUrl,
-      cancel: cancelWaitingForRedirectUrl,
-    } = promiseFromEvent(this._uriHandler.event, this.handleUriForCode(scopes));
+    let receivedRedirectUrl: Promise<OAuthAccount> | undefined;
+    let cancelWaitingForRedirectUrl: EventEmitter<void> | undefined;
+
+    if (!useLoopback) {
+      const result = promiseFromEvent(
+        this._uriHandler.event,
+        this.handleUriForCode(redirectUri),
+      );
+      receivedRedirectUrl = result.promise;
+      cancelWaitingForRedirectUrl = result.cancel;
+    }
 
     await env.openExternal(uri);
 
@@ -315,8 +438,7 @@ export class LightSpeedAuthenticationProvider
       },
       async (_, token): Promise<OAuthAccount> => {
         try {
-          return await Promise.race<OAuthAccount>([
-            receivedRedirectUrl,
+          const candidates: Promise<OAuthAccount>[] = [
             new Promise<OAuthAccount>((_, reject) => {
               setTimeout(() => {
                 reject(
@@ -329,9 +451,26 @@ export class LightSpeedAuthenticationProvider
             promiseFromEvent(token.onCancellationRequested, (_, __, reject) => {
               reject("User Cancelled");
             }).promise as Promise<OAuthAccount>,
-          ]);
+          ];
+
+          if (localServer) {
+            candidates.push(
+              localServer.codePromise.then((code) =>
+                this.requestOAuthAccountFromCode(code, redirectUri),
+              ) as Promise<OAuthAccount>,
+            );
+          }
+
+          if (receivedRedirectUrl) {
+            candidates.push(receivedRedirectUrl);
+          }
+
+          return await Promise.race<OAuthAccount>(candidates);
         } finally {
-          cancelWaitingForRedirectUrl.fire();
+          localServer?.close();
+          if (cancelWaitingForRedirectUrl) {
+            cancelWaitingForRedirectUrl.fire();
+          }
         }
       },
     );
@@ -341,9 +480,9 @@ export class LightSpeedAuthenticationProvider
 
   /* Handle the redirect to VS Code (after sign in from the Ansible Lightspeed auth service) */
   private handleUriForCode: (
-    scopes: readonly string[],
+    redirectUri: string,
   ) => PromiseAdapter<Uri, OAuthAccount> =
-    () => async (uri, resolve, reject) => {
+    (redirectUri) => async (uri, resolve, reject) => {
       const query = new URLSearchParams(uri.query);
       const code = query.get("code");
 
@@ -356,7 +495,7 @@ export class LightSpeedAuthenticationProvider
         return;
       }
 
-      const account = await this.requestOAuthAccountFromCode(code);
+      const account = await this.requestOAuthAccountFromCode(code, redirectUri);
 
       if (!account) {
         reject(new Error("Unable to form account"));
@@ -369,6 +508,7 @@ export class LightSpeedAuthenticationProvider
   /* Request access token from server using code */
   private async requestOAuthAccountFromCode(
     code: string,
+    redirectUri: string,
   ): Promise<OAuthAccount | undefined> {
     const headers = {
       "Cache-Control": "no-cache",
@@ -387,7 +527,7 @@ export class LightSpeedAuthenticationProvider
         {
           method: "POST",
           signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
-          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(getCodeVerifier())}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(redirectUri)}`,
           headers,
         },
       );

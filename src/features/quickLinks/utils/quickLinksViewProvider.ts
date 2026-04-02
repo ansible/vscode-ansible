@@ -28,7 +28,7 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
     webviewView: WebviewView,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: WebviewViewResolveContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _token: CancellationToken,
   ) {
     this._webviewView = webviewView;

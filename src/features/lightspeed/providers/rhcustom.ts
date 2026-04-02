@@ -253,7 +253,6 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
   }
 
   async completionRequest(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _params: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     // Inline suggestions are out of scope for the Red Hat AI provider currently
