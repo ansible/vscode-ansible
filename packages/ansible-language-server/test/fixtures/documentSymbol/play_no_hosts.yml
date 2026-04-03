@@ -1,0 +1,6 @@
+---
+- gather_facts: false
+  tasks:
+    - name: Do something
+      ansible.builtin.debug:
+        msg: hello
