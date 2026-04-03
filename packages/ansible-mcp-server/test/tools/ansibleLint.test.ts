@@ -1,17 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAnsibleLintHandler } from "@src/handlers.js";
-import { join, dirname } from "node:path";
-import { writeFile, unlink } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { join } from "node:path";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 describe("Ansible Lint Handler", () => {
-  const testPlaybookPath = join(__dirname, "test-playbook.yml");
-  const cleanPlaybookPath = join(__dirname, "clean-playbook.yml");
+  let tempDir: string;
+  let testPlaybookPath: string;
+  let cleanPlaybookPath: string;
 
-  beforeAll(async () => {
-    // Create test files
+  beforeAll(() => {
+    tempDir = mkdtempSync(join(tmpdir(), "vitest-ansible-lint-"));
+    testPlaybookPath = join(tempDir, "test-playbook.yml");
+    cleanPlaybookPath = join(tempDir, "clean-playbook.yml");
+
     const testPlaybookContent = `---
 - name: Test playbook with issues
   hosts: localhost
@@ -28,14 +30,12 @@ describe("Ansible Lint Handler", () => {
       ansible.builtin.debug:
         msg: hello`;
 
-    await writeFile(testPlaybookPath, testPlaybookContent, "utf8");
-    await writeFile(cleanPlaybookPath, cleanPlaybookContent, "utf8");
+    writeFileSync(testPlaybookPath, testPlaybookContent, "utf8");
+    writeFileSync(cleanPlaybookPath, cleanPlaybookContent, "utf8");
   });
 
-  afterAll(async () => {
-    // Clean up test files
-    await unlink(testPlaybookPath);
-    await unlink(cleanPlaybookPath);
+  afterAll(() => {
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   describe("Core linting functionality", () => {
@@ -70,7 +70,7 @@ describe("Ansible Lint Handler", () => {
   describe("Input validation", () => {
     it("should handle non-existent file", async () => {
       const handler = createAnsibleLintHandler();
-      const nonExistentFile = join(__dirname, "non-existent.yml");
+      const nonExistentFile = join(tempDir, "non-existent.yml");
 
       const result = await handler({
         filePath: nonExistentFile,

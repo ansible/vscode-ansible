@@ -1,7 +1,5 @@
 import { expect, beforeAll, afterAll } from "vitest";
 import * as path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import {
   ansibleMetaDataEntryType,
   ansibleMetaDataType,
@@ -15,32 +13,26 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
+  FIXTURES_BASE_PATH,
 } from "@test/helper.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 function getAnsibleTestInfo() {
   const ansibleInfo: ansibleMetaDataEntryType = {};
   ansibleInfo["core version"] = ".";
   ansibleInfo["location"] = "/ansible";
   ansibleInfo["config file path"] = path.resolve(
-    __dirname,
-    "..",
-    "fixtures",
+    FIXTURES_BASE_PATH,
     "utils",
     "getAnsibleMetaData",
     "ansible.cfg",
   );
   ansibleInfo["collections location"] = [
-    path.resolve(__dirname, "..", "fixtures", "common", "collections"),
+    path.resolve(FIXTURES_BASE_PATH, "common", "collections"),
   ];
   ansibleInfo["module location"] = ["/modules"];
   ansibleInfo["default host list path"] = [
     path.resolve(
-      __dirname,
-      "..",
-      "fixtures",
+      FIXTURES_BASE_PATH,
       "utils",
       "getAnsibleMetaData",
       "inventory",
