@@ -14,25 +14,29 @@
                 <key>include</key>
                 <string>#jinja-expression</string>
             </dict>
+            <dict>
+                <key>include</key>
+                <string>#jinja-statement</string>
+            </dict>
+            <dict>
+                <key>include</key>
+                <string>#jinja-comment</string>
+            </dict>
         </array>
         <key>repository</key>
         <dict>
             <key>jinja-expression</key>
             <dict>
-                <key>comment</key>
-                <string>The 'name' is used to undo highlighting as string</string>
-                <key>name</key>
-                <string>keyword.operator.ansible</string>
                 <key>begin</key>
-                <string>\{\{</string>
+                <string>\{\{-?</string>
                 <key>end</key>
-                <string>\}\}</string>
+                <string>-?\}\}</string>
                 <key>beginCaptures</key>
                 <dict>
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>constant.character.escape.ansible</string>
+                        <string>punctuation.section.embedded.begin.jinja</string>
                     </dict>
                 </dict>
                 <key>endCaptures</key>
@@ -40,7 +44,7 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>constant.character.escape.ansible</string>
+                        <string>punctuation.section.embedded.end.jinja</string>
                     </dict>
                 </dict>
                 <key>contentName</key>
@@ -50,6 +54,70 @@
                     <dict>
                         <key>include</key>
                         <string>source.ansible-jinja#expression</string>
+                    </dict>
+                </array>
+            </dict>
+            <key>jinja-statement</key>
+            <dict>
+                <key>begin</key>
+                <string>\{%-?</string>
+                <key>end</key>
+                <string>-?%\}</string>
+                <key>beginCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.section.embedded.begin.jinja</string>
+                    </dict>
+                </dict>
+                <key>endCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.section.embedded.end.jinja</string>
+                    </dict>
+                </dict>
+                <key>contentName</key>
+                <string>meta.embedded.inline.jinja</string>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>include</key>
+                        <string>source.ansible-jinja#expression</string>
+                    </dict>
+                </array>
+            </dict>
+            <key>jinja-comment</key>
+            <dict>
+                <key>begin</key>
+                <string>\{#-?</string>
+                <key>end</key>
+                <string>-?#\}</string>
+                <key>beginCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.definition.comment.begin.jinja</string>
+                    </dict>
+                </dict>
+                <key>endCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.definition.comment.end.jinja</string>
+                    </dict>
+                </dict>
+                <key>contentName</key>
+                <string>comment.block.jinja</string>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>include</key>
+                        <string>source.ansible-jinja#comments</string>
                     </dict>
                 </array>
             </dict>
