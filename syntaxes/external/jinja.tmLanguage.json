@@ -112,7 +112,7 @@
                             "name": "keyword.control.jinja"
                         },
                         "2": {
-                            "name": "variable.other.jinja.filter"
+                            "name": "entity.name.function.filter.jinja"
                         }
                     },
                     "match": "\\s*\\b(filter)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b"
@@ -123,10 +123,13 @@
                             "name": "keyword.control.jinja"
                         },
                         "2": {
-                            "name": "variable.other.jinja.test"
+                            "name": "keyword.control.jinja"
+                        },
+                        "3": {
+                            "name": "entity.name.function.test.jinja"
                         }
                     },
-                    "match": "\\s*\\b(is)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b"
+                    "match": "\\b(is)\\s+(not\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\b"
                 },
                 {
                     "captures": {
@@ -137,11 +140,34 @@
                     "match": "(?<=\\{\\%-|\\{\\%)\\s*\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?!\\s*[,=])"
                 },
                 {
-                    "match": "\\b(and|else|if|in|import|not|or|recursive|with(out)?\\s+context)\\b",
+                    "captures": {
+                        "1": {
+                            "name": "variable.parameter.jinja"
+                        },
+                        "2": {
+                            "name": "keyword.operator.assignment.jinja"
+                        }
+                    },
+                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=)(?!=)"
+                },
+                {
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.jinja"
+                        }
+                    },
+                    "match": "\\b(?!and|or|not|in\\b)([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+                },
+                {
+                    "match": "\\b(else|if|elif|endif|for|endfor|break|continue|set|endset|macro|endmacro|block|endblock|call|endcall|filter|endfilter|include|import|extends|from|do|raw|endraw|recursive|with(out)?\\s+context|with|endwith|as)\\b",
                     "name": "keyword.control.jinja"
                 },
                 {
-                    "match": "\\b(true|false|none)\\b",
+                    "match": "\\b(and|or|not|in)\\b",
+                    "name": "keyword.operator.logical.jinja"
+                },
+                {
+                    "match": "\\b(true|false|none|True|False|None)\\b",
                     "name": "constant.language.jinja"
                 },
                 {
@@ -149,11 +175,15 @@
                     "name": "variable.language.jinja"
                 },
                 {
+                    "match": "\\b(?:0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|[0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\\b",
+                    "name": "constant.numeric.jinja"
+                },
+                {
                     "match": "[a-zA-Z_][a-zA-Z0-9_]*",
                     "name": "variable.other.jinja"
                 },
                 {
-                    "match": "(\\+|\\-|\\*\\*|\\*|\/\/|\/|%)",
+                    "match": "(\\+|\\-|\\*\\*|\\*|//|/|%|~)",
                     "name": "keyword.operator.arithmetic.jinja"
                 },
                 {
@@ -162,10 +192,10 @@
                             "name": "punctuation.other.jinja"
                         },
                         "2": {
-                            "name": "variable.other.jinja.filter"
+                            "name": "entity.name.function.filter.jinja"
                         }
                     },
-                    "match": "(\\|)([a-zA-Z_][a-zA-Z0-9_]*)"
+                    "match": "(\\|)\\s*([a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*)"
                 },
                 {
                     "captures": {
@@ -173,10 +203,10 @@
                             "name": "punctuation.other.jinja"
                         },
                         "2": {
-                            "name": "variable.other.jinja.attribute"
+                            "name": "variable.other.property.jinja"
                         }
                     },
-                    "match": "(\\.)([a-zA-Z_][a-zA-Z0-9_]*)"
+                    "match": "(\\.)\\s*([a-zA-Z_][a-zA-Z0-9_]*|[0-9]+)"
                 },
                 {
                     "begin": "\\[",
@@ -225,7 +255,7 @@
                     "name": "punctuation.other.jinja"
                 },
                 {
-                    "match": "(==|<=|=>|<|>|!=)",
+                    "match": "(==|<=|>=|<|>|!=)",
                     "name": "keyword.operator.comparison.jinja"
                 },
                 {
@@ -273,13 +303,13 @@
                     ]
                 },
                 {
-                    "begin": "@\/",
+                    "begin": "@/",
                     "beginCaptures": [
                         {
                             "name": "punctuation.definition.regexp.begin.jinja"
                         }
                     ],
-                    "end": "\/",
+                    "end": "/",
                     "endCaptures": [
                         {
                             "name": "punctuation.definition.regexp.end.jinja"
