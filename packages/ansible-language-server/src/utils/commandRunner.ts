@@ -24,6 +24,8 @@ export class CommandRunner {
     executable: string,
     args: string,
     workingDirectory?: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _mountPaths?: Set<string>, // kept for caller compatibility; persistent container mounts workspace at startup
   ): Promise<{
     stdout: string;
     stderr: string;

@@ -107,7 +107,7 @@ export class WorkspaceManager {
     for (const removedUri of removedUris) {
       const context = this.folderContexts.get(removedUri);
       if (context) {
-        context.disposeExecutionEnvironment();
+        void context.disposeExecutionEnvironment();
       }
       this.folderContexts.delete(removedUri);
     }

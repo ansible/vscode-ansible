@@ -177,6 +177,11 @@ describe("@ee", () => {
       (ee as any)._persistentContainerName = "als_persistent_abc123";
       (ee as any)._isPersistentContainerRunning = false;
       (ee as any)._lastHealthCheckTime = 0;
+      sandbox
+        .stub(ee as any, "ensurePersistentContainerHealthy")
+        .callsFake(() => {
+          (ee as any)._isPersistentContainerRunning = false;
+        });
       const result = ee.execInContainer("echo hello");
       expect(result).toBeUndefined();
     });

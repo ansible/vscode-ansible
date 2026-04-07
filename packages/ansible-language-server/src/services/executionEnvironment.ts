@@ -14,6 +14,24 @@ import type {
   IVolumeMounts,
 } from "@src/interfaces/extensionSettings.js";
 
+/**
+ * Escape a string for safe use as a single shell argument.
+ * Wraps in single-quotes and escapes any embedded single-quotes.
+ */
+function shellQuote(s: string): string {
+  return `'${s.replace(/'/g, "'\\''")}'`;
+}
+/** Collect ANSIBLE_* env vars as shell-safe `-e KEY='VAL'` arguments. */
+function ansibleEnvArgs(): string[] {
+  const args: string[] = [];
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith("ANSIBLE_")) {
+      args.push("-e", `${key}=${shellQuote(value ?? "")}`);
+    }
+  }
+  args.push("-e", "ANSIBLE_FORCE_COLOR=0");
+  return args;
+}
 /* We are forced to ignore coverage because we can only measure it if we do
 it on all 3 platforms: linux, macos, wsl. Currently macos runners do not
 have podman/docker available. Once this is addressed please remove this coverage
@@ -272,15 +290,9 @@ export class ExecutionEnvironment {
     ).path;
     const containerCommand: Array<string> = [this._container_engine];
     containerCommand.push("exec");
-    containerCommand.push("--workdir", workspaceFolderPath);
+    containerCommand.push("--workdir", shellQuote(workspaceFolderPath));
 
-    // Pass Ansible environment variables into the exec call
-    for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
-      if (envVarKey.startsWith("ANSIBLE_")) {
-        containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
-      }
-    }
-    containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
+    containerCommand.push(...ansibleEnvArgs());
 
     containerCommand.push(this._persistentContainerName);
     containerCommand.push(command);
@@ -397,14 +409,23 @@ export class ExecutionEnvironment {
     // previous language server session) and reuse it if healthy.
     if (this.doesContainerNameExist(this._persistentContainerName)) {
       if (this.isContainerRunning(this._persistentContainerName)) {
+        // Verify the running container uses the configured image
+        if (
+          this.getContainerImage(this._persistentContainerName) ===
+          this._container_image
+        ) {
+          this.connection.console.log(
+            `Reusing existing persistent container '${this._persistentContainerName}'`,
+          );
+          this._isPersistentContainerRunning = true;
+          this._lastHealthCheckTime = Date.now();
+          return true;
+        }
         this.connection.console.log(
-          `Reusing existing persistent container '${this._persistentContainerName}'`,
+          `Persistent container image mismatch — recreating with '${this._container_image}'`,
         );
-        this._isPersistentContainerRunning = true;
-        this._lastHealthCheckTime = Date.now();
-        return true;
       }
-      // Container exists but is not running — remove it before starting fresh
+      // Container exists but is not running or uses wrong image — remove it
       this.cleanUpContainer(this._persistentContainerName);
     }
 
@@ -417,12 +438,12 @@ export class ExecutionEnvironment {
       // Do not add '-t' option as it causes stderr noise about TTY.
       const containerCommand: Array<string> = [this._container_engine];
       containerCommand.push("run", "--rm", "-d");
-      containerCommand.push("--workdir", workspaceFolderPath);
+      containerCommand.push("--workdir", shellQuote(workspaceFolderPath));
 
       // Mount workspace folder
       containerCommand.push(
         "-v",
-        `${workspaceFolderPath}:${workspaceFolderPath}`,
+        `${shellQuote(workspaceFolderPath)}:${shellQuote(workspaceFolderPath)}`,
       );
 
       // Mount configured volume mounts
@@ -430,13 +451,7 @@ export class ExecutionEnvironment {
         containerCommand.push(...this.settingsVolumeMounts);
       }
 
-      // Handle Ansible environment variables
-      for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
-        if (envVarKey.startsWith("ANSIBLE_")) {
-          containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
-        }
-      }
-      containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
+      containerCommand.push(...ansibleEnvArgs());
 
       if (this._container_engine === "podman") {
         containerCommand.push("--group-add=root");
@@ -519,6 +534,29 @@ export class ExecutionEnvironment {
       return result.stdout.trim() !== "";
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Get the image used by an existing container.
+   * Returns empty string on failure.
+   */
+  private getContainerImage(containerName: string): string {
+    if (!this._container_engine) {
+      return "";
+    }
+    try {
+      const result = child_process.spawnSync(
+        this._container_engine,
+        ["inspect", "--format", "{{.Config.Image}}", containerName],
+        { encoding: "utf-8", shell: false },
+      );
+      if (result.status !== 0) {
+        return "";
+      }
+      return result.stdout.trim();
+    } catch {
+      return "";
     }
   }
 
@@ -768,7 +806,10 @@ export class ExecutionEnvironment {
     const updatedHostDocPath: string[] = [];
 
     for (const srcPath of containerPluginPaths) {
-      const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
+      // Strip leading separators to prevent path.join from producing
+      // an absolute path that escapes the cache directory.
+      const safeSrcPath = srcPath.replace(/^[/\\]+/, "");
+      const destPath = path.join(hostPluginDocCacheBasePath, safeSrcPath);
       if (fs.existsSync(destPath)) {
         updatedHostDocPath.push(destPath);
       } else {
@@ -783,7 +824,7 @@ export class ExecutionEnvironment {
           .slice(0, -1)
           .join(path.sep);
         fs.mkdirSync(destPath, { recursive: true });
-        const copyCommand = `${this._container_engine} cp ${containerName}:${srcPath} ${destPathFolder}`;
+        const copyCommand = `${this._container_engine} cp ${shellQuote(`${containerName}:${srcPath}`)} ${shellQuote(destPathFolder)}`;
         this.connection.console.log(
           `Copying plugins from container to local cache path ${copyCommand}`,
         );
@@ -805,7 +846,8 @@ export class ExecutionEnvironment {
   ): string[] {
     const localCachePaths: string[] = [];
     pluginPaths.forEach((srcPath) => {
-      const destPath = path.join(cacheBasePath, srcPath);
+      const safeSrcPath = srcPath.replace(/^[/\\]+/, "");
+      const destPath = path.join(cacheBasePath, safeSrcPath);
       if (fs.existsSync(destPath)) {
         localCachePaths.push(destPath);
       }
