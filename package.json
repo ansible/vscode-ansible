@@ -1148,7 +1148,12 @@
           "mocha": "*"
         }
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@vscode/vsce-sign",
+      "keytar",
+      "unrs-resolver"
+    ]
   },
   "scripts": {
     "build": "pnpm -r run compile",
