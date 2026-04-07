@@ -104,6 +104,7 @@ relogin
 reshim
 rhcustom
 rhsso
+rollup
 sarif
 seealso
 sonarcloud

@@ -1,4 +1,4 @@
-# cspell: ignore rollup
+minimumReleaseAge: 1000 # 4320 # minutes (3 days)
 packages:
   - "packages/*"
 allowBuilds:
@@ -22,8 +22,5 @@ packageExtensions:
     "dependencies":
       "mocha": "*"
   "mocha-junit-reporter@*":
-    "dependencies":
-      "mocha": "*"
-  "mocha-multi-reporters@*":
     "dependencies":
       "mocha": "*"

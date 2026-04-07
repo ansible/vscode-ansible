@@ -1126,6 +1126,7 @@
     "jsdom": "^29.1.1",
     "knip": "^6.15.0",
     "lodash": "^4.17.23",
+    "markdownlint-cli2": "^0.22.1",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "ovsx": "^0.10.12",
@@ -1175,6 +1176,11 @@
     "type": "git",
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
+  "onlyBuiltDependencies": [
+    "@vscode/vsce-sign",
+    "keytar",
+    "unrs-resolver"
+  ],
   "scripts": {
     "build": "pnpm -r run compile",
     "clean": "rimraf lib out/syntaxHighlighter coverage .nyc_output",
