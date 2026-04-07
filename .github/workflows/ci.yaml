@@ -424,7 +424,8 @@ jobs:
           LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
           LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
           LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
-        timeout-minutes: 30
+        # UI pulls a large image and can exceed 30m when Selenium is up before code-server is ready
+        timeout-minutes: 60
 
       - name: task finish
         run: task finish
