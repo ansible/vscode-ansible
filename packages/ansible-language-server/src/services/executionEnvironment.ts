@@ -297,11 +297,7 @@ export class ExecutionEnvironment {
     containerCommand.push(this._persistentContainerName);
     containerCommand.push(command);
 
-    const generatedCommand = containerCommand.join(" ");
-    this.connection.console.log(
-      `container exec invocation: ${generatedCommand}`,
-    );
-    return generatedCommand;
+    return containerCommand.join(" ");
   }
 
   private async pullContainerImage(): Promise<boolean> {
