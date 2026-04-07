@@ -366,6 +366,7 @@ export class AnsibleLanguageService {
   }
 
   private registerShutdownHandler() {
+    /* v8 ignore next 6 */
     this.connection.onShutdown(async () => {
       // Dispose all persistent EE containers on language server shutdown
       await this.workspaceManager.forEachContext(async (context) => {

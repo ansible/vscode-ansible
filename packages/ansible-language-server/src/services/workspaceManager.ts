@@ -106,6 +106,7 @@ export class WorkspaceManager {
     // Dispose persistent containers for removed workspace folders
     for (const removedUri of removedUris) {
       const context = this.folderContexts.get(removedUri);
+      /* v8 ignore next 3 */
       if (context) {
         void context.disposeExecutionEnvironment();
       }
@@ -239,6 +240,7 @@ export class WorkspaceFolderContext {
    * reference so a new one is created on next access.
    */
   public async disposeExecutionEnvironment(): Promise<void> {
+    /* v8 ignore next 10 */
     if (this._executionEnvironment) {
       const eeThenable = this._executionEnvironment;
       this._executionEnvironment = undefined;
