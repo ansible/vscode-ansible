@@ -37,12 +37,10 @@ tasks:
   - name: Install dnsutils"""
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_unsubed_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the login page for a user without subscription."""
     driver, login_url = browser_setup
@@ -83,12 +81,10 @@ def test_unsubed_login(
     assert body[i + 2].text == username
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_unsubed_admin_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the login page for a user without subscription."""
     driver, login_url = browser_setup
@@ -133,12 +129,10 @@ def test_unsubed_admin_login(
     assert body[i + 3].text == "Role: administrator"
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_no_wca_user_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the login page for a user with subscribed org that does not have wca set-up."""
     driver, login_url = browser_setup
@@ -202,7 +196,6 @@ def test_no_wca_user_login(
         assert body[i + 4].text == "Role: licensed user"
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_no_wca_admin_login(
     browser_setup: Any,
     lightspeed_logout_teardown: Any,
@@ -256,7 +249,6 @@ def test_no_wca_admin_login(
         assert body[i + 2].text == "Role: administrator, licensed user"
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_login_page(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -300,7 +292,6 @@ def test_login_page(
         assert button.is_enabled()
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_sso_auth_flow(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -330,14 +321,13 @@ def test_sso_auth_flow(
     rh_button = click_and_wait(
         driver,
         login_button,
-        "//a[normalize-space(.)='Log in with Ansible Automation Platform']",
+        "//a[normalize-space(.)='Log in with Red Hat']",
     )
     assert rh_button is not None
     assert rh_button.is_displayed()
     assert rh_button.is_enabled()
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_admin_portal_error(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -382,7 +372,6 @@ def test_admin_portal_error(
     admin_portal_logout(driver)
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_vscode_rhsso_auth_flow(
     browser_setup: Any,
     screenshot_on_fail: Any,

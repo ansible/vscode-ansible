@@ -30,6 +30,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 LIGHTSPEED_USER = os.environ.get("LIGHTSPEED_USER", "")
 LIGHTSPEED_PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD", "")
+NO_SUB_USER = os.environ.get("NO_SUB_USER", "")
+NO_SUB_PASSWORD = os.environ.get("NO_SUB_PASSWORD", "")
+NO_SUB_ADMIN = os.environ.get("NO_SUB_ADMIN", "")
+NO_WCA_USER = os.environ.get("NO_WCA_USER", "")
+NO_WCA_PASSWORD = os.environ.get("NO_WCA_PASSWORD", "")
+NO_WCA_ADMIN = os.environ.get("NO_WCA_ADMIN", "")
 
 # Move cursor to the "Explain the playbook with Ansible Lightspeed" menu item.
 # Note: The required number of DOWN key presses varies by VSCode version.
@@ -185,7 +191,6 @@ def user_is_auth(driver: WebDriver) -> bool:
     return bool(elts)
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def sso_auth_flow(  # noqa: PLR0913
     driver: WebDriver,
     username: str = LIGHTSPEED_USER,
@@ -207,8 +212,21 @@ def sso_auth_flow(  # noqa: PLR0913
         no_wca: Whether to skip WCA
         no_sub: Whether to skip subscription
     """
-    user = LIGHTSPEED_USER
-    password = LIGHTSPEED_PASSWORD
+    if no_sub and admin_login:
+        user = NO_SUB_ADMIN
+        password = NO_SUB_PASSWORD
+    elif no_sub:
+        user = NO_SUB_USER
+        password = NO_SUB_PASSWORD
+    elif no_wca and admin_login:
+        user = NO_WCA_ADMIN
+        password = NO_WCA_PASSWORD
+    elif no_wca:
+        user = NO_WCA_USER
+        password = NO_WCA_PASSWORD
+    else:
+        user = LIGHTSPEED_USER
+        password = LIGHTSPEED_PASSWORD
 
     assert user
     assert password
@@ -301,6 +319,11 @@ def redhat_logout(driver: WebDriver) -> None:
     assert logout_button.is_displayed()
     assert logout_button.is_enabled()
     logout_button.click()
+    # SSO shows a "Do you want to log out?" confirmation page
+    confirm_button = wait_displayed(
+        driver, "//input[@value='Logout'] | //button[normalize-space(.)='Logout']"
+    )
+    confirm_button.click()
 
 
 def admin_portal_logout(driver: WebDriver) -> None:
@@ -483,9 +506,22 @@ def vscode_connect(
     ansible_button = wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
 
     if device_login:  # OAuth2 Device Flow
-        # in this case, give time for the command input to load correctly
-        vscode_run_command(driver, ">Ansible Lightspeed: Sign in with Red Hat")
-    if user_menu:  # Use the VSCode Auth provider menu
+        vscode_run_command_f1(driver, "Ansible Lightspeed: Sign in with Red Hat")
+        driver.switch_to.default_content()
+        allow_button = wait_displayed(
+            driver,
+            "//a[normalize-space(.)='Allow']",
+            timeout=10,
+        )
+        open_button = click_and_wait(
+            driver,
+            allow_button,
+            "//a[normalize-space(.)='Open']",
+            timeout=10,
+        )
+        if open_button:
+            open_button.click()
+    elif user_menu:  # Use the VSCode Auth provider menu
         user_button = click_and_wait(
             driver,
             ansible_button,
@@ -1058,6 +1094,32 @@ def vscode_run_command(
         # otherwise the keystroke can arrive before a match is highlighted.
         time.sleep(0.5)
     actions = ActionChains(driver)
+    actions.send_keys(Keys.ENTER).perform()
+    if command_param:
+        actions.send_keys(command_param, Keys.ENTER).perform()
+
+
+def vscode_run_command_f1(
+    driver: WebDriver, command: str, command_param: str | None = None
+) -> None:
+    """Run a command on vscode using F1 shortcut.
+
+    Uses the F1 keyboard shortcut to open the command palette instead of
+    clicking the command center UI element, which is more resilient to
+    VSCode UI changes.
+
+    Args:
+        driver: WebDriver instance
+        command: Command to run (will be prefixed with '>' if not present)
+        command_param: Parameter to pass to the command (argument)
+    """
+    driver.switch_to.default_content()
+    if not command.startswith(">"):
+        command = ">" + command
+    actions = ActionChains(driver)
+    actions.send_keys(Keys.F1).perform()
+    time.sleep(0.5)
+    actions.send_keys(command).perform()
     actions.send_keys(Keys.ENTER).perform()
     if command_param:
         actions.send_keys(command_param, Keys.ENTER).perform()
