@@ -24,7 +24,6 @@ export class CommandRunner {
     executable: string,
     args: string,
     workingDirectory?: string,
-    mountPaths?: Set<string>,
   ): Promise<{
     stdout: string;
     stderr: string;
@@ -64,10 +63,7 @@ export class CommandRunner {
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
-      command = executionEnvironment.wrapContainerArgs(
-        `${executable} ${args}`,
-        mountPaths,
-      );
+      command = executionEnvironment.execInContainer(`${executable} ${args}`);
       runEnv = process.env;
     }
     if (command === undefined) {

@@ -52,6 +52,7 @@ export class AnsibleLanguageService {
   public initialize(): void {
     this.initializeConnection();
     this.registerLifecycleEventHandlers();
+    this.registerShutdownHandler();
   }
 
   private initializeConnection() {
@@ -362,6 +363,15 @@ export class AnsibleLanguageService {
         }
       },
     );
+  }
+
+  private registerShutdownHandler() {
+    this.connection.onShutdown(async () => {
+      // Dispose all persistent EE containers on language server shutdown
+      await this.workspaceManager.forEachContext(async (context) => {
+        await context.disposeExecutionEnvironment();
+      });
+    });
   }
 
   private handleError(error: unknown, contextName: string) {
