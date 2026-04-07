@@ -85,6 +85,9 @@ export async function disableExecutionEnvironmentSettings(
   (await docSettings).executionEnvironment.enabled = false;
   (await docSettings).executionEnvironment.volumeMounts = [];
   if (context) {
+    // Dispose the persistent EE container before clearing cached services,
+    // since clearCachedServices() intentionally skips disposal.
+    await context.disposeExecutionEnvironment();
     context.clearCachedServices();
   }
 }
