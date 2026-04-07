@@ -49,7 +49,7 @@ def is_container_healthy() -> bool:
     return result.returncode == 0
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def browser_setup(
     request: pytest.FixtureRequest,
 ) -> Generator[tuple[WebDriver, str], None, None]:

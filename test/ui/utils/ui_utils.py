@@ -7,7 +7,6 @@ import time
 from collections.abc import Generator
 from typing import Any
 
-import pytest
 from selenium.common import (
     ElementClickInterceptedException,
     NoSuchElementException,
@@ -191,6 +190,21 @@ def user_is_auth(driver: WebDriver) -> bool:
     return bool(elts)
 
 
+def _get_sso_credentials(
+    *, admin_login: bool, no_wca: bool, no_sub: bool
+) -> tuple[str, str]:
+    """Return (username, password) based on the login scenario."""
+    if no_sub and admin_login:
+        return NO_SUB_ADMIN, NO_SUB_PASSWORD
+    if no_sub:
+        return NO_SUB_USER, NO_SUB_PASSWORD
+    if no_wca and admin_login:
+        return NO_WCA_ADMIN, NO_WCA_PASSWORD
+    if no_wca:
+        return NO_WCA_USER, NO_WCA_PASSWORD
+    return LIGHTSPEED_USER, LIGHTSPEED_PASSWORD
+
+
 def sso_auth_flow(  # noqa: PLR0913
     driver: WebDriver,
     username: str = LIGHTSPEED_USER,
@@ -212,21 +226,9 @@ def sso_auth_flow(  # noqa: PLR0913
         no_wca: Whether to skip WCA
         no_sub: Whether to skip subscription
     """
-    if no_sub and admin_login:
-        user = NO_SUB_ADMIN
-        password = NO_SUB_PASSWORD
-    elif no_sub:
-        user = NO_SUB_USER
-        password = NO_SUB_PASSWORD
-    elif no_wca and admin_login:
-        user = NO_WCA_ADMIN
-        password = NO_WCA_PASSWORD
-    elif no_wca:
-        user = NO_WCA_USER
-        password = NO_WCA_PASSWORD
-    else:
-        user = LIGHTSPEED_USER
-        password = LIGHTSPEED_PASSWORD
+    user, password = _get_sso_credentials(
+        admin_login=admin_login, no_wca=no_wca, no_sub=no_sub
+    )
 
     assert user
     assert password
@@ -354,17 +356,17 @@ def admin_portal_logout(driver: WebDriver) -> None:
 def vscode_login(
     driver: WebDriver,
     *,
-    device_login: bool = False,
+    device_login: bool = True,
     **kwargs: Any,
 ) -> None:
     """Go through the login process to ansible and vscode.
 
     Args:
         driver: WebDriver instance
-        device_login: Whether to use device login flow
+        device_login: Whether to use device login flow (kept for compatibility)
         **kwargs: Additional arguments passed to sso_auth_flow
     """
-    vscode_connect(driver, device_login=device_login)
+    vscode_connect(driver)
 
     sso_auth_flow(driver, **kwargs)
     # switch back to vs-code
@@ -485,83 +487,37 @@ def vscode_install_vsix(driver: WebDriver) -> None:
 def vscode_connect(
     driver: WebDriver,
     *,
-    user_menu: bool = False,
-    device_login: bool = False,
+    device_login: bool = True,
     install_vsix: bool = True,
 ) -> None:
-    """Go to the vscode ansible page and click the "connect" button.
+    """Go to the vscode ansible page and initiate the login flow.
+
+    Uses the OAuth2 Device Flow via the F1 command palette.
 
     Args:
         driver: WebDriver instance
-        user_menu: Whether to use the VSCode Auth provider menu
-        device_login: Whether to use OAuth2 Device Flow
+        device_login: Whether to use device login flow (kept for compatibility)
         install_vsix: Whether to install the VSIX extension
     """
     driver.get("http://127.0.0.1:8080")
 
-    # we rely on container backed in auto installation logic for our extension
-    # if install_vsix:
-    #     vscode_install_vsix(driver)
+    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
 
-    ansible_button = wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
-
-    if device_login:  # OAuth2 Device Flow
-        vscode_run_command_f1(driver, "Ansible Lightspeed: Sign in with Red Hat")
-        driver.switch_to.default_content()
-        allow_button = wait_displayed(
-            driver,
-            "//a[normalize-space(.)='Allow']",
-            timeout=10,
-        )
-        open_button = click_and_wait(
-            driver,
-            allow_button,
-            "//a[normalize-space(.)='Open']",
-            timeout=10,
-        )
-        if open_button:
-            open_button.click()
-    elif user_menu:  # Use the VSCode Auth provider menu
-        user_button = click_and_wait(
-            driver,
-            ansible_button,
-            "//div[@aria-label='Accounts - Sign in requested']",
-            timeout=10,
-        )
-        if user_button:
-            connect_button = click_and_wait(
-                driver,
-                user_button,
-                "//a[normalize-space(.)='Sign in with Ansible Lightspeed to use Ansible (1)']",
-            )
-            if connect_button:
-                open_button = click_and_wait(
-                    driver,
-                    connect_button,
-                    "//a[normalize-space(.)='Open']",
-                    timeout=10,
-                )
-                if open_button:
-                    open_button.click()
-    else:
-        ansible_button.click()
-        connect_button = get_connect_button(driver)
-        connect_button.click()
-        driver.switch_to.default_content()
-        allow_button = wait_displayed(
-            driver,
-            "//a[normalize-space(.)='Allow']",
-            timeout=10,
-        )
-        open_button = click_and_wait(
-            driver,
-            allow_button,
-            "//a[normalize-space(.)='Open']",
-            timeout=10,
-        )
-
-        if open_button:
-            open_button.click()
+    vscode_run_command_f1(driver, "Ansible Lightspeed: Sign in with Red Hat")
+    driver.switch_to.default_content()
+    allow_button = wait_displayed(
+        driver,
+        "//a[normalize-space(.)='Allow']",
+        timeout=10,
+    )
+    open_button = click_and_wait(
+        driver,
+        allow_button,
+        "//a[normalize-space(.)='Open']",
+        timeout=10,
+    )
+    if open_button:
+        open_button.click()
     driver.switch_to.window(driver.window_handles[-1])
 
 
@@ -794,7 +750,7 @@ def vscode_trial_button(
         actions.perform()
     max_attempts = 4
     for n in range(max_attempts):
-        vscode_run_command(driver, ">Ansible Lightspeed: Inline suggestion trigger")
+        vscode_run_command_f1(driver, "Ansible Lightspeed: Inline suggestion trigger")
         time.sleep(0.5)
         try:
             return wait_displayed(
@@ -863,18 +819,7 @@ def vscode_explanation(driver: WebDriver) -> str:
         timeout=60,
     )
     text_window.click()
-    # right-click
-    actions = ActionChains(driver)
-    actions.context_click(text_window).perform()
-
-    # Move cursor to the "Explain the playbook with Ansible Lightspeed" menu item.
-    # Note: The required number of DOWN key presses varies by VSCode version.
-    # Update the following line if VSCode's context menu items change.
-    for _ in range(POSITION_OF_ANSIBLE_EXPLAIN):
-        actions.send_keys(Keys.DOWN)
-
-    actions.send_keys(Keys.ENTER)
-    actions.perform()
+    vscode_run_command_f1(driver, "Explain the playbook with Ansible Lightspeed")
     time.sleep(20)
     # move to new iframe
     # NOTE: If the test fails at this point (Explain panel doesn't appear),
@@ -911,7 +856,7 @@ def vscode_playbook_generation(driver: WebDriver, task: str) -> tuple[str, str]:
         Tuple of (steps, playbook) text
     """
     # run gen command
-    vscode_run_command(driver, ">Ansible Lightspeed: Playbook generation")
+    vscode_run_command_f1(driver, "Ansible Lightspeed: Playbook generation")
     title = find_element_across_iframes(
         driver,
         "//h2[contains(text(), 'Create a playbook with Ansible Lightspeed')]",
@@ -981,7 +926,7 @@ def vscode_role_generation(driver: WebDriver, task: str) -> tuple[str, str]:
         Tuple of (steps, tasks) text
     """
     # run gen command
-    vscode_run_command(driver, ">Ansible Lightspeed: Role generation")
+    vscode_run_command_f1(driver, "Ansible Lightspeed: Role generation")
     title = find_element_across_iframes(
         driver,
         "//h2[contains(text(), 'Create a role with Ansible Lightspeed')]",
@@ -1120,7 +1065,16 @@ def vscode_run_command_f1(
     actions.send_keys(Keys.F1).perform()
     time.sleep(0.5)
     actions.send_keys(command).perform()
-    actions.send_keys(Keys.ENTER).perform()
+    command_label = command.lstrip(">")
+    try:
+        item = wait_displayed(
+            driver,
+            f"//div[@class='quick-input-list']//span[contains(normalize-space(.), '{command_label}')]",
+            timeout=3,
+        )
+        item.click()
+    except (TimeoutException, TimeOutError):  # pragma: no cover
+        actions.send_keys(Keys.ENTER).perform()
     if command_param:
         actions.send_keys(command_param, Keys.ENTER).perform()
 

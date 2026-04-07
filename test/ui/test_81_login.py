@@ -408,5 +408,3 @@ def test_vscode_rhsso_auth_flow(
     required_fields = ["url", "path", "source", "license", "score"]
     for attrib in content_match.values():
         assert all(attrib[field] for field in required_fields)
-    # playbook = get_vscode_file_text(driver)
-    # assert all(text in playbook for text in ["ansible.builtin.package", "name: dnsutils"])

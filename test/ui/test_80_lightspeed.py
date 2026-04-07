@@ -12,7 +12,7 @@ from test.ui.utils.ui_utils import (
     vscode_playbook_generation,
     vscode_prediction,
     vscode_role_generation,
-    vscode_run_command,
+    vscode_run_command_f1,
     wait_displayed,
 )
 
@@ -40,7 +40,7 @@ logged_in_flag = False
 
 def vscode_login_wrapper(driver: Any) -> None:
     """Log in with VSCode at the scope of this file."""
-    vscode_login(driver)
+    vscode_login(driver, device_login=True)
     global logged_in_flag  # noqa: PLW0603
     logged_in_flag = True
 
@@ -74,11 +74,9 @@ def test_vscode_widget(
     )
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_vscode_playbook_explanation(
     browser_setup: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the playbook explanation feature from VSCode."""
     driver, _ = browser_setup
@@ -105,11 +103,9 @@ def test_vscode_playbook_explanation(
         assert phrase in explanation, msg
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_vscode_playbook_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the playbook generation feature from VSCode."""
     driver, _ = browser_setup
@@ -127,11 +123,9 @@ def test_vscode_playbook_generation(
     assert all(txt in playbook for txt in expected_playbook), "Error- bad playbook"
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_vscode_role_generation(
     browser_setup: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the role generation feature from VSCode."""
     driver, _ = browser_setup
@@ -144,11 +138,9 @@ def test_vscode_role_generation(
     assert "ansible.builtin.package" in tasks
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 def test_vscode_lightspeed_explorer(
     browser_setup: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the Lightspeed explorer view from VSCode."""
     driver, _ = browser_setup
@@ -156,27 +148,28 @@ def test_vscode_lightspeed_explorer(
     if not logged_in_flag:
         vscode_login_wrapper(driver)
 
-    vscode_run_command(driver, ">Ansible: Focus on Ansible Lightspeed View")
-    find_element_across_iframes(
+    vscode_run_command_f1(driver, "Ansible: Focus on Ansible Lightspeed View")
+    # verify logged-in state via the Accounts menu
+    accounts_button = wait_displayed(driver, "//a[@aria-label='Accounts']")
+    accounts_button.click()
+    wait_displayed(
         driver,
-        # After https://github.com/tomershinhar/selenium-vscode-container/pull/16
-        # is deployed
-        # "//p[@class='user-content' and contains(normalize-space(.), 'Logged in as:')]",
-        "//*[contains(normalize-space(.), 'Logged in as:')]",
+        "//*[contains(normalize-space(.), 'lightspeed-test-user')]",
+        timeout=5,
     )
     find_element_across_iframes(
         driver,
-        "//vscode-button[contains(normalize-space(.), 'Generate a playbook')]",
+        "//*[contains(normalize-space(.), 'Generate Playbook')]",
     )
     find_element_across_iframes(
         driver,
-        "//vscode-button[contains(normalize-space(.), 'Explain the current playbook')]",
+        "//*[contains(normalize-space(.), 'Explain Playbook')]",
     )
     find_element_across_iframes(
         driver,
-        "//vscode-button[contains(normalize-space(.), 'Generate a role')]",
+        "//*[contains(normalize-space(.), 'Generate Role')]",
     )
     find_element_across_iframes(
         driver,
-        "//vscode-button[contains(normalize-space(.), 'Explain the current role')]",
+        "//*[contains(normalize-space(.), 'Explain Role')]",
     )

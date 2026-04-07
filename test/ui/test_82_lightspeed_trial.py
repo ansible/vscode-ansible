@@ -20,18 +20,16 @@ tasks:
 - name: install dnsutils"""
 
 
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
 @pytest.mark.vscode_trial
 def test_vscode_trial_button(
     new_browser: Any,
     lightspeed_logout_teardown: Any,
     screenshot_on_fail: Any,
-    close_editors: Any,
 ) -> None:
     """Test the playbook explanation feature from vs-code."""
     # We use a function scoped browser because the connection is different
     driver, _, _ = new_browser
 
-    vscode_login(driver, no_wca=True)
+    vscode_login(driver, no_wca=True, device_login=True)
     # Ensure we get the Trial button
     assert vscode_trial_button(driver, "playbook.yaml", PLAYBOOK_CONTENT)
