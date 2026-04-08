@@ -14,6 +14,7 @@ export class AnsibleConfig {
   private _module_locations: string[] = [];
   private _ansible_location = "";
   private _default_host_list: string[] = [];
+  private _roles_paths: string[] = [];
   private _ansible_meta_data = {}; // ini data
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
@@ -55,6 +56,13 @@ export class AnsibleConfig {
         this._collection_paths = [];
       }
       /* v8 ignore end */
+
+      // get default roles path from config dump
+      if (typeof config.DEFAULT_ROLES_PATH === "string") {
+        this._roles_paths = parsePythonStringArray(config.DEFAULT_ROLES_PATH);
+      } else {
+        this._roles_paths = [];
+      }
 
       // get default host list from config dump
       if (typeof config.DEFAULT_HOST_LIST === "string") {
@@ -121,6 +129,10 @@ export class AnsibleConfig {
 
   get default_host_list(): string[] {
     return this._default_host_list;
+  }
+
+  get roles_paths(): string[] {
+    return this._roles_paths;
   }
 
   /* v8 ignore next */

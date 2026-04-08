@@ -1,0 +1,11 @@
+---
+- name: Test dict vars completion
+  hosts: localhost
+  vars:
+    dict_var_one: value1
+    dict_var_two: value2
+  tasks:
+    - name: Use dict var
+      ansible.builtin.get_url:
+        url: "{{  }}"
+        mode: 0644

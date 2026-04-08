@@ -1,0 +1,4 @@
+---
+http_port: 80
+app_name: default_app
+log_level: info

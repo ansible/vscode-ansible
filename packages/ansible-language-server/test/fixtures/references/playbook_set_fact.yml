@@ -1,0 +1,12 @@
+---
+- hosts: all
+  tasks:
+    - name: Set facts
+      ansible.builtin.set_fact:
+        my_fact: "hello"
+        another_fact: 42
+        cacheable: true
+
+    - name: Use facts
+      ansible.builtin.debug:
+        msg: "{{ my_fact }} {{ another_fact }}"
