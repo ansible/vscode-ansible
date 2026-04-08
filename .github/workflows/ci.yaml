@@ -121,7 +121,7 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
 
-      - name: Extract commit context from conventional commit
+      - name: Extract commit context from conventional commit and list of known tasks
         id: extract_context
         shell: bash
         env:
@@ -147,6 +147,7 @@ jobs:
             echo "No context found in message"
             echo "context=" >> "$GITHUB_OUTPUT"
           fi
+          echo "tasks=$(task -l --json | jq -c '[.tasks[] | [.name] + (.aliases // []) | .[]]')" >> "$GITHUB_OUTPUT"
 
       - name: task build
         timeout-minutes: 2 # expected under 1 minutes
@@ -158,10 +159,10 @@ jobs:
         run: |
           task als:package && task als:package --status
 
-      - name: Run context-specific command
+      - name: Run context-specific command if it is a known task
         if: >-
           steps.extract_context.outputs.context != '' &&
-          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
+          !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
