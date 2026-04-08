@@ -1,6 +1,6 @@
 ---
 # see https://github.com/ansible/team-devtools
-_extends: ansible/team-devtools
+_extends: github:ansible/team-devtools:/.github/release-drafter.yml
 tag-template: 'v$RESOLVED_VERSION'
 category-template: '### $TITLE'
 template: '$CHANGES'
