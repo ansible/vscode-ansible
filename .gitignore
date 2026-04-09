@@ -22,7 +22,6 @@ dist
 lib
 
 # TODO: Seek to remove these from this file:
-.ansible
 CHANGELOG.html
 docs/als/settings.md
 examples/.vscode/

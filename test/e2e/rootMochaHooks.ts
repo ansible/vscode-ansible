@@ -13,6 +13,10 @@ process.env = {
   DONT_PROMPT_WSL_INSTALL: "1",
 };
 
+const testHome = path.resolve("out/e2e/tmp/home");
+fs.mkdirSync(testHome, { recursive: true });
+process.env.HOME = testHome;
+
 // display ansible-lint version and exit testing if ansible-lint is absent
 const command = "ansible-lint --version --offline";
 try {
