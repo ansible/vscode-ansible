@@ -62,12 +62,23 @@ export class CommandRunner {
       command = result.command;
       runEnv = result.env;
     } else {
+      /* v8 ignore next 14 -- EE path requires Docker, not available in unit tests */
+      // Warn about paths that are not covered by the persistent container's mounts
+      if (mountPaths && this.connection) {
+        const workspacePath = URI.parse(this.context.workspaceFolder.uri).path;
+        for (const mp of mountPaths) {
+          if (!mp.startsWith(workspacePath)) {
+            this.connection.console.warn(
+              `[EE] Mount path '${mp}' is outside the workspace folder and may not be accessible inside the persistent container. ` +
+                `Configure additional volume mounts in the Execution Environment settings.`,
+            );
+          }
+        }
+      }
+
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
-      command = executionEnvironment.wrapContainerArgs(
-        `${executable} ${args}`,
-        mountPaths,
-      );
+      command = executionEnvironment.execInContainer(`${executable} ${args}`);
       runEnv = process.env;
     }
     if (command === undefined) {
