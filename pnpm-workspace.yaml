@@ -1,2 +1,5 @@
+blockExoticSubdeps: true
+minimumReleaseAge: 4320 # minutes (3 days)
 packages:
   - "packages/*"
+trustPolicy: no-downgrade
