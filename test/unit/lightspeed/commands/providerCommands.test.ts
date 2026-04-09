@@ -82,6 +82,10 @@ describe("ProviderCommands", () => {
       lightspeedExplorerProvider: {
         refreshWebView: vi.fn(),
       },
+      lightSpeedAuthenticationProvider: {
+        getSessions: vi.fn().mockResolvedValue([]),
+        removeSession: vi.fn().mockResolvedValue(undefined),
+      },
     } as unknown as LightSpeedManager;
 
     // Setup mock LLM provider settings
