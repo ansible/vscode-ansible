@@ -7,8 +7,6 @@ import logging
 import os
 import subprocess
 import time
-import urllib.error
-import urllib.request
 from collections.abc import Generator
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -51,46 +49,6 @@ def is_container_healthy() -> bool:
     return result.returncode == 0
 
 
-def _wait_for_code_server_http(
-    url: str = "http://127.0.0.1:8080/",
-    timeout_sec: int = 600,
-) -> None:
-    """Wait until code-server accepts HTTP (not covered by Selenium :4444 healthcheck).
-
-    The compose file healthcheck only verifies Selenium Grid; code-server can still
-    be starting, which otherwise leads to long WebDriver/page-load timeouts in CI.
-    """
-    deadline = time.time() + timeout_sec
-    attempt = 0
-    while time.time() < deadline:
-        attempt += 1
-        try:
-            with urllib.request.urlopen(url, timeout=5) as resp:
-                if resp.status == 200:
-                    log.info("code-server ready at %s (attempt %s)", url, attempt)
-                    return
-        except urllib.error.HTTPError as exc:
-            # Upstream still starting — keep polling. Other responses mean HTTP is up.
-            if exc.code in {502, 503, 504}:
-                pass
-            else:
-                log.info(
-                    "code-server ready at %s (HTTP %s, attempt %s)",
-                    url,
-                    exc.code,
-                    attempt,
-                )
-                return
-        except (urllib.error.URLError, OSError, TimeoutError):
-            pass
-        if attempt <= 3 or attempt % 20 == 0:
-            log.info("Waiting for code-server at %s: %s", url, attempt)
-        time.sleep(2)
-    pytest.fail(
-        f"code-server did not become ready at {url} within {timeout_sec}s",
-    )
-
-
 @pytest.fixture(scope="session")
 def browser_setup(
     request: pytest.FixtureRequest,
@@ -104,7 +62,7 @@ def browser_setup(
         "capturemanager"
     )  # type: ignore[name-defined]
     try:
-        if not is_container_healthy():
+        if not is_container_healthy() or True:
             subprocess.run(
                 f"podman rm -f {CONTAINER_NAME} 2>/dev/null || true",
                 shell=True,
@@ -122,29 +80,15 @@ def browser_setup(
                     shell=True,
                     cwd=_PROJECT_ROOT,
                 )
-            health_deadline = time.time() + int(
-                os.environ.get("UI_CONTAINER_HEALTH_TIMEOUT", "900"),
-            )
             count = 0
-            while time.time() < health_deadline:
+            while True:
                 if is_container_healthy():
                     break
                 count += 1
                 time.sleep(1)
-                if count <= 5 or count % 15 == 0:
-                    log.info(
-                        "Waiting for container %s to be healthy: %s",
-                        CONTAINER_NAME,
-                        count,
-                    )
-            else:
-                pytest.fail(
-                    f"container {CONTAINER_NAME} did not become healthy in time",
+                log.info(
+                    "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
                 )
-
-        _wait_for_code_server_http(
-            timeout_sec=int(os.environ.get("UI_CODE_SERVER_TIMEOUT", "600")),
-        )
 
         browser = os.environ.get("BROWSER_TYPE")
         options: FirefoxOptions | ChromeOptions
@@ -159,8 +103,6 @@ def browser_setup(
             command_executor="http://localhost:4444/wd/hub",
             options=options,
         )
-        driver.set_page_load_timeout(300)
-        driver.set_script_timeout(300)
         driver.maximize_window()
 
         yield driver, "https://stage.ai.ansible.redhat.com/login"
