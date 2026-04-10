@@ -5,7 +5,6 @@ import contextlib
 import os
 import time
 from collections.abc import Generator
-from typing import Any
 
 from selenium.common import (
     ElementClickInterceptedException,
@@ -29,13 +28,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 LIGHTSPEED_USER = os.environ.get("LIGHTSPEED_USER", "")
 LIGHTSPEED_PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD", "")
-NO_SUB_USER = os.environ.get("NO_SUB_USER", "")
-NO_SUB_PASSWORD = os.environ.get("NO_SUB_PASSWORD", "")
-NO_SUB_ADMIN = os.environ.get("NO_SUB_ADMIN", "")
-NO_WCA_USER = os.environ.get("NO_WCA_USER", "")
-NO_WCA_PASSWORD = os.environ.get("NO_WCA_PASSWORD", "")
-NO_WCA_ADMIN = os.environ.get("NO_WCA_ADMIN", "")
-
 # Move cursor to the "Explain the playbook with Ansible Lightspeed" menu item.
 # Note: The required number of DOWN key presses varies by VSCode version.
 POSITION_OF_ANSIBLE_EXPLAIN = 9
@@ -190,45 +182,19 @@ def user_is_auth(driver: WebDriver) -> bool:
     return bool(elts)
 
 
-def _get_sso_credentials(
-    *, admin_login: bool, no_wca: bool, no_sub: bool
-) -> tuple[str, str]:
-    """Return (username, password) based on the login scenario."""
-    if no_sub and admin_login:
-        return NO_SUB_ADMIN, NO_SUB_PASSWORD
-    if no_sub:
-        return NO_SUB_USER, NO_SUB_PASSWORD
-    if no_wca and admin_login:
-        return NO_WCA_ADMIN, NO_WCA_PASSWORD
-    if no_wca:
-        return NO_WCA_USER, NO_WCA_PASSWORD
-    return LIGHTSPEED_USER, LIGHTSPEED_PASSWORD
-
-
-def sso_auth_flow(  # noqa: PLR0913
+def sso_auth_flow(
     driver: WebDriver,
     username: str = LIGHTSPEED_USER,
     password: str = LIGHTSPEED_PASSWORD,
-    *,
-    admin_login: bool = False,
-    no_wca: bool = False,
-    no_sub: bool = False,
 ) -> str:
     """Perform all the steps to log in with Red Hat SSO.
-
-    We have many parameters because of tests in test_login.
 
     Args:
         driver: WebDriver instance
         username: Username for authentication
         password: Password for authentication
-        admin_login: Whether this is an admin login
-        no_wca: Whether to skip WCA
-        no_sub: Whether to skip subscription
     """
-    user, password = _get_sso_credentials(
-        admin_login=admin_login, no_wca=no_wca, no_sub=no_sub
-    )
+    user = username
 
     assert user
     assert password
@@ -357,18 +323,16 @@ def vscode_login(
     driver: WebDriver,
     *,
     device_login: bool = True,
-    **kwargs: Any,
 ) -> None:
     """Go through the login process to ansible and vscode.
 
     Args:
         driver: WebDriver instance
         device_login: Whether to use device login flow (kept for compatibility)
-        **kwargs: Additional arguments passed to sso_auth_flow
     """
     vscode_connect(driver)
 
-    sso_auth_flow(driver, **kwargs)
+    sso_auth_flow(driver)
     # switch back to vs-code
     driver.switch_to.window(driver.window_handles[0])
     # user is now logged in, get a prediction
@@ -694,74 +658,6 @@ def vscode_prediction(
         accept_button = driver.find_element(by="xpath", value="(//li)[35]")
         return prediction_preview, prev_prediction, next_prediction, accept_button
     return prediction_preview
-
-
-def vscode_trial_button(
-    driver: WebDriver,
-    file_name: str,
-    playbook: str,
-) -> WebElement | None:
-    """Return the Trial button.
-
-    Args:
-        driver: WebDriver instance
-        file_name: Name of the file to open
-        playbook: Playbook content to input
-
-    Returns:
-        The Trial button element or None
-    """
-    try:  # in case explorer is already open
-        wait_displayed(driver, f"//span[text()='{file_name}']", timeout=1).click()
-    except (
-        TimeoutException,
-        TimeOutError,
-        ElementClickInterceptedException,
-    ):  # pragma: no cover
-        # go to explorer
-        explorer = wait_displayed(
-            driver,
-            "//a[contains(@aria-label, 'Explorer')]",
-            timeout=60,
-        )
-        explorer.click()
-        # open the playbook
-        try:
-            wait_displayed(driver, f"//span[text()='{file_name}']", timeout=60).click()
-        except ElementClickInterceptedException:  # pragma: no cover
-            ActionChains(driver).move_to_element(explorer).move_by_offset(
-                0,
-                50,
-            ).perform()
-            wait_displayed(driver, f"//span[text()='{file_name}']", timeout=60).click()
-    # click the text area to be able to input
-    clear_text(driver)
-    wait_displayed(
-        driver,
-        "//div[@class='view-lines monaco-mouse-cursor-text']",
-        timeout=60,
-    ).click()
-    lines = playbook.split("\n")
-    # input the content with low-level interactions
-    actions = ActionChains(driver)
-    for line in lines:
-        actions.send_keys(line)
-        actions.send_keys(Keys.ENTER)
-        actions.perform()
-    max_attempts = 4
-    for n in range(max_attempts):
-        vscode_run_command_f1(driver, "Ansible Lightspeed: Inline suggestion trigger")
-        time.sleep(0.5)
-        try:
-            return wait_displayed(
-                driver,
-                "//a[contains(text(), 'Start a trial')]",
-                timeout=10,
-            )
-        except TimeoutException:  # pragma: no cover
-            if n == max_attempts - 1:
-                raise
-    return None
 
 
 def clear_text(driver: WebDriver) -> None:

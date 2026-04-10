@@ -30,11 +30,6 @@ become: true
 tasks:
 - name: install dnsutils"""
 
-MULTI_SUGGESTIONS_PLAYBOOK = """---
-- name: Playbook
-  hosts: all
-tasks:
-  - name: Install dnsutils"""
 logged_in_flag = False
 
 
@@ -43,35 +38,6 @@ def vscode_login_wrapper(driver: Any) -> None:
     vscode_login(driver, device_login=True)
     global logged_in_flag  # noqa: PLW0603
     logged_in_flag = True
-
-
-# @pytest.mark.flaky(reruns=6, reruns_delay=10)
-@pytest.mark.skip(reason="See https://redhat.atlassian.net/browse/AAP-67210")
-def test_vscode_widget(
-    browser_setup: Any,
-    screenshot_on_fail: Any,
-    close_editors: Any,
-) -> None:
-    """Test that the vs-code widget shows up and works correctly.
-
-    Tests widget behavior when multiple suggestion extensions are installed.
-    """
-    driver, _ = browser_setup
-
-    vscode_login_wrapper(driver)
-    vscode_prediction(
-        driver,
-        "playbook.yaml",
-        MULTI_SUGGESTIONS_PLAYBOOK,
-        accept=False,
-        mutil_provider=True,
-    )
-    # validate the widget is working correctly
-    wait_displayed(
-        driver,
-        "//span[contains(normalize-space(.), 'pilot')]",
-        timeout=20,
-    )
 
 
 def test_vscode_playbook_explanation(
