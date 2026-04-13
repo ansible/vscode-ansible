@@ -2,7 +2,6 @@ ANSTRAT
 Anson
 CICD
 CMDB
-Cachi
 Customizer
 DEEPSEEK
 Elio’s
@@ -12,7 +11,6 @@ Fqcn
 Fqcns
 Interactable
 KUBEDOCK
-Konflux
 LIGHTSPEED
 LLMPROVIDER
 Lightspeed
@@ -31,17 +29,13 @@ SSOT
 Towncrier
 WSLENV
 antsibull
-appstudio
 bfnrt
-buildah
 charliermarsh
 checode
-clamav
 codeclimate
 codespell
 commitlint
 contentmatches
-coverity
 cpython
 dbaeumer
 dedupe
@@ -49,6 +43,7 @@ deepseek
 dirmngr
 esbenp
 eslintcache
+ffdx
 fixturenames
 fqcn
 genai
@@ -60,7 +55,6 @@ hostsvars
 inetpub
 issuetracker
 knip
-konflux
 lcovonly
 lextudio
 libgbm
@@ -70,7 +64,6 @@ lightspeed
 ligthspeed
 lineinfile
 llmprovider
-longrepr
 microdnf
 myorg
 noconfirm
@@ -80,7 +73,6 @@ nqry
 ollama
 ovsx
 pacman
-pipelinesascode
 prek
 primevue
 priyamsahoo
@@ -88,16 +80,11 @@ progressspinner
 pycobertura
 pydoclint
 pyvenv
-quasis
 relogin
-reprentries
-reprfileloc
-reprtraceback
 reshim
 rhcustom
 rhsso
 seealso
-shiki
 sonarcloud
 sonarqube
 summ
@@ -109,7 +96,6 @@ thumbsup
 timonwong
 tomaciazek
 tombi
-tomjs
 tomlsort
 towerhost
 tsup
