@@ -1,19 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import * as fs from "fs";
 import * as vscode from "vscode";
 import { TerminalService } from "@src/services/TerminalService";
+import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
+
+vi.mock("fs", () => ({
+  existsSync: vi.fn(),
+}));
 
 describe("TerminalService", function () {
   let service: TerminalService;
   let mockGetExtension: ReturnType<typeof vi.fn>;
   let mockCreateTerminal: ReturnType<typeof vi.fn>;
+  let mockExistsSync: ReturnType<typeof vi.fn>;
 
-  // Helper to reset singleton for testing
-  const resetSingleton = () => {
+  const resetSingletons = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TerminalService as any)._instance = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (PythonEnvironmentService as any)._instance = undefined;
   };
 
-  // Create a mock terminal
   const createMockTerminal = (name: string = "Test Terminal") => ({
     name,
     processId: Promise.resolve(12345),
@@ -22,14 +29,45 @@ describe("TerminalService", function () {
     dispose: vi.fn(),
   });
 
+  /**
+   * Set up PythonEnvironmentService in "PET available" mode so
+   * TerminalService can use the full Environments API.
+   */
+  const setupWithEnvsApi = (apiOverrides = {}) => {
+    const mockApi = {
+      getEnvironment: vi.fn(),
+      getEnvironments: vi.fn(),
+      createTerminal: vi.fn(),
+      onDidChangeEnvironment: vi.fn().mockReturnValue({ dispose: vi.fn() }),
+      ...apiOverrides,
+    };
+
+    mockGetExtension.mockReturnValue({
+      isActive: true,
+      extensionPath: "/ext/path",
+      exports: mockApi,
+      activate: vi.fn(),
+    });
+    mockExistsSync.mockReturnValue(true);
+
+    return mockApi;
+  };
+
+  /**
+   * Set up PythonEnvironmentService with no API available.
+   */
+  const setupWithNoApi = () => {
+    mockGetExtension.mockReturnValue(undefined);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    resetSingleton();
+    resetSingletons();
 
     mockGetExtension = vi.mocked(vscode.extensions.getExtension);
     mockCreateTerminal = vi.mocked(vscode.window.createTerminal);
+    mockExistsSync = vi.mocked(fs.existsSync);
 
-    // Default mock for createTerminal
     mockCreateTerminal.mockReturnValue(createMockTerminal());
 
     service = TerminalService.getInstance();
@@ -38,7 +76,7 @@ describe("TerminalService", function () {
   afterEach(() => {
     vi.restoreAllMocks();
     service.dispose();
-    resetSingleton();
+    resetSingletons();
   });
 
   describe("getInstance", function () {
@@ -50,114 +88,16 @@ describe("TerminalService", function () {
 
     it("should create new instance after reset", function () {
       const instance1 = TerminalService.getInstance();
-      resetSingleton();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (TerminalService as any)._instance = undefined;
       const instance2 = TerminalService.getInstance();
       expect(instance1).not.toBe(instance2);
     });
   });
 
-  describe("initialize", function () {
-    it("should complete without error when extension is not installed", async function () {
-      mockGetExtension.mockReturnValue(undefined);
-
-      await service.initialize();
-
-      expect(service.isAvailable()).toBe(false);
-    });
-
-    it("should initialize with Python API when available", async function () {
-      const mockApi = {
-        getEnvironment: vi.fn(),
-        createTerminal: vi.fn(),
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
-      });
-
-      await service.initialize();
-
-      expect(service.isAvailable()).toBe(true);
-    });
-
-    it("should activate extension if not active", async function () {
-      const mockActivate = vi.fn();
-      const mockApi = {
-        createTerminal: vi.fn(),
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: false,
-        exports: mockApi,
-        activate: mockActivate,
-      });
-
-      await service.initialize();
-
-      expect(mockActivate).toHaveBeenCalled();
-    });
-
-    it("should not reinitialize if already initialized", async function () {
-      mockGetExtension.mockReturnValue(undefined);
-
-      await service.initialize();
-      await service.initialize();
-
-      expect(mockGetExtension).toHaveBeenCalledTimes(1);
-    });
-
-    it("should handle activation errors gracefully", async function () {
-      mockGetExtension.mockReturnValue({
-        isActive: false,
-        exports: undefined,
-        activate: vi.fn().mockRejectedValue(new Error("Activation failed")),
-      });
-
-      await service.initialize();
-
-      expect(service.isAvailable()).toBe(false);
-    });
-
-    it("should set unavailable when API does not export createTerminal", async function () {
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: { getEnvironment: vi.fn() }, // No createTerminal
-        activate: vi.fn(),
-      });
-
-      await service.initialize();
-
-      expect(service.isAvailable()).toBe(false);
-    });
-  });
-
-  describe("isAvailable", function () {
-    it("should return false before initialization", function () {
-      expect(service.isAvailable()).toBe(false);
-    });
-
-    it("should return true after successful initialization with API", async function () {
-      const mockApi = {
-        createTerminal: vi.fn(),
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
-      });
-
-      await service.initialize();
-
-      expect(service.isAvailable()).toBe(true);
-    });
-  });
-
   describe("createActivatedTerminal", function () {
     it("should create terminal without Python API when not available", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const managed = await service.createActivatedTerminal({
         name: "Test Terminal",
@@ -168,7 +108,7 @@ describe("TerminalService", function () {
     });
 
     it("should show terminal by default", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -181,7 +121,7 @@ describe("TerminalService", function () {
     });
 
     it("should not show terminal when show is false", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -195,7 +135,7 @@ describe("TerminalService", function () {
     });
 
     it("should reuse existing terminal when reuseExisting is true", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const existingTerminal = createMockTerminal("Existing Terminal");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -211,7 +151,7 @@ describe("TerminalService", function () {
     });
 
     it("should create new terminal when no matching terminal exists", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).terminals = [];
@@ -224,7 +164,7 @@ describe("TerminalService", function () {
       expect(mockCreateTerminal).toHaveBeenCalled();
     });
 
-    it("should use Python API createTerminal when available", async function () {
+    it("should use Environments API createTerminal when PET is available", async function () {
       const mockEnv = {
         envId: { id: "test" },
         displayName: "Python 3.11",
@@ -232,22 +172,11 @@ describe("TerminalService", function () {
       };
 
       const mockPythonTerminal = createMockTerminal("Python Terminal");
-      const mockApiCreateTerminal = vi
-        .fn()
-        .mockResolvedValue(mockPythonTerminal);
-
-      const mockApi = {
+      const mockApi = setupWithEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(mockEnv),
-        createTerminal: mockApiCreateTerminal,
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
+        createTerminal: vi.fn().mockResolvedValue(mockPythonTerminal),
       });
 
-      // Mock workspace folders
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.workspace as any).workspaceFolders = [
         { uri: { fsPath: "/workspace" } },
@@ -257,30 +186,24 @@ describe("TerminalService", function () {
         name: "Test Terminal",
       });
 
-      expect(mockApiCreateTerminal).toHaveBeenCalledWith(
+      expect(mockApi.createTerminal).toHaveBeenCalledWith(
         mockEnv,
         expect.any(Object),
       );
       expect(managed.terminal).toBe(mockPythonTerminal);
     });
 
-    it("should fallback to regular terminal when Python API createTerminal fails", async function () {
+    it("should fall back to regular terminal when API createTerminal fails", async function () {
       const mockEnv = {
         envId: { id: "test" },
         displayName: "Python 3.11",
       };
 
-      const mockApi = {
+      setupWithEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(mockEnv),
         createTerminal: vi
           .fn()
           .mockRejectedValue(new Error("Failed to create")),
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -296,15 +219,8 @@ describe("TerminalService", function () {
     });
 
     it("should create regular terminal when no environment is found", async function () {
-      const mockApi = {
+      const mockApi = setupWithEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(undefined),
-        createTerminal: vi.fn(),
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -321,9 +237,8 @@ describe("TerminalService", function () {
     });
 
     it("should pass cwd option to terminal", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
-      // Clear workspace folders to test explicit cwd
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.workspace as any).workspaceFolders = undefined;
 
@@ -341,7 +256,7 @@ describe("TerminalService", function () {
     });
 
     it("should pass env option to terminal", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const env = { MY_VAR: "value" } as unknown as NodeJS.ProcessEnv;
       await service.createActivatedTerminal({
@@ -359,7 +274,7 @@ describe("TerminalService", function () {
 
   describe("ManagedTerminal.sendCommand", function () {
     it("should send command without waiting when waitForCompletion is false", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -377,7 +292,7 @@ describe("TerminalService", function () {
     });
 
     it("should send command and return result", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -395,7 +310,7 @@ describe("TerminalService", function () {
 
   describe("ManagedTerminal.dispose", function () {
     it("should dispose the terminal", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -412,7 +327,7 @@ describe("TerminalService", function () {
 
   describe("runInTerminal", function () {
     it("should create terminal and run command", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const mockTerminal = createMockTerminal();
       mockCreateTerminal.mockReturnValue(mockTerminal);
@@ -425,9 +340,8 @@ describe("TerminalService", function () {
     });
 
     it("should pass options to createActivatedTerminal", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
-      // Clear workspace folders to test explicit cwd
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.workspace as any).workspaceFolders = undefined;
 
@@ -447,7 +361,7 @@ describe("TerminalService", function () {
 
   describe("getOrCreateTerminal", function () {
     it("should reuse existing terminal with same name", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       const existingTerminal = createMockTerminal("Reusable Terminal");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -460,7 +374,7 @@ describe("TerminalService", function () {
     });
 
     it("should create new terminal when not found", async function () {
-      mockGetExtension.mockReturnValue(undefined);
+      setupWithNoApi();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).terminals = [];
@@ -474,7 +388,6 @@ describe("TerminalService", function () {
   describe("dispose", function () {
     it("should dispose all subscriptions", function () {
       service.dispose();
-      // Should not throw
       expect(() => service.dispose()).not.toThrow();
     });
   });
@@ -490,7 +403,7 @@ describe("TerminalService", function () {
         });
 
       const mockPythonTerminal = createMockTerminal("Python Terminal");
-      const mockApi = {
+      setupWithEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue({
           envId: { id: "test" },
           displayName: "Python 3.11",
@@ -498,12 +411,6 @@ describe("TerminalService", function () {
         createTerminal: vi.fn().mockResolvedValue(mockPythonTerminal),
         onDidChangeTerminalActivationState:
           mockOnDidChangeTerminalActivationState,
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -516,7 +423,6 @@ describe("TerminalService", function () {
         activationTimeout: 100,
       });
 
-      // Simulate activation event after a short delay
       setTimeout(() => {
         capturedCallback?.({
           terminal: mockPythonTerminal,
@@ -536,7 +442,7 @@ describe("TerminalService", function () {
         });
 
       const mockPythonTerminal = createMockTerminal("Python Terminal");
-      const mockApi = {
+      setupWithEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue({
           envId: { id: "test" },
           displayName: "Python 3.11",
@@ -544,12 +450,6 @@ describe("TerminalService", function () {
         createTerminal: vi.fn().mockResolvedValue(mockPythonTerminal),
         onDidChangeTerminalActivationState:
           mockOnDidChangeTerminalActivationState,
-      };
-
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        exports: mockApi,
-        activate: vi.fn(),
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -562,7 +462,6 @@ describe("TerminalService", function () {
         activationTimeout: 50,
       });
 
-      // Should still return terminal even after timeout
       expect(managed.terminal).toBe(mockPythonTerminal);
     }, 10000);
   });

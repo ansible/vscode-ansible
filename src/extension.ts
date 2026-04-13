@@ -107,7 +107,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize Terminal Service
   const terminalService = TerminalService.getInstance();
-  await terminalService.initialize();
   context.subscriptions.push(terminalService);
 
   // Create Telemetry Service
