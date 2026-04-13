@@ -6,7 +6,7 @@ import {
   NotificationHandler,
   ProposedFeatures,
   TextDocuments,
-} from "vscode-languageserver/node";
+} from "vscode-languageserver/node.js";
 import { AnsibleLanguageService } from "@src/ansibleLanguageService";
 import { getUnsupportedError } from "@src/utils/misc";
 

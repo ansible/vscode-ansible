@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
@@ -1140,14 +1141,25 @@ const startClient = async (
     "dist",
     "cli.cjs",
   );
-  const packageServer = path.join(
+
+  // For debug mode: prefer workspace server (development) over node_modules (published package)
+  const workspaceServer = path.join(
     context.extensionPath,
-    "node_modules",
-    "@ansible",
+    "packages",
     "ansible-language-server",
     "dist",
-    "cli.js",
+    "cli.cjs",
   );
+  const packageServer = fs.existsSync(workspaceServer)
+    ? workspaceServer
+    : path.join(
+        context.extensionPath,
+        "node_modules",
+        "@ansible",
+        "ansible-language-server",
+        "dist",
+        "cli.js",
+      );
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
