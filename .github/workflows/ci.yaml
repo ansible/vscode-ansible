@@ -121,7 +121,7 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
 
-      - name: Extract commit context from conventional commit
+      - name: Extract commit context from conventional commit and list of known tasks
         id: extract_context
         shell: bash
         env:
@@ -147,6 +147,7 @@ jobs:
             echo "No context found in message"
             echo "context=" >> "$GITHUB_OUTPUT"
           fi
+          echo "tasks=$(task -l --json | jq -c '[.tasks[] | [.name] + (.aliases // []) | .[]]')" >> "$GITHUB_OUTPUT"
 
       - name: task build
         timeout-minutes: 2 # expected under 1 minutes
@@ -158,10 +159,10 @@ jobs:
         run: |
           task als:package && task als:package --status
 
-      - name: Run context-specific command
+      - name: Run context-specific command if it is a known task
         if: >-
           steps.extract_context.outputs.context != '' &&
-          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
+          !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
@@ -281,10 +282,22 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+      # Self-hosted runners may retain root-owned files from previous
+      # container builds (e.g. Podman overlays under out/als/tmp/).
+      # Disable checkout's built-in clean so it does not fail with
+      # EACCES when it cannot remove those files.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+          clean: ${{ matrix.runs-on != 'self-hosted' }}
+
+      - name: Clean workspace on self-hosted runner
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          set -euxo pipefail
+          git reset --hard HEAD
+          git clean -ffdx -e out/als/tmp/
 
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
