@@ -282,30 +282,22 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - name: Remove root-owned container overlays (self-hosted)
-        if: matrix.runs-on == 'self-hosted'
-        run: |
-          target="$GITHUB_WORKSPACE/out/als/tmp/home/.local/share/containers"
-
-          if [ -e "$target" ] || [ -L "$target" ]; then
-            resolved_workspace="$(readlink -f "$GITHUB_WORKSPACE")"
-            resolved_target="$(readlink -f "$target")"
-
-            case "$resolved_target" in
-              "$resolved_workspace"/*)
-                sudo rm -rf -- "$resolved_target"
-                ;;
-              *)
-                echo "Refusing to delete path outside GITHUB_WORKSPACE: $resolved_target"
-                exit 1
-                ;;
-            esac
-          fi
-
+      # Self-hosted runners may retain root-owned files from previous
+      # container builds (e.g. Podman overlays under out/als/tmp/).
+      # Disable checkout's built-in clean so it does not fail with
+      # EACCES when it cannot remove those files.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+          clean: ${{ matrix.runs-on != 'self-hosted' }}
+
+      - name: Clean workspace on self-hosted runner
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          set -euxo pipefail
+          git reset --hard HEAD
+          git clean -ffdx -e out/als/tmp/
 
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
