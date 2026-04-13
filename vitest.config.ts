@@ -45,8 +45,13 @@ export default defineConfig({
         test: {
           name: "ext",
           globals: true,
-          // globalSetup: ["test/unit/vitestSetup.ts"],
+          globalSetup: ["test/unit/globalSetup.ts"],
           environment: "node",
+          env: {
+            // Ensure HOME is set for tests (USERPROFILE for Windows compatibility)
+            HOME: path.resolve(__dirname, "out/unit/tmp/home"),
+            USERPROFILE: path.resolve(__dirname, "out/unit/tmp/home"),
+          },
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
           exclude: ["test/unit/webviews/**"],
@@ -86,6 +91,11 @@ export default defineConfig({
           globals: true,
           globalSetup: [`${als_root}/test/globalSetup.ts`],
           environment: "node",
+          env: {
+            // Ensure HOME is set for tests (USERPROFILE for Windows compatibility)
+            HOME: path.resolve(als_root, "../../out/als/tmp/home"),
+            USERPROFILE: path.resolve(als_root, "../../out/als/tmp/home"),
+          },
           exclude: ["node_modules", "out"],
           fileParallelism: false,
           include: ["test/**/*.test.ts"],

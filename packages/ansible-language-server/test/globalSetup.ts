@@ -2,6 +2,7 @@
 import { isWindows, console } from "@test/helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import path from "path";
+import fs from "fs";
 import { createRequire } from "module";
 import { quote } from "shell-quote";
 
@@ -66,6 +67,12 @@ function execWithTimeout(
 }
 
 export async function setup() {
+  // Isolate HOME for language server tests to prevent writing to user's home directory
+  const testHome = path.resolve(__dirname, "../../../out/als/tmp/home");
+  fs.mkdirSync(testHome, { recursive: true });
+  process.env.HOME = testHome;
+  process.env.USERPROFILE = testHome; // Windows uses USERPROFILE instead of HOME
+
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
   const isListing =
@@ -196,5 +203,25 @@ export async function setup() {
 }
 
 export async function teardown() {
-  // Cleanup if needed
+  // Clean up podman/docker containers and storage to avoid permission issues in CI
+  // The isolated HOME stores containers in out/als/tmp/home/.local/share/containers/
+  // which creates root-owned files that CI can't clean up without this
+  try {
+    if (!SKIP_PODMAN) {
+      console.info("Cleaning up podman containers and storage...");
+      spawnSync("podman", ["system", "reset", "--force"], { stdio: "inherit" });
+    }
+    if (!SKIP_DOCKER) {
+      console.info("Cleaning up docker containers and storage...");
+      spawnSync(
+        "docker",
+        ["system", "prune", "--all", "--force", "--volumes"],
+        {
+          stdio: "inherit",
+        },
+      );
+    }
+  } catch (error) {
+    console.warn("Container cleanup failed (non-fatal):", error);
+  }
 }

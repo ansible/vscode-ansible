@@ -203,6 +203,7 @@ tasks:
       DONT_PROMPT_WSL_INSTALL: "1"
       # Possible workaround for: https://github.com/microsoft/vscode-test-cli/issues/555
       TMP: "{{ .TASKFILE_DIR }}/out/e2e/tmp"
+      TMPDIR: "{{ .TASKFILE_DIR }}/out/e2e/tmp"
     generates:
       - out/junit/e2e-test-results.xml
       - out/coverage/e2e/cobertura-coverage.xml
@@ -211,10 +212,7 @@ tasks:
     sources:
       - "{src,test}/**/*"
       - .vscode-test.mjs
-      - exclude: "**/.ansible/**/*"
       - exclude: test/testFixtures/.vscode/settings.json
-      - exclude: test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-      - exclude: test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
     cmds:
       - rimraf .vscode-test/user-data/logs/*
       - mkdir -p out/e2e/tmp
@@ -252,6 +250,9 @@ tasks:
     interactive: true
   unit:
     desc: Run unit tests with coverage report
+    env:
+      TMP: "{{ .TASKFILE_DIR }}/out/unit/tmp"
+      TMPDIR: "{{ .TASKFILE_DIR }}/out/unit/tmp"
     deps:
       - build
     sources:
@@ -263,6 +264,7 @@ tasks:
       - out/coverage/unit/lcov.info
       - out/junit/unit-test-results.xml
     cmds:
+      - mkdir -p out/unit/tmp
       - vitest run
     interactive: true
   package:
@@ -276,7 +278,6 @@ tasks:
       - .vscodeignore
       - CHANGELOG.md
       - README.md
-      - exclude: "**/.ansible/**/*"
       - exclude: "test/ui/**/*"
       - package*.json
       - tools/helper

@@ -93,8 +93,14 @@ describe("Content Creator Scaffolding", () => {
 
   describe("scaffoldDevcontainerStructure", () => {
     beforeEach(async () => {
+      const devcontainerDir = path.join(
+        templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await fs.promises.mkdir(devcontainerDir, { recursive: true });
+
       await fs.promises.writeFile(
-        path.join(templateDir, "devcontainer.json.j2"),
+        path.join(devcontainerDir, "devcontainer.json.j2"),
         `{
   "name": "Ansible Development Environment",
   "image": "{{ dev_container_image }}",
@@ -106,11 +112,11 @@ describe("Content Creator Scaffolding", () => {
 }`,
       );
 
-      await fs.promises.mkdir(path.join(templateDir, "docker"), {
+      await fs.promises.mkdir(path.join(devcontainerDir, "docker"), {
         recursive: true,
       });
       await fs.promises.writeFile(
-        path.join(templateDir, "docker", "devcontainer.json.j2"),
+        path.join(devcontainerDir, "docker", "devcontainer.json.j2"),
         `{
   "name": "Docker variant",
   "dockerFile": "Dockerfile",
@@ -118,11 +124,11 @@ describe("Content Creator Scaffolding", () => {
 }`,
       );
 
-      await fs.promises.mkdir(path.join(templateDir, "podman"), {
+      await fs.promises.mkdir(path.join(devcontainerDir, "podman"), {
         recursive: true,
       });
       await fs.promises.writeFile(
-        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        path.join(devcontainerDir, "podman", "devcontainer.json.j2"),
         `{
   "name": "Podman variant",
   "image": "{{ dev_container_image }}"
@@ -131,8 +137,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should scaffold root devcontainer.json from .j2 template", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         ["redhat.ansible", "ms-python.python"],
@@ -152,8 +162,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should scaffold docker variant in subdirectory", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         ["redhat.ansible"],
@@ -175,8 +189,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should scaffold podman variant in subdirectory", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         [],
@@ -197,8 +215,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should remove .j2 extension from output files", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "test-image",
         [],
@@ -218,8 +240,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should create subdirectories if they don't exist", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "test-image",
         [],
@@ -230,8 +256,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should replace {{ dev_container_image }} variable", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "custom-image:v1.0",
         [],
@@ -252,8 +282,12 @@ describe("Content Creator Scaffolding", () => {
         "ms-vscode.docker",
       ];
 
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "test-image",
         extensions,
@@ -270,8 +304,12 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should handle empty recommended_extensions array", async () => {
-      await messageHandlers["scaffoldDevcontainerStructure"](
+      const templateSourcePath = path.join(
         templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateSourcePath,
         tempDir,
         "test-image",
         [],
@@ -287,13 +325,18 @@ describe("Content Creator Scaffolding", () => {
     });
 
     it("should not create files for missing templates", async () => {
-      await fs.promises.rm(path.join(templateDir, "podman"), {
+      const templateSourcePath = path.join(
+        templateDir,
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+
+      await fs.promises.rm(path.join(templateSourcePath, "podman"), {
         recursive: true,
         force: true,
       });
 
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
+        templateSourcePath,
         tempDir,
         "test-image",
         [],
@@ -313,7 +356,7 @@ describe("Content Creator Scaffolding", () => {
     beforeEach(async () => {
       const devfileDir = path.join(
         templateDir,
-        "resources/contentCreator/createDevfile",
+        "out/resources/contentCreator/createDevfile",
       );
       await fs.promises.mkdir(devfileDir, { recursive: true });
 

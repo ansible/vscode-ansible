@@ -453,13 +453,18 @@ jobs:
       - name: task finish
         run: task finish
 
-      - name: Remove invalid files
+      - name: Remove invalid files and isolated HOME directories
         if: ${{ always() }}
         run: |
           find out -name '*\?*' -exec rm -r {} \; || true
           find out -name '*"*' -exec rm -r {} \; || true
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
+          # Remove entire isolated HOME directories to avoid gitleaks false positives
+          # These contain container overlays, mise installs, and cache files that trigger false positives
+          sudo rm -rf out/als/tmp/home/.local/ || true
+          sudo rm -rf out/unit/tmp/home/.local/ || true
+          sudo rm -rf out/e2e/tmp/home/.local/ || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
