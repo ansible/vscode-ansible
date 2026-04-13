@@ -282,6 +282,26 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+      - name: Remove root-owned container overlays (self-hosted)
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          target="$GITHUB_WORKSPACE/out/als/tmp/home/.local/share/containers"
+
+          if [ -e "$target" ] || [ -L "$target" ]; then
+            resolved_workspace="$(readlink -f "$GITHUB_WORKSPACE")"
+            resolved_target="$(readlink -f "$target")"
+
+            case "$resolved_target" in
+              "$resolved_workspace"/*)
+                sudo rm -rf -- "$resolved_target"
+                ;;
+              *)
+                echo "Refusing to delete path outside GITHUB_WORKSPACE: $resolved_target"
+                exit 1
+                ;;
+            esac
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
