@@ -415,6 +415,14 @@ jobs:
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
 
+      - name: Clean up old container storage from previous runs
+        if: contains(matrix.name, 'test')
+        run: |
+          # Remove old container storage locations to prevent gitleaks false positives
+          rm -rf out/als/tmp/home/.local/share/containers || true
+          rm -rf out/unit/tmp/home/.local/share/containers || true
+          rm -rf out/e2e/tmp/home/.local/share/containers || true
+
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
