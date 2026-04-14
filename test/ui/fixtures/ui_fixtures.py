@@ -1,6 +1,6 @@
 """This module is a fixtures for the ui testing."""
 
-# cspell: ignore capmanager capturemanager pluginmanager getplugin healthcheck
+# cspell: ignore capmanager capturemanager pluginmanager getplugin healthcheck tlnp
 # pylint: disable=E0401
 import contextlib
 import logging
@@ -49,6 +49,94 @@ def is_container_healthy() -> bool:
     return result.returncode == 0
 
 
+def _wait_for_code_server_http(timeout_sec: int = 120) -> None:
+    """Block until code-server accepts HTTP inside the container.
+
+    The compose healthcheck only covers Selenium Grid (:4444); code-server
+    may still be starting on :8080 when the health check passes.  We probe
+    from *inside* the container with ``podman exec … curl`` because
+    code-server binds to 127.0.0.1 (container-local loopback) which is not
+    reachable from the host even with a port mapping.
+    """
+    url = "http://127.0.0.1:8080/"
+    deadline = time.time() + timeout_sec
+    attempt = 0
+    while time.time() < deadline:
+        attempt += 1
+        try:
+            result = subprocess.run(
+                f"podman exec {CONTAINER_NAME} curl -sf {url}",
+                shell=True,
+                check=False,
+                text=True,
+                capture_output=True,
+                timeout=10,
+            )
+        except subprocess.TimeoutExpired:
+            log.info(
+                "Waiting for code-server at %s (attempt %s, timed out)", url, attempt
+            )
+            continue
+        if result.returncode == 0:
+            log.info("code-server ready at %s (attempt %s)", url, attempt)
+            return
+        if attempt <= 3 or attempt % 10 == 0:
+            log.info(
+                "Waiting for code-server at %s (attempt %s, rc=%s)",
+                url,
+                attempt,
+                result.returncode,
+            )
+        time.sleep(2)
+
+    diag = subprocess.run(
+        f"podman exec {CONTAINER_NAME} ss -tlnp",
+        shell=True,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    logs = subprocess.run(
+        f"podman logs --tail 50 {CONTAINER_NAME}",
+        shell=True,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=10,
+    )
+    pytest.fail(
+        f"code-server did not become ready at {url} within {timeout_sec}s\n"
+        f"--- listening ports ---\n{diag.stdout}\n"
+        f"--- container logs (last 50 lines) ---\n{logs.stdout}{logs.stderr}"
+    )
+
+
+def _verify_extension_installed() -> None:
+    """Assert the Ansible extension was installed inside the container.
+
+    init.go silently warns on install failure; catch it here so the test
+    session fails immediately with a clear message instead of timing out
+    waiting for a sidebar icon that will never appear.
+    """
+    result = subprocess.run(
+        f"podman exec {CONTAINER_NAME} code-server --list-extensions",
+        shell=True,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=30,
+    )
+    extensions = result.stdout.strip()
+    log.info("Installed extensions:\n%s", extensions)
+    if "redhat.ansible" not in extensions.lower():
+        pytest.fail(
+            f"Ansible extension not found in container. "
+            f"Installed extensions:\n{extensions}\n"
+            f"stderr: {result.stderr.strip()}"
+        )
+
+
 @pytest.fixture(scope="session")
 def browser_setup(
     request: pytest.FixtureRequest,
@@ -80,15 +168,29 @@ def browser_setup(
                     shell=True,
                     cwd=_PROJECT_ROOT,
                 )
+            health_deadline = time.time() + int(
+                os.environ.get("UI_CONTAINER_HEALTH_TIMEOUT", "300"),
+            )
             count = 0
-            while True:
+            while time.time() < health_deadline:
                 if is_container_healthy():
                     break
                 count += 1
                 time.sleep(1)
-                log.info(
-                    "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
+                if count <= 5 or count % 15 == 0:
+                    log.info(
+                        "Waiting for container %s to be healthy: %s",
+                        CONTAINER_NAME,
+                        count,
+                    )
+            else:
+                pytest.fail(
+                    f"Container {CONTAINER_NAME} did not become healthy within "
+                    f"{int(os.environ.get('UI_CONTAINER_HEALTH_TIMEOUT', '300'))}s"
                 )
+
+        _wait_for_code_server_http()
+        _verify_extension_installed()
 
         browser = os.environ.get("BROWSER_TYPE")
         options: FirefoxOptions | ChromeOptions
@@ -103,6 +205,8 @@ def browser_setup(
             command_executor="http://localhost:4444/wd/hub",
             options=options,
         )
+        driver.set_page_load_timeout(60)
+        driver.set_script_timeout(60)
         driver.maximize_window()
 
         yield driver, "https://stage.ai.ansible.redhat.com/login"

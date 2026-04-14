@@ -5,7 +5,7 @@
 services:
   selenium-vscode:
     image: ghcr.io/ansible/selenium-adt:main
-    pull_policy: missing
+    pull_policy: always
     container_name: selenium-vscode
     shm_size: "10g"
     security_opt:

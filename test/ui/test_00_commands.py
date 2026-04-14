@@ -52,15 +52,23 @@ def test_terminal(
 
     def check_output() -> bool:
         nonlocal output
-        output = driver.find_element(
-            by="xpath", value="//div[@class='terminal-xterm-host']"
-        )
-        log.info("terminal output: %s", output.text)
-        return "tox-ansible" in output.text
+        for selector in [
+            "//div[@class='terminal-xterm-host']",
+            "//div[contains(@class, 'xterm-screen')]",
+            "//div[contains(@class, 'terminal-wrapper')]",
+        ]:
+            try:
+                output = driver.find_element(by="xpath", value=selector)
+                log.info("terminal output (%s): %s", selector, output.text)
+                if "tox-ansible" in output.text:
+                    return True
+            except NoSuchElementException:
+                continue
+        return False
 
     errors = [NoSuchElementException, ElementNotInteractableException]
     wait = WebDriverWait(
-        driver, timeout=10, poll_frequency=0.5, ignored_exceptions=errors
+        driver, timeout=30, poll_frequency=1, ignored_exceptions=errors
     )
     wait.until(lambda _: check_output())
 
@@ -85,7 +93,7 @@ def test_create_empty_playbook(
     wait_displayed(
         driver,
         "//div[contains(@class, 'tab') and contains(., 'Untitled')]",
-        timeout=2,
+        timeout=10,
     )
 
     time.sleep(1)

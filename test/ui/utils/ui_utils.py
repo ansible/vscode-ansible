@@ -2,7 +2,9 @@
 
 # pylint: disable=E0401
 import contextlib
+import logging
 import os
+import pathlib
 import time
 from collections.abc import Generator
 from typing import Any
@@ -27,6 +29,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+
+log = logging.getLogger(__package__)
 
 LIGHTSPEED_USER = os.environ.get("LIGHTSPEED_USER", "")
 LIGHTSPEED_PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD", "")
@@ -78,13 +82,74 @@ def ensure_vscode_ready(driver: WebDriver, timeout: int = 120) -> None:
     driver.switch_to.default_content()
     if "127.0.0.1:8080" not in driver.current_url:
         driver.get("http://127.0.0.1:8080")
-    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
-    vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
-    find_element_across_iframes(
-        driver,
-        "//a[contains(@title, 'Ansible Development Tools welcome page')]",
-        retries=timeout,
-    )
+    try:
+        wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
+    except (TimeoutException, TimeOutError):
+        _dump_page_diagnostics(driver, "wait for Ansible sidebar icon")
+        raise
+    try:
+        vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
+        find_element_across_iframes(
+            driver,
+            "//a[contains(@title, 'Ansible Development Tools welcome page')]",
+            retries=timeout,
+        )
+    except (TimeoutException, TimeOutError, ValueError):
+        _dump_page_diagnostics(driver, "wait for ADT welcome page link")
+        raise
+
+
+def _dump_page_diagnostics(driver: WebDriver, context: str) -> None:
+    """Log page state when a readiness wait fails."""
+    try:
+        driver.switch_to.default_content()
+        url = driver.current_url
+        title = driver.title
+        source_snippet = (driver.page_source or "")[:500]
+        log.error(
+            "ensure_vscode_ready failed at '%s'\n  url:   %s\n  title: %s\n  page source (first 500 chars):\n%s",
+            context,
+            url,
+            title,
+            source_snippet,
+        )
+
+        iframe_tree = _enumerate_iframes(driver)
+        log.error("  iframe structure:\n%s", iframe_tree or "  (no iframes found)")
+
+        screenshot = f"out/junit/diag_{context.replace(' ', '_')}.png"
+        pathlib.Path(screenshot).parent.mkdir(exist_ok=True, parents=True)
+        driver.save_screenshot(screenshot)
+        log.error("  diagnostic screenshot: %s", screenshot)
+    except Exception:
+        log.exception("Failed to capture diagnostics")
+
+
+def _enumerate_iframes(
+    driver: WebDriver,
+    max_depth: int = 6,
+    _depth: int = 0,
+) -> str:
+    """Return a text tree of iframes and their nesting for diagnostics."""
+    lines: list[str] = []
+    indent = "  " * (_depth + 1)
+    with contextlib.suppress(WebDriverException):
+        iframes = driver.find_elements(By.XPATH, "//iframe")
+        for i, iframe in enumerate(iframes):
+            src = iframe.get_attribute("src") or "(no src)"
+            name = iframe.get_attribute("name") or ""
+            cls = iframe.get_attribute("class") or ""
+            lines.append(
+                f"{indent}[{_depth}:{i}] <iframe name={name!r} class={cls!r} src={src[:120]!r}>"
+            )
+            if _depth < max_depth:
+                try:
+                    driver.switch_to.frame(iframe)
+                    lines.append(_enumerate_iframes(driver, max_depth, _depth + 1))
+                    driver.switch_to.parent_frame()
+                except (NoSuchFrameException, StaleElementReferenceException):
+                    pass
+    return "\n".join(lines)
 
 
 def click_and_wait(
@@ -529,12 +594,48 @@ def vscode_connect(
     driver.switch_to.window(driver.window_handles[-1])
 
 
+def _search_iframes_recursive(
+    driver: WebDriver,
+    xpath: str,
+    max_depth: int = 5,
+    _depth: int = 0,
+) -> WebElement | None:
+    """Recursively search iframes up to *max_depth* for an element.
+
+    Returns the first matching WebElement, or ``None``.  The caller is
+    responsible for calling ``driver.switch_to.default_content()``
+    afterwards.
+    """
+    with contextlib.suppress(NoSuchElementException):
+        return driver.find_element(By.XPATH, xpath)
+
+    if _depth >= max_depth:
+        return None
+
+    with contextlib.suppress(
+        NoSuchElementException,
+        NoSuchFrameException,
+        StaleElementReferenceException,
+    ):
+        iframes = driver.find_elements(By.XPATH, "//iframe")
+        for iframe in iframes:
+            try:
+                driver.switch_to.frame(iframe)
+            except (NoSuchFrameException, StaleElementReferenceException):
+                continue
+            result = _search_iframes_recursive(driver, xpath, max_depth, _depth + 1)
+            if result is not None:
+                return result
+            driver.switch_to.parent_frame()
+    return None
+
+
 def find_element_across_iframes(
     driver: WebDriver,
     xpath: str,
     retries: int = 3,
 ) -> WebElement:
-    """Loop over all iframes and nested iframes and return first matching element.
+    """Search all iframes recursively and return first matching element.
 
     Args:
         driver: WebDriver instance
@@ -549,34 +650,41 @@ def find_element_across_iframes(
     """
     for _ in range(retries):
         driver.switch_to.default_content()
-        with contextlib.suppress(NoSuchElementException):
-            return driver.find_element(By.XPATH, xpath)
-        iframes = driver.find_elements(By.XPATH, "//iframe")
-        for iframe in iframes:
-            driver.switch_to.default_content()
-            driver.switch_to.frame(iframe)
-            with contextlib.suppress(NoSuchElementException):
-                return driver.find_element(By.XPATH, xpath)
-
-            with contextlib.suppress(
-                NoSuchElementException,
-                NoSuchFrameException,
-                StaleElementReferenceException,
-            ):
-                nested_iframes = driver.find_elements(By.XPATH, "//iframe")
-                for ni in nested_iframes:
-                    with contextlib.suppress(
-                        NoSuchElementException,
-                        NoSuchFrameException,
-                        StaleElementReferenceException,
-                    ):
-                        driver.switch_to.frame(ni)
-                        return driver.find_element(By.XPATH, xpath)
-                    driver.switch_to.default_content()
-            driver.switch_to.default_content()
+        result = _search_iframes_recursive(driver, xpath)
+        if result is not None:
+            return result
         time.sleep(1)
     msg = f"element not found: {xpath}"
     raise ValueError(msg)
+
+
+def _collect_elements_recursive(
+    driver: WebDriver,
+    xpath: str,
+    found: list[WebElement],
+    max_depth: int = 5,
+    _depth: int = 0,
+) -> None:
+    """Recursively collect matching elements from all iframe levels."""
+    with contextlib.suppress(NoSuchElementException):
+        found.extend(driver.find_elements(By.XPATH, xpath))
+
+    if _depth >= max_depth:
+        return
+
+    with contextlib.suppress(
+        NoSuchElementException,
+        NoSuchFrameException,
+        StaleElementReferenceException,
+    ):
+        iframes = driver.find_elements(By.XPATH, "//iframe")
+        for iframe in iframes:
+            try:
+                driver.switch_to.frame(iframe)
+            except (NoSuchFrameException, StaleElementReferenceException):
+                continue
+            _collect_elements_recursive(driver, xpath, found, max_depth, _depth + 1)
+            driver.switch_to.parent_frame()
 
 
 def find_elements_across_iframes(
@@ -584,7 +692,7 @@ def find_elements_across_iframes(
     xpath: str,
     retries: int = 3,
 ) -> Generator[WebElement, None, None]:
-    """Loop over all iframes and nested iframes and yield matching elements.
+    """Search all iframes recursively and yield matching elements.
 
     Args:
         driver: WebDriver instance
@@ -602,25 +710,11 @@ def find_elements_across_iframes(
             StaleElementReferenceException,
         ):
             driver.switch_to.default_content()
-            yield from driver.find_elements(By.XPATH, xpath)
-            iframes = driver.find_elements(By.XPATH, "//iframe")
-            for iframe in iframes:
-                driver.switch_to.default_content()
-                driver.switch_to.frame(iframe)
-                yield from driver.find_elements(By.XPATH, xpath)
-                with contextlib.suppress(
-                    WebDriverException,
-                    NoSuchElementException,
-                    NoSuchFrameException,
-                    StaleElementReferenceException,
-                ):
-                    nested_iframes = driver.find_elements(By.XPATH, "//iframe")
-                    for ni in nested_iframes:
-                        driver.switch_to.frame(ni)
-                        yield from driver.find_elements(By.XPATH, xpath)
-                    driver.switch_to.default_content()
-                    continue
-            time.sleep(1)
+            found: list[WebElement] = []
+            _collect_elements_recursive(driver, xpath, found)
+            yield from found
+            if found:
+                return
         time.sleep(1)
 
 
@@ -1021,46 +1115,69 @@ def vscode_run_command(
     if not command.startswith(">"):
         command = ">" + command
 
-    # Dismiss any leftover palette/dialog from a previous call to avoid
-    # blocking the command-center click with an overlay.
+    # Dismiss any leftover palette/dialog from a previous call.
     ActionChains(driver).send_keys(Keys.ESCAPE).perform()
     time.sleep(0.3)
 
-    # click the command box
-    max_attempts = 6  # we seen timeout issue on GHA with 4 seconds
-    command_input = None
-    for i in range(max_attempts):
-        try:
-            command_box = find_element_across_iframes(
-                driver,
-                "//li[@class='action-item command-center-center']",
-            )
-            command_input = click_and_wait(
-                driver,
-                command_box,
-                "//input[@aria-controls='quickInput_list']",
-                timeout=2,
-            )
-            break
-        except (
-            TimeoutException,
-            TimeOutError,
-            NoSuchElementException,
-            StaleElementReferenceException,
-        ):  # pragma: no cover
-            if i == max_attempts - 1:
-                raise
-            time.sleep(1)
+    command_input = _open_command_palette(driver)
 
     if command_input:
         command_input.send_keys(command)
-        # Let the palette finish filtering results before pressing Enter,
-        # otherwise the keystroke can arrive before a match is highlighted.
         time.sleep(0.5)
     actions = ActionChains(driver)
     actions.send_keys(Keys.ENTER).perform()
     if command_param:
         actions.send_keys(command_param, Keys.ENTER).perform()
+
+
+def _open_command_palette(driver: WebDriver) -> WebElement | None:
+    """Open the VS Code command palette and return the input element.
+
+    Tries the F1 keyboard shortcut first (works in both VS Code and
+    code-server), then falls back to clicking the command center widget.
+    """
+    quick_input_xpath = "//input[@aria-controls='quickInput_list']"
+    max_attempts = 6
+
+    for i in range(max_attempts):
+        # F1 is the most portable way to open the command palette.
+        ActionChains(driver).send_keys(Keys.F1).perform()
+        try:
+            return WebDriverWait(driver, 2).until(
+                expected_conditions.visibility_of_element_located(
+                    (By.XPATH, quick_input_xpath),
+                ),
+            )
+        except TimeoutException:
+            pass
+
+        # Fallback: try clicking the command center (desktop VS Code).
+        with contextlib.suppress(
+            TimeoutException,
+            TimeOutError,
+            NoSuchElementException,
+            StaleElementReferenceException,
+            ValueError,
+        ):
+            command_box = find_element_across_iframes(
+                driver,
+                "//li[@class='action-item command-center-center']",
+            )
+            result = click_and_wait(
+                driver,
+                command_box,
+                quick_input_xpath,
+                timeout=2,
+            )
+            if result:
+                return result
+
+        if i < max_attempts - 1:
+            ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            time.sleep(1)
+
+    msg = "Could not open command palette after %d attempts"
+    raise TimeoutException(msg % max_attempts)
 
 
 def get_vscode_attribution(driver: WebDriver, prompt: str) -> dict[str, dict[str, str]]:

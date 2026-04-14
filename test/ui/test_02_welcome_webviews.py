@@ -32,14 +32,12 @@ def test_sidebar_nav(
     )
     assert get_started_link is not None, "Get started link should be present in sidebar"
 
-    # Open welcome page via command palette (command: URI clicks are
-    # unreliable inside webview iframes on code-server in CI).
-    vscode_run_command(driver, ">ansible.content-creator.menu")
+    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
 
     find_element_across_iframes(
         driver,
         "//h1[text()='Ansible Development Tools']",
-        retries=20,
+        retries=30,
     )
 
 
@@ -52,13 +50,12 @@ def test_header_and_subtitle(
 
     ensure_vscode_ready(driver)
 
-    # Open welcome page explicitly
-    vscode_run_command(driver, ">ansible.content-creator.menu")
+    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
 
     header_title = find_element_across_iframes(
         driver,
         "//h1[text()='Ansible Development Tools']",
-        retries=10,
+        retries=30,
     )
     assert header_title.text == "Ansible Development Tools", (
         f"Expected header 'Ansible Development Tools', got: {header_title.text}"
@@ -67,7 +64,7 @@ def test_header_and_subtitle(
     subtitle = find_element_across_iframes(
         driver,
         "//*[contains(@class, 'subtitle') and contains(@class, 'description')]",
-        retries=10,
+        retries=20,
     )
     subtitle_text = subtitle.text
     assert "Create, test and deploy Ansible content" in subtitle_text, (
@@ -85,13 +82,12 @@ def test_mcp_section(
 
     ensure_vscode_ready(driver)
 
-    # Open welcome page explicitly
-    vscode_run_command(driver, ">ansible.content-creator.menu")
+    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
 
     start_section = find_element_across_iframes(
         driver,
         "//div[contains(@class, 'index-list') and contains(@class, 'start-container')]",
-        retries=20,
+        retries=30,
     )
     assert start_section is not None, "Start section should be present"
 
