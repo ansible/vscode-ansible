@@ -40,7 +40,8 @@ export async function runCommand(
     const result = cp
       .execSync(command, {
         env: runEnv,
-        cwd: os.homedir(),
+        // Don't set cwd - use current directory instead of homedir
+        // to avoid issues when HOME is redirected for test isolation
       })
       .toString();
     return { output: result, status: "passed" };
