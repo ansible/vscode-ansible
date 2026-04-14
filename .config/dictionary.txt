@@ -88,7 +88,6 @@ relogin
 reshim
 rhcustom
 rhsso
-runroot
 seealso
 sonarcloud
 sonarqube
