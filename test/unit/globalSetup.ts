@@ -2,11 +2,16 @@ import path from "path";
 import fs from "fs";
 
 export async function setup() {
-  // Isolate HOME for extension unit tests to prevent writing to user's home directory
-  const testHome = path.resolve(__dirname, "../../out/unit/tmp/home");
-  fs.mkdirSync(testHome, { recursive: true });
-  process.env.HOME = testHome;
-  process.env.USERPROFILE = testHome; // Windows uses USERPROFILE instead of HOME
+  // Use shared HOME for all tests to prevent writing to user's home directory
+  const sharedHome = path.resolve(__dirname, "../../out/home");
+  const ansibleHome = path.resolve(__dirname, "../../out/.ansible");
+
+  fs.mkdirSync(sharedHome, { recursive: true });
+  fs.mkdirSync(ansibleHome, { recursive: true });
+
+  process.env.HOME = sharedHome;
+  process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
+  process.env.ANSIBLE_HOME = ansibleHome;
 }
 
 export async function teardown() {

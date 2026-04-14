@@ -67,11 +67,23 @@ function execWithTimeout(
 }
 
 export async function setup() {
-  // Isolate HOME for language server tests to prevent writing to user's home directory
-  const testHome = path.resolve(__dirname, "../../../out/als/tmp/home");
-  fs.mkdirSync(testHome, { recursive: true });
-  process.env.HOME = testHome;
-  process.env.USERPROFILE = testHome; // Windows uses USERPROFILE instead of HOME
+  // Use shared HOME for all tests to prevent writing to user's home directory
+  const sharedHome = path.resolve(__dirname, "../../../out/home");
+  const ansibleHome = path.resolve(__dirname, "../../../out/.ansible");
+  const containersPath = path.resolve(__dirname, "../../../.cache/containers");
+
+  fs.mkdirSync(sharedHome, { recursive: true });
+  fs.mkdirSync(ansibleHome, { recursive: true });
+  fs.mkdirSync(containersPath, { recursive: true });
+
+  process.env.HOME = sharedHome;
+  process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
+  process.env.ANSIBLE_HOME = ansibleHome;
+
+  // Configure podman to use .cache/containers instead of HOME
+  if (!process.env.CONTAINERS_STORAGE_PATH && !SKIP_PODMAN) {
+    process.env.CONTAINERS_STORAGE_PATH = containersPath;
+  }
 
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments

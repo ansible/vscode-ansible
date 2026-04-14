@@ -4,7 +4,6 @@ description = "Global Allowlist"
 paths = [
   # Ignore pnpm virtual store (if present under project)
   '''node_modules/\.pnpm''',
-  # Ignore build artifacts and test isolation directories (contains container overlays with false positives)
-  # Pattern matches official gitleaks config style: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
-  '''(?:^|/)out/.*$''',
+  # Ignore build artifacts and test isolation directories
+  '''^out/''',
 ]
