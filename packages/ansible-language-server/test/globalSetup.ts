@@ -23,7 +23,7 @@ function exec(cmd: string[], options: SpawnSyncOptions = {}) {
   console.info(`Execute: ${cmd.join(" ")}`);
   spawnSync(cmd[0], cmd.slice(1), {
     stdio: "inherit",
-    env: process.env,  // Pass environment variables including CONTAINERS_STORAGE_PATH
+    env: process.env, // Pass environment variables including CONTAINERS_STORAGE_PATH
   });
 }
 
