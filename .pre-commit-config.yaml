@@ -12,7 +12,7 @@ repos:
       - id: check-useless-excludes
         priority: 0
   - repo: https://github.com/ansible/actions
-    rev: v0.5.1
+    rev: v1.1.1
     hooks:
       - id: toml
         priority: 1
