@@ -1018,7 +1018,7 @@ def vscode_run_command(
         command_param: Parameter to pass to the command (argument)
     """
     driver.switch_to.default_content()
-    if not command.startswith(">"):
+    if not command.startswith(">"):  # pragma: no cover
         command = ">" + command
 
     # Dismiss any leftover palette/dialog from a previous call to avoid

@@ -12,8 +12,7 @@
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@webviews/*": ["./webviews/*"]
-    },
-    "types": ["@types/mocha", "vscode-webview"]
+    }
   },
   "extends": "./tsconfig.base.json",
   "include": [

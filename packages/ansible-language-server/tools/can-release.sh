@@ -29,8 +29,8 @@ cat <<EOF > package.json
   "license": "N/A"
 }
 EOF
-npm add "${PROJECT_ROOT}"/out/ansible-ansible-language-server-*.tgz
-npm install --no-fund --no-audit
+# add implies install
+npm add --no-fund --no-audit "${PROJECT_ROOT}"/out/ansible-ansible-language-server-*.tgz
 node "${PACKAGE_ROOT}/test/validate-ls.ts"
 popd
 
