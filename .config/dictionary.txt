@@ -51,6 +51,7 @@ fixturenames
 fqcn
 genai
 getfixturevalue
+graphroot
 haaaad
 hbenl
 highlightjs
@@ -87,6 +88,7 @@ relogin
 reshim
 rhcustom
 rhsso
+runroot
 seealso
 sonarcloud
 sonarqube
