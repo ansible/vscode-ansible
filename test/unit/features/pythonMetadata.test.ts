@@ -172,30 +172,12 @@ describe("PythonInterpreterManager", function () {
       });
     });
 
-    it("should show warning when no environment and no fallback configured", async function () {
+    it("should show warning when Python Environments not available", async function () {
       mockPythonEnvService.isAvailable.mockReturnValue(false);
-      mockPythonEnvService.getEnvironment.mockResolvedValue(undefined);
 
       await manager.updatePythonInfo();
 
       expect(mockPythonEnvService.initialize).toHaveBeenCalled();
-      expect(mockPythonEnvService.getEnvironment).toHaveBeenCalled();
-    });
-
-    it("should display fallback interpreter path when API not available but interpreterPath is set", async function () {
-      mockPythonEnvService.isAvailable.mockReturnValue(false);
-      mockPythonEnvService.getEnvironment.mockResolvedValue({
-        envId: { id: "ansible-settings", managerId: "ansible-settings" },
-        name: "python",
-        displayName: "/usr/bin/python3",
-        displayPath: "/usr/bin/python3",
-        version: "",
-        execInfo: { run: { executable: "/usr/bin/python3" } },
-      });
-
-      await manager.updatePythonInfo();
-
-      expect(mockPythonEnvService.getEnvironment).toHaveBeenCalled();
     });
 
     it("should display environment info when available", async function () {
