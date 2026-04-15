@@ -470,6 +470,17 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
 
+      - name: Remove Podman overlay storage before upload
+        if: ${{ always() }}
+        run: |
+          target="out/als/tmp/home/.local/share/containers"
+          if [ -d "$target" ]; then
+            podman unshare rm -rf -- "$target" \
+              || buildah unshare rm -rf -- "$target" \
+              || rm -rf -- "$target" \
+              || echo "::warning::Could not remove $target"
+          fi
+
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
         uses: ansible/actions/upload-artifact@main
