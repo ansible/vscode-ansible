@@ -1029,6 +1029,7 @@
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@vscode-elements/elements": "^2.5.1",
     "@vscode/codicons": "^0.0.45",
+    "@vscode/python-extension": "1.0.5",
     "highlight.js": "^11.11.1",
     "js-yaml": "^4.1.1",
     "marked": "^17.0.5",
@@ -1108,6 +1109,8 @@
     "vscode": "^1.85.0"
   },
   "extensionDependencies": [
+    "ms-python.python",
+    "ms-python.vscode-python-envs",
     "redhat.vscode-yaml"
   ],
   "icon": "images/logo.png",

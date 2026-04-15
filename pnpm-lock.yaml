@@ -37,6 +37,9 @@ importers:
       '@vscode/codicons':
         specifier: ^0.0.45
         version: 0.0.45
+      '@vscode/python-extension':
+        specifier: 1.0.5
+        version: 1.0.5
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
@@ -2050,6 +2053,10 @@ packages:
 
   '@vscode/codicons@0.0.45':
     resolution: {integrity: sha512-1KAZ7XCMagp5Gdrlr4bbbcAqgcIL623iO1wW6rfcSVGAVUQvR0WP7bQx1SbJ11gmV3fdQTSEFIJQ/5C+HuVasw==}
+
+  '@vscode/python-extension@1.0.5':
+    resolution: {integrity: sha512-uYhXUrL/gn92mfqhjAwH2+yGOpjloBxj9ekoL4BhUsKcyJMpEg6WlNf3S3si+5x9zlbHHe7FYQNjZEbz1ymI9Q==}
+    engines: {node: '>=16.17.1', vscode: ^1.78.0}
 
   '@vscode/test-cli@0.0.12':
     resolution: {integrity: sha512-iYN0fDg29+a2Xelle/Y56Xvv7Nc8Thzq4VwpzAF/SIE6918rDicqfsQxV6w1ttr2+SOm+10laGuY9FG2ptEKsQ==}
@@ -7063,6 +7070,8 @@ snapshots:
       lit: 3.3.2
 
   '@vscode/codicons@0.0.45': {}
+
+  '@vscode/python-extension@1.0.5': {}
 
   '@vscode/test-cli@0.0.12':
     dependencies:
