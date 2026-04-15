@@ -32,7 +32,7 @@ def test_sidebar_nav(
     )
     assert get_started_link is not None, "Get started link should be present in sidebar"
 
-    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
+    vscode_run_command(driver, ">Open Ansible Development Tools menu")
 
     find_element_across_iframes(
         driver,
@@ -50,7 +50,7 @@ def test_header_and_subtitle(
 
     ensure_vscode_ready(driver)
 
-    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
+    vscode_run_command(driver, ">Open Ansible Development Tools menu")
 
     header_title = find_element_across_iframes(
         driver,
@@ -82,7 +82,7 @@ def test_mcp_section(
 
     ensure_vscode_ready(driver)
 
-    vscode_run_command(driver, ">Ansible: Open Ansible Development Tools menu")
+    vscode_run_command(driver, ">Open Ansible Development Tools menu")
 
     start_section = find_element_across_iframes(
         driver,

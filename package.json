@@ -1108,7 +1108,6 @@
     "vscode": "^1.85.0"
   },
   "extensionDependencies": [
-    "ms-python.vscode-python-envs",
     "redhat.vscode-yaml"
   ],
   "icon": "images/logo.png",

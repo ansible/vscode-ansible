@@ -7,6 +7,8 @@ import time
 from typing import Any
 
 from selenium.common import ElementNotInteractableException, NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -41,12 +43,9 @@ def test_terminal(
     driver, _ = browser_setup
 
     ensure_vscode_ready(driver)
-    vscode_run_command(driver, ">workbench.action.terminal.new")
-    vscode_run_command(driver, ">workbench.action.terminal.focus")
-    time.sleep(3)  # allow terminal to start before sending input
-    vscode_run_command(
-        driver, ">workbench.action.terminal.sendSequence", "adt --version\\n"
-    )
+    vscode_run_command(driver, ">Terminal: Create New Terminal")
+    time.sleep(3)  # allow terminal to start and receive focus
+    ActionChains(driver).send_keys("adt --version").send_keys(Keys.ENTER).perform()
 
     output: WebElement | None = None
 
@@ -88,7 +87,7 @@ def test_create_empty_playbook(
 
     ensure_vscode_ready(driver)
 
-    vscode_run_command(driver, ">ansible.create-empty-playbook")
+    vscode_run_command(driver, ">Ansible: Create an empty Ansible playbook")
 
     wait_displayed(
         driver,

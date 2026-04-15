@@ -34,7 +34,6 @@ export class PythonInterpreterManager {
   }
 
   private initialiseStatusBar(): StatusBarItem {
-    // create a new status bar item that we can manage
     const interpreterStatusBarItem = window.createStatusBarItem(
       StatusBarAlignment.Right,
       100,
@@ -67,32 +66,14 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    // Ensure service is initialized before checking availability
     await this.pythonEnvService.initialize();
 
-    // Check if Python Environments extension API is available
-    if (!this.pythonEnvService.isAvailable()) {
-      this.pythonInterpreterStatusBarItem.text =
-        "$(warning) Python Environments not configured";
-      this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-        "statusBarItem.warningBackground",
-      );
-      this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
-        "#### Configure Python Environments\n" +
-          "Click to install or enable the Python Environments extension for environment management.",
-        true,
-      );
-      this.pythonInterpreterStatusBarItem.command =
-        AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER;
-      return;
-    }
-
-    // Get the current environment from the Python Environments API
+    // getEnvironment() checks the Python Envs API first, then falls back
+    // to ansible.python.interpreterPath — so it works in all environments.
     const activeURI = window.activeTextEditor?.document.uri;
     const environment = await this.pythonEnvService.getEnvironment(activeURI);
 
     if (environment) {
-      // Display environment information
       const displayName = environment.displayName || environment.name;
       this.pythonInterpreterStatusBarItem.text = displayName;
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
@@ -112,24 +93,29 @@ export class PythonInterpreterManager {
         tooltipLines.push(`**Path:** ${environment.displayPath}`);
       }
 
+      if (!this.pythonEnvService.isAvailable()) {
+        tooltipLines.push(
+          `*Using ansible.python.interpreterPath setting (Python Environments extension not available)*`,
+        );
+      }
+
       this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
         tooltipLines.join("\n\n"),
         true,
       );
     } else {
-      // No environment selected
-      this.pythonInterpreterStatusBarItem.text = "Select python environment";
+      this.pythonInterpreterStatusBarItem.text =
+        "$(warning) No Python interpreter configured";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground",
       );
       this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
-        "#### Select Python Environment\n" +
-          "Click to select a Python environment for this workspace.",
+        "#### Configure Python Interpreter\n" +
+          "Click to select a Python environment or set the interpreter path in settings.",
         true,
       );
     }
 
-    // add action to change the interpreter
     this.pythonInterpreterStatusBarItem.command =
       AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER;
 

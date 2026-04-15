@@ -1,13 +1,16 @@
 /**
  * Python Environment Service
  *
- * Provides a wrapper around the Microsoft Python Environments extension API.
- * Handles initialization, environment retrieval, and event propagation.
+ * Provides a wrapper around the Microsoft Python Environments extension API
+ * with fallback support for the `ansible.python.interpreterPath` setting.
  *
- * Note: This service uses ms-python.vscode-python-envs extension.
- * Users need to enable 'python.useEnvironmentsExtension' setting for full API access.
+ * When ms-python.vscode-python-envs is available, it uses the full API.
+ * When the extension is missing (e.g. in Dev Spaces or code-server with
+ * OpenVSX), the service falls back to the interpreter path configured in
+ * Ansible extension settings so the extension still activates and works.
  */
 
+import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   PythonEnvironmentApi,
@@ -16,6 +19,7 @@ import {
   GetEnvironmentScope,
   PYTHON_ENVS_EXTENSION_ID,
 } from "@src/types/pythonEnvApi";
+import { resolveInterpreterPath } from "@src/features/utils/interpreterPathResolver";
 
 export class PythonEnvironmentService implements vscode.Disposable {
   private static _instance: PythonEnvironmentService | undefined;
@@ -23,7 +27,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
   private _initialized: boolean = false;
   private _disposables: vscode.Disposable[] = [];
 
-  // Event emitter for environment changes
   private _onDidChangeEnvironment =
     new vscode.EventEmitter<DidChangeEnvironmentEventArgs>();
   public readonly onDidChangeEnvironment = this._onDidChangeEnvironment.event;
@@ -31,9 +34,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // eslint-disable-next-line no-empty-function
   private constructor() {}
 
-  /**
-   * Get the singleton instance of PythonEnvironmentService
-   */
   public static getInstance(): PythonEnvironmentService {
     if (!PythonEnvironmentService._instance) {
       PythonEnvironmentService._instance = new PythonEnvironmentService();
@@ -42,7 +42,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   /**
-   * Initialize the service by connecting to the Python Environments extension
+   * Initialize the service by connecting to the Python Environments extension.
+   * Returns true when the native API is available; false means the service
+   * will operate in fallback mode using `ansible.python.interpreterPath`.
    */
   public async initialize(): Promise<boolean> {
     if (this._initialized) {
@@ -53,7 +55,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
       `[Ansible] Looking for Python Environments extension: ${PYTHON_ENVS_EXTENSION_ID}`,
     );
 
-    // Get the Python Environments extension
     const pythonEnvExt = vscode.extensions.getExtension<PythonEnvironmentApi>(
       PYTHON_ENVS_EXTENSION_ID,
     );
@@ -68,7 +69,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
           await pythonEnvExt.activate();
         }
 
-        // Check if the extension exports the API
         const exports = pythonEnvExt.exports;
         console.log(
           `[Ansible] Python Environments exports: ${typeof exports}, hasGetEnvironment: ${exports && typeof exports.getEnvironment === "function"}`,
@@ -77,7 +77,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
         if (exports && typeof exports.getEnvironment === "function") {
           this._pythonEnvApi = exports;
 
-          // Subscribe to environment change events if available
           if (this._pythonEnvApi?.onDidChangeEnvironment) {
             const listener = this._pythonEnvApi.onDidChangeEnvironment(
               (event) => {
@@ -94,7 +93,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
           console.warn(
             "[Ansible] Python Environments extension found but API not available.",
           );
-          // Check and prompt for the setting
           await this._checkAndPromptForSetting();
         }
       } catch (error) {
@@ -103,8 +101,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
         );
       }
     } else {
-      console.warn(
-        `[Ansible] Python Environments extension (${PYTHON_ENVS_EXTENSION_ID}) is not installed.`,
+      console.log(
+        `[Ansible] Python Environments extension (${PYTHON_ENVS_EXTENSION_ID}) is not installed. ` +
+          `Falling back to ansible.python.interpreterPath setting.`,
       );
     }
 
@@ -112,9 +111,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return this._pythonEnvApi !== undefined;
   }
 
-  /**
-   * Check if the required setting is enabled and prompt if not
-   */
   private async _checkAndPromptForSetting(): Promise<void> {
     const pythonConfig = vscode.workspace.getConfiguration("python");
     const useEnvsExtension = pythonConfig.get<boolean>(
@@ -162,37 +158,74 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   /**
-   * Check if the Python Environments extension API is available
+   * Check if the native Python Environments extension API is available.
+   * Note: even when this returns false, `getEnvironment()` may still return
+   * a result from the `ansible.python.interpreterPath` fallback.
    */
   public isAvailable(): boolean {
     return this._pythonEnvApi !== undefined;
   }
 
   /**
-   * Get the current Python environment for a given scope
-   * @param scope - Optional URI to get environment for a specific workspace folder
+   * Get the current Python environment for a given scope.
+   *
+   * Resolution order:
+   * 1. Python Environments extension API (if available)
+   * 2. `ansible.python.interpreterPath` setting (fallback)
    */
   public async getEnvironment(
     scope?: GetEnvironmentScope,
   ): Promise<PythonEnvironment | undefined> {
     await this.initialize();
 
-    if (!this._pythonEnvApi) {
-      return undefined;
+    if (this._pythonEnvApi) {
+      try {
+        const env = await this._pythonEnvApi.getEnvironment(scope);
+        if (env) return env;
+      } catch (error) {
+        console.error(`[Ansible] Error getting Python environment: ${error}`);
+      }
     }
 
-    try {
-      return await this._pythonEnvApi.getEnvironment(scope);
-    } catch (error) {
-      console.error(`[Ansible] Error getting Python environment: ${error}`);
-      return undefined;
-    }
+    return this._getFallbackEnvironment(scope);
   }
 
   /**
-   * Get all available Python environments
-   * @param scope - URI, 'all', or 'global' to specify which environments to retrieve
+   * Build a synthetic PythonEnvironment from the
+   * `ansible.python.interpreterPath` setting when the native API
+   * is unavailable or returns nothing.
    */
+  private _getFallbackEnvironment(
+    scope?: GetEnvironmentScope,
+  ): PythonEnvironment | undefined {
+    const interpreterPath = this._resolveInterpreterPathSetting(scope);
+    if (!interpreterPath) return undefined;
+
+    return {
+      envId: { id: "ansible-settings", managerId: "ansible-settings" },
+      name: path.basename(interpreterPath),
+      displayName: interpreterPath,
+      displayPath: interpreterPath,
+      version: "",
+      environmentPath: vscode.Uri.file(path.dirname(interpreterPath)),
+      execInfo: { run: { executable: interpreterPath } },
+      sysPrefix: "",
+    };
+  }
+
+  /**
+   * Resolve the `ansible.python.interpreterPath` setting, expanding
+   * `~`, `${workspaceFolder}`, and relative paths.
+   */
+  private _resolveInterpreterPathSetting(
+    scope?: GetEnvironmentScope,
+  ): string | undefined {
+    const ansibleConfig = vscode.workspace.getConfiguration("ansible", scope);
+    const interpreterPath = ansibleConfig.get<string>("python.interpreterPath");
+    if (!interpreterPath || interpreterPath.trim() === "") return undefined;
+    return resolveInterpreterPath(interpreterPath, scope) || interpreterPath;
+  }
+
   public async getEnvironments(
     scope: vscode.Uri | "all" | "global" = "all",
   ): Promise<PythonEnvironment[]> {
@@ -210,10 +243,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
   }
 
-  /**
-   * Get the Python executable path for the current environment
-   * @param scope - Optional URI to get environment for a specific workspace folder
-   */
   public async getExecutablePath(
     scope?: GetEnvironmentScope,
   ): Promise<string | undefined> {
@@ -221,10 +250,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return env?.execInfo.run.executable;
   }
 
-  /**
-   * Get the Python version for the current environment
-   * @param scope - Optional URI to get environment for a specific workspace folder
-   */
   public async getVersion(
     scope?: GetEnvironmentScope,
   ): Promise<string | undefined> {
@@ -232,10 +257,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return env?.version;
   }
 
-  /**
-   * Get environment display name (e.g., "Python 3.11.0 (venv)")
-   * @param scope - Optional URI to get environment for a specific workspace folder
-   */
   public async getDisplayName(
     scope?: GetEnvironmentScope,
   ): Promise<string | undefined> {
@@ -243,16 +264,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return env?.displayName;
   }
 
-  /**
-   * Get the raw Python Environment API for advanced usage
-   */
   public getApi(): PythonEnvironmentApi | undefined {
     return this._pythonEnvApi;
   }
 
-  /**
-   * Show a warning message if Python Environments extension is not available
-   */
   public showExtensionNotInstalledWarning(): void {
     vscode.window
       .showWarningMessage(
@@ -271,39 +286,63 @@ export class PythonEnvironmentService implements vscode.Disposable {
   }
 
   /**
-   * Open the Python environment picker from the Python Environments extension
+   * Open the Python environment picker. Tries, in order:
+   * 1. python-envs.set (Python Environments extension)
+   * 2. python.setInterpreter (classic Python extension)
+   * 3. Manual configuration via ansible.python.interpreterPath
    */
   public async selectEnvironment(): Promise<void> {
-    if (!this._pythonEnvApi) {
-      // Extension not available or API not exported, prompt to install/enable
-      const pythonEnvExt = vscode.extensions.getExtension(
-        PYTHON_ENVS_EXTENSION_ID,
-      );
-      if (pythonEnvExt) {
-        // Extension installed but API not available - prompt for setting
-        await this._checkAndPromptForSetting();
-      } else {
-        // Extension not installed
-        this.showExtensionNotInstalledWarning();
+    if (this._pythonEnvApi) {
+      try {
+        await vscode.commands.executeCommand("python-envs.set");
+        return;
+      } catch (error) {
+        console.error(
+          `[Ansible] Error opening Python environment picker: ${error}`,
+        );
       }
+    }
+
+    const pythonEnvExt = vscode.extensions.getExtension(
+      PYTHON_ENVS_EXTENSION_ID,
+    );
+    if (pythonEnvExt && !this._pythonEnvApi) {
+      await this._checkAndPromptForSetting();
       return;
     }
 
     try {
-      await vscode.commands.executeCommand("python-envs.set");
-    } catch (error) {
-      console.error(
-        `[Ansible] Error opening Python environment picker: ${error}`,
+      await vscode.commands.executeCommand("python.setInterpreter");
+      return;
+    } catch {
+      // Classic Python extension not available either
+    }
+
+    await this._offerManualConfiguration();
+  }
+
+  private async _offerManualConfiguration(): Promise<void> {
+    const setPath = "Set Interpreter Path";
+    const installExt = "Install Python Environments Extension";
+
+    const selection = await vscode.window.showWarningMessage(
+      "No Python environment extension is available. " +
+        "You can set the Python interpreter path manually in settings, " +
+        "or install the Python Environments extension for richer support.",
+      setPath,
+      installExt,
+    );
+
+    if (selection === setPath) {
+      await vscode.commands.executeCommand(
+        "workbench.action.openSettings",
+        "ansible.python.interpreterPath",
       );
-      // Fall back to classic Python extension command
-      try {
-        await vscode.commands.executeCommand("python.setInterpreter");
-      } catch {
-        vscode.window.showErrorMessage(
-          "Unable to open Python environment picker. " +
-            "Please ensure the Python Environments extension is installed and enabled.",
-        );
-      }
+    } else if (selection === installExt) {
+      await vscode.commands.executeCommand(
+        "workbench.extensions.installExtension",
+        PYTHON_ENVS_EXTENSION_ID,
+      );
     }
   }
 

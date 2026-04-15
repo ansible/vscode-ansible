@@ -181,6 +181,26 @@ export class TerminalService implements vscode.Disposable {
         cwd: workspaceFolder,
         env: options.env,
       });
+
+      // Fallback: source the activation script from settings when the
+      // Python Environments extension is not available.
+      try {
+        const ansibleConfig = vscode.workspace.getConfiguration(
+          "ansible",
+          workspaceFolder,
+        );
+        const activationScript = ansibleConfig?.get<string>(
+          "python.activationScript",
+        );
+        if (activationScript && activationScript.trim()) {
+          terminal.sendText(`source ${activationScript}`);
+          console.log(
+            `[Ansible] Terminal Service: sourced activation script: ${activationScript}`,
+          );
+        }
+      } catch {
+        // Configuration access may fail in some environments
+      }
     }
 
     if (showTerminal) {

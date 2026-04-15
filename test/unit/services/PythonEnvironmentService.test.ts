@@ -11,7 +11,20 @@ describe("PythonEnvironmentService", function () {
   let mockShowInformationMessage: ReturnType<typeof vi.fn>;
   let mockExecuteCommand: ReturnType<typeof vi.fn>;
 
-  // Helper to reset singleton for testing
+  /** Return a mock getConfiguration() that resolves ansible settings */
+  const mockAnsibleConfig = (interpreterPath = "") => {
+    const configMap: Record<string, unknown> = {
+      "python.interpreterPath": interpreterPath,
+      "python.activationScript": "",
+    };
+    const mockConfig = {
+      get: vi.fn((key: string) => configMap[key] ?? ""),
+      update: vi.fn(),
+    };
+    mockGetConfiguration.mockReturnValue(mockConfig);
+    return mockConfig;
+  };
+
   const resetSingleton = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (PythonEnvironmentService as any)._instance = undefined;
@@ -193,12 +206,26 @@ describe("PythonEnvironmentService", function () {
   });
 
   describe("getEnvironment", function () {
-    it("should return undefined when API not available", async function () {
+    it("should return undefined when API not available and no fallback configured", async function () {
       mockGetExtension.mockReturnValue(undefined);
+      mockAnsibleConfig("");
 
       const result = await service.getEnvironment();
 
       expect(result).toBeUndefined();
+    });
+
+    it("should return fallback environment from interpreterPath when extension not installed", async function () {
+      mockGetExtension.mockReturnValue(undefined);
+      mockAnsibleConfig("/home/user/.venv/bin/python");
+
+      const result = await service.getEnvironment();
+
+      expect(result).toBeDefined();
+      expect(result?.execInfo.run.executable).toBe(
+        "/home/user/.venv/bin/python",
+      );
+      expect(result?.envId.managerId).toBe("ansible-settings");
     });
 
     it("should call API getEnvironment with scope", async function () {
@@ -227,7 +254,7 @@ describe("PythonEnvironmentService", function () {
       expect(mockApi.getEnvironment).toHaveBeenCalled();
     });
 
-    it("should handle API errors gracefully", async function () {
+    it("should fall back to interpreterPath when API errors", async function () {
       const mockApi = {
         getEnvironment: vi.fn().mockRejectedValue(new Error("API error")),
       };
@@ -237,6 +264,28 @@ describe("PythonEnvironmentService", function () {
         exports: mockApi,
         activate: vi.fn(),
       });
+
+      mockAnsibleConfig("/usr/local/bin/python3");
+
+      await service.initialize();
+      const result = await service.getEnvironment();
+
+      expect(result).toBeDefined();
+      expect(result?.execInfo.run.executable).toBe("/usr/local/bin/python3");
+    });
+
+    it("should return undefined when API errors and no fallback", async function () {
+      const mockApi = {
+        getEnvironment: vi.fn().mockRejectedValue(new Error("API error")),
+      };
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+
+      mockAnsibleConfig("");
 
       await service.initialize();
       const result = await service.getEnvironment();
@@ -298,12 +347,22 @@ describe("PythonEnvironmentService", function () {
   });
 
   describe("getExecutablePath", function () {
-    it("should return undefined when no environment", async function () {
+    it("should return undefined when no environment and no fallback", async function () {
       mockGetExtension.mockReturnValue(undefined);
+      mockAnsibleConfig("");
 
       const result = await service.getExecutablePath();
 
       expect(result).toBeUndefined();
+    });
+
+    it("should return interpreterPath from settings as fallback", async function () {
+      mockGetExtension.mockReturnValue(undefined);
+      mockAnsibleConfig("/opt/python3/bin/python3");
+
+      const result = await service.getExecutablePath();
+
+      expect(result).toBe("/opt/python3/bin/python3");
     });
 
     it("should return executable path from environment", async function () {
@@ -431,13 +490,33 @@ describe("PythonEnvironmentService", function () {
   });
 
   describe("selectEnvironment", function () {
-    it("should show warning when API not available and extension not installed", async function () {
+    it("should offer manual configuration when no Python extension is available", async function () {
       mockGetExtension.mockReturnValue(undefined);
+      mockExecuteCommand.mockRejectedValue(new Error("Command not found"));
       mockShowWarningMessage.mockResolvedValue(undefined);
 
       await service.selectEnvironment();
 
-      expect(mockShowWarningMessage).toHaveBeenCalled();
+      expect(mockShowWarningMessage).toHaveBeenCalledWith(
+        expect.stringContaining("No Python environment extension"),
+        "Set Interpreter Path",
+        "Install Python Environments Extension",
+      );
+    });
+
+    it("should open settings when user selects Set Interpreter Path", async function () {
+      mockGetExtension.mockReturnValue(undefined);
+      mockExecuteCommand
+        .mockRejectedValueOnce(new Error("Command not found"))
+        .mockResolvedValue(undefined);
+      mockShowWarningMessage.mockResolvedValue("Set Interpreter Path");
+
+      await service.selectEnvironment();
+
+      expect(mockExecuteCommand).toHaveBeenCalledWith(
+        "workbench.action.openSettings",
+        "ansible.python.interpreterPath",
+      );
     });
 
     it("should prompt for setting when extension installed but API not available", async function () {
@@ -480,7 +559,7 @@ describe("PythonEnvironmentService", function () {
       expect(mockExecuteCommand).toHaveBeenCalledWith("python-envs.set");
     });
 
-    it("should fallback to python.setInterpreter when python-envs.set fails", async function () {
+    it("should fallback to python.setInterpreter when python-envs.set fails and extension not installed", async function () {
       const mockApi = {
         getEnvironment: vi.fn(),
       };
@@ -491,17 +570,20 @@ describe("PythonEnvironmentService", function () {
         activate: vi.fn(),
       });
 
+      await service.initialize();
+
+      // After init, extension is no longer found for second getExtension call
+      mockGetExtension.mockReturnValue(undefined);
       mockExecuteCommand
         .mockRejectedValueOnce(new Error("Command not found"))
         .mockResolvedValueOnce(undefined);
 
-      await service.initialize();
       await service.selectEnvironment();
 
       expect(mockExecuteCommand).toHaveBeenCalledWith("python.setInterpreter");
     });
 
-    it("should show error when both commands fail", async function () {
+    it("should offer manual config when all commands fail", async function () {
       const mockApi = {
         getEnvironment: vi.fn(),
       };
@@ -512,15 +594,19 @@ describe("PythonEnvironmentService", function () {
         activate: vi.fn(),
       });
 
-      const mockShowErrorMessage = vi.mocked(vscode.window.showErrorMessage);
-      mockExecuteCommand
-        .mockRejectedValueOnce(new Error("Command not found"))
-        .mockRejectedValueOnce(new Error("Command not found"));
-
       await service.initialize();
+
+      mockGetExtension.mockReturnValue(undefined);
+      mockExecuteCommand.mockRejectedValue(new Error("Command not found"));
+      mockShowWarningMessage.mockResolvedValue(undefined);
+
       await service.selectEnvironment();
 
-      expect(mockShowErrorMessage).toHaveBeenCalled();
+      expect(mockShowWarningMessage).toHaveBeenCalledWith(
+        expect.stringContaining("No Python environment extension"),
+        "Set Interpreter Path",
+        "Install Python Environments Extension",
+      );
     });
   });
 

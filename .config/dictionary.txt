@@ -30,7 +30,6 @@ Towncrier
 WSLENV
 antsibull
 bfnrt
-buildah
 charliermarsh
 checode
 codeclimate

@@ -282,26 +282,15 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      # Self-hosted runners retain root-owned files from rootless Podman
-      # (overlay storage under out/als/tmp/).  These files live inside a
-      # user-namespace so normal rm fails with EACCES and sudo is
-      # unavailable.  `podman unshare` re-enters the same namespace,
-      # letting us delete them before checkout touches the workspace.
-      - name: Remove Podman overlay files on self-hosted runner
-        if: matrix.runs-on == 'self-hosted'
-        run: |
-          target="${GITHUB_WORKSPACE}/out/als/tmp/home/.local/share/containers"
-          if [ -d "$target" ]; then
-            podman unshare rm -rf -- "$target" \
-              || buildah unshare rm -rf -- "$target" \
-              || echo "::warning::Could not remove $target — checkout may fail"
-          fi
-
+      # Self-hosted runners may retain root-owned files from previous
+      # container builds (e.g. Podman overlays under out/als/tmp/).
+      # Disable checkout's built-in clean so it does not fail with
+      # EACCES when it cannot remove those files.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
-          clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
+          clean: ${{ matrix.runs-on != 'self-hosted' }}
 
       - name: Clean workspace on self-hosted runner
         if: matrix.runs-on == 'self-hosted'
