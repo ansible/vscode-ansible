@@ -91,8 +91,7 @@ export default defineConfig({
           include: ["test/**/*.test.ts"],
           isolate: true, // required or will produce MaxListenersExceededWarning warnings
           root: als_root, // ensure reports have valid paths
-          testTimeout: 120000, // 120s — @ee tests need >60s with isolated HOME
-          hookTimeout: 120000, // match testTimeout for @ee beforeAll hooks
+          testTimeout: 60000, // same as mocha timeout (60 seconds)
           setupFiles: [`${als_root}/test/vitestSetup.ts`],
           sequence: {
             concurrent: false,

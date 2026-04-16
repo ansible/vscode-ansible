@@ -69,76 +69,18 @@ function execWithTimeout(
 }
 
 export async function setup() {
-  // Preserve real HOME before any globalSetup overrides it.
-  // ext globalSetup runs first and changes HOME, so we need this guard.
-  if (!process.env._ORIGINAL_HOME) {
-    process.env._ORIGINAL_HOME =
-      process.env.HOME || process.env.USERPROFILE || "";
-  }
-
-  // Use shared HOME for all tests to prevent writing to user's home directory
-  const originalHome =
-    process.env._ORIGINAL_HOME ||
-    process.env.HOME ||
-    process.env.USERPROFILE ||
-    "";
-  const sharedHome = path.resolve(import.meta.dirname, "../../../out/home");
+  // Only isolate ANSIBLE_HOME (prevents writes to ~/.ansible).
+  // We do NOT redirect HOME because rootless podman becomes ~60x slower
+  // with a different HOME (every `podman run` takes ~60s instead of ~1s),
+  // making @ee tests take 29 min instead of 3 min.
+  // The ALS cache at ~/.cache/ansible-language-server/ is production code
+  // behavior (executionEnvironment.ts:119), not a test artifact.
   const ansibleHome = path.resolve(
     import.meta.dirname,
     "../../../out/.ansible",
   );
-
-  fs.mkdirSync(sharedHome, { recursive: true });
   fs.mkdirSync(ansibleHome, { recursive: true });
-
-  process.env.HOME = sharedHome;
-  process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
   process.env.ANSIBLE_HOME = ansibleHome;
-
-  // Delete ALS plugin doc cache once at suite start (not per-file).
-  // With isolate:true each file runs in its own worker — deleting per-file
-  // forces expensive podman cp rebuilds for every @ee test file.
-  const alsCachePath = path.resolve(
-    sharedHome,
-    ".cache",
-    "ansible-language-server",
-  );
-  fs.rmSync(alsCachePath, { recursive: true, force: true });
-
-  // Copy container engine config from original HOME so podman/docker
-  // use the same shared storage location (CI writes storage.conf there)
-  try {
-    const realContainersConfig = path.join(
-      originalHome,
-      ".config",
-      "containers",
-    );
-    const isolatedContainersConfig = path.join(
-      sharedHome,
-      ".config",
-      "containers",
-    );
-
-    if (
-      originalHome &&
-      fs.existsSync(realContainersConfig) &&
-      !fs.existsSync(isolatedContainersConfig)
-    ) {
-      fs.mkdirSync(isolatedContainersConfig, { recursive: true });
-      for (const entry of fs.readdirSync(realContainersConfig)) {
-        const srcPath = path.join(realContainersConfig, entry);
-        if (fs.statSync(srcPath).isFile()) {
-          fs.copyFileSync(srcPath, path.join(isolatedContainersConfig, entry));
-        }
-      }
-      console.info(
-        `Copied container config from ${realContainersConfig} to ${isolatedContainersConfig}`,
-      );
-    }
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.warn(`Warning: Failed to copy container config: ${message}`);
-  }
 
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
