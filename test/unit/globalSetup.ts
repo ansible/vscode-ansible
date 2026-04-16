@@ -3,8 +3,8 @@ import fs from "fs";
 
 export async function setup() {
   // Use shared HOME for all tests to prevent writing to user's home directory
-  const sharedHome = path.resolve(__dirname, "../../out/home");
-  const ansibleHome = path.resolve(__dirname, "../../out/.ansible");
+  const sharedHome = path.resolve(import.meta.dirname, "../../out/home");
+  const ansibleHome = path.resolve(import.meta.dirname, "../../out/.ansible");
 
   fs.mkdirSync(sharedHome, { recursive: true });
   fs.mkdirSync(ansibleHome, { recursive: true });

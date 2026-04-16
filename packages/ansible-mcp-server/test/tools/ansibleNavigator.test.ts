@@ -39,8 +39,9 @@ describe("Ansible Navigator Handler", () => {
   });
 
   afterAll(() => {
-    // Clean up temp directory
-    rmSync(testDir, { recursive: true, force: true });
+    if (testDir) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
   });
 
   describe("Core functionality", () => {
