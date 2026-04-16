@@ -220,5 +220,5 @@ export async function teardown() {
   // NOTE: Container overlay cleanup is handled in CI workflow
   // (pre-upload step) using podman unshare, not here.
   // Avoid podman system reset --force as it may wipe unrelated
-  // user containers (see review feedback from goneri).
+  // user containers (see PR #2730 review feedback).
 }
