@@ -472,6 +472,13 @@ jobs:
       - name: Remove test HOME artifacts before upload
         if: ${{ always() }}
         run: |
+          # Container overlays are root-owned (podman user namespace remapping)
+          # and contain files that trigger gitleaks false positives
+          if [ -d out/e2e/tmp/home/.local/share/containers ]; then
+            podman unshare rm -rf -- out/e2e/tmp/home/.local/share/containers 2>/dev/null \
+              || rm -rf -- out/e2e/tmp/home/.local/share/containers \
+              || true
+          fi
           # mise installs (node headers trigger gitleaks generic-api-key false positive)
           rm -rf out/e2e/tmp/home/.local/share/mise || true
           # reduce artifact size by removing cached test data
