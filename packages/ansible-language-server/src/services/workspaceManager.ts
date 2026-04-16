@@ -103,8 +103,13 @@ export class WorkspaceManager {
   public handleWorkspaceChanged(event: WorkspaceFoldersChangeEvent): void {
     const removedUris = new Set(event.removed.map((folder) => folder.uri));
 
-    // We only keep contexts of existing workspace folders
+    // Dispose persistent containers for removed workspace folders
     for (const removedUri of removedUris) {
+      const context = this.folderContexts.get(removedUri);
+      /* v8 ignore next 3 */
+      if (context) {
+        void context.disposeExecutionEnvironment();
+      }
       this.folderContexts.delete(removedUri);
     }
 
@@ -159,7 +164,9 @@ export class WorkspaceFolderContext {
       this.workspaceFolder.uri,
       () => {
         // in case the configuration changes for this folder, we should
-        // invalidate the services that rely on it in initialization
+        // invalidate the services that rely on it in initialization.
+        // The new EE's startPersistentContainer() handles cleanup of any
+        // existing container with the same deterministic name.
         this._executionEnvironment = undefined;
         this._ansibleConfig = undefined;
         this._docsLibrary = undefined;
@@ -175,7 +182,9 @@ export class WorkspaceFolderContext {
     for (const fileEvent of params.changes) {
       if (fileEvent.uri.startsWith(this.workspaceFolder.uri)) {
         // in case the configuration changes for this folder, we should
-        // invalidate the services that rely on it in initialization
+        // invalidate the services that rely on it in initialization.
+        // The new EE's startPersistentContainer() handles cleanup of any
+        // existing container with the same deterministic name.
         this._executionEnvironment = undefined;
         this._ansibleConfig = undefined;
         this._docsLibrary = undefined;
@@ -216,10 +225,32 @@ export class WorkspaceFolderContext {
   }
 
   public clearCachedServices(): void {
+    // Note: we don't dispose the EE here to avoid a race condition where the
+    // async dispose kills a container that a new EE has just started (same
+    // deterministic name). The new EE's startPersistentContainer() handles
+    // cleanup of any existing container with the same name.
     this._executionEnvironment = undefined;
     this._ansibleConfig = undefined;
     this._docsLibrary = undefined;
     this._ansibleInventory = undefined;
+  }
+
+  /**
+   * Dispose the execution environment's persistent container and clear its
+   * reference so a new one is created on next access.
+   */
+  public async disposeExecutionEnvironment(): Promise<void> {
+    /* v8 ignore next 10 */
+    if (this._executionEnvironment) {
+      const eeThenable = this._executionEnvironment;
+      this._executionEnvironment = undefined;
+      try {
+        const ee = await Promise.resolve(eeThenable);
+        ee.dispose();
+      } catch {
+        // EE failed to initialize — nothing to dispose
+      }
+    }
   }
 
   public get ansibleLint(): AnsibleLint {

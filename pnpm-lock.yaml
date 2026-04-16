@@ -263,9 +263,6 @@ importers:
       lodash:
         specifier: ^4.17.23
         version: 4.18.1
-      uuid:
-        specifier: ^13.0.0
-        version: 13.0.0
       vscode-languageserver:
         specifier: ^9.0.1
         version: 9.0.1
