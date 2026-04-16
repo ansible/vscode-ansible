@@ -68,6 +68,7 @@ function execWithTimeout(
 
 export async function setup() {
   // Use shared HOME for all tests to prevent writing to user's home directory
+  const originalHome = process.env.HOME || process.env.USERPROFILE || "";
   const sharedHome = path.resolve(__dirname, "../../../out/home");
   const ansibleHome = path.resolve(__dirname, "../../../out/.ansible");
 
@@ -77,6 +78,32 @@ export async function setup() {
   process.env.HOME = sharedHome;
   process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
   process.env.ANSIBLE_HOME = ansibleHome;
+
+  // Copy container engine config from original HOME so podman/docker
+  // use the same shared storage location (CI writes storage.conf there)
+  const realContainersConfig = path.join(originalHome, ".config", "containers");
+  const isolatedContainersConfig = path.join(
+    sharedHome,
+    ".config",
+    "containers",
+  );
+
+  if (
+    originalHome &&
+    fs.existsSync(realContainersConfig) &&
+    !fs.existsSync(isolatedContainersConfig)
+  ) {
+    fs.mkdirSync(isolatedContainersConfig, { recursive: true });
+    for (const entry of fs.readdirSync(realContainersConfig)) {
+      const srcPath = path.join(realContainersConfig, entry);
+      if (fs.statSync(srcPath).isFile()) {
+        fs.copyFileSync(srcPath, path.join(isolatedContainersConfig, entry));
+      }
+    }
+    console.info(
+      `Copied container config from ${realContainersConfig} to ${isolatedContainersConfig}`,
+    );
+  }
 
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
