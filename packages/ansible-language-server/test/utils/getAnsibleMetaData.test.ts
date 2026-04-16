@@ -310,7 +310,7 @@ describe("getAnsibleMetaData()", function () {
       pythonInfoForTest = getPythonTestInfo();
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
-    }, 300000); // EE operations (container pull/start) can be very slow on CI, especially with isolated HOME
+    }, 60000);
 
     describe("presence of execution environment details", function () {
       it("should have a valid container engine", function () {

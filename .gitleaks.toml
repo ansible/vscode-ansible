@@ -4,6 +4,4 @@ description = "Global Allowlist"
 paths = [
   # Ignore pnpm virtual store (if present under project)
   '''node_modules/\.pnpm''',
-  # Ignore build artifacts and test isolation directories
-  '''^out/''',
 ]

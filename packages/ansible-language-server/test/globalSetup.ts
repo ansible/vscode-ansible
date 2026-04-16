@@ -23,7 +23,6 @@ function exec(cmd: string[], options: SpawnSyncOptions = {}) {
   console.info(`Execute: ${cmd.join(" ")}`);
   spawnSync(cmd[0], cmd.slice(1), {
     stdio: "inherit",
-    env: process.env, // Pass environment variables including CONTAINERS_STORAGE_PATH
   });
 }
 
@@ -71,20 +70,13 @@ export async function setup() {
   // Use shared HOME for all tests to prevent writing to user's home directory
   const sharedHome = path.resolve(__dirname, "../../../out/home");
   const ansibleHome = path.resolve(__dirname, "../../../out/.ansible");
-  const containersPath = path.resolve(__dirname, "../../../.cache/containers");
 
   fs.mkdirSync(sharedHome, { recursive: true });
   fs.mkdirSync(ansibleHome, { recursive: true });
-  fs.mkdirSync(containersPath, { recursive: true });
 
   process.env.HOME = sharedHome;
   process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
   process.env.ANSIBLE_HOME = ansibleHome;
-
-  // Configure podman to use .cache/containers instead of HOME
-  if (!process.env.CONTAINERS_STORAGE_PATH && !SKIP_PODMAN) {
-    process.env.CONTAINERS_STORAGE_PATH = containersPath;
-  }
 
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
