@@ -469,6 +469,12 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
 
+      - name: Remove test HOME artifacts before upload
+        if: ${{ always() }}
+        run: |
+          # mise installs (node headers trigger gitleaks generic-api-key false positive)
+          rm -rf out/e2e/tmp/home/.local/share/mise || true
+
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
         uses: ansible/actions/upload-artifact@main
