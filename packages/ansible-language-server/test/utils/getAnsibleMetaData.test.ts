@@ -14,6 +14,7 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 
 function getAnsibleTestInfo() {
@@ -294,6 +295,10 @@ describe("getAnsibleMetaData()", function () {
 
   describe("@ee", function () {
     beforeAll(async () => {
+      if (skipEE()) {
+        return;
+      }
+
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings, context);
       }
