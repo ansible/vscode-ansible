@@ -27,6 +27,9 @@ import {
 
 const PYTHON_EXT_ID = "ms-python.python";
 
+/** Max time (ms) to wait for the Python extension to finish discovery. */
+const API_READY_TIMEOUT_MS = 5000;
+
 export class PythonEnvironmentService implements vscode.Disposable {
   private static _instance: PythonEnvironmentService | undefined;
   private _pythonEnvApi: PythonEnvironmentApi | undefined;
@@ -170,16 +173,15 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       const api = await PythonExtension.api();
 
-      const READY_TIMEOUT_MS = 5000;
       await Promise.race([
         api.ready,
         new Promise<void>((resolve) => {
           setTimeout(() => {
             console.warn(
-              `[Ansible] Python extension api.ready timed out after ${READY_TIMEOUT_MS}ms — proceeding with partial discovery`,
+              `[Ansible] Python extension api.ready timed out after ${API_READY_TIMEOUT_MS}ms — proceeding with partial discovery`,
             );
             resolve();
-          }, READY_TIMEOUT_MS);
+          }, API_READY_TIMEOUT_MS);
         }),
       ]);
 
