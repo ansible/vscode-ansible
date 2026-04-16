@@ -4,7 +4,7 @@
 # cspell: ignore healthcheck
 services:
   selenium-vscode:
-    image: ghcr.io/ansible/selenium-adt:main
+    image: ghcr.io/ansible/selenium-adt:26.4.0
     pull_policy: missing
     container_name: selenium-vscode
     shm_size: "10g"
@@ -13,6 +13,7 @@ services:
     ports:
       - "4444:4444"
       - "5999:5999"
+      - "127.0.0.1:8080:8080"
     volumes:
       # apparently podman does not want to mount file as container root
       - ${VSX_FILE:-./out/data/ansible-latest.vsix}:/data/ansible-latest.vsix:ro
@@ -20,11 +21,11 @@ services:
       - ./out/ui/logs:/home/selenium/.local/share/code-server/logs:rw
     restart: "no"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4444"]
+      test: ["CMD-SHELL", "curl -sf --max-time 3 http://localhost:4444 && curl -sf --max-time 3 http://localhost:8080"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      retries: 30
+      start_period: 30s
     deploy:
       resources:
         limits:

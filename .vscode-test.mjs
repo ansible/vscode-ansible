@@ -27,6 +27,9 @@ export default defineConfig({
     "--disable-extension=ritwickdey.liveserver",
     "--disable-extension=streetsidesoftware.code-spell-checker",
   ],
+  download: {
+    timeout: 60_000,
+  },
   mocha: {
     color: true,
     ui: "bdd",

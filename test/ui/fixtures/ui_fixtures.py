@@ -62,7 +62,7 @@ def browser_setup(
         "capturemanager"
     )  # type: ignore[name-defined]
     try:
-        if not is_container_healthy() or True:
+        if not is_container_healthy():
             subprocess.run(
                 f"podman rm -f {CONTAINER_NAME} 2>/dev/null || true",
                 shell=True,
@@ -80,14 +80,43 @@ def browser_setup(
                     shell=True,
                     cwd=_PROJECT_ROOT,
                 )
+            health_timeout_raw = os.environ.get(
+                "UI_CONTAINER_HEALTH_TIMEOUT",
+                "360",
+            )
+            try:
+                health_timeout = int(health_timeout_raw)
+            except ValueError:
+                pytest.fail(
+                    f"Invalid UI_CONTAINER_HEALTH_TIMEOUT={health_timeout_raw!r}; "
+                    "expected an integer number of seconds",
+                )
+            start = time.time()
+            deadline = start + health_timeout
             count = 0
-            while True:
+            while time.time() < deadline:
                 if is_container_healthy():
+                    elapsed = int(time.time() - start)
+                    log.info(
+                        "Container %s healthy after %ss (%s checks)",
+                        CONTAINER_NAME,
+                        elapsed,
+                        count + 1,
+                    )
                     break
                 count += 1
-                time.sleep(1)
+                elapsed = int(time.time() - start)
                 log.info(
-                    "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
+                    "Waiting for container %s to be healthy: check %s (%ss elapsed)",
+                    CONTAINER_NAME,
+                    count,
+                    elapsed,
+                )
+                time.sleep(2)
+            else:
+                pytest.fail(
+                    f"container {CONTAINER_NAME} did not become healthy "
+                    f"within {health_timeout}s",
                 )
 
         browser = os.environ.get("BROWSER_TYPE")
@@ -103,7 +132,12 @@ def browser_setup(
             command_executor="http://localhost:4444/wd/hub",
             options=options,
         )
+        driver.set_page_load_timeout(120)
+        driver.set_script_timeout(60)
         driver.maximize_window()
+        log.info(
+            "Browser connected, starting UI tests (no output until completion)",
+        )
 
         yield driver, "https://stage.ai.ansible.redhat.com/login"
         close_all_tabs(driver)
@@ -138,6 +172,8 @@ def new_browser() -> Generator[tuple[WebDriver | None, str, None], None, None]:
         driver = WebDriver(
             command_executor="http://localhost:4444/wd/hub", options=options
         )
+        driver.set_page_load_timeout(120)
+        driver.set_script_timeout(60)
         driver.maximize_window()
         yield driver, "https://stage.ai.ansible.redhat.com/login", None
     finally:

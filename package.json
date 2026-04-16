@@ -1150,6 +1150,9 @@
           "mocha": "*"
         }
       }
+    },
+    "patchedDependencies": {
+      "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
     }
   },
   "scripts": {

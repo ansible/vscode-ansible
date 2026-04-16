@@ -1,0 +1,14 @@
+diff --git a/out/cli/platform/desktop.mjs b/out/cli/platform/desktop.mjs
+index b901849b00f8072284a225ab703460e21425fcfc..50b5bcc3d7b7eb4c6f8ecb6ab91dd124af79109a 100644
+--- a/out/cli/platform/desktop.mjs
++++ b/out/cli/platform/desktop.mjs
+@@ -126,7 +126,8 @@ class PreparedDesktopRun {
+             return;
+         }
+         const opts = this.baseCliOptions();
+-        const vscodePath = await electron.downloadAndUnzipVSCode(opts.version, opts.platform, opts.reporter);
++        // https://github.com/microsoft/vscode-test-cli/issues/106
++        const vscodePath = await electron.downloadAndUnzipVSCode(opts);
+         const [cli, ...cliArgs] = electron.resolveCliArgsFromVSCodeExecutablePath(vscodePath, opts);
+         for (const extension of exts.value) {
+             cliArgs.push('--install-extension', extension);

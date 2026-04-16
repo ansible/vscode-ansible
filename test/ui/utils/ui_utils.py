@@ -2,6 +2,7 @@
 
 # pylint: disable=E0401
 import contextlib
+import logging
 import os
 import time
 from collections.abc import Generator
@@ -27,6 +28,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+
+log = logging.getLogger(__name__)
 
 LIGHTSPEED_USER = os.environ.get("LIGHTSPEED_USER", "")
 LIGHTSPEED_PASSWORD = os.environ.get("LIGHTSPEED_PASSWORD", "")
@@ -77,14 +80,20 @@ def ensure_vscode_ready(driver: WebDriver, timeout: int = 120) -> None:
     """
     driver.switch_to.default_content()
     if "127.0.0.1:8080" not in driver.current_url:
+        log.info("Navigating to code-server at http://127.0.0.1:8080")
         driver.get("http://127.0.0.1:8080")
+        log.info("Page loaded successfully")
+    log.info("Waiting for Ansible sidebar icon (up to 60s)")
     wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
+    log.info("Sidebar icon found, focusing ADT view")
     vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
+    log.info("Waiting for extension activation (welcome page, up to %ss)", timeout)
     find_element_across_iframes(
         driver,
         "//a[contains(@title, 'Ansible Development Tools welcome page')]",
         retries=timeout,
     )
+    log.info("Extension ready")
 
 
 def click_and_wait(
@@ -1021,42 +1030,37 @@ def vscode_run_command(
     if not command.startswith(">"):
         command = ">" + command
 
-    # Dismiss any leftover palette/dialog from a previous call to avoid
-    # blocking the command-center click with an overlay.
     ActionChains(driver).send_keys(Keys.ESCAPE).perform()
     time.sleep(0.3)
 
-    # click the command box
-    max_attempts = 6  # we seen timeout issue on GHA with 4 seconds
+    log.info("Opening command palette via F1 for: %s", command)
+    max_attempts = 3
     command_input = None
     for i in range(max_attempts):
+        ActionChains(driver).send_keys(Keys.F1).perform()
         try:
-            command_box = find_element_across_iframes(
-                driver,
-                "//li[@class='action-item command-center-center']",
-            )
-            command_input = click_and_wait(
-                driver,
-                command_box,
-                "//input[@aria-controls='quickInput_list']",
-                timeout=2,
+            command_input = WebDriverWait(driver, timeout=5).until(
+                expected_conditions.visibility_of_element_located(
+                    (By.XPATH, "//input[@aria-controls='quickInput_list']"),
+                ),
             )
             break
-        except (
-            TimeoutException,
-            TimeOutError,
-            NoSuchElementException,
-            StaleElementReferenceException,
-        ):  # pragma: no cover
-            if i == max_attempts - 1:
-                raise
-            time.sleep(1)
+        except TimeoutException:  # pragma: no cover
+            log.warning(
+                "Command palette did not open on attempt %s/%s",
+                i + 1,
+                max_attempts,
+            )
+            ActionChains(driver).send_keys(Keys.ESCAPE).perform()
+            time.sleep(0.5)
 
-    if command_input:
-        command_input.send_keys(command)
-        # Let the palette finish filtering results before pressing Enter,
-        # otherwise the keystroke can arrive before a match is highlighted.
-        time.sleep(0.5)
+    if not command_input:
+        msg = f"Command palette failed to open after {max_attempts} attempts"
+        raise TimeoutException(msg)
+
+    command_input.send_keys(command)
+    time.sleep(0.5)
+    log.info("Command entered, pressing Enter")
     actions = ActionChains(driver)
     actions.send_keys(Keys.ENTER).perform()
     if command_param:

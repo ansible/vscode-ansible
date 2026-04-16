@@ -9,6 +9,11 @@ overrides:
 
 packageExtensionsChecksum: sha256-aFRaYtZLvfkyedP3TSQbgNuU5y3GOl4Ou/9gmySVprU=
 
+patchedDependencies:
+  '@vscode/test-cli@0.0.12':
+    hash: 010b75b841b252e41d205ad7d4cbe44e3eafb430945f45d3e3b18ae4c1739e0a
+    path: patches/@vscode__test-cli@0.0.12.patch
+
 importers:
 
   .:
@@ -133,7 +138,7 @@ importers:
         version: 4.1.2(vitest@4.1.2)
       '@vscode/test-cli':
         specifier: ^0.0.12
-        version: 0.0.12
+        version: 0.0.12(patch_hash=010b75b841b252e41d205ad7d4cbe44e3eafb430945f45d3e3b18ae4c1739e0a)
       '@vscode/test-electron':
         specifier: ^2.5.2
         version: 2.5.2
@@ -7073,7 +7078,7 @@ snapshots:
 
   '@vscode/python-extension@1.0.5': {}
 
-  '@vscode/test-cli@0.0.12':
+  '@vscode/test-cli@0.0.12(patch_hash=010b75b841b252e41d205ad7d4cbe44e3eafb430945f45d3e3b18ae4c1739e0a)':
     dependencies:
       '@types/mocha': 10.0.10
       c8: 10.1.3
