@@ -95,6 +95,16 @@ export async function setup() {
   process.env.USERPROFILE = sharedHome; // Windows uses USERPROFILE instead of HOME
   process.env.ANSIBLE_HOME = ansibleHome;
 
+  // Delete ALS plugin doc cache once at suite start (not per-file).
+  // With isolate:true each file runs in its own worker — deleting per-file
+  // forces expensive podman cp rebuilds for every @ee test file.
+  const alsCachePath = path.resolve(
+    sharedHome,
+    ".cache",
+    "ansible-language-server",
+  );
+  fs.rmSync(alsCachePath, { recursive: true, force: true });
+
   // Copy container engine config from original HOME so podman/docker
   // use the same shared storage location (CI writes storage.conf there)
   try {
