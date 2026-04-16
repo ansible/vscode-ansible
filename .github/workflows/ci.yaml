@@ -469,19 +469,22 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
 
-      - name: Remove test HOME artifacts before upload
+      - name: Remove test artifacts before upload
         if: ${{ always() }}
         run: |
-          # Container overlays are root-owned (podman user namespace remapping)
-          # and contain files that trigger gitleaks false positives
-          if [ -d out/e2e/tmp/home/.local/share/containers ]; then
-            podman unshare rm -rf -- out/e2e/tmp/home/.local/share/containers 2>/dev/null \
-              || rm -rf -- out/e2e/tmp/home/.local/share/containers \
-              || true
-          fi
-          # mise installs (node headers trigger gitleaks generic-api-key false positive)
+          # Remove container overlays (root-owned, need podman unshare)
+          for target in \
+            "out/e2e/tmp/home/.local/share/containers"; do
+            if [ -d "$target" ]; then
+              podman unshare rm -rf -- "$target" \
+                || buildah unshare rm -rf -- "$target" \
+                || rm -rf -- "$target" \
+                || echo "::warning::Could not remove $target"
+            fi
+          done
+          # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
           rm -rf out/e2e/tmp/home/.local/share/mise || true
-          # reduce artifact size by removing cached test data
+          # Reduce artifact size by removing cached test data
           rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
