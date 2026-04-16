@@ -38,6 +38,7 @@ const config: KnipConfig = {
       ? [
           // root workspace – webview or deep @src/* chain deps
           "@ansible/ansible-mcp-server", // used as a string constant, not imported
+          "@vscode/python-extension", // dynamic API import for ms-python.python fallback
           "@google/genai",
           "@highlightjs/vue-plugin",
           "@primeuix/themes",

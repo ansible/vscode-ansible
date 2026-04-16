@@ -15,6 +15,7 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -302,6 +303,10 @@ describe("getAnsibleMetaData()", function () {
 
   describe("@ee", function () {
     beforeAll(async () => {
+      if (skipEE()) {
+        return;
+      }
+
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings, context);
       }
