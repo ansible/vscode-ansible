@@ -470,9 +470,10 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
 
-      - name: Remove Podman overlay storage before upload
+      - name: Remove test artifacts before upload
         if: ${{ always() }}
         run: |
+          # Remove container overlays (root-owned, need podman unshare)
           for target in \
             "out/als/tmp/home/.local/share/containers" \
             ".cache/containers"; do
@@ -483,6 +484,9 @@ jobs:
                 || echo "::warning::Could not remove $target"
             fi
           done
+          # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
+          rm -rf out/e2e/tmp/home/.local/share/mise || true
+          rm -rf out/home/.local/share/mise || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
