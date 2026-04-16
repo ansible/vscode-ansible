@@ -82,6 +82,13 @@ export async function setup() {
   fs.mkdirSync(ansibleHome, { recursive: true });
   process.env.ANSIBLE_HOME = ansibleHome;
 
+  // Restore real HOME if ext globalSetup changed it (it runs first).
+  // Rootless podman needs the real HOME for storage.conf and namespace setup.
+  if (process.env._ORIGINAL_HOME) {
+    process.env.HOME = process.env._ORIGINAL_HOME;
+    process.env.USERPROFILE = process.env._ORIGINAL_HOME;
+  }
+
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
   const isListing =
