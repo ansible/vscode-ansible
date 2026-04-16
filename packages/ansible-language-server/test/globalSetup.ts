@@ -216,25 +216,9 @@ export async function setup() {
 }
 
 export async function teardown() {
-  // Clean up podman/docker containers and storage to avoid permission issues in CI
-  // The isolated HOME stores containers in out/als/tmp/home/.local/share/containers/
-  // which creates root-owned files that CI can't clean up without this
-  try {
-    if (!SKIP_PODMAN) {
-      console.info("Cleaning up podman containers and storage...");
-      spawnSync("podman", ["system", "reset", "--force"], { stdio: "inherit" });
-    }
-    if (!SKIP_DOCKER) {
-      console.info("Cleaning up docker containers and storage...");
-      spawnSync(
-        "docker",
-        ["system", "prune", "--all", "--force", "--volumes"],
-        {
-          stdio: "inherit",
-        },
-      );
-    }
-  } catch (error) {
-    console.warn("Container cleanup failed (non-fatal):", error);
-  }
+  // Cleanup if needed in the future
+  // NOTE: Container overlay cleanup is handled in CI workflow
+  // (pre-upload step) using podman unshare, not here.
+  // Avoid podman system reset --force as it may wipe unrelated
+  // user containers (see review feedback from goneri).
 }
