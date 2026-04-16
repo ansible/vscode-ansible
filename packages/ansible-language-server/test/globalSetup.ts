@@ -8,7 +8,9 @@ import { quote } from "shell-quote";
 
 const require = createRequire(import.meta.url);
 // Resolve root package.json from repo root (tests run with cwd = workspace root)
-const pkg = require(path.join(__dirname, "..", "..", "..", "package.json"));
+const pkg = require(
+  path.join(import.meta.dirname, "..", "..", "..", "package.json"),
+);
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
@@ -67,10 +69,24 @@ function execWithTimeout(
 }
 
 export async function setup() {
+  // Preserve real HOME before any globalSetup overrides it.
+  // ext globalSetup runs first and changes HOME, so we need this guard.
+  if (!process.env._ORIGINAL_HOME) {
+    process.env._ORIGINAL_HOME =
+      process.env.HOME || process.env.USERPROFILE || "";
+  }
+
   // Use shared HOME for all tests to prevent writing to user's home directory
-  const originalHome = process.env.HOME || process.env.USERPROFILE || "";
-  const sharedHome = path.resolve(__dirname, "../../../out/home");
-  const ansibleHome = path.resolve(__dirname, "../../../out/.ansible");
+  const originalHome =
+    process.env._ORIGINAL_HOME ||
+    process.env.HOME ||
+    process.env.USERPROFILE ||
+    "";
+  const sharedHome = path.resolve(import.meta.dirname, "../../../out/home");
+  const ansibleHome = path.resolve(
+    import.meta.dirname,
+    "../../../out/.ansible",
+  );
 
   fs.mkdirSync(sharedHome, { recursive: true });
   fs.mkdirSync(ansibleHome, { recursive: true });
@@ -81,28 +97,37 @@ export async function setup() {
 
   // Copy container engine config from original HOME so podman/docker
   // use the same shared storage location (CI writes storage.conf there)
-  const realContainersConfig = path.join(originalHome, ".config", "containers");
-  const isolatedContainersConfig = path.join(
-    sharedHome,
-    ".config",
-    "containers",
-  );
-
-  if (
-    originalHome &&
-    fs.existsSync(realContainersConfig) &&
-    !fs.existsSync(isolatedContainersConfig)
-  ) {
-    fs.mkdirSync(isolatedContainersConfig, { recursive: true });
-    for (const entry of fs.readdirSync(realContainersConfig)) {
-      const srcPath = path.join(realContainersConfig, entry);
-      if (fs.statSync(srcPath).isFile()) {
-        fs.copyFileSync(srcPath, path.join(isolatedContainersConfig, entry));
-      }
-    }
-    console.info(
-      `Copied container config from ${realContainersConfig} to ${isolatedContainersConfig}`,
+  try {
+    const realContainersConfig = path.join(
+      originalHome,
+      ".config",
+      "containers",
     );
+    const isolatedContainersConfig = path.join(
+      sharedHome,
+      ".config",
+      "containers",
+    );
+
+    if (
+      originalHome &&
+      fs.existsSync(realContainersConfig) &&
+      !fs.existsSync(isolatedContainersConfig)
+    ) {
+      fs.mkdirSync(isolatedContainersConfig, { recursive: true });
+      for (const entry of fs.readdirSync(realContainersConfig)) {
+        const srcPath = path.join(realContainersConfig, entry);
+        if (fs.statSync(srcPath).isFile()) {
+          fs.copyFileSync(srcPath, path.join(isolatedContainersConfig, entry));
+        }
+      }
+      console.info(
+        `Copied container config from ${realContainersConfig} to ${isolatedContainersConfig}`,
+      );
+    }
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`Warning: Failed to copy container config: ${message}`);
   }
 
   // Only run prerequisite checks when actually running tests, not when listing
@@ -232,12 +257,4 @@ export async function setup() {
   console.info(
     "Skipping container setup during test initialization. Container tests will be skipped if containers are not available.",
   );
-}
-
-export async function teardown() {
-  // Cleanup if needed in the future
-  // NOTE: Container overlay cleanup is handled in CI workflow
-  // (pre-upload step) using podman unshare, not here.
-  // Avoid podman system reset --force as it may wipe unrelated
-  // user containers (see PR #2730 review feedback).
 }
