@@ -474,6 +474,8 @@ jobs:
         run: |
           # mise installs (node headers trigger gitleaks generic-api-key false positive)
           rm -rf out/e2e/tmp/home/.local/share/mise || true
+          # reduce artifact size by removing cached test data
+          rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
