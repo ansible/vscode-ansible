@@ -1134,6 +1134,9 @@
     "overrides": {
       "rollup": "npm:@rollup/wasm-node@*"
     },
+    "patchedDependencies": {
+      "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
+    },
     "packageExtensions": {
       "cypress-multi-reporters@*": {
         "dependencies": {
