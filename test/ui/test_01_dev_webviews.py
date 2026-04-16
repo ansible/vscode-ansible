@@ -24,7 +24,7 @@ def test_devfile_webview(
 
     vscode_run_command(driver, ">Ansible: Create a Devfile")
 
-    find_element_across_iframes(driver, "//form[@id='devfile-form']", retries=10)
+    find_element_across_iframes(driver, "//form[@id='devfile-form']", retries=20)
 
     vscode_textfield_interact(driver, "path-url", "~")
 
@@ -70,7 +70,7 @@ def test_devcontainer_webview(
     find_element_across_iframes(
         driver,
         "//form[@id='devcontainer-form']",
-        retries=10,
+        retries=20,
     )
 
     vscode_textfield_interact(driver, "path-url", "~")

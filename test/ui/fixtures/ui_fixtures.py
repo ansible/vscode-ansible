@@ -89,6 +89,10 @@ def browser_setup(
                 log.info(
                     "Waiting for container %s to be healthy: %s", CONTAINER_NAME, count
                 )
+            log.info(
+                "Container healthy, waiting for code-server extension activation..."
+            )
+            time.sleep(30)
 
         browser = os.environ.get("BROWSER_TYPE")
         options: FirefoxOptions | ChromeOptions

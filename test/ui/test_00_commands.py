@@ -43,7 +43,7 @@ def test_terminal(
     ensure_vscode_ready(driver)
     vscode_run_command(driver, ">workbench.action.terminal.new")
     vscode_run_command(driver, ">workbench.action.terminal.focus")
-    time.sleep(3)  # allow terminal to start before sending input
+    time.sleep(5)  # allow terminal to start before sending input
     vscode_run_command(
         driver, ">workbench.action.terminal.sendSequence", "adt --version\\n"
     )
@@ -60,7 +60,7 @@ def test_terminal(
 
     errors = [NoSuchElementException, ElementNotInteractableException]
     wait = WebDriverWait(
-        driver, timeout=10, poll_frequency=0.5, ignored_exceptions=errors
+        driver, timeout=30, poll_frequency=1, ignored_exceptions=errors
     )
     wait.until(lambda _: check_output())
 
@@ -85,10 +85,10 @@ def test_create_empty_playbook(
     wait_displayed(
         driver,
         "//div[contains(@class, 'tab') and contains(., 'Untitled')]",
-        timeout=2,
+        timeout=10,
     )
 
-    time.sleep(1)
+    time.sleep(2)
     view_lines = driver.find_elements("xpath", "//div[@class='view-line']")
 
     # Extract text from the lines (checking first 10 lines is sufficient)

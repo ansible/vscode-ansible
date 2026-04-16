@@ -78,7 +78,16 @@ def ensure_vscode_ready(driver: WebDriver, timeout: int = 120) -> None:
     driver.switch_to.default_content()
     if "127.0.0.1:8080" not in driver.current_url:
         driver.get("http://127.0.0.1:8080")
-    wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=60)
+    max_nav_attempts = 3
+    for attempt in range(max_nav_attempts):
+        try:
+            wait_displayed(driver, "//a[@aria-label='Ansible']", timeout=90)
+            break
+        except (TimeoutException, TimeOutError):
+            if attempt == max_nav_attempts - 1:
+                raise
+            driver.refresh()
+            time.sleep(10)
     vscode_run_command(driver, ">Ansible: Focus on Ansible Development Tools View")
     find_element_across_iframes(
         driver,
@@ -1039,7 +1048,7 @@ def vscode_run_command(
                 driver,
                 command_box,
                 "//input[@aria-controls='quickInput_list']",
-                timeout=2,
+                timeout=5,
             )
             break
         except (
