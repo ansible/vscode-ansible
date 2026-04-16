@@ -591,7 +591,7 @@ export class ExecutionEnvironment {
     /* v8 ignore next 33 */
     const updatedHostDocPath: string[] = [];
 
-    containerPluginPaths.forEach((srcPath) => {
+    for (const srcPath of containerPluginPaths) {
       const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
       if (fs.existsSync(destPath)) {
         updatedHostDocPath.push(destPath);
@@ -600,7 +600,7 @@ export class ExecutionEnvironment {
           srcPath === "" ||
           !this.isPluginInPath(containerName, srcPath, searchKind)
         ) {
-          return;
+          continue;
         }
         const destPathFolder = destPath
           .split(path.sep)
@@ -611,13 +611,13 @@ export class ExecutionEnvironment {
         this.connection.console.log(
           `Copying plugins from container to local cache path ${copyCommand}`,
         );
-        asyncExec(copyCommand, {
+        await asyncExec(copyCommand, {
           encoding: "utf-8",
         });
 
         updatedHostDocPath.push(destPath);
       }
-    });
+    }
 
     return updatedHostDocPath;
   }
