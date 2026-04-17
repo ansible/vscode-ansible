@@ -21,8 +21,8 @@ const config: KnipConfig = {
     "@biomejs/biome",
     "@types/vscode",
     "@typescript-eslint/eslint-plugin",
-    "@vscode/test-electron",
     "@vscode/vsce",
+    "@wdio/local-runner", // referenced by string in wdio.conf.ts `runner: "local"`
     "cspell-cli",
     "cypress-multi-reporters",
     "eslint-formatter-gha",
@@ -30,6 +30,7 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "ts-node", // used by wdio autoCompileOpts, not directly imported
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:
     //   • root workspace: webviews/ are not analyzed (not in package.json main/bin)

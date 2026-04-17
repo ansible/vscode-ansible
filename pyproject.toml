@@ -17,12 +17,7 @@ dev = [
   "mypy>=1.17.1",
   "pip>26.0.0",  # security reasons
   "pipx>=1.8.0",
-  "podman-compose>=1.5.0",
   "pygithub>=2.8.1",
-  "pytest-coverage>=0.0",
-  "pytest-github-actions-annotate-failures>=0.4.0",
-  "pytest-rerunfailures>=16.1",
-  "selenium>=4.40.0",
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
 ]
@@ -48,7 +43,7 @@ ignore-words-list = [
   "ws"
 ]
 ignore-words = ".config/dictionary.txt"
-skip = ".cache,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,pnpm-lock.yaml,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible,lib"
+skip = ".cache,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,pnpm-lock.yaml,package-lock.json,.vscode-test,.wdio-vscode,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible,lib"
 
 [tool.coverage.run]
 # branch is more reliable than lines, protects against false positives
@@ -62,59 +57,6 @@ egg_base = "out"
 [tool.mypy]
 color_output = true
 exclude = "(.ansible|out|syntaxes).*"
-
-# We have no python tests in this project, but we keep this config to prevent
-# vscode python extension from showing errors while trying to collect tests.
-[tool.pytest]
-# do not add options here as this will likely break either console runs or IDE
-# integration like vscode or pycharm
-# keep -rA to know what is skipped, failed and passed as these are scenarios
-# and we do not expect to have too many of them.
-# --maxfail=5 is needed to prevent CI jobs being killed when too many tests
-# are failing, preventing generation and uploading of a junit report.
-addopts = [
-  "--durations-min=10",
-  "--durations=10",
-  "--maxfail=5",
-  "-n0",
-  "-rA",
-  "-v"
-]
-filterwarnings = [
-  "error",
-  "once::pytest.PytestWarning",
-]
-junit_family = "legacy"  # https://docs.codecov.com/docs/test-analytics
-junit_logging = "all"
-log_cli = true
-log_cli_level = "INFO"
-markers = [
-  "lightspeed: mark tests related to lightspeed that require backend credentials",
-  "modify_settings: modify vscode settings.json before/after test",
-  "vscode_trial: mark tests related to lightspeed trial",
-]
-minversion = "9.0"  # toml config changes
-norecursedirs = [
-  "*.egg",
-  ".ansible",
-  ".cache",
-  ".eggs",
-  ".git",
-  ".github",
-  ".mypy_cache",
-  ".projects",
-  ".tox",
-  ".vscode-test",
-  "build",
-  "collections",
-  "dist",
-  "docs",
-  "node_modules",
-  "out",
-]
-strict_markers = true
-# strict_xfail = true
-testpaths = ["test/ui"]
 
 [tool.ruff]
 cache-dir = "./.cache/.ruff"
