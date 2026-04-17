@@ -20,11 +20,15 @@ services:
       - ./out/ui/logs:/home/selenium/.local/share/code-server/logs:rw
     restart: "no"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4444"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://localhost:4444 && curl -sf http://localhost:8080",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 30s
     deploy:
       resources:
         limits:
