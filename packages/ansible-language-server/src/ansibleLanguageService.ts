@@ -97,13 +97,16 @@ export class AnsibleLanguageService {
 
     this.connection.onInitialized(() => {
       if (this.workspaceManager.clientCapabilities.workspace?.configuration) {
-        // register for all configuration changes
-        this.connection.client.register(
-          DidChangeConfigurationNotification.type,
-          {
+        this.connection.client
+          .register(DidChangeConfigurationNotification.type, {
             section: "ansible",
-          },
-        );
+          })
+          .catch(() => {
+            this.connection.console.warn(
+              "Client does not support dynamic configuration registration. " +
+                "Configuration change notifications will not be received.",
+            );
+          });
       }
       if (
         this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
@@ -112,22 +115,30 @@ export class AnsibleLanguageService {
           this.workspaceManager.handleWorkspaceChanged(e);
         });
       }
-      this.connection.client.register(DidChangeWatchedFilesNotification.type, {
-        watchers: [
-          {
-            // watch ansible configuration
-            globPattern: "**/ansible.cfg",
-          },
-          {
-            // watch ansible-lint configuration
-            globPattern: "**/.ansible-lint",
-          },
-          {
-            // watch role meta-configuration
-            globPattern: "**/meta/main.{yml,yaml}",
-          },
-        ],
-      });
+      this.connection.client
+        .register(DidChangeWatchedFilesNotification.type, {
+          watchers: [
+            {
+              // watch ansible configuration
+              globPattern: "**/ansible.cfg",
+            },
+            {
+              // watch ansible-lint configuration
+              globPattern: "**/.ansible-lint",
+            },
+            {
+              // watch role meta-configuration
+              globPattern: "**/meta/main.{yml,yaml}",
+            },
+          ],
+        })
+        .catch(() => {
+          this.connection.console.warn(
+            "Client does not support dynamic file watcher registration. " +
+              "Changes to ansible.cfg, .ansible-lint, and role meta files " +
+              "will require a server restart to take effect.",
+          );
+        });
     });
   }
 
