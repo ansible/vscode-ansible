@@ -18,10 +18,10 @@ There are three types of tests for the extension:
    of the extension, run the whole workflow from launching the extension,
    loading Ansible files in the editor, activating the language server, using
    the language features, and asserting the outcome.
-3. **UI tests (selenium):**  Run in a `code-server`
-   (a.k.a VSCode in a Webbrowser) instance embedded in a container. The web browser
-   is Firefox and the interactions are handled by Selenium.
-   Some tests require a secret.
+3. **UI tests (WDIO):** Run against a real VS Code Electron instance using
+   [WebDriverIO](https://webdriver.io/) with `wdio-vscode-service`. Tests
+   exercise the full extension UI: webviews, commands, terminal, sidebar,
+   and Lightspeed flows (using a local mock server). No container required.
 
 ## Language server tests
 
@@ -38,13 +38,13 @@ Each type of test has its own script and can be run by `task <command>`:
 
 1. `task unit`: Runs the unit tests for the extension.
 2. `task e2e`: Runs the end-to-end tests for the extension.
-3. `task ui`: Runs the Selenium-based UI tests.
+3. `task wdio`: Runs the WebDriverIO UI tests against real VS Code Electron.
 
 !!! tip
 
-    To run a single UI test case, you can use `MOCHA_GREP` environment variable as follows:
+    To run a single UI test spec, use the `--spec` flag:
 
-    `MOCHA_GREP="your test case name in describe statement" pnpm ui-current`
+    `npx pnpm test:wdio -- --spec test/wdio/smoke.spec.ts`
 
 ### Language server test scripts
 
