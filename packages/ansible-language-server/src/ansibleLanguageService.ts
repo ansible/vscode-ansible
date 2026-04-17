@@ -97,13 +97,13 @@ export class AnsibleLanguageService {
 
     this.connection.onInitialized(() => {
       if (this.workspaceManager.clientCapabilities.workspace?.configuration) {
-        // register for all configuration changes
-        this.connection.client.register(
-          DidChangeConfigurationNotification.type,
-          {
+        this.connection.client
+          .register(DidChangeConfigurationNotification.type, {
             section: "ansible",
-          },
-        );
+          })
+          .catch((e: unknown) => {
+            this.handleError(e, "registerConfigurationCapability");
+          });
       }
       if (
         this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
@@ -112,22 +112,26 @@ export class AnsibleLanguageService {
           this.workspaceManager.handleWorkspaceChanged(e);
         });
       }
-      this.connection.client.register(DidChangeWatchedFilesNotification.type, {
-        watchers: [
-          {
-            // watch ansible configuration
-            globPattern: "**/ansible.cfg",
-          },
-          {
-            // watch ansible-lint configuration
-            globPattern: "**/.ansible-lint",
-          },
-          {
-            // watch role meta-configuration
-            globPattern: "**/meta/main.{yml,yaml}",
-          },
-        ],
-      });
+      this.connection.client
+        .register(DidChangeWatchedFilesNotification.type, {
+          watchers: [
+            {
+              // watch ansible configuration
+              globPattern: "**/ansible.cfg",
+            },
+            {
+              // watch ansible-lint configuration
+              globPattern: "**/.ansible-lint",
+            },
+            {
+              // watch role meta-configuration
+              globPattern: "**/meta/main.{yml,yaml}",
+            },
+          ],
+        })
+        .catch((e: unknown) => {
+          this.handleError(e, "registerWatchedFilesCapability");
+        });
     });
   }
 
