@@ -101,8 +101,11 @@ export class AnsibleLanguageService {
           .register(DidChangeConfigurationNotification.type, {
             section: "ansible",
           })
-          .catch((e: unknown) => {
-            this.handleError(e, "registerConfigurationCapability");
+          .catch(() => {
+            this.connection.console.warn(
+              "Client does not support dynamic configuration registration. " +
+                "Configuration change notifications will not be received.",
+            );
           });
       }
       if (
@@ -129,8 +132,12 @@ export class AnsibleLanguageService {
             },
           ],
         })
-        .catch((e: unknown) => {
-          this.handleError(e, "registerWatchedFilesCapability");
+        .catch(() => {
+          this.connection.console.warn(
+            "Client does not support dynamic file watcher registration. " +
+              "Changes to ansible.cfg, .ansible-lint, and role meta files " +
+              "will require a server restart to take effect.",
+          );
         });
     });
   }

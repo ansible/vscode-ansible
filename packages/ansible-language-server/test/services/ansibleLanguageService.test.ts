@@ -11,6 +11,7 @@ interface MockConnection extends Connection {
 function createMockDocuments() {
   return {
     listen: sinon.stub(),
+    get: sinon.stub().returns(undefined),
     onDidOpen: sinon.stub(),
     onDidClose: sinon.stub(),
     onDidSave: sinon.stub(),
@@ -87,7 +88,7 @@ describe("AnsibleLanguageService", () => {
   });
 
   describe("onInitialized client/registerCapability rejection", () => {
-    it("should handle registration failure gracefully", async () => {
+    it("should warn on registration failure instead of crashing", async () => {
       const service = new AnsibleLanguageService(
         mockConnection,
         mockDocuments as never,
@@ -104,24 +105,24 @@ describe("AnsibleLanguageService", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const errorStub = (
+      const warnStub = (
         mockConnection as unknown as {
-          console: { error: sinon.SinonStub };
+          console: { warn: sinon.SinonStub };
         }
-      ).console.error;
-      expect(errorStub.called).toBe(true);
+      ).console.warn;
+      expect(warnStub.called).toBe(true);
 
-      const errorMessages: string[] = errorStub.args.map(
+      const warnMessages: string[] = warnStub.args.map(
         (args: unknown[]) => args[0] as string,
       );
       expect(
-        errorMessages.some((msg) =>
-          msg.includes("registerConfigurationCapability"),
+        warnMessages.some((msg) =>
+          msg.includes("dynamic configuration registration"),
         ),
       ).toBe(true);
       expect(
-        errorMessages.some((msg) =>
-          msg.includes("registerWatchedFilesCapability"),
+        warnMessages.some((msg) =>
+          msg.includes("dynamic file watcher registration"),
         ),
       ).toBe(true);
     });
@@ -147,6 +148,12 @@ describe("AnsibleLanguageService", () => {
         mockConnection as unknown as { onHover: sinon.SinonStub }
       ).onHover;
       expect(onHoverStub.called).toBe(true);
+      await expect(
+        onHoverStub.firstCall.args[0]({
+          textDocument: { uri: "file:///test.yml" },
+          position: { line: 0, character: 0 },
+        }),
+      ).resolves.toBeNull();
 
       const onCompletionStub = (
         mockConnection as unknown as {
@@ -154,6 +161,12 @@ describe("AnsibleLanguageService", () => {
         }
       ).onCompletion;
       expect(onCompletionStub.called).toBe(true);
+      await expect(
+        onCompletionStub.firstCall.args[0]({
+          textDocument: { uri: "file:///test.yml" },
+          position: { line: 0, character: 0 },
+        }),
+      ).resolves.toBeNull();
     });
   });
 });
