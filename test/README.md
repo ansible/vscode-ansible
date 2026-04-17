@@ -63,10 +63,16 @@ Run the following command:
     task e2e
 ```
 
-#### UI Tests
+#### UI Tests (WDIO)
 
-Run the following command:
+Run against real VS Code Electron using WebDriverIO (no container needed):
 
 ```shell
-    task ui
+    task wdio
+```
+
+To run a single spec file:
+
+```shell
+    npx pnpm test:wdio -- --spec test/wdio/smoke.spec.ts
 ```

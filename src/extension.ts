@@ -207,6 +207,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
     llmProviderSettings,
   );
 
+  if (context.extensionMode !== vscode.ExtensionMode.Production) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "ansible.lightspeed.mockSession",
+        async (session: {
+          accessToken: string;
+          accountId: string;
+          accountLabel: string;
+        }) => {
+          await lightSpeedManager.lightSpeedAuthenticationProvider.setMockSession(
+            session,
+          );
+        },
+      ),
+    );
+  }
+
   // Register provider management commands
   const providerCommands = new ProviderCommands(
     context,
