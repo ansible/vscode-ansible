@@ -35,6 +35,7 @@
                                 | failed_when
                                 | when
                                 | check_mode
+                                | until
                             )\b
                             \s* (:) # 5
                             (?=\s) (?!\s*[|&gt;'"]|\s*$|\s*\#.*$) # starting an unquoted flow
@@ -85,6 +86,7 @@
                                 | failed_when
                                 | when
                                 | check_mode
+                                | until
                             )\b
                             \s* (:) # 5
                             (?=\s) (?!\s*[|&gt;]|\s*$|\s*\#.*$) # not starting a block (scalar or other)
@@ -143,6 +145,7 @@
                                 | failed_when
                                 | when
                                 | check_mode
+                                | until
                             )\b
                             \s* (:) # 5
                             \s+ (?: (\|) | (&gt;) ) ([1-9])? ([-+])? # 6,7,8,9; starting a scalar block
@@ -226,6 +229,7 @@
                                 | failed_when
                                 | when
                                 | check_mode
+                                | until
                             )\b
                             \s* (:) # 5
                             (.*$) # comment or illegal
@@ -398,7 +402,7 @@
                             ^(?!\1\s+) # if the indentation is too small
                         </string>
                         <key>contentName</key>
-                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
+                        <string>meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -445,7 +449,7 @@
                             </dict>
                         </dict>
                         <key>contentName</key>
-                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
+                        <string>meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -523,7 +527,7 @@
                             </dict>
                         </dict>
                         <key>contentName</key>
-                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
+                        <string>meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -579,7 +583,7 @@
                         <key>end</key>
                         <string>(?!\G)</string>
                         <key>contentName</key>
-                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
+                        <string>meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -607,7 +611,7 @@
                         <string>(?x)
                             ^(?!\1\s*) # if the indentation is too small</string>
                         <key>contentName</key>
-                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
+                        <string>meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
