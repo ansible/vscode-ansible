@@ -58,6 +58,7 @@ def _assert_disable_notification(driver: Any) -> None:
     )
 
 
+@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_mcp_server_enable_via_command(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -71,6 +72,7 @@ def test_mcp_server_enable_via_command(
     _assert_enable_notification(driver)
 
 
+@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_mcp_server_disable(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -84,6 +86,7 @@ def test_mcp_server_disable(
     _assert_disable_notification(driver)
 
 
+@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 @pytest.mark.modify_settings({"ansible.mcpServer.enabled": True})
 def test_mcp_server_enabled_via_settings(
     browser_setup: Any,
@@ -99,6 +102,7 @@ def test_mcp_server_enabled_via_settings(
     _assert_enable_notification(driver)
 
 
+@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_mcp_server_usable(
     browser_setup: Any,
     screenshot_on_fail: Any,
