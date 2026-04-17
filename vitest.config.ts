@@ -10,6 +10,9 @@ import vue from "@vitejs/plugin-vue";
 // current project.
 const als_root = resolve(__dirname, "packages", "ansible-language-server");
 const mcp_root = resolve(__dirname, "packages", "ansible-mcp-server");
+// Capture real HOME before any globalSetup can override it.
+// ALS @ee tests need the real HOME for rootless podman to work at normal speed.
+const originalHome = process.env.HOME || process.env.USERPROFILE || "";
 
 const reporters = ["default", "junit"]; // text-summary shows only overall coverage stats, skipping per-file details
 if (process.env.GITHUB_ACTIONS) {
@@ -86,6 +89,10 @@ export default defineConfig({
           globals: true,
           globalSetup: [`${als_root}/test/globalSetup.ts`],
           environment: "node",
+          env: {
+            HOME: originalHome,
+            USERPROFILE: originalHome,
+          },
           exclude: ["node_modules", "out"],
           fileParallelism: false,
           include: ["test/**/*.test.ts"],
