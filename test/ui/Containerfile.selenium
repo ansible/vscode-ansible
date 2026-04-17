@@ -1,0 +1,19 @@
+# Extends ghcr.io/ansible/selenium-adt:main with pinned code-server version
+# This is a workaround for https://github.com/coder/code-server/issues/7890
+# code-server v4.114.0 has a bug preventing extensions from loading properly.
+# Pin to v4.113.1 until the upstream fix is available.
+FROM ghcr.io/ansible/selenium-adt:main
+
+USER root
+
+# Reinstall code-server with pinned version to avoid extension loading bug
+# in v4.114.0 (released April 4, 2026)
+RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version 4.113.1
+
+# Reinstall extensions that may have been affected
+RUN code-server --install-extension ms-python.vscode-python-envs \
+    --install-extension ms-python.python \
+    --install-extension redhat.vscode-yaml \
+    --install-extension redhat.vscode-redhat-account
+
+USER 1001

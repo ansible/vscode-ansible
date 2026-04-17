@@ -4,8 +4,10 @@
 # cspell: ignore healthcheck
 services:
   selenium-vscode:
-    image: ghcr.io/ansible/selenium-adt:main
-    pull_policy: missing
+    build:
+      context: .
+      dockerfile: test/ui/Containerfile.selenium
+    image: selenium-adt-pinned:local
     container_name: selenium-vscode
     shm_size: "10g"
     security_opt:

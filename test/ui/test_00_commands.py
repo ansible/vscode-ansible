@@ -33,7 +33,6 @@ EXPECTED_ADT_PACKAGES = [
 ]
 
 
-@pytest.mark.skip(reason="Flaky on CI - tests container image, not extension code")
 def test_terminal(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -72,7 +71,6 @@ def test_terminal(
     assert not missing, f"Missing packages in 'adt --version' output: {missing}"
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_create_empty_playbook(
     browser_setup: Any,
     screenshot_on_fail: Any,

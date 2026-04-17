@@ -14,7 +14,6 @@ from test.ui.utils.ui_utils import (
 )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_devfile_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -58,7 +57,6 @@ def test_devfile_webview(
     vscode_button_click(driver, "reset-button")
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_devcontainer_webview(
     browser_setup: Any,
     screenshot_on_fail: Any,

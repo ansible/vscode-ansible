@@ -12,7 +12,6 @@ from test.ui.utils.ui_utils import (
 )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 @pytest.mark.modify_settings({"ansible.lightspeed.enabled": False})
 def test_sidebar_nav(
     browser_setup: Any,
@@ -44,7 +43,6 @@ def test_sidebar_nav(
     )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_header_and_subtitle(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -78,7 +76,6 @@ def test_header_and_subtitle(
     )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_mcp_section(
     browser_setup: Any,
     screenshot_on_fail: Any,

@@ -12,7 +12,6 @@ from test.ui.utils.ui_utils import (
 )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_llm_provider_webview_opens(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -32,7 +31,6 @@ def test_llm_provider_webview_opens(
     )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_llm_provider_webview_lists_providers(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -73,7 +71,6 @@ def test_llm_provider_webview_lists_providers(
     assert rhcustom_provider is not None, "Red Hat AI provider should be listed"
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_llm_provider_webview_edit_button(
     browser_setup: Any,
     screenshot_on_fail: Any,
@@ -106,7 +103,6 @@ def test_llm_provider_webview_edit_button(
     )
 
 
-@pytest.mark.skip(reason="Flaky on CI - extension activation timing issues")
 def test_rhcustom_provider_config_fields(
     browser_setup: Any,
     screenshot_on_fail: Any,
