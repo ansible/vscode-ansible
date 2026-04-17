@@ -273,6 +273,14 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
+          - name: test (linux-wdio)
+            id: test-linux-wdio
+            task-name: wdio
+            os: ubuntu-24.04
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+
           - name: test (wsl)
             id: test-wsl
             task-name: test
@@ -307,6 +315,14 @@ jobs:
         if: matrix.runs-on == 'self-hosted'
         run: |
           set -euxo pipefail
+          # Rootless Podman overlays under .cache/containers/ use user
+          # namespace remapping; remove them with podman or sudo.
+          if [ -d .cache/containers ]; then
+            podman unshare rm -rf -- .cache/containers 2>/dev/null \
+              || sudo rm -rf -- .cache/containers \
+              || true
+          fi
+          sudo find . -not -user "$(id -u)" -delete 2>/dev/null || true
           git reset --hard HEAD
           git clean -ffdx -e out/als/tmp/
 
@@ -394,11 +410,6 @@ jobs:
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-      - name: task package
-        id: package
-        run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
-
       - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
@@ -410,23 +421,29 @@ jobs:
           EOT
           podman info
 
+      - name: task package
+        if: ${{ matrix.task-name != 'wdio' }}
+        id: package
+        run: |
+          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
+
       - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
 
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
+        if: "${{ !contains(matrix.name, 'test') && !contains(matrix.name, 'wdio') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task unit (ext, vue, als, mcp)
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
+        if: contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: |
           task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
           set -e
           task build 2>out/log/build-before.txt
@@ -437,17 +454,11 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui (selenium)
-        # runner.os=Linux even on windows if the runner was started from inside wsl!
-        if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
+      - name: task wdio (VS Code UI)
+        if: ${{ matrix.task-name == 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
-          task ui
+          task wdio
           task build --status
-        env:
-          # defined inside 'ci' environment
-          LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
-          LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
-          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
       - name: task finish
