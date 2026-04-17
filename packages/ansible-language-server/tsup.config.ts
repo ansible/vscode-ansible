@@ -23,7 +23,7 @@ export const tsup: Options = {
     // "src/services/settingsManager.ts",
   ],
   minify: env === "production",
-  bundle: env === "production",
+  bundle: true,
   entry: ["src/**/*.ts"],
   format: ["esm", "cjs"],
   outDir: env === "production" ? "dist" : "lib",
