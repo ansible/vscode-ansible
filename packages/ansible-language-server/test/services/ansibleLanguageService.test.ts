@@ -32,9 +32,7 @@ function createMockConnection(): MockConnection {
     client: {
       register: sinon
         .stub()
-        .rejects(
-          new Error("client/registerCapability not supported"),
-        ),
+        .rejects(new Error("client/registerCapability not supported")),
     },
     workspace: {
       onDidChangeWorkspaceFolders: sinon.stub(),
