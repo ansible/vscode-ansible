@@ -207,6 +207,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
     llmProviderSettings,
   );
 
+  if (context.extensionMode !== vscode.ExtensionMode.Production) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "ansible.lightspeed.mockSession",
+        async (session: {
+          accessToken: string;
+          accountId: string;
+          accountLabel: string;
+        }) => {
+          await lightSpeedManager.lightSpeedAuthenticationProvider.setMockSession(
+            session,
+          );
+        },
+      ),
+    );
+  }
+
   // Register provider management commands
   const providerCommands = new ProviderCommands(
     context,
@@ -1196,6 +1213,32 @@ const startClient = async (
   try {
     await client.start();
 
+    // Level-triggered gate: resolves immediately if docsLibrary is already
+    // ready, otherwise waits for the next ansible/docsLibraryReady notification.
+    // Re-armed only when ansible.* config changes invalidate the library.
+    let docsReady = newDocsReadyGate();
+    let docsLibraryIsReady = false;
+    client.onNotification(
+      new NotificationType("ansible/docsLibraryReady"),
+      () => {
+        docsLibraryIsReady = true;
+        docsReady.resolve();
+      },
+    );
+    context.subscriptions.push(
+      workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("ansible")) {
+          docsLibraryIsReady = false;
+          docsReady = newDocsReadyGate();
+        }
+      }),
+    );
+    context.subscriptions.push(
+      vscode.commands.registerCommand("ansible.awaitDocsLibraryReady", () =>
+        docsLibraryIsReady ? Promise.resolve() : docsReady.promise,
+      ),
+    );
+
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {
       notifyAboutConflicts();
@@ -1339,4 +1382,12 @@ async function updateDocumentInRoleContext() {
     "redhat.ansible.isDocumentInRole",
     isInRole,
   );
+}
+
+function newDocsReadyGate(): { resolve: () => void; promise: Promise<void> } {
+  let resolve!: () => void;
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
+  return { resolve, promise };
 }

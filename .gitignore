@@ -15,6 +15,7 @@
 .task
 # VS Code test framework user data - created by @vscode/test-electron
 .vscode-test
+.wdio-vscode
 node_modules
 out
 site

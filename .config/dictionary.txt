@@ -29,6 +29,7 @@ RHCUSTOM
 RHSSO
 SSOT
 Towncrier
+WDIO
 WSLENV
 antsibull
 bfnrt
@@ -111,5 +112,6 @@ vscodeignore
 vscoss
 vyos
 watsonx
+wdio
 whereis
 xunit

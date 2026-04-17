@@ -177,7 +177,7 @@ tasks:
 
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: unit, ui, e2e, als, mcp"
+    desc: "Run all tests: unit, wdio, e2e, als, mcp"
     cmds:
       - task: setup
       # keep test types ordered by their durations, faster tests first
@@ -185,7 +185,7 @@ tasks:
       - task: mcp:test # 13s
       - task: als:test # 20s
       - task: e2e # 1min
-      - task: ui # 10min
+      - task: wdio # 5min
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
@@ -220,33 +220,18 @@ tasks:
       - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
-  ui:
-    desc: Run UI tests (Selenium)
+  wdio:
+    desc: Run WDIO UI tests (VS Code Electron)
     deps:
-      - package
+      - build
+    env:
+      TS_NODE_PROJECT: test/wdio/tsconfig.json
     sources:
-      - "*.vsix"
-      - pyproject.toml
-      - test/ui/**/*
-      - uv.lock
-      - "out/data/ansible-latest.vsix"
-    generates:
-      - out/junit/ui-test-results.xml
+      - "{src,test}/**/*"
+      - wdio.conf.ts
     cmds:
-      - >
-        pytest
-        -v
-        --cov-branch
-        --cov-context=test
-        --cov-report=term-missing:skip-covered
-        --cov-report=xml:out/coverage/ui/coverage.xml
-        --cov=test
-        --junit-xml=out/junit/ui-test-results.xml
-        --no-cov-on-fail
-        {{.CLI_ARGS}}
-      # --reruns-delay=120
-      # --reruns=3
-      - defer: podman-compose down
+      - "npx pnpm pretest:wdio"
+      - "{{.XVFB}}npx pnpm test:wdio"
     interactive: true
   unit:
     desc: Run unit tests with coverage report

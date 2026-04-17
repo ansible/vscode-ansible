@@ -10,6 +10,7 @@ export default defineConfig({
   files: "test/e2e/**/*.test.ts",
   extensionDevelopmentPath: ".", // package.json location
   workspaceFolder: "test/testFixtures",
+  download: { timeout: 60_000 },
   launchArgs: [
     // cannot rely on vscode-test ability to install extensions because it does
     // implicitly use --force and the server can respond with 503 errors.
