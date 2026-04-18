@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
-import { readFileSync, rmSync } from "fs";
+import { readFileSync } from "fs";
 import {
   WorkspaceManager,
   WorkspaceFolderContext,
@@ -15,7 +15,7 @@ import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
 import Fuse from "fuse.js";
 
-const FIXTURES_BASE_PATH = path.join(__dirname, "fixtures");
+export const FIXTURES_BASE_PATH = path.join(__dirname, "fixtures");
 const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
@@ -31,13 +31,6 @@ const ANSIBLE_CONFIG_FILE = path.resolve(
   "completion",
   "ansible.cfg",
 );
-
-export function deleteAlsCache(): void {
-  const hostCacheBasePath = path.resolve(
-    `${process.env.HOME}/.cache/ansible-language-server/`,
-  );
-  rmSync(hostCacheBasePath, { recursive: true, force: true });
-}
 
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {

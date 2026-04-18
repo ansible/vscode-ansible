@@ -1,11 +1,9 @@
 // This file is loaded automatically by vitest during the test run.
-import { beforeAll, beforeEach } from "vitest";
-import { deleteAlsCache, skipEE } from "@test/helper.js";
+import { beforeEach } from "vitest";
+import { skipEE } from "@test/helper.js";
 
-// Delete cache once at the start of all tests (like Mocha's beforeAll)
-beforeAll(() => {
-  deleteAlsCache();
-});
+// ALS cache cleanup is handled once in globalSetup.ts (not per-file)
+// to avoid expensive podman cp rebuilds with isolate:true workers.
 
 // Vitest hooks - runs before each test
 beforeEach((context) => {

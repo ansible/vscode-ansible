@@ -6,7 +6,6 @@ import tsParser from "@typescript-eslint/parser";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "path";
-import { fileURLToPath } from "url";
 import { defineConfig } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
@@ -15,8 +14,6 @@ const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get the name of the directory
 const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
@@ -43,7 +40,7 @@ export default defineConfig(
       parser: tsParser,
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: __dirname,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {

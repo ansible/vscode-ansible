@@ -52,6 +52,7 @@ fixturenames
 fqcn
 genai
 getfixturevalue
+graphroot
 haaaad
 hbenl
 highlightjs

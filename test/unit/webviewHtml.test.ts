@@ -61,16 +61,20 @@ describe("getDevServerUrl", () => {
   });
 
   it("returns the URL when the marker file contains a valid localhost URL", () => {
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".vite-dev-server-url"),
+      path.join(outDir, ".vite-dev-server-url"),
       "http://localhost:5173",
     );
     expect(getDevServerUrl(tmpDir)).toBe("http://localhost:5173");
   });
 
   it("trims whitespace from the marker file", () => {
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".vite-dev-server-url"),
+      path.join(outDir, ".vite-dev-server-url"),
       "  http://localhost:5173\n",
     );
     expect(getDevServerUrl(tmpDir)).toBe("http://localhost:5173");
@@ -81,31 +85,39 @@ describe("getDevServerUrl", () => {
   });
 
   it("returns undefined for a non-http protocol", () => {
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".vite-dev-server-url"),
+      path.join(outDir, ".vite-dev-server-url"),
       "https://localhost:5173",
     );
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 
   it("returns undefined for a non-localhost hostname", () => {
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".vite-dev-server-url"),
+      path.join(outDir, ".vite-dev-server-url"),
       "http://example.com:5173",
     );
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 
   it("returns undefined when URL has no port", () => {
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(
-      path.join(tmpDir, ".vite-dev-server-url"),
+      path.join(outDir, ".vite-dev-server-url"),
       "http://localhost",
     );
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 
   it("returns undefined for malformed content", () => {
-    fs.writeFileSync(path.join(tmpDir, ".vite-dev-server-url"), "not-a-url");
+    const outDir = path.join(tmpDir, "out");
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(path.join(outDir, ".vite-dev-server-url"), "not-a-url");
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 });
@@ -168,8 +180,10 @@ describe("getWebviewHtml", () => {
 
   describe("dev mode", () => {
     it("returns dev HTML when in Development mode with a valid marker", () => {
+      const outDir = path.join(tmpDir, "out");
+      fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(
-        path.join(tmpDir, ".vite-dev-server-url"),
+        path.join(outDir, ".vite-dev-server-url"),
         "http://localhost:5173",
       );
       const webview = makeWebview();
@@ -188,8 +202,10 @@ describe("getWebviewHtml", () => {
     });
 
     it("resolves lightspeed entry scripts in dev mode", () => {
+      const outDir = path.join(tmpDir, "out");
+      fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(
-        path.join(tmpDir, ".vite-dev-server-url"),
+        path.join(outDir, ".vite-dev-server-url"),
         "http://localhost:5173",
       );
       const lsDir = path.join(tmpDir, "webviews", "lightspeed", "src");
@@ -208,8 +224,10 @@ describe("getWebviewHtml", () => {
     });
 
     it("does not use dev mode when extensionMode is Production", () => {
+      const outDir = path.join(tmpDir, "out");
+      fs.mkdirSync(outDir, { recursive: true });
       fs.writeFileSync(
-        path.join(tmpDir, ".vite-dev-server-url"),
+        path.join(outDir, ".vite-dev-server-url"),
         "http://localhost:5173",
       );
       // Create a dist file so production path works

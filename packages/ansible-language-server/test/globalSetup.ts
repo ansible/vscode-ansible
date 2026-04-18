@@ -2,12 +2,15 @@
 import { isWindows, console } from "@test/helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import path from "path";
+import fs from "fs";
 import { createRequire } from "module";
 import { quote } from "shell-quote";
 
 const require = createRequire(import.meta.url);
 // Resolve root package.json from repo root (tests run with cwd = workspace root)
-const pkg = require(path.join(__dirname, "..", "..", "..", "package.json"));
+const pkg = require(
+  path.join(import.meta.dirname, "..", "..", "..", "package.json"),
+);
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
@@ -66,6 +69,19 @@ function execWithTimeout(
 }
 
 export async function setup() {
+  // Only isolate ANSIBLE_HOME (prevents writes to ~/.ansible).
+  // We do NOT redirect HOME because rootless podman becomes ~60x slower
+  // with a different HOME (every `podman run` takes ~60s instead of ~1s),
+  // making @ee tests take 29 min instead of 3 min.
+  // The ALS cache at ~/.cache/ansible-language-server/ is production code
+  // behavior (executionEnvironment.ts:119), not a test artifact.
+  const ansibleHome = path.resolve(
+    import.meta.dirname,
+    "../../../out/.ansible",
+  );
+  fs.mkdirSync(ansibleHome, { recursive: true });
+  process.env.ANSIBLE_HOME = ansibleHome;
+
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
   const isListing =
@@ -193,8 +209,4 @@ export async function setup() {
   console.info(
     "Skipping container setup during test initialization. Container tests will be skipped if containers are not available.",
   );
-}
-
-export async function teardown() {
-  // Cleanup if needed
 }

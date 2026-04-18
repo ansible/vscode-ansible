@@ -1,7 +1,5 @@
 import { expect, beforeAll, afterAll } from "vitest";
 import * as path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import {
   ansibleMetaDataEntryType,
   ansibleMetaDataType,
@@ -9,6 +7,7 @@ import {
   getResultsThroughCommandRunner,
 } from "@src/utils/getAnsibleMetaData.js";
 import {
+  FIXTURES_BASE_PATH,
   createTestWorkspaceManager,
   disableExecutionEnvironmentSettings,
   enableExecutionEnvironmentSettings,
@@ -18,30 +17,23 @@ import {
   skipEE,
 } from "@test/helper.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 function getAnsibleTestInfo() {
   const ansibleInfo: ansibleMetaDataEntryType = {};
   ansibleInfo["core version"] = ".";
   ansibleInfo["location"] = "/ansible";
   ansibleInfo["config file path"] = path.resolve(
-    __dirname,
-    "..",
-    "fixtures",
+    FIXTURES_BASE_PATH,
     "utils",
     "getAnsibleMetaData",
     "ansible.cfg",
   );
   ansibleInfo["collections location"] = [
-    path.resolve(__dirname, "..", "fixtures", "common", "collections"),
+    path.resolve(FIXTURES_BASE_PATH, "common", "collections"),
   ];
   ansibleInfo["module location"] = ["/modules"];
   ansibleInfo["default host list path"] = [
     path.resolve(
-      __dirname,
-      "..",
-      "fixtures",
+      FIXTURES_BASE_PATH,
       "utils",
       "getAnsibleMetaData",
       "inventory",
@@ -318,7 +310,7 @@ describe("getAnsibleMetaData()", function () {
       pythonInfoForTest = getPythonTestInfo();
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
-    }, 60000); // EE operations (container pull/start) can be slow on CI
+    }, 60000);
 
     describe("presence of execution environment details", function () {
       it("should have a valid container engine", function () {
