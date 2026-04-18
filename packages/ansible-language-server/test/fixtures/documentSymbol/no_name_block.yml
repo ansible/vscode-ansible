@@ -1,0 +1,7 @@
+---
+- name: Play
+  hosts: all
+  tasks:
+    - block:
+        - ansible.builtin.debug:
+            msg: "in block"
