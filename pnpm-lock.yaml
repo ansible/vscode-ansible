@@ -43,8 +43,8 @@ importers:
         specifier: ^0.0.45
         version: 0.0.45
       '@vscode/python-extension':
-        specifier: 1.0.5
-        version: 1.0.5
+        specifier: 1.0.6
+        version: 1.0.6
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
@@ -52,14 +52,14 @@ importers:
         specifier: ^4.1.1
         version: 4.1.1
       marked:
-        specifier: ^17.0.5
-        version: 17.0.5
+        specifier: ^18.0.0
+        version: 18.0.2
       minimatch:
         specifier: ^10.2.5
         version: 10.2.5
       primevue:
-        specifier: 4.5.4
-        version: 4.5.4(vue@3.5.31(typescript@5.9.3))
+        specifier: 4.5.5
+        version: 4.5.5(vue@3.5.31(typescript@5.9.3))
       semver:
         specifier: ^7.7.4
         version: 7.7.4
@@ -1573,14 +1573,14 @@ packages:
     resolution: {integrity: sha512-pZ5f+vj7wSzRhC7KoEQRU5fvYAe+RP9+m39CTscZ3UywCD1Y2o6Fe1rRgklMPSkzUcty2jzkA0zMYkiJBD1hgg==}
     engines: {node: '>=12.11.0'}
 
-  '@primevue/core@4.5.4':
-    resolution: {integrity: sha512-lYJJB3wTrDJ8MkLctzHfrPZAqXVxoatjIsswSJzupatf6ZogJHVYADUKcn1JAkLLk8dtV1FA2AxDek663fHO5Q==}
+  '@primevue/core@4.5.5':
+    resolution: {integrity: sha512-JpkXhq1ddc70JdsC3CC4dM+UbeeWuCW/8DpS9dNBfrOk824TLSlRlMEGFyVKqRMn5WPQvYLiy3xXfLQeNdSqhQ==}
     engines: {node: '>=12.11.0'}
     peerDependencies:
       vue: ^3.5.0
 
-  '@primevue/icons@4.5.4':
-    resolution: {integrity: sha512-DxgryEc7ZmUqcEhYMcxGBRyFzdtLIoy3jLtlH1zsVSRZaG+iSAcjQ88nvfkZxGUZtZBFL7sRjF6KLq3bJZJwUw==}
+  '@primevue/icons@4.5.5':
+    resolution: {integrity: sha512-eteOhTdAOXEYE9qW1AOrBBgDxQ2szHJxSkEK1XVdV2TKxGM5FQf03Ovms0VDyZTc16XBIgvwYjXJQS0BPbhPaA==}
     engines: {node: '>=12.11.0'}
 
   '@promptbook/utils@0.69.5':
@@ -2246,9 +2246,9 @@ packages:
   '@vscode/codicons@0.0.45':
     resolution: {integrity: sha512-1KAZ7XCMagp5Gdrlr4bbbcAqgcIL623iO1wW6rfcSVGAVUQvR0WP7bQx1SbJ11gmV3fdQTSEFIJQ/5C+HuVasw==}
 
-  '@vscode/python-extension@1.0.5':
-    resolution: {integrity: sha512-uYhXUrL/gn92mfqhjAwH2+yGOpjloBxj9ekoL4BhUsKcyJMpEg6WlNf3S3si+5x9zlbHHe7FYQNjZEbz1ymI9Q==}
-    engines: {node: '>=16.17.1', vscode: ^1.78.0}
+  '@vscode/python-extension@1.0.6':
+    resolution: {integrity: sha512-q7KYf+mymM67G0yS6xfhczFwu2teBi5oXHVdNgtCsYhErdSOkwMPtE291SqQahrjTcgKxn7O56i1qb1EQR6o4w==}
+    engines: {node: '>=22.17.0', vscode: ^1.93.0}
 
   '@vscode/test-cli@0.0.12':
     resolution: {integrity: sha512-iYN0fDg29+a2Xelle/Y56Xvv7Nc8Thzq4VwpzAF/SIE6918rDicqfsQxV6w1ttr2+SOm+10laGuY9FG2ptEKsQ==}
@@ -4908,8 +4908,8 @@ packages:
     resolution: {integrity: sha512-BuU2qnTti9YKgK5N+IeMubp14ZUKUUw7yeJbkjtosvHiP0AZ5c8IAgEMk79D0eC8F23r4Ac/q8cAIFdm2FtyoA==}
     hasBin: true
 
-  marked@17.0.5:
-    resolution: {integrity: sha512-6hLvc0/JEbRjRgzI6wnT2P1XuM1/RrrDEX0kPt0N7jGm1133g6X7DlxFasUIx+72aKAr904GTxhSLDrd5DIlZg==}
+  marked@18.0.2:
+    resolution: {integrity: sha512-NsmlUYBS/Zg57rgDWMYdnre6OTj4e+qq/JS2ot3KrYLSoHLw+sDu0Nm1ZGpRgYAq6c+b1ekaY5NzVchMCQnzcg==}
     engines: {node: '>= 20'}
     hasBin: true
 
@@ -5528,8 +5528,8 @@ packages:
     resolution: {integrity: sha512-973driJZvxiGOQ5ONsFhOF/DtzPMOMtgC11kCpUrPGMTgqp2q/1gwzCquocrN33is0VZ5GFHXZYMM9l6h67v2Q==}
     engines: {node: '>=10'}
 
-  primevue@4.5.4:
-    resolution: {integrity: sha512-nTyEohZABFJhVIpeUxgP0EJ8vKcJAhD+Z7DYj95e7ie/MNUCjRNcGjqmE1cXtXi4z54qDfTSI9h2uJ51qz2DIw==}
+  primevue@4.5.5:
+    resolution: {integrity: sha512-Kv5REIewCdP806QaoU+4nBXfmpzOGFKkZ9qH4KsL6MjiAQVc4PUzypt8erl4r3Vzh3nr3aWZIxkxYRRsLGiX2A==}
     engines: {node: '>=12.11.0'}
 
   process-nextick-args@2.0.1:
@@ -7932,16 +7932,16 @@ snapshots:
 
   '@primeuix/utils@0.6.4': {}
 
-  '@primevue/core@4.5.4(vue@3.5.31(typescript@5.9.3))':
+  '@primevue/core@4.5.5(vue@3.5.31(typescript@5.9.3))':
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/utils': 0.6.4
       vue: 3.5.31(typescript@5.9.3)
 
-  '@primevue/icons@4.5.4(vue@3.5.31(typescript@5.9.3))':
+  '@primevue/icons@4.5.5(vue@3.5.31(typescript@5.9.3))':
     dependencies:
       '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.4(vue@3.5.31(typescript@5.9.3))
+      '@primevue/core': 4.5.5(vue@3.5.31(typescript@5.9.3))
     transitivePeerDependencies:
       - vue
 
@@ -8656,7 +8656,7 @@ snapshots:
 
   '@vscode/codicons@0.0.45': {}
 
-  '@vscode/python-extension@1.0.5': {}
+  '@vscode/python-extension@1.0.6': {}
 
   '@vscode/test-cli@0.0.12(patch_hash=e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2)':
     dependencies:
@@ -11865,7 +11865,7 @@ snapshots:
       punycode.js: 2.3.1
       uc.micro: 2.1.0
 
-  marked@17.0.5: {}
+  marked@18.0.2: {}
 
   matcher@3.0.0:
     dependencies:
@@ -12556,13 +12556,13 @@ snapshots:
     dependencies:
       parse-ms: 2.1.0
 
-  primevue@4.5.4(vue@3.5.31(typescript@5.9.3)):
+  primevue@4.5.5(vue@3.5.31(typescript@5.9.3)):
     dependencies:
       '@primeuix/styled': 0.7.4
       '@primeuix/styles': 2.0.3
       '@primeuix/utils': 0.6.4
-      '@primevue/core': 4.5.4(vue@3.5.31(typescript@5.9.3))
-      '@primevue/icons': 4.5.4(vue@3.5.31(typescript@5.9.3))
+      '@primevue/core': 4.5.5(vue@3.5.31(typescript@5.9.3))
+      '@primevue/icons': 4.5.5(vue@3.5.31(typescript@5.9.3))
     transitivePeerDependencies:
       - vue
 
