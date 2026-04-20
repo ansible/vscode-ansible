@@ -115,8 +115,10 @@ export class ExecutionEnvironment {
           encoding: "utf-8",
         })
         .trim();
+      const cacheBase =
+        process.env.XDG_CACHE_HOME || `${process.env.HOME}/.cache`;
       const hostCacheBasePath = path.resolve(
-        `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`,
+        `${cacheBase}/ansible-language-server/${containerName}/${this._container_image_id}`,
       );
 
       /* v8 ignore next 3 */
