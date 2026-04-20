@@ -69,13 +69,17 @@ function execWithTimeout(
 }
 
 export async function setup() {
-  // Isolate ANSIBLE_HOME to prevent writes to ~/.ansible/
+  // Isolate ANSIBLE_HOME and XDG_CACHE_HOME to prevent writes to ~/.ansible/
+  // and ~/.cache/ansible-language-server/ respectively.
   const ansibleHome = path.resolve(
     import.meta.dirname,
     "../../../out/.ansible",
   );
+  const cacheHome = path.resolve(import.meta.dirname, "../../../out/.cache");
   fs.mkdirSync(ansibleHome, { recursive: true });
+  fs.mkdirSync(cacheHome, { recursive: true });
   process.env.ANSIBLE_HOME = ansibleHome;
+  process.env.XDG_CACHE_HOME = cacheHome;
 
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
