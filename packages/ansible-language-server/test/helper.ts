@@ -33,8 +33,9 @@ const ANSIBLE_CONFIG_FILE = path.resolve(
 );
 
 export function deleteAlsCache(): void {
+  const cacheBase = process.env.XDG_CACHE_HOME || `${process.env.HOME}/.cache`;
   const hostCacheBasePath = path.resolve(
-    `${process.env.HOME}/.cache/ansible-language-server/`,
+    `${cacheBase}/ansible-language-server/`,
   );
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
