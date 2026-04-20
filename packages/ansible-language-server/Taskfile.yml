@@ -46,6 +46,9 @@ tasks:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
     dir: "{{ .TASKFILE_DIR }}"
     interactive: true
+    env:
+      TMP: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
+      TMPDIR: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
     deps:
       - build
     sources:
