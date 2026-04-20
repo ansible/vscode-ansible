@@ -11,6 +11,7 @@ Fqcn
 Fqcns
 Interactable
 KUBEDOCK
+Kiro
 LIGHTSPEED
 LLMPROVIDER
 Lightspeed
@@ -19,6 +20,7 @@ Npmjs
 OVSX
 Ollama
 PKGMGR
+PVSC
 PYTHONBREAKPOINT
 PYTHONPYCACHEPREFIX
 PYTHONUNBUFFERED
@@ -27,9 +29,11 @@ RHCUSTOM
 RHSSO
 SSOT
 Towncrier
+WDIO
 WSLENV
 antsibull
 bfnrt
+buildah
 charliermarsh
 checode
 codeclimate
@@ -107,5 +111,6 @@ vscodeignore
 vscoss
 vyos
 watsonx
+wdio
 whereis
 xunit

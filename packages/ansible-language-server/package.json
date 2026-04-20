@@ -3,7 +3,7 @@
     "onLanguage:ansible"
   ],
   "all": true,
-  "bin": "dist/cli.js",
+  "bin": "dist/cli.cjs",
   "categories": [
     "Programming Languages"
   ],

@@ -273,6 +273,14 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
+          - name: test (linux-wdio)
+            id: test-linux-wdio
+            task-name: wdio
+            os: ubuntu-24.04
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+
           - name: test (wsl)
             id: test-wsl
             task-name: test
@@ -282,20 +290,39 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      # Self-hosted runners may retain root-owned files from previous
-      # container builds (e.g. Podman overlays under out/als/tmp/).
-      # Disable checkout's built-in clean so it does not fail with
-      # EACCES when it cannot remove those files.
+      # Self-hosted runners retain root-owned files from rootless Podman
+      # (overlay storage under out/als/tmp/).  These files live inside a
+      # user-namespace so normal rm fails with EACCES and sudo is
+      # unavailable.  `podman unshare` re-enters the same namespace,
+      # letting us delete them before checkout touches the workspace.
+      - name: Remove Podman overlay files on self-hosted runner
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          target="${GITHUB_WORKSPACE}/out/als/tmp/home/.local/share/containers"
+          if [ -d "$target" ]; then
+            podman unshare rm -rf -- "$target" \
+              || buildah unshare rm -rf -- "$target" \
+              || echo "::warning::Could not remove $target — checkout may fail"
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
-          clean: ${{ matrix.runs-on != 'self-hosted' }}
+          clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
 
       - name: Clean workspace on self-hosted runner
         if: matrix.runs-on == 'self-hosted'
         run: |
           set -euxo pipefail
+          # Rootless Podman overlays under .cache/containers/ use user
+          # namespace remapping; remove them with podman or sudo.
+          if [ -d .cache/containers ]; then
+            podman unshare rm -rf -- .cache/containers 2>/dev/null \
+              || sudo rm -rf -- .cache/containers \
+              || true
+          fi
+          sudo find . -not -user "$(id -u)" -delete 2>/dev/null || true
           git reset --hard HEAD
           git clean -ffdx -e out/als/tmp/
 
@@ -307,7 +334,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
-        uses: Vampire/setup-wsl@6a8db447be7ed35f2f499c02c6e60ff77ef11278 # v6.0.0
+        uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
           distribution: Ubuntu-24.04
           set-as-default: "true"
@@ -383,11 +410,6 @@ jobs:
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-      - name: task package
-        id: package
-        run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
-
       - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
@@ -399,23 +421,29 @@ jobs:
           EOT
           podman info
 
+      - name: task package
+        if: ${{ matrix.task-name != 'wdio' }}
+        id: package
+        run: |
+          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
+
       - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
 
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
+        if: "${{ !contains(matrix.name, 'test') && !contains(matrix.name, 'wdio') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task unit (ext, vue, als, mcp)
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
+        if: contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: |
           task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
           set -e
           task build 2>out/log/build-before.txt
@@ -426,17 +454,11 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui (selenium)
-        # runner.os=Linux even on windows if the runner was started from inside wsl!
-        if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
+      - name: task wdio (VS Code UI)
+        if: ${{ matrix.task-name == 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
-          task ui
+          task wdio
           task build --status
-        env:
-          # defined inside 'ci' environment
-          LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
-          LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
-          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
       - name: task finish
@@ -649,7 +671,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
@@ -697,7 +719,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"

@@ -113,6 +113,15 @@ export default defineConfig(
     },
   },
   {
+    // WDIO tests use their own tsconfig with relative imports; path aliases aren't practical
+    files: ["test/wdio/**/*.ts", "wdio.conf.ts"],
+    rules: { "no-restricted-imports": "off" },
+  },
+  {
+    // Standalone scripts have no tsconfig; skip eslint entirely
+    ignores: ["scripts/**"],
+  },
+  {
     // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root
     files: ["packages/**/*.{js,ts,tsx}"],
     rules: { "import/no-unresolved": "off" },

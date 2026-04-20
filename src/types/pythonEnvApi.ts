@@ -28,7 +28,7 @@ export interface PythonEnvironment {
   readonly displayName: string;
   readonly displayPath: string;
   readonly version: string;
-  readonly environmentPath: vscode.Uri;
+  readonly environmentPath?: vscode.Uri;
   readonly description?: string;
   readonly execInfo: PythonEnvironmentExecutionInfo;
   readonly sysPrefix: string;
