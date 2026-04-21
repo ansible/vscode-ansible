@@ -52,7 +52,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - bash ./tools/test-setup.sh
-      - ./tools/precheck.sh
+      - task: precheck
     sources:
       - ./tools/precheck.sh
       - pyproject.toml
@@ -61,6 +61,12 @@ tasks:
       - out/log/manifest-*.json
     run: once
     interactive: true
+  precheck:
+    desc: Check for duplicate executables (only runs when CI=true)
+    status:
+      - '[ "$CI" != "true" ]'
+    cmds:
+      - "{{.GIT_ROOT}}/tools/precheck.sh"
   mise:
     desc: Check if mise is installed and working
     internal: true
