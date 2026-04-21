@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
@@ -20,6 +21,7 @@ import {
   ServerOptions,
   TransportKind,
   RevealOutputChannelOn,
+  DidChangeConfigurationNotification,
 } from "vscode-languageclient/node";
 
 /* local */
@@ -160,7 +162,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // start the client and the server
-  await startClient(context, telemetry);
+  await startClient(context, telemetry, pythonEnvService);
 
   notifyAboutConflicts();
 
@@ -183,16 +185,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
     console.error(`Error updating python status bar: ${error}`);
   }
 
-  // Subscribe to Python environment changes to update the status bar
+  // Subscribe to Python environment changes to update the status bar and LS
   context.subscriptions.push(
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
+
+        if (client && client.isRunning()) {
+          await client.sendNotification(
+            DidChangeConfigurationNotification.type,
+            { settings: null },
+          );
+        }
       } catch (error) {
-        console.error(
-          `Error updating status bar after environment change: ${error}`,
-        );
+        console.error(`Error updating after environment change: ${error}`);
       }
     }),
   );
@@ -1146,14 +1153,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
 const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager,
+  pythonEnvService: PythonEnvironmentService,
 ) => {
-  // Prefer the server shipped in the vsix (packages/ansible-language-server/dist/); otherwise
-  // use the workspace package (e.g. when running from source).
-  const bundledServer = path.join(
+  const distServer = path.join(
     context.extensionPath,
     "packages",
     "ansible-language-server",
     "dist",
+    "cli.cjs",
+  );
+  const libServer = path.join(
+    context.extensionPath,
+    "packages",
+    "ansible-language-server",
+    "lib",
     "cli.cjs",
   );
   const packageServer = path.join(
@@ -1164,6 +1177,15 @@ const startClient = async (
     "dist",
     "cli.js",
   );
+  const bundledServer = [distServer, libServer, packageServer].find((p) =>
+    fs.existsSync(p),
+  );
+  if (!bundledServer) {
+    window.showErrorMessage(
+      "Ansible Language Server not found. Please reinstall the extension.",
+    );
+    return;
+  }
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
@@ -1171,7 +1193,7 @@ const startClient = async (
   const serverOptions: ServerOptions = {
     run: { module: bundledServer, transport: TransportKind.ipc },
     debug: {
-      module: packageServer,
+      module: bundledServer,
       transport: TransportKind.ipc,
       options: debugOptions,
     },
@@ -1186,7 +1208,6 @@ const startClient = async (
   lsOutputChannel = outputChannel;
 
   const clientOptions: LanguageClientOptions = {
-    // register the server for Ansible documents
     documentSelector: [{ scheme: "file", language: "ansible" }],
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     errorHandler: telemetryErrorHandler,
@@ -1194,6 +1215,14 @@ const startClient = async (
       outputChannel,
       telemetry.telemetryService,
     ),
+    middleware: {
+      workspace: {
+        configuration: makeConfigurationMiddleware(
+          pythonEnvService,
+          outputChannel,
+        ),
+      },
+    },
   };
 
   client = new LanguageClient(
@@ -1382,6 +1411,64 @@ async function updateDocumentInRoleContext() {
     "redhat.ansible.isDocumentInRole",
     isInRole,
   );
+}
+
+/**
+ * Intercepts workspace/configuration requests from the Language Server and
+ * injects the Python interpreter path resolved by PythonEnvironmentService
+ * when the user has not explicitly set `ansible.python.interpreterPath`.
+ */
+export function makeConfigurationMiddleware(
+  pythonEnvService: PythonEnvironmentService,
+  outputChannel: vscode.OutputChannel,
+) {
+  return async (
+    params: { items: { section?: string; scopeUri?: string }[] },
+    token: unknown,
+    next: (
+      params: { items: { section?: string; scopeUri?: string }[] },
+      token: unknown,
+    ) => Promise<unknown[]>,
+  ): Promise<unknown[]> => {
+    const result = await next(params, token);
+    if (!Array.isArray(result)) return result;
+
+    for (let i = 0; i < params.items.length; i++) {
+      if (params.items[i].section !== "ansible") continue;
+
+      const config = result[i] as Record<string, unknown> | undefined;
+      if (!config) continue;
+
+      const pythonConfig = config.python as Record<string, unknown> | undefined;
+      const rawInterpreterPath = pythonConfig?.interpreterPath;
+      if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
+        outputChannel.appendLine(
+          `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}`,
+        );
+        continue;
+      }
+
+      const scopeUri = params.items[i].scopeUri;
+      const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+      const resolvedPath = await pythonEnvService.getExecutablePath(scope);
+
+      if (resolvedPath) {
+        outputChannel.appendLine(
+          `[Ansible] Injecting resolved interpreterPath from Python Environments: ${resolvedPath}`,
+        );
+        config.python = {
+          ...pythonConfig,
+          interpreterPath: resolvedPath,
+        };
+        result[i] = config;
+      } else {
+        outputChannel.appendLine(
+          "[Ansible] No resolved interpreterPath available from Python Environments",
+        );
+      }
+    }
+    return result;
+  };
 }
 
 function newDocsReadyGate(): { resolve: () => void; promise: Promise<void> } {
