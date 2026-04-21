@@ -71,7 +71,7 @@ export async function getResultsThroughCommandRunner(cmd: string, arg: string) {
     if (result.stderr) {
       return result;
     }
-  } catch (error) {
+  } catch {
     // Silently return undefined on command failures
     // These are expected during environment transitions or when tools aren't installed
     return undefined;

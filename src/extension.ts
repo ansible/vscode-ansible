@@ -1436,9 +1436,9 @@ export function makeConfigurationMiddleware(
       token: CancellationToken,
     ) => HandlerResult<LSPAny[], void>,
   ): HandlerResult<LSPAny[], void> => {
-    return (async () => {
+    return (async (): Promise<LSPAny[]> => {
       const result = await next(params, token);
-      if (!Array.isArray(result)) return result;
+      if (!Array.isArray(result)) return result as unknown as LSPAny[];
 
       for (let i = 0; i < params.items.length; i++) {
         if (params.items[i].section !== "ansible") continue;
@@ -1446,7 +1446,9 @@ export function makeConfigurationMiddleware(
         const config = result[i] as Record<string, unknown> | undefined;
         if (!config) continue;
 
-        const pythonConfig = config.python as Record<string, unknown> | undefined;
+        const pythonConfig = config.python as
+          | Record<string, unknown>
+          | undefined;
         const rawInterpreterPath = pythonConfig?.interpreterPath;
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
           // User has explicit config, log only on change

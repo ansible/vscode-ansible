@@ -12,7 +12,10 @@ describe("makeConfigurationMiddleware", function () {
   let middleware: ReturnType<typeof makeConfigurationMiddleware>;
   let mockNext: ReturnType<typeof vi.fn>;
 
-  const mockToken = { isCancellationRequested: false, onCancellationRequested: vi.fn() };
+  const mockToken = {
+    isCancellationRequested: false,
+    onCancellationRequested: vi.fn(),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -38,7 +41,14 @@ describe("makeConfigurationMiddleware", function () {
     const originalResult = [{ fontSize: 14 }];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     expect(result).toEqual(originalResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -52,7 +62,14 @@ describe("makeConfigurationMiddleware", function () {
       "/home/user/.venv/bin/python",
     );
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -69,7 +86,14 @@ describe("makeConfigurationMiddleware", function () {
     ];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -89,11 +113,25 @@ describe("makeConfigurationMiddleware", function () {
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
-    await middleware(params, mockToken, mockNext as any);
+    await middleware(
+      params as ConfigurationParams,
+      mockToken,
+      mockNext as (
+        params: ConfigurationParams,
+        token: CancellationToken,
+      ) => HandlerResult<LSPAny[], void>,
+    );
 
     // Second call with no path (should log transition)
     mockPythonEnvService.getExecutablePath.mockResolvedValue(undefined);
-    await middleware(params, mockToken, mockNext as any);
+    await middleware(
+      params as ConfigurationParams,
+      mockToken,
+      mockNext as (
+        params: ConfigurationParams,
+        token: CancellationToken,
+      ) => HandlerResult<LSPAny[], void>,
+    );
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("No Python environment available"),
@@ -108,7 +146,14 @@ describe("makeConfigurationMiddleware", function () {
       "/usr/bin/python3",
     );
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -120,7 +165,14 @@ describe("makeConfigurationMiddleware", function () {
     const originalResult = [undefined];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     expect(result).toEqual([undefined]);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -136,7 +188,14 @@ describe("makeConfigurationMiddleware", function () {
       "/workspace/.venv/bin/python",
     );
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     expect(mockPythonEnvService.getExecutablePath).toHaveBeenCalledTimes(1);
     const config = (result as Record<string, unknown>[])[0];
@@ -162,7 +221,14 @@ describe("makeConfigurationMiddleware", function () {
       "/resolved/python",
     );
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     const editorConfig = (result as Record<string, unknown>[])[0];
     expect(editorConfig).toEqual({ fontSize: 14 });
@@ -183,7 +249,14 @@ describe("makeConfigurationMiddleware", function () {
     const nonArrayResult = "unexpected";
     mockNext.mockResolvedValue(nonArrayResult);
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     expect(result).toBe(nonArrayResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -199,7 +272,14 @@ describe("makeConfigurationMiddleware", function () {
       "/injected/python",
     );
 
-    const result = await middleware(params, mockToken, mockNext as any);
+    const result = await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -215,10 +295,15 @@ describe("makeConfigurationMiddleware", function () {
       "/home/user/.venv/bin/python",
     );
 
+    const middlewareNext = mockNext as (
+      params: ConfigurationParams,
+      token: CancellationToken,
+    ) => HandlerResult<LSPAny[], void>;
+
     // Call middleware 3 times with same path
-    await middleware(params, mockToken, mockNext as any);
-    await middleware(params, mockToken, mockNext as any);
-    await middleware(params, mockToken, mockNext as any);
+    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
+    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
+    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
 
     // Should only log once (on first call)
     expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
