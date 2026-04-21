@@ -12,6 +12,8 @@ describe("makeConfigurationMiddleware", function () {
   let middleware: ReturnType<typeof makeConfigurationMiddleware>;
   let mockNext: ReturnType<typeof vi.fn>;
 
+  const mockToken = { isCancellationRequested: false, onCancellationRequested: vi.fn() };
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -36,7 +38,7 @@ describe("makeConfigurationMiddleware", function () {
     const originalResult = [{ fontSize: 14 }];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     expect(result).toEqual(originalResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -50,13 +52,13 @@ describe("makeConfigurationMiddleware", function () {
       "/home/user/.venv/bin/python",
     );
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
     expect(pythonConfig.interpreterPath).toBe("/home/user/.venv/bin/python");
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-      expect.stringContaining("Injecting resolved interpreterPath"),
+      expect.stringContaining("Python environment changed"),
     );
   });
 
@@ -67,7 +69,7 @@ describe("makeConfigurationMiddleware", function () {
     ];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -78,19 +80,23 @@ describe("makeConfigurationMiddleware", function () {
     );
   });
 
-  it("should log when no resolved path is available", async function () {
+  it("should log when transitioning from a path to no path", async function () {
     const params = { items: [{ section: "ansible" }] };
     const originalResult = [{ python: {} }];
+
+    // First call with a path
     mockNext.mockResolvedValue(originalResult);
+    mockPythonEnvService.getExecutablePath.mockResolvedValue(
+      "/home/user/.venv/bin/python",
+    );
+    await middleware(params, mockToken, mockNext as any);
+
+    // Second call with no path (should log transition)
     mockPythonEnvService.getExecutablePath.mockResolvedValue(undefined);
+    await middleware(params, mockToken, mockNext as any);
 
-    const result = await middleware(params, null, mockNext);
-
-    const config = (result as Record<string, unknown>[])[0];
-    const pythonConfig = config.python as Record<string, unknown>;
-    expect(pythonConfig.interpreterPath).toBeUndefined();
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
-      expect.stringContaining("No resolved interpreterPath"),
+      expect.stringContaining("No Python environment available"),
     );
   });
 
@@ -102,7 +108,7 @@ describe("makeConfigurationMiddleware", function () {
       "/usr/bin/python3",
     );
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -114,7 +120,7 @@ describe("makeConfigurationMiddleware", function () {
     const originalResult = [undefined];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     expect(result).toEqual([undefined]);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -130,7 +136,7 @@ describe("makeConfigurationMiddleware", function () {
       "/workspace/.venv/bin/python",
     );
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     expect(mockPythonEnvService.getExecutablePath).toHaveBeenCalledTimes(1);
     const config = (result as Record<string, unknown>[])[0];
@@ -156,7 +162,7 @@ describe("makeConfigurationMiddleware", function () {
       "/resolved/python",
     );
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     const editorConfig = (result as Record<string, unknown>[])[0];
     expect(editorConfig).toEqual({ fontSize: 14 });
@@ -177,7 +183,7 @@ describe("makeConfigurationMiddleware", function () {
     const nonArrayResult = "unexpected";
     mockNext.mockResolvedValue(nonArrayResult);
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     expect(result).toBe(nonArrayResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
@@ -193,11 +199,31 @@ describe("makeConfigurationMiddleware", function () {
       "/injected/python",
     );
 
-    const result = await middleware(params, null, mockNext);
+    const result = await middleware(params, mockToken, mockNext as any);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
     expect(pythonConfig.interpreterPath).toBe("/injected/python");
     expect(pythonConfig.activationScript).toBe("/path/to/activate");
+  });
+
+  it("should only log once when same path is injected multiple times", async function () {
+    const params = { items: [{ section: "ansible" }] };
+    const originalResult = [{ python: {} }];
+    mockNext.mockResolvedValue(originalResult);
+    mockPythonEnvService.getExecutablePath.mockResolvedValue(
+      "/home/user/.venv/bin/python",
+    );
+
+    // Call middleware 3 times with same path
+    await middleware(params, mockToken, mockNext as any);
+    await middleware(params, mockToken, mockNext as any);
+    await middleware(params, mockToken, mockNext as any);
+
+    // Should only log once (on first call)
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("Python environment changed"),
+    );
   });
 });

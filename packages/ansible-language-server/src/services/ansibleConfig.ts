@@ -95,11 +95,13 @@ export class AnsibleConfig {
       );
     } catch (error) {
       /* v8 ignore start */
-      if (error instanceof Error) {
-        this.connection.window.showErrorMessage(error.message);
-      } else {
+      // Suppress "command not found" errors completely
+      // The client-side already logs "Ansible not found" when showing the error state in UI
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes("command not found") && !errorMessage.includes("ansible: command not found")) {
+        // Only log unexpected errors (not missing ansible/tools)
         this.connection.console.error(
-          `Exception in AnsibleConfig service: ${JSON.stringify(error)}`,
+          `[AnsibleConfig] ${errorMessage}`,
         );
       }
       /* v8 ignore end */

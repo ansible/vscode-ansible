@@ -6,6 +6,7 @@ import { AnsibleLanguageService } from "@src/ansibleLanguageService.js";
 interface MockConnection extends Connection {
   _simulateInitialize: (params: unknown) => void;
   _simulateInitialized: () => void;
+  _getRequestHandler: (method: string) => ((params: unknown) => Promise<unknown>) | undefined;
 }
 
 function createMockDocuments() {
@@ -22,6 +23,10 @@ function createMockDocuments() {
 function createMockConnection(): MockConnection {
   const onInitializeHandlers: ((params: unknown) => unknown)[] = [];
   const onInitializedHandlers: (() => void)[] = [];
+  const requestHandlers: Map<
+    string,
+    (params: unknown) => Promise<unknown>
+  > = new Map();
 
   return {
     console: {
@@ -43,6 +48,9 @@ function createMockConnection(): MockConnection {
     },
     onInitialized: (handler: () => void) => {
       onInitializedHandlers.push(handler);
+    },
+    onRequest: (method: string, handler: (params: unknown) => Promise<unknown>) => {
+      requestHandlers.set(method, handler);
     },
     onDidChangeConfiguration: sinon.stub(),
     onDidChangeWatchedFiles: sinon.stub(),
@@ -70,6 +78,9 @@ function createMockConnection(): MockConnection {
       for (const handler of onInitializedHandlers) {
         handler();
       }
+    },
+    _getRequestHandler(method: string) {
+      return requestHandlers.get(method);
     },
   } as unknown as MockConnection;
 }
@@ -167,6 +178,43 @@ describe("AnsibleLanguageService", () => {
           position: { line: 0, character: 0 },
         }),
       ).resolves.toBeNull();
+    });
+  });
+
+  describe("ansible/refreshConfiguration request", () => {
+    it("should register request handler and return success", async () => {
+      const service = new AnsibleLanguageService(
+        mockConnection,
+        mockDocuments as never,
+      );
+      service.initialize();
+
+      mockConnection._simulateInitialize({
+        capabilities: {
+          workspace: { configuration: true, workspaceFolders: true },
+        },
+        workspaceFolders: [
+          {
+            uri: "file:///test",
+            name: "test",
+          },
+        ],
+      });
+      mockConnection._simulateInitialized();
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Get the registered handler
+      const handler = mockConnection._getRequestHandler(
+        "ansible/refreshConfiguration",
+      );
+
+      expect(handler).toBeDefined();
+
+      if (handler) {
+        const result = await handler({});
+        expect(result).toEqual({ success: true });
+      }
     });
   });
 });

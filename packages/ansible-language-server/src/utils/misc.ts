@@ -63,18 +63,26 @@ export function withInterpreter(
   }
 
   if (interpreterPath) {
-    const virtualEnv = path.resolve(interpreterPath, "../..");
+    const interpreterDir = path.dirname(interpreterPath);
+    const potentialVirtualEnv = path.resolve(interpreterPath, "../..");
+    const potentialBinDir = path.join(potentialVirtualEnv, "bin");
 
-    const pathEntry = path.join(virtualEnv, "bin");
+    // Check if this is a virtual environment (has activate script)
+    const activateScript = path.join(potentialBinDir, "activate");
+    const isVirtualEnv = require("fs").existsSync(activateScript);
+
+    const pathEntry = isVirtualEnv ? potentialBinDir : interpreterDir;
+
     if (path.isAbsolute(executable)) {
-      // if the user provided a path to the executable, we directly execute the app.
       command = `${executable} ${args}`;
     }
 
-    // emulating virtual environment activation script
-    newEnv["VIRTUAL_ENV"] = virtualEnv;
+    // Set environment variables (VIRTUAL_ENV only for actual venvs)
+    if (isVirtualEnv) {
+      newEnv["VIRTUAL_ENV"] = potentialVirtualEnv;
+      delete newEnv.PYTHONHOME;
+    }
     newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
-    delete newEnv.PYTHONHOME;
   }
   return { command: command, env: newEnv };
 }
