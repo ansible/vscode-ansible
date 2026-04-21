@@ -31,7 +31,7 @@ tasks:
       - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
       - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"
       - out/resources/contentCreator/createDevfile/devfile-template.txt
-      - out/resources/contentCreator/createDevcontainer/
+      - out/resources/contentCreator/createDevcontainer/.devcontainer
     dir: "{{ .TASKFILE_DIR }}"
     sources:
       - pyproject.toml
