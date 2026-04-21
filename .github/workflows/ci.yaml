@@ -472,6 +472,24 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
 
+      - name: Remove test artifacts before upload
+        if: ${{ always() }}
+        run: |
+          # Remove container overlays (root-owned, need podman unshare)
+          for target in \
+            "out/e2e/tmp/home/.local/share/containers"; do
+            if [ -d "$target" ]; then
+              podman unshare rm -rf -- "$target" \
+                || buildah unshare rm -rf -- "$target" \
+                || rm -rf -- "$target" \
+                || echo "::warning::Could not remove $target"
+            fi
+          done
+          # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
+          rm -rf out/e2e/tmp/home/.local/share/mise || true
+          # Reduce artifact size by removing cached test data
+          rm -rf out/e2e/tmp/home/.cache || true
+
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
         uses: ansible/actions/upload-artifact@main
