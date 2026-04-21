@@ -53,8 +53,7 @@
   },
   "files.exclude": {
     ".task": true,
-    ".vscode-test": true,
-    "**/out": true
+    ".vscode-test": true
   },
   "files.watcherExclude": {
     "**/out": true

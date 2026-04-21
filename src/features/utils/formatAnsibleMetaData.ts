@@ -72,8 +72,9 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     const valueObj = ansibleMetaData[mainKey];
     Object.keys(valueObj).forEach((key) => {
       if (key === "upgrade status") {
-        if (valueObj[key] !== "nil") {
-          mdString += ` <span ${WARNING_STYLE}>${valueObj[key]}`;
+        const value = valueObj[key];
+        if (value != null && String(value).trim().toLowerCase() !== "nil") {
+          mdString += ` <span ${WARNING_STYLE}>${value}</span>`;
         }
         return;
       }

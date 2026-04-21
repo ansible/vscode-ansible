@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
@@ -179,16 +180,53 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
+
+    // Initial sync of Python interpreter path to ansible settings
+    const activeURI = window.activeTextEditor?.document.uri;
+    const executablePath =
+      await pythonEnvService.getExecutablePath(activeURI);
+    if (executablePath) {
+      const config = workspace.getConfiguration("ansible");
+      const currentPath = config.get<string>("python.interpreterPath");
+      // Only update if not already set or different
+      if (!currentPath || currentPath !== executablePath) {
+        await config.update(
+          "python.interpreterPath",
+          executablePath,
+          vscode.ConfigurationTarget.Workspace,
+        );
+        console.log(
+          `[Ansible] Initial sync of Python interpreter path: ${executablePath}`,
+        );
+      }
+    }
   } catch (error) {
     console.error(`Error updating python status bar: ${error}`);
   }
 
-  // Subscribe to Python environment changes to update the status bar
+  // Subscribe to Python environment changes to update the status bar and settings
   context.subscriptions.push(
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
+        // Update the status bar display
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
+
+        // Sync the Python interpreter path to ansible settings
+        const activeURI = window.activeTextEditor?.document.uri;
+        const executablePath =
+          await pythonEnvService.getExecutablePath(activeURI);
+        if (executablePath) {
+          const config = workspace.getConfiguration("ansible");
+          await config.update(
+            "python.interpreterPath",
+            executablePath,
+            vscode.ConfigurationTarget.Workspace,
+          );
+          console.log(
+            `[Ansible] Synced Python interpreter path to settings: ${executablePath}`,
+          );
+        }
       } catch (error) {
         console.error(
           `Error updating status bar after environment change: ${error}`,
@@ -1156,14 +1194,25 @@ const startClient = async (
     "dist",
     "cli.cjs",
   );
-  const packageServer = path.join(
+
+  // For debug mode: prefer workspace server (development) over node_modules (published package)
+  const workspaceServer = path.join(
     context.extensionPath,
-    "node_modules",
-    "@ansible",
+    "packages",
     "ansible-language-server",
     "dist",
-    "cli.js",
+    "cli.cjs",
   );
+  const packageServer = fs.existsSync(workspaceServer)
+    ? workspaceServer
+    : path.join(
+        context.extensionPath,
+        "node_modules",
+        "@ansible",
+        "ansible-language-server",
+        "dist",
+        "cli.js",
+      );
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
