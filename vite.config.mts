@@ -24,6 +24,7 @@ function viteDevServerUrl(): Plugin {
         const address = server.httpServer?.address();
         if (address && typeof address === "object") {
           const url = `http://localhost:${address.port}`;
+          fs.mkdirSync(path.dirname(markerPath), { recursive: true });
           fs.writeFileSync(markerPath, url, "utf8");
           fs.writeFileSync(pidPath, String(process.pid), "utf8");
         }

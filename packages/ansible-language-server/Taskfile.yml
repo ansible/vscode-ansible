@@ -65,6 +65,7 @@ tasks:
       - ../../out/coverage/unit/lcov.info # sonar
       - ../../out/junit/unit-test-results.xml
     cmds:
+      - mkdir -p ../../out/als/tmp
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && pnpm run test"
   test-with-ee:
     dir: '{{ .TASKFILE_DIR }}'
