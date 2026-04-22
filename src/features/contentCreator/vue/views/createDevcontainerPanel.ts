@@ -14,13 +14,6 @@ export class MainPanel {
 
   private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
-    setupPanelLifecycle(
-      this._panel,
-      context,
-      "create-devcontainer",
-      this._disposables,
-      () => this.dispose(),
-    );
 
     this._panel.webview.onDidReceiveMessage(
       async (msg) => {
@@ -34,6 +27,14 @@ export class MainPanel {
       },
       null,
       this._disposables,
+    );
+
+    setupPanelLifecycle(
+      this._panel,
+      context,
+      "create-devcontainer",
+      this._disposables,
+      () => this.dispose(),
     );
   }
 

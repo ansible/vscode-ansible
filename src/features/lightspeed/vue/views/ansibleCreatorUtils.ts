@@ -29,11 +29,20 @@ export class AnsibleCreatorOperations {
     requiredVersion: string,
   ): { isGte: boolean; userMessage?: string } {
     try {
-      return { isGte: semver.gte(currentVersion, requiredVersion) };
+      const parsed =
+        semver.valid(currentVersion) ??
+        semver.coerce(currentVersion)?.version;
+      if (!parsed) {
+        return {
+          isGte: false,
+          userMessage: `Invalid version format: ${currentVersion}.\n`,
+        };
+      }
+      return { isGte: semver.gte(parsed, requiredVersion) };
     } catch {
       return {
         isGte: false,
-        userMessage: `Invalid version format: ${currentVersion}. This appears to be a development version.\n`,
+        userMessage: `Invalid version format: ${currentVersion}.\n`,
       };
     }
   }
