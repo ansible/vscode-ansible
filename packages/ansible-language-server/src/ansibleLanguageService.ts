@@ -153,6 +153,26 @@ export class AnsibleLanguageService {
       }
     });
 
+    // Custom request handler for configuration refresh with immediate cache clearing
+    this.connection.onRequest(
+      "ansible/refreshConfiguration",
+      async (): Promise<{ success: boolean }> => {
+        try {
+          // Clear caches immediately instead of waiting for debounced timer
+          await this.workspaceManager.forEachContext(async (context) => {
+            await context.documentSettings.handleConfigurationChanged({
+              settings: null,
+            });
+            context.clearCachedServices();
+          });
+          return { success: true };
+        } catch (error) {
+          this.handleError(error, "ansible/refreshConfiguration");
+          return { success: false };
+        }
+      },
+    );
+
     this.documents.onDidOpen(async (e) => {
       try {
         const context = this.workspaceManager.getContext(e.document.uri);

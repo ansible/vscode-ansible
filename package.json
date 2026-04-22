@@ -1104,6 +1104,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.0",
     "vitest": "^4.1.2",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vue-tsc": "^3.2.6",
     "wdio-vscode-service": "^6.1.4",
     "winston": "^3.19.0"

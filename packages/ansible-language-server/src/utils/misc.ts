@@ -1,5 +1,5 @@
 import * as child_process from "child_process";
-import { promises as fs } from "fs";
+import { existsSync, promises as fs } from "node:fs";
 import { promisify } from "util";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
@@ -7,6 +7,11 @@ import * as path from "path";
 
 export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));
+}
+
+/** Thin wrapper so tests can override venv detection without mocking Node builtins. */
+function isVenvDirectory(binDir: string): boolean {
+  return existsSync(path.join(binDir, "activate"));
 }
 
 export const asyncExec = promisify(child_process.exec);
@@ -46,6 +51,7 @@ export function withInterpreter(
   args: string,
   interpreterPath: string,
   activationScript: string,
+  _isVenvDirectory: (binDir: string) => boolean = isVenvDirectory,
 ): { command: string; env: NodeJS.ProcessEnv } {
   let command = `${executable} ${args}`; // base case
 
@@ -63,18 +69,32 @@ export function withInterpreter(
   }
 
   if (interpreterPath) {
-    const virtualEnv = path.resolve(interpreterPath, "../..");
+    // Bare command (e.g. "python3") — clear stale venv vars, nothing to prepend
+    if (path.basename(interpreterPath) === interpreterPath) {
+      delete newEnv.VIRTUAL_ENV;
+      return { command: command, env: newEnv };
+    }
 
-    const pathEntry = path.join(virtualEnv, "bin");
+    const resolvedPath = path.resolve(interpreterPath);
+    const interpreterDir = path.dirname(resolvedPath);
+    const potentialVirtualEnv = path.resolve(interpreterDir, "..");
+    const potentialBinDir = path.join(potentialVirtualEnv, "bin");
+
+    const isVirtualEnv = _isVenvDirectory(potentialBinDir);
+
+    const pathEntry = isVirtualEnv ? potentialBinDir : interpreterDir;
+
     if (path.isAbsolute(executable)) {
-      // if the user provided a path to the executable, we directly execute the app.
       command = `${executable} ${args}`;
     }
 
-    // emulating virtual environment activation script
-    newEnv["VIRTUAL_ENV"] = virtualEnv;
+    if (isVirtualEnv) {
+      newEnv["VIRTUAL_ENV"] = potentialVirtualEnv;
+      delete newEnv.PYTHONHOME;
+    } else {
+      delete newEnv.VIRTUAL_ENV;
+    }
     newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
-    delete newEnv.PYTHONHOME;
   }
   return { command: command, env: newEnv };
 }

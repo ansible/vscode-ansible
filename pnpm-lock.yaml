@@ -259,6 +259,12 @@ importers:
       vitest:
         specifier: ^4.1.2
         version: 4.1.2(@types/node@24.12.0)(@vitest/ui@4.1.2)(jsdom@29.0.1)(vite@8.0.3(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@types/node@24.12.0)(esbuild@0.27.5)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
+      vscode-jsonrpc:
+        specifier: ^8.2.1
+        version: 8.2.1
+      vscode-languageserver-protocol:
+        specifier: ^3.17.5
+        version: 3.17.5
       vue-tsc:
         specifier: ^3.2.6
         version: 3.2.6(typescript@5.9.3)

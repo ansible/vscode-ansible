@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
@@ -21,6 +22,12 @@ import {
   TransportKind,
   RevealOutputChannelOn,
 } from "vscode-languageclient/node";
+import type {
+  CancellationToken,
+  ConfigurationParams,
+  LSPAny,
+} from "vscode-languageserver-protocol";
+import type { HandlerResult } from "vscode-jsonrpc";
 
 /* local */
 import { SettingsManager } from "@src/settings";
@@ -160,7 +167,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // start the client and the server
-  await startClient(context, telemetry);
+  const clientStarted = await startClient(context, telemetry, pythonEnvService);
+  if (!clientStarted) return;
 
   notifyAboutConflicts();
 
@@ -183,16 +191,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
     console.error(`Error updating python status bar: ${error}`);
   }
 
-  // Subscribe to Python environment changes to update the status bar
+  // Subscribe to Python environment changes to update the status bar and LS
   context.subscriptions.push(
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
+        if (client && client.isRunning()) {
+          const refreshResult = await client.sendRequest<{
+            success: boolean;
+          }>("ansible/refreshConfiguration", {});
+          if (!refreshResult.success) {
+            console.error(
+              "Language Server configuration refresh failed; status bars may be stale",
+            );
+          }
+        }
+
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
       } catch (error) {
-        console.error(
-          `Error updating status bar after environment change: ${error}`,
-        );
+        console.error(`Error updating after environment change: ${error}`);
       }
     }),
   );
@@ -1146,14 +1163,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
 const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager,
-) => {
-  // Prefer the server shipped in the vsix (packages/ansible-language-server/dist/); otherwise
-  // use the workspace package (e.g. when running from source).
-  const bundledServer = path.join(
+  pythonEnvService: PythonEnvironmentService,
+): Promise<boolean> => {
+  const distServer = path.join(
     context.extensionPath,
     "packages",
     "ansible-language-server",
     "dist",
+    "cli.cjs",
+  );
+  const libServer = path.join(
+    context.extensionPath,
+    "packages",
+    "ansible-language-server",
+    "lib",
     "cli.cjs",
   );
   const packageServer = path.join(
@@ -1164,6 +1187,15 @@ const startClient = async (
     "dist",
     "cli.js",
   );
+  const bundledServer = [distServer, libServer, packageServer].find((p) =>
+    fs.existsSync(p),
+  );
+  if (!bundledServer) {
+    window.showErrorMessage(
+      "Ansible Language Server not found. Please reinstall the extension.",
+    );
+    return false;
+  }
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
@@ -1171,7 +1203,7 @@ const startClient = async (
   const serverOptions: ServerOptions = {
     run: { module: bundledServer, transport: TransportKind.ipc },
     debug: {
-      module: packageServer,
+      module: bundledServer,
       transport: TransportKind.ipc,
       options: debugOptions,
     },
@@ -1186,7 +1218,6 @@ const startClient = async (
   lsOutputChannel = outputChannel;
 
   const clientOptions: LanguageClientOptions = {
-    // register the server for Ansible documents
     documentSelector: [{ scheme: "file", language: "ansible" }],
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     errorHandler: telemetryErrorHandler,
@@ -1194,6 +1225,14 @@ const startClient = async (
       outputChannel,
       telemetry.telemetryService,
     ),
+    middleware: {
+      workspace: {
+        configuration: makeConfigurationMiddleware(
+          pythonEnvService,
+          outputChannel,
+        ),
+      },
+    },
   };
 
   client = new LanguageClient(
@@ -1245,6 +1284,7 @@ const startClient = async (
     });
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(true);
+    return true;
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {
@@ -1255,6 +1295,7 @@ const startClient = async (
     console.error(`Language Client initialization failed with ${errorMessage}`);
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(false, errorMessage);
+    return false;
   }
 };
 
@@ -1382,6 +1423,92 @@ async function updateDocumentInRoleContext() {
     "redhat.ansible.isDocumentInRole",
     isInRole,
   );
+}
+
+/**
+ * Intercepts workspace/configuration requests from the Language Server and
+ * injects the Python interpreter path resolved by PythonEnvironmentService
+ * when the user has not explicitly set `ansible.python.interpreterPath`.
+ */
+export function makeConfigurationMiddleware(
+  pythonEnvService: PythonEnvironmentService,
+  outputChannel: vscode.OutputChannel,
+) {
+  // Per-scope state: track last logged path separately by source to prevent incorrect suppression
+  const lastLoggedUserByScope = new Map<string, string>(); // scopeUri -> user-configured path
+  const lastLoggedResolvedByScope = new Map<string, string>(); // scopeUri -> auto-resolved path or "" for none
+
+  return (
+    params: ConfigurationParams,
+    token: CancellationToken,
+    next: (
+      params: ConfigurationParams,
+      token: CancellationToken,
+    ) => HandlerResult<LSPAny[], void>,
+  ): HandlerResult<LSPAny[], void> => {
+    return (async (): Promise<LSPAny[]> => {
+      const originalResult = await next(params, token);
+      if (!Array.isArray(originalResult))
+        return originalResult as unknown as LSPAny[];
+
+      // Clone result array to avoid mutating the original
+      const result = [...originalResult];
+
+      for (let i = 0; i < params.items.length; i++) {
+        if (params.items[i].section !== "ansible") continue;
+
+        const config = result[i] as Record<string, unknown> | undefined;
+        if (!config) continue;
+
+        const scopeUri = params.items[i].scopeUri ?? "";
+        const pythonConfig = config.python as
+          | Record<string, unknown>
+          | undefined;
+        const rawInterpreterPath = pythonConfig?.interpreterPath;
+
+        if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
+          // User has explicit config, log only on change
+          if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
+            outputChannel.appendLine(
+              `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}`,
+            );
+            lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
+          }
+          continue;
+        }
+
+        const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+        const resolvedPath = await pythonEnvService.getExecutablePath(scope);
+
+        if (resolvedPath) {
+          // Log only when path actually changes
+          if (lastLoggedResolvedByScope.get(scopeUri) !== resolvedPath) {
+            outputChannel.appendLine(
+              `[Ansible] Python environment changed: ${resolvedPath}`,
+            );
+            lastLoggedResolvedByScope.set(scopeUri, resolvedPath);
+          }
+          // Create new config object to avoid mutating the original
+          result[i] = {
+            ...config,
+            python: {
+              ...pythonConfig,
+              interpreterPath: resolvedPath,
+            },
+          };
+        } else {
+          // Log only when transitioning to "no path"
+          if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+            outputChannel.appendLine(
+              "[Ansible] No Python environment available",
+            );
+            lastLoggedResolvedByScope.set(scopeUri, "");
+          }
+        }
+      }
+      return result;
+    })();
+  };
 }
 
 function newDocsReadyGate(): { resolve: () => void; promise: Promise<void> } {
