@@ -1434,7 +1434,8 @@ export function makeConfigurationMiddleware(
   pythonEnvService: PythonEnvironmentService,
   outputChannel: vscode.OutputChannel,
 ) {
-  let lastInjectedPath: string | undefined;
+  // Per-scope state: track last logged path to prevent duplicate logs across workspaces
+  const lastLoggedByScope = new Map<string, string>(); // scopeUri -> path (or "" for none)
 
   return (
     params: ConfigurationParams,
@@ -1445,8 +1446,12 @@ export function makeConfigurationMiddleware(
     ) => HandlerResult<LSPAny[], void>,
   ): HandlerResult<LSPAny[], void> => {
     return (async (): Promise<LSPAny[]> => {
-      const result = await next(params, token);
-      if (!Array.isArray(result)) return result as unknown as LSPAny[];
+      const originalResult = await next(params, token);
+      if (!Array.isArray(originalResult))
+        return originalResult as unknown as LSPAny[];
+
+      // Clone result array to avoid mutating the original
+      const result = [...originalResult];
 
       for (let i = 0; i < params.items.length; i++) {
         if (params.items[i].section !== "ansible") continue;
@@ -1454,45 +1459,49 @@ export function makeConfigurationMiddleware(
         const config = result[i] as Record<string, unknown> | undefined;
         if (!config) continue;
 
+        const scopeUri = params.items[i].scopeUri ?? "";
         const pythonConfig = config.python as
           | Record<string, unknown>
           | undefined;
         const rawInterpreterPath = pythonConfig?.interpreterPath;
+
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
           // User has explicit config, log only on change
-          if (lastInjectedPath !== rawInterpreterPath) {
+          if (lastLoggedByScope.get(scopeUri) !== rawInterpreterPath) {
             outputChannel.appendLine(
               `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}`,
             );
-            lastInjectedPath = rawInterpreterPath;
+            lastLoggedByScope.set(scopeUri, rawInterpreterPath);
           }
           continue;
         }
 
-        const scopeUri = params.items[i].scopeUri;
         const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
         const resolvedPath = await pythonEnvService.getExecutablePath(scope);
 
         if (resolvedPath) {
           // Log only when path actually changes
-          if (lastInjectedPath !== resolvedPath) {
+          if (lastLoggedByScope.get(scopeUri) !== resolvedPath) {
             outputChannel.appendLine(
               `[Ansible] Python environment changed: ${resolvedPath}`,
             );
-            lastInjectedPath = resolvedPath;
+            lastLoggedByScope.set(scopeUri, resolvedPath);
           }
-          config.python = {
-            ...pythonConfig,
-            interpreterPath: resolvedPath,
+          // Create new config object to avoid mutating the original
+          result[i] = {
+            ...config,
+            python: {
+              ...pythonConfig,
+              interpreterPath: resolvedPath,
+            },
           };
-          result[i] = config;
         } else {
           // Log only when transitioning to "no path"
-          if (lastInjectedPath !== undefined) {
+          if (lastLoggedByScope.get(scopeUri) !== "") {
             outputChannel.appendLine(
               "[Ansible] No Python environment available",
             );
-            lastInjectedPath = undefined;
+            lastLoggedByScope.set(scopeUri, "");
           }
         }
       }
