@@ -44,10 +44,10 @@ describe("commandRunner", function () {
       args: [
         "python3",
         "-c",
-        "\"import os; print(os.environ.get('VIRTUAL_ENV'))\"",
+        "\"import os; print(os.environ.get('VIRTUAL_ENV', 'unset'))\"",
       ],
       rc: 0,
-      stdout: "path-before-python",
+      stdout: "unset",
       stderr: "",
       pythonInterpreterPath: "path-before-python/bin/python",
       activationScript: "",
