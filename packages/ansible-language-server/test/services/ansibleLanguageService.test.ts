@@ -6,7 +6,9 @@ import { AnsibleLanguageService } from "@src/ansibleLanguageService.js";
 interface MockConnection extends Connection {
   _simulateInitialize: (params: unknown) => void;
   _simulateInitialized: () => void;
-  _getRequestHandler: (method: string) => ((params: unknown) => Promise<unknown>) | undefined;
+  _getRequestHandler: (
+    method: string,
+  ) => ((params: unknown) => Promise<unknown>) | undefined;
 }
 
 function createMockDocuments() {
@@ -23,10 +25,8 @@ function createMockDocuments() {
 function createMockConnection(): MockConnection {
   const onInitializeHandlers: ((params: unknown) => unknown)[] = [];
   const onInitializedHandlers: (() => void)[] = [];
-  const requestHandlers: Map<
-    string,
-    (params: unknown) => Promise<unknown>
-  > = new Map();
+  const requestHandlers: Map<string, (params: unknown) => Promise<unknown>> =
+    new Map();
 
   return {
     console: {
@@ -49,7 +49,10 @@ function createMockConnection(): MockConnection {
     onInitialized: (handler: () => void) => {
       onInitializedHandlers.push(handler);
     },
-    onRequest: (method: string, handler: (params: unknown) => Promise<unknown>) => {
+    onRequest: (
+      method: string,
+      handler: (params: unknown) => Promise<unknown>,
+    ) => {
       requestHandlers.set(method, handler);
     },
     onDidChangeConfiguration: sinon.stub(),

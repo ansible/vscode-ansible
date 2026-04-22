@@ -1,5 +1,5 @@
 import * as child_process from "child_process";
-import { promises as fs } from "fs";
+import { existsSync, promises as fs } from "node:fs";
 import { promisify } from "util";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
@@ -7,6 +7,11 @@ import * as path from "path";
 
 export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));
+}
+
+/** Thin wrapper so tests can override venv detection without mocking Node builtins. */
+export function isVenvDirectory(binDir: string): boolean {
+  return existsSync(path.join(binDir, "activate"));
 }
 
 export const asyncExec = promisify(child_process.exec);
@@ -46,6 +51,7 @@ export function withInterpreter(
   args: string,
   interpreterPath: string,
   activationScript: string,
+  _isVenvDirectory: (binDir: string) => boolean = isVenvDirectory,
 ): { command: string; env: NodeJS.ProcessEnv } {
   let command = `${executable} ${args}`; // base case
 
@@ -63,13 +69,18 @@ export function withInterpreter(
   }
 
   if (interpreterPath) {
-    const interpreterDir = path.dirname(interpreterPath);
-    const potentialVirtualEnv = path.resolve(interpreterPath, "../..");
+    // Bare command (e.g. "python3") — clear stale venv vars, nothing to prepend
+    if (path.basename(interpreterPath) === interpreterPath) {
+      delete newEnv.VIRTUAL_ENV;
+      return { command: command, env: newEnv };
+    }
+
+    const resolvedPath = path.resolve(interpreterPath);
+    const interpreterDir = path.dirname(resolvedPath);
+    const potentialVirtualEnv = path.resolve(interpreterDir, "..");
     const potentialBinDir = path.join(potentialVirtualEnv, "bin");
 
-    // Check if this is a virtual environment (has activate script)
-    const activateScript = path.join(potentialBinDir, "activate");
-    const isVirtualEnv = require("fs").existsSync(activateScript);
+    const isVirtualEnv = _isVenvDirectory(potentialBinDir);
 
     const pathEntry = isVirtualEnv ? potentialBinDir : interpreterDir;
 
@@ -77,10 +88,11 @@ export function withInterpreter(
       command = `${executable} ${args}`;
     }
 
-    // Set environment variables (VIRTUAL_ENV only for actual venvs)
     if (isVirtualEnv) {
       newEnv["VIRTUAL_ENV"] = potentialVirtualEnv;
       delete newEnv.PYTHONHOME;
+    } else {
+      delete newEnv.VIRTUAL_ENV;
     }
     newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
   }

@@ -106,31 +106,31 @@ describe("makeConfigurationMiddleware", function () {
 
   it("should log when transitioning from a path to no path", async function () {
     const params = { items: [{ section: "ansible" }] };
-    const originalResult = [{ python: {} }];
 
-    // First call with a path
-    mockNext.mockResolvedValue(originalResult);
+    // First call — env resolves a path; mockNext returns a fresh object
+    mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
     await middleware(
-      params as ConfigurationParams,
-      mockToken,
-      mockNext as (
-        params: ConfigurationParams,
-        token: CancellationToken,
-      ) => HandlerResult<LSPAny[], void>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
     );
 
-    // Second call with no path (should log transition)
+    // Second call — env returns nothing; fresh object avoids mutation leak
+    mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(undefined);
     await middleware(
-      params as ConfigurationParams,
-      mockToken,
-      mockNext as (
-        params: ConfigurationParams,
-        token: CancellationToken,
-      ) => HandlerResult<LSPAny[], void>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
     );
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -289,23 +289,23 @@ describe("makeConfigurationMiddleware", function () {
 
   it("should only log once when same path is injected multiple times", async function () {
     const params = { items: [{ section: "ansible" }] };
-    const originalResult = [{ python: {} }];
-    mockNext.mockResolvedValue(originalResult);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
 
-    const middlewareNext = mockNext as (
-      params: ConfigurationParams,
-      token: CancellationToken,
-    ) => HandlerResult<LSPAny[], void>;
+    // Each call returns a fresh object to avoid mutation leakage
+    for (let n = 0; n < 3; n++) {
+      mockNext.mockResolvedValue([{ python: {} }]);
+      await middleware(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        params as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockToken as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockNext as any,
+      );
+    }
 
-    // Call middleware 3 times with same path
-    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
-    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
-    await middleware(params as ConfigurationParams, mockToken, middlewareNext);
-
-    // Should only log once (on first call)
     expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("Python environment changed"),

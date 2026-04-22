@@ -195,11 +195,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
         if (client && client.isRunning()) {
-          // Request configuration refresh and wait for cache to clear
-          await client.sendRequest("ansible/refreshConfiguration", {});
+          const refreshResult = await client.sendRequest<{
+            success: boolean;
+          }>("ansible/refreshConfiguration", {});
+          if (!refreshResult.success) {
+            console.error(
+              "Language Server configuration refresh failed; status bars may be stale",
+            );
+          }
         }
 
-        // Update status bars with fresh metadata from the Language Server
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
       } catch (error) {

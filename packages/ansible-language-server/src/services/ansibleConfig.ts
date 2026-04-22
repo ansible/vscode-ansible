@@ -97,12 +97,13 @@ export class AnsibleConfig {
       /* v8 ignore start */
       // Suppress "command not found" errors completely
       // The client-side already logs "Ansible not found" when showing the error state in UI
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (!errorMessage.includes("command not found") && !errorMessage.includes("ansible: command not found")) {
-        // Only log unexpected errors (not missing ansible/tools)
-        this.connection.console.error(
-          `[AnsibleConfig] ${errorMessage}`,
-        );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        !errorMessage.includes("command not found") &&
+        !errorMessage.includes("ansible: command not found")
+      ) {
+        this.connection.console.error(`[AnsibleConfig] ${errorMessage}`);
       }
       /* v8 ignore end */
     }
