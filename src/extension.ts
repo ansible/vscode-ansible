@@ -1434,8 +1434,9 @@ export function makeConfigurationMiddleware(
   pythonEnvService: PythonEnvironmentService,
   outputChannel: vscode.OutputChannel,
 ) {
-  // Per-scope state: track last logged path to prevent duplicate logs across workspaces
-  const lastLoggedByScope = new Map<string, string>(); // scopeUri -> path (or "" for none)
+  // Per-scope state: track last logged path separately by source to prevent incorrect suppression
+  const lastLoggedUserByScope = new Map<string, string>(); // scopeUri -> user-configured path
+  const lastLoggedResolvedByScope = new Map<string, string>(); // scopeUri -> auto-resolved path or "" for none
 
   return (
     params: ConfigurationParams,
@@ -1467,11 +1468,11 @@ export function makeConfigurationMiddleware(
 
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
           // User has explicit config, log only on change
-          if (lastLoggedByScope.get(scopeUri) !== rawInterpreterPath) {
+          if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
             outputChannel.appendLine(
               `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}`,
             );
-            lastLoggedByScope.set(scopeUri, rawInterpreterPath);
+            lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
           }
           continue;
         }
@@ -1481,11 +1482,11 @@ export function makeConfigurationMiddleware(
 
         if (resolvedPath) {
           // Log only when path actually changes
-          if (lastLoggedByScope.get(scopeUri) !== resolvedPath) {
+          if (lastLoggedResolvedByScope.get(scopeUri) !== resolvedPath) {
             outputChannel.appendLine(
               `[Ansible] Python environment changed: ${resolvedPath}`,
             );
-            lastLoggedByScope.set(scopeUri, resolvedPath);
+            lastLoggedResolvedByScope.set(scopeUri, resolvedPath);
           }
           // Create new config object to avoid mutating the original
           result[i] = {
@@ -1497,11 +1498,11 @@ export function makeConfigurationMiddleware(
           };
         } else {
           // Log only when transitioning to "no path"
-          if (lastLoggedByScope.get(scopeUri) !== "") {
+          if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
             outputChannel.appendLine(
               "[Ansible] No Python environment available",
             );
-            lastLoggedByScope.set(scopeUri, "");
+            lastLoggedResolvedByScope.set(scopeUri, "");
           }
         }
       }

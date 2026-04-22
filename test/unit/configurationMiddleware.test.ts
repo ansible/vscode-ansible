@@ -311,4 +311,45 @@ describe("makeConfigurationMiddleware", function () {
       expect.stringContaining("Python environment changed"),
     );
   });
+
+  it("should log when transitioning between user-configured and auto-resolved with same path", async function () {
+    const params = { items: [{ section: "ansible" }] };
+
+    // First call: user has configured path
+    mockNext.mockResolvedValue([
+      { python: { interpreterPath: "/usr/bin/python3" } },
+    ]);
+    await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
+
+    // Should log user-configured
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("user-configured interpreterPath"),
+    );
+
+    // Second call: user removes config, auto-resolves to SAME path
+    mockNext.mockResolvedValue([{ python: {} }]);
+    mockPythonEnvService.getExecutablePath.mockResolvedValue(
+      "/usr/bin/python3",
+    );
+    await middleware(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      params as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockToken as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockNext as any,
+    );
+
+    // Should STILL log because source changed (user → auto-resolved)
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("Python environment changed"),
+    );
+  });
 });
