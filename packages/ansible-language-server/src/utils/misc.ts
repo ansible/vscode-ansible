@@ -10,7 +10,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
 }
 
 /** Thin wrapper so tests can override venv detection without mocking Node builtins. */
-export function isVenvDirectory(binDir: string): boolean {
+function isVenvDirectory(binDir: string): boolean {
   return existsSync(path.join(binDir, "activate"));
 }
 
