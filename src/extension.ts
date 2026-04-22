@@ -167,7 +167,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // start the client and the server
-  await startClient(context, telemetry, pythonEnvService);
+  const clientStarted = await startClient(context, telemetry, pythonEnvService);
+  if (!clientStarted) return;
 
   notifyAboutConflicts();
 
@@ -1163,7 +1164,7 @@ const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager,
   pythonEnvService: PythonEnvironmentService,
-) => {
+): Promise<boolean> => {
   const distServer = path.join(
     context.extensionPath,
     "packages",
@@ -1193,7 +1194,7 @@ const startClient = async (
     window.showErrorMessage(
       "Ansible Language Server not found. Please reinstall the extension.",
     );
-    return;
+    return false;
   }
 
   // server is run at port 6009 for debugging
@@ -1283,6 +1284,7 @@ const startClient = async (
     });
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(true);
+    return true;
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {
@@ -1293,6 +1295,7 @@ const startClient = async (
     console.error(`Language Client initialization failed with ${errorMessage}`);
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(false, errorMessage);
+    return false;
   }
 };
 
