@@ -45,6 +45,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
+  },
   "scripts": {
     "build": "pnpm run clean && pnpm run compile",
     "clean": "rimraf dist lib",
