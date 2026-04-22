@@ -13,9 +13,14 @@ import {
   createActionWrapper,
 } from "@src/features/contentCreator/webviewUtils";
 import FormPageLayout from "@webviews/FormPageLayout.vue";
+import RequirementsBanner from "@webviews/RequirementsBanner.vue";
 const commonState = useCommonWebviewState();
 const logs = commonState.logs;
 const isCreating = commonState.isCreating;
+
+// Requirements checking
+const requirementsMet = ref(true);
+const requirementFailures = ref<any[]>([]);
 
 // Form fields
 const destinationPath = ref("");
@@ -231,6 +236,9 @@ function stripAnsiCodes(text: string): string {
 }
 
 onMounted(() => {
+  // Request requirements status
+  vscodeApi.postMessage({ type: "request-requirements-status" });
+
   setupMessageHandler({
     onHomeDirectory: (data) => {
       homeDir.value = data;
@@ -272,6 +280,11 @@ onMounted(() => {
         openFileButtonDisabled.value = false;
         break;
     }
+    // Handle requirements status
+    if (message.type === "requirements-status") {
+      requirementsMet.value = message.met;
+      requirementFailures.value = message.failures || [];
+    }
   });
 
   initializeUI();
@@ -282,7 +295,15 @@ onMounted(() => {
   <FormPageLayout
     title="Create an Ansible execution environment"
     subtitle="Define and build a container for automation execution"
+    :requirementsMet="requirementsMet"
   >
+    <template #banner>
+      <RequirementsBanner
+        v-if="!requirementsMet"
+        :failures="requirementFailures"
+      />
+    </template>
+
     <form id="init-form">
       <section class="component-container">
         <vscode-form-group variant="vertical">

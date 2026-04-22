@@ -386,6 +386,99 @@ describe("PythonEnvironmentService", function () {
 
       expect(env).toBeUndefined();
     });
+
+    it("should default to first workspace folder when using fallback API", async function () {
+      const mockGetActiveEnvPath = vi.fn().mockReturnValue({
+        id: "workspace-env",
+        path: "/workspace/venv/bin/python",
+      });
+
+      const fallbackApi = makeMockPythonExtApi({
+        getActiveEnvironmentPath: mockGetActiveEnvPath,
+        resolveEnvironment: vi.fn().mockResolvedValue({
+          id: "workspace-env",
+          executable: {
+            uri: { fsPath: "/workspace/venv/bin/python" },
+          },
+          version: { major: 3, minor: 11, micro: 5 },
+        }),
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const workspaceUri = vscode.Uri.file("/workspace");
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [{ uri: workspaceUri } as vscode.WorkspaceFolder],
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(undefined);
+
+      // Should pass workspace URI to getActiveEnvironmentPath
+      expect(mockGetActiveEnvPath).toHaveBeenCalledWith(workspaceUri);
+    });
+
+    it("should use explicit scope with fallback API", async function () {
+      const mockGetActiveEnvPath = vi.fn().mockReturnValue({
+        id: "explicit-env",
+        path: "/explicit/venv/bin/python",
+      });
+
+      const fallbackApi = makeMockPythonExtApi({
+        getActiveEnvironmentPath: mockGetActiveEnvPath,
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const explicitScope = vscode.Uri.file("/explicit/workspace");
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [
+          {
+            uri: vscode.Uri.file("/default/workspace"),
+          } as vscode.WorkspaceFolder,
+        ],
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(explicitScope);
+
+      // Should use explicit scope, not default workspace
+      expect(mockGetActiveEnvPath).toHaveBeenCalledWith(explicitScope);
+    });
   });
 
   describe("getEnvironment — primary path", function () {
@@ -433,6 +526,139 @@ describe("PythonEnvironmentService", function () {
       const result = await service.getEnvironment();
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("getEnvironment — scope resolution", function () {
+    it("should use provided scope when explicitly passed", async function () {
+      const mockGetEnvironment = vi.fn().mockResolvedValue({
+        envId: { id: "test", managerId: "test" },
+        execInfo: { run: { executable: "/workspace/venv/bin/python" } },
+      });
+
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: mockGetEnvironment,
+      });
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      const explicitScope = vscode.Uri.file("/explicit/workspace");
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [
+          {
+            uri: vscode.Uri.file("/default/workspace"),
+          } as vscode.WorkspaceFolder,
+        ],
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(explicitScope);
+
+      // Should pass the explicit scope, not the workspace folder
+      expect(mockGetEnvironment).toHaveBeenCalledWith(explicitScope);
+    });
+
+    it("should default to first workspace folder when scope is undefined", async function () {
+      const mockGetEnvironment = vi.fn().mockResolvedValue({
+        envId: { id: "test", managerId: "test" },
+        execInfo: { run: { executable: "/workspace/venv/bin/python" } },
+      });
+
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: mockGetEnvironment,
+      });
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      const workspaceUri = vscode.Uri.file("/workspace");
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [{ uri: workspaceUri } as vscode.WorkspaceFolder],
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(undefined);
+
+      // Should use first workspace folder as scope
+      expect(mockGetEnvironment).toHaveBeenCalledWith(workspaceUri);
+    });
+
+    it("should pass undefined to API when no scope and no workspace folders", async function () {
+      const mockGetEnvironment = vi.fn().mockResolvedValue({
+        envId: { id: "test", managerId: "test" },
+        execInfo: { run: { executable: "/usr/bin/python" } },
+      });
+
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: mockGetEnvironment,
+      });
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: undefined,
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(undefined);
+
+      // Should pass undefined when no workspace folders
+      expect(mockGetEnvironment).toHaveBeenCalledWith(undefined);
+    });
+
+    it("should default to first workspace in multi-workspace setup", async function () {
+      const mockGetEnvironment = vi.fn().mockResolvedValue({
+        envId: { id: "test", managerId: "test" },
+        execInfo: { run: { executable: "/workspace1/venv/bin/python" } },
+      });
+
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: mockGetEnvironment,
+      });
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      const workspace1Uri = vscode.Uri.file("/workspace1");
+      const workspace2Uri = vscode.Uri.file("/workspace2");
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [
+          { uri: workspace1Uri } as vscode.WorkspaceFolder,
+          { uri: workspace2Uri } as vscode.WorkspaceFolder,
+        ],
+        configurable: true,
+      });
+
+      await service.initialize();
+      await service.getEnvironment(undefined);
+
+      // Should use first workspace folder in multi-workspace
+      expect(mockGetEnvironment).toHaveBeenCalledWith(workspace1Uri);
     });
   });
 

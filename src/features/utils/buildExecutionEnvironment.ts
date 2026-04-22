@@ -43,7 +43,7 @@ export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
       const extSettings = new SettingsManager();
       await extSettings.initialize();
 
-      const { command, env } = withInterpreter(
+      const { command, env } = await withInterpreter(
         extSettings.settings,
         builderCommand,
         "",

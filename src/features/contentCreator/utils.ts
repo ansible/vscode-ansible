@@ -9,7 +9,11 @@ export async function getBinDetail(cmd: string, arg: string) {
   const extSettings = new SettingsManager();
   await extSettings.initialize();
 
-  const { command, env } = withInterpreter(extSettings.settings, cmd, arg);
+  const { command, env } = await withInterpreter(
+    extSettings.settings,
+    cmd,
+    arg,
+  );
 
   try {
     const result = cp.execSync(command, {

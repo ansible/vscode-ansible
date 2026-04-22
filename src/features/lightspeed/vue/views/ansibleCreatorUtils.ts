@@ -83,7 +83,7 @@ export class AnsibleCreatorOperations {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const { command, env } = withInterpreter(
+    const { command, env } = await withInterpreter(
       extSettings.settings,
       ansibleCreatorAddCommand,
       "",
@@ -182,7 +182,7 @@ export class AnsibleCreatorOperations {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const { command, env } = withInterpreter(
+    const { command, env } = await withInterpreter(
       extSettings.settings,
       ansibleCreatorAddCommand,
       "",
@@ -354,7 +354,7 @@ export class AnsibleCreatorOperations {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const { command, env } = withInterpreter(
+    const { command, env } = await withInterpreter(
       extSettings.settings,
       ansibleCreatorInitCommand,
       "",
@@ -407,7 +407,7 @@ export class AnsibleCreatorOperations {
 
       if (exceedADEImVersion) {
         adeCommand += " --im=cfg";
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           adeCommand,
           "",

@@ -86,11 +86,23 @@ describe(__filename, function () {
   describe("'getBinDetail()' utility functions for the content creator", function () {
     getBinDetailTests.forEach(({ name, command, arg, expected }) => {
       it(`should provide details for ${name}`, async function () {
-        const result = (await getBinDetail(command, arg)).toString();
-        if (expected instanceof RegExp) {
-          assert.match(result, expected);
-        } else {
-          expect(result).toContain(expected);
+        // Suppress stderr for expected command failures
+        const originalStderrWrite = process.stderr.write;
+        if (expected === "failed") {
+          process.stderr.write = () => true;
+        }
+
+        try {
+          const result = (await getBinDetail(command, arg)).toString();
+          if (expected instanceof RegExp) {
+            assert.match(result, expected);
+          } else {
+            expect(result).toContain(expected);
+          }
+        } finally {
+          if (expected === "failed") {
+            process.stderr.write = originalStderrWrite;
+          }
         }
       });
     });
@@ -99,9 +111,21 @@ describe(__filename, function () {
   describe("'runCommand()' utility functions for the content creator", function () {
     runCommandTests.forEach(({ name, command, expected }) => {
       it(`should provide details for ${name}`, async function () {
-        const result = await runCommand(command, process.env);
-        expect(result.output).toContain(expected.output);
-        assert.equal(result.status, expected.status);
+        // Suppress stderr for expected command failures
+        const originalStderrWrite = process.stderr.write;
+        if (expected.status === "failed") {
+          process.stderr.write = () => true;
+        }
+
+        try {
+          const result = await runCommand(command, process.env);
+          expect(result.output).toContain(expected.output);
+          assert.equal(result.status, expected.status);
+        } finally {
+          if (expected.status === "failed") {
+            process.stderr.write = originalStderrWrite;
+          }
+        }
       });
     });
   });
