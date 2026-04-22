@@ -1104,7 +1104,7 @@ export class WebviewMessageHandlers {
         const extSettings = new SettingsManager();
         await extSettings.initialize();
 
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           initEEProjectCommand,
           "",
