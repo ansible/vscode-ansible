@@ -1,0 +1,10 @@
+---
+- name: Sub task using variable
+  ansible.builtin.debug:
+    msg: "User result: {{ user_result }}"
+
+- name: Sub task with handler
+  ansible.builtin.service:
+    name: app
+    state: started
+  notify: Restart app

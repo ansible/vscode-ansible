@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent, Position } from "vscode-languageserver";
-import { expect, beforeAll, afterAll } from "vitest";
+import { expect, beforeAll, afterAll, assert } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -11,6 +11,7 @@ import {
 } from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { DocsLibrary } from "@src/services/docsLibrary.js";
 
 function get_hover_value(hover: Hover | undefined | null): string {
   if (hover) {
@@ -598,6 +599,147 @@ describe("doHover()", function () {
   const nonAdjacentDocSettings = nonAdjacentContext?.documentSettings.get(
     nonAdjacentTextDoc.uri,
   );
+
+  const emptyDocsLibrary = {
+    findModule: async () => [null, false],
+  } as unknown as DocsLibrary;
+
+  describe("Symbol-based hover (handler, variable, filePath, role)", function () {
+    describe("handler hover", () => {
+      const textDoc = getDoc("references/playbook_handlers.yml");
+
+      it("should provide hover for handler notify", async () => {
+        // 0-based line 6: `notify: Restart nginx`
+        const hover = await doHover(textDoc, Position.create(6, 14), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Handler");
+        expect(value).toContain("Restart nginx");
+      });
+
+      it("should provide hover for handler name in handlers section", async () => {
+        // 0-based line 17: `- name: Restart nginx`
+        const hover = await doHover(textDoc, Position.create(17, 14), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Handler");
+        expect(value).toContain("Restart nginx");
+      });
+
+      it("should provide hover for listen value", async () => {
+        // 0-based line 26: `listen: Restart nginx`
+        const hover = await doHover(textDoc, Position.create(26, 14), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Handler");
+      });
+    });
+
+    describe("variable hover", () => {
+      const textDoc = getDoc("references/playbook_variables.yml");
+
+      it("should provide hover for vars key", async () => {
+        // 0-based line 3: `http_port: 8080`
+        const hover = await doHover(textDoc, Position.create(3, 6), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Variable");
+        expect(value).toContain("http_port");
+      });
+
+      it("should provide hover for register variable", async () => {
+        // 0-based line 16: `register: cmd_result`
+        const hover = await doHover(textDoc, Position.create(16, 16), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Variable");
+        expect(value).toContain("cmd_result");
+      });
+
+      it("should provide hover for Jinja2 variable", async () => {
+        // 0-based line 12: `msg: "Port is {{ http_port }}"`
+        const hover = await doHover(textDoc, Position.create(12, 28), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Variable");
+        expect(value).toContain("http_port");
+      });
+
+      it("should provide hover for vars_prompt variable", async () => {
+        // 0-based line 6: `- name: user_password`
+        const hover = await doHover(textDoc, Position.create(6, 14), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Variable");
+        expect(value).toContain("user_password");
+      });
+    });
+
+    describe("variable hover with argument_specs", () => {
+      const textDoc = getDoc("references/roles/test_role/tasks/main.yml");
+
+      it("should provide enriched hover for role variable with argument_specs", async () => {
+        // 0-based line 3: `name: "{{ app_user }}"` — cursor on app_user
+        const hover = await doHover(textDoc, Position.create(3, 14), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        // Should contain argument_specs info (type, description)
+        expect(value.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe("filePath hover", () => {
+      const textDoc = getDoc("references/playbook_includes.yml");
+
+      it("should provide hover for include_tasks path", async () => {
+        // 0-based line 6: `ansible.builtin.include_tasks: included_tasks.yml`
+        const hover = await doHover(textDoc, Position.create(6, 38), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("File");
+        expect(value).toContain("included_tasks");
+      });
+
+      it("should provide hover for vars_files entry", async () => {
+        // 0-based line 3: `- vars/defaults.yml`
+        const hover = await doHover(textDoc, Position.create(3, 10), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("File");
+      });
+    });
+
+    describe("role hover", () => {
+      const textDoc = getDoc("references/playbook_includes.yml");
+
+      it("should provide hover for include_role name", async () => {
+        // 0-based line 20: `name: test_role`
+        const hover = await doHover(textDoc, Position.create(20, 16), emptyDocsLibrary);
+        assert(hover);
+        const value = get_hover_value(hover);
+        expect(value).toContain("Role");
+        expect(value).toContain("test_role");
+      });
+    });
+
+    describe("null cases", () => {
+      it("should return null for non-symbol position", async () => {
+        const textDoc = getDoc("references/playbook_handlers.yml");
+        // line 0: `---`
+        const hover = await doHover(textDoc, Position.create(0, 0), emptyDocsLibrary);
+        expect(hover).toBeNull();
+      });
+
+      it("should return null for non-existent role", async () => {
+        const doc = TextDocument.create(
+          "file:///tmp/test.yml", "ansible", 1,
+          `---\n- hosts: all\n  tasks:\n    - ansible.builtin.include_role:\n        name: nonexistent_role_xyz\n`,
+        );
+        const hover = await doHover(doc, Position.create(4, 14), emptyDocsLibrary);
+        expect(hover).toBeNull();
+      });
+    });
+  });
 
   describe("Negate hover for non playbook adjacent collection", function () {
     describe("@ee", function () {

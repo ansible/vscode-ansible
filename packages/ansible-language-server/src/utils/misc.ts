@@ -99,6 +99,10 @@ export function withInterpreter(
   return { command: command, env: newEnv };
 }
 
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Returns errors messages when LS is run on unsupported platform, or undefined
  * when all is fine.
