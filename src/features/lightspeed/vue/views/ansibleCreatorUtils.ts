@@ -29,11 +29,19 @@ export class AnsibleCreatorOperations {
     requiredVersion: string,
   ): { isGte: boolean; userMessage?: string } {
     try {
-      return { isGte: semver.gte(currentVersion, requiredVersion) };
+      const parsed =
+        semver.valid(currentVersion) ?? semver.coerce(currentVersion)?.version;
+      if (!parsed) {
+        return {
+          isGte: false,
+          userMessage: `Invalid version format: ${currentVersion}.\n`,
+        };
+      }
+      return { isGte: semver.gte(parsed, requiredVersion) };
     } catch {
       return {
         isGte: false,
-        userMessage: `Invalid version format: ${currentVersion}. This appears to be a development version.\n`,
+        userMessage: `Invalid version format: ${currentVersion}.\n`,
       };
     }
   }
@@ -469,7 +477,7 @@ export class AnsibleCreatorOperations {
     );
 
     let command: string;
-    if (versionCheck.isGte || versionCheck.userMessage) {
+    if (versionCheck.isGte) {
       command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
     } else {
       command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
@@ -498,7 +506,7 @@ export class AnsibleCreatorOperations {
       ANSIBLE_CREATOR_VERSION_MIN,
     );
 
-    if (versionCheck.isGte || versionCheck.userMessage) {
+    if (versionCheck.isGte) {
       return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
     } else {
       return `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
