@@ -1,5 +1,6 @@
 import * as child_process from "child_process";
 import * as fs from "fs";
+import * as os from "node:os";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
@@ -115,8 +116,11 @@ export class ExecutionEnvironment {
           encoding: "utf-8",
         })
         .trim();
+      const cacheBase =
+        process.env.XDG_CACHE_HOME ||
+        `${process.env.HOME || os.homedir()}/.cache`;
       const hostCacheBasePath = path.resolve(
-        `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`,
+        `${cacheBase}/ansible-language-server/${containerName}/${this._container_image_id}`,
       );
 
       /* v8 ignore next 3 */

@@ -2,12 +2,15 @@
 import { isWindows, console } from "@test/helper.js";
 import { spawn, spawnSync, SpawnSyncOptions } from "child_process";
 import path from "path";
+import fs from "fs";
 import { createRequire } from "module";
 import { quote } from "shell-quote";
 
 const require = createRequire(import.meta.url);
 // Resolve root package.json from repo root (tests run with cwd = workspace root)
-const pkg = require(path.join(__dirname, "..", "..", "..", "package.json"));
+const pkg = require(
+  path.join(import.meta.dirname, "..", "..", "..", "package.json"),
+);
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
@@ -66,6 +69,18 @@ function execWithTimeout(
 }
 
 export async function setup() {
+  // Isolate ANSIBLE_HOME and XDG_CACHE_HOME to prevent writes to ~/.ansible/
+  // and ~/.cache/ansible-language-server/ respectively.
+  const ansibleHome = path.resolve(
+    import.meta.dirname,
+    "../../../out/.ansible",
+  );
+  const cacheHome = path.resolve(import.meta.dirname, "../../../out/.cache");
+  fs.mkdirSync(ansibleHome, { recursive: true });
+  fs.mkdirSync(cacheHome, { recursive: true });
+  process.env.ANSIBLE_HOME = ansibleHome;
+  process.env.XDG_CACHE_HOME = cacheHome;
+
   // Only run prerequisite checks when actually running tests, not when listing
   // Check if we're in list mode by checking command line arguments
   const isListing =
@@ -193,8 +208,4 @@ export async function setup() {
   console.info(
     "Skipping container setup during test initialization. Container tests will be skipped if containers are not available.",
   );
-}
-
-export async function teardown() {
-  // Cleanup if needed
 }
