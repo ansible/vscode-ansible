@@ -10,6 +10,11 @@ import vue from "@vitejs/plugin-vue";
 // current project.
 const als_root = resolve(__dirname, "packages", "ansible-language-server");
 const mcp_root = resolve(__dirname, "packages", "ansible-mcp-server");
+// Save real HOME before any globalSetup overrides it.
+// ALS @ee tests need the original HOME — rootless podman is ~60x slower
+// with a redirected HOME directory.
+process.env._ALS_ORIGINAL_HOME =
+  process.env.HOME || process.env.USERPROFILE || "";
 
 const reporters = ["default", "junit"]; // text-summary shows only overall coverage stats, skipping per-file details
 if (process.env.GITHUB_ACTIONS) {
@@ -45,7 +50,7 @@ export default defineConfig({
         test: {
           name: "ext",
           globals: true,
-          // globalSetup: ["test/unit/vitestSetup.ts"],
+          globalSetup: ["test/unit/globalSetup.ts"],
           environment: "node",
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
