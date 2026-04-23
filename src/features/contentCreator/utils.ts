@@ -106,7 +106,8 @@ export async function checkContentCreatorRequirements() {
         current: "not found",
       });
     } else {
-      const parsed = semver.valid(creatorVersion) ?? semver.coerce(creatorVersion)?.version;
+      const parsed =
+        semver.valid(creatorVersion) ?? semver.coerce(creatorVersion)?.version;
       if (!parsed || !semver.gte(parsed, ANSIBLE_CREATOR_VERSION_MIN)) {
         failures.push({
           type: "ansible-creator",

@@ -30,8 +30,7 @@ export class AnsibleCreatorOperations {
   ): { isGte: boolean; userMessage?: string } {
     try {
       const parsed =
-        semver.valid(currentVersion) ??
-        semver.coerce(currentVersion)?.version;
+        semver.valid(currentVersion) ?? semver.coerce(currentVersion)?.version;
       if (!parsed) {
         return {
           isGte: false,
