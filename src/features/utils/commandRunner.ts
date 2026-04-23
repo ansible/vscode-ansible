@@ -36,30 +36,17 @@ export async function withInterpreter(
   // Resolve Python environment and add venv bin to PATH
   const pythonEnvService = PythonEnvironmentService.getInstance();
 
-  console.log(
-    "[Ansible] withInterpreter: settings.interpreterPath =",
-    settings.interpreterPath,
-  );
-  console.log("[Ansible] withInterpreter: scope =", scope?.fsPath);
-
   // Get interpreter path (respects user config, then Python extension)
   const execPath = await pythonEnvService.resolveInterpreterPath(
     settings.interpreterPath,
     scope,
   );
 
-  console.log("[Ansible] withInterpreter: resolved execPath =", execPath);
-
   if (execPath) {
     // Add venv bin directory to PATH (like TerminalService does)
     const binDir = path.dirname(execPath);
     const existingPath = env.PATH ?? process.env.PATH ?? "";
     env.PATH = `${binDir}${path.delimiter}${existingPath}`;
-    console.log("[Ansible] withInterpreter: Added to PATH:", binDir);
-    console.log(
-      "[Ansible] withInterpreter: Full PATH:",
-      env.PATH?.substring(0, 200),
-    );
 
     // Set VIRTUAL_ENV for tools that check it (defensive pattern from TerminalService)
     const environment = await pythonEnvService.getEnvironment(scope);
