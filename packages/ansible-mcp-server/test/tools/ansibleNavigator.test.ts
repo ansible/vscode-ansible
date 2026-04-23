@@ -1,17 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAnsibleNavigatorHandler } from "@src/handlers.js";
-import { join, dirname } from "node:path";
-import { writeFile, unlink } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { join } from "node:path";
+import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 describe("Ansible Navigator Handler", () => {
-  const testPlaybookPath = join(__dirname, "test-navigator-playbook.yml");
-  const cleanPlaybookPath = join(__dirname, "clean-navigator-playbook.yml");
+  let testDir: string;
+  let testPlaybookPath: string;
+  let cleanPlaybookPath: string;
 
-  beforeAll(async () => {
-    // Create test files
+  beforeAll(() => {
+    testDir = mkdtempSync(join(tmpdir(), "vitest-ansible-navigator-"));
+    testPlaybookPath = join(testDir, "test-navigator-playbook.yml");
+    cleanPlaybookPath = join(testDir, "clean-navigator-playbook.yml");
+
     const testPlaybookContent = `---
 - name: Test playbook for ansible-navigator
   hosts: localhost
@@ -30,17 +32,13 @@ describe("Ansible Navigator Handler", () => {
       ansible.builtin.debug:
         msg: "Clean playbook"`;
 
-    await writeFile(testPlaybookPath, testPlaybookContent, "utf8");
-    await writeFile(cleanPlaybookPath, cleanPlaybookContent, "utf8");
+    writeFileSync(testPlaybookPath, testPlaybookContent, "utf8");
+    writeFileSync(cleanPlaybookPath, cleanPlaybookContent, "utf8");
   });
 
-  afterAll(async () => {
-    // Clean up test files
-    try {
-      await unlink(testPlaybookPath);
-      await unlink(cleanPlaybookPath);
-    } catch {
-      // Ignore errors if files don't exist
+  afterAll(() => {
+    if (testDir) {
+      rmSync(testDir, { recursive: true, force: true });
     }
   });
 

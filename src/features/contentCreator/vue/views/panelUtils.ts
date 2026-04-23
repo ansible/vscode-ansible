@@ -1,5 +1,5 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
-import { ViewColumn, window } from "vscode";
+import { Uri, ViewColumn, window } from "vscode";
 import { ContentCreatorWebviewHelper } from "@src/features/contentCreator/vue/views/helper";
 
 /**
@@ -13,15 +13,15 @@ export function setupPanelLifecycle(
   disposeCallback: () => void,
 ): void {
   panel.onDidDispose(disposeCallback, null, disposables);
-  panel.webview.html = ContentCreatorWebviewHelper.setupHtml(
-    panel.webview,
-    context,
-    htmlEntryPoint,
-  );
   ContentCreatorWebviewHelper.setupWebviewHooks(
     panel.webview,
     disposables,
     context,
+  );
+  panel.webview.html = ContentCreatorWebviewHelper.setupHtml(
+    panel.webview,
+    context,
+    htmlEntryPoint,
   );
 }
 
@@ -74,6 +74,10 @@ export function createOrRevealPanel<T>(
         enableScripts: true,
         enableCommandUris: true,
         retainContextWhenHidden: true,
+        localResourceRoots: [
+          Uri.joinPath(options.context.extensionUri, "dist"),
+          Uri.joinPath(options.context.extensionUri, "media"),
+        ],
       },
     );
     const newPanelInstance = options.panelConstructor(panel, options.context);

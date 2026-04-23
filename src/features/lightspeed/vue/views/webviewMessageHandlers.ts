@@ -742,7 +742,7 @@ export class WebviewMessageHandlers {
 
       const templateSourcePath = vscode.Uri.joinPath(
         extensionUri,
-        "resources/contentCreator/createDevcontainer/.devcontainer",
+        "out/resources/contentCreator/createDevcontainer/.devcontainer",
       )
         .toString()
         .replace("file://", "");
@@ -872,7 +872,7 @@ export class WebviewMessageHandlers {
   ) {
     let devfile: string;
     const relativeTemplatePath =
-      "resources/contentCreator/createDevfile/devfile-template.txt";
+      "out/resources/contentCreator/createDevfile/devfile-template.txt";
 
     const expandedDestUrl = expandPath(destinationUrl);
 

@@ -239,6 +239,9 @@ tasks:
     desc: Run unit tests with coverage report
     deps:
       - build
+    env:
+      TMP: "{{ .TASKFILE_DIR }}/out/unit/tmp"
+      TMPDIR: "{{ .TASKFILE_DIR }}/out/unit/tmp"
     sources:
       - "{src,test}/**/*"
       # - test/**/*
@@ -248,6 +251,7 @@ tasks:
       - out/coverage/unit/lcov.info
       - out/junit/unit-test-results.xml
     cmds:
+      - mkdir -p out/unit/tmp
       - vitest run
     interactive: true
   package:

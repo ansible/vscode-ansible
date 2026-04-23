@@ -313,7 +313,7 @@ describe("Content Creator Scaffolding", () => {
     beforeEach(async () => {
       const devfileDir = path.join(
         templateDir,
-        "resources/contentCreator/createDevfile",
+        "out/resources/contentCreator/createDevfile",
       );
       await fs.promises.mkdir(devfileDir, { recursive: true });
 
