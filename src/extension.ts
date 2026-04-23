@@ -530,6 +530,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         providerManager: lightSpeedManager.providerManager,
         llmProviderSettings: llmProviderSettings,
         lightspeedUser: lightSpeedManager.lightspeedAuthenticatedUser,
+        lightSpeedAuthenticationProvider:
+          lightSpeedManager.lightSpeedAuthenticationProvider,
         quickLinksProvider: quickLinksHome,
       });
     },
