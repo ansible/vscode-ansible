@@ -311,22 +311,13 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // This ensures Python extension returns workspace-specific environment instead of system Python
     const resolvedScope = scope ?? vscode.workspace.workspaceFolders?.[0]?.uri;
 
-    console.log(
-      "[Ansible] getEnvironment called with scope:",
-      scope?.toString(),
-    );
-    console.log(
-      "[Ansible] getEnvironment resolved scope:",
-      resolvedScope?.toString(),
-    );
-
     // Primary: Environments extension
     if (this._pythonEnvApi) {
       try {
         const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
         console.log(
           "[Ansible] getEnvironment (envs API) returned:",
-          env?.execInfo.run.executable,
+          env?.execInfo?.run?.executable,
         );
         return env;
       } catch (error) {
@@ -343,22 +334,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
           this._pythonExtApi.environments.getActiveEnvironmentPath(
             resolvedScope,
           );
-        console.log(
-          "[Ansible] getActiveEnvironmentPath returned:",
-          envPath?.path,
-        );
         const resolved =
           await this._pythonExtApi.environments.resolveEnvironment(envPath);
-        console.log(
-          "[Ansible] resolveEnvironment returned:",
-          resolved?.executable.uri?.fsPath,
-        );
         if (resolved) {
           const adapted = this._adaptResolvedEnvironment(resolved);
-          console.log(
-            "[Ansible] adapted environment:",
-            adapted.execInfo.run.executable,
-          );
           return adapted;
         }
       } catch (error) {
