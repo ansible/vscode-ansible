@@ -205,6 +205,7 @@ describe("MCP server integration — packaged extension simulation", function ()
     expect(toolResult).toBeDefined();
     expect(toolResult).toHaveProperty("result");
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const result = toolResult!.result as { tools: { name: string }[] };
     expect(result.tools).toBeInstanceOf(Array);
     expect(result.tools.length).toBeGreaterThan(0);
