@@ -86,7 +86,11 @@ describe("MCP server integration — packaged extension simulation", function ()
 
     fs.mkdirSync(distDest, { recursive: true });
     for (const file of fs.readdirSync(distSrc)) {
-      fs.copyFileSync(path.join(distSrc, file), path.join(distDest, file));
+      const srcFile = path.join(distSrc, file);
+      const stat = fs.statSync(srcFile);
+      if (stat.isFile()) {
+        fs.copyFileSync(srcFile, path.join(distDest, file));
+      }
     }
 
     // Copy package.json (needed for module resolution)
