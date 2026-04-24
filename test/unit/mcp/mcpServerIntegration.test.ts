@@ -25,7 +25,6 @@ function waitForResponse(
 ): Promise<Record<string, unknown> | null> {
   return new Promise((resolve) => {
     let buffer = "";
-    let timer: ReturnType<typeof setTimeout>;
 
     const onData = (chunk: Buffer) => {
       buffer += chunk.toString();
@@ -49,7 +48,7 @@ function waitForResponse(
     };
 
     stdout.on("data", onData);
-    timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       stdout.removeListener("data", onData);
       resolve(null);
     }, timeout);
