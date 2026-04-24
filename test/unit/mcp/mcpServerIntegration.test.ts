@@ -179,9 +179,7 @@ describe("MCP server integration — packaged extension simulation", function ()
     expect(stderr).not.toContain("Dynamic require");
     expect(initResponses.length).toBeGreaterThanOrEqual(1);
 
-    const initResult = initResponses.find(
-      (msg) => "id" in msg && msg.id === 1,
-    );
+    const initResult = initResponses.find((msg) => "id" in msg && msg.id === 1);
     expect(initResult).toBeDefined();
     expect(initResult).toHaveProperty("result");
 
