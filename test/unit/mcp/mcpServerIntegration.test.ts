@@ -16,16 +16,16 @@ function sendMessage(
 }
 
 /**
- * Read JSON-RPC responses from stdout, collecting all complete messages
- * within a timeout window.
+ * Wait for a JSON-RPC response with a specific id, or time out.
  */
-function readMessages(
+function waitForResponse(
   stdout: NodeJS.ReadableStream,
+  expectedId: number,
   timeout: number,
-): Promise<Record<string, unknown>[]> {
+): Promise<Record<string, unknown> | null> {
   return new Promise((resolve) => {
-    const messages: Record<string, unknown>[] = [];
     let buffer = "";
+    let timer: ReturnType<typeof setTimeout>;
 
     const onData = (chunk: Buffer) => {
       buffer += chunk.toString();
@@ -33,20 +33,25 @@ function readMessages(
       buffer = lines.pop() ?? "";
       for (const line of lines) {
         const trimmed = line.trim();
-        if (trimmed) {
-          try {
-            messages.push(JSON.parse(trimmed));
-          } catch {
-            // skip non-JSON lines
+        if (!trimmed) continue;
+        try {
+          const msg = JSON.parse(trimmed) as Record<string, unknown>;
+          if ("id" in msg && msg.id === expectedId) {
+            clearTimeout(timer);
+            stdout.removeListener("data", onData);
+            resolve(msg);
+            return;
           }
+        } catch {
+          // skip non-JSON lines
         }
       }
     };
 
     stdout.on("data", onData);
-    setTimeout(() => {
+    timer = setTimeout(() => {
       stdout.removeListener("data", onData);
-      resolve(messages);
+      resolve(null);
     }, timeout);
   });
 }
@@ -179,12 +184,9 @@ describe("MCP server integration — packaged extension simulation", function ()
       },
     });
 
-    const initResponses = await readMessages(child.stdout, 3000);
+    const initResult = await waitForResponse(child.stdout, 1, 10000);
     expect(stderr).not.toContain("Dynamic require");
-    expect(initResponses.length).toBeGreaterThanOrEqual(1);
-
-    const initResult = initResponses.find((msg) => "id" in msg && msg.id === 1);
-    expect(initResult).toBeDefined();
+    expect(initResult).not.toBeNull();
     expect(initResult).toHaveProperty("result");
 
     // Step 2: Send initialized notification
@@ -200,17 +202,13 @@ describe("MCP server integration — packaged extension simulation", function ()
       method: "tools/list",
     });
 
-    const toolResponses = await readMessages(child.stdout, 3000);
-
-    const toolResult = toolResponses.find(
-      (msg) => "id" in msg && msg.id === 2,
-    ) as Record<string, unknown> | undefined;
-
-    expect(toolResult).toBeDefined();
+    const toolResult = await waitForResponse(child.stdout, 2, 10000);
+    expect(toolResult).not.toBeNull();
     expect(toolResult).toHaveProperty("result");
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const result = toolResult!.result as { tools: { name: string }[] };
+    const result = (toolResult as Record<string, unknown>).result as {
+      tools: { name: string }[];
+    };
     expect(result.tools).toBeInstanceOf(Array);
     expect(result.tools.length).toBeGreaterThan(0);
 
