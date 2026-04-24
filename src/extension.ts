@@ -172,6 +172,101 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   notifyAboutConflicts();
 
+  // Register apme migrate command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.apme.migrate",
+      async (folderUri?: vscode.Uri) => {
+        const targetUri =
+          folderUri ??
+          vscode.workspace.workspaceFolders?.[0]?.uri;
+        if (!targetUri) {
+          vscode.window.showErrorMessage(
+            "No workspace folder found for apme migration.",
+          );
+          return;
+        }
+        const targetPath = targetUri.fsPath;
+
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Migrating with apme...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const result = await client.sendRequest<{
+                success: boolean;
+                filesUpdated: number;
+              }>("ansible/apme/remediateWorkspace");
+
+              if (result.success) {
+                vscode.window.showInformationMessage(
+                  `apme migration complete: ${result.filesUpdated} file(s) updated.`,
+                );
+              } else {
+                vscode.window.showWarningMessage(
+                  "apme migration finished with errors. Check the Ansible Server output.",
+                );
+              }
+            } catch (err) {
+              vscode.window.showErrorMessage(
+                `apme migration failed: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          },
+        );
+      },
+    ),
+  );
+
+  // apme status bar indicator
+  const apmeStatusBar = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    99,
+  );
+  apmeStatusBar.command = "workbench.actions.view.problems";
+  context.subscriptions.push(apmeStatusBar);
+
+  const updateApmeStatusBar = () => {
+    const apmeEnabled = vscode.workspace
+      .getConfiguration("ansible.validation.apme")
+      .get<boolean>("enabled", false);
+    if (!apmeEnabled) {
+      apmeStatusBar.hide();
+      return;
+    }
+
+    const allDiagnostics = vscode.languages.getDiagnostics();
+    let apmeCount = 0;
+    for (const [, diags] of allDiagnostics) {
+      for (const d of diags) {
+        if (d.source === "Ansible [apme]") {
+          apmeCount++;
+        }
+      }
+    }
+
+    if (apmeCount === 0) {
+      apmeStatusBar.text = "$(check) apme";
+      apmeStatusBar.backgroundColor = undefined;
+      apmeStatusBar.tooltip = "apme: no violations";
+    } else {
+      apmeStatusBar.text = `$(warning) apme: ${apmeCount}`;
+      apmeStatusBar.backgroundColor = new vscode.ThemeColor(
+        "statusBarItem.warningBackground",
+      );
+      apmeStatusBar.tooltip = `apme: ${apmeCount} violation(s) — click to open Problems`;
+    }
+    apmeStatusBar.show();
+  };
+
+  context.subscriptions.push(
+    vscode.languages.onDidChangeDiagnostics(() => updateApmeStatusBar()),
+  );
+  updateApmeStatusBar();
+
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 
   // handle metadata status bar

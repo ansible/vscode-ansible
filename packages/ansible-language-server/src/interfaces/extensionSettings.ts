@@ -38,6 +38,13 @@ export interface ExtensionSettings extends ExtensionSettingsType {
       arguments: string;
       autoFixOnSave: boolean;
     };
+    apme: {
+      enabled: boolean;
+      path: string;
+      arguments: string;
+      autoFixOnSave: boolean;
+    };
+    diagnosticPrecedence: "both" | "apme" | "lint";
   };
   executionEnvironment: {
     enabled: boolean;
@@ -165,5 +172,27 @@ interface ValidationSettingsWithDescription extends SettingsEntry {
       default: boolean;
       description: string;
     };
+  };
+  apme: {
+    enabled: {
+      default: boolean;
+      description: string;
+    };
+    path: {
+      default: string;
+      description: string;
+    };
+    arguments: {
+      default: string;
+      description: string;
+    };
+    autoFixOnSave: {
+      default: boolean;
+      description: string;
+    };
+  };
+  diagnosticPrecedence: {
+    default: string;
+    description: string;
   };
 }

@@ -116,6 +116,31 @@ export class SettingsManager {
             "Specifies whether `ansible-lint --fix` should run automatically when you save a file.",
         },
       },
+      apme: {
+        enabled: {
+          default: false,
+          description: "Toggle usage of apme for static analysis",
+        },
+        path: {
+          default: "apme",
+          description: "Path to the apme executable",
+        },
+        arguments: {
+          default: "",
+          description:
+            "Optional command line arguments to be appended to apme invocation",
+        },
+        autoFixOnSave: {
+          default: false,
+          description:
+            "Specifies whether apme should auto-fix deterministic violations when you save a file.",
+        },
+      },
+      diagnosticPrecedence: {
+        default: "both",
+        description:
+          "When both apme and ansible-lint report diagnostics on the same line, which to keep. 'both' shows all, 'apme' keeps apme, 'lint' keeps ansible-lint.",
+      },
     },
   };
 
