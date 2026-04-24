@@ -5,6 +5,7 @@ import {
   disposePanelResources,
   createOrRevealPanel,
 } from "@src/features/contentCreator/vue/views/panelUtils";
+import { checkContentCreatorRequirements } from "@src/features/contentCreator/utils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -19,6 +20,20 @@ export class MainPanel {
       "create-execution-env",
       this._disposables,
       () => this.dispose(),
+    );
+
+    this._panel.webview.onDidReceiveMessage(
+      async (msg) => {
+        if (msg && msg.type === "request-requirements-status") {
+          const status = await checkContentCreatorRequirements();
+          this._panel.webview.postMessage({
+            type: "requirements-status",
+            ...status,
+          });
+        }
+      },
+      null,
+      this._disposables,
     );
   }
 

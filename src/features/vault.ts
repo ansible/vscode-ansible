@@ -50,11 +50,15 @@ function displayInvalidConfigError(): void {
 export class Vault {
   constructor(private extSettings: SettingsManager) {}
 
-  private ansibleVaultCmd(args: string): {
+  private async ansibleVaultCmd(args: string): Promise<{
     command: string;
     env: NodeJS.ProcessEnv;
-  } {
-    return withInterpreter(this.extSettings.settings, "ansible-vault", args);
+  }> {
+    return await withInterpreter(
+      this.extSettings.settings,
+      "ansible-vault",
+      args,
+    );
   }
 
   async toggleEncrypt(): Promise<void> {
@@ -272,7 +276,7 @@ export class Vault {
     });
   }
 
-  private encryptText(
+  private async encryptText(
     text: string,
     rootPath: string | undefined,
     vaultId: string | undefined,
@@ -281,20 +285,20 @@ export class Vault {
     if (vaultId) {
       args += ` --encrypt-vault-id ${vaultId}`;
     }
-    const { command: cmd, env } = this.ansibleVaultCmd(args);
+    const { command: cmd, env } = await this.ansibleVaultCmd(args);
     return this.pipeTextThroughCmd(text, rootPath, cmd, env);
   }
 
-  private decryptText(
+  private async decryptText(
     text: string,
     rootPath: string | undefined,
   ): Promise<string> {
     const args = "decrypt";
-    const { command: cmd, env } = this.ansibleVaultCmd(args);
+    const { command: cmd, env } = await this.ansibleVaultCmd(args);
     return this.pipeTextThroughCmd(text, rootPath, cmd, env);
   }
 
-  private encryptFile(
+  private async encryptFile(
     f: string,
     rootPath: string | undefined,
     vaultId: string | undefined,
@@ -305,15 +309,15 @@ export class Vault {
       "encrypt " +
       (vaultId ? `--encrypt-vault-id="${vaultId}" ` : "") +
       `"${f}"`;
-    const { command: cmd, env } = this.ansibleVaultCmd(args);
+    const { command: cmd, env } = await this.ansibleVaultCmd(args);
 
     return execCwd(cmd, rootPath, env);
   }
 
-  private decryptFile = (f: string, rootPath: string | undefined) => {
+  private decryptFile = async (f: string, rootPath: string | undefined) => {
     console.log(`Decrypt file: ${f}`);
     const args = `decrypt "${f}"`;
-    const { command: cmd, env } = this.ansibleVaultCmd(args);
+    const { command: cmd, env } = await this.ansibleVaultCmd(args);
 
     return execCwd(cmd, rootPath, env);
   };
