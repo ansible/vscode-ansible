@@ -66,5 +66,4 @@ describe("MCP server process startup", function () {
       'Dynamic require of "process" is not supported',
     );
   });
-
 });
