@@ -8,6 +8,8 @@ import {
   TextDocumentSyncKind,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { URI } from "vscode-uri";
+import { provideCodeActions } from "@src/providers/codeActionProvider.js";
 import {
   doCompletion,
   doCompletionResolve,
@@ -75,6 +77,9 @@ export class AnsibleLanguageService {
             },
           },
           hoverProvider: true,
+          codeActionProvider: {
+            codeActionKinds: ["quickfix"],
+          },
           completionProvider: {
             resolveProvider: true,
           },
@@ -139,6 +144,39 @@ export class AnsibleLanguageService {
               "will require a server restart to take effect.",
           );
         });
+
+      // Trigger async workspace-level apme scan on startup
+      this.triggerApmeWorkspaceScan();
+    });
+  }
+
+  private triggerApmeWorkspaceScan(): void {
+    this.workspaceManager.forEachContext(async (context) => {
+      try {
+        const settings = await context.documentSettings.get(
+          context.workspaceFolder.uri,
+        );
+        if (!settings.validation?.enabled || !settings.validation?.apme?.enabled) {
+          return;
+        }
+        this.connection.console.log(
+          "[apme] Triggering workspace scan on startup...",
+        );
+        const diagnosticsByFile =
+          await context.ansibleApme.doValidateWorkspace();
+
+        for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
+          this.connection.sendDiagnostics({
+            uri: fileUri,
+            diagnostics: fileDiagnostics,
+          });
+        }
+        this.connection.console.log(
+          `[apme] Workspace scan complete: ${diagnosticsByFile.size} file(s) with violations`,
+        );
+      } catch (error) {
+        this.handleError(error, "apmeWorkspaceScan");
+      }
     });
   }
 
@@ -357,6 +395,68 @@ export class AnsibleLanguageService {
       }
       return null;
     });
+
+    this.connection.onCodeAction(async (params) => {
+      try {
+        const context = this.workspaceManager.getContext(
+          params.textDocument.uri,
+        );
+        return await provideCodeActions(params, context, this.connection);
+      } catch (error) {
+        this.handleError(error, "onCodeAction");
+        return [];
+      }
+    });
+
+    this.connection.onRequest(
+      "ansible/apme/remediate",
+      async (filePath: string): Promise<{ success: boolean; filesUpdated: number }> => {
+        try {
+          const fileUri = `file://${filePath}`;
+          const context = this.workspaceManager.getContext(fileUri);
+          if (!context) {
+            return { success: false, filesUpdated: 0 };
+          }
+          const result = await context.ansibleApme.doRemediate(filePath);
+
+          if (result.success) {
+            const document = this.documents.get(fileUri);
+            if (document) {
+              await doValidate(
+                document,
+                this.validationManager,
+                false,
+                context,
+                this.connection,
+                this.schemaService,
+              );
+            }
+          }
+          return result;
+        } catch (error) {
+          this.handleError(error, "ansible/apme/remediate");
+          return { success: false, filesUpdated: 0 };
+        }
+      },
+    );
+
+    this.connection.onRequest(
+      "ansible/apme/remediateWorkspace",
+      async (): Promise<{ success: boolean; filesUpdated: number }> => {
+        try {
+          let totalUpdated = 0;
+          await this.workspaceManager.forEachContext(async (context) => {
+            const workspacePath = URI.parse(context.workspaceFolder.uri).path;
+            const result = await context.ansibleApme.doRemediate(workspacePath);
+            totalUpdated += result.filesUpdated;
+          });
+          return { success: true, filesUpdated: totalUpdated };
+        } catch (error) {
+          this.handleError(error, "ansible/apme/remediateWorkspace");
+          return { success: false, filesUpdated: 0 };
+        }
+      },
+    );
 
     // Custom actions that are performed on receiving special notifications from the client
     // Resync ansible inventory service by clearing the cached items

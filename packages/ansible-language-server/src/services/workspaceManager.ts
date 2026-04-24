@@ -7,6 +7,7 @@ import {
   WorkspaceFoldersChangeEvent,
 } from "vscode-languageserver";
 import { AnsibleConfig } from "@src/services/ansibleConfig.js";
+import { AnsibleApme } from "@src/services/ansibleApme.js";
 import { AnsibleLint } from "@src/services/ansibleLint.js";
 import { AnsiblePlaybook } from "@src/services/ansiblePlaybook.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
@@ -139,6 +140,7 @@ export class WorkspaceFolderContext {
   private _docsLibrary: Thenable<DocsLibrary> | undefined;
   private _ansibleConfig: Thenable<AnsibleConfig> | undefined;
   private _ansibleInventory: Thenable<AnsibleInventory> | undefined;
+  private _ansibleApme: AnsibleApme | undefined;
   private _ansibleLint: AnsibleLint | undefined;
   private _ansiblePlaybook: AnsiblePlaybook | undefined;
   private _configChangeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -228,6 +230,13 @@ export class WorkspaceFolderContext {
     this._ansibleConfig = undefined;
     this._docsLibrary = undefined;
     this._ansibleInventory = undefined;
+  }
+
+  public get ansibleApme(): AnsibleApme {
+    if (!this._ansibleApme) {
+      this._ansibleApme = new AnsibleApme(this.connection, this);
+    }
+    return this._ansibleApme;
   }
 
   public get ansibleLint(): AnsibleLint {
