@@ -67,39 +67,4 @@ describe("MCP server process startup", function () {
     );
   });
 
-  it("should NOT start cli.js without errors (ESM dynamic require issue)", async function () {
-    const cliJsPath = path.join(mcpServerDir, "dist", "cli.js");
-    if (!fs.existsSync(cliJsPath)) {
-      console.warn("cli.js not built yet - skipping");
-      return;
-    }
-
-    const result = await new Promise<{ exitCode: number; stderr: string }>(
-      (resolve) => {
-        const child = spawn(process.execPath, [cliJsPath, "--stdio"], {
-          env: { ...process.env, WORKSPACE_ROOT: projectRoot },
-          stdio: ["pipe", "pipe", "pipe"],
-          timeout: 5000,
-        });
-
-        let stderr = "";
-        child.stderr.on("data", (data: Buffer) => {
-          stderr += data.toString();
-        });
-
-        setTimeout(() => {
-          child.stdin.end();
-          child.kill("SIGTERM");
-        }, 2000);
-
-        child.on("close", (code) => {
-          resolve({ exitCode: code ?? 0, stderr });
-        });
-      },
-    );
-
-    // This documents the known ESM issue - cli.js crashes with dynamic require
-    expect(result.exitCode).not.toBe(0);
-    expect(result.stderr).toContain("Dynamic require");
-  });
 });
