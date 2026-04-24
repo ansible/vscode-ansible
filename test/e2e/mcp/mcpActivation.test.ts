@@ -50,10 +50,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
         assert.ok(serverPath, "MCP server package should be resolvable");
 
         const cliPath = path.join(path.dirname(serverPath), "cli.cjs");
-        assert.ok(
-          existsSync(cliPath),
-          `MCP CLI should exist at: ${cliPath}`,
-        );
+        assert.ok(existsSync(cliPath), `MCP CLI should exist at: ${cliPath}`);
         return;
       } catch {
         // Module resolution fails in packaged extension - check fallback

@@ -12,9 +12,7 @@ describe("MCP server packaging", function () {
     );
 
     it("should whitelist MCP server dist files", function () {
-      expect(vscodeignore).toContain(
-        "!packages/ansible-mcp-server/dist/**/*",
-      );
+      expect(vscodeignore).toContain("!packages/ansible-mcp-server/dist/**/*");
     });
 
     it("should whitelist MCP server package.json", function () {
