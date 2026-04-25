@@ -4,8 +4,10 @@ import {
   DidChangeWatchedFilesNotification,
   InitializeParams,
   InitializeResult,
+  SaveOptions,
   TextDocuments,
   TextDocumentSyncKind,
+  TextDocumentSyncOptions,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
@@ -61,7 +63,13 @@ export class AnsibleLanguageService {
 
       const result: InitializeResult = {
         capabilities: {
-          textDocumentSync: TextDocumentSyncKind.Incremental,
+          textDocumentSync: {
+            openClose: true,
+            change: TextDocumentSyncKind.Incremental,
+            save: {
+              includeText: false,
+            } as SaveOptions,
+          } as TextDocumentSyncOptions,
           semanticTokensProvider: {
             documentSelector: [
               {
