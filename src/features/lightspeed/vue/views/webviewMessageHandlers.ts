@@ -937,8 +937,7 @@ export class WebviewMessageHandlers {
     const uuid = randomUUID().slice(0, 8);
     const fullDevfileName = `${devfileName}-${uuid}`;
 
-    const absoluteTemplatePath =
-      this.resolveDevfileTemplatePath(extensionUri);
+    const absoluteTemplatePath = this.resolveDevfileTemplatePath(extensionUri);
 
     try {
       const dirPath = path.dirname(expandedDestUrl);
