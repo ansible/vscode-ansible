@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as yaml from "yaml";
-import { execFile, execSync } from "child_process";
+import { execFile } from "child_process";
 import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { randomUUID } from "crypto";
@@ -260,23 +260,19 @@ export class WebviewMessageHandlers {
   private async handleInitCreateDevcontainer(
     message: any,
     webview: vscode.Webview,
-    context: vscode.ExtensionContext,
+    _context: vscode.ExtensionContext,
   ) {
     const payload = message.payload as DevcontainerFormInterface;
-    await this.runDevcontainerCreateProcess(
-      payload,
-      webview,
-      context.extensionUri,
-    );
+    await this.runDevcontainerCreateProcess(payload, webview);
   }
 
   private async handleInitCreateDevfile(
     message: any,
     webview: vscode.Webview,
-    context: vscode.ExtensionContext,
+    _context: vscode.ExtensionContext,
   ) {
     const payload = message.payload as DevfileFormInterface;
-    await this.runDevfileCreateProcess(payload, webview, context.extensionUri);
+    await this.runDevfileCreateProcess(payload, webview);
   }
 
   private async handleInitCreateExecutionEnv(
@@ -663,7 +659,6 @@ export class WebviewMessageHandlers {
   public async runDevcontainerCreateProcess(
     payload: DevcontainerFormInterface,
     webView: vscode.Webview,
-    extensionUri: vscode.Uri,
   ) {
     const { destinationPath, image, isOverwritten } = payload;
     let commandResult: string;
@@ -690,7 +685,6 @@ export class WebviewMessageHandlers {
         destinationPathUrl,
         recommendedExtensions,
         imageURL,
-        extensionUri,
       );
       if (commandResult === "failed") {
         message =
@@ -726,43 +720,110 @@ export class WebviewMessageHandlers {
     return DevcontainerRecommendedExtensions.RECOMMENDED_EXTENSIONS;
   }
 
-  private resolveDevcontainerTemplatePath(extensionUri: vscode.Uri): string {
-    const bundledPath = vscode.Uri.joinPath(
-      extensionUri,
-      "out/resources/contentCreator/createDevcontainer/.devcontainer",
-    ).fsPath;
-
-    if (fs.existsSync(bundledPath)) {
-      return bundledPath;
+  private static readonly DEVCONTAINER_TEMPLATES: Record<string, string> = {
+    "devcontainer.json": `{
+  "name": "ansible-dev-container-codespaces",
+  "image": "{{ dev_container_image }}",
+  "containerUser": "root",
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--hostname=ansible-dev-container"
+  ],
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": {{ recommended_extensions | json }}
     }
-
-    try {
-      const pkgDir = execSync(
-        'python3 -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)"',
-        { encoding: "utf8" },
-      ).trim();
-      const fallbackPath = path.join(
-        pkgDir,
-        "resources",
-        "common",
-        "devcontainer",
-        ".devcontainer",
-      );
-      if (fs.existsSync(fallbackPath)) {
-        return fallbackPath;
-      }
-    } catch {
-      // python3 not available or ansible_creator not installed
-    }
-
-    return bundledPath;
   }
+}
+`,
+    "docker/devcontainer.json": `{
+  "name": "ansible-dev-container-docker",
+  "image": "{{ dev_container_image }}",
+  "containerUser": "root",
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--hostname=ansible-dev-container"
+  ],
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": {{ recommended_extensions | json }}
+    }
+  }
+}
+`,
+    "podman/devcontainer.json": `{
+  "name": "ansible-dev-container-podman",
+  "image": "{{ dev_container_image }}",
+  "containerUser": "root",
+  "runArgs": [
+    "--cap-add=CAP_MKNOD",
+    "--cap-add=NET_ADMIN",
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--security-opt",
+    "unmask=/sys/fs/cgroup",
+    "--userns=host",
+    "--hostname=ansible-dev-container"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": {{ recommended_extensions | json }}
+    }
+  }
+}
+`,
+  };
+
+  private static readonly DEVFILE_TEMPLATE = `---
+schemaVersion: 2.2.2
+metadata:
+  name: {{ dev_file_name }}
+components:
+  - name: tooling-container
+    container:
+      image: {{ dev_file_image }}
+      memoryRequest: 256M
+      memoryLimit: 6Gi
+      cpuRequest: 250m
+      cpuLimit: 2000m
+      args: ["tail", "-f", "/dev/null"]
+      env:
+        - name: KUBEDOCK_ENABLED
+          value: "true"
+`;
 
   private async createDevcontainer(
     destinationUrl: string,
     recommendedExtensions: string[],
     devcontainerImage: string,
-    extensionUri: vscode.Uri,
   ): Promise<string> {
     try {
       const expandedPath = expandPath(destinationUrl);
@@ -772,11 +833,7 @@ export class WebviewMessageHandlers {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
 
-      const templateSourcePath =
-        this.resolveDevcontainerTemplatePath(extensionUri);
-
       await this.scaffoldDevcontainerStructure(
-        templateSourcePath,
         devcontainerDir,
         devcontainerImage,
         recommendedExtensions,
@@ -789,49 +846,29 @@ export class WebviewMessageHandlers {
     }
   }
 
-  /**
-   * Scaffolds devcontainer structure from .j2 templates using simple variable substitution.
-   * Note: Uses basic string replacement, not full Jinja2 rendering.
-   * Only supports simple variable substitution, not Jinja2 filters/loops/conditionals.
-   */
   private async scaffoldDevcontainerStructure(
-    templateSourcePath: string,
     destinationPath: string,
     devcontainerImage: string,
     recommendedExtensions: string[],
   ): Promise<void> {
-    const templateFiles = [
-      "devcontainer.json.j2", // Root devcontainer.json
-      "docker/devcontainer.json.j2", // Docker variant
-      "podman/devcontainer.json.j2", // Podman variant
-    ];
-
-    for (const templateFile of templateFiles) {
-      const sourceFilePath = path.join(templateSourcePath, templateFile);
-      const destinationFilePath = path.join(
-        destinationPath,
-        templateFile.replace(".json.j2", ".json"),
-      );
+    for (const [relativePath, template] of Object.entries(
+      WebviewMessageHandlers.DEVCONTAINER_TEMPLATES,
+    )) {
+      const destinationFilePath = path.join(destinationPath, relativePath);
 
       const destinationDir = path.dirname(destinationFilePath);
       if (!fs.existsSync(destinationDir)) {
         fs.mkdirSync(destinationDir, { recursive: true });
       }
 
-      if (fs.existsSync(sourceFilePath)) {
-        let templateContent = fs.readFileSync(sourceFilePath, "utf8");
+      let content = template;
+      content = content.replace("{{ dev_container_image }}", devcontainerImage);
+      content = content.replace(
+        "{{ recommended_extensions | json }}",
+        JSON.stringify(recommendedExtensions),
+      );
 
-        templateContent = templateContent.replace(
-          "{{ dev_container_image }}",
-          devcontainerImage,
-        );
-        templateContent = templateContent.replace(
-          "{{ recommended_extensions | json }}",
-          JSON.stringify(recommendedExtensions),
-        );
-
-        fs.writeFileSync(destinationFilePath, templateContent, "utf8");
-      }
+      fs.writeFileSync(destinationFilePath, content, "utf8");
     }
   }
 
@@ -839,7 +876,6 @@ export class WebviewMessageHandlers {
   public async runDevfileCreateProcess(
     payload: DevfileFormInterface,
     webView: vscode.Webview,
-    extensionUri: vscode.Uri,
   ) {
     const { destinationPath, name, image, isOverwritten } = payload;
     let commandResult: string;
@@ -858,12 +894,7 @@ export class WebviewMessageHandlers {
       message = `Error: Devfile already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
       commandResult = "failed";
     } else {
-      commandResult = this.createDevfile(
-        destinationPathUrl,
-        name,
-        imageURL,
-        extensionUri,
-      );
+      commandResult = this.createDevfile(destinationPathUrl, name, imageURL);
       if (commandResult === "failed") {
         message =
           "ERROR: Could not create devfile. Please check that your destination path exists and write permissions are configured for it.";
@@ -892,52 +923,15 @@ export class WebviewMessageHandlers {
     return DevfileImages[image as keyof typeof DevfileImages];
   }
 
-  private resolveDevfileTemplatePath(extensionUri: vscode.Uri): string {
-    const bundledPath = vscode.Uri.joinPath(
-      extensionUri,
-      "out/resources/contentCreator/createDevfile/devfile-template.txt",
-    ).fsPath;
-
-    if (fs.existsSync(bundledPath)) {
-      return bundledPath;
-    }
-
-    try {
-      const pkgDir = execSync(
-        'python3 -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)"',
-        { encoding: "utf8" },
-      ).trim();
-      const fallbackPath = path.join(
-        pkgDir,
-        "resources",
-        "common",
-        "devfile",
-        "devfile.yaml.j2",
-      );
-      if (fs.existsSync(fallbackPath)) {
-        return fallbackPath;
-      }
-    } catch {
-      // python3 not available or ansible_creator not installed
-    }
-
-    return bundledPath;
-  }
-
   public createDevfile(
     destinationUrl: string,
     devfileName: string,
     devfileImage: string,
-    extensionUri: vscode.Uri,
   ) {
-    let devfile: string;
-
     const expandedDestUrl = expandPath(destinationUrl);
 
     const uuid = randomUUID().slice(0, 8);
     const fullDevfileName = `${devfileName}-${uuid}`;
-
-    const absoluteTemplatePath = this.resolveDevfileTemplatePath(extensionUri);
 
     try {
       const dirPath = path.dirname(expandedDestUrl);
@@ -945,7 +939,7 @@ export class WebviewMessageHandlers {
         fs.mkdirSync(dirPath, { recursive: true });
       }
 
-      devfile = fs.readFileSync(absoluteTemplatePath, "utf8");
+      let devfile = WebviewMessageHandlers.DEVFILE_TEMPLATE;
       devfile = devfile.replace("{{ dev_file_name }}", fullDevfileName);
       devfile = devfile.replace("{{ dev_file_image }}", devfileImage);
       fs.writeFileSync(expandedDestUrl, devfile);
@@ -953,7 +947,6 @@ export class WebviewMessageHandlers {
     } catch (err) {
       console.error("Devfile could not be created. Error: ", err);
       console.error("Expanded destination path:", expandedDestUrl);
-      console.error("Template path:", absoluteTemplatePath);
       return "failed";
     }
   }

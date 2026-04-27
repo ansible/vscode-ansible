@@ -39,48 +39,17 @@ vi.mock("@src/features/lightspeed/vue/views/ansibleCreatorUtils", () => {
   };
 });
 
-import * as vscode from "vscode";
 import { WebviewMessageHandlers } from "@src/features/lightspeed/vue/views/webviewMessageHandlers";
 
 describe("Content Creator Scaffolding", () => {
   let messageHandlers: WebviewMessageHandlers;
-  let mockContext: vscode.ExtensionContext;
   let tempDir: string;
-  let templateDir: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     tempDir = await fs.promises.mkdtemp(
-      path.join(os.tmpdir(), "devcontainer-test-"),
-    );
-    templateDir = await fs.promises.mkdtemp(
-      path.join(os.tmpdir(), "template-test-"),
-    );
-
-    mockContext = {
-      extensionUri: {
-        fsPath: templateDir,
-        toString: () => `file://${templateDir}`,
-      } as vscode.Uri,
-      globalState: {
-        get: vi.fn(),
-        update: vi.fn(),
-      },
-      workspaceState: {
-        get: vi.fn(),
-        update: vi.fn(),
-      },
-    } as unknown as vscode.ExtensionContext;
-
-    vi.mocked(vscode.Uri.joinPath).mockImplementation(
-      (base: vscode.Uri, ...pathSegments: string[]) => {
-        const joined = path.join(base.fsPath, ...pathSegments);
-        return {
-          fsPath: joined,
-          toString: () => `file://${joined}`,
-        } as vscode.Uri;
-      },
+      path.join(os.tmpdir(), "scaffolding-test-"),
     );
 
     messageHandlers = new WebviewMessageHandlers();
@@ -88,51 +57,11 @@ describe("Content Creator Scaffolding", () => {
 
   afterEach(async () => {
     await fs.promises.rm(tempDir, { recursive: true, force: true });
-    await fs.promises.rm(templateDir, { recursive: true, force: true });
   });
 
   describe("scaffoldDevcontainerStructure", () => {
-    beforeEach(async () => {
-      await fs.promises.writeFile(
-        path.join(templateDir, "devcontainer.json.j2"),
-        `{
-  "name": "Ansible Development Environment",
-  "image": "{{ dev_container_image }}",
-  "customizations": {
-    "vscode": {
-      "extensions": {{ recommended_extensions | json }}
-    }
-  }
-}`,
-      );
-
-      await fs.promises.mkdir(path.join(templateDir, "docker"), {
-        recursive: true,
-      });
-      await fs.promises.writeFile(
-        path.join(templateDir, "docker", "devcontainer.json.j2"),
-        `{
-  "name": "Docker variant",
-  "dockerFile": "Dockerfile",
-  "image": "{{ dev_container_image }}"
-}`,
-      );
-
-      await fs.promises.mkdir(path.join(templateDir, "podman"), {
-        recursive: true,
-      });
-      await fs.promises.writeFile(
-        path.join(templateDir, "podman", "devcontainer.json.j2"),
-        `{
-  "name": "Podman variant",
-  "image": "{{ dev_container_image }}"
-}`,
-      );
-    });
-
-    it("should scaffold root devcontainer.json from .j2 template", async () => {
+    it("should scaffold root devcontainer.json", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         ["redhat.ansible", "ms-python.python"],
@@ -149,11 +78,11 @@ describe("Content Creator Scaffolding", () => {
         "redhat.ansible",
         "ms-python.python",
       ]);
+      expect(parsed.name).toBe("ansible-dev-container-codespaces");
     });
 
     it("should scaffold docker variant in subdirectory", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         ["redhat.ansible"],
@@ -170,13 +99,11 @@ describe("Content Creator Scaffolding", () => {
       const parsed = JSON.parse(dockerConfig);
 
       expect(parsed.image).toBe("quay.io/ansible/creator-ee:latest");
-      expect(parsed.dockerFile).toBe("Dockerfile");
-      expect(parsed.name).toBe("Docker variant");
+      expect(parsed.name).toBe("ansible-dev-container-docker");
     });
 
     it("should scaffold podman variant in subdirectory", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "quay.io/ansible/creator-ee:latest",
         [],
@@ -193,33 +120,27 @@ describe("Content Creator Scaffolding", () => {
       const parsed = JSON.parse(podmanConfig);
 
       expect(parsed.image).toBe("quay.io/ansible/creator-ee:latest");
-      expect(parsed.name).toBe("Podman variant");
+      expect(parsed.name).toBe("ansible-dev-container-podman");
     });
 
-    it("should remove .j2 extension from output files", async () => {
+    it("should create all three variant files", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "test-image",
         [],
       );
 
       expect(fs.existsSync(path.join(tempDir, "devcontainer.json"))).toBe(true);
-      expect(fs.existsSync(path.join(tempDir, "devcontainer.json.j2"))).toBe(
-        false,
-      );
-
       expect(
         fs.existsSync(path.join(tempDir, "docker", "devcontainer.json")),
       ).toBe(true);
       expect(
-        fs.existsSync(path.join(tempDir, "docker", "devcontainer.json.j2")),
-      ).toBe(false);
+        fs.existsSync(path.join(tempDir, "podman", "devcontainer.json")),
+      ).toBe(true);
     });
 
     it("should create subdirectories if they don't exist", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "test-image",
         [],
@@ -231,7 +152,6 @@ describe("Content Creator Scaffolding", () => {
 
     it("should replace {{ dev_container_image }} variable", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "custom-image:v1.0",
         [],
@@ -253,7 +173,6 @@ describe("Content Creator Scaffolding", () => {
       ];
 
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "test-image",
         extensions,
@@ -271,7 +190,6 @@ describe("Content Creator Scaffolding", () => {
 
     it("should handle empty recommended_extensions array", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "test-image",
         [],
@@ -286,61 +204,32 @@ describe("Content Creator Scaffolding", () => {
       expect(parsed.customizations.vscode.extensions).toEqual([]);
     });
 
-    it("should not create files for missing templates", async () => {
-      await fs.promises.rm(path.join(templateDir, "podman"), {
-        recursive: true,
-        force: true,
-      });
-
+    it("should include container security settings", async () => {
       await messageHandlers["scaffoldDevcontainerStructure"](
-        templateDir,
         tempDir,
         "test-image",
         [],
       );
 
-      expect(fs.existsSync(path.join(tempDir, "devcontainer.json"))).toBe(true);
-      expect(
-        fs.existsSync(path.join(tempDir, "docker", "devcontainer.json")),
-      ).toBe(true);
-      expect(
-        fs.existsSync(path.join(tempDir, "podman", "devcontainer.json")),
-      ).toBe(false);
+      const rootConfig = await fs.promises.readFile(
+        path.join(tempDir, "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(rootConfig);
+
+      expect(parsed.containerUser).toBe("root");
+      expect(parsed.runArgs).toContain("--hostname=ansible-dev-container");
     });
   });
 
   describe("createDevfile", () => {
-    beforeEach(async () => {
-      const devfileDir = path.join(
-        templateDir,
-        "out/resources/contentCreator/createDevfile",
-      );
-      await fs.promises.mkdir(devfileDir, { recursive: true });
-
-      const devfileTemplatePath = path.join(devfileDir, "devfile-template.txt");
-      await fs.promises.writeFile(
-        devfileTemplatePath,
-        `---
-schemaVersion: 2.2.2
-metadata:
-  name: {{ dev_file_name }}
-components:
-  - name: ansible-dev-container
-    container:
-      image: {{ dev_file_image }}
-      memoryLimit: 2Gi
-`,
-      );
-    });
-
-    it("should create devfile.yaml from template", () => {
+    it("should create devfile.yaml from embedded template", () => {
       const destinationPath = path.join(tempDir, "devfile.yaml");
 
       const result = messageHandlers.createDevfile(
         destinationPath,
         "my-project",
         "quay.io/ansible/creator-ee:latest",
-        mockContext.extensionUri,
       );
 
       expect(result).toBe("passed");
@@ -360,7 +249,6 @@ components:
         destinationPath,
         "test-project",
         "test-image",
-        mockContext.extensionUri,
       );
 
       const devfileContent = fs.readFileSync(destinationPath, "utf8");
@@ -379,42 +267,11 @@ components:
         destinationPath,
         "test",
         "test-image",
-        mockContext.extensionUri,
       );
 
       expect(result).toBe("passed");
       expect(fs.existsSync(path.join(tempDir, "nested", "dir"))).toBe(true);
       expect(fs.existsSync(destinationPath)).toBe(true);
-    });
-
-    it("should fall back to ansible_creator package when bundled template is missing", () => {
-      const destinationPath = path.join(tempDir, "devfile.yaml");
-
-      const originalMock = vi.mocked(vscode.Uri.joinPath);
-      vi.spyOn(vscode.Uri, "joinPath").mockReturnValueOnce({
-        fsPath: "/nonexistent/template.yaml",
-        toString: () => "file:///nonexistent/template.yaml",
-      } as vscode.Uri);
-
-      const result = messageHandlers.createDevfile(
-        destinationPath,
-        "test",
-        "test-image",
-        mockContext.extensionUri,
-      );
-
-      // Fallback to ansible_creator package should succeed when installed
-      if (result === "passed") {
-        expect(fs.existsSync(destinationPath)).toBe(true);
-        const content = fs.readFileSync(destinationPath, "utf8");
-        expect(content).toContain("test-");
-        expect(content).toContain("test-image");
-      } else {
-        expect(result).toBe("failed");
-        expect(fs.existsSync(destinationPath)).toBe(false);
-      }
-
-      vi.spyOn(vscode.Uri, "joinPath").mockImplementation(originalMock);
     });
 
     it("should preserve YAML schema structure", () => {
@@ -424,14 +281,14 @@ components:
         destinationPath,
         "my-app",
         "quay.io/ansible/creator-ee:latest",
-        mockContext.extensionUri,
       );
 
       const devfileContent = fs.readFileSync(destinationPath, "utf8");
       expect(devfileContent).toContain("schemaVersion: 2.2.2");
       expect(devfileContent).toContain("components:");
       expect(devfileContent).toContain("container:");
-      expect(devfileContent).toContain("memoryLimit: 2Gi");
+      expect(devfileContent).toContain("memoryLimit: 6Gi");
+      expect(devfileContent).toContain("tooling-container");
     });
 
     it("should overwrite existing devfile", () => {
@@ -443,13 +300,28 @@ components:
         destinationPath,
         "new-project",
         "new-image:latest",
-        mockContext.extensionUri,
       );
 
       expect(result).toBe("passed");
       const devfileContent = fs.readFileSync(destinationPath, "utf8");
       expect(devfileContent).not.toContain("old content");
       expect(devfileContent).toContain("new-image:latest");
+    });
+
+    it("should work without any external template files", () => {
+      const destinationPath = path.join(tempDir, "devfile.yaml");
+
+      const result = messageHandlers.createDevfile(
+        destinationPath,
+        "standalone",
+        "my-image:v1",
+      );
+
+      expect(result).toBe("passed");
+      const content = fs.readFileSync(destinationPath, "utf8");
+      expect(content).toContain("standalone-");
+      expect(content).toContain("my-image:v1");
+      expect(content).toContain("KUBEDOCK_ENABLED");
     });
   });
 });
