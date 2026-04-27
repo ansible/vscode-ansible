@@ -1,4 +1,5 @@
 import type { Options } from "tsup";
+import { builtinModules } from "node:module";
 
 const env = process.env.NODE_ENV;
 
@@ -9,7 +10,7 @@ export const tsup: Options = {
       composite: false,
     },
   },
-  entryPoints: ["src/server.ts"],
+  entryPoints: ["src/cli.ts", "src/server.ts"],
   minify: env === "production",
   bundle: env === "production",
   entry: ["src/**/*.ts"],
@@ -17,5 +18,7 @@ export const tsup: Options = {
   outDir: env === "production" ? "dist" : "lib",
   splitting: false,
   watch: env === "development",
-  skipNodeModulesBundle: true,
+  skipNodeModulesBundle: false,
+  noExternal: [/./],
+  external: [...builtinModules],
 };

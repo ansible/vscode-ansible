@@ -53,10 +53,10 @@ jobs:
 
       # needed by our prek system hooks like toml
       - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@v6
         with:
           cache: true
           run_install: |
@@ -65,7 +65,7 @@ jobs:
 
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
 
@@ -556,7 +556,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -594,7 +594,7 @@ jobs:
 
       # needed for pycobertura
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
