@@ -260,7 +260,6 @@ export class WebviewMessageHandlers {
   private async handleInitCreateDevcontainer(
     message: any,
     webview: vscode.Webview,
-    _context: vscode.ExtensionContext,
   ) {
     const payload = message.payload as DevcontainerFormInterface;
     await this.runDevcontainerCreateProcess(payload, webview);
@@ -269,7 +268,6 @@ export class WebviewMessageHandlers {
   private async handleInitCreateDevfile(
     message: any,
     webview: vscode.Webview,
-    _context: vscode.ExtensionContext,
   ) {
     const payload = message.payload as DevfileFormInterface;
     await this.runDevfileCreateProcess(payload, webview);
