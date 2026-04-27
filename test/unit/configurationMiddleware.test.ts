@@ -304,8 +304,8 @@ describe("makeConfigurationMiddleware", function () {
       mockNext as any,
     );
 
-    // Should return array of null matching request size and log error
-    expect(result).toEqual([null]);
+    // Should return empty array and log error
+    expect(result).toEqual([]);
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("Configuration middleware error"),
     );
