@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import * as yaml from "yaml";
-import { execFile } from "child_process";
+import { execFile, execSync } from "child_process";
 import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { randomUUID } from "crypto";
@@ -726,6 +726,38 @@ export class WebviewMessageHandlers {
     return DevcontainerRecommendedExtensions.RECOMMENDED_EXTENSIONS;
   }
 
+  private resolveDevcontainerTemplatePath(extensionUri: vscode.Uri): string {
+    const bundledPath = vscode.Uri.joinPath(
+      extensionUri,
+      "out/resources/contentCreator/createDevcontainer/.devcontainer",
+    ).fsPath;
+
+    if (fs.existsSync(bundledPath)) {
+      return bundledPath;
+    }
+
+    try {
+      const pkgDir = execSync(
+        'python3 -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)"',
+        { encoding: "utf8" },
+      ).trim();
+      const fallbackPath = path.join(
+        pkgDir,
+        "resources",
+        "common",
+        "devcontainer",
+        ".devcontainer",
+      );
+      if (fs.existsSync(fallbackPath)) {
+        return fallbackPath;
+      }
+    } catch {
+      // python3 not available or ansible_creator not installed
+    }
+
+    return bundledPath;
+  }
+
   private async createDevcontainer(
     destinationUrl: string,
     recommendedExtensions: string[],
@@ -740,12 +772,8 @@ export class WebviewMessageHandlers {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
 
-      const templateSourcePath = vscode.Uri.joinPath(
-        extensionUri,
-        "out/resources/contentCreator/createDevcontainer/.devcontainer",
-      )
-        .toString()
-        .replace("file://", "");
+      const templateSourcePath =
+        this.resolveDevcontainerTemplatePath(extensionUri);
 
       await this.scaffoldDevcontainerStructure(
         templateSourcePath,
@@ -864,6 +892,38 @@ export class WebviewMessageHandlers {
     return DevfileImages[image as keyof typeof DevfileImages];
   }
 
+  private resolveDevfileTemplatePath(extensionUri: vscode.Uri): string {
+    const bundledPath = vscode.Uri.joinPath(
+      extensionUri,
+      "out/resources/contentCreator/createDevfile/devfile-template.txt",
+    ).fsPath;
+
+    if (fs.existsSync(bundledPath)) {
+      return bundledPath;
+    }
+
+    try {
+      const pkgDir = execSync(
+        'python3 -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)"',
+        { encoding: "utf8" },
+      ).trim();
+      const fallbackPath = path.join(
+        pkgDir,
+        "resources",
+        "common",
+        "devfile",
+        "devfile.yaml.j2",
+      );
+      if (fs.existsSync(fallbackPath)) {
+        return fallbackPath;
+      }
+    } catch {
+      // python3 not available or ansible_creator not installed
+    }
+
+    return bundledPath;
+  }
+
   public createDevfile(
     destinationUrl: string,
     devfileName: string,
@@ -871,20 +931,14 @@ export class WebviewMessageHandlers {
     extensionUri: vscode.Uri,
   ) {
     let devfile: string;
-    const relativeTemplatePath =
-      "out/resources/contentCreator/createDevfile/devfile-template.txt";
 
     const expandedDestUrl = expandPath(destinationUrl);
 
     const uuid = randomUUID().slice(0, 8);
     const fullDevfileName = `${devfileName}-${uuid}`;
 
-    const absoluteTemplatePath = vscode.Uri.joinPath(
-      extensionUri,
-      relativeTemplatePath,
-    )
-      .toString()
-      .replace("file://", "");
+    const absoluteTemplatePath =
+      this.resolveDevfileTemplatePath(extensionUri);
 
     try {
       const dirPath = path.dirname(expandedDestUrl);
