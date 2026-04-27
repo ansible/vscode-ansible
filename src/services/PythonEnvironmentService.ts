@@ -307,9 +307,14 @@ export class PythonEnvironmentService implements vscode.Disposable {
   ): Promise<PythonEnvironment | undefined> {
     await this.initialize();
 
-    // Default to first workspace folder if no scope provided
-    // This ensures Python extension returns workspace-specific environment instead of system Python
-    const resolvedScope = scope ?? vscode.workspace.workspaceFolders?.[0]?.uri;
+    // For files outside workspace, use first workspace folder instead
+    let resolvedScope = scope;
+    if (scope && !vscode.workspace.getWorkspaceFolder(scope)) {
+      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
+    } else if (!scope) {
+      // No scope provided - default to first workspace folder
+      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
+    }
 
     // Primary: Environments extension
     if (this._pythonEnvApi) {

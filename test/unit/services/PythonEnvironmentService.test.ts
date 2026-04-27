@@ -660,6 +660,47 @@ describe("PythonEnvironmentService", function () {
       // Should use first workspace folder in multi-workspace
       expect(mockGetEnvironment).toHaveBeenCalledWith(workspace1Uri);
     });
+
+    it("should use workspace folder for files outside workspace", async function () {
+      const mockGetEnvironment = vi.fn().mockResolvedValue({
+        envId: { id: "test", managerId: "test" },
+        execInfo: { run: { executable: "/workspace/venv/bin/python" } },
+      });
+
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: mockGetEnvironment,
+      });
+
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      const workspaceUri = vscode.Uri.file("/workspace");
+      const outsideFileUri = vscode.Uri.file("/tmp/outside_workspace.yml");
+
+      Object.defineProperty(vscode.workspace, "workspaceFolders", {
+        value: [{ uri: workspaceUri } as vscode.WorkspaceFolder],
+        configurable: true,
+      });
+
+      // Mock getWorkspaceFolder to return undefined for files outside workspace
+      const mockGetWorkspaceFolder = vi
+        .spyOn(vscode.workspace, "getWorkspaceFolder")
+        .mockReturnValue(undefined);
+
+      await service.initialize();
+      await service.getEnvironment(outsideFileUri);
+
+      // Should use workspace folder instead of the file URI
+      expect(mockGetWorkspaceFolder).toHaveBeenCalledWith(outsideFileUri);
+      expect(mockGetEnvironment).toHaveBeenCalledWith(workspaceUri);
+
+      mockGetWorkspaceFolder.mockRestore();
+    });
   });
 
   describe("getEnvironments", function () {
