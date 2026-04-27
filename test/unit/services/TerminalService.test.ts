@@ -72,14 +72,16 @@ describe("TerminalService", function () {
 
     // Mock getWorkspaceFolder for PythonEnvironmentService
     // Default behavior: return a workspace folder for most URIs (file is inside workspace)
-    const mockGetWorkspaceFolder = vi.fn().mockImplementation((uri: vscode.Uri) => {
-      // Return undefined only for explicitly "outside" paths
-      if (uri.fsPath.includes("/tmp/") || uri.fsPath.includes("/outside/")) {
-        return undefined;
-      }
-      // Otherwise assume it's inside a workspace
-      return { uri, name: "workspace", index: 0 } as vscode.WorkspaceFolder;
-    });
+    const mockGetWorkspaceFolder = vi
+      .fn()
+      .mockImplementation((uri: vscode.Uri) => {
+        // Return undefined only for explicitly "outside" paths
+        if (uri.fsPath.includes("/tmp/") || uri.fsPath.includes("/outside/")) {
+          return undefined;
+        }
+        // Otherwise assume it's inside a workspace
+        return { uri, name: "workspace", index: 0 } as vscode.WorkspaceFolder;
+      });
     Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
       value: mockGetWorkspaceFolder,
       configurable: true,
