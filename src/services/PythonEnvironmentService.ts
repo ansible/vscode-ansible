@@ -315,10 +315,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
     if (this._pythonEnvApi) {
       try {
         const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
-        console.log(
-          "[Ansible] getEnvironment (envs API) returned:",
-          env?.execInfo?.run?.executable,
-        );
         return env;
       } catch (error) {
         console.error(
