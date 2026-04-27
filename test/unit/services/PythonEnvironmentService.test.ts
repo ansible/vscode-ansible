@@ -473,6 +473,17 @@ describe("PythonEnvironmentService", function () {
         configurable: true,
       });
 
+      // Mock getWorkspaceFolder to return a folder for the explicit scope
+      const mockGetWorkspaceFolder = vi.fn().mockReturnValue({
+        uri: explicitScope,
+        name: "explicit",
+        index: 0,
+      } as vscode.WorkspaceFolder);
+      Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
+        value: mockGetWorkspaceFolder,
+        configurable: true,
+      });
+
       await service.initialize();
       await service.getEnvironment(explicitScope);
 
@@ -555,6 +566,17 @@ describe("PythonEnvironmentService", function () {
             uri: vscode.Uri.file("/default/workspace"),
           } as vscode.WorkspaceFolder,
         ],
+        configurable: true,
+      });
+
+      // Mock getWorkspaceFolder to return a folder for the explicit scope (file is inside workspace)
+      const mockGetWorkspaceFolder = vi.fn().mockReturnValue({
+        uri: explicitScope,
+        name: "explicit",
+        index: 0,
+      } as vscode.WorkspaceFolder);
+      Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
+        value: mockGetWorkspaceFolder,
         configurable: true,
       });
 
@@ -688,9 +710,11 @@ describe("PythonEnvironmentService", function () {
       });
 
       // Mock getWorkspaceFolder to return undefined for files outside workspace
-      const mockGetWorkspaceFolder = vi
-        .spyOn(vscode.workspace, "getWorkspaceFolder")
-        .mockReturnValue(undefined);
+      const mockGetWorkspaceFolder = vi.fn().mockReturnValue(undefined);
+      Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
+        value: mockGetWorkspaceFolder,
+        configurable: true,
+      });
 
       await service.initialize();
       await service.getEnvironment(outsideFileUri);
@@ -698,8 +722,6 @@ describe("PythonEnvironmentService", function () {
       // Should use workspace folder instead of the file URI
       expect(mockGetWorkspaceFolder).toHaveBeenCalledWith(outsideFileUri);
       expect(mockGetEnvironment).toHaveBeenCalledWith(workspaceUri);
-
-      mockGetWorkspaceFolder.mockRestore();
     });
   });
 

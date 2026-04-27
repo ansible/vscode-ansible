@@ -346,8 +346,8 @@ onMounted(() => {
               position="below"
             >
               <vscode-option value="">-- Select Base Image --</vscode-option>
-              <vscode-option value="quay.io/fedora/fedora-minimal:41"
-                >quay.io/fedora/fedora-minimal:41</vscode-option
+              <vscode-option value="quay.io/fedora/fedora-minimal:43"
+                >quay.io/fedora/fedora-minimal:43</vscode-option
               >
               <vscode-option value="quay.io/centos/centos:stream10"
                 >quay.io/centos/centos:stream10</vscode-option
@@ -355,6 +355,11 @@ onMounted(() => {
               <vscode-option
                 value="registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest"
                 >registry.redhat.io/ansible-automation-platform-25/ee-minimal-rhel8:latest
+                (requires an active Red Hat registry login)</vscode-option
+              >
+              <vscode-option
+                value="registry.redhat.io/ansible-automation-platform-26/ee-minimal-rhel9:latest"
+                >registry.redhat.io/ansible-automation-platform-26/ee-minimal-rhel9:latest
                 (requires an active Red Hat registry login)</vscode-option
               >
             </vscode-single-select>
