@@ -26,6 +26,8 @@ CHANGELOG.html
 docs/als/settings.md
 examples/.vscode/
 packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
+resources/contentCreator/createDevcontainer/.devcontainer
+resources/contentCreator/createDevfile/devfile-template.txt
 test/testFixtures/.vscode/settings.json
 test/testFixtures/diagnostics/yaml/invalid_yaml.yml
 test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
