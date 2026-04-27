@@ -1454,7 +1454,7 @@ export function makeConfigurationMiddleware(
         outputChannel.appendLine(
           `[Ansible] Configuration middleware error: ${error}`,
         );
-        return [] as unknown as LSPAny[];
+        return params.items.map(() => null) as unknown as LSPAny[];
       }
 
       if (!Array.isArray(originalResult))
