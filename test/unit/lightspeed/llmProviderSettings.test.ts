@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import type { ExtensionContext, SecretStorage, Memento } from "vscode";
 import {
+  API_ENDPOINTS,
+  MODEL_NAMES,
   PROVIDER_TYPES,
   TEST_API_KEYS,
 } from "@test/unit/lightspeed/testConstants";
@@ -56,9 +58,51 @@ vi.mock("@src/features/lightspeed/providers/factory", () => {
     ],
   };
 
+  const mockRhcustomProvider = {
+    type: "rhcustom",
+    name: "rhcustom",
+    displayName: "Red Hat AI",
+    defaultEndpoint: "",
+    defaultModel: undefined,
+    configSchema: [
+      {
+        key: "apiEndpoint",
+        label: "API Endpoint",
+        type: "string",
+        required: true,
+        placeholder: "https://your-api.example.com",
+      },
+      {
+        key: "apiKey",
+        label: "API Key",
+        type: "password",
+        required: true,
+        placeholder: "",
+      },
+      {
+        key: "modelName",
+        label: "Model Name",
+        type: "string",
+        required: true,
+        placeholder: "my-model",
+      },
+      {
+        key: "maxTokens",
+        label: "Max Tokens",
+        type: "number",
+        required: false,
+        placeholder: "1600",
+      },
+    ],
+  };
+
   return {
     providerFactory: {
-      getSupportedProviders: vi.fn(() => [mockWcaProvider, mockGoogleProvider]),
+      getSupportedProviders: vi.fn(() => [
+        mockWcaProvider,
+        mockGoogleProvider,
+        mockRhcustomProvider,
+      ]),
     },
   };
 });
@@ -243,6 +287,7 @@ describe("LlmProviderSettings", () => {
       expect(statuses).toEqual({
         wca: false,
         google: true,
+        rhcustom: false,
       });
     });
   });
@@ -576,6 +621,52 @@ describe("LlmProviderSettings", () => {
       expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
         "lightspeed.migratedFromSettings",
         true,
+      );
+    });
+
+    it("should import rhcustom provider from settings.json", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(llmProviderSettings.getProvider()).toBe(PROVIDER_TYPES.RHCUSTOM);
+    });
+
+    it("should import rhcustom apiEndpoint and modelName into globalState", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: API_ENDPOINTS.RHCUSTOM,
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      const endpoint = await llmProviderSettings.get("rhcustom", "apiEndpoint");
+      expect(endpoint).toBe(API_ENDPOINTS.RHCUSTOM);
+
+      const model = await llmProviderSettings.get("rhcustom", "modelName");
+      expect(model).toBe(MODEL_NAMES.RHCUSTOM_DEEPSEEK);
+    });
+
+    it("should import rhcustom apiKey into secrets", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: TEST_API_KEYS.RHCUSTOM,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.rhcustom.apiKey",
+        TEST_API_KEYS.RHCUSTOM,
       );
     });
   });
