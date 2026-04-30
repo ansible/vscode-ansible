@@ -21,10 +21,8 @@ describe("MCP server packaging", function () {
       );
     });
 
-    it("should whitelist MCP server resource data files", function () {
-      expect(vscodeignore).toContain(
-        "!packages/ansible-mcp-server/src/resources/data/**/*",
-      );
+    it("should whitelist MCP server dist files which include resource data", function () {
+      expect(vscodeignore).toContain("!packages/ansible-mcp-server/dist/**/*");
     });
   });
 
