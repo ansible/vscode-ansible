@@ -43,6 +43,13 @@ export class AnsibleApme {
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
   private remediationInFlight: Set<string> = new Set();
+  private workspaceScanInFlight: Promise<Map<string, Diagnostic[]>> | null =
+    null;
+  private cachedDiagnostics: Map<string, Diagnostic[]> | null = null;
+  private scanDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+  private pendingScanResolvers: Array<{
+    resolve: (v: Map<string, Diagnostic[]>) => void;
+  }> = [];
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -54,97 +61,92 @@ export class AnsibleApme {
   public async doValidate(
     textDocument: TextDocument,
   ): Promise<Map<string, Diagnostic[]>> {
-    const diagnostics: Map<string, Diagnostic[]> = new Map();
+    const docUri = textDocument.uri;
+
+    // If a project scan is already running, wait for it
+    if (this.workspaceScanInFlight) {
+      this.connection.console.log(
+        "[apme] Project scan in progress, waiting for results...",
+      );
+      const wsResults = await this.workspaceScanInFlight;
+      return this.extractFileResults(docUri, wsResults);
+    }
+
     const settings = await this.context.documentSettings.get(textDocument.uri);
-
     if (!settings.validation?.enabled || !settings.validation?.apme?.enabled) {
-      this.connection.console.log("[apme] Validation disabled, skipping");
-      return diagnostics;
-    }
-
-    const docPath = URI.parse(textDocument.uri).path;
-    const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
-    const mountPaths = new Set([workingDirectory, path.dirname(docPath)]);
-
-    this.connection.console.log(`[apme] Validating file: ${docPath}`);
-
-    let apmeArguments = settings.validation.apme.arguments ?? "";
-    apmeArguments = `check "${docPath}" --json ${apmeArguments}`;
-
-    if (settings.validation.apme.autoFixOnSave) {
-      if (this.remediationInFlight.has(docPath)) {
-        this.connection.console.log(
-          `[apme] Skipping auto-fix: remediation already in flight for ${docPath}`,
-        );
-        return diagnostics;
-      }
-      return this.doRemediateAndValidate(textDocument);
-    }
-
-    const progressTracker = this.useProgressTracker
-      ? await this.connection.window.createWorkDoneProgress()
-      : { begin: () => {}, done: () => {} };
-
-    progressTracker.begin("apme", undefined, "Checking...");
-
-    const commandRunner = new CommandRunner(
-      this.connection,
-      this.context,
-      settings,
-    );
-
-    const apmeExecutable = settings.executionEnvironment.enabled
-      ? "apme"
-      : settings.validation.apme.path;
-
-    try {
-      this.connection.console.log(
-        `[apme] Running: ${apmeExecutable} ${apmeArguments}`,
-      );
-      const result = await commandRunner.runCommand(
-        apmeExecutable,
-        apmeArguments,
-        workingDirectory,
-        mountPaths,
-      );
-
-      const diagnosticResult = this.parseApmeOutput(result.stdout, workingDirectory);
-      this.connection.console.log(
-        `[apme] Check complete: ${this.countDiagnostics(diagnosticResult)} violation(s) found`,
-      );
-      return diagnosticResult;
-    } catch (error) {
-      if (error instanceof Error) {
-        const execError = error as ExecException & {
-          stdout: string;
-          stderr: string;
-        };
-
-        // Exit code 1 = violations found (not an error)
-        if (execError.stdout) {
-          const diagnosticResult = this.parseApmeOutput(execError.stdout, workingDirectory);
-          this.connection.console.log(
-            `[apme] Check complete (exit 1): ${this.countDiagnostics(diagnosticResult)} violation(s) found`,
-          );
-          return diagnosticResult;
-        }
-
-        if (execError.stderr) {
-          this.connection.console.warn(`[apme] stderr: ${execError.stderr}`);
-        }
-        this.connection.console.error(`[apme] Command failed: ${execError.message}`);
-      } else {
-        this.connection.console.error(
-          `[apme] Unexpected error: ${JSON.stringify(error)}`,
-        );
-      }
       return new Map();
+    }
+
+    // Return cached results immediately and schedule a background re-scan
+    if (this.cachedDiagnostics) {
+      this.connection.console.log(
+        "[apme] Returning cached diagnostics, scheduling background re-scan...",
+      );
+      this.scheduleProjectScan();
+      return this.extractFileResults(docUri, this.cachedDiagnostics);
+    }
+
+    // No cache, no scan in flight — run a full project scan now
+    return this.extractFileResults(docUri, await this.runProjectScan());
+  }
+
+  private scheduleProjectScan(): void {
+    if (this.scanDebounceTimer) clearTimeout(this.scanDebounceTimer);
+    this.scanDebounceTimer = setTimeout(() => {
+      this.scanDebounceTimer = undefined;
+      this.runProjectScan().then((results) => {
+        // Publish updated diagnostics for all files with violations
+        for (const [fileUri, fileDiags] of results) {
+          this.connection.sendDiagnostics({
+            uri: fileUri,
+            diagnostics: fileDiags,
+          });
+        }
+        // Clear diagnostics for files that no longer have violations
+        if (this.cachedDiagnostics) {
+          for (const prevUri of this.cachedDiagnostics.keys()) {
+            if (!results.has(prevUri)) {
+              this.connection.sendDiagnostics({
+                uri: prevUri,
+                diagnostics: [],
+              });
+            }
+          }
+        }
+        this.connection.console.log(
+          `[apme] Background re-scan complete: ${this.countDiagnostics(results)} violation(s)`,
+        );
+      });
+    }, 2000);
+  }
+
+  private async runProjectScan(): Promise<Map<string, Diagnostic[]>> {
+    if (this.workspaceScanInFlight) {
+      return this.workspaceScanInFlight;
+    }
+
+    this.connection.sendNotification("ansible/apme/scanStatus", {
+      scanning: true,
+      tool: "apme",
+    });
+
+    const scanPromise = this._runProjectScanInternal();
+    this.workspaceScanInFlight = scanPromise;
+    try {
+      const result = await scanPromise;
+      this.cachedDiagnostics = result;
+      return result;
     } finally {
-      progressTracker.done();
+      this.workspaceScanInFlight = null;
+      this.connection.sendNotification("ansible/apme/scanStatus", {
+        scanning: false,
+        tool: "apme",
+        violations: this.countDiagnostics(this.cachedDiagnostics ?? new Map()),
+      });
     }
   }
 
-  public async doValidateWorkspace(): Promise<Map<string, Diagnostic[]>> {
+  private async _runProjectScanInternal(): Promise<Map<string, Diagnostic[]>> {
     const workspaceUri = this.context.workspaceFolder.uri;
     const settings = await this.context.documentSettings.get(workspaceUri);
 
@@ -153,19 +155,10 @@ export class AnsibleApme {
     }
 
     const workingDirectory = URI.parse(workspaceUri).path;
-    this.connection.console.log(
-      `[apme] Starting workspace scan: ${workingDirectory}`,
-    );
     const mountPaths = new Set([workingDirectory]);
 
     let apmeArguments = settings.validation.apme.arguments ?? "";
     apmeArguments = `check "${workingDirectory}" --json ${apmeArguments}`;
-
-    const progressTracker = this.useProgressTracker
-      ? await this.connection.window.createWorkDoneProgress()
-      : { begin: () => {}, done: () => {} };
-
-    progressTracker.begin("apme", undefined, "Scanning workspace...");
 
     const commandRunner = new CommandRunner(
       this.connection,
@@ -177,32 +170,104 @@ export class AnsibleApme {
       ? "apme"
       : settings.validation.apme.path;
 
+    const timeoutMs =
+      (settings.validation.apme.timeout ?? 120) * 1000 || undefined;
+
     try {
+      this.connection.console.log(
+        `[apme] Running project scan: ${apmeExecutable} ${apmeArguments}`,
+      );
       const result = await commandRunner.runCommand(
         apmeExecutable,
         apmeArguments,
         workingDirectory,
         mountPaths,
+        timeoutMs,
       );
 
-      return this.parseApmeOutput(result.stdout, workingDirectory);
+      const diagnosticResult = this.parseApmeOutput(
+        result.stdout,
+        workingDirectory,
+      );
+      this.connection.console.log(
+        `[apme] Project scan complete: ${this.countDiagnostics(diagnosticResult)} violation(s) found`,
+      );
+      return diagnosticResult;
     } catch (error) {
       if (error instanceof Error) {
         const execError = error as ExecException & {
           stdout: string;
           stderr: string;
         };
-
         if (execError.stdout) {
-          return this.parseApmeOutput(execError.stdout, workingDirectory);
+          const diagnosticResult = this.parseApmeOutput(
+            execError.stdout,
+            workingDirectory,
+          );
+          this.connection.console.log(
+            `[apme] Project scan complete (exit 1): ${this.countDiagnostics(diagnosticResult)} violation(s) found`,
+          );
+          return diagnosticResult;
         }
-
-        this.connection.console.error(`[apme] Workspace scan error: ${execError.message}`);
+        this.connection.console.error(
+          `[apme] Project scan failed: ${execError.message}`,
+        );
       }
-      return new Map();
-    } finally {
-      progressTracker.done();
+
+      if (this.context.apmeDaemonManager.isDaemonCrashError(error)) {
+        this.connection.console.warn(
+          "[apme] Detected daemon crash, attempting restart and retry...",
+        );
+        const restarted = await this.context.apmeDaemonManager.restartDaemon();
+        if (restarted) {
+          try {
+            const retryResult = await commandRunner.runCommand(
+              apmeExecutable,
+              apmeArguments,
+              workingDirectory,
+              mountPaths,
+              timeoutMs,
+            );
+            return this.parseApmeOutput(retryResult.stdout, workingDirectory);
+          } catch (retryError) {
+            if (retryError instanceof Error) {
+              const retryExec = retryError as ExecException & {
+                stdout: string;
+              };
+              if (retryExec.stdout) {
+                return this.parseApmeOutput(
+                  retryExec.stdout,
+                  workingDirectory,
+                );
+              }
+            }
+          }
+        }
+      }
+
+      return this.cachedDiagnostics ?? new Map();
     }
+  }
+
+  private extractFileResults(
+    docUri: string,
+    allResults: Map<string, Diagnostic[]>,
+  ): Map<string, Diagnostic[]> {
+    const result: Map<string, Diagnostic[]> = new Map();
+    const fileDiags = allResults.get(docUri);
+    result.set(docUri, fileDiags ?? []);
+    return result;
+  }
+
+  public async doValidateWorkspace(): Promise<Map<string, Diagnostic[]>> {
+    const daemonReady = await this.context.apmeDaemonManager.ensureHealthy();
+    if (!daemonReady) {
+      this.connection.console.error(
+        "[apme] Daemon is unhealthy and could not be restarted; skipping workspace scan",
+      );
+      return new Map();
+    }
+    return this.runProjectScan();
   }
 
   public async doRemediate(
@@ -218,30 +283,34 @@ export class AnsibleApme {
     this.connection.console.log(`[apme] Starting remediation: ${filePath}`);
     this.remediationInFlight.add(filePath);
 
+    const workspaceUri = this.context.workspaceFolder.uri;
+    const settings = await this.context.documentSettings.get(workspaceUri);
+    const workingDirectory = URI.parse(workspaceUri).path;
+    const mountPaths = new Set([workingDirectory, path.dirname(filePath)]);
+
+    let apmeArguments = settings.validation.apme.arguments ?? "";
+    apmeArguments = `remediate "${filePath}" --json ${apmeArguments}`;
+
+    const commandRunner = new CommandRunner(
+      this.connection,
+      this.context,
+      settings,
+    );
+
+    const apmeExecutable = settings.executionEnvironment.enabled
+      ? "apme"
+      : settings.validation.apme.path;
+
+    const timeoutMs =
+      (settings.validation.apme.timeout ?? 120) * 1000 || undefined;
+
     try {
-      const workspaceUri = this.context.workspaceFolder.uri;
-      const settings = await this.context.documentSettings.get(workspaceUri);
-      const workingDirectory = URI.parse(workspaceUri).path;
-      const mountPaths = new Set([workingDirectory, path.dirname(filePath)]);
-
-      let apmeArguments = settings.validation.apme.arguments ?? "";
-      apmeArguments = `remediate "${filePath}" --json ${apmeArguments}`;
-
-      const commandRunner = new CommandRunner(
-        this.connection,
-        this.context,
-        settings,
-      );
-
-      const apmeExecutable = settings.executionEnvironment.enabled
-        ? "apme"
-        : settings.validation.apme.path;
-
       const result = await commandRunner.runCommand(
         apmeExecutable,
         apmeArguments,
         workingDirectory,
         mountPaths,
+        timeoutMs,
       );
 
       try {
@@ -259,7 +328,6 @@ export class AnsibleApme {
           stdout: string;
           stderr: string;
         };
-        // Exit code 1 = remaining violations (remediation ran but didn't fix everything)
         if (execError.stdout) {
           try {
             const output = JSON.parse(execError.stdout);
@@ -271,8 +339,42 @@ export class AnsibleApme {
             // fall through
           }
         }
-        this.connection.console.error(`[apme] Remediation error: ${execError.message}`);
+        this.connection.console.error(
+          `[apme] Remediation error: ${execError.message}`,
+        );
       }
+
+      if (this.context.apmeDaemonManager.isDaemonCrashError(error)) {
+        this.connection.console.warn(
+          "[apme] Detected daemon crash during remediation, attempting restart...",
+        );
+        const restarted = await this.context.apmeDaemonManager.restartDaemon();
+        if (restarted) {
+          try {
+            const retryResult = await commandRunner.runCommand(
+              apmeExecutable,
+              apmeArguments,
+              workingDirectory,
+              mountPaths,
+              timeoutMs,
+            );
+            try {
+              const output = JSON.parse(retryResult.stdout);
+              return {
+                success: true,
+                filesUpdated: output.files_updated ?? 0,
+              };
+            } catch {
+              return { success: true, filesUpdated: 0 };
+            }
+          } catch {
+            this.connection.console.error(
+              "[apme] Remediation retry after daemon restart also failed",
+            );
+          }
+        }
+      }
+
       return { success: false, filesUpdated: 0 };
     } finally {
       this.remediationInFlight.delete(filePath);
@@ -303,12 +405,16 @@ export class AnsibleApme {
       ? "apme"
       : settings.validation.apme.path;
 
+    const timeoutMs =
+      (settings.validation.apme.timeout ?? 120) * 1000 || undefined;
+
     try {
       const result = await commandRunner.runCommand(
         apmeExecutable,
         apmeArguments,
         workingDirectory,
         mountPaths,
+        timeoutMs,
       );
       return this.parseApmeOutput(result.stdout, workingDirectory);
     } catch (error) {
@@ -406,10 +512,19 @@ export class AnsibleApme {
           },
         });
       }
+
+      // Log remediation summary so users see what apme can auto-fix
+      const summary = output.remediation_summary;
+      if (summary && (summary.auto_fixable > 0 || summary.ai_candidate > 0)) {
+        this.connection.console.log(
+          `[apme] Remediation summary: ${summary.auto_fixable} auto-fixable, ` +
+            `${summary.ai_candidate} AI-candidate, ${summary.manual_review} manual-review`,
+        );
+      }
     } catch (error) {
       this.connection.console.error(
         `[apme] Failed to parse output: ${error instanceof Error ? error.message : String(error)}` +
-          `\nTried to parse:\n${stdout.substring(0, 500)}`,
+          `\nTried to parse:\n${stdout.substring(0, 2000)}`,
       );
     }
 

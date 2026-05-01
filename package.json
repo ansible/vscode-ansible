@@ -35,6 +35,11 @@
         "title": "Migrate with apme"
       },
       {
+        "category": "Ansible",
+        "command": "ansible.apme.restartDaemon",
+        "title": "Restart apme Daemon"
+      },
+      {
         "command": "extension.resync-ansible-inventory",
         "title": "Resync Ansible Inventory"
       },

@@ -21,7 +21,8 @@ export async function provideCodeActions(
   const apmeFixableDiagnostics = params.context.diagnostics.filter(
     (d) =>
       d.source === "Ansible [apme]" &&
-      d.data &&
+      d.data != null &&
+      typeof d.data === "object" &&
       (d.data as { fixable?: boolean }).fixable === true,
   );
 

@@ -58,7 +58,26 @@ export class AnsibleLanguageService {
 
   private initializeConnection() {
     this.connection.onInitialize((params: InitializeParams) => {
-      this.workspaceManager.setWorkspaceFolders(params.workspaceFolders || []);
+      this.connection.console.log(
+        `[debug] onInitialize: workspaceFolders=${JSON.stringify(params.workspaceFolders)}`,
+      );
+      this.connection.console.log(
+        `[debug] onInitialize: capabilities.workspace.configuration=${params.capabilities?.workspace?.configuration}`,
+      );
+      this.connection.console.log(
+        `[debug] onInitialize: capabilities.workspace.workspaceFolders=${JSON.stringify(params.capabilities?.workspace?.workspaceFolders)}`,
+      );
+      this.connection.console.log(
+        `[debug] onInitialize: initializationOptions=${JSON.stringify(params.initializationOptions)}`,
+      );
+      let workspaceFolders = params.workspaceFolders || [];
+      if (workspaceFolders.length === 0 && params.rootUri) {
+        this.connection.console.log(
+          `[debug] No workspaceFolders provided, falling back to rootUri: ${params.rootUri}`,
+        );
+        workspaceFolders = [{ uri: params.rootUri, name: "root" }];
+      }
+      this.workspaceManager.setWorkspaceFolders(workspaceFolders);
       this.workspaceManager.setCapabilities(params.capabilities);
 
       const result: InitializeResult = {
@@ -101,6 +120,7 @@ export class AnsibleLanguageService {
     });
 
     this.connection.onInitialized(() => {
+      this.connection.console.log("[debug] onInitialized fired");
       if (this.workspaceManager.clientCapabilities.workspace?.configuration) {
         this.connection.client
           .register(DidChangeConfigurationNotification.type, {
@@ -151,7 +171,7 @@ export class AnsibleLanguageService {
   }
 
   private triggerApmeWorkspaceScan(): void {
-    this.workspaceManager.forEachContext(async (context) => {
+    this.workspaceManager.forEachWorkspaceFolder(async (context) => {
       try {
         const settings = await context.documentSettings.get(
           context.workspaceFolder.uri,
@@ -159,6 +179,14 @@ export class AnsibleLanguageService {
         if (!settings.validation?.enabled || !settings.validation?.apme?.enabled) {
           return;
         }
+
+        const started = await context.apmeDaemonManager.startDaemon();
+        if (!started) {
+          this.connection.console.warn(
+            "[apme] Daemon failed to start; workspace scan may fail",
+          );
+        }
+
         this.connection.console.log(
           "[apme] Triggering workspace scan on startup...",
         );
@@ -412,7 +440,7 @@ export class AnsibleLanguageService {
       "ansible/apme/remediate",
       async (filePath: string): Promise<{ success: boolean; filesUpdated: number }> => {
         try {
-          const fileUri = `file://${filePath}`;
+          const fileUri = URI.file(filePath).toString();
           const context = this.workspaceManager.getContext(fileUri);
           if (!context) {
             return { success: false, filesUpdated: 0 };
@@ -430,6 +458,16 @@ export class AnsibleLanguageService {
                 this.connection,
                 this.schemaService,
               );
+            }
+            if (result.filesUpdated > 1) {
+              const wsDiags =
+                await context.ansibleApme.doValidateWorkspace();
+              for (const [uri, diags] of wsDiags) {
+                this.connection.sendDiagnostics({
+                  uri,
+                  diagnostics: diags,
+                });
+              }
             }
           }
           return result;
@@ -457,6 +495,41 @@ export class AnsibleLanguageService {
         }
       },
     );
+
+    this.connection.onRequest(
+      "ansible/apme/restartDaemon",
+      async (): Promise<{ success: boolean; message: string }> => {
+        try {
+          let allRestarted = true;
+          await this.workspaceManager.forEachContext(async (context) => {
+            const settings = await context.documentSettings.get(
+              context.workspaceFolder.uri,
+            );
+            if (settings.validation?.apme?.enabled) {
+              const restarted =
+                await context.apmeDaemonManager.restartDaemon();
+              if (!restarted) allRestarted = false;
+            }
+          });
+          return {
+            success: allRestarted,
+            message: allRestarted
+              ? "Daemon restarted successfully"
+              : "Daemon restart failed",
+          };
+        } catch (error) {
+          this.handleError(error, "ansible/apme/restartDaemon");
+          return {
+            success: false,
+            message:
+              error instanceof Error ? error.message : String(error),
+          };
+        }
+      },
+    );
+
+    // apme daemon persists across editor sessions (startup is expensive ~10s).
+    // Use "Ansible: Restart apme Daemon" command to restart it explicitly.
 
     // Custom actions that are performed on receiving special notifications from the client
     // Resync ansible inventory service by clearing the cached items

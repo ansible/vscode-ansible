@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { DiagnosticSeverity } from "vscode-languageserver";
 import { AnsibleApme } from "@src/services/ansibleApme.js";
 
@@ -326,13 +326,115 @@ describe("AnsibleApme.parseApmeOutput", () => {
   });
 });
 
-describe("AnsibleApme.mergeDiagnostics via validationProvider", () => {
-  // mergeDiagnostics is tested indirectly through validationProvider
-  // These tests verify the dedup logic directly
+describe("AnsibleApme.doValidate", () => {
+  function createMockContext(
+    overrides: {
+      validationEnabled?: boolean;
+      apmeEnabled?: boolean;
+      autoFixOnSave?: boolean;
+      apmePath?: string;
+    } = {},
+  ) {
+    const {
+      validationEnabled = true,
+      apmeEnabled = true,
+      autoFixOnSave = false,
+      apmePath = "apme",
+    } = overrides;
 
+    return {
+      documentSettings: {
+        get: () =>
+          Promise.resolve({
+            validation: {
+              enabled: validationEnabled,
+              apme: {
+                enabled: apmeEnabled,
+                path: apmePath,
+                arguments: "",
+                autoFixOnSave,
+              },
+            },
+            executionEnvironment: { enabled: false },
+          }),
+      },
+      workspaceFolder: { uri: "file:///workspace/project" },
+      clientCapabilities: { window: {} },
+    };
+  }
+
+  const mockConnection = {
+    console: {
+      log: () => {},
+      warn: () => {},
+      error: () => {},
+    },
+    window: {
+      createWorkDoneProgress: () =>
+        Promise.resolve({ begin: () => {}, done: () => {} }),
+    },
+  };
+
+  it("should return empty map when validation is disabled", async () => {
+    const ctx = createMockContext({ validationEnabled: false });
+    const apme = new AnsibleApme(mockConnection as any, ctx as any);
+    const doc = { uri: "file:///workspace/project/test.yml" } as any;
+    const result = await apme.doValidate(doc);
+    expect(result.size).toBe(0);
+  });
+
+  it("should return empty map when apme is disabled", async () => {
+    const ctx = createMockContext({ apmeEnabled: false });
+    const apme = new AnsibleApme(mockConnection as any, ctx as any);
+    const doc = { uri: "file:///workspace/project/test.yml" } as any;
+    const result = await apme.doValidate(doc);
+    expect(result.size).toBe(0);
+  });
+});
+
+describe("AnsibleApme.doRemediate concurrency guard", () => {
+  const mockConnection = {
+    console: {
+      log: () => {},
+      warn: vi.fn(),
+      error: () => {},
+    },
+  };
+
+  const mockContext = {
+    documentSettings: {
+      get: () =>
+        Promise.resolve({
+          validation: {
+            enabled: true,
+            apme: { enabled: true, path: "apme", arguments: "" },
+          },
+          executionEnvironment: { enabled: false },
+          python: { interpreterPath: "python3", activationScript: "" },
+        }),
+    },
+    workspaceFolder: { uri: "file:///workspace/project" },
+    clientCapabilities: { window: {} },
+  };
+
+  it("should reject second concurrent call for same path", async () => {
+    const apme = new AnsibleApme(mockConnection as any, mockContext as any);
+
+    // Access remediationInFlight to simulate in-flight state
+    (apme as any).remediationInFlight.add("/workspace/project/test.yml");
+
+    const result = await apme.doRemediate("/workspace/project/test.yml");
+    expect(result.success).toBe(false);
+    expect(result.filesUpdated).toBe(0);
+    expect(mockConnection.console.warn).toHaveBeenCalled();
+  });
+});
+
+describe("AnsibleApme.mergeDiagnostics via validationProvider", () => {
   it("should be importable from validationProvider", async () => {
     const mod = await import("@src/providers/validationProvider.js");
     expect(mod.doValidate).toBeDefined();
     expect(mod.getYamlValidation).toBeDefined();
+    expect(mod.mergeDiagnostics).toBeDefined();
   });
 });

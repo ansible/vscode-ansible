@@ -221,51 +221,142 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // apme status bar indicator
-  const apmeStatusBar = vscode.window.createStatusBarItem(
+  // Register apme remediate command (used by code actions)
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.apme.remediate",
+      async (filePath: string) => {
+        try {
+          const result = await client.sendRequest<{
+            success: boolean;
+            filesUpdated: number;
+          }>("ansible/apme/remediate", filePath);
+
+          if (result.success) {
+            vscode.window.showInformationMessage(
+              `apme remediation complete: ${result.filesUpdated} file(s) updated.`,
+            );
+          } else {
+            vscode.window.showWarningMessage(
+              "apme remediation finished with errors. Check the Ansible Server output.",
+            );
+          }
+        } catch (err) {
+          vscode.window.showErrorMessage(
+            `apme remediation failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      },
+    ),
+  );
+
+  // Register apme daemon restart command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.apme.restartDaemon",
+      async () => {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Restarting apme daemon...",
+            cancellable: false,
+          },
+          async () => {
+            try {
+              const result = await client.sendRequest<{
+                success: boolean;
+                message: string;
+              }>("ansible/apme/restartDaemon");
+
+              if (result.success) {
+                vscode.window.showInformationMessage(
+                  "apme daemon restarted successfully.",
+                );
+              } else {
+                vscode.window.showWarningMessage(
+                  `apme daemon restart issue: ${result.message}`,
+                );
+              }
+            } catch (err) {
+              vscode.window.showErrorMessage(
+                `apme daemon restart failed: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          },
+        );
+      },
+    ),
+  );
+
+  // Scan status bar — shows scanning state for apme and ansible-lint
+  const scanStatusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     99,
   );
-  apmeStatusBar.command = "workbench.actions.view.problems";
-  context.subscriptions.push(apmeStatusBar);
+  scanStatusBar.command = "workbench.actions.view.problems";
+  context.subscriptions.push(scanStatusBar);
 
-  const updateApmeStatusBar = () => {
-    const apmeEnabled = vscode.workspace
-      .getConfiguration("ansible.validation.apme")
-      .get<boolean>("enabled", false);
-    if (!apmeEnabled) {
-      apmeStatusBar.hide();
+  const activeScans = new Set<string>();
+
+  const updateScanStatusBar = () => {
+    if (activeScans.size > 0) {
+      const tools = Array.from(activeScans).join(", ");
+      scanStatusBar.text = `$(sync~spin) ${tools}`;
+      scanStatusBar.tooltip = `Scanning with ${tools}...`;
+      scanStatusBar.backgroundColor = undefined;
+      scanStatusBar.show();
       return;
     }
 
     const allDiagnostics = vscode.languages.getDiagnostics();
     let apmeCount = 0;
+    let lintCount = 0;
     for (const [, diags] of allDiagnostics) {
       for (const d of diags) {
-        if (d.source === "Ansible [apme]") {
-          apmeCount++;
-        }
+        if (d.source === "Ansible [apme]") apmeCount++;
+        else if (d.source === "Ansible [ansible-lint]") lintCount++;
       }
     }
 
-    if (apmeCount === 0) {
-      apmeStatusBar.text = "$(check) apme";
-      apmeStatusBar.backgroundColor = undefined;
-      apmeStatusBar.tooltip = "apme: no violations";
+    const total = apmeCount + lintCount;
+    if (total === 0) {
+      scanStatusBar.text = "$(check) apme";
+      scanStatusBar.backgroundColor = undefined;
+      scanStatusBar.tooltip = "No violations found";
     } else {
-      apmeStatusBar.text = `$(warning) apme: ${apmeCount}`;
-      apmeStatusBar.backgroundColor = new vscode.ThemeColor(
+      const parts: string[] = [];
+      if (apmeCount > 0) parts.push(`apme: ${apmeCount}`);
+      if (lintCount > 0) parts.push(`lint: ${lintCount}`);
+      scanStatusBar.text = `$(warning) ${parts.join(" | ")}`;
+      scanStatusBar.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.warningBackground",
       );
-      apmeStatusBar.tooltip = `apme: ${apmeCount} violation(s) — click to open Problems`;
+      scanStatusBar.tooltip = `${total} violation(s) — click to open Problems`;
     }
-    apmeStatusBar.show();
+    scanStatusBar.show();
   };
 
-  context.subscriptions.push(
-    vscode.languages.onDidChangeDiagnostics(() => updateApmeStatusBar()),
+  // Listen for scan status notifications from the language server
+  client.onNotification(
+    "ansible/apme/scanStatus",
+    (params: { scanning: boolean; tool: string; violations?: number }) => {
+      if (params.scanning) {
+        activeScans.add(params.tool);
+      } else {
+        activeScans.delete(params.tool);
+      }
+      updateScanStatusBar();
+    },
   );
-  updateApmeStatusBar();
+
+  let scanStatusBarTimer: ReturnType<typeof setTimeout> | undefined;
+  context.subscriptions.push(
+    vscode.languages.onDidChangeDiagnostics(() => {
+      if (scanStatusBarTimer) clearTimeout(scanStatusBarTimer);
+      scanStatusBarTimer = setTimeout(updateScanStatusBar, 200);
+    }),
+  );
+  updateScanStatusBar();
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 

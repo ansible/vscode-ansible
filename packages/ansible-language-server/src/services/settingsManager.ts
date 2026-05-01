@@ -118,7 +118,7 @@ export class SettingsManager {
       },
       apme: {
         enabled: {
-          default: false,
+          default: true,
           description: "Toggle usage of apme for static analysis",
         },
         path: {
@@ -134,6 +134,11 @@ export class SettingsManager {
           default: false,
           description:
             "Specifies whether apme should auto-fix deterministic violations when you save a file.",
+        },
+        timeout: {
+          default: 120,
+          description:
+            "Maximum time in seconds to allow apme to run before aborting. 0 means no timeout.",
         },
       },
       diagnosticPrecedence: {
@@ -175,10 +180,24 @@ export class SettingsManager {
     }
     let result = this.documentSettings.get(uri);
     if (!result && this.connection) {
-      const clientSettings = await this.connection.workspace.getConfiguration({
-        scopeUri: uri,
-        section: "ansible",
-      });
+      let clientSettings;
+      try {
+        clientSettings = await Promise.race([
+          this.connection.workspace.getConfiguration({
+            scopeUri: uri,
+            section: "ansible",
+          }),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
+      } catch {
+        clientSettings = null;
+      }
+      if (!clientSettings) {
+        this.connection.console?.log(
+          "Client did not respond to configuration request, using defaults",
+        );
+        clientSettings = {};
+      }
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
