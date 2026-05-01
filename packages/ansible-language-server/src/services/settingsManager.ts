@@ -116,6 +116,36 @@ export class SettingsManager {
             "Specifies whether `ansible-lint --fix` should run automatically when you save a file.",
         },
       },
+      apme: {
+        enabled: {
+          default: true,
+          description: "Toggle usage of apme for static analysis",
+        },
+        path: {
+          default: "apme",
+          description: "Path to the apme executable",
+        },
+        arguments: {
+          default: "",
+          description:
+            "Optional command line arguments to be appended to apme invocation",
+        },
+        autoFixOnSave: {
+          default: false,
+          description:
+            "Specifies whether apme should auto-fix deterministic violations when you save a file.",
+        },
+        timeout: {
+          default: 120,
+          description:
+            "Maximum time in seconds to allow apme to run before aborting. 0 means no timeout.",
+        },
+      },
+      diagnosticPrecedence: {
+        default: "both",
+        description:
+          "When both apme and ansible-lint report diagnostics on the same line, which to keep. 'both' shows all, 'apme' keeps apme, 'lint' keeps ansible-lint.",
+      },
     },
   };
 
@@ -150,10 +180,24 @@ export class SettingsManager {
     }
     let result = this.documentSettings.get(uri);
     if (!result && this.connection) {
-      const clientSettings = await this.connection.workspace.getConfiguration({
-        scopeUri: uri,
-        section: "ansible",
-      });
+      let clientSettings;
+      try {
+        clientSettings = await Promise.race([
+          this.connection.workspace.getConfiguration({
+            scopeUri: uri,
+            section: "ansible",
+          }),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
+      } catch {
+        clientSettings = null;
+      }
+      if (!clientSettings) {
+        this.connection.console?.log(
+          "Client did not respond to configuration request, using defaults",
+        );
+        clientSettings = {};
+      }
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise

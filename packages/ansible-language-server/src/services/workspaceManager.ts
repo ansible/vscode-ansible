@@ -7,6 +7,8 @@ import {
   WorkspaceFoldersChangeEvent,
 } from "vscode-languageserver";
 import { AnsibleConfig } from "@src/services/ansibleConfig.js";
+import { AnsibleApme } from "@src/services/ansibleApme.js";
+import { ApmeDaemonManager } from "@src/services/apmeDaemonManager.js";
 import { AnsibleLint } from "@src/services/ansibleLint.js";
 import { AnsiblePlaybook } from "@src/services/ansiblePlaybook.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
@@ -65,6 +67,24 @@ export class WorkspaceManager {
         callbackfn(folder),
       ),
     );
+  }
+
+  /**
+   * Iterates over all registered workspace folders, creating a context for each
+   * if one does not already exist, then invokes the callback.
+   */
+  public async forEachWorkspaceFolder(
+    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
+  ): Promise<void> {
+    const contexts = this.sortedWorkspaceFolders.map((folder) => {
+      let context = this.folderContexts.get(folder.uri);
+      if (!context) {
+        context = new WorkspaceFolderContext(this.connection, folder, this);
+        this.folderContexts.set(folder.uri, context);
+      }
+      return context;
+    });
+    await Promise.all(contexts.map((ctx) => callbackfn(ctx)));
   }
 
   /**
@@ -139,6 +159,8 @@ export class WorkspaceFolderContext {
   private _docsLibrary: Thenable<DocsLibrary> | undefined;
   private _ansibleConfig: Thenable<AnsibleConfig> | undefined;
   private _ansibleInventory: Thenable<AnsibleInventory> | undefined;
+  private _ansibleApme: AnsibleApme | undefined;
+  private _apmeDaemonManager: ApmeDaemonManager | undefined;
   private _ansibleLint: AnsibleLint | undefined;
   private _ansiblePlaybook: AnsiblePlaybook | undefined;
   private _configChangeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -228,6 +250,24 @@ export class WorkspaceFolderContext {
     this._ansibleConfig = undefined;
     this._docsLibrary = undefined;
     this._ansibleInventory = undefined;
+    this._ansibleApme = undefined;
+    this._apmeDaemonManager = undefined;
+    this._ansibleLint = undefined;
+    this._ansiblePlaybook = undefined;
+  }
+
+  public get ansibleApme(): AnsibleApme {
+    if (!this._ansibleApme) {
+      this._ansibleApme = new AnsibleApme(this.connection, this);
+    }
+    return this._ansibleApme;
+  }
+
+  public get apmeDaemonManager(): ApmeDaemonManager {
+    if (!this._apmeDaemonManager) {
+      this._apmeDaemonManager = new ApmeDaemonManager(this.connection, this);
+    }
+    return this._apmeDaemonManager;
   }
 
   public get ansibleLint(): AnsibleLint {

@@ -30,6 +30,16 @@
   "contributes": {
     "commands": [
       {
+        "category": "Ansible",
+        "command": "ansible.apme.migrate",
+        "title": "Migrate with apme"
+      },
+      {
+        "category": "Ansible",
+        "command": "ansible.apme.restartDaemon",
+        "title": "Restart apme Daemon"
+      },
+      {
         "command": "extension.resync-ansible-inventory",
         "title": "Resync Ansible Inventory"
       },
@@ -341,6 +351,46 @@
             "markdownDescription": "Path to the ansible-lint executable.",
             "order": 2,
             "scope": "machine-overridable",
+            "type": "string"
+          },
+          "ansible.validation.apme.enabled": {
+            "default": false,
+            "markdownDescription": "Enables `apme` static analysis. Runs alongside ansible-lint when both are enabled.",
+            "order": 5,
+            "scope": "resource",
+            "type": "boolean"
+          },
+          "ansible.validation.apme.path": {
+            "default": "apme",
+            "markdownDescription": "Path to the apme executable.",
+            "order": 6,
+            "scope": "machine-overridable",
+            "type": "string"
+          },
+          "ansible.validation.apme.arguments": {
+            "default": "",
+            "markdownDescription": "Command line arguments to be passed to apme.",
+            "order": 7,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.validation.apme.autoFixOnSave": {
+            "default": false,
+            "markdownDescription": "Specifies whether apme should auto-fix deterministic (Tier 1) violations when you save a file.",
+            "order": 8,
+            "scope": "resource",
+            "type": "boolean"
+          },
+          "ansible.validation.diagnosticPrecedence": {
+            "default": "both",
+            "enum": [
+              "both",
+              "apme",
+              "lint"
+            ],
+            "markdownDescription": "When both apme and ansible-lint report diagnostics on the same line, which tool's diagnostic to keep. `both` shows all diagnostics, `apme` prefers apme, `lint` prefers ansible-lint.",
+            "order": 9,
+            "scope": "resource",
             "type": "string"
           }
         },
@@ -745,6 +795,11 @@
           "command": "extension.buildExecutionEnvironment",
           "group": "navigation",
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'"
+        },
+        {
+          "command": "ansible.apme.migrate",
+          "group": "2_main@2",
+          "when": "explorerResourceIsFolder && config.ansible.validation.apme.enabled"
         }
       ],
       "view/title": []
