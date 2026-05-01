@@ -25,7 +25,6 @@
 !packages/ansible-language-server/dist/cli.cjs
 !packages/ansible-mcp-server/dist/**/*
 !packages/ansible-mcp-server/package.json
-!packages/ansible-mcp-server/src/resources/data/**/*
 !package.json
 !package.nls.json
 !syntaxes/**/*
