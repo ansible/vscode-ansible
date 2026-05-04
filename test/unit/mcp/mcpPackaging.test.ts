@@ -3,6 +3,14 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 const projectRoot = path.resolve(__dirname, "..", "..", "..");
+const mcpPackageDir = path.join(projectRoot, "packages", "ansible-mcp-server");
+
+const resourceDataFiles = [
+  "agents.md",
+  "ee-rules.md",
+  "execution-environment-schema.json",
+  "execution-environment-sample.yml",
+];
 
 describe("MCP server packaging", function () {
   describe(".vscodeignore includes MCP server files", function () {
@@ -20,19 +28,9 @@ describe("MCP server packaging", function () {
         "!packages/ansible-mcp-server/package.json",
       );
     });
-
-    it("should whitelist MCP server dist files which include resource data", function () {
-      expect(vscodeignore).toContain("!packages/ansible-mcp-server/dist/**/*");
-    });
   });
 
   describe("MCP server package structure", function () {
-    const mcpPackageDir = path.join(
-      projectRoot,
-      "packages",
-      "ansible-mcp-server",
-    );
-
     it("should have package.json with correct main entry", function () {
       const pkg = JSON.parse(
         fs.readFileSync(path.join(mcpPackageDir, "package.json"), "utf8"),
@@ -50,6 +48,48 @@ describe("MCP server packaging", function () {
         return;
       }
       expect(fs.statSync(cliPath).isFile()).toBe(true);
+    });
+  });
+
+  describe("resource data files are present in build output", function () {
+    const distDataDir = path.join(mcpPackageDir, "dist", "data");
+    const sourceDataDir = path.join(mcpPackageDir, "src", "resources", "data");
+
+    it("should have source resource data files", function () {
+      for (const file of resourceDataFiles) {
+        expect(
+          fs.existsSync(path.join(sourceDataDir, file)),
+          `source file missing: src/resources/data/${file}`,
+        ).toBe(true);
+      }
+    });
+
+    it("should have resource data files copied to dist/data/ after build", function () {
+      if (!fs.existsSync(path.join(mcpPackageDir, "dist", "cli.js"))) {
+        console.warn(
+          "MCP server not built yet (dist/cli.js missing) - run 'pnpm build' first",
+        );
+        return;
+      }
+      for (const file of resourceDataFiles) {
+        expect(
+          fs.existsSync(path.join(distDataDir, file)),
+          `dist/data/${file} missing — tsup onSuccess copy may have failed`,
+        ).toBe(true);
+      }
+    });
+
+    it("should have non-empty resource data files in dist/data/", function () {
+      if (!fs.existsSync(distDataDir)) {
+        console.warn("dist/data/ not found - run 'pnpm build' first");
+        return;
+      }
+      for (const file of resourceDataFiles) {
+        const filePath = path.join(distDataDir, file);
+        if (!fs.existsSync(filePath)) continue;
+        const stat = fs.statSync(filePath);
+        expect(stat.size, `dist/data/${file} is empty`).toBeGreaterThan(0);
+      }
     });
   });
 });
