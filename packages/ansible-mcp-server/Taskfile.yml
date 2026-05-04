@@ -91,7 +91,7 @@ tasks:
     deps:
       - package
     cmds:
-      - docker build -f Containerfile -t ghcr.io/ansible/ansible-mcp-server:local .
+      - docker build -f Containerfile -t ghcr.io/ansible/devtools-mcp-server:local .
   clean:
     desc: Clean build artifacts
     dir: "{{ .TASKFILE_DIR }}"

@@ -605,7 +605,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ghcr.io/ansible/ansible-mcp-server
+          images: ghcr.io/ansible/devtools-mcp-server
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -618,13 +618,13 @@ jobs:
           context: packages/ansible-mcp-server
           file: packages/ansible-mcp-server/Containerfile
           load: true
-          tags: ghcr.io/ansible/ansible-mcp-server:smoke
+          tags: ghcr.io/ansible/devtools-mcp-server:smoke
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Smoke test MCP server container
         run: |
           INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.1"}}}'
-          RESPONSE=$(echo "$INIT" | timeout 10 docker run --rm -i ghcr.io/ansible/ansible-mcp-server:smoke --stdio)
+          RESPONSE=$(echo "$INIT" | timeout 10 docker run --rm -i ghcr.io/ansible/devtools-mcp-server:smoke --stdio || true)
           echo "$RESPONSE"
           echo "$RESPONSE" | grep -q '"ansible-mcp-server"' || { echo "Smoke test failed: server did not respond with expected name"; exit 1; }
           echo "Smoke test passed"
@@ -634,7 +634,7 @@ jobs:
         run: |
           while IFS= read -r tag; do
             [ -z "$tag" ] && continue
-            docker tag ghcr.io/ansible/ansible-mcp-server:smoke "$tag"
+            docker tag ghcr.io/ansible/devtools-mcp-server:smoke "$tag"
             docker push "$tag"
           done <<< "${{ steps.meta.outputs.tags }}"
 
