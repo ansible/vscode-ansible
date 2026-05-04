@@ -1,5 +1,5 @@
 {
-  "bin": "dist/cli.js",
+  "bin": "dist/cli.cjs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "ajv": "^8.18.0",
