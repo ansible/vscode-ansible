@@ -570,12 +570,81 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
 
+  mcp-server-image:
+    runs-on: ubuntu-24.04
+    needs: [preflight, lint]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: false
+
+      - name: Download MCP server package
+        uses: actions/download-artifact@v8
+        with:
+          pattern: ansible-ansible-mcp-server-*.tgz
+          merge-multiple: true
+
+      - name: Extract MCP server build artifacts
+        run: |
+          ls -la ansible-ansible-mcp-server-*.tgz
+          tar xzf ansible-ansible-mcp-server-*.tgz -C packages/ansible-mcp-server --strip-components=1
+          ls -la packages/ansible-mcp-server/dist/
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract container metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/ansible/ansible-mcp-server
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build MCP server container
+        uses: docker/build-push-action@v6
+        with:
+          context: packages/ansible-mcp-server
+          file: packages/ansible-mcp-server/Containerfile
+          load: true
+          tags: ghcr.io/ansible/ansible-mcp-server:smoke
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke test MCP server container
+        run: |
+          INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.1"}}}'
+          RESPONSE=$(echo "$INIT" | timeout 10 docker run --rm -i ghcr.io/ansible/ansible-mcp-server:smoke --stdio)
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"ansible-mcp-server"' || { echo "Smoke test failed: server did not respond with expected name"; exit 1; }
+          echo "Smoke test passed"
+
+      - name: Tag and push MCP server container
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') }}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            docker tag ghcr.io/ansible/ansible-mcp-server:smoke "$tag"
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
+
   check: # This job does nothing and is only used for the branch protection
     needs:
       - lint
       - preflight
       - build
       - builder-image
+      - mcp-server-image
     if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
 
     permissions:
@@ -643,7 +712,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: builder-image
+          allowed-skips: builder-image, mcp-server-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
