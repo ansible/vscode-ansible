@@ -80,14 +80,14 @@ const config: KnipConfig = {
         entry: ["test/**/*.ts!"],
       },
       project: [
-        "{src,webviews}/**/*.{mjs,js,json,ts,tsx,vue}",
+        "{src,webviews}/**/*.{mjs,js,ts,tsx,vue}",
         "test/**/*.ts!",
       ],
     },
     "packages/ansible-language-server": {
       entry: ["test/**/*.ts"],
       project: [
-        "!src/**/*.{mjs,js,json,ts,tsx}!",
+        "!src/**/*.{mjs,js,ts,tsx}!",
         "!test/**/*.ts!",
         "test/*.ts!",
       ],
@@ -98,8 +98,8 @@ const config: KnipConfig = {
       // unresolvable @src/* aliases — all src files are suppressed via ignoreIssues.
       entry: ["test/**/*.ts"],
       project: [
-        "{src,tools}/**/*.{mjs,js,json,ts,tsx}!",
-        "test/**/*.{mjs,js,json,ts,tsx}!",
+        "{src,tools}/**/*.{mjs,js,ts,tsx}!",
+        "test/**/*.{mjs,js,ts,tsx}!",
       ],
     },
   },
