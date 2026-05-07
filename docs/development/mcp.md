@@ -418,9 +418,11 @@ npm exec -- ansible-mcp-server --stdio
 }
 ```
 
-#### Testing with Cursor / Claude Desktop
+#### Testing with MCP Clients
 
-- Add MCP server config
+The server works with any MCP-compatible client, including Cursor, Claude Desktop, Claude Code, IBM Bob, and Gemini CLI.
+
+- Add MCP server config (see [Getting Started](../mcp/README.md#starting-the-server))
 - Restart client
 - Trigger tools via chat
 - Validate formatting, errors, and output correctness

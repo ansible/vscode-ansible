@@ -64,10 +64,56 @@ Add the following configuration to your Claude Desktop settings:
 {
   "mcpServers": {
     "ansible": {
-      "command": "node",
-      "args": [
-        "ansible-mcp-server"
-      ],
+      "command": "npx",
+      "args": ["-y", "@ansible/ansible-mcp-server", "--stdio"],
+      "env": {
+        "WORKSPACE_ROOT": "/path/to/your/ansible/project"
+      }
+    }
+  }
+}
+```
+
+**For Claude Code:**
+
+```bash
+claude mcp add ansible -- npx -y @ansible/ansible-mcp-server --stdio
+```
+
+> **Note:** Set `WORKSPACE_ROOT` by passing `--env WORKSPACE_ROOT=/path/to/project` or it defaults to the current directory.
+
+**For IBM Bob IDE:**
+
+Add to `~/.bob/mcp_settings.json` (global) or `.bob/mcp.json` (project-level):
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "npx",
+      "args": ["-y", "@ansible/ansible-mcp-server", "--stdio"],
+      "env": {
+        "WORKSPACE_ROOT": "/path/to/your/ansible/project"
+      }
+    }
+  }
+}
+```
+
+**For IBM Bob Shell:**
+
+Same configuration format as IBM Bob IDE. Add to `~/.bob/mcp_settings.json` or `.bob/mcp.json`.
+
+**For Gemini CLI:**
+
+Add to `.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "npx",
+      "args": ["-y", "@ansible/ansible-mcp-server", "--stdio"],
       "env": {
         "WORKSPACE_ROOT": "/path/to/your/ansible/project"
       }
