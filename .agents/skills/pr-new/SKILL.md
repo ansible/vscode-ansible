@@ -58,7 +58,7 @@ Check whether your changes affect areas covered by existing docs. Update any tha
 
 Use the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -83,12 +83,14 @@ Common types for this project:
 Scopes reflect project areas: `jira`, `check`, `docs`, `ci`, `deps`, `config`.
 
 Examples:
+
 - `feat(jira): add bulk issue creation support`
 - `fix(check): handle missing platform constraints gracefully`
 - `docs: update release process guide`
 - `ci: add Python 3.14 to test matrix`
 
 Include ticket references in the commit footer:
+
 - `Fixes: #123` for GitHub issues
 - `Related: AAP-123` for JIRA tickets
 - Do not use URLs — use plain text references
