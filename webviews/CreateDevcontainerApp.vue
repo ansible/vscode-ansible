@@ -26,8 +26,6 @@ const projectUrl = ref("");
 const openDevcontainerButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
 const defaultDestinationPath = ref("");
-const requirementsMet = ref(true);
-const requirementFailures = ref([]);
 
 const isFormValid = createFormValidator({
   destinationPath: () => {
@@ -117,13 +115,6 @@ watch([destinationPath, isCreating], () => {
 });
 
 onMounted(() => {
-  vscodeApi.postMessage({ type: "request-requirements-status" });
-  window.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "requirements-status") {
-      requirementsMet.value = event.data.met;
-      requirementFailures.value = event.data.failures || [];
-    }
-  });
   setupMessageHandler({
     onHomeDirectory: (data) => {
       homeDir.value = data;
@@ -165,7 +156,6 @@ const descriptionHtml = `Devcontainers are json files used for building containe
     title="Create a devcontainer"
     subtitle="Build containerized development environments"
     :description="descriptionHtml"
-    :requirementsMet="requirementsMet"
   >
     <form id="devcontainer-form">
       <section class="component-container">

@@ -31,8 +31,6 @@ const createButtonDisabled = ref(true);
 const clearLogsButtonDisabled = ref(true);
 const defaultDestinationPath = ref("");
 const defaultProjectName = ref("");
-const requirementsMet = ref(true);
-const requirementFailures = ref([]);
 
 const isFormValid = computed(() => {
   const currentPath =
@@ -148,14 +146,6 @@ const onClear = () => {
 };
 
 onMounted(() => {
-  vscodeApi.postMessage({ type: "request-requirements-status" });
-  window.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "requirements-status") {
-      requirementsMet.value = event.data.met;
-      requirementFailures.value = event.data.failures || [];
-    }
-  });
-
   setupMessageHandler({
     onHomeDirectory: (data) => {
       console.log("onHomeDirectory called with:", data);
@@ -228,7 +218,6 @@ const descriptionHtml = `Devfiles are yaml files used for development environmen
     title="Create a devfile"
     subtitle="Leverage Red Hat Openshift Dev Spaces"
     :description="descriptionHtml"
-    :requirementsMet="requirementsMet"
   >
     <form id="devfile-form">
       <section class="component-container">
