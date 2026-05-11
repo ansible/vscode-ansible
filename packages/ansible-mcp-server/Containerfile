@@ -1,0 +1,14 @@
+FROM registry.access.redhat.com/ubi10/nodejs-24-minimal:latest
+
+LABEL org.opencontainers.image.source="https://github.com/ansible/vscode-ansible"
+LABEL org.opencontainers.image.description="Ansible MCP server for AI-assisted automation development"
+LABEL org.opencontainers.image.vendor="Red Hat"
+LABEL org.opencontainers.image.licenses="MIT"
+
+WORKDIR /app
+COPY dist/ dist/
+COPY package.json .
+
+USER 1001
+ENTRYPOINT ["node", "dist/cli.cjs"]
+CMD ["--stdio"]
