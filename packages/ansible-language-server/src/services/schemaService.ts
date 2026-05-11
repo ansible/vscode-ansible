@@ -14,8 +14,18 @@ const SCHEMA_MAPPINGS = [
     pattern: /[/\\]meta[/\\]runtime\.ya?ml$/i,
     url: "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta-runtime.json",
   },
-  // Add more official schemas here as needed:
-  // galaxy.yml, requirements.yml, execution-environment.yml, etc.
+  {
+    pattern: /[/\\]galaxy\.ya?ml$/i,
+    url: "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/galaxy.json",
+  },
+  {
+    pattern: /[/\\]requirements\.ya?ml$/i,
+    url: "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json",
+  },
+  {
+    pattern: /[/\\]execution-environment\.ya?ml$/i,
+    url: "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/execution-environment.json",
+  },
 ];
 
 /**
