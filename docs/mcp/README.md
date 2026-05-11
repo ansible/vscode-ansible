@@ -45,28 +45,33 @@ The server runs as a child process and communicates via stdio transport.
 ### Requirements
 
 - Python 3.11 or higher
-- Node.js 18 or higher
+- Node.js 24 or higher (for the npm package)
 - Ansible development tools (can be auto-installed)
 
-### Starting the Server
+### Client Configuration
 
-The MCP server is automatically started by MCP-compatible AI assistants when configured. No manual installation or server management is required.
+There are two ways to run the MCP server: the **npm package** (requires
+Node.js 24+) or the **container image** (requires Docker or Podman, no
+Node.js needed on the host).
 
-**For Cursor IDE:**
+#### Option A: npm Package (npx)
 
-The extension automatically starts the MCP server when accessed from Cursor's MCP integration.
+This is the simplest approach when Node.js 24+ is already installed.
 
-**For Claude Desktop:**
+##### Claude Desktop
 
-Add the following configuration to your Claude Desktop settings:
+Add to `claude_desktop_config.json` (macOS: `~/Library/Application
+Support/Claude/`, Linux: `~/.config/Claude/`):
 
 ```json
 {
   "mcpServers": {
     "ansible": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "ansible-mcp-server"
+        "-y",
+        "@ansible/ansible-mcp-server",
+        "--stdio"
       ],
       "env": {
         "WORKSPACE_ROOT": "/path/to/your/ansible/project"
@@ -75,6 +80,263 @@ Add the following configuration to your Claude Desktop settings:
   }
 }
 ```
+
+##### Claude Code
+
+```bash
+claude mcp add ansible -- npx -y @ansible/ansible-mcp-server --stdio
+```
+
+Set `WORKSPACE_ROOT` by passing `--env WORKSPACE_ROOT=/path/to/project`
+or it defaults to the current directory.
+
+##### IBM Bob IDE / Shell
+
+Add to `~/.bob/mcp_settings.json` (global) or `.bob/mcp.json`
+(project-level):
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "npx",
+      "args": ["-y", "@ansible/ansible-mcp-server", "--stdio"],
+      "env": {
+        "WORKSPACE_ROOT": "/path/to/your/ansible/project"
+      }
+    }
+  }
+}
+```
+
+##### Gemini CLI
+
+Add to `.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "npx",
+      "args": ["-y", "@ansible/ansible-mcp-server", "--stdio"],
+      "env": {
+        "WORKSPACE_ROOT": "/path/to/your/ansible/project"
+      }
+    }
+  }
+}
+```
+
+##### Cursor IDE
+
+When using the **Ansible VS Code extension**, the MCP server starts
+automatically—no manual configuration is required. Enable it in
+settings:
+
+```json
+{
+  "ansible.mcpServer.enabled": true
+}
+```
+
+To use the MCP server **without** the extension (standalone), add a
+`.cursor/mcp.json` file to your project root:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@ansible/ansible-mcp-server",
+        "--stdio"
+      ],
+      "env": {
+        "WORKSPACE_ROOT": "."
+      }
+    }
+  }
+}
+```
+
+##### VS Code (Copilot Chat)
+
+Add an entry in your user or workspace `settings.json`:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "ansible": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@ansible/ansible-mcp-server",
+          "--stdio"
+        ],
+        "env": {
+          "WORKSPACE_ROOT": "${workspaceFolder}"
+        }
+      }
+    }
+  }
+}
+```
+
+#### Option B: Container Image
+
+A pre-built container image is published to `ghcr.io` on every release.
+This option requires **Docker** or **Podman** but does _not_ require
+Node.js on the host.
+
+```text
+ghcr.io/ansible/devtools-mcp-server:<tag>
+```
+
+Available tags: `latest`, semver (`1.2.3`, `1.2`), and Git SHA.
+
+##### Claude Desktop (container)
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/path/to/your/ansible/project:/workspace",
+        "-e", "WORKSPACE_ROOT=/workspace",
+        "ghcr.io/ansible/devtools-mcp-server:latest",
+        "--stdio"
+      ]
+    }
+  }
+}
+```
+
+Replace `docker` with `podman` if preferred. Add `:ro` to the
+volume mount if you only need read-only access.
+
+##### Claude Code (container)
+
+```bash
+claude mcp add ansible -- docker run --rm -i \
+  -v /path/to/your/ansible/project:/workspace \
+  -e WORKSPACE_ROOT=/workspace \
+  ghcr.io/ansible/devtools-mcp-server:latest --stdio
+```
+
+##### IBM Bob IDE / Shell (container)
+
+Add to `~/.bob/mcp_settings.json` or `.bob/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/path/to/your/ansible/project:/workspace",
+        "-e", "WORKSPACE_ROOT=/workspace",
+        "ghcr.io/ansible/devtools-mcp-server:latest",
+        "--stdio"
+      ]
+    }
+  }
+}
+```
+
+##### Gemini CLI (container)
+
+Add to `.gemini/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/path/to/your/ansible/project:/workspace",
+        "-e", "WORKSPACE_ROOT=/workspace",
+        "ghcr.io/ansible/devtools-mcp-server:latest",
+        "--stdio"
+      ]
+    }
+  }
+}
+```
+
+##### Cursor IDE (container)
+
+Add a `.cursor/mcp.json` file to your project root:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/path/to/your/ansible/project:/workspace",
+        "-e", "WORKSPACE_ROOT=/workspace",
+        "ghcr.io/ansible/devtools-mcp-server:latest",
+        "--stdio"
+      ]
+    }
+  }
+}
+```
+
+##### VS Code (Copilot Chat, container)
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "ansible": {
+        "command": "docker",
+        "args": [
+          "run", "--rm", "-i",
+          "-v", "${workspaceFolder}:/workspace",
+          "-e", "WORKSPACE_ROOT=/workspace",
+          "ghcr.io/ansible/devtools-mcp-server:latest",
+          "--stdio"
+        ]
+      }
+    }
+  }
+}
+```
+
+#### Environment Variables
+
+| Variable         | Description                                   | Default |
+| ---------------- | --------------------------------------------- | ------- |
+| `WORKSPACE_ROOT` | Path to the Ansible project directory          | `.`     |
+| `NODE_OPTIONS`   | Extra Node.js flags (npm package only)         | —       |
+
+#### Verifying the Server
+
+You can test that the server starts correctly by sending an MCP
+`initialize` request over stdio:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' \
+  | npx -y @ansible/ansible-mcp-server --stdio
+```
+
+Or with the container:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' \
+  | docker run --rm -i ghcr.io/ansible/devtools-mcp-server:latest --stdio
+```
+
+The response should contain `"serverInfo"` with `"name":
+"ansible-mcp-server"`.
 
 ## Architecture
 
