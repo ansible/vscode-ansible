@@ -1,2 +1,12 @@
 packages:
   - "packages/*"
+allowBuilds:
+  '@google/genai': true
+  '@vscode/vsce-sign': true
+  edgedriver: true
+  electron: true
+  esbuild: true
+  geckodriver: true
+  keytar: true
+  protobufjs: true
+  unrs-resolver: true
