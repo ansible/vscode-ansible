@@ -3,6 +3,7 @@
     "baseUrl": ".",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
     "lib": ["ES2020", "DOM"],
     "module": "commonjs",
     "noEmit": true,

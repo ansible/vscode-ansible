@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "outDir": "lib",
@@ -10,7 +11,8 @@
       "@test/*": ["./test/*"]
     },
     "resolveJsonModule": true,
-    "target": "ES2022"
+    "target": "ES2022",
+    "types": ["node"]
   },
   "exclude": ["node_modules", "out", "coverage"],
   "extends": "../../tsconfig.base.json",
