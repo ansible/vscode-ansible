@@ -37,7 +37,6 @@ export class SettingsManager {
           provider: "wca",
           apiEndpoint: "https://c.ai.ansible.redhat.com",
           modelName: undefined,
-          apiKey: "",
           maxTokens: undefined,
         };
 
@@ -67,7 +66,6 @@ export class SettingsManager {
         provider: llmSettings.provider,
         apiEndpoint: llmSettings.apiEndpoint,
         modelName: llmSettings.modelName,
-        apiKey: llmSettings.apiKey,
         maxTokens: llmSettings.maxTokens
           ? Number.parseInt(llmSettings.maxTokens, 10)
           : undefined,

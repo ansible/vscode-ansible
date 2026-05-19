@@ -31,7 +31,7 @@ export class LlmProviderSettings {
     const cfg = vscode.workspace.getConfiguration("ansible.lightspeed");
     const inspect = (key: string) => {
       const i = cfg.inspect<string>(key);
-      return i?.workspaceValue ?? i?.globalValue;
+      return i?.workspaceFolderValue ?? i?.workspaceValue ?? i?.globalValue;
     };
 
     // Import provider first — it determines where other fields are stored
@@ -67,6 +67,10 @@ export class LlmProviderSettings {
         }
       }
     }
+
+    // Scrub sensitive values from settings.json so they no longer persist
+    // in plain text after being migrated to the secret store.
+    await LlmProviderSettings.scrubLegacySecrets(cfg);
 
     await this.context.globalState.update(
       LlmProviderSettings.MIGRATION_KEY,
@@ -126,6 +130,41 @@ export class LlmProviderSettings {
     await this.context.globalState.update(stateKey, value?.trim() ?? "");
   }
 
+  /**
+   * Remove the apiKey from settings.json at both global and workspace scopes
+   * so it no longer persists in plain text on disk.
+   */
+  private static async scrubLegacySecrets(
+    cfg: vscode.WorkspaceConfiguration,
+  ): Promise<void> {
+    const info = cfg.inspect<string>("apiKey");
+    try {
+      if (info?.globalValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.Global,
+        );
+      }
+      if (info?.workspaceValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.Workspace,
+        );
+      }
+      if (info?.workspaceFolderValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.WorkspaceFolder,
+        );
+      }
+    } catch {
+      // Best-effort: workspace may be read-only or untrusted
+    }
+  }
+
   private getProviderInfo(providerType: string) {
     return providerFactory
       .getSupportedProviders()
@@ -174,21 +213,18 @@ export class LlmProviderSettings {
     provider: string;
     apiEndpoint: string;
     modelName: string | undefined;
-    apiKey: string;
     maxTokens?: string;
     connectionStatuses: Record<string, boolean>;
   }> {
     const currentProvider = this.getProvider();
     const apiEndpoint = await this.get(currentProvider, "apiEndpoint");
     const modelName = await this.get(currentProvider, "modelName");
-    const apiKey = await this.get(currentProvider, "apiKey");
     const maxTokens = await this.get(currentProvider, "maxTokens");
 
     return {
       provider: currentProvider,
       apiEndpoint,
       modelName: modelName || undefined,
-      apiKey,
       maxTokens: maxTokens || undefined,
       connectionStatuses: this.getAllConnectionStatuses(),
     };
