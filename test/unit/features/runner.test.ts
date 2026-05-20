@@ -77,7 +77,7 @@ describe("validatePlaybookPath (via integration)", () => {
       "/tmp/play(sub).yml",
       "/tmp/play<in.yml",
       "/tmp/play>out.yml",
-      "/tmp/play!hist.yml",
+      "/tmp/play!bad.yml",
     ];
 
     for (const p of dangerousPaths) {
