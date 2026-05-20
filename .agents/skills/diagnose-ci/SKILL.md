@@ -210,7 +210,7 @@ gh pr diff PR_NUMBER --repo OWNER/REPO
 ```
 
 Understand what the bot changed. This constrains what files should be
-touched by a fix — per Shatakshi's guidance: avoid modifying anything
+touched by a fix — best practice: avoid modifying anything
 beyond the files already touched by the bot unless absolutely necessary.
 
 Note in the diagnosis which files the bot changed.
@@ -258,6 +258,7 @@ gh pr view PR_NUMBER --repo OWNER/REPO \
 - The fix is one of these safe categories ONLY: lockfile regeneration, formatter/linter auto-fix, removing unused imports, or adding a type annotation on a single line
 
 **NEEDS HUMAN REVIEW** — ANY of these:
+
 1. Multiple major version bumps in one PR
 2. Any major version bump that requires source code changes (not just
    lockfile/config)
