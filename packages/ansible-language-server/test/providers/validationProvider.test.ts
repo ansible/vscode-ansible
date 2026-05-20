@@ -4,6 +4,7 @@ import { Diagnostic, Position, integer } from "vscode-languageserver";
 import {
   doValidate,
   getYamlValidation,
+  mergeDiagnostics,
 } from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import {
@@ -899,4 +900,125 @@ describe("doValidate()", function () {
       }
     });
   }
+});
+
+describe("mergeDiagnostics()", () => {
+  const fileUri = "file:///workspace/test.yml";
+
+  function makeDiag(
+    line: number,
+    source: string,
+    message: string,
+  ): Diagnostic {
+    return {
+      message,
+      range: {
+        start: { line, character: 0 } as Position,
+        end: { line, character: integer.MAX_VALUE } as Position,
+      },
+      severity: 1,
+      source,
+    };
+  }
+
+  it('should concatenate all diagnostics when precedence is "both"', () => {
+    const lint = new Map<string, Diagnostic[]>();
+    lint.set(fileUri, [makeDiag(5, "ansible-lint", "lint issue on line 5")]);
+
+    const apme = new Map<string, Diagnostic[]>();
+    apme.set(fileUri, [makeDiag(5, "Ansible [apme]", "apme issue on line 5")]);
+
+    const result = mergeDiagnostics(lint, apme, "both");
+    expect(result.get(fileUri)!.length).toBe(2);
+  });
+
+  it('should keep apme and drop lint on same line when precedence is "apme"', () => {
+    const lint = new Map<string, Diagnostic[]>();
+    lint.set(fileUri, [
+      makeDiag(5, "ansible-lint", "lint on 5"),
+      makeDiag(10, "ansible-lint", "lint on 10"),
+    ]);
+
+    const apme = new Map<string, Diagnostic[]>();
+    apme.set(fileUri, [makeDiag(5, "Ansible [apme]", "apme on 5")]);
+
+    const result = mergeDiagnostics(lint, apme, "apme");
+    const diags = result.get(fileUri)!;
+    expect(diags.length).toBe(2);
+    expect(diags.find((d) => d.source === "Ansible [apme]")).toBeDefined();
+    expect(
+      diags.find(
+        (d) => d.source === "ansible-lint" && d.range.start.line === 10,
+      ),
+    ).toBeDefined();
+    expect(
+      diags.find(
+        (d) => d.source === "ansible-lint" && d.range.start.line === 5,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('should keep lint and drop apme on same line when precedence is "lint"', () => {
+    const lint = new Map<string, Diagnostic[]>();
+    lint.set(fileUri, [makeDiag(5, "ansible-lint", "lint on 5")]);
+
+    const apme = new Map<string, Diagnostic[]>();
+    apme.set(fileUri, [
+      makeDiag(5, "Ansible [apme]", "apme on 5"),
+      makeDiag(20, "Ansible [apme]", "apme on 20"),
+    ]);
+
+    const result = mergeDiagnostics(lint, apme, "lint");
+    const diags = result.get(fileUri)!;
+    expect(diags.length).toBe(2);
+    expect(diags.find((d) => d.source === "ansible-lint")).toBeDefined();
+    expect(
+      diags.find(
+        (d) => d.source === "Ansible [apme]" && d.range.start.line === 20,
+      ),
+    ).toBeDefined();
+    expect(
+      diags.find(
+        (d) => d.source === "Ansible [apme]" && d.range.start.line === 5,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("should return all apme diagnostics when lint map is empty", () => {
+    const lint = new Map<string, Diagnostic[]>();
+    const apme = new Map<string, Diagnostic[]>();
+    apme.set(fileUri, [makeDiag(1, "Ansible [apme]", "apme only")]);
+
+    const result = mergeDiagnostics(lint, apme, "apme");
+    expect(result.get(fileUri)!.length).toBe(1);
+  });
+
+  it("should return all lint diagnostics when apme map is empty", () => {
+    const lint = new Map<string, Diagnostic[]>();
+    lint.set(fileUri, [makeDiag(1, "ansible-lint", "lint only")]);
+    const apme = new Map<string, Diagnostic[]>();
+
+    const result = mergeDiagnostics(lint, apme, "lint");
+    expect(result.get(fileUri)!.length).toBe(1);
+  });
+
+  it("should return empty map when both inputs are empty", () => {
+    const result = mergeDiagnostics(new Map(), new Map(), "both");
+    expect(result.size).toBe(0);
+  });
+
+  it("should merge diagnostics across different files", () => {
+    const fileA = "file:///workspace/a.yml";
+    const fileB = "file:///workspace/b.yml";
+
+    const lint = new Map<string, Diagnostic[]>();
+    lint.set(fileA, [makeDiag(1, "ansible-lint", "lint in a")]);
+
+    const apme = new Map<string, Diagnostic[]>();
+    apme.set(fileB, [makeDiag(2, "Ansible [apme]", "apme in b")]);
+
+    const result = mergeDiagnostics(lint, apme, "apme");
+    expect(result.get(fileA)!.length).toBe(1);
+    expect(result.get(fileB)!.length).toBe(1);
+  });
 });

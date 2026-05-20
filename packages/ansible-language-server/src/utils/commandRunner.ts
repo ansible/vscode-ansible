@@ -25,6 +25,7 @@ export class CommandRunner {
     args: string,
     workingDirectory?: string,
     mountPaths?: Set<string>,
+    timeout?: number,
   ): Promise<{
     stdout: string;
     stderr: string;
@@ -82,6 +83,7 @@ export class CommandRunner {
       cwd: currentWorkingDirectory,
       env: runEnv,
       maxBuffer: 10 * 1000 * 1000,
+      timeout: timeout,
     });
 
     return result;

@@ -15,6 +15,7 @@ interface ExtensionSettingsType {
     | ExtensionSettingsType
     | string
     | boolean
+    | number
     | string[]
     | IContainerEngine
     | IPullPolicy
@@ -38,6 +39,14 @@ export interface ExtensionSettings extends ExtensionSettingsType {
       arguments: string;
       autoFixOnSave: boolean;
     };
+    apme: {
+      enabled: boolean;
+      path: string;
+      arguments: string;
+      autoFixOnSave: boolean;
+      timeout: number;
+    };
+    diagnosticPrecedence: "both" | "apme" | "lint";
   };
   executionEnvironment: {
     enabled: boolean;
@@ -62,12 +71,13 @@ export interface IVolumeMounts {
 export interface SettingsEntry {
   [name: string]:
     | {
-        default: string | boolean;
+        default: string | boolean | number;
         description: string;
       }
     | SettingsEntry
     | string
     | boolean
+    | number
     | Array<IVolumeMounts>;
 }
 
@@ -165,5 +175,31 @@ interface ValidationSettingsWithDescription extends SettingsEntry {
       default: boolean;
       description: string;
     };
+  };
+  apme: {
+    enabled: {
+      default: boolean;
+      description: string;
+    };
+    path: {
+      default: string;
+      description: string;
+    };
+    arguments: {
+      default: string;
+      description: string;
+    };
+    autoFixOnSave: {
+      default: boolean;
+      description: string;
+    };
+    timeout: {
+      default: number;
+      description: string;
+    };
+  };
+  diagnosticPrecedence: {
+    default: string;
+    description: string;
   };
 }

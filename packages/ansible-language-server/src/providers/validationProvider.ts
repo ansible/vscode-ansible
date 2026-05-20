@@ -42,6 +42,9 @@ export async function doValidate(
     // full validation with ansible-lint or ansible syntax-check (if ansible-lint is not installed or disabled)
 
     const settings = await context.documentSettings.get(textDocument.uri);
+    connection?.console.log(
+      `[debug] doValidate: uri=${textDocument.uri} quick=${quick} validation.enabled=${settings.validation.enabled} lint.enabled=${settings.validation.lint.enabled} apme.enabled=${settings.validation.apme?.enabled} apme.path=${settings.validation.apme?.path}`,
+    );
     if (!settings.validation.enabled) {
       connection?.console.log("Validation disabled");
 
@@ -65,7 +68,15 @@ export async function doValidate(
 
       if (lintAvailability) {
         connection?.console.log("Validating using ansible-lint");
+        connection?.sendNotification("ansible/apme/scanStatus", {
+          scanning: true,
+          tool: "ansible-lint",
+        });
         diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
+        connection?.sendNotification("ansible/apme/scanStatus", {
+          scanning: false,
+          tool: "ansible-lint",
+        });
       } else {
         connection?.window.showErrorMessage(
           "Ansible-lint is not available. Kindly check the path or disable validation using ansible-lint",
@@ -84,6 +95,32 @@ export async function doValidate(
       } else {
         connection?.console.log("non-playbook file");
         diagnosticsByFile = new Map<string, Diagnostic[]>();
+      }
+    }
+
+    // validation using apme (runs alongside lint, not as fallback)
+    if (settings.validation.apme?.enabled) {
+      const commandRunner = new CommandRunner(connection, context, settings);
+      const apmeExecutable = settings.executionEnvironment.enabled
+        ? "apme"
+        : settings.validation.apme.path;
+      const apmeAvailability =
+        await commandRunner.getExecutablePath(apmeExecutable);
+
+      if (apmeAvailability) {
+        connection?.console.log("Validating using apme");
+        const apmeDiagnostics =
+          await context.ansibleApme.doValidate(textDocument);
+
+        diagnosticsByFile = mergeDiagnostics(
+          diagnosticsByFile,
+          apmeDiagnostics,
+          settings.validation.diagnosticPrecedence ?? "both",
+        );
+      } else {
+        connection?.console.log(
+          "apme is not available. Install apme or disable apme validation.",
+        );
       }
     }
 
@@ -193,4 +230,65 @@ async function getSchemaValidation(
     connection?.console.error(`Schema validation error: ${err}`);
     return [];
   }
+}
+
+export function mergeDiagnostics(
+  lintDiagnostics: Map<string, Diagnostic[]>,
+  apmeDiagnostics: Map<string, Diagnostic[]>,
+  precedence: "both" | "apme" | "lint",
+): Map<string, Diagnostic[]> {
+  if (precedence === "both") {
+    for (const [fileUri, apmeFileDiags] of apmeDiagnostics) {
+      const existing = lintDiagnostics.get(fileUri) ?? [];
+      existing.push(...apmeFileDiags);
+      lintDiagnostics.set(fileUri, existing);
+    }
+    return lintDiagnostics;
+  }
+
+  const merged = new Map<string, Diagnostic[]>();
+
+  const allFileUris = new Set([
+    ...lintDiagnostics.keys(),
+    ...apmeDiagnostics.keys(),
+  ]);
+
+  for (const fileUri of allFileUris) {
+    const lintFileDiags = lintDiagnostics.get(fileUri) ?? [];
+    const apmeFileDiags = apmeDiagnostics.get(fileUri) ?? [];
+
+    if (lintFileDiags.length === 0) {
+      merged.set(fileUri, apmeFileDiags);
+      continue;
+    }
+    if (apmeFileDiags.length === 0) {
+      merged.set(fileUri, lintFileDiags);
+      continue;
+    }
+
+    const apmeLines = new Set(apmeFileDiags.map((d) => d.range.start.line));
+    const lintLines = new Set(lintFileDiags.map((d) => d.range.start.line));
+
+    const result: Diagnostic[] = [];
+
+    if (precedence === "apme") {
+      result.push(...apmeFileDiags);
+      for (const d of lintFileDiags) {
+        if (!apmeLines.has(d.range.start.line)) {
+          result.push(d);
+        }
+      }
+    } else {
+      result.push(...lintFileDiags);
+      for (const d of apmeFileDiags) {
+        if (!lintLines.has(d.range.start.line)) {
+          result.push(d);
+        }
+      }
+    }
+
+    merged.set(fileUri, result);
+  }
+
+  return merged;
 }
