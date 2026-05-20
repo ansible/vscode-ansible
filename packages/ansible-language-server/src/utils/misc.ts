@@ -16,6 +16,19 @@ function isVenvDirectory(binDir: string): boolean {
 
 export const asyncExec = promisify(child_process.exec);
 
+// eslint-disable-next-line no-control-regex
+const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!]/;
+
+export function validatePlaybookPath(fsPath: string): string | undefined {
+  if (SHELL_METACHARACTERS.test(fsPath)) {
+    return `Playbook path contains potentially unsafe characters: ${fsPath}`;
+  }
+  if (!existsSync(fsPath)) {
+    return `Playbook file does not exist: ${fsPath}`;
+  }
+  return undefined;
+}
+
 export function toLspRange(
   range: [number, number],
   textDocument: TextDocument,
