@@ -84,6 +84,7 @@ progressspinner
 pycobertura
 pydoclint
 pyvenv
+regen
 relogin
 reshim
 rhcustom
