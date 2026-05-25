@@ -16,7 +16,7 @@ export class UnsafeContainerSettingError extends Error {
   }
 }
 
-export function assertNoShellMetacharacters(
+function assertNoShellMetacharacters(
   value: string,
   settingLabel: string,
 ): void {

@@ -1,34 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
   UnsafeContainerSettingError,
-  assertNoShellMetacharacters,
   formatVolumeMountSpec,
   parseContainerOptions,
   validateExecutionEnvironmentSettings,
 } from "@src/utils/containerCommandSafety.js";
 
 describe("containerCommandSafety", () => {
-  describe("assertNoShellMetacharacters", () => {
+  describe("parseContainerOptions", () => {
     it("allows safe container flags", () => {
-      expect(() =>
-        assertNoShellMetacharacters("--net=host", "test"),
-      ).not.toThrow();
+      expect(parseContainerOptions("--net=host")).toEqual(["--net=host"]);
     });
 
     it("rejects command injection via semicolon", () => {
-      expect(() =>
-        assertNoShellMetacharacters("; touch /tmp/pwned", "test"),
-      ).toThrow(UnsafeContainerSettingError);
-    });
-
-    it("rejects command substitution", () => {
-      expect(() => assertNoShellMetacharacters("$(id)", "test")).toThrow(
+      expect(() => parseContainerOptions("; touch /tmp/pwned")).toThrow(
         UnsafeContainerSettingError,
       );
     });
-  });
 
-  describe("parseContainerOptions", () => {
+    it("rejects command substitution", () => {
+      expect(() => parseContainerOptions("$(id)")).toThrow(
+        UnsafeContainerSettingError,
+      );
+    });
+
     it("parses multiple flags", () => {
       expect(parseContainerOptions("--net=host --user=1000")).toEqual([
         "--net=host",

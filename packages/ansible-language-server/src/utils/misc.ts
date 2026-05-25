@@ -44,7 +44,7 @@ function validateActivationScript(scriptPath: string): string | undefined {
   return undefined;
 }
 
-export type SpawnResult = { stdout: string; stderr: string };
+type SpawnResult = { stdout: string; stderr: string };
 
 export function spawnSyncWithResult(
   command: string,

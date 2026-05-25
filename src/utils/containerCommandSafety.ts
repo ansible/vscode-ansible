@@ -10,7 +10,7 @@ interface IVolumeMounts {
 /** Characters and sequences that enable shell command injection (CWE-78). */
 const UNSAFE_SHELL_PATTERN = /[;&|$`<>\\\n\r]|(?:\$\()|(?:\$\{)|(?:\$\))/;
 
-export class UnsafeContainerSettingError extends Error {
+class UnsafeContainerSettingError extends Error {
   constructor(settingLabel: string) {
     super(
       `Invalid ${settingLabel}: contains disallowed shell metacharacters. ` +
@@ -20,7 +20,7 @@ export class UnsafeContainerSettingError extends Error {
   }
 }
 
-export function assertNoShellMetacharacters(
+function assertNoShellMetacharacters(
   value: string,
   settingLabel: string,
 ): void {
@@ -29,7 +29,7 @@ export function assertNoShellMetacharacters(
   }
 }
 
-export function parseContainerOptions(options: string): string[] {
+function parseContainerOptions(options: string): string[] {
   const trimmed = options.trim();
   if (trimmed === "") {
     return [];
@@ -91,7 +91,7 @@ export function parseContainerOptions(options: string): string[] {
   return tokens;
 }
 
-export function formatVolumeMountSpec(mount: IVolumeMounts): string {
+function formatVolumeMountSpec(mount: IVolumeMounts): string {
   assertNoShellMetacharacters(
     mount.src,
     "ansible.executionEnvironment.volumeMounts src",
