@@ -4,6 +4,7 @@ import type { ProviderType } from "@src/definitions/lightspeed";
 import {
   PROVIDER_TYPES,
   TEST_LIGHTSPEED_SETTINGS,
+  TEST_API_KEYS,
   API_ENDPOINTS,
 } from "@test/unit/lightspeed/testConstants.js";
 
@@ -65,7 +66,11 @@ describe("LLMProviderFactory", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_FULL;
 
-        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
@@ -84,7 +89,11 @@ describe("LLMProviderFactory", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_CUSTOM_ENDPOINT;
 
-        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
@@ -110,6 +119,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -123,6 +133,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -131,10 +142,7 @@ describe("LLMProviderFactory", () => {
 
       it("should throw error when API key is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
@@ -149,7 +157,11 @@ describe("LLMProviderFactory", () => {
         };
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(
+            PROVIDER_TYPES.RHCUSTOM,
+            config,
+            TEST_API_KEYS.RHCUSTOM,
+          );
         }).toThrow("Model name is required for Red Hat AI");
       });
 
@@ -161,19 +173,20 @@ describe("LLMProviderFactory", () => {
         };
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(
+            PROVIDER_TYPES.RHCUSTOM,
+            config,
+            TEST_API_KEYS.RHCUSTOM,
+          );
         }).toThrow("API endpoint is required for Red Hat AI");
       });
 
       it("should throw error when API key is only whitespace", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "   ",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config, "   ");
         }).toThrow("API Key is required for Red Hat AI");
       });
 
@@ -187,6 +200,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
       });
@@ -201,6 +215,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
       });
@@ -215,6 +230,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
         expect(provider.name).toBe("rhcustom");
@@ -229,6 +245,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -245,6 +262,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -261,6 +279,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -277,6 +296,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -293,6 +313,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -309,6 +330,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -447,6 +469,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.GOOGLE,
           config,
+          TEST_API_KEYS.GOOGLE,
         );
 
         expect(isValid).toBe(true);
@@ -487,6 +510,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(true);
@@ -494,10 +518,7 @@ describe("LLMProviderFactory", () => {
 
       it("should return false when required apiKey is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
@@ -517,6 +538,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(false);
@@ -532,6 +554,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(false);

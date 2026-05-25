@@ -256,12 +256,13 @@ describe("LlmProviderSettings", () => {
       const settings = await llmProviderSettings.getAllSettings();
 
       expect(settings.provider).toBe("google");
-      expect(settings.apiKey).toBe(TEST_API_KEYS.GOOGLE);
       expect(settings.apiEndpoint).toBe(
         "https://generativelanguage.googleapis.com/v1beta",
       );
       expect(settings.modelName).toBe("gemini-2.5-flash");
       expect(settings.connectionStatuses.google).toBe(true);
+      // apiKey must NOT be returned by getAllSettings (kept in secret store only)
+      expect((settings as Record<string, unknown>).apiKey).toBeUndefined();
     });
   });
 

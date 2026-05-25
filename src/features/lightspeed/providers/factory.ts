@@ -29,28 +29,28 @@ export class LLMProviderFactory implements ProviderFactory {
   createProvider(
     type: ProviderType,
     config: LightSpeedServiceSettings,
+    apiKey?: string,
   ): LLMProvider {
     switch (type) {
       case "wca":
-        // WCA provider would be handled differently (using existing LightSpeedAPI)
         throw new Error(
           "WCA provider should be handled by existing LightSpeedAPI, not factory",
         );
 
       case "google": {
-        if (!config.apiKey) {
+        const normalizedApiKey = apiKey?.trim();
+        if (!normalizedApiKey) {
           throw new Error(
-            "API Key is required for Google Gemini. Please set 'ansible.lightspeed.apiKey' in your settings.",
+            "API Key is required for Google Gemini. Please configure it in the LLM Provider Settings panel.",
           );
         }
-        // Use custom endpoint if provided (allows v2, proxies, etc.)
         const customEndpoint =
           config.apiEndpoint && config.apiEndpoint !== GOOGLE_API_ENDPOINT
             ? config.apiEndpoint
             : undefined;
 
         return new GoogleProvider({
-          apiKey: config.apiKey,
+          apiKey: normalizedApiKey,
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
           baseUrl: customEndpoint,
@@ -58,7 +58,7 @@ export class LLMProviderFactory implements ProviderFactory {
       }
 
       case "rhcustom":
-        return this.createRHCustomProvider(config);
+        return this.createRHCustomProvider(config, apiKey);
 
       default:
         throw new Error(`Unsupported provider type: ${type}`);
@@ -79,10 +79,12 @@ export class LLMProviderFactory implements ProviderFactory {
 
   private createRHCustomProvider(
     config: LightSpeedServiceSettings,
+    apiKey?: string,
   ): RHCustomProvider {
-    if (!config.apiKey || config.apiKey.trim() === "") {
+    const normalizedApiKey = apiKey?.trim();
+    if (!normalizedApiKey) {
       throw new Error(
-        "API Key is required for Red Hat AI. Please set it in the provider settings.",
+        "API Key is required for Red Hat AI. Please configure it in the LLM Provider Settings panel.",
       );
     }
     if (!config.modelName || config.modelName.trim() === "") {
@@ -101,7 +103,7 @@ export class LLMProviderFactory implements ProviderFactory {
       baseURL = baseURL.slice(0, -1);
     }
     return new RHCustomProvider({
-      apiKey: config.apiKey,
+      apiKey: normalizedApiKey,
       modelName: config.modelName,
       baseURL,
       timeout: config.timeout || 30000,
@@ -221,6 +223,7 @@ export class LLMProviderFactory implements ProviderFactory {
   validateProviderConfig(
     type: ProviderType,
     config: LightSpeedServiceSettings,
+    apiKey?: string,
   ): boolean {
     const providerInfo = this.getSupportedProviders().find(
       (p) => p.type === type,
@@ -229,9 +232,13 @@ export class LLMProviderFactory implements ProviderFactory {
       return false;
     }
 
-    // Check required fields
     for (const field of providerInfo.configSchema) {
       if (field.required) {
+        // For password fields the value comes from the separate apiKey param
+        if (field.type === "password") {
+          if (!apiKey || apiKey.trim() === "") return false;
+          continue;
+        }
         const value = config[field.key as keyof LightSpeedServiceSettings];
         if (!value || (typeof value === "string" && value.trim() === "")) {
           return false;
@@ -239,9 +246,7 @@ export class LLMProviderFactory implements ProviderFactory {
       }
     }
 
-    // Special validation for WCA
     if (type === "wca") {
-      // WCA requires valid endpoint but no API key
       if (!config.apiEndpoint || config.apiEndpoint.trim() === "") {
         return false;
       }
