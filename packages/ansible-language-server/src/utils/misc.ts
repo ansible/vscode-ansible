@@ -1,5 +1,5 @@
 import * as child_process from "child_process";
-import { existsSync, promises as fs } from "node:fs";
+import { existsSync, statSync, promises as fs } from "node:fs";
 import { promisify } from "util";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
@@ -17,7 +17,7 @@ function isVenvDirectory(binDir: string): boolean {
 export const asyncExec = promisify(child_process.exec);
 
 // eslint-disable-next-line no-control-regex
-const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!]/;
+const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!']/;
 
 export function validatePlaybookPath(fsPath: string): string | undefined {
   if (SHELL_METACHARACTERS.test(fsPath)) {
@@ -29,6 +29,19 @@ export function validatePlaybookPath(fsPath: string): string | undefined {
   return undefined;
 }
 
+function validateActivationScript(scriptPath: string): string | undefined {
+  if (SHELL_METACHARACTERS.test(scriptPath)) {
+    return `Activation script path contains potentially unsafe characters: ${scriptPath}`;
+  }
+  try {
+    if (!statSync(scriptPath).isFile()) {
+      return `Activation script path is not a file: ${scriptPath}`;
+    }
+  } catch {
+    return `Activation script does not exist: ${scriptPath}`;
+  }
+  return undefined;
+}
 export function toLspRange(
   range: [number, number],
   textDocument: TextDocument,
@@ -77,8 +90,13 @@ export function withInterpreter(
   });
 
   if (activationScript) {
-    command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
-    return { command: command, env: process.env };
+    const validationError = validateActivationScript(activationScript);
+    if (!validationError) {
+      command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
+      return { command: command, env: process.env };
+    } else {
+      console.debug(validationError);
+    }
   }
 
   if (interpreterPath) {
