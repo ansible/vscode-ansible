@@ -15,16 +15,23 @@ import {
   CompletionResponseParams,
 } from "@src/interfaces/lightspeed";
 import { isError } from "@src/features/lightspeed/utils/errors";
+import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 
 export class ProviderManager {
   private readonly settingsManager: SettingsManager;
   private readonly wcaApi: LightSpeedAPI;
+  private readonly llmProviderSettings: LlmProviderSettings;
   private llmProvider: LLMProvider | null = null;
   private readonly providerStatus: Map<string, ProviderStatus> = new Map();
 
-  constructor(settingsManager: SettingsManager, wcaApi: LightSpeedAPI) {
+  constructor(
+    settingsManager: SettingsManager,
+    wcaApi: LightSpeedAPI,
+    llmProviderSettings: LlmProviderSettings,
+  ) {
     this.settingsManager = settingsManager;
     this.wcaApi = wcaApi;
+    this.llmProviderSettings = llmProviderSettings;
     this.initializeLlmProvider();
   }
 
@@ -41,9 +48,14 @@ export class ProviderManager {
     }
 
     try {
+      const apiKey = await this.llmProviderSettings.get(
+        lightspeedConfig.provider,
+        "apiKey",
+      );
       this.llmProvider = providerFactory.createProvider(
         lightspeedConfig.provider as ProviderType,
         lightspeedConfig,
+        apiKey || undefined,
       );
 
       // Validate the provider configuration
