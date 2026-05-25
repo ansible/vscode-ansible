@@ -19,28 +19,26 @@ export const asyncExec = promisify(child_process.exec);
 // eslint-disable-next-line no-control-regex
 const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!']/;
 
-export function validatePlaybookPath(fsPath: string): string | undefined {
-  if (SHELL_METACHARACTERS.test(fsPath)) {
-    return `Playbook path contains potentially unsafe characters: ${fsPath}`;
+function validateSafePath(filePath: string, label: string): string | undefined {
+  if (SHELL_METACHARACTERS.test(filePath)) {
+    return `${label} contains potentially unsafe characters: ${filePath}`;
   }
-  if (!existsSync(fsPath)) {
-    return `Playbook file does not exist: ${fsPath}`;
+  try {
+    if (!statSync(filePath).isFile()) {
+      return `${label} is not a file: ${filePath}`;
+    }
+  } catch {
+    return `${label} does not exist: ${filePath}`;
   }
   return undefined;
 }
 
+export function validatePlaybookPath(fsPath: string): string | undefined {
+  return validateSafePath(fsPath, "Playbook path");
+}
+
 function validateActivationScript(scriptPath: string): string | undefined {
-  if (SHELL_METACHARACTERS.test(scriptPath)) {
-    return `Activation script path contains potentially unsafe characters: ${scriptPath}`;
-  }
-  try {
-    if (!statSync(scriptPath).isFile()) {
-      return `Activation script path is not a file: ${scriptPath}`;
-    }
-  } catch {
-    return `Activation script does not exist: ${scriptPath}`;
-  }
-  return undefined;
+  return validateSafePath(scriptPath, "Activation script path");
 }
 export function toLspRange(
   range: [number, number],

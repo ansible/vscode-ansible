@@ -1,5 +1,5 @@
 import { expect, describe, it } from "vitest";
-import { withInterpreter } from "@src/utils/misc.js";
+import { withInterpreter, validatePlaybookPath } from "@src/utils/misc.js";
 import * as os from "os";
 import * as path from "path";
 import * as fs from "fs";
@@ -225,6 +225,43 @@ describe("withInterpreter", function () {
         fs.rmdirSync(tmpDir);
       }
     });
+  });
+});
+
+describe("validatePlaybookPath", function () {
+  it("should accept a valid file path", function () {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+    const filePath = path.join(tmpDir, "playbook.yml");
+    fs.writeFileSync(filePath, "---\n- hosts: all\n");
+
+    try {
+      expect(validatePlaybookPath(filePath)).toBeUndefined();
+    } finally {
+      fs.unlinkSync(filePath);
+      fs.rmdirSync(tmpDir);
+    }
+  });
+
+  it("should reject paths with shell metacharacters", function () {
+    expect(validatePlaybookPath("/tmp/play; rm -rf /")).toContain(
+      "unsafe characters",
+    );
+  });
+
+  it("should reject a directory path", function () {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+
+    try {
+      expect(validatePlaybookPath(tmpDir)).toContain("is not a file");
+    } finally {
+      fs.rmdirSync(tmpDir);
+    }
+  });
+
+  it("should reject a nonexistent path", function () {
+    expect(validatePlaybookPath("/nonexistent/playbook.yml")).toContain(
+      "does not exist",
+    );
   });
 });
 
