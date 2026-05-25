@@ -7,7 +7,14 @@ import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
 import { AnsibleConfig } from "@src/services/ansibleConfig.js";
 import { ImagePuller } from "@src/utils/imagePuller.js";
-import { asyncExec } from "@src/utils/misc.js";
+import {
+  formatVolumeMountSpec,
+  parseContainerOptions,
+  splitCommandString,
+  UnsafeContainerSettingError,
+  validateExecutionEnvironmentSettings,
+} from "@src/utils/containerCommandSafety.js";
+import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type {
   ExtensionSettings,
@@ -68,6 +75,11 @@ export class ExecutionEnvironment {
         return;
       }
 
+      validateExecutionEnvironmentSettings(
+        this.settings.executionEnvironment.containerOptions,
+        this._container_volume_mounts || [],
+      );
+
       /* v8 ignore next 3 */
       this.updateContainerVolumeMountFromSettings();
       this.settingsContainerOptions =
@@ -81,7 +93,9 @@ export class ExecutionEnvironment {
       }
     } catch (error) {
       /* v8 ignore next 3 */
-      if (error instanceof Error) {
+      if (error instanceof UnsafeContainerSettingError) {
+        this.connection.window.showErrorMessage(error.message);
+      } else if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
         /* v8 ignore next 3 */
@@ -98,24 +112,32 @@ export class ExecutionEnvironment {
 
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
     /* v8 ignore next 6 */
-    if (!this.isServiceInitialized || !this._container_image) {
+    if (
+      !this.isServiceInitialized ||
+      !this._container_image ||
+      !this._container_engine
+    ) {
       this.connection.console.error(
         `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
       );
       return;
     }
+    const containerEngine = this._container_engine;
     const containerName = this._container_image.replace(/[^a-z0-9]/gi, "_");
     let progressTracker;
 
     try {
       /* v8 ignore next 11 */
-      const containerImageIdCommand = `${this._container_engine} images ${this._container_image} --format="{{.ID}}" | head -n 1`;
-      this.connection.console.log(containerImageIdCommand);
-      this._container_image_id = child_process
-        .execSync(containerImageIdCommand, {
-          encoding: "utf-8",
-        })
-        .trim();
+      const imageIdArgv = ["images", this._container_image, "--format={{.ID}}"];
+      this.connection.console.log(
+        `${containerEngine} ${imageIdArgv.join(" ")}`,
+      );
+      const imageIdResult = spawnSyncWithResult(containerEngine, imageIdArgv);
+      this._container_image_id =
+        imageIdResult.stdout
+          .split("\n")
+          .map((line) => line.trim())
+          .find((line) => line !== "") ?? "";
       const cacheBase =
         process.env.XDG_CACHE_HOME ||
         `${process.env.HOME || os.homedir()}/.cache`;
@@ -225,7 +247,7 @@ export class ExecutionEnvironment {
   public wrapContainerArgs(
     command: string,
     mountPaths?: Set<string>,
-  ): string | undefined {
+  ): string[] | undefined {
     /* v8 ignore next 10 */
     if (
       !this.isServiceInitialized ||
@@ -264,11 +286,11 @@ export class ExecutionEnvironment {
 
     // handle container volume mounts setting from client
     if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
-      this.settingsVolumeMounts.forEach((volumeMount) => {
-        if (containerCommand.includes(volumeMount)) {
+      this.settingsVolumeMounts.forEach((volumeMountSpec) => {
+        if (containerCommand.includes(volumeMountSpec)) {
           return;
         }
-        containerCommand.push("-v", volumeMount);
+        containerCommand.push("-v", volumeMountSpec);
       });
     }
 
@@ -296,25 +318,23 @@ export class ExecutionEnvironment {
 
     // handle container options setting from client
     if (this.settingsContainerOptions && this.settingsContainerOptions !== "") {
-      const containerOptions = this.settingsContainerOptions.split(" ");
+      const containerOptions = parseContainerOptions(
+        this.settingsContainerOptions,
+      );
       containerOptions.forEach((containerOption) => {
-        if (
-          containerOption === "" ||
-          containerCommand.includes(containerOption)
-        ) {
+        if (containerCommand.includes(containerOption)) {
           return;
         }
         containerCommand.push(containerOption);
       });
     }
-    containerCommand.push(`--name als_${uuidv4()}`);
+    containerCommand.push("--name", `als_${uuidv4()}`);
     containerCommand.push(this._container_image);
-    containerCommand.push(command);
-    const generatedCommand = containerCommand.join(" ");
+    containerCommand.push(...splitCommandString(command));
     this.connection.console.log(
-      `container engine invocation: ${generatedCommand}`,
+      `container engine invocation: ${containerCommand.join(" ")}`,
     );
-    return generatedCommand;
+    return containerCommand;
   }
 
   private async pullContainerImage(): Promise<boolean> {
@@ -489,19 +509,11 @@ export class ExecutionEnvironment {
   private updateContainerVolumeMountFromSettings(): void {
     /* v8 ignore next 16 */
     for (const volumeMounts of this._container_volume_mounts || []) {
-      const fsSrcPath = volumeMounts.src;
-      const fsDestPath = volumeMounts.dest;
-      const options = volumeMounts.options;
-
-      let mountPath = `${fsSrcPath}:${fsDestPath}`;
-      if (options && options !== "") {
-        mountPath += `:${options}`;
-      }
+      const mountPath = formatVolumeMountSpec(volumeMounts);
       if (this.settingsVolumeMounts.includes(mountPath)) {
         continue;
-      } else {
-        this.settingsVolumeMounts.push("-v", mountPath);
       }
+      this.settingsVolumeMounts.push(mountPath);
     }
   }
 
@@ -547,36 +559,44 @@ export class ExecutionEnvironment {
 
   private runContainer(containerName: string): boolean {
     /* v8 ignore next 38 */
+    if (!this._container_engine || !this._container_image) {
+      return false;
+    }
+    const containerEngine = this._container_engine;
+    const containerImage = this._container_image;
+
     // ensure container is not running
     this.cleanUpContainer(containerName);
 
     try {
       // Do not add '-t' option when running the containers as this causes stderr noise, such:
       // The input device is not a TTY. The --tty and--interactive flags might not work properly
-      let command = `${this._container_engine} run -i --rm -d `;
+      const runArgv: string[] = ["run", "-i", "--rm", "-d"];
       if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
-        command += this.settingsVolumeMounts.join(" ");
+        this.settingsVolumeMounts.forEach((volumeMountSpec) => {
+          runArgv.push("-v", volumeMountSpec);
+        });
       }
 
       // handle Ansible environment variables
       for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
         if (envVarKey.startsWith("ANSIBLE_")) {
-          command += ` -e ${envVarKey}=${envVarValue} `;
+          runArgv.push("-e", `${envVarKey}=${envVarValue}`);
         }
       }
-      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parsable (no ANSI)
+      runArgv.push("-e", "ANSIBLE_FORCE_COLOR=0"); // ensure output is parsable (no ANSI)
       if (
         this.settingsContainerOptions &&
         this.settingsContainerOptions !== ""
       ) {
-        command += ` ${this.settingsContainerOptions} `;
+        runArgv.push(...parseContainerOptions(this.settingsContainerOptions));
       }
-      command += ` --name ${containerName} ${this._container_image} bash`;
+      runArgv.push("--name", containerName, containerImage, "bash");
 
-      this.connection.console.log(`run container with command '${command}'`);
-      child_process.execSync(command, {
-        encoding: "utf-8",
-      });
+      this.connection.console.log(
+        `run container with command '${containerEngine} ${runArgv.join(" ")}'`,
+      );
+      spawnSyncWithResult(containerEngine, runArgv);
     } catch (error) {
       this.connection.window.showErrorMessage(
         `Failed to initialize execution environment '${this._container_image}': ${error}`,
@@ -594,6 +614,10 @@ export class ExecutionEnvironment {
   ): Promise<string[]> {
     /* v8 ignore next 33 */
     const updatedHostDocPath: string[] = [];
+    const containerEngine = this._container_engine;
+    if (!containerEngine) {
+      return updatedHostDocPath;
+    }
 
     for (const srcPath of containerPluginPaths) {
       const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
@@ -611,13 +635,11 @@ export class ExecutionEnvironment {
           .slice(0, -1)
           .join(path.sep);
         fs.mkdirSync(destPath, { recursive: true });
-        const copyCommand = `${this._container_engine} cp ${containerName}:${srcPath} ${destPathFolder}`;
+        const copyArgv = ["cp", `${containerName}:${srcPath}`, destPathFolder];
         this.connection.console.log(
-          `Copying plugins from container to local cache path ${copyCommand}`,
+          `Copying plugins from container to local cache path ${containerEngine} ${copyArgv.join(" ")}`,
         );
-        await asyncExec(copyCommand, {
-          encoding: "utf-8",
-        });
+        await asyncSpawn(containerEngine, copyArgv);
 
         updatedHostDocPath.push(destPath);
       }
