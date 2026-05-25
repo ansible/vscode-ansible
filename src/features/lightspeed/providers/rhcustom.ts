@@ -52,7 +52,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     // Validate required fields
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
-        "API Key is required for Red Hat AI provider. Please set 'ansible.lightspeed.apiKey' in your settings.",
+        "API Key is required for Red Hat AI provider. Please configure it in the LLM Provider Settings panel.",
       );
     }
     if (!config.modelName || config.modelName.trim() === "") {
@@ -238,7 +238,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       this.logger.error(`[RHCustom Provider] ${formattedError.message}`);
       this.logger.error(
-        `[RHCustom Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
+        `[RHCustom Provider] Validation error details: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       return false;
     }
@@ -311,7 +311,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[RHCustom Provider] Chat request failed: ${error}`);
+      this.logger.error(
+        `[RHCustom Provider] Chat request failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleRHCustomError(error, "chat generation");
     }
   }
@@ -416,7 +418,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       };
     } catch (error) {
       this.logger.error(
-        `[RHCustom Provider] Playbook generation failed: ${error}`,
+        `[RHCustom Provider] Playbook generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       throw this.handleRHCustomError(error, "playbook generation");
     }
@@ -549,7 +551,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[RHCustom Provider] Role generation failed: ${error}`);
+      this.logger.error(
+        `[RHCustom Provider] Role generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleRHCustomError(error, "role generation");
     }
   }

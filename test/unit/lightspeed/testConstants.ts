@@ -126,7 +126,7 @@ export const TEST_CONFIGS = {
 // Base LightSpeedServiceSettings with all required common properties
 const BASE_LIGHTSPEED_SETTINGS: Omit<
   LightSpeedServiceSettings,
-  "provider" | "apiKey" | "apiEndpoint"
+  "provider" | "apiEndpoint"
 > = {
   enabled: true,
   modelName: undefined,
@@ -139,13 +139,11 @@ export const TEST_LIGHTSPEED_SETTINGS = {
   GOOGLE_MINIMAL: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.GOOGLE,
-    apiKey: TEST_API_KEYS.GOOGLE,
     apiEndpoint: "",
   } as LightSpeedServiceSettings,
   GOOGLE_FULL: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.GOOGLE,
-    apiKey: TEST_API_KEYS.GOOGLE,
     modelName: MODEL_NAMES.GEMINI_PRO,
     timeout: 45000,
     apiEndpoint: "",
@@ -153,39 +151,33 @@ export const TEST_LIGHTSPEED_SETTINGS = {
   GOOGLE_WITH_EMPTY_API_KEY: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.GOOGLE,
-    apiKey: "",
     apiEndpoint: "",
   } as LightSpeedServiceSettings,
   GOOGLE_WITH_CUSTOM_ENDPOINT: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.GOOGLE,
-    apiKey: TEST_API_KEYS.GOOGLE,
     modelName: MODEL_NAMES.GEMINI_PRO,
     apiEndpoint: "https://custom-gemini-proxy.example.com/v1beta",
   } as LightSpeedServiceSettings,
   WCA: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.WCA,
-    apiKey: "",
     apiEndpoint: API_ENDPOINTS.WCA_DEFAULT,
   } as LightSpeedServiceSettings,
   UNSUPPORTED: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: "unsupported" as string,
-    apiKey: "",
     apiEndpoint: "",
   } as LightSpeedServiceSettings,
   RHCUSTOM_MINIMAL: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.RHCUSTOM,
-    apiKey: TEST_API_KEYS.RHCUSTOM,
     modelName: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
     apiEndpoint: API_ENDPOINTS.RHCUSTOM,
   } as LightSpeedServiceSettings,
   RHCUSTOM_FULL: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.RHCUSTOM,
-    apiKey: TEST_API_KEYS.RHCUSTOM,
     modelName: MODEL_NAMES.RHCUSTOM_GRANITE,
     apiEndpoint: API_ENDPOINTS.RHCUSTOM,
     timeout: DEFAULT_TIMEOUTS.CUSTOM,

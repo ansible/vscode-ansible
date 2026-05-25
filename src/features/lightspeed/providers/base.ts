@@ -195,6 +195,38 @@ export abstract class BaseLLMProvider<
   }
 
   /**
+   * Strip secrets (API keys, bearer tokens, authorization headers) from an
+   * error before it is written to a log channel.  Returns a safe string.
+   */
+  protected static sanitizeErrorForLogging(error: unknown): string {
+    const redact = (text: string): string =>
+      text
+        .replaceAll(
+          /(Authorization["']?\s*[:=]\s*["']?Bearer\s+)[^"'\s,}]+/gi,
+          "$1[REDACTED]",
+        )
+        .replaceAll(/(apiKey["']?\s*[:=]\s*["']?)[^"'\s,}]+/gi, "$1[REDACTED]")
+        .replaceAll(
+          /key["']?\s*[:=]\s*["'][A-Za-z0-9_-]{20,}["']/gi,
+          "key: [REDACTED]",
+        )
+        .replaceAll(
+          /(x-goog-api-key["']?\s*[:=]\s*["']?)[^"'\s,}&]+/gi,
+          "$1[REDACTED]",
+        )
+        .replaceAll(/([?&]x-goog-api-key=)[^&\s]+/gi, "$1[REDACTED]");
+
+    if (error instanceof Error) {
+      return redact(error.stack ?? error.message);
+    }
+    try {
+      return redact(JSON.stringify(error));
+    } catch {
+      return redact(String(error));
+    }
+  }
+
+  /**
    * Handle HTTP status code errors with comprehensive error messages
    * This method provides reusable error handling for common HTTP status codes
    */
