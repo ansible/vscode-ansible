@@ -117,7 +117,11 @@ function formatVolumeMountSpec(mount: IVolumeMounts): string {
 export function validateExecutionEnvironmentSettings(
   containerOptions: string,
   volumeMounts: Array<IVolumeMounts>,
+  image: string,
 ): void {
+  if (image.trim() !== "") {
+    assertNoShellMetacharacters(image, "ansible.executionEnvironment.image");
+  }
   if (containerOptions.trim() !== "") {
     parseContainerOptions(containerOptions);
   }

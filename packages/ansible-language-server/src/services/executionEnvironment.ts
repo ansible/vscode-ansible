@@ -12,6 +12,7 @@ import {
   parseContainerOptions,
   splitCommandString,
   UnsafeContainerSettingError,
+  validateContainerEngineSetting,
   validateExecutionEnvironmentSettings,
 } from "@src/utils/containerCommandSafety.js";
 import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
@@ -78,6 +79,7 @@ export class ExecutionEnvironment {
       validateExecutionEnvironmentSettings(
         this.settings.executionEnvironment.containerOptions,
         this._container_volume_mounts || [],
+        this._container_image,
       );
 
       /* v8 ignore next 3 */
@@ -364,6 +366,15 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  private isExecutableAvailable(command: string): boolean {
+    const result = child_process.spawnSync("which", [command], {
+      encoding: "utf-8",
+      shell: false,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return result.status === 0;
+  }
+
   private setContainerEngine(): boolean {
     /* v8 ignore next 41 */
     if (!this._container_engine) {
@@ -375,11 +386,7 @@ export class ExecutionEnvironment {
 
     if (this._container_engine === "auto") {
       for (const ce of ["podman", "docker"]) {
-        try {
-          child_process.execSync(`command -v ${ce}`, {
-            encoding: "utf-8",
-          });
-        } catch {
+        if (!this.isExecutableAvailable(ce)) {
           this.connection.console.info(`Container engine '${ce}' not found`);
           continue;
         }
@@ -389,12 +396,16 @@ export class ExecutionEnvironment {
       }
     } else {
       try {
-        child_process.execSync(`command -v ${this._container_engine}`, {
-          encoding: "utf-8",
-        });
+        validateContainerEngineSetting(this._container_engine);
       } catch (error) {
+        if (error instanceof Error) {
+          this.connection.window.showErrorMessage(error.message);
+        }
+        return false;
+      }
+      if (!this.isExecutableAvailable(this._container_engine)) {
         this.connection.window.showErrorMessage(
-          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`,
+          `Container engine '${this._container_engine}' not found.`,
         );
         return false;
       }

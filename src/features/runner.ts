@@ -81,6 +81,7 @@ export class AnsiblePlaybookRunProvider {
       validateExecutionEnvironmentSettings(
         eeSettings.containerOptions,
         eeSettings.volumeMounts,
+        eeSettings.image,
       );
     } catch (error) {
       const message =
@@ -95,16 +96,16 @@ export class AnsiblePlaybookRunProvider {
     commandLineArgs.push(
       `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
     );
-    commandLineArgs.push(`--eei ${eeSettings.image}`);
+    commandLineArgs.push(`--eei ${shellQuote(eeSettings.image)}`);
     if (eeSettings.containerOptions !== "") {
-      commandLineArgs.push(`--co ${eeSettings.containerOptions}`);
+      commandLineArgs.push(`--co ${shellQuote(eeSettings.containerOptions)}`);
     }
     eeSettings.volumeMounts.forEach((volumeMount) => {
       let mountPath = `${volumeMount.src}:${volumeMount.dest}`;
       if (volumeMount.options !== undefined) {
         mountPath += `:${volumeMount.options}`;
       }
-      commandLineArgs.push(`--eev ${mountPath}`);
+      commandLineArgs.push(`--eev ${shellQuote(mountPath)}`);
     });
     return true;
   }

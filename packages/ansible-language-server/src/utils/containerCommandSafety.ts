@@ -113,10 +113,31 @@ export function formatVolumeMountSpec(mount: IVolumeMounts): string {
   return spec;
 }
 
+function validateExecutionEnvironmentImage(image: string): void {
+  if (image.trim() === "") {
+    return;
+  }
+  assertNoShellMetacharacters(image, "ansible.executionEnvironment.image");
+}
+
+export function validateContainerEngineSetting(engine: string): void {
+  assertNoShellMetacharacters(
+    engine,
+    "ansible.executionEnvironment.containerEngine",
+  );
+  if (engine !== "auto" && engine !== "podman" && engine !== "docker") {
+    throw new UnsafeContainerSettingError(
+      "ansible.executionEnvironment.containerEngine",
+    );
+  }
+}
+
 export function validateExecutionEnvironmentSettings(
   containerOptions: string,
   volumeMounts: Array<IVolumeMounts>,
+  image: string,
 ): void {
+  validateExecutionEnvironmentImage(image);
   if (containerOptions.trim() !== "") {
     parseContainerOptions(containerOptions);
   }

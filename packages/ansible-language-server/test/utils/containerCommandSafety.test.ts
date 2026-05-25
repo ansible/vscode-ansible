@@ -74,12 +74,32 @@ describe("containerCommandSafety", () => {
     });
   });
 
+  describe("validateExecutionEnvironmentImage", () => {
+    it("allows a normal image reference", () => {
+      expect(() =>
+        validateExecutionEnvironmentSettings(
+          "",
+          [],
+          "ghcr.io/ansible/community-ansible-dev-tools:latest",
+        ),
+      ).not.toThrow();
+    });
+
+    it("rejects injection in image name", () => {
+      expect(() =>
+        validateExecutionEnvironmentSettings("", [], "image; touch /tmp/pwned"),
+      ).toThrow(UnsafeContainerSettingError);
+    });
+  });
+
   describe("validateExecutionEnvironmentSettings", () => {
     it("validates all settings together", () => {
       expect(() =>
-        validateExecutionEnvironmentSettings("", [
-          { src: "/a", dest: "/b", options: undefined },
-        ]),
+        validateExecutionEnvironmentSettings(
+          "",
+          [{ src: "/a", dest: "/b", options: undefined }],
+          "ghcr.io/example:latest",
+        ),
       ).not.toThrow();
     });
   });
