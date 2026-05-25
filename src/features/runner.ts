@@ -1,4 +1,5 @@
 /* "stdlib" */
+import { existsSync } from "fs";
 import * as vscode from "vscode";
 
 /* local */
@@ -8,6 +9,23 @@ import { registerCommandWithTelemetry } from "@src/utils/registerCommands";
 import { TelemetryManager } from "@src/utils/telemetryUtils";
 import { SettingsManager } from "@src/settings";
 import { TerminalService } from "@src/services/TerminalService";
+
+// eslint-disable-next-line no-control-regex
+export const SHELL_METACHARACTERS_PATTERN = /[\x00\n\r$`;&|(){}<>!]/;
+
+export function shellQuote(s: string): string {
+  return "'" + s.replace(/'/g, "'\\''") + "'";
+}
+
+function validatePlaybookPath(fsPath: string): string | undefined {
+  if (SHELL_METACHARACTERS_PATTERN.test(fsPath)) {
+    return `Playbook path contains potentially unsafe characters and cannot be executed: ${fsPath}`;
+  }
+  if (!existsSync(fsPath)) {
+    return `Playbook file does not exist: ${fsPath}`;
+  }
+  return undefined;
+}
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using
@@ -138,10 +156,14 @@ export class AnsiblePlaybookRunProvider {
       return;
     }
 
-    commandLineArgs.push(playbookArguments);
+    const validationError = validatePlaybookPath(playbookFsPath);
+    if (validationError) {
+      vscode.window.showErrorMessage(validationError);
+      return;
+    }
 
-    // replace spaces in file name with escape sequence '\ '
-    commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
+    commandLineArgs.push(playbookArguments);
+    commandLineArgs.push(shellQuote(playbookFsPath));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const command = `${runExecutable} ${cmdArgs}`;
 
@@ -165,7 +187,14 @@ export class AnsiblePlaybookRunProvider {
       );
       return;
     }
-    commandLineArgs.push(playbookFsPath);
+
+    const validationError = validatePlaybookPath(playbookFsPath);
+    if (validationError) {
+      vscode.window.showErrorMessage(validationError);
+      return;
+    }
+
+    commandLineArgs.push(shellQuote(playbookFsPath));
 
     this.addEEArgs(commandLineArgs);
 
