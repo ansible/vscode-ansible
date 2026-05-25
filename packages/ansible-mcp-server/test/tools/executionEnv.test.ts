@@ -301,6 +301,40 @@ options:
         ),
       ).rejects.toThrow();
     });
+
+    it("should reject destinationPath outside workspace (path traversal)", async () => {
+      const validYaml =
+        "---\nversion: 3\nimages:\n  base_image:\n    name: test";
+
+      await expect(
+        generateExecutionEnvironment(
+          {
+            baseImage: "test",
+            tag: "test-ee:latest",
+            destinationPath: "/tmp/evil-dir",
+          },
+          tempDir,
+          validYaml,
+        ),
+      ).rejects.toThrow("outside the workspace");
+    });
+
+    it("should reject relative traversal in destinationPath", async () => {
+      const validYaml =
+        "---\nversion: 3\nimages:\n  base_image:\n    name: test";
+
+      await expect(
+        generateExecutionEnvironment(
+          {
+            baseImage: "test",
+            tag: "test-ee:latest",
+            destinationPath: "../../../etc/cron.d",
+          },
+          tempDir,
+          validYaml,
+        ),
+      ).rejects.toThrow("outside the workspace");
+    });
   });
 
   describe("formatExecutionEnvResult", () => {

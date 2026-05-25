@@ -145,6 +145,7 @@ const config: KnipConfig = {
     "packages/ansible-mcp-server/src/server.ts": ["exports"],
     "packages/ansible-mcp-server/src/tools/adeTools.ts": ["types", "exports"],
     "packages/ansible-mcp-server/src/tools/executionEnv.ts": ["types"],
+    "packages/ansible-mcp-server/src/utils/pathValidation.ts": ["exports"],
   },
 };
 

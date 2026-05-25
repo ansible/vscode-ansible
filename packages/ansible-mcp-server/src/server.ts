@@ -380,7 +380,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         ],
       },
     },
-    createAnsibleLintHandler(),
+    createAnsibleLintHandler(workspaceRoot),
     [],
   );
 
