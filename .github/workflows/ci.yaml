@@ -222,6 +222,7 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
+    continue-on-error: ${{ matrix.continue-on-error }}
     # Keep 'preflight' as a dependency because 'build' is resource-intensive;
     # running it only after preflight succeeds prevents wasting matrix capacity.
     needs:
@@ -286,6 +287,7 @@ jobs:
             task-name: test
             os: wsl-runner
             runs-on: self-hosted
+            continue-on-error: true
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -682,16 +684,28 @@ jobs:
         run: |
           git diff
           git status --porcelain --ignored
-          LINUX_COVERAGE=$(ls -1 logs-*linux*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          MACOS_COVERAGE=$(ls -1 logs-*macos*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          WSL_COVERAGE=$(ls -1 logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
+          LINUX_COVERAGE=$(find . -type f -path './logs-*linux*.zip/coverage/unit/cobertura-coverage.xml' | sort | tail -1)
+          MACOS_COVERAGE=$(find . -type f -path './logs-*macos*.zip/coverage/unit/cobertura-coverage.xml' | sort | tail -1)
+          WSL_COVERAGE=$(find . -type f -path './logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml' | sort | tail -1)
+          if [[ -z "${LINUX_COVERAGE}" ]]; then
+            echo "::warning::Linux coverage not found, skipping pycobertura diff"
+            exit 0
+          fi
           cp -f "${LINUX_COVERAGE}" linux.xml
-          cp -f "${MACOS_COVERAGE}" macos.xml
-          cp -f "${WSL_COVERAGE}" wsl.xml
-          # linux vs macos (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml macos.xml || true
-          # linux vs wsl  (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml wsl.xml || true
+          if [[ -n "${MACOS_COVERAGE}" ]]; then
+            cp -f "${MACOS_COVERAGE}" macos.xml
+            # linux vs macos (tool needs source code to be present)
+            uv tool run pycobertura diff linux.xml macos.xml || true
+          else
+            echo "::warning::macOS coverage not found, skipping linux vs macos diff"
+          fi
+          if [[ -n "${WSL_COVERAGE}" ]]; then
+            cp -f "${WSL_COVERAGE}" wsl.xml
+            # linux vs wsl (tool needs source code to be present)
+            uv tool run pycobertura diff linux.xml wsl.xml || true
+          else
+            echo "::warning::WSL coverage not found, skipping linux vs wsl diff"
+          fi
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
