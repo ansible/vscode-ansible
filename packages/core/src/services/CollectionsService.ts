@@ -26,6 +26,7 @@ interface CollectionsCache {
             plugins: PluginInfo[];
         }>;
     }>;
+    pluginDocs?: { [fqcnAndType: string]: PluginData };
 }
 
 import { PythonEnvironmentApi } from '../types/pythonEnvApi';
@@ -114,15 +115,12 @@ export interface PluginData {
     metadata?: unknown;
 }
 
-// Internal types for parsing
-interface MetadataDoc {
-    plugin_name?: string;
-    short_description?: string;
-    collection?: string;
-}
-
+// Internal types for parsing -- these match the full ansible-doc --metadata-dump output
 interface MetadataEntry {
-    doc?: MetadataDoc;
+    doc?: PluginDoc;
+    examples?: string;
+    return?: PluginReturn;
+    metadata?: unknown;
 }
 
 interface MetadataPluginTypes {
@@ -235,7 +233,7 @@ function logMessage(message: string): void {
 /**
  * Write the collections cache
  */
-function writeCollectionsCache(collections: Map<string, CollectionData>): boolean {
+function writeCollectionsCache(collections: Map<string, CollectionData>, pluginDocs: Map<string, PluginData>): boolean {
     if (!ensureCacheDir()) {
         return false;
     }
@@ -246,6 +244,11 @@ function writeCollectionsCache(collections: Map<string, CollectionData>): boolea
     }
     
     try {
+        const docsObj = Object.create(null) as { [key: string]: PluginData };
+        for (const [key, data] of pluginDocs) {
+            docsObj[key] = data;
+        }
+
         const cache: CollectionsCache = {
             timestamp: new Date().toISOString(),
             collections: Array.from(collections.entries()).map(([name, data]) => ({
@@ -255,10 +258,11 @@ function writeCollectionsCache(collections: Map<string, CollectionData>): boolea
                     type,
                     plugins
                 }))
-            }))
+            })),
+            pluginDocs: docsObj
         };
         
-        fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf8');
+        fs.writeFileSync(cachePath, JSON.stringify(cache), 'utf8');
         return true;
     } catch (error) {
         console.error('Failed to write collections cache:', error);
@@ -266,10 +270,15 @@ function writeCollectionsCache(collections: Map<string, CollectionData>): boolea
     }
 }
 
+interface CacheResult {
+    collections: Map<string, CollectionData>;
+    pluginDocs: Map<string, PluginData>;
+}
+
 /**
- * Convert cached data back to Map structure
+ * Convert cached data back to Map structures
  */
-function cacheToCollectionsMap(cache: CollectionsCache): Map<string, CollectionData> {
+function cacheToMaps(cache: CollectionsCache): CacheResult {
     const collections = new Map<string, CollectionData>();
     
     for (const item of cache.collections) {
@@ -282,8 +291,15 @@ function cacheToCollectionsMap(cache: CollectionsCache): Map<string, CollectionD
             pluginTypes
         });
     }
+
+    const pluginDocs = new Map<string, PluginData>();
+    if (cache.pluginDocs) {
+        for (const [key, data] of Object.entries(cache.pluginDocs)) {
+            pluginDocs.set(key, data);
+        }
+    }
     
-    return collections;
+    return { collections, pluginDocs };
 }
 
 /**
@@ -294,6 +310,7 @@ export class CollectionsService {
     private static _instance: CollectionsService | undefined;
     private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _collections: Map<string, CollectionData> = new Map();
+    private _pluginDocs: Map<string, PluginData> = new Map();
     private _loading: boolean = false;
     private _loaded: boolean = false;
     private _backgroundRefreshing: boolean = false;
@@ -451,7 +468,9 @@ export class CollectionsService {
         const cache = readCollectionsCache();
         if (cache) {
             this._log(`Cache found with ${cache.collections.length} collections from ${cache.timestamp}`);
-            this._collections = cacheToCollectionsMap(cache);
+            const cached = cacheToMaps(cache);
+            this._collections = cached.collections;
+            this._pluginDocs = cached.pluginDocs;
             this._loaded = true;
             (this._onDidChange as { fire: () => void }).fire();
             
@@ -471,8 +490,8 @@ export class CollectionsService {
             this._loaded = true;
             
             // Save to cache
-            writeCollectionsCache(this._collections);
-            this._log(`Full load complete, ${this._collections.size} collections cached`);
+            writeCollectionsCache(this._collections, this._pluginDocs);
+            this._log(`Full load complete, ${this._collections.size} collections, ${this._pluginDocs.size} plugin docs cached`);
         } catch (error) {
             this._log(`Full load failed: ${error}`);
         } finally {
@@ -495,8 +514,8 @@ export class CollectionsService {
             this._loaded = true;
             
             // Save to cache
-            writeCollectionsCache(this._collections);
-            this._log(`Force refresh complete, ${this._collections.size} collections cached`);
+            writeCollectionsCache(this._collections, this._pluginDocs);
+            this._log(`Force refresh complete, ${this._collections.size} collections, ${this._pluginDocs.size} plugin docs cached`);
         } catch (error) {
             this._log(`Force refresh failed: ${error}`);
         } finally {
@@ -511,6 +530,7 @@ export class CollectionsService {
     private async _doFullLoad(): Promise<void> {
         // Clear and load fresh
         this._collections.clear();
+        this._pluginDocs.clear();
         
         if (vscode) {
             await this.initialize();
@@ -543,29 +563,31 @@ export class CollectionsService {
         }
         
         try {
-            // Load into a temporary map WITHOUT touching this._collections
+            // Load into temporary maps WITHOUT touching this._collections/_pluginDocs
             const tempCollections = new Map<string, CollectionData>();
+            const tempDocs = new Map<string, PluginData>();
             const oldCount = this._collections.size;
             
             if (vscode) {
                 await this.initialize();
             }
             
-            // Load directly into temp map (this._collections is untouched)
+            // Load directly into temp maps (this._collections is untouched)
             if (vscode && this._pythonEnvApi) {
-                await this._loadCollectionsVSCode(tempCollections);
+                await this._loadCollectionsVSCode(tempCollections, tempDocs);
             } else {
-                await this._loadCollectionsStandalone(tempCollections);
+                await this._loadCollectionsStandalone(tempCollections, tempDocs);
             }
             
             // Now swap atomically after load is complete
             const newCount = tempCollections.size;
             this._collections = tempCollections;
+            this._pluginDocs = tempDocs;
             
-            this._log(`Background refresh complete: ${oldCount} -> ${newCount} collections`);
+            this._log(`Background refresh complete: ${oldCount} -> ${newCount} collections, ${tempDocs.size} plugin docs`);
             
             // Always update cache with fresh data
-            writeCollectionsCache(this._collections);
+            writeCollectionsCache(this._collections, this._pluginDocs);
             
             // Only update UI if data changed
             if (oldCount !== newCount) {
@@ -593,9 +615,19 @@ export class CollectionsService {
     }
 
     /**
-     * Get detailed documentation for a specific plugin
+     * Get detailed documentation for a specific plugin.
+     * Returns instantly from the in-memory cache (populated from
+     * ansible-doc --metadata-dump). Falls back to a per-plugin
+     * ansible-doc subprocess only if the plugin is not in the cache.
      */
     public async getPluginDocumentation(pluginFullName: string, pluginType: string): Promise<PluginData | null> {
+        const docKey = `${pluginFullName}:${pluginType}`;
+        const cached = this._pluginDocs.get(docKey);
+        if (cached) {
+            return cached;
+        }
+
+        this._log(`Cache miss for ${docKey}, falling back to ansible-doc subprocess`);
         const typeFlag = this._getTypeFlag(pluginType);
         
         const { getCommandService } = await import('./CommandService');
@@ -608,7 +640,6 @@ export class CollectionsService {
             
             const output = result.stdout;
 
-            // Find the start of JSON (ansible-doc might output warnings before the JSON)
             const jsonStart = output.indexOf('{');
             if (jsonStart === -1) {
                 console.error(`No JSON found in ansible-doc output for ${pluginFullName}`);
@@ -617,7 +648,13 @@ export class CollectionsService {
             
             const jsonStr = output.substring(jsonStart);
             const data = JSON.parse(jsonStr);
-            return data[pluginFullName] as PluginData || null;
+            const pluginData = data[pluginFullName] as PluginData || null;
+
+            if (pluginData) {
+                this._pluginDocs.set(docKey, pluginData);
+            }
+
+            return pluginData;
         } catch (error) {
             console.error(`Failed to get plugin documentation: ${error}`);
             return null;
@@ -766,31 +803,20 @@ export class CollectionsService {
         return typeMap[pluginType] || '';
     }
 
-    /**
-     * Load collections in VS Code mode (uses Python Envs API)
-     * @param targetMap - Optional map to load into (for background refresh)
-     */
-    private async _loadCollectionsVSCode(targetMap?: Map<string, CollectionData>): Promise<void> {
-        await this._loadCollectionsWithCommandService(targetMap);
+    private async _loadCollectionsVSCode(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
+        await this._loadCollectionsWithCommandService(targetMap, targetDocs);
     }
 
-    /**
-     * Load collections in standalone mode (finds tools in PATH)
-     * @param targetMap - Optional map to load into (for background refresh)
-     */
-    private async _loadCollectionsStandalone(targetMap?: Map<string, CollectionData>): Promise<void> {
-        await this._loadCollectionsWithCommandService(targetMap);
+    private async _loadCollectionsStandalone(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
+        await this._loadCollectionsWithCommandService(targetMap, targetDocs);
     }
 
-    /**
-     * Common collection loading logic using CommandService
-     * @param targetMap - Optional map to load into (defaults to this._collections)
-     */
-    private async _loadCollectionsWithCommandService(targetMap?: Map<string, CollectionData>): Promise<void> {
+    private async _loadCollectionsWithCommandService(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
         
         const collections = targetMap ?? this._collections;
+        const pluginDocs = targetDocs ?? this._pluginDocs;
         try {
             // Run ade inspect and ansible-doc in parallel for speed
             const adePromise = (async () => {
@@ -893,6 +919,15 @@ export class CollectionsService {
                         continue;
                     }
                     seenPlugins.add(uniqueKey);
+
+                    // Store full plugin documentation from the metadata dump
+                    const docKey = `${fullName}:${pluginType}`;
+                    pluginDocs.set(docKey, {
+                        doc: pluginData.doc,
+                        examples: pluginData.examples,
+                        return: pluginData.return,
+                        metadata: pluginData.metadata,
+                    });
 
                     // Get or create collection
                     if (!collections.has(collectionName)) {

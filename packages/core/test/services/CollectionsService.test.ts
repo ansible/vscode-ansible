@@ -35,16 +35,28 @@ describe("CollectionsService", () => {
     },
   });
 
+  const copyPluginData = {
+    doc: {
+      collection: "ansible.builtin",
+      plugin_name: "ansible.builtin.copy",
+      short_description: "Copy files to remote locations",
+      description: ["The copy module copies a file from the local or remote machine to a location on the remote machine."],
+      author: ["Ansible Core Team"],
+      options: {
+        src: { description: ["Local path to a file to copy"], type: "path" },
+        dest: { description: ["Remote absolute path"], type: "path", required: true },
+      },
+    },
+    examples: "- name: Copy file\n  ansible.builtin.copy:\n    src: /srv/myfile\n    dest: /etc/myfile",
+    return: {
+      dest: { description: "Destination file path", returned: "success", type: "str" },
+    },
+  };
+
   const ansibleDocMetadata = JSON.stringify({
     all: {
       module: {
-        "ansible.builtin.copy": {
-          doc: {
-            collection: "ansible.builtin",
-            plugin_name: "ansible.builtin.copy",
-            short_description: "Copy files to remote locations",
-          },
-        },
+        "ansible.builtin.copy": copyPluginData,
       },
     },
   });
@@ -265,7 +277,7 @@ describe("CollectionsService", () => {
     expect(svc.listCollectionNames()).toEqual([]);
   });
 
-  it("persists collections-metadata.json cache after forceRefresh", async () => {
+  it("persists collections-metadata.json cache with plugin docs after forceRefresh", async () => {
     const svc = CollectionsService.getInstance();
     await svc.forceRefresh();
     const cacheFile = path.join(tmpDir, ".cache", "ansible-environments", "collections-metadata.json");
@@ -273,6 +285,9 @@ describe("CollectionsService", () => {
     const raw = JSON.parse(fs.readFileSync(cacheFile, "utf8"));
     expect(Array.isArray(raw.collections)).toBe(true);
     expect(raw.collections.some((c: { name: string }) => c.name === "ansible.builtin")).toBe(true);
+    expect(raw.pluginDocs).toBeDefined();
+    expect(raw.pluginDocs["ansible.builtin.copy:module"]).toBeDefined();
+    expect(raw.pluginDocs["ansible.builtin.copy:module"].doc.short_description).toBe("Copy files to remote locations");
   });
 
   it("refresh loads from disk cache immediately when file exists", async () => {
@@ -288,7 +303,86 @@ describe("CollectionsService", () => {
     await vi.waitUntil(() => runToolMock.mock.calls.length >= callsBefore + 2, { timeout: 3000 });
   });
 
-  it("getPluginDocumentation returns null when stdout has no JSON object", async () => {
+  it("getPluginDocumentation returns cached docs without subprocess call", async () => {
+    const svc = CollectionsService.getInstance();
+    await svc.forceRefresh();
+
+    const callsBefore = runToolMock.mock.calls.length;
+    const doc = await svc.getPluginDocumentation("ansible.builtin.copy", "module");
+
+    expect(doc).not.toBeNull();
+    expect(doc!.doc?.short_description).toBe("Copy files to remote locations");
+    expect(doc!.doc?.author).toEqual(["Ansible Core Team"]);
+    expect(doc!.examples).toContain("Copy file");
+    expect(doc!.return).toBeDefined();
+    expect(doc!.return!.dest).toMatchObject({ type: "str", returned: "success" });
+    // No additional subprocess calls after forceRefresh
+    expect(runToolMock.mock.calls.length).toBe(callsBefore);
+  });
+
+  it("getPluginDocumentation falls back to subprocess on cache miss", async () => {
+    const fallbackPayload = {
+      doc: { short_description: "Fallback module" },
+      examples: "- name: fallback",
+    };
+    runToolMock.mockImplementation(async (toolName: string, args: string[]) => {
+      if (toolName === "ansible-doc" && args.join(" ").includes("--metadata-dump")) {
+        return { exitCode: 0, stdout: ansibleDocMetadata, stderr: "" };
+      }
+      if (toolName === "ansible-doc") {
+        return {
+          exitCode: 0,
+          stdout: JSON.stringify({ "community.general.unknown_plugin": fallbackPayload }),
+          stderr: "",
+        };
+      }
+      if (toolName === "ade") {
+        return { exitCode: 0, stdout: adeInspectStdout, stderr: "" };
+      }
+      return { exitCode: 1, stdout: "", stderr: "" };
+    });
+
+    const svc = CollectionsService.getInstance();
+    await svc.forceRefresh();
+
+    const doc = await svc.getPluginDocumentation("community.general.unknown_plugin", "module");
+    expect(doc).not.toBeNull();
+    expect(doc!.doc?.short_description).toBe("Fallback module");
+  });
+
+  it("getPluginDocumentation subprocess fallback skips leading warnings", async () => {
+    const fallbackPayload = {
+      doc: { short_description: "Warned module" },
+      examples: "- name: warned",
+    };
+    runToolMock.mockImplementation(async (toolName: string, args: string[]) => {
+      if (toolName === "ansible-doc" && args.join(" ").includes("--metadata-dump")) {
+        return { exitCode: 0, stdout: ansibleDocMetadata, stderr: "" };
+      }
+      if (toolName === "ansible-doc") {
+        return {
+          exitCode: 0,
+          stdout: `[WARNING]: some deprecation notice\nother noise\n${JSON.stringify({
+            "community.general.warned_plugin": fallbackPayload,
+          })}`,
+          stderr: "",
+        };
+      }
+      if (toolName === "ade") {
+        return { exitCode: 0, stdout: adeInspectStdout, stderr: "" };
+      }
+      return { exitCode: 1, stdout: "", stderr: "" };
+    });
+
+    const svc = CollectionsService.getInstance();
+    await svc.forceRefresh();
+
+    const doc = await svc.getPluginDocumentation("community.general.warned_plugin", "module");
+    expect(doc).not.toBeNull();
+    expect(doc!.doc?.short_description).toBe("Warned module");
+  });
+
+  it("getPluginDocumentation returns null when subprocess stdout has no JSON", async () => {
     runToolMock.mockImplementation(async (toolName: string, args: string[]) => {
       if (toolName === "ansible-doc" && args.join(" ").includes("--metadata-dump")) {
         return { exitCode: 0, stdout: ansibleDocMetadata, stderr: "" };
@@ -303,45 +397,12 @@ describe("CollectionsService", () => {
     });
     const svc = CollectionsService.getInstance();
     await svc.forceRefresh();
-    const doc = await svc.getPluginDocumentation("ansible.builtin.copy", "module");
+    // Request a plugin NOT in the metadata-dump to trigger subprocess fallback
+    const doc = await svc.getPluginDocumentation("community.missing.plugin", "module");
     expect(doc).toBeNull();
   });
 
   it("isInVSCode is false in test (standalone) environment", () => {
     expect(CollectionsService.getInstance().isInVSCode()).toBe(false);
-  });
-
-  it("getPluginDocumentation parses ansible-doc JSON from stdout", async () => {
-    const docPayload = {
-      doc: { short_description: "Test module" },
-      examples: "- name: ex",
-    };
-    runToolMock.mockImplementation(async (toolName: string, args: string[]) => {
-      if (toolName === "ansible-doc") {
-        const joined = args.join(" ");
-        if (joined.includes("--metadata-dump")) {
-          return { exitCode: 0, stdout: ansibleDocMetadata, stderr: "" };
-        }
-        return {
-          exitCode: 0,
-          stdout: `warning: something\n${JSON.stringify({
-            "ansible.builtin.copy": docPayload,
-          })}`,
-          stderr: "",
-        };
-      }
-      if (toolName === "ade") {
-        return { exitCode: 0, stdout: adeInspectStdout, stderr: "" };
-      }
-      return { exitCode: 1, stdout: "", stderr: "" };
-    });
-
-    const svc = CollectionsService.getInstance();
-    await svc.forceRefresh();
-
-    const doc = await svc.getPluginDocumentation("ansible.builtin.copy", "module");
-    expect(doc).not.toBeNull();
-    expect(doc!.doc?.short_description).toBe("Test module");
-    expect(doc!.examples).toBe("- name: ex");
   });
 });
