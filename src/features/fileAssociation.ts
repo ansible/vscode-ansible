@@ -1,75 +1,83 @@
 import * as vscode from "vscode";
-import { applyFileInspectionForKeywords } from "@src/features/utils/applyFileInspectionForKeywords";
 import {
-  configureModelines,
-  searchModelines,
-} from "@src/features/utils/applyModelines";
+  searchModelineLanguage,
+  looksLikePlaybook,
+  isYamlExtension,
+} from "./fileDetection";
+
+const SUPPORTED_LANGUAGES = new Set(["ansible", "yaml"]);
+
+async function applyModeline(doc: vscode.TextDocument): Promise<boolean> {
+  const lang = searchModelineLanguage(doc.getText());
+  if (!lang) {
+    return false;
+  }
+
+  if (!SUPPORTED_LANGUAGES.has(lang)) {
+    vscode.window.showWarningMessage(
+      `Unsupported modeline language "${lang}". Supported: ansible, yaml.`,
+    );
+    return true;
+  }
+
+  if (doc.languageId !== lang) {
+    await vscode.languages.setTextDocumentLanguage(doc, lang);
+  }
+  return true;
+}
+
+async function applyKeywordInspection(
+  doc: vscode.TextDocument,
+): Promise<void> {
+  if (doc.isUntitled) {
+    return;
+  }
+
+  const ext = doc.fileName.split(".").pop();
+  if (!isYamlExtension(ext)) {
+    return;
+  }
+
+  if (doc.languageId === "ansible") {
+    return;
+  }
+
+  if (looksLikePlaybook(doc.getText())) {
+    await vscode.languages.setTextDocumentLanguage(doc, "ansible");
+  }
+}
+
+async function inspectDocument(doc: vscode.TextDocument): Promise<void> {
+  if (doc.isUntitled) {
+    return;
+  }
+  if (await applyModeline(doc)) {
+    return;
+  }
+  await applyKeywordInspection(doc);
+}
 
 /**
- * Function to dynamically set document language by inspecting the file. This is based on 2 things:
- * 1. checking the presence of 'hosts', 'import_playbook' and 'ansible.builtin.import_playbook' keyword
- * 2. checking for modelines (if any)
- *
- * If modelines is present, it is given priority over keyword check.
- *
- * @param context - The extension context
+ * Register file-association heuristics that dynamically set a document's
+ * language to "ansible" based on modeline comments or playbook-shaped content.
  */
-export async function languageAssociation(
+export function registerFileAssociation(
   context: vscode.ExtensionContext,
-): Promise<void> {
-  // Listen for new documents being opened
+): void {
   context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(async function () {
-      const doc = vscode.window.activeTextEditor?.document;
-      if (!doc) {
-        return;
-      }
-
-      // check if modelines can be applied or not.
-      const canApplyModelines =
-        Object.keys(searchModelines(doc)).length === 0 ? false : true;
-
-      if (canApplyModelines) {
-        // apply modelines and return
-        await configureModelines(context, doc);
-        return;
-      }
-
-      const tryApplyFileInspectionForKeywords =
-        async function (): Promise<boolean> {
-          const editor = vscode.window.visibleTextEditors.find(
-            (e) => e.document === doc,
-          );
-          if (editor) {
-            await applyFileInspectionForKeywords(editor);
-            return true;
-          }
-          return false;
-        };
-
-      setTimeout(async function () {
-        if (!(await tryApplyFileInspectionForKeywords())) {
-          // if it's still not available, try one more time after 500ms
-          setTimeout(async function () {
-            if (!(await tryApplyFileInspectionForKeywords()))
-              console.log("[file-inspection] could not find TextEditor");
-          }, 500);
-        }
-      }, 100);
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+      void inspectDocument(doc);
     }),
   );
 
-  // Listen for saves and change settings if necessary
   context.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument(async function (doc) {
-      const editor = vscode.window.visibleTextEditors.find(
-        (e) => e.document === doc,
-      );
-      if (editor) await applyFileInspectionForKeywords(editor);
+    vscode.workspace.onDidSaveTextDocument((doc) => {
+      void inspectDocument(doc);
     }),
   );
 
-  setImmediate(async function () {
-    await applyFileInspectionForKeywords(vscode.window.activeTextEditor);
-  });
+  const activeDoc = vscode.window.activeTextEditor?.document;
+  if (activeDoc) {
+    void inspectDocument(activeDoc);
+  }
 }

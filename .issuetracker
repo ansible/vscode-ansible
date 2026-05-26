@@ -1,7 +1,0 @@
-# Integration with Issue Tracker
-#
-# (note that '\' need to be escaped).
-
-[issuetracker "jira"]
-  regex = "(AAP|ANSTRAT)-(\\d+)"
-  url = "https://redhat.atlassian.net/browse/$1-$2"

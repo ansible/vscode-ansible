@@ -4,6 +4,8 @@
  * Uses @vscode/test-electron to download VS Code (or reuse a cached
  * copy), then installs marketplace extensions into the same isolated
  * --extensions-dir that wdio.conf.ts passes at launch time.
+ *
+ * This avoids relying on `code` being on PATH and works in CI.
  */
 
 import fs from "node:fs";
@@ -18,7 +20,6 @@ const testRoot = path.resolve(process.cwd(), ".wdio-vscode");
 const extensionsDir = path.join(testRoot, "extensions");
 
 const DEPENDENCY_EXTENSIONS = [
-  "ms-python.python",
   "ms-python.vscode-python-envs",
   "redhat.vscode-yaml",
 ];

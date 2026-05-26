@@ -1,0 +1,19 @@
+{
+  "name": "@ansible/core",
+  "version": "0.0.1",
+  "description": "Shared Ansible development tools services - vscode-independent domain logic",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "rimraf out"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
+  }
+}

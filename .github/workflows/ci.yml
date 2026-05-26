@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run compile
+
+      - name: Run integration tests
+        run: xvfb-run --auto-servernum npm run test:integration
+
+  ui:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run compile
+
+      - name: Install test dependency extensions
+        run: npm run pretest:ui
+
+      - name: Run UI tests
+        run: xvfb-run --auto-servernum npm run test:ui
+
+  package:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build VSIX
+        run: npx vsce package --no-dependencies
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v5
+        with:
+          name: vsix
+          path: "*.vsix"
+          retention-days: 14

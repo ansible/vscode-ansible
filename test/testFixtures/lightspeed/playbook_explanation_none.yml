@@ -1,5 +1,0 @@
----
-- name:
-  hosts: all
-  tasks:
-    - name: No explanation available...

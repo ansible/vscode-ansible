@@ -1,6 +1,0 @@
-- name: Test block
-  become: yes
-  block:
-
-- name: Test task
-  become: yes

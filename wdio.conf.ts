@@ -8,10 +8,10 @@ export const config: WebdriverIO.Config = {
   runner: "local",
   autoCompileOpts: {
     tsNodeOpts: {
-      project: "./test/wdio/tsconfig.json",
+      project: "./test/ui/tsconfig.json",
     },
   },
-  specs: ["./test/wdio/**/*.spec.ts"],
+  specs: ["./test/ui/**/*.spec.ts"],
   maxInstances: 1,
 
   capabilities: [
@@ -20,16 +20,13 @@ export const config: WebdriverIO.Config = {
       browserVersion: "stable",
       "wdio:vscodeOptions": {
         extensionPath: path.resolve(process.cwd()),
-        workspacePath: path.resolve(process.cwd(), "test", "wdio", "fixtures"),
+        workspacePath: path.resolve(process.cwd(), "test", "ui", "fixtures"),
         userSettings: {
           "editor.fontSize": 14,
-          "ansible.lightspeed.enabled": true,
-          "ansible.validation.lint.enabled": false,
         },
         vscodeArgs: {
           "extensions-dir": extensionsDir,
           "disable-extensions": false,
-          "disable-gpu": true,
         },
       },
     },

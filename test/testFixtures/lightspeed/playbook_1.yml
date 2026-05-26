@@ -1,5 +1,0 @@
-- name: Test playbook
-  gather_facts: false
-  hosts: localhost
-  tasks:
-    - <insert task name for project ansible lightspeed suggestion here>

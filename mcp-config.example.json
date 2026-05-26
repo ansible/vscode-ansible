@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ansible-environments": {
+      "command": "node",
+      "args": ["/path/to/ansible-environments/packages/mcp-server/out/server.js"],
+      "env": {}
+    }
+  }
+}

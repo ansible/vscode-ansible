@@ -1,0 +1,11 @@
+---
+- name: Completion test playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Test debug options
+      ansible.builtin.debug:
+        msg: "hello"
+    - name: Test task keywords
+      ansible.builtin.ping:
+    - 

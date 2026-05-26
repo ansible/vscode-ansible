@@ -1,91 +1,18 @@
 {
-  "compounds": [
-    {
-      "configurations": ["Launch Extension", "Attach to Server"],
-      "name": "Both",
-      "presentation": {
-        "hidden": true,
-        "order": 2
-      },
-      "stopAll": true
-    },
-    {
-      "configurations": ["Launch Extension", "Attach to Server (src)"],
-      "name": "Both (src)",
-      "presentation": {
-        "order": 1
-      },
-      "stopAll": true
-    }
-  ],
+  "version": "0.2.0",
   "configurations": [
     {
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "name": "Debug Extension (Vite)",
-      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "postDebugTask": "kill-vite-dev",
-      "preLaunchTask": "build-then-vite-dev",
+      "name": "Run Extension",
+      "type": "extensionHost",
       "request": "launch",
-      "type": "extensionHost"
-    },
-    {
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "name": "Preview Extension (Vite)",
-      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "npm: vite-build",
-      "request": "launch",
-      "type": "extensionHost"
-    },
-    {
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/examples"
+        "--extensionDevelopmentPath=${workspaceFolder}"
       ],
-      "name": "Launch Extension",
-      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "build:extension",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "type": "extensionHost"
-    },
-    {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/examples"
-      ],
-      "env": {
-        "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
-      },
-      "name": "Launch Extension (packed)",
-      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "build:extension",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "type": "extensionHost"
-    },
-    {
-      "name": "Attach to Server",
       "outFiles": [
-        "${workspaceRoot}/packages/ansible-language-server/lib/**/*.js"
+        "${workspaceFolder}/out/**/*.js",
+        "${workspaceFolder}/packages/*/out/**/*.js"
       ],
-      "port": 6010,
-      "request": "attach",
-      "restart": true,
-      "runtimeArgs": ["--max-old-space-size=4096"],
-      "timeout": 30000,
-      "type": "node"
-    },
-    {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/lib/test/index"
-      ],
-      "name": "Extension Tests",
-      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "type": "extensionHost"
+      "preLaunchTask": "${defaultBuildTask}"
     }
-  ],
-  "version": "0.2.0"
+  ]
 }

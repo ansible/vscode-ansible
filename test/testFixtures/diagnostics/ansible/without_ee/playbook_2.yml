@@ -1,6 +1,0 @@
-- name: Play name
-  hosts: "{{ my_hosts }}"
-  tasks:
-    - name: Task 1
-      ansible.builtin.debug:
-        msg: Hello world!

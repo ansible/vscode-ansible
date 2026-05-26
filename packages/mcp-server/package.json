@@ -1,0 +1,25 @@
+{
+  "name": "@ansible/mcp-server",
+  "version": "0.0.1",
+  "description": "Ansible MCP server exposing development tools to AI agents",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "license": "MIT",
+  "bin": {
+    "ansible-environments-mcp": "./out/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "rimraf out"
+  },
+  "dependencies": {
+    "@ansible/core": "*",
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "zod": "^4.3.5",
+    "zod-to-json-schema": "^3.25.1"
+  }
+}
