@@ -97,15 +97,25 @@ related: #<issue_number>
 
 ### Step 4: Push and create the pull request
 
+**Labels are required.** The repository requires at least one of these
+labels: `breaking`, `chore`, `feat`, `fix`. Map the conventional commit
+type to the closest allowed label (e.g., `perf` → `feat`,
+`refactor` → `chore`, `docs` → `chore`, `test` → `chore`,
+`build` → `chore`, `ci` → `chore`).
+
 ```bash
 git push -u origin HEAD
 
-gh pr create --base next --title "conventional commit style title" --body "$(cat <<'EOF'
+gh pr create --base next --label "<type>" --title "conventional commit style title" --body "$(cat <<'EOF'
 ## Summary
 - Concise description of what changed and why
 
 ## Changes
 - List of notable changes
+
+## Quality of life
+- AI-authored additions: ADRs, agent skills, documentation, templates
+- List each AI-generated artifact and its purpose
 
 ## Test plan
 - [ ] `npx eslint .` passes
