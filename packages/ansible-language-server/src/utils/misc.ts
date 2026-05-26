@@ -1,6 +1,7 @@
 import * as child_process from "child_process";
 import { existsSync, statSync, promises as fs } from "node:fs";
 import { promisify } from "util";
+import type { SpawnOptions } from "child_process";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
 import * as path from "path";
@@ -42,6 +43,75 @@ function validateActivationScript(scriptPath: string): string | undefined {
   }
   return undefined;
 }
+
+type SpawnResult = { stdout: string; stderr: string };
+
+export function spawnSyncWithResult(
+  command: string,
+  args: string[],
+  options: child_process.SpawnSyncOptions = {},
+): SpawnResult {
+  const result = child_process.spawnSync(command, args, {
+    encoding: "utf-8",
+    shell: false,
+    ...options,
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    const message =
+      (result.stderr?.toString() || result.stdout?.toString() || "").trim() ||
+      `Process '${command}' exited with code ${result.status}`;
+    throw new Error(message);
+  }
+  return {
+    stdout: (result.stdout ?? "").toString(),
+    stderr: (result.stderr ?? "").toString(),
+  };
+}
+
+export function asyncSpawn(
+  command: string,
+  args: string[],
+  options: SpawnOptions = {},
+): Promise<SpawnResult> {
+  return new Promise((resolve, reject) => {
+    const proc = child_process.spawn(command, args, {
+      ...options,
+      shell: false,
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout?.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    proc.stderr?.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    proc.on("error", reject);
+    proc.on("close", (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+        return;
+      }
+      const message =
+        stderr.trim() ||
+        stdout.trim() ||
+        `Process '${command}' exited with code ${code}`;
+      const error = new Error(message) as Error & {
+        code?: number;
+        stdout?: string;
+        stderr?: string;
+      };
+      error.code = code ?? undefined;
+      error.stdout = stdout;
+      error.stderr = stderr;
+      reject(error);
+    });
+  });
+}
+
 export function toLspRange(
   range: [number, number],
   textDocument: TextDocument,

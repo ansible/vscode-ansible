@@ -3,6 +3,7 @@ import { existsSync } from "fs";
 import * as vscode from "vscode";
 
 /* local */
+import { validateExecutionEnvironmentSettings } from "@src/utils/containerCommandSafety";
 import { getContainerEngine } from "@src/utils/executionEnvironment";
 import { AnsibleCommands } from "@src/definitions/constants";
 import { registerCommandWithTelemetry } from "@src/utils/registerCommands";
@@ -70,28 +71,43 @@ export class AnsiblePlaybookRunProvider {
     console.log('Added a "Run with Ansible Navigator" command...');
   }
 
-  private addEEArgs(commandLineArgs: string[]): void {
+  private addEEArgs(commandLineArgs: string[]): boolean {
     const eeSettings = this.extensionSettings.settings.executionEnvironment;
     if (!eeSettings.enabled) {
       commandLineArgs.push("--ee false");
-      return;
+      return true;
+    }
+    try {
+      validateExecutionEnvironmentSettings(
+        eeSettings.containerOptions,
+        eeSettings.volumeMounts,
+        eeSettings.image,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Invalid execution environment settings.";
+      vscode.window.showErrorMessage(message);
+      return false;
     }
     commandLineArgs.push("--ee true");
     commandLineArgs.push("--pae false");
     commandLineArgs.push(
       `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
     );
-    commandLineArgs.push(`--eei ${eeSettings.image}`);
+    commandLineArgs.push(`--eei ${shellQuote(eeSettings.image)}`);
     if (eeSettings.containerOptions !== "") {
-      commandLineArgs.push(`--co ${eeSettings.containerOptions}`);
+      commandLineArgs.push(`--co ${shellQuote(eeSettings.containerOptions)}`);
     }
     eeSettings.volumeMounts.forEach((volumeMount) => {
       let mountPath = `${volumeMount.src}:${volumeMount.dest}`;
       if (volumeMount.options !== undefined) {
         mountPath += `:${volumeMount.options}`;
       }
-      commandLineArgs.push(`--eev ${mountPath}`);
+      commandLineArgs.push(`--eev ${shellQuote(mountPath)}`);
     });
+    return true;
   }
 
   /**
@@ -196,7 +212,9 @@ export class AnsiblePlaybookRunProvider {
 
     commandLineArgs.push(shellQuote(playbookFsPath));
 
-    this.addEEArgs(commandLineArgs);
+    if (!this.addEEArgs(commandLineArgs)) {
+      return;
+    }
 
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const command = `${runExecutable} run ${cmdArgs}`;

@@ -75,6 +75,11 @@
     "./utils/getAnsibleMetaData": {
       "types": "./dist/utils/getAnsibleMetaData.d.ts",
       "default": "./dist/utils/getAnsibleMetaData.js"
+    },
+    "./utils/containerCommandSafety": {
+      "types": "./dist/utils/containerCommandSafety.d.ts",
+      "source": "./src/utils/containerCommandSafety.ts",
+      "default": "./dist/utils/containerCommandSafety.js"
     }
   },
   "files": [

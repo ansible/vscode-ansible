@@ -122,6 +122,24 @@ describe("@ee", () => {
       expect(ee.isServiceInitialized).toBe(false);
       expect(mockConnection.window.showErrorMessage.called).toBe(true);
     });
+
+    it("should reject unsafe containerOptions during initialize", async () => {
+      mockContext.documentSettings.get.resolves({
+        ...mockSettings,
+        executionEnvironment: {
+          ...mockSettings.executionEnvironment,
+          containerOptions: "; touch /tmp/cve-44191",
+        },
+      });
+      const ee = new ExecutionEnvironment(
+        mockConnection as any,
+        mockContext as any,
+      );
+      sandbox.stub(ee as any, "setContainerEngine").returns(true);
+      await ee.initialize();
+      expect(ee.isServiceInitialized).toBe(false);
+      expect(mockConnection.window.showErrorMessage.called).toBe(true);
+    });
   });
 
   describe("wrapContainerArgs", () => {
@@ -145,9 +163,11 @@ describe("@ee", () => {
       (ee as any).settingsVolumeMounts = [];
       (ee as any).settingsContainerOptions = "";
       const result = ee.wrapContainerArgs("echo hello", new Set(["/tmp"]));
-      expect(result).toContain("docker run --rm");
+      expect(result).toBeDefined();
+      expect(result?.join(" ")).toContain("docker run --rm");
       expect(result).toContain("test-image");
-      expect(result).toContain("echo hello");
+      expect(result).toContain("echo");
+      expect(result).toContain("hello");
     });
   });
 
