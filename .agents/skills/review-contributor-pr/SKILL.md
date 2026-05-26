@@ -22,7 +22,8 @@ submitting your own PR (use `submit-pr` for that).
 
 ## Goals
 
-- PR is **up to date with `main`** (no merge conflicts, clean rebase).
+- PR is **up to date with `next`** (no merge conflicts, clean rebase).
+  See the `branching-strategy` skill for why `next` is the target branch.
 - **Lint and type checks pass**: `npx eslint .` and `npx tsc -b` on the full
   tree.
 - **Tests pass**: `npx vitest run` for unit tests.
@@ -40,22 +41,23 @@ Use the GitHub API or `gh pr view` to get:
 - PR number, title, body, base/head refs, author.
 - List of changed files and patch/diff.
 
-Confirm the **base** branch (typically `main`) and whether the PR is from the
-same repo or a fork, so you know which remote/branch you will push to if you
-make changes.
+Confirm the **base** branch (must be `next`, not `main`) and whether the PR
+is from the same repo or a fork, so you know which remote/branch you will
+push to if you make changes. If the PR targets `main`, retarget it to `next`
+with `gh pr edit <N> --base next`.
 
 ### 2. Check if the branch is up to date
 
-- Fetch `origin main`.
-- Compare base ref of the PR to current `origin/main`. If main has newer
-  commits, the contributor's branch should be rebased onto `origin/main`
+- Fetch `upstream next`.
+- Compare base ref of the PR to current `upstream/next`. If `next` has newer
+  commits, the contributor's branch should be rebased onto `upstream/next`
   before merge.
 
 If you are going to push changes to the contributor's branch:
 
-- Rebase the **local** branch that mirrors their PR onto `origin/main`
+- Rebase the **local** branch that mirrors their PR onto `upstream/next`
   before pushing. That way the PR stays mergeable and CI runs against the
-  latest main.
+  latest `next`.
 
 ### 3. Run lint and type checks before pushing
 
@@ -95,7 +97,7 @@ commit and then push so CI stays green.
 
 - Before pushing:
 
-  1. Rebase onto `origin/main` so the PR is up to date.
+  1. Rebase onto `upstream/next` so the PR is up to date.
   2. Ensure `npx eslint .` and `npx tsc -b` pass.
   3. Use `--force-with-lease` when pushing a rebased branch:
      `git push <remote> <local-branch>:<their-branch> --force-with-lease`.
@@ -137,12 +139,13 @@ the resolution is visible. Use the same method as the **pr-review** skill:
 When reviewing or preparing a contributor PR:
 
 - [ ] Fetched PR and know base/head and remotes.
-- [ ] Branch is up to date with `main` (rebase if needed before push).
+- [ ] PR targets `next` (not `main`). Retarget if needed.
+- [ ] Branch is up to date with `next` (rebase if needed before push).
 - [ ] `npx eslint .` passes.
 - [ ] `npx tsc -b` compiles cleanly.
 - [ ] `npx vitest run` passes.
 - [ ] PR description has Summary, Changes, and Test plan (submit-pr style).
-- [ ] If pushing to their branch: rebase onto origin/main, checks green, then
+- [ ] If pushing to their branch: rebase onto upstream/next, checks green, then
       `git push <remote> <local>:<their-branch> --force-with-lease`.
 - [ ] If you addressed a review comment: reply on that thread (same as
       pr-review) with explanation + commit SHA, using the replies endpoint.

@@ -1,11 +1,11 @@
 ---
 name: submit-pr
 description: >
-  Prepare and submit a pull request for the ansible-environments project.
-  Syncs with main, creates a feature branch, runs lint and type checks,
-  commits with conventional commits, then creates the PR via gh. Use when
-  the user asks to submit, create, or open a pull request, or says "submit
-  PR", "open PR", "create PR".
+  Prepare and submit a pull request for the vscode-ansible project.
+  Syncs with the `next` branch, creates a feature branch, runs lint and
+  type checks, commits with conventional commits, then creates the PR
+  targeting `next` via gh. Use when the user asks to submit, create, or
+  open a pull request, or says "submit PR", "open PR", "create PR".
 argument-hint: "[branch-name] [--title 'PR title']"
 user-invocable: true
 metadata:
@@ -17,13 +17,14 @@ metadata:
 
 ## Workflow
 
-### Step 1: Sync with main and create a feature branch
+### Step 1: Sync with `next` and create a feature branch
 
-Always start from the latest main:
+**IMPORTANT:** All feature branches MUST be based on `next`, never `main`.
+See the `branching-strategy` skill for details.
 
 ```bash
-git fetch origin
-git checkout -b <branch-name> origin/main
+git fetch upstream
+git checkout -b <branch-name> upstream/next
 ```
 
 Use a descriptive branch name (e.g., `feat/add-vault-commands`,
@@ -42,7 +43,7 @@ npx vitest run
 
 **All checks must pass cleanly on all files** — not just the files you
 changed. If the branch has pre-existing violations (e.g., from an old base),
-rebase onto `origin/main` first.
+rebase onto `upstream/next` first.
 
 If violations are found:
 1. Run `npx eslint . --fix` to auto-fix what it can
@@ -99,7 +100,7 @@ related: #<issue_number>
 ```bash
 git push -u origin HEAD
 
-gh pr create --title "conventional commit style title" --body "$(cat <<'EOF'
+gh pr create --base next --title "conventional commit style title" --body "$(cat <<'EOF'
 ## Summary
 - Concise description of what changed and why
 

@@ -83,12 +83,13 @@ with `_`. Prefer trimming the import list over disabling the rule.
 
 ## Workflow
 
-1. **Ensure the PR branch is up to date with `main`.** Before reviewing or
-   pushing fixes, rebase onto `main`. A stale base causes misleading CI
-   results and merge conflicts:
+1. **Ensure the PR branch is up to date with `next`.** Before reviewing or
+   pushing fixes, rebase onto `next`. A stale base causes misleading CI
+   results and merge conflicts. See the `branching-strategy` skill for
+   why `next` is the target branch, not `main`.
    ```bash
-   git fetch origin
-   git rebase origin/main
+   git fetch upstream
+   git rebase upstream/next
    git push --force-with-lease
    ```
 2. After pushing a PR, wait for both CI and Copilot review.
