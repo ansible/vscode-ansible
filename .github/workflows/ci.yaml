@@ -509,7 +509,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -519,7 +519,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           directory: out/junit
           fail_ci_if_error: true
@@ -613,7 +613,7 @@ jobs:
             type=sha
 
       - name: Build MCP server container
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: packages/ansible-mcp-server
           file: packages/ansible-mcp-server/Containerfile
