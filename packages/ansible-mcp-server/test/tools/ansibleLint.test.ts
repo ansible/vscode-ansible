@@ -42,7 +42,7 @@ describe("Ansible Lint Handler", () => {
 
   describe("Core linting functionality", () => {
     it("should detect and report linting issues in playbooks", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -56,7 +56,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should report no issues for clean playbooks", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: cleanPlaybookPath,
@@ -70,9 +70,9 @@ describe("Ansible Lint Handler", () => {
   });
 
   describe("Input validation", () => {
-    it("should handle non-existent file", async () => {
-      const handler = createAnsibleLintHandler();
-      const nonExistentFile = join(__dirname, "non-existent.yml");
+    it("should handle non-existent file within workspace", async () => {
+      const handler = createAnsibleLintHandler(testDir);
+      const nonExistentFile = join(testDir, "non-existent.yml");
 
       const result = await handler({
         filePath: nonExistentFile,
@@ -85,7 +85,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should handle empty file path", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: "",
@@ -98,7 +98,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should handle ansible-lint process errors gracefully", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
       // This test covers error handling paths in the ansible-lint execution
       const result = await handler({
         filePath: testPlaybookPath,
@@ -113,7 +113,7 @@ describe("Ansible Lint Handler", () => {
 
   describe("Fix parameter handling", () => {
     it("should prompt user for fix preference when fix parameter is undefined", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
       const result = await handler({
         filePath: testPlaybookPath,
       });
@@ -128,7 +128,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should run linting without fixes when fix parameter is false", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
       const result = await handler({
         filePath: testPlaybookPath,
         fix: false,
@@ -145,7 +145,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should run linting with automatic fixes when fix parameter is true", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
       const result = await handler({
         filePath: testPlaybookPath,
         fix: true,
@@ -162,9 +162,39 @@ describe("Ansible Lint Handler", () => {
     });
   });
 
+  describe("Path traversal prevention", () => {
+    it("should reject file paths outside the workspace", async () => {
+      const handler = createAnsibleLintHandler(testDir);
+
+      const result = await handler({
+        filePath: "/etc/passwd",
+        fix: false,
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].text).toContain("Error");
+      expect(result.content[0].text).toContain("outside the workspace");
+      expect(result.isError).toBe(true);
+    });
+
+    it("should reject relative path traversal attempts", async () => {
+      const handler = createAnsibleLintHandler(testDir);
+
+      const result = await handler({
+        filePath: "../../../etc/passwd",
+        fix: false,
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].text).toContain("Error");
+      expect(result.content[0].text).toContain("outside the workspace");
+      expect(result.isError).toBe(true);
+    });
+  });
+
   describe("Fix functionality", () => {
     it("should apply fixes when fix: true is specified", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -177,7 +207,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should not apply fixes when fix: false is specified", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -190,7 +220,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should display fixed content when fix is applied and content is available", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -205,7 +235,7 @@ describe("Ansible Lint Handler", () => {
     });
 
     it("should handle clean playbook with no issues", async () => {
-      const handler = createAnsibleLintHandler();
+      const handler = createAnsibleLintHandler(testDir);
 
       const result = await handler({
         filePath: cleanPlaybookPath,

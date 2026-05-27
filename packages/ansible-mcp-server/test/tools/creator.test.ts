@@ -107,4 +107,40 @@ describe("creator", () => {
       expect(result.content).toBeDefined();
     });
   });
+
+  describe("Path traversal prevention", () => {
+    let traversalTestDir: string;
+
+    beforeAll(() => {
+      traversalTestDir = mkdtempSync(join(tmpdir(), "vitest-traversal-"));
+    });
+
+    afterAll(() => {
+      rmSync(traversalTestDir, { recursive: true, force: true });
+    });
+
+    it("should reject path parameter outside workspace", async () => {
+      const handler = createProjectsHandler(traversalTestDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "bar",
+        path: "/tmp/evil-project",
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("outside the workspace");
+    });
+
+    it("should reject projectDirectory with traversal", async () => {
+      const handler = createProjectsHandler(traversalTestDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "bar",
+        projectDirectory: "../../etc",
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("outside the workspace");
+    });
+  });
 });

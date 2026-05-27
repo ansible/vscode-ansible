@@ -300,10 +300,12 @@ export interface ProviderFactory {
   createProvider(
     type: ProviderType,
     config: LightSpeedServiceSettings,
+    apiKey?: string,
   ): LLMProvider;
   getSupportedProviders(): ProviderInfo[];
   validateProviderConfig(
     type: ProviderType,
     config: LightSpeedServiceSettings,
+    apiKey?: string,
   ): boolean;
 }

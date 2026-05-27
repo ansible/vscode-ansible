@@ -8,11 +8,12 @@ export function getContainerEngine(containerEngine: string): string {
 
   let isCEFound = false;
   for (const ce of ["podman", "docker"]) {
-    try {
-      child_process.execSync(`which ${ce}`, {
-        encoding: "utf-8",
-      });
-    } catch {
+    const result = child_process.spawnSync("which", [ce], {
+      encoding: "utf-8",
+      shell: false,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    if (result.status !== 0) {
       continue;
     }
     engine = ce;

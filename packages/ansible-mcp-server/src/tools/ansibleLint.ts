@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { quote } from "shell-quote";
+import { validatePathWithinWorkspace } from "@src/utils/pathValidation.js";
 
 /**
  * Lints Ansible playbook file using the ansible-lint CLI.
@@ -14,6 +15,7 @@ import { quote } from "shell-quote";
 export async function runAnsibleLint(
   filePath: string,
   fix: boolean = false,
+  workspaceRoot?: string,
 ): Promise<{ result: unknown; fixedContent?: string }> {
   if (!filePath) {
     throw new Error("No file path was provided for linting.");
@@ -21,6 +23,10 @@ export async function runAnsibleLint(
 
   // Resolve the file path to absolute path
   const absolutePath = resolve(filePath);
+
+  if (workspaceRoot) {
+    validatePathWithinWorkspace(absolutePath, workspaceRoot);
+  }
 
   // Check if file exists
   try {

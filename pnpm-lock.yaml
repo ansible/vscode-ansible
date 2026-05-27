@@ -291,6 +291,9 @@ importers:
       lodash:
         specifier: ^4.17.23
         version: 4.18.1
+      shell-quote:
+        specifier: ^1.8.3
+        version: 1.8.3
       uuid:
         specifier: ^14.0.0
         version: 14.0.0
@@ -316,6 +319,9 @@ importers:
       '@types/node':
         specifier: ^24.10.2
         version: 24.12.0
+      '@types/shell-quote':
+        specifier: ^1
+        version: 1.7.5
       '@types/vscode':
         specifier: ^1.85.0
         version: 1.110.0
@@ -325,9 +331,6 @@ importers:
       rimraf:
         specifier: ^6.1.3
         version: 6.1.3
-      shell-quote:
-        specifier: ^1.8.3
-        version: 1.8.3
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
