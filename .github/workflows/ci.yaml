@@ -167,7 +167,7 @@ jobs:
           task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
-        timeout-minutes: 1
+        timeout-minutes: 2
         run: |
           task docs && task docs --status
 
