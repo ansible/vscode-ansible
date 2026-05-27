@@ -461,7 +461,8 @@
             "type": "string",
             "enum": [
               "wca",
-              "google"
+              "google",
+              "rhcustom"
             ],
             "default": "wca",
             "markdownDescription": "LLM provider to use.",
