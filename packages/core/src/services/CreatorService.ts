@@ -8,7 +8,6 @@ try {
     // Running standalone (not in VS Code)
 }
 
-import { PythonEnvironmentApi } from '../types/pythonEnvApi';
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 
 /**
@@ -40,12 +39,15 @@ export interface SchemaNode {
  * Service for managing Ansible Creator functionality.
  * This service works both in VS Code and standalone (for MCP server).
  */
+export type CreatorStatus = 'unknown' | 'not-installed' | 'outdated' | 'ready';
+
 export class CreatorService {
     private static _instance: CreatorService | undefined;
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _schema: SchemaNode | null = null;
     private _loading: boolean = false;
     private _loaded: boolean = false;
+    private _status: CreatorStatus = 'unknown';
+    private _installedVersion: string | undefined;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
@@ -89,27 +91,6 @@ export class CreatorService {
     }
 
     /**
-     * Initialize the service with the Python Environment API (VS Code only)
-     */
-    public async initialize(): Promise<void> {
-        if (this._pythonEnvApi || !vscode) {
-            return;
-        }
-
-        try {
-            const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-            if (pythonEnvExtension) {
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-                this._pythonEnvApi = pythonEnvExtension.exports;
-            }
-        } catch (error) {
-            this._log(`Failed to get Python Environments API: ${error}`);
-        }
-    }
-
-    /**
      * Check if the service is currently loading data
      */
     public isLoading(): boolean {
@@ -130,12 +111,21 @@ export class CreatorService {
         return this._schema;
     }
 
+    public getStatus(): CreatorStatus {
+        return this._status;
+    }
+
+    public getInstalledVersion(): string | undefined {
+        return this._installedVersion;
+    }
+
     /**
      * Refresh the schema
      */
     public async refresh(): Promise<void> {
         this._schema = null;
         this._loaded = false;
+        this._status = 'unknown';
         (this._onDidChange as { fire: () => void }).fire();
         await this.loadSchema();
     }
@@ -158,25 +148,43 @@ export class CreatorService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
-            // Use CommandService to run ansible-creator schema
+
             const result = await commandService.runTool('ansible-creator', ['schema']);
-            
+
             if (result.exitCode !== 0) {
                 this._log(`ansible-creator schema failed: ${result.stderr}`);
+                // Distinguish "not installed" from "installed but too old"
+                const isInvalidChoice = result.stderr?.includes('invalid choice');
+                if (isInvalidChoice) {
+                    this._status = 'outdated';
+                    // Try to get the installed version for the UI
+                    try {
+                        const vResult = await commandService.runTool('ansible-creator', ['--version']);
+                        if (vResult.exitCode === 0 && vResult.stdout) {
+                            this._installedVersion = vResult.stdout.trim().split(/\s+/).pop();
+                        }
+                    } catch {
+                        // version check is best-effort
+                    }
+                    this._log(`ansible-creator is installed (${this._installedVersion ?? 'unknown version'}) but too old — 'schema' subcommand not available`);
+                } else {
+                    this._status = 'not-installed';
+                }
                 return null;
             }
 
             if (result.stdout) {
                 this._schema = JSON.parse(result.stdout);
                 this._loaded = true;
+                this._status = 'ready';
                 this._log('Schema loaded successfully');
             }
 
             return this._schema;
         } catch (error) {
             this._log(`Error loading schema: ${error}`);
-            throw error;
+            this._status = 'not-installed';
+            return null;
         } finally {
             this._loading = false;
             (this._onDidChange as { fire: () => void }).fire();

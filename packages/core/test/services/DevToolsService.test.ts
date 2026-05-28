@@ -161,7 +161,7 @@ describe("DevToolsService", () => {
 
   it("install throws when not in vscode", async () => {
     const svc = DevToolsService.getInstance();
-    await expect(svc.install()).rejects.toThrow("install is only available in VS Code");
+    await expect(svc.install()).rejects.toThrow("Package installation requires");
   });
 
   it("isInVSCode is false in test environment", () => {
@@ -261,7 +261,7 @@ describe("DevToolsService", () => {
 
   it("install throws when not in VS Code", async () => {
     const svc = DevToolsService.getInstance();
-    await expect(svc.install()).rejects.toThrow("install is only available in VS Code");
+    await expect(svc.install()).rejects.toThrow("Package installation requires");
   });
 
   it("upgrade throws when not in VS Code", async () => {

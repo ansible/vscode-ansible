@@ -14,10 +14,10 @@ export {
 } from './services/CollectionsService';
 
 export { CommandService, getCommandService } from './services/CommandService';
-export type { CommandOptions, ExecResult } from './services/CommandService';
+export type { CommandOptions, ExecResult, BinDirResolver } from './services/CommandService';
 
 export { CreatorService } from './services/CreatorService';
-export type { ParameterSchema, SchemaNode } from './services/CreatorService';
+export type { ParameterSchema, SchemaNode, CreatorStatus } from './services/CreatorService';
 
 export { DevToolsService } from './services/DevToolsService';
 export type { DevToolPackage } from './services/DevToolsService';

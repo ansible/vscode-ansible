@@ -29,7 +29,7 @@ interface CollectionsCache {
     pluginDocs?: { [fqcnAndType: string]: PluginData };
 }
 
-import { PythonEnvironmentApi } from '../types/pythonEnvApi';
+
 
 /**
  * Information about an Ansible collection
@@ -308,7 +308,6 @@ function cacheToMaps(cache: CollectionsCache): CacheResult {
  */
 export class CollectionsService {
     private static _instance: CollectionsService | undefined;
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _collections: Map<string, CollectionData> = new Map();
     private _pluginDocs: Map<string, PluginData> = new Map();
     private _loading: boolean = false;
@@ -337,32 +336,8 @@ export class CollectionsService {
         return CollectionsService._instance;
     }
 
-    /**
-     * Check if running in VS Code
-     */
     public isInVSCode(): boolean {
         return vscode !== undefined;
-    }
-
-    /**
-     * Initialize the service with the Python Environment API (VS Code only)
-     */
-    public async initialize(): Promise<void> {
-        if (this._pythonEnvApi || !vscode) {
-            return;
-        }
-
-        try {
-            const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-            if (pythonEnvExtension) {
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-                this._pythonEnvApi = pythonEnvExtension.exports;
-            }
-        } catch (error) {
-            console.error('CollectionsService: Failed to get Python Environments API:', error);
-        }
     }
 
     /**
@@ -528,19 +503,9 @@ export class CollectionsService {
      * Perform a full load of collections
      */
     private async _doFullLoad(): Promise<void> {
-        // Clear and load fresh
         this._collections.clear();
         this._pluginDocs.clear();
-        
-        if (vscode) {
-            await this.initialize();
-        }
-        
-        if (vscode && this._pythonEnvApi) {
-            await this._loadCollectionsVSCode();
-        } else {
-            await this._loadCollectionsStandalone();
-        }
+        await this._loadCollectionsWithCommandService();
     }
     
     /**
@@ -568,16 +533,7 @@ export class CollectionsService {
             const tempDocs = new Map<string, PluginData>();
             const oldCount = this._collections.size;
             
-            if (vscode) {
-                await this.initialize();
-            }
-            
-            // Load directly into temp maps (this._collections is untouched)
-            if (vscode && this._pythonEnvApi) {
-                await this._loadCollectionsVSCode(tempCollections, tempDocs);
-            } else {
-                await this._loadCollectionsStandalone(tempCollections, tempDocs);
-            }
+            await this._loadCollectionsWithCommandService(tempCollections, tempDocs);
             
             // Now swap atomically after load is complete
             const newCount = tempCollections.size;
@@ -801,14 +757,6 @@ export class CollectionsService {
             'keyword': '-t keyword'
         };
         return typeMap[pluginType] || '';
-    }
-
-    private async _loadCollectionsVSCode(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
-        await this._loadCollectionsWithCommandService(targetMap, targetDocs);
-    }
-
-    private async _loadCollectionsStandalone(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
-        await this._loadCollectionsWithCommandService(targetMap, targetDocs);
     }
 
     private async _loadCollectionsWithCommandService(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {

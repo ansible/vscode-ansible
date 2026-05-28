@@ -292,15 +292,36 @@ describe("CreatorService", () => {
     expect(svc.isLoaded()).toBe(false);
   });
 
-  it("loadSchema propagates JSON parse errors", async () => {
+  it("loadSchema returns null on JSON parse errors", async () => {
     mocks.mockRunTool.mockResolvedValue({
       exitCode: 0,
       stdout: "{not-json",
       stderr: "",
     });
     const svc = CreatorService.getInstance();
-    await expect(svc.loadSchema()).rejects.toThrow();
+    const schema = await svc.loadSchema();
+    expect(schema).toBeNull();
     expect(svc.isLoading()).toBe(false);
+    expect(svc.getStatus()).toBe("not-installed");
+  });
+
+  it("loadSchema sets status to outdated when schema subcommand is invalid choice", async () => {
+    mocks.mockRunTool
+      .mockResolvedValueOnce({
+        exitCode: 2,
+        stdout: "",
+        stderr: "error: argument command: invalid choice: 'schema' (choose from add, init)",
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "ansible-creator 24.12.1",
+        stderr: "",
+      });
+    const svc = CreatorService.getInstance();
+    const schema = await svc.loadSchema();
+    expect(schema).toBeNull();
+    expect(svc.getStatus()).toBe("outdated");
+    expect(svc.getInstalledVersion()).toBe("24.12.1");
   });
 
   it("getCommands returns empty when schema is not loaded", () => {

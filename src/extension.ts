@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import * as path from 'path';
 import {
     LanguageClient,
@@ -18,6 +19,7 @@ import { PlaybookConfigPanel } from './panels/PlaybookConfigPanel';
 import { PlaybookProgressPanel } from './panels/PlaybookProgressPanel';
 import { PlaybooksService, PlaybookInfo, PlaybookPlay } from './services/PlaybooksService';
 import { TerminalService } from './services/TerminalService';
+import { PythonEnvironmentService } from './services/PythonEnvironmentService';
 import { McpToolsProvider, injectToolPromptIntoChat } from './views/McpToolsProvider';
 import { CollectionSourcesProvider, setCollectionSourcesLogFunction } from './views/CollectionSourcesProvider';
 import {
@@ -26,8 +28,9 @@ import {
     setLogFunction as setCollectionsLogFunction,
     DevToolsService,
     cacheSelectedEnvironment,
+    getCommandService,
 } from '@ansible/core';
-import type { PythonEnvironment, PythonEnvironmentApi, SchemaNode } from '@ansible/core';
+import type { PythonEnvironment, SchemaNode } from '@ansible/core';
 import { registerMcpServerProvider, isMcpAvailable, configureCursorMcp, showCursorMcpStatus, getMcpStatus } from './mcp';
 import { getLlmService } from './services/LlmService';
 import { registerFileAssociation } from './features/fileAssociation';
@@ -36,10 +39,43 @@ import { registerVaultCommand } from './features/vault';
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible Environments');
 
+let _logFilePath: string | undefined;
+let _logStream: fs.WriteStream | undefined;
+const _LOG_MAX_SIZE = 512 * 1024; // 512 KB — rotate when exceeded
+
+function _ensureLogFile(context: vscode.ExtensionContext): string {
+    if (_logFilePath) {
+        return _logFilePath;
+    }
+    const logDir = context.logUri.fsPath;
+    fs.mkdirSync(logDir, { recursive: true });
+    _logFilePath = path.join(logDir, 'ansible-extension.log');
+
+    // Rotate if oversized
+    try {
+        const stat = fs.statSync(_logFilePath);
+        if (stat.size > _LOG_MAX_SIZE) {
+            const prev = `${_logFilePath}.1`;
+            fs.renameSync(_logFilePath, prev);
+        }
+    } catch {
+        // File doesn't exist yet — fine
+    }
+
+    _logStream = fs.createWriteStream(_logFilePath, { flags: 'a' });
+    return _logFilePath;
+}
+
 export function log(message: string) {
     const timestamp = new Date().toISOString();
-    outputChannel.appendLine(`[${timestamp}] ${message}`);
-    console.log(message);
+    const line = `[${timestamp}] ${message}`;
+    outputChannel.appendLine(line);
+    _logStream?.write(line + '\n');
+}
+
+/** Path to the current log file (available after activation). */
+export function getLogFilePath(): string | undefined {
+    return _logFilePath;
 }
 
 /**
@@ -97,7 +133,11 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    outputChannel.show(true); // Show the output channel on activation
+    // Initialize file-based logging (before anything else so all messages are captured)
+    const logFile = _ensureLogFile(context);
+    log(`Log file: ${logFile}`);
+
+    outputChannel.show(true);
 
     registerFileAssociation(context);
     registerVaultCommand(context);
@@ -177,8 +217,76 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(languageClient);
     log('Ansible Language Server started');
 
+    // Initialize centralized Python environment service (handles PET detection,
+    // ms-python.python fallback, and environment change events)
+    const pythonEnvService = PythonEnvironmentService.getInstance();
+    context.subscriptions.push(pythonEnvService);
+
+    // Wire terminal service to Python environment service
+    const terminalService = TerminalService.getInstance();
+    terminalService.setPythonEnvService(pythonEnvService);
+
+    // Wire terminal factory into DevToolsService so upgrade works in all editors
+    DevToolsService.setTerminalServiceFactory(() => TerminalService);
+
+    pythonEnvService.initialize().then((available) => {
+        log(`Python Environment Service initialized: available=${available}, fullApi=${pythonEnvService.hasFullApi()}`);
+
+        // Inject bin dir resolver into CommandService so @ansible/core
+        // can locate tools without depending on vscode directly
+        const commandService = getCommandService();
+        commandService.setBinDirResolver(async (workspaceUri) => {
+            const env = await pythonEnvService.getEnvironment(workspaceUri as vscode.Uri | undefined);
+            if (env?.execInfo?.run?.executable) {
+                const p = await import('path');
+                return p.dirname(env.execInfo.run.executable);
+            }
+            return null;
+        });
+
+        // Wire package installer into DevToolsService when full API is available
+        if (pythonEnvService.hasFullApi()) {
+            const devToolsService = DevToolsService.getInstance();
+            devToolsService.setPackageInstaller(async () => {
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+                const env = await pythonEnvService.getEnvironment(workspaceFolder);
+                if (!env) {
+                    throw new Error('No Python environment selected');
+                }
+                await pythonEnvService.managePackages(env, {
+                    install: ['ansible-dev-tools'],
+                    upgrade: false,
+                });
+            });
+        }
+
+        // Cache environment for standalone consumers (MCP server, language server)
+        const refreshCache = async () => {
+            try {
+                const env = await pythonEnvService.getEnvironment();
+                if (env?.execInfo?.run?.executable) {
+                    const execPath = env.execInfo.run.executable;
+                    log(`Caching environment: ${env.displayName} (${execPath})`);
+                    cacheSelectedEnvironment(execPath, env.displayName);
+                } else {
+                    log('No environment executable found to cache');
+                }
+            } catch (error) {
+                log(`Failed to refresh environment cache: ${error}`);
+            }
+        };
+
+        const envCacheListener = pythonEnvService.onDidChangeEnvironment(() => {
+            setTimeout(refreshCache, 500);
+        });
+        context.subscriptions.push(envCacheListener);
+        setTimeout(refreshCache, 2000);
+    }).catch((error) => {
+        log(`Python Environment Service initialization failed: ${error}`);
+    });
+
     // Register the Environment Managers view
-    const envManagersProvider = new EnvironmentManagersProvider();
+    const envManagersProvider = new EnvironmentManagersProvider(pythonEnvService);
     const envManagersView = vscode.window.createTreeView('ansibleDevToolsEnvManagers', {
         treeDataProvider: envManagersProvider,
         showCollapseAll: true
@@ -186,7 +294,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(envManagersView);
 
     // Register the Packages view
-    const devToolsProvider = new AnsibleDevToolsProvider();
+    const devToolsProvider = new AnsibleDevToolsProvider(pythonEnvService);
     const packagesView = vscode.window.createTreeView('ansibleDevToolsPackages', {
         treeDataProvider: devToolsProvider,
         showCollapseAll: false
@@ -194,7 +302,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(packagesView);
 
     // Register the Collections view
-    const collectionsProvider = new CollectionsProvider();
+    const collectionsProvider = new CollectionsProvider(pythonEnvService);
     const collectionsView = vscode.window.createTreeView('ansibleDevToolsCollections', {
         treeDataProvider: collectionsProvider,
         showCollapseAll: true
@@ -294,25 +402,13 @@ export function activate(context: vscode.ExtensionContext) {
         'ansibleDevToolsEnvManagers.create',
         async () => {
             try {
-                const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-                if (!pythonEnvExtension) {
-                    vscode.window.showErrorMessage('Python Environments extension not found.');
-                    return;
-                }
-
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-
-                const api = pythonEnvExtension.exports;
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-
                 if (!workspaceFolder) {
                     vscode.window.showErrorMessage('No workspace folder open.');
                     return;
                 }
 
-                const environment = await api.createEnvironment(workspaceFolder, {
+                const environment = await pythonEnvService.createEnvironment(workspaceFolder, {
                     quickCreate: false
                 });
 
@@ -332,17 +428,6 @@ export function activate(context: vscode.ExtensionContext) {
         'ansibleDevTools.selectEnvironment',
         async (environment: PythonEnvironment) => {
             try {
-                const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-                if (!pythonEnvExtension) {
-                    vscode.window.showErrorMessage('Python Environments extension not found.');
-                    return;
-                }
-
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-
-                const api = pythonEnvExtension.exports;
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
 
                 // Check if this is a global/system environment
@@ -356,19 +441,16 @@ export function activate(context: vscode.ExtensionContext) {
                     );
                     
                     if (selection === 'Create Virtual Environment') {
-                        // Trigger the create environment command
                         vscode.commands.executeCommand('ansibleDevToolsEnvManagers.create');
                         return;
                     } else if (selection !== 'Use Anyway') {
-                        // User cancelled
                         return;
                     }
                 }
 
-                await api.setEnvironment(workspaceFolder, environment);
+                await pythonEnvService.setEnvironment(workspaceFolder, environment);
                 vscode.window.showInformationMessage(`Selected environment: ${environment.displayName}`);
                 
-                // Refresh all views
                 envManagersProvider.refresh();
                 devToolsProvider.refresh();
                 collectionsProvider.refresh();
@@ -1070,67 +1152,9 @@ Please:
         showLlmStatusCommand
     );
 
-    // Check if Python Environments extension is available and set up environment caching
-    const pythonEnvsExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-    if (!pythonEnvsExtension) {
-        vscode.window.showErrorMessage(
-            'The Microsoft Python Environments extension is required. Please install it from the marketplace.',
-            'Install'
-        ).then(selection => {
-            if (selection === 'Install') {
-                vscode.commands.executeCommand(
-                    'workbench.extensions.installExtension',
-                    'ms-python.vscode-python-envs'
-                );
-            }
-        });
-    } else {
-        // Set up environment caching for standalone MCP server
-        // Use the same pattern as the UI providers - refresh cache when environment changes
-        (async () => {
-            try {
-                if (!pythonEnvsExtension.isActive) {
-                    await pythonEnvsExtension.activate();
-                }
-                const api = pythonEnvsExtension.exports;
-                
-                // Helper to refresh the cache - always fetches current environment from API
-                const refreshCache = async () => {
-                    try {
-                        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-                        const currentEnv = await api.getEnvironment(workspaceFolder);
-                        
-                        if (currentEnv?.execInfo?.run?.executable) {
-                            const execPath = currentEnv.execInfo.run.executable;
-                            log(`Caching environment: ${currentEnv.displayName} (${execPath})`);
-                            cacheSelectedEnvironment(execPath, currentEnv.displayName);
-                        } else {
-                            log(`No environment executable found to cache`);
-                        }
-                    } catch (error) {
-                        log(`Failed to refresh environment cache: ${error}`);
-                    }
-                };
-                
-                // Listen for environment changes - refresh cache when it changes
-                if (api.onDidChangeEnvironment) {
-                    const envCacheListener = api.onDidChangeEnvironment(async () => {
-                        // Use a small delay to ensure the change is fully processed
-                        setTimeout(refreshCache, 500);
-                    });
-                    context.subscriptions.push(envCacheListener);
-                }
-                
-                // Initial cache after a delay to let Python extension discover venvs
-                setTimeout(refreshCache, 2000);
-                
-            } catch (error) {
-                log(`Failed to set up environment caching: ${error}`);
-            }
-        })();
-    }
 }
 
 export function deactivate(): void {
+    _logStream?.end();
     outputChannel.dispose();
 }
