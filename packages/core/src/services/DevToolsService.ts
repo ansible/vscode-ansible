@@ -6,11 +6,14 @@ try {
     // Running standalone (not in VS Code)
 }
 
+import * as path from 'path';
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
+import { log } from '../utils/logging';
 
 export interface DevToolPackage {
     name: string;
     version: string;
+    location?: string;
 }
 
 /**
@@ -124,6 +127,7 @@ export class DevToolsService {
             );
         }
         await this._packageInstaller();
+        await this.refresh();
     }
 
     /**
@@ -145,7 +149,9 @@ export class DevToolsService {
             name: 'Upgrade ansible-dev-tools',
             show: true,
         });
-        managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', { waitForCompletion: false });
+        await managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', { waitForCompletion: true });
+        log('DevToolsService: upgrade complete, refreshing packages');
+        await this.refresh();
     }
 
     /**
@@ -156,25 +162,33 @@ export class DevToolsService {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
             
+            const adtPath = await commandService.getToolPath('adt');
+            log(`DevToolsService: adt resolved to ${adtPath ?? 'not found'}`);
             const result = await commandService.runTool('adt', ['--version']);
             
             if (result.exitCode !== 0) {
-                console.error('DevToolsService: adt not found or failed');
+                log('DevToolsService: adt not found or failed');
                 this._packages = [];
                 return;
             }
 
+            const binDir = adtPath ? path.dirname(adtPath) : undefined;
+            log(`DevToolsService: using binDir ${binDir ?? 'none'}`);
+
             // Parse the adt --version output
             const packages: DevToolPackage[] = [];
+            const exeSuffix = process.platform === 'win32' ? '.exe' : '';
             const lines = result.stdout.trim().split('\n');
             for (const line of lines) {
                 const match = line.match(/^(\S+)\s+(\S+)$/);
                 if (match) {
-                    packages.push({ name: match[1], version: match[2] });
+                    const toolPath = binDir ? path.join(binDir, match[1] + exeSuffix) : undefined;
+                    packages.push({ name: match[1], version: match[2], location: toolPath });
                 }
             }
 
             this._packages = packages;
+            log(`DevToolsService: loaded ${packages.length} packages from ${binDir ?? 'PATH'}`);
         } catch (error) {
             console.error('DevToolsService: Failed to load packages:', error);
             this._packages = [];

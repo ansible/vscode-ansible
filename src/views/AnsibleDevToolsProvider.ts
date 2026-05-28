@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DevToolsService } from '@ansible/core';
 import type { DevToolPackage } from '@ansible/core';
 import type { PythonEnvironmentService } from '../services/PythonEnvironmentService';
+import { log } from '../extension';
 
 export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolPackage> {
     private _onDidChangeTreeData: vscode.EventEmitter<DevToolPackage | undefined | null | void> = new vscode.EventEmitter<DevToolPackage | undefined | null | void>();
@@ -10,6 +11,7 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
     private _service: DevToolsService;
     private _envListener: vscode.Disposable | undefined;
     private _serviceListener: vscode.Disposable | undefined;
+    private _refreshDebounce: ReturnType<typeof setTimeout> | undefined;
 
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = DevToolsService.getInstance();
@@ -26,12 +28,23 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
             await pythonEnvService.initialize();
 
             this._envListener = pythonEnvService.onDidChangeEnvironment(() => {
-                this.refresh();
+                log('AnsibleDevToolsProvider: environment changed, scheduling refresh');
+                if (this._refreshDebounce) {
+                    clearTimeout(this._refreshDebounce);
+                }
+                this._refreshDebounce = setTimeout(() => {
+                    this._refreshDebounce = undefined;
+                    void this.refresh();
+                }, 1000);
             });
 
-            await this.refresh();
+            // Don't refresh eagerly — wait for the environment change event
+            // which fires once the Python extension has discovered environments.
+            // An eager refresh here would resolve tools from ~/.local/bin
+            // because the venv hasn't been discovered yet.
+            log('AnsibleDevToolsProvider: initialized, waiting for environment discovery');
         } catch (error) {
-            console.error('Failed to initialize AnsibleDevToolsProvider:', error);
+            log(`AnsibleDevToolsProvider: init failed: ${error}`);
         }
     }
 
@@ -44,6 +57,9 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         item.description = element.version;
         item.iconPath = new vscode.ThemeIcon('package');
         item.contextValue = 'devToolPackage';
+        if (element.location) {
+            item.tooltip = element.location;
+        }
         return item;
     }
 
@@ -59,6 +75,9 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
     }
 
     dispose() {
+        if (this._refreshDebounce) {
+            clearTimeout(this._refreshDebounce);
+        }
         this._envListener?.dispose();
         this._serviceListener?.dispose();
         this._onDidChangeTreeData.dispose();

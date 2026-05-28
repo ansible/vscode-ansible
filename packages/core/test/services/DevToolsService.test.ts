@@ -10,10 +10,13 @@ ansible-navigator 24.2.0
 
 const mocks = vi.hoisted(() => {
   const mockRunTool = vi.fn();
+  const mockGetToolPath = vi.fn();
   return {
     mockRunTool,
+    mockGetToolPath,
     getCommandService: vi.fn(() => ({
       runTool: mockRunTool,
+      getToolPath: mockGetToolPath,
     })),
   };
 });
@@ -35,9 +38,12 @@ describe("DevToolsService", () => {
   beforeEach(() => {
     resetDevToolsSingleton();
     mocks.mockRunTool.mockReset();
+    mocks.mockGetToolPath.mockReset();
     mocks.getCommandService.mockClear();
+    mocks.mockGetToolPath.mockResolvedValue("/mock/bin/adt");
     mocks.getCommandService.mockImplementation(() => ({
       runTool: mocks.mockRunTool,
+      getToolPath: mocks.mockGetToolPath,
     }));
   });
 
@@ -115,7 +121,7 @@ describe("DevToolsService", () => {
     });
     const svc = DevToolsService.getInstance();
     await svc.refresh();
-    expect(svc.getPackages()[0]).toEqual({ name: "ansible-builder", version: "24.2.0" });
+    expect(svc.getPackages()[0]).toEqual({ name: "ansible-builder", version: "24.2.0", location: "/mock/bin/ansible-builder" });
   });
 
   it("hasPackages returns true or false correctly", async () => {
@@ -138,7 +144,7 @@ describe("DevToolsService", () => {
     });
     const svc = DevToolsService.getInstance();
     await svc.refresh();
-    expect(svc.getPackage("ansible-lint")).toEqual({ name: "ansible-lint", version: "24.2.0" });
+    expect(svc.getPackage("ansible-lint")).toEqual({ name: "ansible-lint", version: "24.2.0", location: "/mock/bin/ansible-lint" });
   });
 
   it("getPackage returns undefined for unknown name", async () => {
@@ -225,7 +231,7 @@ describe("DevToolsService", () => {
     });
     const svc = DevToolsService.getInstance();
     await svc.refresh();
-    expect(svc.getPackage("ansible-lint")).toEqual({ name: "ansible-lint", version: "6.0.0" });
+    expect(svc.getPackage("ansible-lint")).toEqual({ name: "ansible-lint", version: "6.0.0", location: "/mock/bin/ansible-lint" });
   });
 
   it("refresh handles adt failure with non-zero exit code", async () => {
