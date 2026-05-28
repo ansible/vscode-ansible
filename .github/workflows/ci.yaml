@@ -765,7 +765,7 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install --frozen-lockfile
+          pnpm install -y --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces
