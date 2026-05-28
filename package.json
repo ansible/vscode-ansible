@@ -1167,37 +1167,12 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@11.4.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ansible/vscode-ansible.git"
-  },
-  "pnpm": {
-    "overrides": {
-      "rollup": "npm:@rollup/wasm-node@*"
-    },
-    "patchedDependencies": {
-      "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
-    },
-    "packageExtensions": {
-      "cypress-multi-reporters@*": {
-        "dependencies": {
-          "mocha": "*"
-        }
-      },
-      "mocha-junit-reporter@*": {
-        "dependencies": {
-          "mocha": "*"
-        }
-      },
-      "mocha-multi-reporters@*": {
-        "dependencies": {
-          "mocha": "*"
-        }
-      }
-    }
   },
   "scripts": {
     "build": "pnpm -r run compile",

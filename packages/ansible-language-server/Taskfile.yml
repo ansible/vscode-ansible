@@ -31,7 +31,7 @@ tasks:
       - setup
     cmds:
       - pnpm run compile
-      - pnpm exec ansible-language-server --generate-docs ../../docs/als/settings.md
+      - node dist/cli.cjs --generate-docs ../../docs/als/settings.md
     generates:
       - lib/**/*.*
     sources:

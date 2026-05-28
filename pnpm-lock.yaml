@@ -10,9 +10,7 @@ overrides:
 packageExtensionsChecksum: sha256-aFRaYtZLvfkyedP3TSQbgNuU5y3GOl4Ou/9gmySVprU=
 
 patchedDependencies:
-  '@vscode/test-cli@0.0.12':
-    hash: e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2
-    path: patches/@vscode__test-cli@0.0.12.patch
+  '@vscode/test-cli@0.0.12': e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2
 
 importers:
 
@@ -1734,8 +1732,8 @@ packages:
   '@rolldown/pluginutils@1.0.0-rc.2':
     resolution: {integrity: sha512-izyXV/v+cHiRfozX62W9htOAvwMo4/bXKDrQ+vom1L1qRuexPock/7VZDAhnpHCLNejd3NJ6hiab+tO0D44Rgw==}
 
-  '@rollup/wasm-node@4.60.3':
-    resolution: {integrity: sha512-SVhQ4TJk0BvnJKwceVsCWHtmquucfjU0eu+Bonrjb6W3zombkA/tqw1efaqT2BONX/TJniqkzumF6Sz/sXMJ2w==}
+  '@rollup/wasm-node@4.60.4':
+    resolution: {integrity: sha512-j6qaRjdDujJ5utX5l6+8eiWlvMLmBfPMBht8mHP2au3xuzf+4deu6PuCquH5GvDIvIOsWHZhA1UVz/s0FvvgAA==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -8074,7 +8072,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-rc.2': {}
 
-  '@rollup/wasm-node@4.60.3':
+  '@rollup/wasm-node@4.60.4':
     dependencies:
       '@types/estree': 1.0.8
     optionalDependencies:
@@ -10731,7 +10729,7 @@ snapshots:
     dependencies:
       magic-string: 0.30.21
       mlly: 1.8.2
-      rollup: '@rollup/wasm-node@4.60.3'
+      rollup: '@rollup/wasm-node@4.60.4'
 
   flat-cache@4.0.1:
     dependencies:
@@ -13554,7 +13552,7 @@ snapshots:
       picocolors: 1.1.1
       postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.14)(tsx@4.21.0)(yaml@2.8.3)
       resolve-from: 5.0.0
-      rollup: '@rollup/wasm-node@4.60.3'
+      rollup: '@rollup/wasm-node@4.60.4'
       source-map: 0.7.6
       sucrase: 3.35.1
       tinyexec: 0.3.2
