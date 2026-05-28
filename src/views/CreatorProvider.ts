@@ -114,7 +114,21 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
 
             const schema = this._service.getSchema();
             if (!schema) {
-                // Check if ansible-creator is not installed
+                const status = this._service.getStatus();
+                if (status === 'outdated') {
+                    const ver = this._service.getInstalledVersion();
+                    return [
+                        new MessageNode('ansible-creator outdated', {
+                            description: ver ? `v${ver} — upgrade required` : 'Upgrade required',
+                            tooltip: 'The installed ansible-creator does not support the "schema" subcommand.\nUpgrade ansible-dev-tools to get the latest version.',
+                            icon: 'warning',
+                            command: {
+                                command: 'ansibleDevToolsPackages.upgrade',
+                                title: 'Upgrade ansible-dev-tools'
+                            }
+                        })
+                    ];
+                }
                 return [
                     new MessageNode('ansible-creator not found', {
                         description: 'Click to install',

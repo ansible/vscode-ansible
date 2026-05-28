@@ -1,7 +1,8 @@
 ---
 title: Add Python environment API fallback for non-PET editors
 created: 2026-05-26
-status: pending
+completed: 2026-05-28
+status: done
 priority: high
 scope: extension
 ---
@@ -25,14 +26,23 @@ discovery fails entirely on these platforms.
 
 ## Acceptance criteria
 
-- [ ] Detect when PET binary is missing from the vscode-python-envs
+- [x] Detect when PET binary is missing from the vscode-python-envs
       extension path
-- [ ] Fall back to `ms-python.python` `PythonExtension` API for
+- [x] Fall back to `ms-python.python` `PythonExtension` API for
       environment resolution
-- [ ] Show a non-intrusive warning that environment discovery may be
+- [x] Show a non-intrusive warning that environment discovery may be
       degraded
-- [ ] Environment change events work through both paths
-- [ ] Works on VSCodium, Dev Spaces, and other OpenVSX editors
+- [x] Environment change events work through both paths
+- [x] Works on VSCodium, Dev Spaces, and other OpenVSX editors
+
+## Resolution
+
+Implemented in PR #2810. Created `PythonEnvironmentService` as a
+centralized singleton that detects PET availability and falls back
+to `ms-python.python`. Also fixed race conditions in the environment
+list, added symlink-aware deduplication, wired the TerminalService
+factory for upgrade support in Cursor, and added outdated
+ansible-creator detection.
 
 ## Notes
 

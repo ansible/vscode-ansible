@@ -3,6 +3,10 @@
  * 
  * Centralized service for running commands with the correct Python environment.
  * Ensures all commands use the workspace's venv when available.
+ *
+ * In VS Code, the extension injects a bin dir resolver via setBinDirResolver()
+ * that delegates to PythonEnvironmentService. In standalone mode (MCP server),
+ * the service falls back to the environment cache and PATH.
  */
 
 import * as cp from 'child_process';
@@ -10,7 +14,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 
-// Conditional vscode import
+// Conditional vscode import — only used for workspace folder resolution
 let vscode: typeof import('vscode') | undefined;
 try {
     vscode = require('vscode');
@@ -21,6 +25,8 @@ try {
 import { getCachedBinDir, getCachedToolPath, findExecutableWithCache } from './EnvironmentCache';
 
 const execAsync = promisify(cp.exec);
+
+export type BinDirResolver = (workspaceUri?: unknown) => Promise<string | null>;
 
 export interface CommandOptions {
     /** Working directory for the command */
@@ -44,8 +50,7 @@ export interface ExecResult {
  */
 export class CommandService {
     private static _instance: CommandService;
-    private _pythonEnvApi: unknown;
-    private _initialized = false;
+    private _binDirResolver: BinDirResolver | undefined;
 
     private constructor() {}
 
@@ -57,48 +62,25 @@ export class CommandService {
     }
 
     /**
-     * Initialize the service - gets the Python environment API
+     * Inject a bin dir resolver. Called by the extension at startup to wire
+     * PythonEnvironmentService into the core package without a hard vscode dep.
      */
-    public async initialize(): Promise<void> {
-        if (this._initialized || !vscode) {
-            return;
-        }
-
-        try {
-            const pythonExtension = vscode.extensions.getExtension('ms-python.vscode-python-envs');
-            if (pythonExtension) {
-                if (!pythonExtension.isActive) {
-                    await pythonExtension.activate();
-                }
-                this._pythonEnvApi = pythonExtension.exports;
-            }
-            this._initialized = true;
-        } catch (error) {
-            console.error('CommandService: Failed to initialize Python API:', error);
-        }
+    public setBinDirResolver(resolver: BinDirResolver): void {
+        this._binDirResolver = resolver;
     }
 
     /**
      * Get the bin directory for the current Python environment
      */
     public async getBinDir(workspaceUri?: unknown): Promise<string | null> {
-        await this.initialize();
-
-        // Try VS Code Python extension first
-        if (vscode && this._pythonEnvApi) {
+        if (this._binDirResolver) {
             try {
-                const api = this._pythonEnvApi as {
-                    getEnvironment: (uri: unknown) => Promise<{
-                        execInfo?: { run?: { executable?: string } }
-                    } | null>
-                };
-                const uri = workspaceUri || vscode.workspace.workspaceFolders?.[0]?.uri;
-                const env = await api.getEnvironment(uri);
-                if (env?.execInfo?.run?.executable) {
-                    return path.dirname(env.execInfo.run.executable);
+                const binDir = await this._binDirResolver(workspaceUri);
+                if (binDir) {
+                    return binDir;
                 }
             } catch (error) {
-                console.error('CommandService: Failed to get environment:', error);
+                console.error('CommandService: bin dir resolver failed:', error);
             }
         }
 

@@ -2,11 +2,11 @@
  * Terminal Service
  * 
  * Central dispatcher for terminal operations with Python venv support.
- * Handles waiting for Python extension activation before sending commands.
+ * Delegates Python environment resolution to PythonEnvironmentService.
  */
 
 import * as vscode from 'vscode';
-import type { PythonEnvironmentApi } from '@ansible/core';
+import type { PythonEnvironmentService } from './PythonEnvironmentService';
 
 export interface CommandResult {
     output: string;
@@ -39,8 +39,7 @@ export interface CreateTerminalOptions {
 export class TerminalService {
     private static _instance: TerminalService;
     private _disposables: vscode.Disposable[] = [];
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
-    private _initialized: boolean = false;
+    private _pythonEnvService: PythonEnvironmentService | undefined;
 
     private constructor() {}
 
@@ -52,33 +51,16 @@ export class TerminalService {
     }
 
     /**
-     * Initialize the service with Python extension API
+     * Inject the centralized Python environment service.
      */
-    public async initialize(): Promise<void> {
-        if (this._initialized) {
-            return;
-        }
-
-        const pythonExt = vscode.extensions.getExtension<PythonEnvironmentApi>(
-            'ms-python.vscode-python-envs'
-        );
-
-        if (pythonExt) {
-            if (!pythonExt.isActive) {
-                await pythonExt.activate();
-            }
-            this._pythonEnvApi = pythonExt.exports;
-        }
-
-        this._initialized = true;
+    public setPythonEnvService(service: PythonEnvironmentService): void {
+        this._pythonEnvService = service;
     }
 
     /**
      * Create a terminal with Python venv activated, waiting for activation to complete
      */
     public async createActivatedTerminal(options: CreateTerminalOptions): Promise<ManagedTerminal> {
-        await this.initialize();
-
         const workspaceFolder = options.cwd || vscode.workspace.workspaceFolders?.[0]?.uri;
         const showTerminal = options.show !== false;
         const activationTimeout = options.activationTimeout || 10000;
@@ -86,12 +68,11 @@ export class TerminalService {
         let terminal: vscode.Terminal;
         let expectActivation = false;
 
-        // Try to create terminal with Python environment
-        if (this._pythonEnvApi && workspaceFolder) {
-            const environment = await this._pythonEnvApi.getEnvironment(workspaceFolder);
+        if (this._pythonEnvService?.hasFullApi() && workspaceFolder) {
+            const environment = await this._pythonEnvService.getEnvironment(workspaceFolder);
             
             if (environment) {
-                terminal = await this._pythonEnvApi.createTerminal(environment, {
+                terminal = await this._pythonEnvService.createTerminal(environment, {
                     name: options.name,
                     cwd: workspaceFolder,
                 });
@@ -113,25 +94,21 @@ export class TerminalService {
             terminal.show();
         }
 
-        // Wait for process ID to be assigned
         await terminal.processId;
 
-        // If we expect Python activation, wait for it
         if (expectActivation) {
             await this._waitForActivation(terminal, activationTimeout);
         } else {
-            // Just wait for shell to be ready
             await this._waitForShellReady(terminal, activationTimeout);
         }
 
-        // Create managed terminal wrapper
         const disposables: vscode.Disposable[] = [];
 
         const sendCommand = async (
             command: string, 
             cmdOptions?: SendCommandOptions
         ): Promise<CommandResult> => {
-            const timeout = cmdOptions?.timeout || 300000; // 5 minutes default
+            const timeout = cmdOptions?.timeout || 300000;
             const waitForCompletion = cmdOptions?.waitForCompletion !== false;
 
             if (!waitForCompletion) {
@@ -150,24 +127,20 @@ export class TerminalService {
         return { terminal, sendCommand, dispose };
     }
 
-    /**
-     * Wait for Python venv activation to complete
-     */
     private async _waitForActivation(
         terminal: vscode.Terminal, 
         timeout: number
     ): Promise<void> {
-        // Try using Python extension's activation state API if available
-        if (this._pythonEnvApi?.onDidChangeTerminalActivationState) {
+        const activationEvent = this._pythonEnvService?.onDidChangeTerminalActivationState;
+        if (activationEvent) {
             return new Promise(resolve => {
-                const listener = this._pythonEnvApi!.onDidChangeTerminalActivationState!((event) => {
+                const listener = activationEvent((event) => {
                     if (event.terminal === terminal && event.activated) {
                         listener.dispose();
                         resolve();
                     }
                 });
 
-                // Timeout fallback
                 setTimeout(() => {
                     listener.dispose();
                     resolve();
@@ -175,37 +148,23 @@ export class TerminalService {
             });
         }
 
-        // Fallback: Simple delay to allow Python extension to activate
-        // The Python extension typically activates within 2-3 seconds
         await new Promise(resolve => setTimeout(resolve, Math.min(timeout, 3000)));
     }
 
-    /**
-     * Wait for shell to be ready (no Python activation expected)
-     */
     private async _waitForShellReady(
         _terminal: vscode.Terminal, 
         timeout: number
     ): Promise<void> {
-        // Simple delay to allow shell to initialize
         await new Promise(resolve => setTimeout(resolve, Math.min(timeout, 1000)));
     }
 
-    /**
-     * Send a command and capture its output
-     * Note: Output capture is not available without proposed APIs
-     * This method just sends the command and waits for timeout
-     */
     private async _sendAndCapture(
         terminal: vscode.Terminal,
         command: string,
         timeout: number
     ): Promise<CommandResult> {
-        // Without onDidWriteTerminalData API, we can't capture output
-        // Just send the command and use shell integration for exit code if available
         terminal.sendText(command);
 
-        // Try shell integration for exit code
         const shellIntegration = (terminal as { shellIntegration?: { onDidEndCommandExecution?: (cb: (e: { exitCode: number | undefined }) => void) => { dispose(): void } } }).shellIntegration;
         
         if (shellIntegration?.onDidEndCommandExecution) {
@@ -219,7 +178,7 @@ export class TerminalService {
                     clearTimeout(timeoutId);
                     listener.dispose();
                     resolve({
-                        output: '', // Can't capture without proposed API
+                        output: '',
                         exitCode: e.exitCode,
                         success: e.exitCode === 0
                     });
@@ -227,14 +186,9 @@ export class TerminalService {
             });
         }
 
-        // No shell integration - can't determine completion
-        // Return immediately, command runs in background
         return { output: '', exitCode: undefined, success: true };
     }
 
-    /**
-     * Simple fire-and-forget command to a new terminal
-     */
     public async runInTerminal(
         name: string,
         command: string,

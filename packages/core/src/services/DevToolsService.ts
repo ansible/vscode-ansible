@@ -6,16 +6,18 @@ try {
     // Running standalone (not in VS Code)
 }
 
-import { PythonEnvironmentApi } from '../types/pythonEnvApi';
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 
-/**
- * Information about an installed dev tools package
- */
 export interface DevToolPackage {
     name: string;
     version: string;
 }
+
+/**
+ * Installer callback injected by the extension when the full Python
+ * Environments API is available (managePackages support).
+ */
+export type PackageInstaller = () => Promise<void>;
 
 interface TerminalServiceLike {
     getInstance(): {
@@ -29,7 +31,7 @@ export class DevToolsService {
     private static terminalServiceFactory: (() => TerminalServiceLike) | undefined;
 
     private static _instance: DevToolsService | undefined;
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
+    private _packageInstaller: PackageInstaller | undefined;
     private _packages: DevToolPackage[] = [];
     private _loading: boolean = false;
     private _loaded: boolean = false;
@@ -37,7 +39,6 @@ export class DevToolsService {
     public readonly onDidChange: unknown;
 
     private constructor() {
-        // Use VS Code EventEmitter if available, otherwise use simple implementation
         if (vscode) {
             const emitter = new vscode.EventEmitter<void>();
             this._onDidChange = emitter;
@@ -64,71 +65,37 @@ export class DevToolsService {
     }
 
     /**
-     * Check if running in VS Code
+     * Inject a package installer callback. The extension sets this when the
+     * full PythonEnvironmentApi (managePackages) is available.
      */
+    public setPackageInstaller(installer: PackageInstaller): void {
+        this._packageInstaller = installer;
+    }
+
     public isInVSCode(): boolean {
         return vscode !== undefined;
     }
 
-    /**
-     * Initialize the service with the Python Environment API (VS Code only)
-     */
-    public async initialize(): Promise<void> {
-        if (this._pythonEnvApi || !vscode) {
-            return;
-        }
-
-        try {
-            const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-            if (pythonEnvExtension) {
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-                this._pythonEnvApi = pythonEnvExtension.exports;
-            }
-        } catch (error) {
-            console.error('DevToolsService: Failed to get Python Environments API:', error);
-        }
-    }
-
-    /**
-     * Check if the service is currently loading data
-     */
     public isLoading(): boolean {
         return this._loading;
     }
 
-    /**
-     * Check if the service has loaded data
-     */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
-    /**
-     * Get all loaded packages
-     */
     public getPackages(): DevToolPackage[] {
         return this._packages;
     }
 
-    /**
-     * Check if ansible-dev-tools packages are installed
-     */
     public hasPackages(): boolean {
         return this._packages.length > 0;
     }
 
-    /**
-     * Get a specific package by name
-     */
     public getPackage(name: string): DevToolPackage | undefined {
         return this._packages.find(p => p.name === name);
     }
 
-    /**
-     * Refresh the packages list
-     */
     public async refresh(): Promise<void> {
         if (this._loading) {
             return;
@@ -139,11 +106,7 @@ export class DevToolsService {
         (this._onDidChange as { fire: () => void }).fire();
 
         try {
-            if (vscode && this._pythonEnvApi) {
-                await this._loadPackagesVSCode();
-            } else {
-                await this._loadPackagesStandalone();
-            }
+            await this._loadPackagesWithCommandService();
             this._loaded = true;
         } finally {
             this._loading = false;
@@ -152,30 +115,15 @@ export class DevToolsService {
     }
 
     /**
-     * Install ansible-dev-tools package (VS Code only)
+     * Install ansible-dev-tools package (VS Code only, requires full API)
      */
     public async install(): Promise<void> {
-        if (!vscode) {
-            throw new Error('install is only available in VS Code');
+        if (!this._packageInstaller) {
+            throw new Error(
+                'Package installation requires the Python Environments extension (ms-python.vscode-python-envs).',
+            );
         }
-
-        await this.initialize();
-
-        if (!this._pythonEnvApi) {
-            throw new Error('Python Environments API not available');
-        }
-
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-        const environment = await this._pythonEnvApi.getEnvironment(workspaceFolder);
-
-        if (!environment) {
-            throw new Error('No Python environment selected');
-        }
-
-        await this._pythonEnvApi.managePackages(environment, {
-            install: ['ansible-dev-tools'],
-            upgrade: false
-        });
+        await this._packageInstaller();
     }
 
     /**
@@ -185,8 +133,6 @@ export class DevToolsService {
         if (!vscode) {
             throw new Error('upgrade is only available in VS Code');
         }
-
-        await this.initialize();
 
         if (!DevToolsService.terminalServiceFactory) {
             void vscode.window.showInformationMessage('Upgrade is only available in VS Code.');
@@ -200,20 +146,6 @@ export class DevToolsService {
             show: true,
         });
         managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', { waitForCompletion: false });
-    }
-
-    /**
-     * Load packages in VS Code mode (uses Python Envs API)
-     */
-    private async _loadPackagesVSCode(): Promise<void> {
-        await this._loadPackagesWithCommandService();
-    }
-
-    /**
-     * Load packages in standalone mode (finds tools in PATH)
-     */
-    private async _loadPackagesStandalone(): Promise<void> {
-        await this._loadPackagesWithCommandService();
     }
 
     /**

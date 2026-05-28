@@ -6,7 +6,7 @@ try {
     // Running standalone (not in VS Code)
 }
 
-import { PythonEnvironmentApi } from '../types/pythonEnvApi';
+
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 
 /**
@@ -58,7 +58,6 @@ export interface EEDetails {
  */
 export class ExecutionEnvService {
     private static _instance: ExecutionEnvService | undefined;
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _executionEnvironments: ExecutionEnvironment[] = [];
     private _detailsCache: Map<string, EEDetails> = new Map();
     private _loading: boolean = false;
@@ -103,27 +102,6 @@ export class ExecutionEnvService {
 
     private _log(message: string): void {
         this._logFn(`ExecutionEnvService: ${message}`);
-    }
-
-    /**
-     * Initialize the service with the Python Environment API (VS Code only)
-     */
-    public async initialize(): Promise<void> {
-        if (this._pythonEnvApi || !vscode) {
-            return;
-        }
-
-        try {
-            const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-            if (pythonEnvExtension) {
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-                this._pythonEnvApi = pythonEnvExtension.exports;
-            }
-        } catch (error) {
-            this._log(`Failed to get Python Environments API: ${error}`);
-        }
     }
 
     /**

@@ -1,48 +1,37 @@
 import * as vscode from 'vscode';
 import { DevToolsService } from '@ansible/core';
-import type { DevToolPackage, PythonEnvironmentApi } from '@ansible/core';
+import type { DevToolPackage } from '@ansible/core';
+import type { PythonEnvironmentService } from '../services/PythonEnvironmentService';
 
 export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolPackage> {
     private _onDidChangeTreeData: vscode.EventEmitter<DevToolPackage | undefined | null | void> = new vscode.EventEmitter<DevToolPackage | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<DevToolPackage | undefined | null | void> = this._onDidChangeTreeData.event;
 
     private _service: DevToolsService;
-    private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _envListener: vscode.Disposable | undefined;
     private _serviceListener: vscode.Disposable | undefined;
 
-    constructor() {
+    constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = DevToolsService.getInstance();
         
-        // Listen for service changes
         this._serviceListener = (this._service.onDidChange as vscode.Event<void>)(() => {
             this._onDidChangeTreeData.fire();
         });
         
-        this._initPythonEnvApi();
+        this._init(pythonEnvService);
     }
 
-    private async _initPythonEnvApi() {
+    private async _init(pythonEnvService: PythonEnvironmentService) {
         try {
-            const pythonEnvExtension = vscode.extensions.getExtension<PythonEnvironmentApi>('ms-python.vscode-python-envs');
-            if (pythonEnvExtension) {
-                if (!pythonEnvExtension.isActive) {
-                    await pythonEnvExtension.activate();
-                }
-                this._pythonEnvApi = pythonEnvExtension.exports;
-                
-                // Listen for environment changes
-                if (this._pythonEnvApi.onDidChangeEnvironment) {
-                    this._envListener = this._pythonEnvApi.onDidChangeEnvironment(() => {
-                        this.refresh();
-                    });
-                }
-                
-                // Initial load
-                await this.refresh();
-            }
+            await pythonEnvService.initialize();
+
+            this._envListener = pythonEnvService.onDidChangeEnvironment(() => {
+                this.refresh();
+            });
+
+            await this.refresh();
         } catch (error) {
-            console.error('Failed to get Python Environments API:', error);
+            console.error('Failed to initialize AnsibleDevToolsProvider:', error);
         }
     }
 
@@ -76,5 +65,4 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
     }
 }
 
-// Re-export the DevToolPackage type for backwards compatibility
 export type { DevToolPackage };
