@@ -68,7 +68,7 @@ export class TerminalService {
         let terminal: vscode.Terminal;
         let expectActivation = false;
 
-        if (this._pythonEnvService?.hasFullApi() && workspaceFolder) {
+        if (this._pythonEnvService?.hasEnvsExtension() && workspaceFolder) {
             const environment = await this._pythonEnvService.getEnvironment(workspaceFolder);
             
             if (environment) {

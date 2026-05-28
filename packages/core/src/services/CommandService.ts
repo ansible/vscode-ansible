@@ -23,6 +23,7 @@ try {
 }
 
 import { getCachedBinDir, getCachedToolPath, findExecutableWithCache } from './EnvironmentCache';
+import { log } from '../utils/logging';
 
 const execAsync = promisify(cp.exec);
 
@@ -77,15 +78,20 @@ export class CommandService {
             try {
                 const binDir = await this._binDirResolver(workspaceUri);
                 if (binDir) {
+                    log(`CommandService: binDirResolver -> ${binDir}`);
                     return binDir;
                 }
+                log('CommandService: binDirResolver returned null');
             } catch (error) {
-                console.error('CommandService: bin dir resolver failed:', error);
+                log(`CommandService: binDirResolver failed: ${error}`);
             }
+        } else {
+            log('CommandService: no binDirResolver set');
         }
 
-        // Fall back to cached environment
-        return getCachedBinDir();
+        const cached = getCachedBinDir();
+        log(`CommandService: falling back to cached binDir -> ${cached ?? 'null'}`);
+        return cached;
     }
 
     /**
@@ -98,18 +104,23 @@ export class CommandService {
         if (binDir) {
             const toolPath = path.join(binDir, toolName);
             if (fs.existsSync(toolPath)) {
+                log(`CommandService: ${toolName} found in binDir -> ${toolPath}`);
                 return toolPath;
             }
+            log(`CommandService: ${toolName} not in binDir ${binDir}`);
         }
 
         // Try cached environment
         const cachedPath = getCachedToolPath(toolName);
         if (cachedPath) {
+            log(`CommandService: ${toolName} found in cache -> ${cachedPath}`);
             return cachedPath;
         }
 
         // Fall back to PATH search
-        return findExecutableWithCache(toolName);
+        const pathResult = await findExecutableWithCache(toolName);
+        log(`CommandService: ${toolName} PATH fallback -> ${pathResult ?? 'not found'}`);
+        return pathResult;
     }
 
     /**

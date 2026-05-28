@@ -20,6 +20,7 @@ const testRoot = path.resolve(process.cwd(), ".wdio-vscode");
 const extensionsDir = path.join(testRoot, "extensions");
 
 const DEPENDENCY_EXTENSIONS = [
+  "ms-python.python",
   "ms-python.vscode-python-envs",
   "redhat.vscode-yaml",
 ];

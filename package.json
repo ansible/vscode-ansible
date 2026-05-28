@@ -28,6 +28,7 @@
     "ansible-environments-mcp": "./packages/mcp-server/out/server.js"
   },
   "extensionDependencies": [
+    "ms-python.python",
     "redhat.vscode-yaml"
   ],
   "contributes": {

@@ -33,9 +33,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
     private static _instance: PythonEnvironmentService | undefined;
     private _pythonEnvApi: PythonEnvironmentApi | undefined;
     private _pythonExtApi: PythonExtension | undefined;
-    private _initialized = false;
-    private _petWarningShown = false;
+    private _petAvailable = false;
+    private _initPromise: Promise<boolean> | undefined;
     private _disposables: vscode.Disposable[] = [];
+    private _changeDebounce: ReturnType<typeof setTimeout> | undefined;
 
     private _onDidChangeEnvironment = new vscode.EventEmitter<DidChangeEnvironmentEventArgs>();
     public readonly onDidChangeEnvironment = this._onDidChangeEnvironment.event;
@@ -50,26 +51,32 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
 
     /**
-     * Initialize the service. Tries the Environments extension first; if PET
-     * is missing or the extension is absent, falls back to ms-python.python.
+     * Initialize the service.
+     *
+     * When the Environments extension is present it is always activated so
+     * createEnvironment / managePackages work regardless of PET. If PET is
+     * missing, ms-python.python is also initialized for environment discovery
+     * (hybrid mode).
      */
     public async initialize(): Promise<boolean> {
-        if (this._initialized) {
-            return this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined;
+        if (this._initPromise) {
+            return this._initPromise;
         }
+        this._initPromise = this._doInitialize();
+        return this._initPromise;
+    }
 
+    private async _doInitialize(): Promise<boolean> {
         log(`Looking for Python Environments extension: ${PYTHON_ENVS_EXTENSION_ID}`);
 
         const envsExt = vscode.extensions.getExtension<PythonEnvironmentApi>(PYTHON_ENVS_EXTENSION_ID);
 
         if (envsExt) {
-            const petAvailable = this._isPetAvailable(envsExt.extensionPath);
+            this._petAvailable = this._isPetAvailable(envsExt.extensionPath);
+            await this._initFromEnvsExtension(envsExt);
 
-            if (petAvailable) {
-                await this._initFromEnvsExtension(envsExt);
-            } else {
-                log('PET binary not found — environment discovery will be degraded');
-                this._showPetWarning();
+            if (!this._petAvailable) {
+                log('PET binary not found — using ms-python.python for environment discovery');
                 await this._initFromPythonExtension();
             }
         } else {
@@ -77,7 +84,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
             await this._initFromPythonExtension();
         }
 
-        this._initialized = true;
         return this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined;
     }
 
@@ -109,8 +115,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
                 this._pythonEnvApi = exports;
 
                 if (this._pythonEnvApi?.onDidChangeEnvironment) {
-                    const listener = this._pythonEnvApi.onDidChangeEnvironment((event) => {
-                        this._onDidChangeEnvironment.fire(event);
+                    const listener = this._pythonEnvApi.onDidChangeEnvironment(() => {
+                        this._fireChangeDebounced();
                     });
                     this._disposables.push(listener);
                 }
@@ -154,10 +160,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
             this._disposables.push(
                 api.environments.onDidChangeActiveEnvironmentPath(() => {
-                    this._onDidChangeEnvironment.fire({});
+                    this._fireChangeDebounced();
                 }),
                 api.environments.onDidChangeEnvironments(() => {
-                    this._onDidChangeEnvironment.fire({});
+                    this._fireChangeDebounced();
                 }),
             );
 
@@ -226,27 +232,19 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
 
     // -------------------------------------------------------------------------
-    // Notification
+    // Debounced change notification
     // -------------------------------------------------------------------------
 
-    private _showPetWarning(): void {
-        if (this._petWarningShown) {
-            return;
-        }
-        this._petWarningShown = true;
+    private static readonly _CHANGE_DEBOUNCE_MS = 1500;
 
-        vscode.window.showWarningMessage(
-            'Python environment discovery is degraded (PET binary missing). ' +
-            'This commonly occurs in non-VS Code editors (Cursor, Dev Spaces, VSCodium). ' +
-            'Falling back to ms-python.python for environment resolution.',
-            'Learn More',
-        ).then((selection) => {
-            if (selection === 'Learn More') {
-                vscode.env.openExternal(
-                    vscode.Uri.parse('https://github.com/microsoft/vscode-python/issues/25820'),
-                );
-            }
-        });
+    private _fireChangeDebounced(): void {
+        if (this._changeDebounce) {
+            clearTimeout(this._changeDebounce);
+        }
+        this._changeDebounce = setTimeout(() => {
+            this._changeDebounce = undefined;
+            this._onDidChangeEnvironment.fire({});
+        }, PythonEnvironmentService._CHANGE_DEBOUNCE_MS);
     }
 
     // -------------------------------------------------------------------------
@@ -258,11 +256,18 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
 
     /**
-     * Whether the full Environments extension API is active (PET working).
-     * When false, createTerminal / managePackages / createEnvironment are
-     * not available.
+     * Whether the full Environments extension API is active with PET
+     * working. When true, environment discovery is fast and complete.
      */
     public hasFullApi(): boolean {
+        return this._pythonEnvApi !== undefined && this._petAvailable;
+    }
+
+    /**
+     * Whether environment creation and package management are available
+     * (envs extension active, PET not required for these operations).
+     */
+    public hasEnvsExtension(): boolean {
         return this._pythonEnvApi !== undefined;
     }
 
@@ -284,7 +289,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
             resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
         }
 
-        if (this._pythonEnvApi) {
+        // When PET is available, the envs extension owns all state.
+        if (this._pythonEnvApi && this._petAvailable) {
             try {
                 return await this._pythonEnvApi.getEnvironment(resolvedScope);
             } catch (error) {
@@ -292,6 +298,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
             }
         }
 
+        // Hybrid mode or python-ext-only: ms-python.python owns the
+        // active environment, so query it directly.
         if (this._pythonExtApi) {
             try {
                 const envPath = this._pythonExtApi.environments.getActiveEnvironmentPath(resolvedScope);
@@ -310,7 +318,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     public async getEnvironments(scope: vscode.Uri | 'all' | 'global' = 'all'): Promise<PythonEnvironment[]> {
         await this.initialize();
 
-        if (this._pythonEnvApi) {
+        if (this._pythonEnvApi && this._petAvailable) {
             try {
                 return await this._pythonEnvApi.getEnvironments(scope);
             } catch (error) {
@@ -372,28 +380,41 @@ export class PythonEnvironmentService implements vscode.Disposable {
     public async setEnvironment(scope: SetEnvironmentScope, environment?: PythonEnvironment): Promise<void> {
         await this.initialize();
 
-        if (this._pythonEnvApi) {
+        log(`setEnvironment: env=${environment?.displayName}, executable=${environment?.execInfo?.run?.executable}, petAvailable=${this._petAvailable}`);
+
+        // When PET is available, the envs extension owns discovery AND selection.
+        if (this._pythonEnvApi && this._petAvailable) {
+            log('setEnvironment: using envs extension API (PET available)');
             await this._pythonEnvApi.setEnvironment(scope, environment);
             return;
         }
 
+        // Hybrid mode or python-ext-only: environments were discovered by
+        // ms-python.python, so we must use its API to switch.
         if (this._pythonExtApi) {
             try {
                 if (environment?.execInfo?.run?.executable) {
                     const resource = scope instanceof vscode.Uri ? scope : undefined;
+                    log(`setEnvironment: calling updateActiveEnvironmentPath(${environment.execInfo.run.executable})`);
                     await this._pythonExtApi.environments.updateActiveEnvironmentPath(
                         environment.execInfo.run.executable,
                         resource,
                     );
+                    log('setEnvironment: updateActiveEnvironmentPath succeeded');
                 } else {
+                    log('setEnvironment: no executable, opening interpreter picker');
                     await vscode.commands.executeCommand('python.setInterpreter');
                 }
-            } catch {
+                return;
+            } catch (error) {
+                log(`setEnvironment: updateActiveEnvironmentPath failed: ${error}`);
                 vscode.window.showErrorMessage(
                     'Unable to set Python environment. Please use the Python extension\'s interpreter picker.',
                 );
             }
         }
+
+        log('setEnvironment: no API available to set environment');
     }
 
     public async createEnvironment(
@@ -440,6 +461,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
 
     public dispose(): void {
+        if (this._changeDebounce) {
+            clearTimeout(this._changeDebounce);
+        }
         this._disposables.forEach((d) => d.dispose());
         this._disposables = [];
         this._onDidChangeEnvironment.dispose();

@@ -38,6 +38,7 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
     private _service: CollectionsService;
     private _envListener: vscode.Disposable | undefined;
     private _serviceListener: vscode.Disposable | undefined;
+    private _refreshDebounce: ReturnType<typeof setTimeout> | undefined;
 
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = CollectionsService.getInstance();
@@ -59,7 +60,13 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
             await pythonEnvService.initialize();
 
             this._envListener = pythonEnvService.onDidChangeEnvironment(() => {
-                this.refresh();
+                if (this._refreshDebounce) {
+                    clearTimeout(this._refreshDebounce);
+                }
+                this._refreshDebounce = setTimeout(() => {
+                    this._refreshDebounce = undefined;
+                    this.refresh();
+                }, 1000);
             });
         } catch (error) {
             log(`CollectionsProvider: Failed to set up env change listener: ${error}`);
@@ -185,6 +192,9 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     dispose() {
+        if (this._refreshDebounce) {
+            clearTimeout(this._refreshDebounce);
+        }
         this._envListener?.dispose();
         this._serviceListener?.dispose();
         this._onDidChangeTreeData.dispose();

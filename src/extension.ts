@@ -229,23 +229,26 @@ export function activate(context: vscode.ExtensionContext) {
     // Wire terminal factory into DevToolsService so upgrade works in all editors
     DevToolsService.setTerminalServiceFactory(() => TerminalService);
 
+    // Inject bin dir resolver into CommandService BEFORE any providers are
+    // constructed so that early refresh() calls resolve the venv, not ~/.local/bin.
+    const commandService = getCommandService();
+    commandService.setBinDirResolver(async (workspaceUri) => {
+        await pythonEnvService.initialize();
+        const env = await pythonEnvService.getEnvironment(workspaceUri as vscode.Uri | undefined);
+        if (env?.execInfo?.run?.executable) {
+            const binDir = path.dirname(env.execInfo.run.executable);
+            log(`binDirResolver: env=${env.displayName}, binDir=${binDir}`);
+            return binDir;
+        }
+        log('binDirResolver: no environment or executable found');
+        return null;
+    });
+
     pythonEnvService.initialize().then((available) => {
-        log(`Python Environment Service initialized: available=${available}, fullApi=${pythonEnvService.hasFullApi()}`);
+        log(`Python Environment Service initialized: available=${available}, fullApi=${pythonEnvService.hasFullApi()}, envsExt=${pythonEnvService.hasEnvsExtension()}`);
 
-        // Inject bin dir resolver into CommandService so @ansible/core
-        // can locate tools without depending on vscode directly
-        const commandService = getCommandService();
-        commandService.setBinDirResolver(async (workspaceUri) => {
-            const env = await pythonEnvService.getEnvironment(workspaceUri as vscode.Uri | undefined);
-            if (env?.execInfo?.run?.executable) {
-                const p = await import('path');
-                return p.dirname(env.execInfo.run.executable);
-            }
-            return null;
-        });
-
-        // Wire package installer into DevToolsService when full API is available
-        if (pythonEnvService.hasFullApi()) {
+        // Wire package installer into DevToolsService when envs extension is available
+        if (pythonEnvService.hasEnvsExtension()) {
             const devToolsService = DevToolsService.getInstance();
             devToolsService.setPackageInstaller(async () => {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
@@ -276,8 +279,15 @@ export function activate(context: vscode.ExtensionContext) {
             }
         };
 
+        let cacheDebounce: ReturnType<typeof setTimeout> | undefined;
         const envCacheListener = pythonEnvService.onDidChangeEnvironment(() => {
-            setTimeout(refreshCache, 500);
+            if (cacheDebounce) {
+                clearTimeout(cacheDebounce);
+            }
+            cacheDebounce = setTimeout(() => {
+                cacheDebounce = undefined;
+                void refreshCache();
+            }, 1000);
         });
         context.subscriptions.push(envCacheListener);
         setTimeout(refreshCache, 2000);
