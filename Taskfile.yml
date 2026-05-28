@@ -67,6 +67,7 @@ tasks:
       - pnpm run vite-build
       - pnpm run build:extension
     sources:
+      - .config/mise.toml
       - package.json
       - "{src,test}/**/*"
       - tsconfig*.json
@@ -121,6 +122,7 @@ tasks:
     desc: Update node dependencies
     interactive: true # needed for ncu prompts
     cmds:
+      - mise upgrade --local
       - pnpm up -i -r
       - task: knip
   "deps:python":
@@ -262,6 +264,7 @@ tasks:
       - build
     sources:
       - "{src,media,webviews}/**/*" # do not include 'test' as they do not get into the package
+      - .config/mise.toml
       - .vscodeignore
       - CHANGELOG.md
       - README.md

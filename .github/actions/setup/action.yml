@@ -12,7 +12,7 @@ runs:
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.3.13
+        version: 2026.5.15
         reshim: true
 
     - name: Runner image version

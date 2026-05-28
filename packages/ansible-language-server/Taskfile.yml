@@ -35,6 +35,7 @@ tasks:
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
@@ -52,6 +53,7 @@ tasks:
     deps:
       - build
     sources:
+      - ../../.config/mise.toml
       - ../../pyproject.toml
       - ../../uv.lock
       - ../../vitest.config.ts
