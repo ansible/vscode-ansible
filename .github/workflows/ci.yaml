@@ -1,4 +1,4 @@
-# cspell:ignore oidc mxschmitt userns cgroupfs dorny
+# cspell:ignore oidc mxschmitt userns cgroupfs dorny xlarge
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -265,7 +265,7 @@ jobs:
           - name: test (macos)
             id: test-macos
             task-name: test
-            os: macos-15-large
+            os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
