@@ -32,4 +32,4 @@ node = "24.14.1"
 python = "3.13"
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
-pnpm = "latest"
+pnpm = "10.33.2"
