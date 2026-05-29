@@ -44,7 +44,7 @@ describe("VS Code Ansible smoke test", () => {
   });
 
   it("should launch a VS Code session", async () => {
-    await expect(browser.sessionId).toBeDefined();
+    expect(browser.sessionId).toBeDefined();
   });
 
   it("should show the Ansible activity bar icon", async () => {
@@ -53,7 +53,7 @@ describe("VS Code Ansible smoke test", () => {
     const viewControls = await activityBar.getViewControls();
     const titles = await Promise.all(viewControls.map((vc) => vc.getTitle()));
 
-    await expect(titles.some((t) => t.includes("Ansible"))).toBe(true);
+    expect(titles.some((t) => t.includes("Ansible"))).toBe(true);
   });
 
   it("should activate the Ansible extension", async () => {
@@ -62,7 +62,7 @@ describe("VS Code Ansible smoke test", () => {
       return ext?.isActive === true;
     });
 
-    await expect(isActive).toBe(true);
+    expect(isActive).toBe(true);
   });
 
   it("should register ansible commands", async function () {
@@ -94,6 +94,6 @@ describe("VS Code Ansible smoke test", () => {
       return editor?.document.languageId;
     });
 
-    await expect(languageId).toBe("ansible");
+    expect(languageId).toBe("ansible");
   });
 });
