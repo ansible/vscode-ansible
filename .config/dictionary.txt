@@ -46,10 +46,12 @@ dedupe
 deepseek
 dirmngr
 esbenp
+esbuild
 eslintcache
 ffdx
 fixturenames
 fqcn
+geckodriver
 genai
 getfixturevalue
 haaaad
@@ -58,6 +60,7 @@ highlightjs
 hostsvars
 inetpub
 issuetracker
+keytar
 knip
 lcovonly
 lextudio
@@ -81,6 +84,7 @@ prek
 primevue
 priyamsahoo
 progressspinner
+protobufjs
 pycobertura
 pydoclint
 pyvenv
@@ -104,6 +108,7 @@ tombi
 tomlsort
 towerhost
 tsup
+unrs
 unsubed
 uuidv
 vite

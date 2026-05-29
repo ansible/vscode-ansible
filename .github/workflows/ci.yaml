@@ -1,4 +1,4 @@
-# cspell:ignore oidc mxschmitt userns cgroupfs dorny
+# cspell:ignore oidc mxschmitt userns cgroupfs dorny xlarge
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -167,7 +167,7 @@ jobs:
           task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
-        timeout-minutes: 1
+        timeout-minutes: 2
         run: |
           task docs && task docs --status
 
@@ -265,7 +265,7 @@ jobs:
           - name: test (macos)
             id: test-macos
             task-name: test
-            os: macos-15-large
+            os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -509,7 +509,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -519,7 +519,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           directory: out/junit
           fail_ci_if_error: true
@@ -613,7 +613,7 @@ jobs:
             type=sha
 
       - name: Build MCP server container
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: packages/ansible-mcp-server
           file: packages/ansible-mcp-server/Containerfile
@@ -765,7 +765,7 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install --frozen-lockfile
+          pnpm install -y --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces

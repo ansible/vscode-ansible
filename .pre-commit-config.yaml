@@ -1,7 +1,8 @@
 ---
 exclude: >
   (?x)^(
-    .*.svg
+    .*.svg|
+    .agents/.*
   )$
 fail_fast: true
 minimum_prek_version: "0.3.4"
@@ -28,6 +29,7 @@ repos:
         priority: 1
       - id: md
         priority: 1
+        entry: markdownlint-cli2 --fix "**/*.md" "#node_modules" "#.agents"
       # - id: codecov
       #   priority: 1
       - id: shellcheck
@@ -40,7 +42,7 @@ repos:
         priority: 0
         name: pnpm-install
         alias: pnpm
-        entry: pnpm install --frozen-lockfile --silent
+        entry: pnpm install -y --frozen-lockfile --silent
         language: system
         pass_filenames: false
         always_run: true

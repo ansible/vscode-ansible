@@ -31,10 +31,11 @@ tasks:
       - setup
     cmds:
       - pnpm run compile
-      - pnpm exec ansible-language-server --generate-docs ../../docs/als/settings.md
+      - node dist/cli.cjs --generate-docs ../../docs/als/settings.md
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
@@ -52,6 +53,7 @@ tasks:
     deps:
       - build
     sources:
+      - ../../.config/mise.toml
       - ../../pyproject.toml
       - ../../uv.lock
       - ../../vitest.config.ts

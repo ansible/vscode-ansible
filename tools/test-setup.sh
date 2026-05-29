@@ -358,7 +358,7 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     PODMAN_VERSION="$(get_version podman 2>/dev/null || echo null)"
     podman container prune -f
     log notice "Pull our test container image with podman."
-    retry 3 60 podman pull --quiet "${IMAGE}" || {
+    retry 3 60 podman pull "${IMAGE}" || {
         log error "Failed to pull image after 3 attempts."
         exit 1
     }
