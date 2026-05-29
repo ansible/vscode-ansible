@@ -16,7 +16,6 @@ overrides:
   rollup: "npm:@rollup/wasm-node@*"
 patchedDependencies:
   "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
-  wdio-vscode-service@6.1.4: patches/wdio-vscode-service@6.1.4.patch
 packageExtensions:
   "cypress-multi-reporters@*":
     "dependencies":

@@ -191,7 +191,7 @@ describe("Webview tests", () => {
       const webview = await workbench.getWebviewByTitle(/LLM Provider/);
       await webview.open();
       try {
-        const editButtons = await $$("button.edit-btn");
+        const editButtons = await $$("button.edit-btn").getElements();
         assert.ok(editButtons.length > 0, "Expected at least one .edit-btn");
       } finally {
         await webview.close();
