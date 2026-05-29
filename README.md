@@ -61,3 +61,8 @@ how to contribute to it.
   https://docs.ansible.com/projects/vscode-ansible/#content-creation-tools
 [LightSpeed]:
   https://docs.ansible.com/projects/vscode-ansible/#ansible-lightspeed
+
+## Contribution hints
+
+- Do not use `env FOO=BAR command` as this does not work on Windows. When
+  adding new code prefer portable one that works on all platforms.

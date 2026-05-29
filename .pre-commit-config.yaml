@@ -42,7 +42,7 @@ repos:
         priority: 0
         name: pnpm-install
         alias: pnpm
-        entry: pnpm install -y --frozen-lockfile --silent
+        entry: pnpm install --frozen-lockfile --silent
         language: system
         pass_filenames: false
         always_run: true

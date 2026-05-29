@@ -82,10 +82,10 @@ tasks:
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
-      - npm version {{ .VERSION }} --no-git-tag-version
-      - env NODE_ENV=production pnpm exec tsup --silent
+      - npm version {{ .VERSION }} --allow-same-version --no-git-tag-version
+      - pnpm exec tsup --silent
       - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
-      - defer: npm version 0.0.0 --no-git-tag-version
+      - defer: npm version 0.0.0 --allow-same-version --no-git-tag-version
     silent: false
   container:
     desc: Build the MCP server container image

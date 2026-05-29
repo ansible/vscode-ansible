@@ -5,7 +5,7 @@ vars:
   GIT_ROOT:
     sh: git rev-parse --show-toplevel
   VERSION:
-    sh: "{{ .GIT_ROOT }}/tools/version.mts"
+    sh: "node {{ .GIT_ROOT }}/tools/helper.mts --version"
 tasks:
   pnpm:
     cmds:
@@ -23,6 +23,7 @@ tasks:
     run: once
     interactive: true
   uv:
+    platforms: [linux, darwin]
     cmds:
       - uv sync --no-progress -q --active
       - bash ./tools/uv.sh
@@ -52,22 +53,34 @@ tasks:
       - uv
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
-      - bash ./tools/test-setup.sh
+      - task: setup:linux
       - task: precheck
     sources:
       - ./tools/precheck.sh
       - pyproject.toml
       - tools/test-setup.sh
+    run: once
+    interactive: true
+  "setup:linux":
+    cmds:
+      - cmd: bash ./tools/test-setup.sh
+    dir: "{{ .TASKFILE_DIR }}"
     generates:
       - out/log/manifest-*.json
+    platforms: [linux, darwin]
+    sources:
+      - ./tools/precheck.sh
+      - pyproject.toml
+      - tools/test-setup.sh
     run: once
     interactive: true
   precheck:
     desc: Check for duplicate executables (only runs when CI=true)
+    platforms: [linux, darwin]
     status:
       - '[ "$CI" != "true" ]'
     cmds:
-      - "{{.GIT_ROOT}}/tools/precheck.sh"
+      - "bash {{.GIT_ROOT}}/tools/precheck.sh"
   mise:
     desc: Check if mise is installed and working
     internal: true
