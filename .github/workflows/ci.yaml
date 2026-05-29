@@ -227,7 +227,9 @@ jobs:
     needs:
       - lint
 
-    environment: ci
+    environment:
+      name: ci
+      deployment: false
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
