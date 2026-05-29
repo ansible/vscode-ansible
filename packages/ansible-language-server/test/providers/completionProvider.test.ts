@@ -1285,4 +1285,41 @@ describe("doCompletion()", function () {
       });
     });
   }
+
+  // Test Jinja2 variable completion with dict-format vars (covers dict vars branch in completionProviderUtils)
+  const dictVarsFixturePath = "completion/playbook_with_dict_vars.yml";
+  const dictVarsFixtureUri = resolveDocUri(dictVarsFixturePath);
+  const dictVarsContext = workspaceManager.getContext(dictVarsFixtureUri);
+  const dictVarsTextDoc = getDoc(dictVarsFixturePath);
+  if (dictVarsContext) {
+    const dictVarsDocSettings = dictVarsContext.documentSettings.get(
+      dictVarsTextDoc.uri,
+    );
+
+    describe("Completion for dict-format vars inside jinja", function () {
+      describe("@noee", function () {
+        beforeAll(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          if (dictVarsDocSettings) {
+            await disableExecutionEnvironmentSettings(
+              dictVarsDocSettings,
+              dictVarsContext,
+            );
+          }
+        });
+
+        it("should provide dict vars variables", async function () {
+          // line 9 (0-based): `        url: "{{  }}"` — cursor inside Jinja2 brackets at pos 17
+          const actualCompletion = await doCompletion(
+            dictVarsTextDoc,
+            Position.create(9, 17),
+            dictVarsContext,
+          );
+          const labels = actualCompletion.map((c) => c.label);
+          expect(labels).toContain("dict_var_one");
+          expect(labels).toContain("dict_var_two");
+        });
+      });
+    });
+  }
 });

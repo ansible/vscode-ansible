@@ -1,0 +1,13 @@
+---
+- name: Install package
+  ansible.builtin.apt:
+    name: vim
+    state: present
+
+- ansible.builtin.debug:
+    msg: "no name task"
+
+- name: Copy config
+  ansible.builtin.copy:
+    src: config.yml
+    dest: /etc/app/config.yml

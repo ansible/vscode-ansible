@@ -1,0 +1,9 @@
+---
+- name: Deploy application
+  hosts: app_servers
+  roles:
+    - common
+    - role: nginx
+    - role: app
+      vars:
+        app_port: 8080

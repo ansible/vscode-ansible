@@ -1,0 +1,23 @@
+---
+- name: Play with blocks
+  hosts: all
+  tasks:
+    - name: Main block
+      block:
+        - name: Task in block
+          ansible.builtin.debug:
+            msg: "in block"
+
+        - name: Another task in block
+          ansible.builtin.debug:
+            msg: "also in block"
+
+      rescue:
+        - name: Handle error
+          ansible.builtin.debug:
+            msg: "rescued"
+
+      always:
+        - name: Always run
+          ansible.builtin.debug:
+            msg: "always"

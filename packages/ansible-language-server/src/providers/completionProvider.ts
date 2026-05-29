@@ -255,9 +255,11 @@ export async function doCompletion(
         isAnsiblePlaybook &&
         isCursorInsideJinjaBrackets(document, position, path)
       ) {
-        const varCompletion: CompletionItem[] = getVarsCompletion(
+        const rolesPaths = (await context.ansibleConfig).roles_paths;
+        const varCompletion: CompletionItem[] = await getVarsCompletion(
           document.uri,
           path,
+          rolesPaths,
         );
         return varCompletion;
       }

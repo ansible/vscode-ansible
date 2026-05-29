@@ -1,0 +1,6 @@
+---
+- hosts: all
+  roles:
+    - name: my_role
+      vars:
+        key: value

@@ -1,0 +1,11 @@
+---
+- name: Restart app
+  ansible.builtin.service:
+    name: app
+    state: restarted
+
+- name: Reload config
+  ansible.builtin.service:
+    name: app
+    state: reloaded
+  listen: Restart app

@@ -1,0 +1,37 @@
+---
+- name: Install webserver
+  hosts: webservers
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Start nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+- name: Configure database
+  hosts: dbservers
+  pre_tasks:
+    - name: Update cache
+      ansible.builtin.apt:
+        update_cache: true
+
+  tasks:
+    - name: Install postgres
+      ansible.builtin.apt:
+        name: postgresql
+        state: present
+
+  post_tasks:
+    - name: Verify postgres
+      ansible.builtin.command:
+        cmd: pg_isready

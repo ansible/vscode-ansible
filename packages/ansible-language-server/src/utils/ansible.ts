@@ -720,3 +720,10 @@ export const playWithoutTaskKeywords = new Map(
 export function isTaskKeyword(value: string): boolean {
   return taskKeywords.has(value) || value.startsWith("with_");
 }
+
+/** Matches task-section keys: tasks, pre_tasks, post_tasks, handlers, block, rescue, always */
+export const taskSectionKeyPattern =
+  /^(tasks|pre_tasks|post_tasks|handlers|block|rescue|always)$/;
+
+/** Matches block-section keys: block, rescue, always */
+export const blockSectionKeyPattern = /^(block|rescue|always)$/;

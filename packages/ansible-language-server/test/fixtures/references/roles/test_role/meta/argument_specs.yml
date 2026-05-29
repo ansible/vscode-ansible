@@ -1,0 +1,23 @@
+---
+argument_specs:
+  main:
+    short_description: Install and configure test application
+    options:
+      app_port:
+        description: Port number for the application
+        type: int
+        default: 8080
+        required: false
+      app_user:
+        description: User to run the application as
+        type: str
+        default: appuser
+        required: true
+      app_features:
+        description: List of features to enable
+        type: list
+        elements: str
+        choices:
+          - logging
+          - monitoring
+          - caching

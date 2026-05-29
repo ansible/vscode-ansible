@@ -1,0 +1,20 @@
+---
+- name: Create app user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    state: present
+  register: user_result
+
+- name: Deploy config
+  ansible.builtin.template:
+    src: app.conf.j2
+    dest: "/etc/app/config.conf"
+  notify: Restart app
+
+- name: Include sub tasks
+  ansible.builtin.include_tasks: sub_tasks.yml
+
+- name: Show port
+  ansible.builtin.debug:
+    msg: "Port is {{ app_port }}"
+  when: app_debug

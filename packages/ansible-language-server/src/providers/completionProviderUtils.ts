@@ -2,8 +2,13 @@ import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { isScalar, Node, YAMLMap, YAMLSeq, parseDocument } from "yaml";
 import { AncestryBuilder, isPlayParam } from "@src/utils/yaml.js";
+import {
+  getRoleContextFromUri,
+  getRoleVariables,
+} from "@src/utils/roleResolver.js";
 import * as pathUri from "path";
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
+import { readFile } from "fs/promises";
 
 type varType = { variable: string; priority: number };
 
@@ -19,10 +24,11 @@ type varsPromptType = {
  * @param path - array of nodes leading to that position
  * @returns a list of completion items
  */
-export function getVarsCompletion(
+export async function getVarsCompletion(
   documentUri: string,
   path: Node[],
-): CompletionItem[] {
+  rolesPaths?: string[],
+): Promise<CompletionItem[]> {
   const varsCompletion: varType[] = [];
   let varPriority = 0;
 
@@ -121,7 +127,7 @@ export function getVarsCompletion(
     const varsPromptObject: string[] = playNode["vars_files"];
 
     const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);
-    varsPromptObject.forEach((element) => {
+    for (const element of varsPromptObject) {
       let varFilePath;
       if (pathUri.isAbsolute(element)) {
         varFilePath = element;
@@ -133,7 +139,7 @@ export function getVarsCompletion(
 
       // read the vars_file and get the variables declared inside it
       if (existsSync(varFilePath)) {
-        const file = readFileSync(varFilePath, {
+        const file = await readFile(varFilePath, {
           encoding: "utf8",
         });
 
@@ -141,19 +147,45 @@ export function getVarsCompletion(
         if (contents !== null) {
           const yamlDocContent = contents.toJSON();
 
-          // variables declared in the file should be in list format only
-          if (Array.isArray(yamlDocContent)) {
-            yamlDocContent.forEach((element) => {
-              if (typeof element === "object") {
-                Object.keys(element).forEach((key) => {
-                  varsCompletion.push({ variable: key, priority: varPriority });
+          if (yamlDocContent && typeof yamlDocContent === "object") {
+            if (Array.isArray(yamlDocContent)) {
+              for (const item of yamlDocContent) {
+                if (typeof item === "object") {
+                  for (const key of Object.keys(item)) {
+                    varsCompletion.push({
+                      variable: key,
+                      priority: varPriority,
+                    });
+                  }
+                }
+              }
+            } else {
+              for (const key of Object.keys(yamlDocContent)) {
+                varsCompletion.push({
+                  variable: key,
+                  priority: varPriority,
                 });
               }
-            });
+            }
           }
         }
       }
-    });
+    }
+  }
+
+  // handling role variables
+  varPriority = varPriority + 1;
+  const roleCtx = getRoleContextFromUri(documentUri, rolesPaths);
+  if (roleCtx) {
+    // Inside role context: defaults + vars, enriched with argument_specs
+    const roleVars = await getRoleVariables(roleCtx.rolePath, false);
+    for (const rv of roleVars) {
+      const completionItem: varType = {
+        variable: rv.name,
+        priority: varPriority,
+      };
+      varsCompletion.push(completionItem);
+    }
   }
 
   // return the completions as completion items
