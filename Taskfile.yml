@@ -235,6 +235,7 @@ tasks:
       - wdio.conf.ts
     cmds:
       - "npx pnpm pretest:wdio"
+      - "bash tools/ensure-chromedriver.sh"
       - "{{.XVFB}}npx pnpm test:wdio"
     interactive: true
   unit:
