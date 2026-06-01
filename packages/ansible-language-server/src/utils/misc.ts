@@ -1,6 +1,7 @@
 import * as child_process from "child_process";
-import { promises as fs } from "fs";
+import { existsSync, statSync, promises as fs } from "node:fs";
 import { promisify } from "util";
+import type { SpawnOptions } from "child_process";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
 import * as path from "path";
@@ -9,7 +10,105 @@ export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));
 }
 
+/** Thin wrapper so tests can override venv detection without mocking Node builtins. */
+function isVenvDirectory(binDir: string): boolean {
+  return existsSync(path.join(binDir, "activate"));
+}
+
 export const asyncExec = promisify(child_process.exec);
+
+// eslint-disable-next-line no-control-regex
+const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!']/;
+
+function validateSafePath(filePath: string, label: string): string | undefined {
+  if (SHELL_METACHARACTERS.test(filePath)) {
+    return `${label} contains potentially unsafe characters: ${filePath}`;
+  }
+  try {
+    if (!statSync(filePath).isFile()) {
+      return `${label} is not a file: ${filePath}`;
+    }
+  } catch {
+    return `${label} does not exist: ${filePath}`;
+  }
+  return undefined;
+}
+
+export function validatePlaybookPath(fsPath: string): string | undefined {
+  return validateSafePath(fsPath, "Playbook path");
+}
+
+function validateActivationScript(scriptPath: string): string | undefined {
+  return validateSafePath(scriptPath, "Activation script path");
+}
+
+type SpawnResult = { stdout: string; stderr: string };
+
+export function spawnSyncWithResult(
+  command: string,
+  args: string[],
+  options: child_process.SpawnSyncOptions = {},
+): SpawnResult {
+  const result = child_process.spawnSync(command, args, {
+    encoding: "utf-8",
+    shell: false,
+    ...options,
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    const message =
+      (result.stderr?.toString() || result.stdout?.toString() || "").trim() ||
+      `Process '${command}' exited with code ${result.status}`;
+    throw new Error(message);
+  }
+  return {
+    stdout: (result.stdout ?? "").toString(),
+    stderr: (result.stderr ?? "").toString(),
+  };
+}
+
+export function asyncSpawn(
+  command: string,
+  args: string[],
+  options: SpawnOptions = {},
+): Promise<SpawnResult> {
+  return new Promise((resolve, reject) => {
+    const proc = child_process.spawn(command, args, {
+      ...options,
+      shell: false,
+    });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout?.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    proc.stderr?.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    proc.on("error", reject);
+    proc.on("close", (code) => {
+      if (code === 0) {
+        resolve({ stdout, stderr });
+        return;
+      }
+      const message =
+        stderr.trim() ||
+        stdout.trim() ||
+        `Process '${command}' exited with code ${code}`;
+      const error = new Error(message) as Error & {
+        code?: number;
+        stdout?: string;
+        stderr?: string;
+      };
+      error.code = code ?? undefined;
+      error.stdout = stdout;
+      error.stderr = stderr;
+      reject(error);
+    });
+  });
+}
 
 export function toLspRange(
   range: [number, number],
@@ -46,6 +145,7 @@ export function withInterpreter(
   args: string,
   interpreterPath: string,
   activationScript: string,
+  _isVenvDirectory: (binDir: string) => boolean = isVenvDirectory,
 ): { command: string; env: NodeJS.ProcessEnv } {
   let command = `${executable} ${args}`; // base case
 
@@ -58,23 +158,42 @@ export function withInterpreter(
   });
 
   if (activationScript) {
-    command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
-    return { command: command, env: process.env };
+    const validationError = validateActivationScript(activationScript);
+    if (!validationError) {
+      command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
+      return { command: command, env: process.env };
+    } else {
+      console.debug(validationError);
+    }
   }
 
   if (interpreterPath) {
-    const virtualEnv = path.resolve(interpreterPath, "../..");
+    // Bare command (e.g. "python3") — clear stale venv vars, nothing to prepend
+    if (path.basename(interpreterPath) === interpreterPath) {
+      delete newEnv.VIRTUAL_ENV;
+      return { command: command, env: newEnv };
+    }
 
-    const pathEntry = path.join(virtualEnv, "bin");
+    const resolvedPath = path.resolve(interpreterPath);
+    const interpreterDir = path.dirname(resolvedPath);
+    const potentialVirtualEnv = path.resolve(interpreterDir, "..");
+    const potentialBinDir = path.join(potentialVirtualEnv, "bin");
+
+    const isVirtualEnv = _isVenvDirectory(potentialBinDir);
+
+    const pathEntry = isVirtualEnv ? potentialBinDir : interpreterDir;
+
     if (path.isAbsolute(executable)) {
-      // if the user provided a path to the executable, we directly execute the app.
       command = `${executable} ${args}`;
     }
 
-    // emulating virtual environment activation script
-    newEnv["VIRTUAL_ENV"] = virtualEnv;
+    if (isVirtualEnv) {
+      newEnv["VIRTUAL_ENV"] = potentialVirtualEnv;
+      delete newEnv.PYTHONHOME;
+    } else {
+      delete newEnv.VIRTUAL_ENV;
+    }
     newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
-    delete newEnv.PYTHONHOME;
   }
   return { command: command, env: newEnv };
 }

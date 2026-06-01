@@ -54,7 +54,14 @@ describe("SettingsManager", () => {
       expect(settingsManager.settings.lightSpeedService.apiEndpoint).toBe(
         "https://c.ai.ansible.redhat.com",
       );
-      expect(settingsManager.settings.lightSpeedService.apiKey).toBe("");
+      expect(
+        (
+          settingsManager.settings.lightSpeedService as unknown as Record<
+            string,
+            unknown
+          >
+        ).apiKey,
+      ).toBeUndefined();
     });
   });
 

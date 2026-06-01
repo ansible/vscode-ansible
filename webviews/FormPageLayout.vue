@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{
-  title: string;
-  subtitle: string;
-  description?: string;
-  requirementsMet?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    subtitle: string;
+    description?: string;
+    requirementsMet?: boolean;
+  }>(),
+  { requirementsMet: true },
+);
 
 const isDisabled = computed(() => props.requirementsMet === false);
 </script>
@@ -34,8 +37,8 @@ const isDisabled = computed(() => props.requirementsMet === false);
 body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  padding-top: 20px;
 }
 
 .title-div {
@@ -213,7 +216,7 @@ vscode-checkbox i {
 }
 
 .disabled-content {
-  opacity: 0.4;
+  opacity: 0.6;
   pointer-events: none;
 }
 </style>

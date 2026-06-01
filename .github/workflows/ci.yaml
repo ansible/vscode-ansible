@@ -1,4 +1,4 @@
-# cspell:ignore oidc mxschmitt userns cgroupfs dorny
+# cspell:ignore oidc mxschmitt userns cgroupfs dorny xlarge
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -53,10 +53,10 @@ jobs:
 
       # needed by our prek system hooks like toml
       - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v5
+        uses: pnpm/action-setup@v6
         with:
           cache: true
           run_install: |
@@ -65,7 +65,7 @@ jobs:
 
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
 
@@ -121,7 +121,7 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           task setup && task setup --status
 
-      - name: Extract commit context from conventional commit
+      - name: Extract commit context from conventional commit and list of known tasks
         id: extract_context
         shell: bash
         env:
@@ -147,6 +147,7 @@ jobs:
             echo "No context found in message"
             echo "context=" >> "$GITHUB_OUTPUT"
           fi
+          echo "tasks=$(task -l --json | jq -c '[.tasks[] | [.name] + (.aliases // []) | .[]]')" >> "$GITHUB_OUTPUT"
 
       - name: task build
         timeout-minutes: 2 # expected under 1 minutes
@@ -158,15 +159,15 @@ jobs:
         run: |
           task als:package && task als:package --status
 
-      - name: Run context-specific command
+      - name: Run context-specific command if it is a known task
         if: >-
           steps.extract_context.outputs.context != '' &&
-          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
+          !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
         run: |
           task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
-        timeout-minutes: 1
+        timeout-minutes: 2
         run: |
           task docs && task docs --status
 
@@ -226,7 +227,9 @@ jobs:
     needs:
       - lint
 
-    environment: ci
+    environment:
+      name: ci
+      deployment: false
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
@@ -264,13 +267,21 @@ jobs:
           - name: test (macos)
             id: test-macos
             task-name: test
-            os: macos-15-large
+            os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
             # only until we fix some broken tests, as we need it to pass
             # in order to enable the caching
             continue-on-error: true
+
+          - name: test (linux-wdio)
+            id: test-linux-wdio
+            task-name: wdio
+            os: ubuntu-24.04
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
           - name: test (wsl)
             id: test-wsl
@@ -281,10 +292,41 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+      # Self-hosted runners retain root-owned files from rootless Podman
+      # (overlay storage under out/als/tmp/).  These files live inside a
+      # user-namespace so normal rm fails with EACCES and sudo is
+      # unavailable.  `podman unshare` re-enters the same namespace,
+      # letting us delete them before checkout touches the workspace.
+      - name: Remove Podman overlay files on self-hosted runner
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          target="${GITHUB_WORKSPACE}/out/als/tmp/home/.local/share/containers"
+          if [ -d "$target" ]; then
+            podman unshare rm -rf -- "$target" \
+              || buildah unshare rm -rf -- "$target" \
+              || echo "::warning::Could not remove $target — checkout may fail"
+          fi
+
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+          clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
+
+      - name: Clean workspace on self-hosted runner
+        if: matrix.runs-on == 'self-hosted'
+        run: |
+          set -euxo pipefail
+          # Rootless Podman overlays under .cache/containers/ use user
+          # namespace remapping; remove them with podman or sudo.
+          if [ -d .cache/containers ]; then
+            podman unshare rm -rf -- .cache/containers 2>/dev/null \
+              || sudo rm -rf -- .cache/containers \
+              || true
+          fi
+          sudo find . -not -user "$(id -u)" -delete 2>/dev/null || true
+          git reset --hard HEAD
+          git clean -ffdx -e out/als/tmp/
 
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
@@ -294,7 +336,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
-        uses: Vampire/setup-wsl@6a8db447be7ed35f2f499c02c6e60ff77ef11278 # v6.0.0
+        uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
           distribution: Ubuntu-24.04
           set-as-default: "true"
@@ -370,11 +412,6 @@ jobs:
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-      - name: task package
-        id: package
-        run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
-
       - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
@@ -386,23 +423,29 @@ jobs:
           EOT
           podman info
 
+      - name: task package
+        if: ${{ matrix.task-name != 'wdio' }}
+        id: package
+        run: |
+          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
+
       - name: save ready_to_test=true
         id: ready_to_test
         if: ${{ contains(matrix.name, 'test') && success() }}
         run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
 
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
+        if: "${{ !contains(matrix.name, 'test') && !contains(matrix.name, 'wdio') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task unit (ext, vue, als, mcp)
-        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
+        if: contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: |
           task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e (vscode-test)
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
           set -e
           task build 2>out/log/build-before.txt
@@ -413,17 +456,11 @@ jobs:
         #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
         #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ui (selenium)
-        # runner.os=Linux even on windows if the runner was started from inside wsl!
-        if: ${{ runner.os == 'Linux' && !contains(matrix.name, 'wsl') }}
+      - name: task wdio (VS Code UI)
+        if: ${{ matrix.task-name == 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: |
-          task ui
+          task wdio
           task build --status
-        env:
-          # defined inside 'ci' environment
-          LIGHTSPEED_API_ENDPOINT: ${{ vars.LIGHTSPEED_API_ENDPOINT || secrets.LIGHTSPEED_API_ENDPOINT }}
-          LIGHTSPEED_USER: ${{ vars.LIGHTSPEED_USER || secrets.LIGHTSPEED_USER }}
-          LIGHTSPEED_PASSWORD: ${{ secrets.LIGHTSPEED_PASSWORD }}
         timeout-minutes: 30
 
       - name: task finish
@@ -436,6 +473,24 @@ jobs:
           find out -name '*"*' -exec rm -r {} \; || true
           find out -name '*:*' -exec rm -r {} \; || true
           rm -rf dist
+
+      - name: Remove test artifacts before upload
+        if: ${{ always() }}
+        run: |
+          # Remove container overlays (root-owned, need podman unshare)
+          for target in \
+            "out/e2e/tmp/home/.local/share/containers"; do
+            if [ -d "$target" ]; then
+              podman unshare rm -rf -- "$target" \
+                || buildah unshare rm -rf -- "$target" \
+                || rm -rf -- "$target" \
+                || echo "::warning::Could not remove $target"
+            fi
+          done
+          # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
+          rm -rf out/e2e/tmp/home/.local/share/mise || true
+          # Reduce artifact size by removing cached test data
+          rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ !cancelled() }}
@@ -456,7 +511,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -466,7 +521,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           directory: out/junit
           fail_ci_if_error: true
@@ -503,7 +558,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -517,12 +572,81 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
 
+  mcp-server-image:
+    runs-on: ubuntu-24.04
+    needs: [preflight, lint]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          show-progress: false
+
+      - name: Download MCP server package
+        uses: actions/download-artifact@v8
+        with:
+          pattern: ansible-ansible-mcp-server-*.tgz
+          merge-multiple: true
+
+      - name: Extract MCP server build artifacts
+        run: |
+          ls -la ansible-ansible-mcp-server-*.tgz
+          tar xzf ansible-ansible-mcp-server-*.tgz -C packages/ansible-mcp-server --strip-components=1
+          ls -la packages/ansible-mcp-server/dist/
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract container metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/ansible/devtools-mcp-server
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build MCP server container
+        uses: docker/build-push-action@v7
+        with:
+          context: packages/ansible-mcp-server
+          file: packages/ansible-mcp-server/Containerfile
+          load: true
+          tags: ghcr.io/ansible/devtools-mcp-server:smoke
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke test MCP server container
+        run: |
+          INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"smoke","version":"0.1"}}}'
+          RESPONSE=$(echo "$INIT" | timeout 10 docker run --rm -i ghcr.io/ansible/devtools-mcp-server:smoke --stdio || true)
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"ansible-mcp-server"' || { echo "Smoke test failed: server did not respond with expected name"; exit 1; }
+          echo "Smoke test passed"
+
+      - name: Tag and push MCP server container
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') }}
+        run: |
+          while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            docker tag ghcr.io/ansible/devtools-mcp-server:smoke "$tag"
+            docker push "$tag"
+          done <<< "${{ steps.meta.outputs.tags }}"
+
   check: # This job does nothing and is only used for the branch protection
     needs:
       - lint
       - preflight
       - build
       - builder-image
+      - mcp-server-image
     if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
 
     permissions:
@@ -541,11 +665,12 @@ jobs:
 
       # needed for pycobertura
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
+          pattern: logs-*
           path: .
 
       - name: Remove invalid files
@@ -578,7 +703,7 @@ jobs:
           (github.event_name == 'pull_request' ||
           (github.event_name == 'push' && github.ref_name =='main')
           )}}
-        uses: SonarSource/sonarqube-scan-action@v7
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.CICD_ORG_SONAR_TOKEN_CICD_BOT || secrets.AAP_ORG_SONAR_TOKEN_ANSIBLE_CICD_BOT }}
         with:
@@ -590,7 +715,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: builder-image
+          allowed-skips: builder-image, mcp-server-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
@@ -636,13 +761,13 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install --frozen-lockfile
+          pnpm install -y --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces
@@ -684,7 +809,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"

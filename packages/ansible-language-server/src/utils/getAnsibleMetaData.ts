@@ -67,22 +67,13 @@ export async function getResultsThroughCommandRunner(cmd: string, arg: string) {
       mountPaths,
     );
 
+    // Return result even if there's stderr (often just warnings)
     if (result.stderr) {
-      console.log(
-        `cmd '${cmd} ${arg}' has the following error/warning: ${result.stderr}`,
-      );
       return result;
     }
-  } catch (error) {
-    let errorMessage: string;
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = String(error);
-    }
-    console.log(
-      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${errorMessage}`,
-    );
+  } catch {
+    // Silently return undefined on command failures
+    // These are expected during environment transitions or when tools aren't installed
     return undefined;
   }
 

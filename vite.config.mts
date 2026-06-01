@@ -8,8 +8,8 @@ import { defineConfig, type Plugin } from "vite";
  * detect it and serve webview HTML directly from the dev server (enabling HMR).
  */
 function viteDevServerUrl(): Plugin {
-  const markerPath = path.resolve(__dirname, ".vite-dev-server-url");
-  const pidPath = path.resolve(__dirname, ".vite-dev.pid");
+  const markerPath = path.resolve(__dirname, "out", ".vite-dev-server-url");
+  const pidPath = path.resolve(__dirname, "out", ".vite-dev.pid");
   return {
     buildEnd() {
       // Clean up marker file during production builds
@@ -24,6 +24,7 @@ function viteDevServerUrl(): Plugin {
         const address = server.httpServer?.address();
         if (address && typeof address === "object") {
           const url = `http://localhost:${address.port}`;
+          fs.mkdirSync(path.dirname(markerPath), { recursive: true });
           fs.writeFileSync(markerPath, url, "utf8");
           fs.writeFileSync(pidPath, String(process.pid), "utf8");
         }

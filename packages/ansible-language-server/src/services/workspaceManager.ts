@@ -141,6 +141,7 @@ export class WorkspaceFolderContext {
   private _ansibleInventory: Thenable<AnsibleInventory> | undefined;
   private _ansibleLint: AnsibleLint | undefined;
   private _ansiblePlaybook: AnsiblePlaybook | undefined;
+  private _configChangeTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     connection: Connection,
@@ -158,12 +159,19 @@ export class WorkspaceFolderContext {
     this.documentSettings.onConfigurationChanged(
       this.workspaceFolder.uri,
       () => {
-        // in case the configuration changes for this folder, we should
-        // invalidate the services that rely on it in initialization
-        this._executionEnvironment = undefined;
-        this._ansibleConfig = undefined;
-        this._docsLibrary = undefined;
-        this._ansibleInventory = undefined;
+        // Debounce: multiple didChangeConfiguration notifications can arrive
+        // in rapid succession (e.g. when several settings are updated at once).
+        // Without debouncing, each fires the invalidation callback while a
+        // previous docsLibrary.initialize() may still be in flight, orphaning
+        // its result and leaving subsequent requests with an empty module index.
+        if (this._configChangeTimer) {
+          clearTimeout(this._configChangeTimer);
+          this._configChangeTimer = undefined;
+        }
+        this._configChangeTimer = setTimeout(() => {
+          this.clearCachedServices();
+          this._configChangeTimer = undefined;
+        }, 500);
       },
     );
   }

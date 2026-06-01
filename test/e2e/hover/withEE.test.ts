@@ -33,11 +33,17 @@ describe("ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
     before(async function () {
+      this.timeout(60_000);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
       setFixtureAnsibleCollectionPathEnv(
         "/home/runner/.ansible/collections:/usr/share/ansible/collections",
       );
+    });
+
+    it("should receive docsLibraryReady from ALS", async function () {
+      this.timeout(60_000);
+      await vscode.commands.executeCommand("ansible.awaitDocsLibraryReady");
     });
 
     describe("Hover for play keywords", function () {

@@ -1,5 +1,8 @@
-import { expect } from "vitest";
-import { withInterpreter } from "@src/utils/misc.js";
+import { expect, describe, it } from "vitest";
+import { withInterpreter, validatePlaybookPath } from "@src/utils/misc.js";
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
 
 interface testType {
   scenario: string;
@@ -12,17 +15,10 @@ interface testType {
 }
 
 describe("withInterpreter", function () {
+  const alwaysTrue = () => true;
+  const alwaysFalse = () => false;
+
   const tests: testType[] = [
-    {
-      scenario: "when activation script is provided",
-      executable: "ansible-lint",
-      args: "playbook.yml",
-      interpreterPath: "",
-      activationScript: "/path/to/venv/bin/activate",
-      expectedCommand:
-        "sh -c '. /path/to/venv/bin/activate && ansible-lint playbook.yml'",
-      expectedEnv: {},
-    },
     {
       scenario: "when no activation script is provided",
       executable: "ansible-lint",
@@ -66,11 +62,17 @@ describe("withInterpreter", function () {
       expectedEnv,
     }) => {
       it(`should provide command ${scenario}`, function () {
+        const isVenv =
+          expectedEnv && "VIRTUAL_ENV" in expectedEnv
+            ? alwaysTrue
+            : alwaysFalse;
+
         const actualCommand = withInterpreter(
           executable,
           args,
           interpreterPath,
           activationScript,
+          isVenv,
         );
         expect(actualCommand.command).toBe(expectedCommand);
 
@@ -90,4 +92,211 @@ describe("withInterpreter", function () {
       });
     },
   );
+
+  describe("bare interpreter handling", function () {
+    it("should not prepend '.' to PATH for bare command names", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "python3",
+        "",
+      );
+
+      expect(result.env.VIRTUAL_ENV).toBeUndefined();
+      expect(result.env.PATH).not.toMatch(/^\./);
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    });
+  });
+
+  describe("virtual environment detection", function () {
+    it("should detect virtual environment and set VIRTUAL_ENV", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "/home/user/.venv/bin/python3",
+        "",
+        alwaysTrue,
+      );
+
+      expect(result.env.VIRTUAL_ENV).toBe("/home/user/.venv");
+      expect(result.env.PATH).toContain("/home/user/.venv/bin");
+      expect(result.env.PYTHONHOME).toBeUndefined();
+    });
+
+    it("should handle non-venv Python and not set VIRTUAL_ENV", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "/usr/local/bin/python3.12",
+        "",
+        alwaysFalse,
+      );
+
+      expect(result.env.VIRTUAL_ENV).toBeUndefined();
+      expect(result.env.PATH).toContain("/usr/local/bin");
+      expect(result.env.PATH?.startsWith("/usr/local/bin:")).toBe(true);
+    });
+
+    it("should use interpreter directory for non-venv with tools in same dir", function () {
+      const result = withInterpreter(
+        "ansible",
+        "--version",
+        "/home/user/.local/bin/python3.12",
+        "",
+        alwaysFalse,
+      );
+
+      expect(result.env.PATH).toContain("/home/user/.local/bin");
+      expect(result.env.VIRTUAL_ENV).toBeUndefined();
+    });
+
+    it("should use venv bin directory when activate script exists", function () {
+      const result = withInterpreter(
+        "ansible",
+        "--version",
+        "/home/user/.local/share/virtualenvs/myproject/bin/python",
+        "",
+        alwaysTrue,
+      );
+
+      expect(result.env.PATH).toContain(
+        "/home/user/.local/share/virtualenvs/myproject/bin",
+      );
+      expect(result.env.VIRTUAL_ENV).toBe(
+        "/home/user/.local/share/virtualenvs/myproject",
+      );
+    });
+  });
+
+  describe("activation script validation", function () {
+    it("should reject activation script with shell metacharacters", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "",
+        "/tmp/activate; rm -rf /",
+      );
+
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    });
+
+    it("should reject activation script that does not exist", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "",
+        "/nonexistent/path/to/activate",
+      );
+
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    });
+
+    it("should fall through to interpreter path when activation script is invalid", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "/home/user/.venv/bin/python3",
+        "/tmp/activate$(whoami)",
+        alwaysTrue,
+      );
+
+      expect(result.command).toBe("ansible-lint playbook.yml");
+      expect(result.env.VIRTUAL_ENV).toBe("/home/user/.venv");
+    });
+
+    it("should accept a valid activation script that exists", function () {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+      const scriptPath = path.join(tmpDir, "activate");
+      fs.writeFileSync(scriptPath, "# activation script");
+
+      try {
+        const result = withInterpreter(
+          "ansible-lint",
+          "playbook.yml",
+          "",
+          scriptPath,
+        );
+
+        expect(result.command).toBe(
+          `sh -c '. ${scriptPath} && ansible-lint playbook.yml'`,
+        );
+      } finally {
+        fs.unlinkSync(scriptPath);
+        fs.rmdirSync(tmpDir);
+      }
+    });
+  });
+});
+
+describe("validatePlaybookPath", function () {
+  it("should accept a valid file path", function () {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+    const filePath = path.join(tmpDir, "playbook.yml");
+    fs.writeFileSync(filePath, "---\n- hosts: all\n");
+
+    try {
+      expect(validatePlaybookPath(filePath)).toBeUndefined();
+    } finally {
+      fs.unlinkSync(filePath);
+      fs.rmdirSync(tmpDir);
+    }
+  });
+
+  it("should reject paths with shell metacharacters", function () {
+    expect(validatePlaybookPath("/tmp/play; rm -rf /")).toContain(
+      "unsafe characters",
+    );
+  });
+
+  it("should reject a directory path", function () {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+
+    try {
+      expect(validatePlaybookPath(tmpDir)).toContain("is not a file");
+    } finally {
+      fs.rmdirSync(tmpDir);
+    }
+  });
+
+  it("should reject a nonexistent path", function () {
+    expect(validatePlaybookPath("/nonexistent/playbook.yml")).toContain(
+      "does not exist",
+    );
+  });
+});
+
+describe("activation script validation via withInterpreter", function () {
+  it("should reject all shell metacharacter injection attempts", function () {
+    const malicious = [
+      "/tmp/activate; rm -rf /",
+      "/tmp/activate$(whoami)",
+      "/tmp/activate`id`",
+      "/tmp/activate & echo pwned",
+      "/tmp/activate | cat /etc/passwd",
+      "/tmp/activate\nmalicious",
+      "/tmp/activate$HOME",
+      "/tmp/'; rm -rf / #",
+    ];
+
+    for (const p of malicious) {
+      const result = withInterpreter("ansible-lint", "playbook.yml", "", p);
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    }
+  });
+
+  it("should reject a directory path as activation script", function () {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "als-test-"));
+
+    try {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "",
+        tmpDir,
+      );
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    } finally {
+      fs.rmdirSync(tmpDir);
+    }
+  });
 });

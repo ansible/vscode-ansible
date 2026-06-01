@@ -3,8 +3,7 @@
 # about not not using or creating files from user home directory directly (~).
 !media/
 .DS_Store
-.vite-dev-server-url
-.vite-dev.pid
+# Build tool caches (node-gyp, prek, etc.) - tests use out/*/tmp/home/.cache/
 .cache
 .eslintcache
 .idea
@@ -15,6 +14,7 @@
 *.pyo
 .task
 .vscode-test
+.wdio-vscode
 node_modules
 out
 site
@@ -22,7 +22,6 @@ dist
 lib
 
 # TODO: Seek to remove these from this file:
-.ansible
 CHANGELOG.html
 docs/als/settings.md
 examples/.vscode/

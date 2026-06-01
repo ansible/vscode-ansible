@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Create check run with link
         id: create-check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
@@ -78,7 +78,7 @@ jobs:
       - name: SonarCloud scan
         # Coverage processing if js map files are not present so we cannot do
         # this from inside 'check' job.
-        uses: SonarSource/sonarqube-scan-action@v7
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets[format('{0}', vars.SONAR_TOKEN_SECRET_NAME)] }}
@@ -93,7 +93,7 @@ jobs:
 
       - name: Update check run (success)
         if: success()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.checks.update({
@@ -111,7 +111,7 @@ jobs:
 
       - name: Update check run (failure)
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.checks.update({

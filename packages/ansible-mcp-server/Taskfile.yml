@@ -32,6 +32,7 @@ tasks:
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
@@ -85,6 +86,13 @@ tasks:
       - npm pack --silent --pack-destination '{{ .GIT_ROOT }}/out'
       - defer: npm version 0.0.0 --no-git-tag-version
     silent: false
+  container:
+    desc: Build the MCP server container image
+    dir: "{{ .TASKFILE_DIR }}"
+    deps:
+      - package
+    cmds:
+      - docker build -f Containerfile -t ghcr.io/ansible/devtools-mcp-server:local .
   clean:
     desc: Clean build artifacts
     dir: "{{ .TASKFILE_DIR }}"

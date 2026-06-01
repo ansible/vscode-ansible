@@ -91,6 +91,7 @@ export class LightSpeedManager {
     this.providerManager = new ProviderManager(
       this.settingsManager,
       this.apiInstance,
+      this.llmProviderSettings,
     );
 
     this.contentMatchesProvider = new ContentMatchesWebview(

@@ -1,2 +1,28 @@
+# cspell: ignore rollup
 packages:
   - "packages/*"
+allowBuilds:
+  '@google/genai': true
+  '@vscode/vsce-sign': true
+  edgedriver: true
+  electron: true
+  esbuild: true
+  geckodriver: true
+  keytar: true
+  protobufjs: true
+  unrs-resolver: true
+
+overrides:
+  rollup: "npm:@rollup/wasm-node@*"
+patchedDependencies:
+  "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
+packageExtensions:
+  "cypress-multi-reporters@*":
+    "dependencies":
+      "mocha": "*"
+  "mocha-junit-reporter@*":
+    "dependencies":
+      "mocha": "*"
+  "mocha-multi-reporters@*":
+    "dependencies":
+      "mocha": "*"

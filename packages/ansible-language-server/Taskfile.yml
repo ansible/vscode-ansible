@@ -31,10 +31,11 @@ tasks:
       - setup
     cmds:
       - pnpm run compile
-      - pnpm exec ansible-language-server --generate-docs ../../docs/als/settings.md
+      - node dist/cli.cjs --generate-docs ../../docs/als/settings.md
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
@@ -46,9 +47,13 @@ tasks:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
     dir: "{{ .TASKFILE_DIR }}"
     interactive: true
+    env:
+      TMP: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
+      TMPDIR: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
     deps:
       - build
     sources:
+      - ../../.config/mise.toml
       - ../../pyproject.toml
       - ../../uv.lock
       - ../../vitest.config.ts
@@ -62,6 +67,7 @@ tasks:
       - ../../out/coverage/unit/lcov.info # sonar
       - ../../out/junit/unit-test-results.xml
     cmds:
+      - mkdir -p ../../out/als/tmp
       - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && pnpm run test"
   test-with-ee:
     dir: '{{ .TASKFILE_DIR }}'

@@ -2,6 +2,13 @@
 import { beforeAll, beforeEach } from "vitest";
 import { deleteAlsCache, skipEE } from "@test/helper.js";
 
+// Restore real HOME for ALS tests — ext globalSetup redirects HOME to
+// out/home, but rootless podman needs the real HOME or @ee tests timeout.
+if (process.env._ALS_ORIGINAL_HOME) {
+  process.env.HOME = process.env._ALS_ORIGINAL_HOME;
+  process.env.USERPROFILE = process.env._ALS_ORIGINAL_HOME;
+}
+
 // Delete cache once at the start of all tests (like Mocha's beforeAll)
 beforeAll(() => {
   deleteAlsCache();

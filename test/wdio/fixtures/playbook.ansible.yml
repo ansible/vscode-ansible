@@ -1,0 +1,8 @@
+---
+- name: Test playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Debug message
+      ansible.builtin.debug:
+        msg: "hello from WDIO test fixture"

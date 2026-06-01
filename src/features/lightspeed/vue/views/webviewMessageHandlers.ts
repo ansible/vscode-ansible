@@ -743,9 +743,7 @@ export class WebviewMessageHandlers {
       const templateSourcePath = vscode.Uri.joinPath(
         extensionUri,
         "resources/contentCreator/createDevcontainer/.devcontainer",
-      )
-        .toString()
-        .replace("file://", "");
+      ).fsPath;
 
       await this.scaffoldDevcontainerStructure(
         templateSourcePath,
@@ -882,9 +880,7 @@ export class WebviewMessageHandlers {
     const absoluteTemplatePath = vscode.Uri.joinPath(
       extensionUri,
       relativeTemplatePath,
-    )
-      .toString()
-      .replace("file://", "");
+    ).fsPath;
 
     try {
       const dirPath = path.dirname(expandedDestUrl);
@@ -1104,7 +1100,7 @@ export class WebviewMessageHandlers {
         const extSettings = new SettingsManager();
         await extSettings.initialize();
 
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           initEEProjectCommand,
           "",

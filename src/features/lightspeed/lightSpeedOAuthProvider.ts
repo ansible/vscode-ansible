@@ -166,6 +166,41 @@ export class LightSpeedAuthenticationProvider
   }
 
   /**
+   * Inject a fake authenticated session for WDIO UI tests.
+   *
+   * Writes a synthetic {@link LightspeedAuthSession} to the secret store and
+   * fires a session-change event so the rest of the extension treats the user
+   * as logged in. Called via the `ansible.lightspeed.mockSession` command.
+   */
+  public async setMockSession(sessionParams: {
+    accessToken: string;
+    accountId: string;
+    accountLabel: string;
+  }): Promise<void> {
+    const previous = await this.getSessions();
+    const session: LightspeedAuthSession = {
+      id: sessionParams.accountId,
+      accessToken: sessionParams.accessToken,
+      account: {
+        id: sessionParams.accountId,
+        label: sessionParams.accountLabel,
+      },
+      scopes: [],
+      rhOrgHasSubscription: false,
+      rhUserIsOrgAdmin: false,
+    };
+    await this.context.secrets.store(
+      SESSIONS_SECRET_KEY,
+      JSON.stringify([session]),
+    );
+    this._sessionChangeEmitter.fire({
+      added: [session],
+      removed: previous,
+      changed: [],
+    });
+  }
+
+  /**
    * Create a new auth session
    * @param scopes - Scopes
    * @returns

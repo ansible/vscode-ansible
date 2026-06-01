@@ -162,14 +162,14 @@ fi
 
 if command -v pipx >/dev/null 2>&1; then
     log notice "Uninstalling pipx packages..."
-    pipx list 2> /dev/null
+    pipx list 2> /dev/null || true
     for pkg in ansible-core ansible-creator ansible-dev-tools ansible-lint ansible-navigator molecule yamllint; do
         if pipx list 2> /dev/null | grep -q "$pkg"; then
             pipx uninstall -q "$pkg"
         fi
     done
     log notice "pipx list after uninstall:"
-    pipx list 2> /dev/null
+    pipx list 2> /dev/null || true
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
@@ -358,7 +358,7 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     PODMAN_VERSION="$(get_version podman 2>/dev/null || echo null)"
     podman container prune -f
     log notice "Pull our test container image with podman."
-    retry 3 60 podman pull --quiet "${IMAGE}" || {
+    retry 3 60 podman pull "${IMAGE}" || {
         log error "Failed to pull image after 3 attempts."
         exit 1
     }

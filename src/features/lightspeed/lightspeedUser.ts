@@ -94,6 +94,9 @@ export class LightspeedUser {
   }
 
   private async logAuthProviderDebugHints(): Promise<void> {
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return;
+    }
     const provider = this._settingsManager.settings.lightSpeedService.provider;
     const lightspeedUri = await getBaseUri(this._settingsManager);
     this._logger.info(
@@ -263,7 +266,12 @@ export class LightspeedUser {
         return [AuthProviderType.rhsso, AuthProviderType.lightspeed];
       }
     }
-    const lightspeedUri = await getBaseUri(this._settingsManager);
+    let lightspeedUri: string;
+    try {
+      lightspeedUri = await getBaseUri(this._settingsManager);
+    } catch {
+      return [AuthProviderType.lightspeed, AuthProviderType.rhsso];
+    }
     // Prefer RHSSO when we know Lightspeed auth will be broken.
     // Prefer Lightspeed auth all other times.
     if (
