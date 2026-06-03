@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (registerCursorMcpServer(context)) {
             log('MCP server registered via Cursor extension API');
         } else {
-            log('Cursor MCP API not available — user can configure manually via command');
+            log('Cursor MCP auto-registration failed (API unavailable or server binary missing) — user can configure manually via command');
         }
     } else if (isMcpAvailable()) {
         registerMcpServerProvider(context);
