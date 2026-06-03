@@ -2,6 +2,91 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { log } from '../extension';
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- Cursor extension API is not typed in @types/vscode */
+
+const MCP_SERVER_NAME = 'ansible-environments';
+
+// -------------------------------------------------------------------------
+// Cursor extension API types
+// -------------------------------------------------------------------------
+
+interface CursorMcpApi {
+    registerServer(config: { name: string; server: { command: string; args?: string[]; env?: Record<string, string> } }): void;
+    unregisterServer(name: string): void;
+}
+
+interface CursorNamespace {
+    mcp?: CursorMcpApi;
+}
+
+function getCursorMcpApi(): CursorMcpApi | undefined {
+    const cursor = (vscode as any).cursor as CursorNamespace | undefined;
+    if (cursor?.mcp && typeof cursor.mcp.registerServer === 'function') {
+        return cursor.mcp;
+    }
+    return undefined;
+}
+
+// -------------------------------------------------------------------------
+// Primary: Cursor extension API registration
+// -------------------------------------------------------------------------
+
+/**
+ * Register the MCP server via Cursor's extension API.
+ * The server is immediately available and enabled -- no config files,
+ * no manual toggle needed.
+ */
+function registerViaCursorApi(serverPath: string): boolean {
+    const api = getCursorMcpApi();
+    if (!api) {
+        return false;
+    }
+
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    try {
+        api.registerServer({
+            name: MCP_SERVER_NAME,
+            server: {
+                command: 'node',
+                args: [serverPath],
+                env: {
+                    ...(workspaceFolder ? { ANSIBLE_ENV_WORKSPACE: workspaceFolder } : {}),
+                },
+            },
+        });
+        log('MCP server registered via Cursor extension API');
+        return true;
+    } catch (error) {
+        log(`Cursor MCP API registration failed: ${error}`);
+        return false;
+    }
+}
+
+// -------------------------------------------------------------------------
+// Auto-registration at activation
+// -------------------------------------------------------------------------
+
+/**
+ * Automatically register the MCP server when running in Cursor.
+ * Called during extension activation, mirrors registerMcpServerProvider()
+ * for VS Code.
+ */
+export function registerCursorMcpServer(context: vscode.ExtensionContext): boolean {
+    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+
+    if (!fs.existsSync(serverPath)) {
+        log(`MCP server binary not found at ${serverPath}`);
+        return false;
+    }
+
+    return registerViaCursorApi(serverPath);
+}
+
+// -------------------------------------------------------------------------
+// Fallback: mcp.json file-based configuration
+// -------------------------------------------------------------------------
 
 interface McpServerConfig {
     command: string;
@@ -14,49 +99,43 @@ interface McpConfig {
 }
 
 /**
- * Configure Cursor to use the Ansible Environments MCP server
+ * Write the MCP server entry to a Cursor mcp.json file.
+ * Used as a fallback when the Cursor extension API is unavailable.
  */
-export async function configureCursorMcp(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(path.join('out', 'mcp', 'server.js'));
-    
-    // Check if server file exists
+async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<void> {
+    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+
     if (!fs.existsSync(serverPath)) {
         vscode.window.showErrorMessage(
-            'MCP server not found. Please ensure the extension is properly compiled.',
-            'Show Details'
-        ).then(selection => {
-            if (selection === 'Show Details') {
-                vscode.window.showInformationMessage(`Expected server at: ${serverPath}`);
-            }
-        });
+            `MCP server not found at: ${serverPath}`,
+        );
         return;
     }
 
-    // Determine config location - offer choice between global and workspace
     const configChoice = await vscode.window.showQuickPick([
         {
             label: '$(home) Global Configuration',
             description: 'Apply to all Cursor workspaces',
-            detail: `~/.cursor/mcp.json`,
-            value: 'global'
+            detail: '~/.cursor/mcp.json',
+            value: 'global',
         },
         {
             label: '$(folder) Workspace Configuration',
             description: 'Apply only to current workspace',
-            detail: `.cursor/mcp.json in workspace`,
-            value: 'workspace'
-        }
+            detail: '.cursor/mcp.json in workspace',
+            value: 'workspace',
+        },
     ], {
         title: 'Configure Cursor MCP',
-        placeHolder: 'Where should the MCP configuration be saved?'
+        placeHolder: 'Where should the MCP configuration be saved?',
     });
 
     if (!configChoice) {
-        return; // User cancelled
+        return;
     }
 
     let configPath: string;
-    
+
     if (configChoice.value === 'global') {
         configPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     } else {
@@ -68,13 +147,11 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
         configPath = path.join(workspaceFolder.uri.fsPath, '.cursor', 'mcp.json');
     }
 
-    // Ensure directory exists
     const configDir = path.dirname(configPath);
     if (!fs.existsSync(configDir)) {
         fs.mkdirSync(configDir, { recursive: true });
     }
 
-    // Load existing config or create new
     let config: McpConfig = { mcpServers: {} };
     if (fs.existsSync(configPath)) {
         try {
@@ -83,11 +160,11 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
             if (!config.mcpServers) {
                 config.mcpServers = {};
             }
-        } catch (error) {
+        } catch {
             const overwrite = await vscode.window.showWarningMessage(
                 `Existing config at ${configPath} could not be parsed. Overwrite?`,
                 'Overwrite',
-                'Cancel'
+                'Cancel',
             );
             if (overwrite !== 'Overwrite') {
                 return;
@@ -96,44 +173,43 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
         }
     }
 
-    // Check if already configured
-    if (config.mcpServers['ansible-environments']) {
-        const existingPath = config.mcpServers['ansible-environments'].args?.[0];
+    if (config.mcpServers[MCP_SERVER_NAME]) {
+        const existingPath = config.mcpServers[MCP_SERVER_NAME].args?.[0];
         if (existingPath === serverPath) {
             vscode.window.showInformationMessage(
-                'Cursor MCP is already configured for this extension.'
+                'Cursor MCP is already configured for this extension.',
             );
             return;
         }
 
         const update = await vscode.window.showWarningMessage(
-            `Ansible Environments MCP is already configured with a different path. Update it?`,
+            'Ansible Environments MCP is already configured with a different path. Update it?',
             'Update',
-            'Cancel'
+            'Cancel',
         );
         if (update !== 'Update') {
             return;
         }
     }
 
-    // Add/update our server config
-    config.mcpServers['ansible-environments'] = {
+    config.mcpServers[MCP_SERVER_NAME] = {
         command: 'node',
         args: [serverPath],
-        env: {}
+        env: {},
     };
 
-    // Write config
     try {
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
-        
-        const restartAction = await vscode.window.showInformationMessage(
-            `Cursor MCP configured successfully!\n\nServer path: ${serverPath}\nConfig: ${configPath}\n\nPlease restart Cursor for changes to take effect.`,
-            'Open Config',
-            'OK'
+
+        const action = await vscode.window.showInformationMessage(
+            'Ansible MCP server added. Enable it in Cursor Settings (Ctrl+Shift+J) under Features > MCP.',
+            'Open MCP Settings',
+            'Open Config File',
         );
 
-        if (restartAction === 'Open Config') {
+        if (action === 'Open MCP Settings') {
+            await openCursorMcpSettings();
+        } else if (action === 'Open Config File') {
             const doc = await vscode.workspace.openTextDocument(configPath);
             await vscode.window.showTextDocument(doc);
         }
@@ -142,75 +218,108 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
     }
 }
 
+// -------------------------------------------------------------------------
+// Public command handler
+// -------------------------------------------------------------------------
+
+/**
+ * Configure Cursor to use the Ansible Environments MCP server.
+ * Tries the Cursor extension API first; falls back to mcp.json.
+ */
+export async function configureCursorMcp(context: vscode.ExtensionContext): Promise<void> {
+    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+
+    if (!fs.existsSync(serverPath)) {
+        vscode.window.showErrorMessage(
+            `MCP server not found at: ${serverPath}`,
+        );
+        return;
+    }
+
+    if (registerViaCursorApi(serverPath)) {
+        vscode.window.showInformationMessage(
+            'Ansible Environments MCP server registered and ready.',
+        );
+        return;
+    }
+
+    await configureViaMcpJson(context);
+}
+
+// -------------------------------------------------------------------------
+// Settings helper
+// -------------------------------------------------------------------------
+
+async function openCursorMcpSettings(): Promise<void> {
+    try {
+        await vscode.commands.executeCommand('workbench.action.openSettings', 'mcp');
+    } catch {
+        vscode.window.showInformationMessage(
+            'Open Cursor Settings (Ctrl+Shift+J) and navigate to Features > MCP.',
+        );
+    }
+}
+
+// -------------------------------------------------------------------------
+// Status
+// -------------------------------------------------------------------------
+
 /**
  * Show the current Cursor MCP configuration status
  */
 export async function showCursorMcpStatus(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(path.join('out', 'mcp', 'server.js'));
+    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
     const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    const workspaceConfigPath = workspaceFolder 
+    const workspaceConfigPath = workspaceFolder
         ? path.join(workspaceFolder.uri.fsPath, '.cursor', 'mcp.json')
         : null;
+
+    const cursorApi = getCursorMcpApi();
 
     const lines: string[] = [
         '## Ansible Environments MCP Server Status\n',
         `**Server Path:** \`${serverPath}\``,
-        `**Server Exists:** ${fs.existsSync(serverPath) ? '✅ Yes' : '❌ No'}\n`,
-        '### Configuration Files\n'
+        `**Server Exists:** ${fs.existsSync(serverPath) ? 'Yes' : 'No'}`,
+        `**Cursor Extension API:** ${cursorApi ? 'Available' : 'Not available'}\n`,
+        '### Configuration Files\n',
     ];
 
-    // Check global config
-    if (fs.existsSync(globalConfigPath)) {
+    for (const [label, cfgPath] of [
+        ['Global (~/.cursor/mcp.json)', globalConfigPath],
+        ['Workspace (.cursor/mcp.json)', workspaceConfigPath],
+    ] as const) {
+        if (!cfgPath) { continue; }
+        if (!fs.existsSync(cfgPath)) {
+            lines.push(`**${label}:** File not found`);
+            continue;
+        }
         try {
-            const content = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8'));
-            const configured = content.mcpServers?.['ansible-environments'];
+            const content = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+            const configured = content.mcpServers?.[MCP_SERVER_NAME];
             if (configured) {
                 const pathMatch = configured.args?.[0] === serverPath;
-                lines.push(`**Global (~/.cursor/mcp.json):** ${pathMatch ? '✅ Configured correctly' : '⚠️ Path mismatch'}`);
+                lines.push(`**${label}:** ${pathMatch ? 'Configured correctly' : 'Path mismatch'}`);
                 if (!pathMatch) {
                     lines.push(`  - Configured: \`${configured.args?.[0]}\``);
                     lines.push(`  - Expected: \`${serverPath}\``);
                 }
             } else {
-                lines.push('**Global (~/.cursor/mcp.json):** ❌ Not configured');
+                lines.push(`**${label}:** Not configured`);
             }
         } catch {
-            lines.push('**Global (~/.cursor/mcp.json):** ⚠️ Invalid JSON');
-        }
-    } else {
-        lines.push('**Global (~/.cursor/mcp.json):** ❌ File not found');
-    }
-
-    // Check workspace config
-    if (workspaceConfigPath) {
-        if (fs.existsSync(workspaceConfigPath)) {
-            try {
-                const content = JSON.parse(fs.readFileSync(workspaceConfigPath, 'utf8'));
-                const configured = content.mcpServers?.['ansible-environments'];
-                if (configured) {
-                    const pathMatch = configured.args?.[0] === serverPath;
-                    lines.push(`**Workspace (.cursor/mcp.json):** ${pathMatch ? '✅ Configured correctly' : '⚠️ Path mismatch'}`);
-                } else {
-                    lines.push('**Workspace (.cursor/mcp.json):** ❌ Not configured');
-                }
-            } catch {
-                lines.push('**Workspace (.cursor/mcp.json):** ⚠️ Invalid JSON');
-            }
-        } else {
-            lines.push('**Workspace (.cursor/mcp.json):** ❌ File not found');
+            lines.push(`**${label}:** Invalid JSON`);
         }
     }
 
-    // Show in a webview or output
     const panel = vscode.window.createWebviewPanel(
         'mcpStatus',
         'MCP Server Status',
         vscode.ViewColumn.One,
-        {}
+        {},
     );
 
-    const htmlContent = `
+    panel.webview.html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -234,36 +343,30 @@ export async function showCursorMcpStatus(context: vscode.ExtensionContext): Pro
 </head>
 <body>
     ${lines.map(line => {
-        if (line.startsWith('##')) {
-            return `<h2>${line.replace('## ', '')}</h2>`;
-        } else if (line.startsWith('###')) {
+        if (line.startsWith('###')) {
             return `<h3>${line.replace('### ', '')}</h3>`;
-        } else {
-            // Convert markdown-style formatting
-            const html = line
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                .replace(/`([^`]+)`/g, '<code>$1</code>');
-            return `<div class="status-line">${html}</div>`;
+        } else if (line.startsWith('##')) {
+            return `<h2>${line.replace('## ', '')}</h2>`;
         }
+        const html = line
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>');
+        return `<div class="status-line">${html}</div>`;
     }).join('\n')}
-    
+
     <div style="margin-top: 30px;">
         <p>To configure, run: <strong>Ansible Environments: Configure Cursor MCP</strong></p>
     </div>
 </body>
 </html>`;
-
-    panel.webview.html = htmlContent;
 }
 
-/**
- * Detected IDE type
- */
+// -------------------------------------------------------------------------
+// IDE detection & status types
+// -------------------------------------------------------------------------
+
 export type IdeType = 'cursor' | 'vscode' | 'unknown';
 
-/**
- * Detect which IDE we're running in
- */
 export function detectIde(): IdeType {
     const appName = vscode.env.appName.toLowerCase();
     if (appName.includes('cursor')) {
@@ -275,73 +378,64 @@ export function detectIde(): IdeType {
     return 'unknown';
 }
 
-/**
- * MCP configuration status
- */
 export interface McpStatus {
     ide: IdeType;
-    vscodeAvailable: boolean;  // VS Code MCP API is available (1.99+)
+    vscodeAvailable: boolean;
+    cursorApiAvailable: boolean;
     cursorGlobalConfigured: boolean;
     cursorWorkspaceConfigured: boolean;
     serverExists: boolean;
-    isConfigured: boolean;  // Overall: is MCP configured for the current IDE?
+    isConfigured: boolean;
 }
 
-/**
- * Get the current MCP configuration status
- */
 export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
-    const serverPath = context.asAbsolutePath(path.join('out', 'mcp', 'server.js'));
+    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
     const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    const workspaceConfigPath = workspaceFolder 
+    const workspaceConfigPath = workspaceFolder
         ? path.join(workspaceFolder.uri.fsPath, '.cursor', 'mcp.json')
         : null;
 
     const ide = detectIde();
     const serverExists = fs.existsSync(serverPath);
-    
-    // Check VS Code MCP API availability
+    const cursorApiAvailable = !!getCursorMcpApi();
+
     const vscodeAvailable = typeof (vscode as unknown as { lm?: { registerTool?: unknown } }).lm?.registerTool === 'function';
-    
-    // Check Cursor global config
+
     let cursorGlobalConfigured = false;
     if (fs.existsSync(globalConfigPath)) {
         try {
             const content = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8'));
-            const configured = content.mcpServers?.['ansible-environments'];
-            cursorGlobalConfigured = configured && configured.args?.[0] === serverPath;
-        } catch {
-            // Invalid JSON
-        }
+            const configured = content.mcpServers?.[MCP_SERVER_NAME];
+            cursorGlobalConfigured = !!configured;
+        } catch { /* invalid JSON */ }
     }
-    
-    // Check Cursor workspace config
+
     let cursorWorkspaceConfigured = false;
     if (workspaceConfigPath && fs.existsSync(workspaceConfigPath)) {
         try {
             const content = JSON.parse(fs.readFileSync(workspaceConfigPath, 'utf8'));
-            const configured = content.mcpServers?.['ansible-environments'];
-            cursorWorkspaceConfigured = configured && configured.args?.[0] === serverPath;
-        } catch {
-            // Invalid JSON
-        }
+            const configured = content.mcpServers?.[MCP_SERVER_NAME];
+            cursorWorkspaceConfigured = !!configured;
+        } catch { /* invalid JSON */ }
     }
-    
-    // Determine if configured for current IDE
+
     let isConfigured = false;
     if (ide === 'vscode') {
         isConfigured = vscodeAvailable;
     } else if (ide === 'cursor') {
-        isConfigured = cursorGlobalConfigured || cursorWorkspaceConfigured;
+        isConfigured = cursorApiAvailable || cursorGlobalConfigured || cursorWorkspaceConfigured;
     }
-    
+
     return {
         ide,
         vscodeAvailable,
+        cursorApiAvailable,
         cursorGlobalConfigured,
         cursorWorkspaceConfigured,
         serverExists,
-        isConfigured
+        isConfigured,
     };
 }
+
+/* eslint-enable @typescript-eslint/no-explicit-any */

@@ -31,7 +31,7 @@ import {
     getCommandService,
 } from '@ansible/core';
 import type { PythonEnvironment, SchemaNode } from '@ansible/core';
-import { registerMcpServerProvider, isMcpAvailable, configureCursorMcp, showCursorMcpStatus, getMcpStatus } from './mcp';
+import { registerMcpServerProvider, isMcpAvailable, registerCursorMcpServer, configureCursorMcp, showCursorMcpStatus, getMcpStatus, detectIde } from './mcp';
 import { getLlmService } from './services/LlmService';
 import { registerFileAssociation } from './features/fileAssociation';
 import { registerVaultCommand } from './features/vault';
@@ -159,8 +159,15 @@ export function activate(context: vscode.ExtensionContext) {
     // Set initial MCP status context
     updateMcpStatusContext();
 
-    // Register MCP server provider for VS Code Copilot integration
-    if (isMcpAvailable()) {
+    // Register MCP server with the appropriate IDE API
+    const ide = detectIde();
+    if (ide === 'cursor') {
+        if (registerCursorMcpServer(context)) {
+            log('MCP server registered via Cursor extension API');
+        } else {
+            log('Cursor MCP API not available — user can configure manually via command');
+        }
+    } else if (isMcpAvailable()) {
         registerMcpServerProvider(context);
         log('MCP server provider registered for VS Code');
     } else {
