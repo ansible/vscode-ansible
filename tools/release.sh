@@ -17,7 +17,7 @@ echo "${RELEASE_NAME}" | grep -Pq "^v\d+\.\d+\$" || {
 }
 
 # update version
-pnpm version "${RELEASE_NAME}.0" --no-git-tag-version
+pnpm version "${RELEASE_NAME}.0" --allow-same-version --no-git-tag-version
 
 # commit the release
 git add package.json

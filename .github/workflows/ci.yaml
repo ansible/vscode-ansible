@@ -55,19 +55,19 @@ jobs:
       - name: Install uv (cache)
         uses: astral-sh/setup-uv@v8.1.0
 
-      - name: Install pnpm
+      # needed by our prek systems hooks like biome
+      - name: Install node (cache)
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "24"
+
+      - name: Install pnpm # needs node 24
         uses: pnpm/action-setup@v6
         with:
           cache: true
           run_install: |
             - recursive: true
               args: [--frozen-lockfile]
-
-      # needed by our prek systems hooks like biome
-      - name: Install node (cache)
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: "24"
 
       - name: Debug
         run: |
@@ -109,6 +109,7 @@ jobs:
           chown -R $(id -u):$(id -g) $PWD
 
       - name: task setup
+        if: runner.os != 'Windows'
         timeout-minutes: 7 # expected under 10s for container builds
         run: |
           set -ex
@@ -174,7 +175,7 @@ jobs:
       - name: task package
         timeout-minutes: 2
         run: |
-          task package && task package --status
+          task package -v && task package --status
 
       - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
         run: task dry
@@ -264,6 +265,11 @@ jobs:
         id:
           - test-linux
         include:
+          - name: build (windows)
+            task-name: package # at the moment only build+package works on windows
+            os: windows-latest
+            id: package-windows # rename to test-windows once tests are passing to include tests
+
           - name: test (macos)
             id: test-macos
             task-name: test
@@ -310,6 +316,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
+          fetch-tags: true # needed for dynamic versioning
           show-progress: false
           clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
 
@@ -385,10 +392,14 @@ jobs:
           fi
           echo "HOME=$HOME" >> $GITHUB_ENV
 
-      - name: Ensure .env file is automatically loaded (mise)
+      - name: Check mise
         run: |
           mise reshim
           mise doctor
+
+      - name: Check python virtual environment
+        if: runner.os != 'Windows'
+        run: |
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
             echo "VIRTUAL_ENV mismatch"
             exit 99
@@ -424,10 +435,10 @@ jobs:
           podman info
 
       - name: task package
-        if: ${{ matrix.task-name != 'wdio' }}
+        if: ${{ matrix.task-name != 'wdio' && runner.os != 'Windows' }}
         id: package
         run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
+          task package -v ${{ matrix.env.TASKFILE_ARGS }} && task package -v ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: save ready_to_test=true
         id: ready_to_test
@@ -493,7 +504,8 @@ jobs:
           rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
-        if: ${{ !cancelled() }}
+        # git-leaks not support on Windows
+        if: ${{ !cancelled() && runner.os != 'Windows'}}
         uses: ansible/actions/upload-artifact@main
         with:
           name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
@@ -772,7 +784,7 @@ jobs:
 
       - name: Publish extension to marketplaces
         run: |
-          ./tools/helper --publish
+          node ./tools/helper.mts --publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}

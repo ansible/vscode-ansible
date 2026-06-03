@@ -52,6 +52,7 @@ tasks:
       TMPDIR: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
     deps:
       - build
+    platforms: [linux, darwin]
     sources:
       - ../../.config/mise.toml
       - ../../pyproject.toml
@@ -78,6 +79,7 @@ tasks:
       - |
         . {{.VIRTUAL_ENV}}/bin/activate && bash -c 'pnpm run test-with-ee'
     interactive: true
+    platforms: [linux, darwin]
   test-without-ee:
     desc: Run only non-ee tests
     dir: '{{ .TASKFILE_DIR }}'
@@ -86,6 +88,7 @@ tasks:
     cmds:
       - bash -c '. {{.VIRTUAL_ENV}}/bin/activate && pnpm run test-without-ee'
     interactive: true
+    platforms: [linux, darwin]
   package:
     desc: Package {{ .PROJECT }}
     deps:
@@ -102,10 +105,10 @@ tasks:
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
-      - npm version {{ .VERSION }} --no-git-tag-version
-      - pnpm run build:dist
-      - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
-      - defer: npm version 0.0.0 --no-git-tag-version
+      - npm version {{ .VERSION }} --allow-same-version --no-git-tag-version
+      - pnpm run compile
+      - npm pack --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
+      - defer: npm version 0.0.0 --allow-same-version --no-git-tag-version
     silent: false
   release:
     desc: Create a new release (used by CI)

@@ -109,7 +109,7 @@
     "//prepare": "Prepare is needed for installation from source",
     "clean": "rimraf dist lib",
     "compile": "tsup --silent",
-    "build:dist": "env NODE_ENV=production tsup --silent",
+    "build:dist": "tsup --env.NODE_ENV=production --silent",
     "prepack": "pnpm run compile && pnpm run build:dist",
     "test": "vitest run --project=als",
     "test-with-ee": "vitest run --project=als -t @ee",

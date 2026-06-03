@@ -1179,7 +1179,7 @@
     "build": "pnpm -r run compile",
     "clean": "rimraf lib out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b --sourceMap",
-    "package": "./tools/helper --package",
+    "package": "node ./tools/helper.mts --package",
     "preinstall": "",
     "build:extension": "esbuild src/extension.ts --bundle --outfile=dist/extension/extension.js --format=cjs --platform=node --target=es2022 --external:vscode --alias:@src=./src --alias:@webviews=./webviews --alias:@root=. --sourcemap",
     "vite-build": "vue-tsc --noEmit && vite build",
