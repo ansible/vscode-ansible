@@ -20,6 +20,7 @@ ignorePaths:
   - ".agents/**"
   - "**/*-artifact-*.json"
   - "**/lib/"
+  - "patches/"
   - "*.svg"
   - .git
   - dist/

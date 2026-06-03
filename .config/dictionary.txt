@@ -1,7 +1,9 @@
 ANSTRAT
 Anson
+CHROMEDRIVER
 CICD
 CMDB
+Chromedriver
 Customizer
 DEEPSEEK
 Elio’s
@@ -29,14 +31,17 @@ RHCUSTOM
 RHSSO
 Rhcustom
 SSOT
+TMPZIP
 Towncrier
 WDIO
 WSLENV
 antsibull
 bfnrt
 buildah
+cgmanifest
 charliermarsh
 checode
+chromedriver
 codeclimate
 codespell
 commitlint
@@ -79,6 +84,7 @@ norecursedirs
 npmjs
 nqry
 ollama
+omap
 ovsx
 pacman
 prek
@@ -89,11 +95,13 @@ protobufjs
 pycobertura
 pydoclint
 pyvenv
+rcompare
 regen
 relogin
 reshim
 rhcustom
 rhsso
+sarif
 seealso
 sonarcloud
 sonarqube
@@ -109,6 +117,7 @@ tombi
 tomlsort
 towerhost
 tsup
+typedarrays
 unrs
 unsubed
 uuidv

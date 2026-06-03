@@ -126,6 +126,7 @@ const config: KnipConfig = {
     // These helpers are exported for test access only; test files are excluded
     // in production mode. They live in package.json#exports entry files so
     // includeEntryExports:false should suppress them, but the global true wins.
+    "packages/ansible-language-server/test/globalSetup.ts": ["exports"],
     "packages/ansible-language-server/src/providers/completionProvider.ts": [
       "exports",
     ],
