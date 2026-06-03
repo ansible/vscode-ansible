@@ -4,6 +4,9 @@
  * Routes tool calls to appropriate service methods.
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { McpToolResult } from './tools';
 import { PluginSearchIndex } from './pluginSearch';
 import { TaskGenerator } from './taskGenerator';
@@ -919,113 +922,100 @@ export class McpToolHandler {
         };
     }
 
-    /**
-     * Handle get_ansible_best_practices tool
-     */
     private async _handleGetBestPractices(args: Record<string, unknown>): Promise<McpToolResult> {
         const section = (args.section as string) || 'full';
-        
-        // Read the best practices file
-        const fs = await import('fs');
-        const path = await import('path');
-        
-        // Try to find the best practices file in common locations
-        const possiblePaths = [
-            // In extension resources
-            path.join(__dirname, '..', '..', 'resources', 'best_practises.md'),
-            path.join(__dirname, '..', 'resources', 'best_practises.md'),
-            // From workspace environment variable
-            process.env.ANSIBLE_ENV_EXTENSION_PATH 
-                ? path.join(process.env.ANSIBLE_ENV_EXTENSION_PATH, 'resources', 'best_practises.md')
-                : ''
-        ].filter(p => p);
-        
-        let content = '';
-        
-        for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-                content = fs.readFileSync(p, 'utf-8');
-                break;
-            }
-        }
-        
+
+        const content = await this._loadBestPractices();
         if (!content) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `Best practices document not found. Searched paths:\n${possiblePaths.join('\n')}`
-                }],
-                isError: true
+                content: [{ type: 'text', text: 'Best practices document not found.' }],
+                isError: true,
             };
         }
-        
-        // If requesting full document, return it
+
         if (section === 'full') {
-            return {
-                content: [{
-                    type: 'text',
-                    text: content
-                }]
-            };
+            return { content: [{ type: 'text', text: content }] };
         }
-        
-        // Extract specific section
-        const sectionMap: Record<string, string[]> = {
-            'principles': ['## Guiding Principles'],
-            'project_structure': ['### Project structure'],
-            'naming': ['#### Naming Conventions'],
-            'roles': ['#### Roles'],
-            'collections': ['#### Collections'],
-            'playbooks': ['#### Playbooks'],
-            'testing': ['### Testing and Validation']
+
+        const sectionMap: Record<string, string> = {
+            'principles': '## Guiding Principles',
+            'project_structure': '### Project structure',
+            'naming': '#### Naming Conventions',
+            'roles': '#### Roles',
+            'collections': '#### Collections',
+            'playbooks': '#### Playbooks',
+            'testing': '### Testing and Validation',
         };
-        
-        const headings = sectionMap[section];
-        if (!headings) {
+
+        const heading = sectionMap[section];
+        if (!heading) {
             return {
                 content: [{
                     type: 'text',
-                    text: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`
+                    text: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`,
                 }],
-                isError: true
+                isError: true,
             };
         }
-        
-        // Find and extract the section
-        let extracted = '';
-        for (const heading of headings) {
-            const startIndex = content.indexOf(heading);
-            if (startIndex === -1) { continue; }
-            
-            // Find the next heading at the same or higher level
-            const headingLevel = heading.match(/^#+/)?.[0].length || 2;
-            const regex = new RegExp(`^#{1,${headingLevel}}\\s`, 'm');
-            
-            const afterHeading = content.slice(startIndex + heading.length);
-            const nextHeadingMatch = afterHeading.match(regex);
-            const endIndex = nextHeadingMatch 
-                ? startIndex + heading.length + (afterHeading.indexOf(nextHeadingMatch[0]))
-                : content.length;
-            
-            extracted = content.slice(startIndex, endIndex).trim();
-            break;
-        }
-        
-        if (!extracted) {
+
+        const startIndex = content.indexOf(heading);
+        if (startIndex === -1) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `Section "${section}" not found in best practices document.`
-                }],
-                isError: true
+                content: [{ type: 'text', text: `Section "${section}" not found in best practices document.` }],
+                isError: true,
             };
         }
-        
+
+        const headingLevel = (heading.match(/^#+/) || ['##'])[0].length;
+        const rest = content.slice(startIndex + heading.length);
+        const nextMatch = rest.match(new RegExp(`^#{1,${headingLevel}}\\s`, 'm'));
+        const endIndex = nextMatch
+            ? startIndex + heading.length + rest.indexOf(nextMatch[0])
+            : content.length;
+
         return {
-            content: [{
-                type: 'text',
-                text: extracted
-            }]
+            content: [{ type: 'text', text: content.slice(startIndex, endIndex).trim() }],
         };
+    }
+
+    /**
+     * Load the best practices document. Checks local cache paths first,
+     * then fetches from the canonical upstream URL and caches for next time.
+     */
+    private async _loadBestPractices(): Promise<string | undefined> {
+        const UPSTREAM_URL = 'https://raw.githubusercontent.com/ansible/ansible-creator/refs/heads/main/docs/agents.md';
+        const cacheDir = path.join(os.tmpdir(), 'ansible-mcp');
+        const cachePath = path.join(cacheDir, 'best_practices.md');
+
+        const localPaths = [
+            path.join(__dirname, '..', '..', 'resources', 'best_practices.md'),
+            path.join(__dirname, '..', 'resources', 'best_practices.md'),
+            process.env.ANSIBLE_ENV_EXTENSION_PATH
+                ? path.join(process.env.ANSIBLE_ENV_EXTENSION_PATH, 'resources', 'best_practices.md')
+                : '',
+            cachePath,
+        ].filter(Boolean);
+
+        for (const p of localPaths) {
+            if (fs.existsSync(p)) {
+                return fs.readFileSync(p, 'utf-8');
+            }
+        }
+
+        try {
+            const res = await fetch(UPSTREAM_URL);
+            if (res.ok) {
+                const text = await res.text();
+                try {
+                    if (!fs.existsSync(cacheDir)) {
+                        fs.mkdirSync(cacheDir, { recursive: true });
+                    }
+                    fs.writeFileSync(cachePath, text, 'utf-8');
+                } catch { /* cache write is best-effort */ }
+                return text;
+            }
+        } catch { /* network unavailable */ }
+
+        return undefined;
     }
 }

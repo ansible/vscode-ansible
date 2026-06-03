@@ -774,6 +774,7 @@ describe('McpToolHandler', () => {
 
         it('returns error when file not found', async () => {
             fsMock.existsSync.mockReturnValue(false);
+            vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network unavailable'));
 
             const result = await handler.handleTool('get_ansible_best_practices', {});
 
