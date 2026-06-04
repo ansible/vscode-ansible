@@ -1,8 +1,10 @@
 ANSTRAT
 Anson
+CGMANIFEST
 CHROMEDRIVER
 CICD
 CMDB
+Cgmanifest
 Chromedriver
 Customizer
 DEEPSEEK
@@ -35,6 +37,7 @@ TMPZIP
 Towncrier
 WDIO
 WSLENV
+Wdio
 antsibull
 bfnrt
 buildah
