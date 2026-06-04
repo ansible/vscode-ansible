@@ -29,8 +29,10 @@ const WDIO_CHANNEL = "stable";
 
 const STABLE_RELEASES_URL =
   "https://update.code.visualstudio.com/api/releases/stable";
-const CGMANIFEST_URL =
+const CGMANIFEST_BY_TAG_URL =
   "https://raw.githubusercontent.com/microsoft/vscode/{version}/cgmanifest.json";
+const CGMANIFEST_BY_COMMIT_URL =
+  "https://raw.githubusercontent.com/microsoft/vscode/{commit}/cgmanifest.json";
 const MILESTONES_URL =
   "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json";
 const DOWNLOAD_URL =
@@ -62,6 +64,10 @@ interface WdioVersionsEntry {
 }
 
 type WdioVersionsTxt = Record<string, WdioVersionsEntry>;
+
+interface ProductJson {
+  commit?: string;
+}
 
 async function fetchText(url: string): Promise<string> {
   const response = await fetch(url);
@@ -103,7 +109,7 @@ async function resolveChromiumMajor(
   const errors: string[] = [];
 
   for (const vscodeVersion of vscodeVersions) {
-    const url = CGMANIFEST_URL.replace("{version}", vscodeVersion);
+    const url = CGMANIFEST_BY_TAG_URL.replace("{version}", vscodeVersion);
     try {
       const manifest = await fetchJson<CgManifest>(url);
       const chromiumMajor = chromiumMajorFromCgmanifest(manifest);
@@ -218,6 +224,82 @@ function pickInstalledVscodeVersion(
   return installed.at(-1);
 }
 
+function vscodeInstallDir(wdioCache: string, vscodeVersion: string): string {
+  return join(wdioCache, `${vscodeInstallDirPrefix()}-${vscodeVersion}`);
+}
+
+function vscodeProductJsonPath(installDir: string): string {
+  if (process.platform === "darwin") {
+    return join(
+      installDir,
+      "Visual Studio Code.app",
+      "Contents",
+      "Resources",
+      "app",
+      "product.json",
+    );
+  }
+  return join(installDir, "resources", "app", "product.json");
+}
+
+async function resolveChromiumMajorFromInstall(
+  wdioCache: string,
+  vscodeVersion: string,
+): Promise<string | undefined> {
+  const installDir = vscodeInstallDir(wdioCache, vscodeVersion);
+  const productPath = vscodeProductJsonPath(installDir);
+  if (!existsSync(productPath)) {
+    return undefined;
+  }
+
+  const product = JSON.parse(readFileSync(productPath, "utf8")) as ProductJson;
+  const { commit } = product;
+  if (commit === undefined || commit.length === 0) {
+    return undefined;
+  }
+
+  const url = CGMANIFEST_BY_COMMIT_URL.replace("{commit}", commit);
+  const manifest = await fetchJson<CgManifest>(url);
+  const chromiumMajor = chromiumMajorFromCgmanifest(manifest);
+  if (chromiumMajor === undefined) {
+    throw new Error(
+      `No chromium registration in cgmanifest from commit ${commit}`,
+    );
+  }
+  console.log(
+    `Resolved Chromium ${chromiumMajor} from installed VS Code ${vscodeVersion} (commit ${commit.slice(0, 12)}…)`,
+  );
+  return chromiumMajor;
+}
+
+async function resolveChromiumMajorForWdio(
+  wdioCache: string,
+  vscodeVersions: string[],
+): Promise<string> {
+  const installed = listInstalledVscodeVersions(wdioCache);
+  const vscodeVersion = pickInstalledVscodeVersion(installed, vscodeVersions);
+  if (vscodeVersion !== undefined) {
+    try {
+      const major = await resolveChromiumMajorFromInstall(
+        wdioCache,
+        vscodeVersion,
+      );
+      if (major !== undefined) {
+        return major;
+      }
+    } catch (err) {
+      console.warn(
+        `Could not read Chromium from installed VS Code ${vscodeVersion}: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      );
+    }
+  }
+
+  const { chromiumMajor } = await resolveChromiumMajor(vscodeVersions);
+  return chromiumMajor;
+}
+
 function writeWdioVersionsCache(
   wdioCache: string,
   vscodeVersion: string,
@@ -294,7 +376,10 @@ async function ensureChromedriverBinary(
 
 async function main(): Promise<void> {
   const vscodeVersions = await getStableVscodeVersions();
-  const { chromiumMajor } = await resolveChromiumMajor(vscodeVersions);
+  const chromiumMajor = await resolveChromiumMajorForWdio(
+    WDIO_CACHE,
+    vscodeVersions,
+  );
   const chromedriverVersion = await getChromedriverVersion(chromiumMajor);
   const { platform, folder } = resolvePlatform();
 
