@@ -27,6 +27,7 @@ const config: KnipConfig = {
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
+    "markdownlint-cli2",
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
