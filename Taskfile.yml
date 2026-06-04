@@ -120,7 +120,8 @@ tasks:
     desc: Update node dependencies
     interactive: true # needed for ncu prompts
     cmds:
-      - mise upgrade --local
+      - mise upgrade --local --bump pnpm
+      - pnpm self-update
       - pnpm up -i -r
       - task: knip
   "deps:python":
