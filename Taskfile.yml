@@ -50,9 +50,7 @@ tasks:
       # - task: ci_clean_cache
       # we also need to be sure that at the end of build and test we do not produce undesired side effects
       - task: precheck
-      # ensure that `vitest list` works and does not display any warnings (stderr)
-      - vitest list 1>out/log/vitest-list-stdout.txt 2>out/log/vitest-list-stderr.txt && test ! -s out/log/vitest-list-stderr.txt || { echo "Failing because 'vitest list' should not produce any warnings:"; cat out/log/vitest-list-stderr.txt; exit 5; }
-      - tools/dirty.sh
+      - node tools/finish.mts
 
   build:
     desc: Build the project
@@ -63,7 +61,7 @@ tasks:
       #   cmd: echo {{ .ITEM }}
       - task: pnpm
       - pnpm run build
-      - pnpm --filter @ansible/ansible-language-server run build:dist
+      - pnpm --filter @ansible/ansible-language-server run compile
       - pnpm run vite-build
       - pnpm run build:extension
     sources:
@@ -122,7 +120,8 @@ tasks:
     desc: Update node dependencies
     interactive: true # needed for ncu prompts
     cmds:
-      - mise upgrade --local
+      - mise upgrade --local --bump pnpm
+      - pnpm self-update
       - pnpm up -i -r
       - task: knip
   "deps:python":
@@ -235,6 +234,7 @@ tasks:
       - wdio.conf.ts
     cmds:
       - "npx pnpm pretest:wdio"
+      - "node tools/ensure-chromedriver.mts"
       - "{{.XVFB}}npx pnpm test:wdio"
     interactive: true
   unit:
@@ -259,8 +259,6 @@ tasks:
   package:
     desc: Package extension
     deps:
-      - als:package
-      - mcp:package
       - build
     sources:
       - "{src,media,webviews}/**/*" # do not include 'test' as they do not get into the package
@@ -271,19 +269,21 @@ tasks:
       - exclude: "**/.ansible/**/*"
       - exclude: "test/ui/**/*"
       - package*.json
-      - tools/helper
+      - tools/helper.mts
       - pnpm-lock.yaml
       - dist/**/*
     generates:
       - "out/*.vsix"
       - "out/data/ansible-latest.vsix"
     cmds:
+      - cmd: task als:package
+      - cmd: task mcp:package
       # we want to build both all the time:
-      - ./tools/helper --package
-      - packages/ansible-language-server/tools/can-release.sh
+      - node ./tools/helper.mts --package
+      - node packages/ansible-language-server/tools/can-release.mts
       - task: knip
       - defer: { task: finish }
-    silent: true
+    silent: false
   pr:
     desc: Opens a pull request using gh
     deps:

@@ -74,6 +74,7 @@ runs:
     #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
     - name: Remove preinstalled pipx packages that can cause conflicts
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         pipx list

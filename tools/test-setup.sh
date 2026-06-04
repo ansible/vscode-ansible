@@ -13,7 +13,7 @@ PROJECT_ROOT="$(dirname "$DIR")"
 
 # inside containers ARCH might not be set
 ARCH=${ARCH:-$(uname -m)}
-IMAGE_VERSION=$(./tools/get-image-version.mts)
+IMAGE_VERSION=$(node ./tools/get-image-version.mts)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 ERR=0
 EE_ANSIBLE_VERSION=null
