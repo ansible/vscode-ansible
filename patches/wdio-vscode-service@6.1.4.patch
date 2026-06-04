@@ -1,17 +1,61 @@
-diff --git a/dist/launcher.js b/dist/launcher.js
-index 1234567..abcdefg 100644
 --- a/dist/launcher.js
 +++ b/dist/launcher.js
-@@ -181,9 +181,10 @@ export default class VSCodeServiceLauncher {
+@@ -180,22 +180,45 @@
+      * @returns required Chromedriver version
       */
      async _fetchChromedriverVersion(vscodeVersion) {
-         try {
+-        try {
 -            const manifestUrl = vscodeVersion.includes('insider')
-+            const normalizedVersion = vscodeVersion.replace(/\.\d+$/, '.0');
-+            const manifestUrl = normalizedVersion.includes('insider')
-                 ? VSCODE_INSIDER_MANIFEST_URL
+-                ? VSCODE_INSIDER_MANIFEST_URL
 -                : format(VSCODE_MANIFEST_URL, vscodeVersion);
-+                : format(VSCODE_MANIFEST_URL, normalizedVersion);
-             log.info(`manifest url: ${manifestUrl}`);
-             const { body } = await request(manifestUrl, {});
-             const manifest = await body.json();
+-            log.info(`manifest url: ${manifestUrl}`);
+-            const { body } = await request(manifestUrl, {});
+-            const manifest = await body.json();
+-            const chromium = manifest.registrations.find((r) => r.component.git.name === 'chromium');
+-            if (!chromium) {
+-                throw new Error('Can\'t find chromium version in manifest response');
++        const candidates = [vscodeVersion];
++        const normalizedVersion = vscodeVersion.replace(/\.\d+$/, '.0');
++        if (normalizedVersion !== vscodeVersion) {
++            candidates.push(normalizedVersion);
++        }
++        if (!vscodeVersion.includes('insider')) {
++            try {
++                const { body } = await request(VSCODE_RELEASES, {});
++                const releases = await body.json();
++                for (const release of releases.slice(0, 15)) {
++                    if (!candidates.includes(release)) {
++                        candidates.push(release);
++                    }
++                }
++            }
++            catch (err) {
++                log.warn(`Couldn't list VSCode releases for Chromedriver fallback: ${err.message}`);
+             }
+-            return chromium.version.split('.')[0];
+         }
+-        catch (err) {
+-            throw new SevereServiceError(`Couldn't fetch Chromedriver version: ${err.message}`);
++        let lastErr;
++        for (const candidate of candidates) {
++            try {
++                const manifestUrl = candidate.includes('insider')
++                    ? VSCODE_INSIDER_MANIFEST_URL
++                    : format(VSCODE_MANIFEST_URL, candidate);
++                log.info(`manifest url: ${manifestUrl}`);
++                const { body } = await request(manifestUrl, {});
++                const manifest = await body.json();
++                const chromium = manifest.registrations.find((r) => r.component.git.name === 'chromium');
++                if (!chromium) {
++                    throw new Error('Can\'t find chromium version in manifest response');
++                }
++                return chromium.version.split('.')[0];
++            }
++            catch (err) {
++                lastErr = err;
++            }
+         }
++        throw new SevereServiceError(`Couldn't fetch Chromedriver version: ${lastErr.message}`);
+     }
+     /**
+      * Fetches VSCode Web files
