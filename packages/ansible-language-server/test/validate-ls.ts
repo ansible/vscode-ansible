@@ -1,5 +1,5 @@
 import * as cp from "child_process";
-import * as rpc from "vscode-jsonrpc/node.js";
+import * as rpc from "vscode-jsonrpc/node";
 import { quote } from "shell-quote";
 
 const lspProcess = cp.spawn(
