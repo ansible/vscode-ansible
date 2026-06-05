@@ -1,5 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
+import * as os from "node:os";
 import { readFileSync, rmSync } from "fs";
 import {
   WorkspaceManager,
@@ -33,8 +34,10 @@ const ANSIBLE_CONFIG_FILE = path.resolve(
 );
 
 export function deleteAlsCache(): void {
+  const cacheBase =
+    process.env.XDG_CACHE_HOME || `${process.env.HOME || os.homedir()}/.cache`;
   const hostCacheBasePath = path.resolve(
-    `${process.env.HOME}/.cache/ansible-language-server/`,
+    `${cacheBase}/ansible-language-server/`,
   );
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }

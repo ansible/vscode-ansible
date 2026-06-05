@@ -307,10 +307,20 @@ export class PythonEnvironmentService implements vscode.Disposable {
   ): Promise<PythonEnvironment | undefined> {
     await this.initialize();
 
+    // For files outside workspace, use first workspace folder instead
+    let resolvedScope = scope;
+    if (scope && !vscode.workspace.getWorkspaceFolder(scope)) {
+      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
+    } else if (!scope) {
+      // No scope provided - default to first workspace folder
+      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
+    }
+
     // Primary: Environments extension
     if (this._pythonEnvApi) {
       try {
-        return await this._pythonEnvApi.getEnvironment(scope);
+        const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
+        return env;
       } catch (error) {
         console.error(
           `[Ansible] Error getting environment (envs API): ${error}`,
@@ -322,11 +332,14 @@ export class PythonEnvironmentService implements vscode.Disposable {
     if (this._pythonExtApi) {
       try {
         const envPath =
-          this._pythonExtApi.environments.getActiveEnvironmentPath(scope);
+          this._pythonExtApi.environments.getActiveEnvironmentPath(
+            resolvedScope,
+          );
         const resolved =
           await this._pythonExtApi.environments.resolveEnvironment(envPath);
         if (resolved) {
-          return this._adaptResolvedEnvironment(resolved);
+          const adapted = this._adaptResolvedEnvironment(resolved);
+          return adapted;
         }
       } catch (error) {
         console.error(
@@ -383,6 +396,37 @@ export class PythonEnvironmentService implements vscode.Disposable {
   ): Promise<string | undefined> {
     const env = await this.getEnvironment(scope);
     return env?.execInfo.run.executable;
+  }
+
+  /**
+   * Resolve Python interpreter path with user configuration fallback.
+   * Provides centralized resolution logic used by middleware, webviews, and command runners.
+   *
+   * Resolution order:
+   * 1. User-configured ansible.python.interpreterPath (with ~ and ${workspaceFolder} expansion)
+   * 2. Python Environments extension selection
+   * 3. ms-python.python extension selection (fallback)
+   *
+   * @param userConfiguredPath - Value from ansible.python.interpreterPath setting
+   * @param scope - Workspace scope for environment resolution
+   * @returns Resolved absolute path to Python interpreter, or undefined if none found
+   */
+  public async resolveInterpreterPath(
+    userConfiguredPath: string | undefined,
+    scope?: vscode.Uri,
+  ): Promise<string | undefined> {
+    // Priority 1: User-configured ansible.python.interpreterPath
+    if (userConfiguredPath && userConfiguredPath.trim()) {
+      const { resolveInterpreterPath } =
+        await import("@src/features/utils/interpreterPathResolver");
+      const resolved = resolveInterpreterPath(userConfiguredPath, scope);
+      if (resolved) {
+        return resolved;
+      }
+    }
+
+    // Priority 2 & 3: Python extension (handled by getEnvironment)
+    return await this.getExecutablePath(scope);
   }
 
   public async getVersion(

@@ -3,8 +3,7 @@
 # about not not using or creating files from user home directory directly (~).
 !media/
 .DS_Store
-.vite-dev-server-url
-.vite-dev.pid
+# Build tool caches (node-gyp, prek, etc.) - tests use out/*/tmp/home/.cache/
 .cache
 .eslintcache
 .idea

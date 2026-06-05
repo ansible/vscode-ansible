@@ -59,6 +59,7 @@
   "files.watcherExclude": {
     "**/out": true
   },
+  "git.ignoreLimitWarning": true,
   "python.terminal.useEnvFile": true,
   "redhat.telemetry.enabled": false,
   "search.useParentIgnoreFiles": true,

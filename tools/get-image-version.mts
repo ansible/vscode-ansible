@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Keep the .mts extension so Node executes this as ESM (see tools/version.mts).
+// Keep the .mts extension so Node executes this as ESM (see tools/helper.mts).
 import { readFileSync } from "node:fs";
 
 /** Prefer root Containerfile; package uses Dockerfile (see ansible-language-server/.config). */

@@ -8,6 +8,7 @@ import {
   getEERules,
   getSampleExecutionEnvironment,
 } from "@src/resources/eeSchema.js";
+import { validatePathWithinWorkspace } from "@src/utils/pathValidation.js";
 
 interface ExecutionEnvInputs {
   baseImage: string;
@@ -144,8 +145,13 @@ export async function generateExecutionEnvironment(
   workspaceRoot: string,
   generatedYaml: string, // LLM-generated YAML content from the client
 ): Promise<ExecutionEnvResult> {
-  const destinationPath =
+  const rawDestination =
     inputs.destinationPath || workspaceRoot || process.cwd();
+
+  const destinationPath = validatePathWithinWorkspace(
+    rawDestination,
+    workspaceRoot,
+  );
 
   // Ensure destination directory exists
   try {

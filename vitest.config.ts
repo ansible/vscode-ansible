@@ -10,6 +10,16 @@ import vue from "@vitejs/plugin-vue";
 // current project.
 const als_root = resolve(__dirname, "packages", "ansible-language-server");
 const mcp_root = resolve(__dirname, "packages", "ansible-mcp-server");
+// ALS unit tests use podman/docker and a Linux-oriented toolchain; skip on Windows
+// (matches packages/ansible-language-server/Taskfile.yml test platforms).
+const skipAlsTests = process.platform === "win32";
+// Save real HOME before any globalSetup overrides it.
+// ALS @ee tests need the original HOME — rootless podman is ~60x slower
+// with a redirected HOME directory.
+if (!skipAlsTests) {
+  process.env._ALS_ORIGINAL_HOME =
+    process.env.HOME || process.env.USERPROFILE || "";
+}
 
 const reporters = ["default", "junit"]; // text-summary shows only overall coverage stats, skipping per-file details
 if (process.env.GITHUB_ACTIONS) {
@@ -36,6 +46,34 @@ const isFiltered = process.argv.slice(2).some((arg) => {
   return !arg.startsWith("-") && !vitestSubcommands.has(arg);
 });
 
+const alsVitestProject = {
+  extends: true as const,
+  resolve: {
+    alias: {
+      "@src": path.resolve(als_root, "src"),
+      "@test": path.resolve(als_root, "test"),
+    },
+  },
+  test: {
+    name: "als",
+    globals: true,
+    globalSetup: [`${als_root}/test/globalSetup.ts`],
+    environment: "node",
+    exclude: ["node_modules", "out"],
+    fileParallelism: false,
+    include: ["test/**/*.test.ts"],
+    isolate: true, // required or will produce MaxListenersExceededWarning warnings
+    root: als_root, // ensure reports have valid paths
+    testTimeout: 60000, // same as mocha timeout (60 seconds)
+    setupFiles: [`${als_root}/test/vitestSetup.ts`],
+    sequence: {
+      concurrent: false,
+      groupOrder: 2,
+    },
+    //slowTestThreshold: 8000, // tests with >8s will show duration in yellow/red
+  },
+};
+
 export default defineConfig({
   test: {
     name: "ext",
@@ -45,7 +83,7 @@ export default defineConfig({
         test: {
           name: "ext",
           globals: true,
-          // globalSetup: ["test/unit/vitestSetup.ts"],
+          globalSetup: ["test/unit/globalSetup.ts"],
           environment: "node",
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
@@ -73,33 +111,7 @@ export default defineConfig({
           exclude: [],
         },
       },
-      {
-        extends: true,
-        resolve: {
-          alias: {
-            "@src": path.resolve(als_root, "src"),
-            "@test": path.resolve(als_root, "test"),
-          },
-        },
-        test: {
-          name: "als",
-          globals: true,
-          globalSetup: [`${als_root}/test/globalSetup.ts`],
-          environment: "node",
-          exclude: ["node_modules", "out"],
-          fileParallelism: false,
-          include: ["test/**/*.test.ts"],
-          isolate: true, // required or will produce MaxListenersExceededWarning warnings
-          root: als_root, // ensure reports have valid paths
-          testTimeout: 60000, // same as mocha timeout (60 seconds)
-          setupFiles: [`${als_root}/test/vitestSetup.ts`],
-          sequence: {
-            concurrent: false,
-            groupOrder: 2,
-          },
-          //slowTestThreshold: 8000, // tests with >8s will show duration in yellow/red
-        },
-      },
+      ...(skipAlsTests ? [] : [alsVitestProject]),
       {
         extends: true,
         resolve: {
@@ -135,7 +147,9 @@ export default defineConfig({
       exclude: [],
       include: [
         "src/**/**.{js,jsx,ts,tsx}",
-        "packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}",
+        ...(skipAlsTests
+          ? []
+          : ["packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}"]),
         "packages/ansible-mcp-server/src/**/*.{js,jsx,ts,tsx}",
         "webviews/**/*.{ts,vue}",
       ], // Include source files, workspace packages, and webviews for coverage

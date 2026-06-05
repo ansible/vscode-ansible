@@ -9,14 +9,22 @@ export async function getBinDetail(cmd: string, arg: string) {
   const extSettings = new SettingsManager();
   await extSettings.initialize();
 
-  const { command, env } = withInterpreter(extSettings.settings, cmd, arg);
+  const { command, env } = await withInterpreter(
+    extSettings.settings,
+    cmd,
+    arg,
+  );
 
   try {
     const result = cp.execSync(command, {
       env: env,
     });
     return result;
-  } catch {
+  } catch (error) {
+    console.error(
+      `[Ansible] Failed to run "${command}":`,
+      error instanceof Error ? error.message : error,
+    );
     return "failed";
   }
 }
@@ -94,19 +102,33 @@ export async function checkContentCreatorRequirements() {
   let creatorVersion: string;
   try {
     creatorVersion = await getCreatorVersion();
-    if (!semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+
+    if (creatorVersion === "failed") {
       failures.push({
         type: "ansible-creator",
         required: ANSIBLE_CREATOR_VERSION_MIN,
-        current: creatorVersion,
+        current: "not found",
       });
+    } else {
+      const parsed =
+        semver.valid(creatorVersion) ?? semver.coerce(creatorVersion)?.version;
+      if (!parsed || !semver.gte(parsed, ANSIBLE_CREATOR_VERSION_MIN)) {
+        failures.push({
+          type: "ansible-creator",
+          required: ANSIBLE_CREATOR_VERSION_MIN,
+          current: parsed ?? creatorVersion,
+        });
+      }
     }
-  } catch {
-    creatorVersion = "not found";
+  } catch (error) {
+    console.error(
+      "[Ansible] ansible-creator requirements check error:",
+      error instanceof Error ? error.message : error,
+    );
     failures.push({
       type: "ansible-creator",
       required: ANSIBLE_CREATOR_VERSION_MIN,
-      current: creatorVersion,
+      current: "not found",
     });
   }
   return {

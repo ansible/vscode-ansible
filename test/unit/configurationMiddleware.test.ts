@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeConfigurationMiddleware } from "@src/extension";
 import type { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
@@ -5,6 +6,7 @@ import type { PythonEnvironmentService } from "@src/services/PythonEnvironmentSe
 describe("makeConfigurationMiddleware", function () {
   let mockPythonEnvService: {
     getExecutablePath: ReturnType<typeof vi.fn>;
+    resolveInterpreterPath: ReturnType<typeof vi.fn>;
   };
   let mockOutputChannel: {
     appendLine: ReturnType<typeof vi.fn>;
@@ -22,6 +24,7 @@ describe("makeConfigurationMiddleware", function () {
 
     mockPythonEnvService = {
       getExecutablePath: vi.fn(),
+      resolveInterpreterPath: vi.fn((userPath) => Promise.resolve(userPath)),
     };
 
     mockOutputChannel = {
@@ -42,11 +45,8 @@ describe("makeConfigurationMiddleware", function () {
     mockNext.mockResolvedValue(originalResult);
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -63,11 +63,8 @@ describe("makeConfigurationMiddleware", function () {
     );
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -87,11 +84,8 @@ describe("makeConfigurationMiddleware", function () {
     mockNext.mockResolvedValue(originalResult);
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -112,26 +106,12 @@ describe("makeConfigurationMiddleware", function () {
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
-    await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockNext as any,
-    );
+    await middleware(params as any, mockToken as any, mockNext as any);
 
     // Second call — env returns nothing; fresh object avoids mutation leak
     mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(undefined);
-    await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockNext as any,
-    );
+    await middleware(params as any, mockToken as any, mockNext as any);
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("No Python environment available"),
@@ -147,11 +127,8 @@ describe("makeConfigurationMiddleware", function () {
     );
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -166,11 +143,8 @@ describe("makeConfigurationMiddleware", function () {
     mockNext.mockResolvedValue(originalResult);
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -189,11 +163,8 @@ describe("makeConfigurationMiddleware", function () {
     );
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -222,11 +193,8 @@ describe("makeConfigurationMiddleware", function () {
     );
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -250,11 +218,8 @@ describe("makeConfigurationMiddleware", function () {
     mockNext.mockResolvedValue(nonArrayResult);
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -273,11 +238,8 @@ describe("makeConfigurationMiddleware", function () {
     );
 
     const result = await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockNext as any,
     );
 
@@ -296,14 +258,7 @@ describe("makeConfigurationMiddleware", function () {
     // Each call returns a fresh object to avoid mutation leakage
     for (let n = 0; n < 3; n++) {
       mockNext.mockResolvedValue([{ python: {} }]);
-      await middleware(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        params as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockToken as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockNext as any,
-      );
+      await middleware(params as any, mockToken as any, mockNext as any);
     }
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
@@ -319,14 +274,7 @@ describe("makeConfigurationMiddleware", function () {
     mockNext.mockResolvedValue([
       { python: { interpreterPath: "/usr/bin/python3" } },
     ]);
-    await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockNext as any,
-    );
+    await middleware(params as any, mockToken as any, mockNext as any);
 
     // Should log user-configured
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -338,18 +286,97 @@ describe("makeConfigurationMiddleware", function () {
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/usr/bin/python3",
     );
-    await middleware(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      params as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockToken as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockNext as any,
-    );
+    await middleware(params as any, mockToken as any, mockNext as any);
 
     // Should STILL log because source changed (user → auto-resolved)
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("Python environment changed"),
+    );
+  });
+
+  it("should handle errors from next() gracefully", async function () {
+    const params = { items: [{ section: "ansible" }] };
+    mockNext.mockRejectedValue(new Error("Configuration fetch failed"));
+
+    const result = await middleware(
+      params as any,
+      mockToken as any,
+      mockNext as any,
+    );
+
+    // Should return empty array and log error
+    expect(result).toEqual([]);
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("Configuration middleware error"),
+    );
+  });
+
+  it("should handle errors from getExecutablePath gracefully", async function () {
+    const params = { items: [{ section: "ansible" }] };
+    mockNext.mockResolvedValue([{ python: {} }]);
+    mockPythonEnvService.getExecutablePath.mockRejectedValue(
+      new Error("Python env resolution failed"),
+    );
+
+    const result = await middleware(
+      params as any,
+      mockToken as any,
+      mockNext as any,
+    );
+
+    // Should return unmodified result and log error once
+    expect(result).toEqual([{ python: {} }]);
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to resolve Python environment"),
+    );
+
+    // Second call should not log again (same scope, same error state)
+    vi.clearAllMocks();
+    mockNext.mockResolvedValue([{ python: {} }]);
+    mockPythonEnvService.getExecutablePath.mockRejectedValue(
+      new Error("Python env resolution failed"),
+    );
+
+    await middleware(params as any, mockToken as any, mockNext as any);
+
+    // Should NOT log again
+    expect(mockOutputChannel.appendLine).not.toHaveBeenCalled();
+  });
+
+  it("should expand tilde in user-configured interpreterPath", async function () {
+    const params = { items: [{ section: "ansible" }] };
+    const originalResult = [
+      {
+        python: {
+          interpreterPath: "~/.local/share/virtualenvs/vsa/bin/python",
+        },
+      },
+    ];
+    mockNext.mockResolvedValue(originalResult);
+
+    // Mock resolveInterpreterPath to expand tilde
+    mockPythonEnvService.resolveInterpreterPath.mockResolvedValue(
+      "/home/user/.local/share/virtualenvs/vsa/bin/python",
+    );
+
+    const result = await middleware(
+      params as any,
+      mockToken as any,
+      mockNext as any,
+    );
+
+    const config = (result as Record<string, unknown>[])[0];
+    const pythonConfig = config.python as Record<string, unknown>;
+
+    // Should expand ~ to home directory
+    expect(pythonConfig.interpreterPath).toBe(
+      "/home/user/.local/share/virtualenvs/vsa/bin/python",
+    );
+    expect(pythonConfig.interpreterPath).not.toContain("~");
+
+    // Should log with both original and resolved paths
+    expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
+      expect.stringMatching(/user-configured interpreterPath.*~.*resolved:/),
     );
   });
 });

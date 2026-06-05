@@ -12,7 +12,7 @@ runs:
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.3.13
+        version: 2026.5.15
         reshim: true
 
     - name: Runner image version
@@ -74,6 +74,7 @@ runs:
     #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
     - name: Remove preinstalled pipx packages that can cause conflicts
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         pipx list

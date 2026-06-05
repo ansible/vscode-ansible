@@ -23,6 +23,8 @@
 !dist/assets/**/*
 !dist/webviews/**/*
 !packages/ansible-language-server/dist/cli.cjs
+!packages/ansible-mcp-server/dist/**/*
+!packages/ansible-mcp-server/package.json
 !package.json
 !package.nls.json
 !syntaxes/**/*

@@ -596,7 +596,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-creator`,
           "--no-input",
@@ -1032,7 +1032,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-dev-tools`,
           "--no-input",
@@ -1447,7 +1447,16 @@ export function makeConfigurationMiddleware(
     ) => HandlerResult<LSPAny[], void>,
   ): HandlerResult<LSPAny[], void> => {
     return (async (): Promise<LSPAny[]> => {
-      const originalResult = await next(params, token);
+      let originalResult: LSPAny[] | LSPAny;
+      try {
+        originalResult = await next(params, token);
+      } catch (error) {
+        outputChannel.appendLine(
+          `[Ansible] Configuration middleware error: ${error}`,
+        );
+        return [] as unknown as LSPAny[];
+      }
+
       if (!Array.isArray(originalResult))
         return originalResult as unknown as LSPAny[];
 
@@ -1467,18 +1476,49 @@ export function makeConfigurationMiddleware(
         const rawInterpreterPath = pythonConfig?.interpreterPath;
 
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
-          // User has explicit config, log only on change
+          // User has explicit config - use centralized resolver to expand ~ and ${workspaceFolder}
+          const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+          const resolvedUserPath =
+            await pythonEnvService.resolveInterpreterPath(
+              rawInterpreterPath,
+              scope,
+            );
+
+          // Log only on change (compare raw path for deduplication)
           if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
             outputChannel.appendLine(
-              `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}`,
+              `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedUserPath !== rawInterpreterPath ? ` (resolved: ${resolvedUserPath})` : ""}`,
             );
             lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
+          }
+
+          // Inject the expanded path if expansion succeeded
+          if (resolvedUserPath && resolvedUserPath !== rawInterpreterPath) {
+            result[i] = {
+              ...config,
+              python: {
+                ...pythonConfig,
+                interpreterPath: resolvedUserPath,
+              },
+            };
           }
           continue;
         }
 
         const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
-        const resolvedPath = await pythonEnvService.getExecutablePath(scope);
+        let resolvedPath: string | undefined;
+        try {
+          resolvedPath = await pythonEnvService.getExecutablePath(scope);
+        } catch (error) {
+          // Treat resolution failure as "no path" - log once and leave config unchanged
+          if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+            outputChannel.appendLine(
+              `[Ansible] Failed to resolve Python environment: ${error}`,
+            );
+            lastLoggedResolvedByScope.set(scopeUri, "");
+          }
+          continue;
+        }
 
         if (resolvedPath) {
           // Log only when path actually changes

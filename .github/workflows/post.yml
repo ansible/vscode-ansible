@@ -78,7 +78,7 @@ jobs:
       - name: SonarCloud scan
         # Coverage processing if js map files are not present so we cannot do
         # this from inside 'check' job.
-        uses: SonarSource/sonarqube-scan-action@v7
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets[format('{0}', vars.SONAR_TOKEN_SECRET_NAME)] }}
