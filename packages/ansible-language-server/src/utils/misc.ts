@@ -1,5 +1,6 @@
 import * as child_process from "child_process";
 import { existsSync, statSync, promises as fs } from "node:fs";
+import { homedir } from "node:os";
 import { promisify } from "util";
 import type { SpawnOptions } from "child_process";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -20,12 +21,20 @@ export const asyncExec = promisify(child_process.exec);
 // eslint-disable-next-line no-control-regex
 const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!']/;
 
+function resolveTilde(filePath: string): string {
+  if (filePath === "~" || filePath.startsWith("~/")) {
+    return path.join(homedir(), filePath.slice(1));
+  }
+  return filePath;
+}
+
 function validateSafePath(filePath: string, label: string): string | undefined {
   if (SHELL_METACHARACTERS.test(filePath)) {
     return `${label} contains potentially unsafe characters: ${filePath}`;
   }
+  const resolved = resolveTilde(filePath);
   try {
-    if (!statSync(filePath).isFile()) {
+    if (!statSync(resolved).isFile()) {
       return `${label} is not a file: ${filePath}`;
     }
   } catch {
