@@ -13,6 +13,7 @@ FQCN
 FQCNs
 Fqcn
 Fqcns
+HKLM
 Interactable
 KUBEDOCK
 Kiro
@@ -125,7 +126,9 @@ tsdown
 typedarrays
 unrs
 unsubed
+unxutils
 uuidv
+vcredist
 vite
 vitest
 vscodeignore
