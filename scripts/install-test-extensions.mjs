@@ -22,6 +22,7 @@ const extensionsDir = path.join(testRoot, "extensions");
 const DEPENDENCY_EXTENSIONS = [
   "ms-python.python",
   "ms-python.vscode-python-envs",
+  "ms-vscode-remote.remote-wsl",
   "redhat.vscode-yaml",
 ];
 
@@ -33,11 +34,17 @@ const vscodePath = await download({
 });
 const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodePath);
 
+const rootFlags =
+  process.getuid?.() === 0
+    ? ` --no-sandbox --user-data-dir "${path.join(testRoot, "user-data")}"`
+    : "";
+
 for (const ext of DEPENDENCY_EXTENSIONS) {
   console.log(`Installing: ${ext}`);
   execSync(
     `"${cliPath}" --install-extension ${ext} --force` +
-      ` --extensions-dir "${extensionsDir}"`,
+      ` --extensions-dir "${extensionsDir}"` +
+      rootFlags,
     { stdio: "inherit" },
   );
 }
