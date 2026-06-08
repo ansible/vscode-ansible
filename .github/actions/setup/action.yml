@@ -9,17 +9,31 @@ runs:
   using: "composite"
   steps:
     - uses: jdx/mise-action@v4
+      # mise installation on Windows on custom runners is broken due to two bugs:
+      # unzip not being available: https://github.com/jdx/mise-action/issues/176
+      # exit code 3221225781 (likely vcredist missing): https://github.com/jdx/mise-action/issues/511
+      # if: ${{ !contains(runner.labels, 'self-hosted') && runner.os != 'Windows' }}
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.5.15
+        version: 2026.6.2
         reshim: true
 
+    - name: Ensure mise is present
+      shell: "${{ runner.os == 'Windows' && 'powershell' || 'bash' }}"
+      run: |
+        mise --version
+        mise install -y
+        mise list
+        mise exec -- pnpm install --no-frozen-lockfile
+
     - name: Runner image version
+      if: runner.os != 'Windows'
       run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}-$(uname -m)" >> "$GITHUB_ENV"
       shell: bash
 
     - name: Enable caching for python
+      if: runner.os != 'Windows'
       # left out due to having their own caching: pnpm, node_modules, mise
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:

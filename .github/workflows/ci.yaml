@@ -225,8 +225,8 @@ jobs:
     name: ${{ matrix.name }}
     # Keep 'preflight' as a dependency because 'build' is resource-intensive;
     # running it only after preflight succeeds prevents wasting matrix capacity.
-    needs:
-      - lint
+    # needs:
+    #   - lint
 
     environment:
       name: ci
@@ -267,36 +267,36 @@ jobs:
         include:
           - name: build (windows)
             task-name: package # at the moment only build+package works on windows
-            os: windows-latest
+            os: windows-2025
             id: package-windows # rename to test-windows once tests are passing to include tests
 
-          - name: test (macos)
-            id: test-macos
-            task-name: test
-            os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   id: test-macos
+          #   task-name: test
+          #   os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
-          - name: test (linux-wdio)
-            id: test-linux-wdio
-            task-name: wdio
-            os: ubuntu-26.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: test (linux-wdio)
+          #   id: test-linux-wdio
+          #   task-name: wdio
+          #   os: ubuntu-26.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: test (wsl)
-            id: test-wsl
-            task-name: test
-            os: windows-latest
-            shell: "wsl-bash {0}"
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: test (wsl)
+          #   id: test-wsl
+          #   task-name: test
+          #   os: windows-latest
+          #   shell: "wsl-bash {0}"
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:

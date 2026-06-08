@@ -1,0 +1,15 @@
+[env]
+# 'vsa' is acronym for 'visual studio ansible'
+# we use HOME location below to avoid polluting the project directory with,
+# temporary data and to allow us to mount the codebase on multiple machines
+# for build and testing purposes.
+VIRTUAL_ENV = { value = "{{ env.HOME }}/.local/share/virtualenvs/vsa" }
+# https://mise.jdx.dev/mise-cookbook/python.html
+_.python.venv = { create = true, path = "~/.local/share/virtualenvs/vsa", python = "3.13", uv_create_args = [
+  "--system-site-packages",
+  "--seed",
+] }  # pass args to uv venv
+
+[tools]
+github-cli = "latest"
+# ^ mise gh install is broken on Windows

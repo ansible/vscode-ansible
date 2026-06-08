@@ -83,6 +83,7 @@ tasks:
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
       - npm pkg set version={{ .VERSION }}
+      - mkdir -p '{{ .GIT_ROOT }}/out' # npm fail on Windows without this
       - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
       - defer: npm pkg set version=0.0.0
     silent: false

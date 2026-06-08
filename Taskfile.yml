@@ -136,8 +136,7 @@ tasks:
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
-    deps:
-      - setup
+    deps: [] # do not add 'setup' as we do not need npm install to build the docs
     sources:
       - docs/**/*
       - media/**/*

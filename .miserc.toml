@@ -1,0 +1,2 @@
+# Load platform configs such as mise.unix.toml / mise.windows.toml automatically.
+auto_env = true

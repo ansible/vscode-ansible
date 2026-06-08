@@ -13,6 +13,7 @@ FQCN
 FQCNs
 Fqcn
 Fqcns
+HKLM
 KUBEDOCK
 Kiro
 LIGHTSPEED
@@ -120,7 +121,9 @@ towerhost
 tsdown
 typedarrays
 unrs
+unxutils
 uuidv
+vcredist
 vite
 vitest
 vscodeignore
