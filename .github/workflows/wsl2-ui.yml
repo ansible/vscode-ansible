@@ -1,0 +1,235 @@
+# Windows + WSL2 CI: validates the extension on both platforms using
+# parallel jobs that share a cached Fedora WSL image.
+#
+#   Job 1 — windows-tests:
+#     WDIO smoke (activation, UI rendering, language detection) +
+#     Integration tests via @vscode/test-electron on native Windows.
+#
+#   Job 2 — wsl-wdio:
+#     Full WDIO test suite including the language server full-stack spec
+#     with real ansible-doc completions, run under Xvfb on Fedora WSL.
+#
+#   Job 3 — wsl-unit-integration:
+#     Vitest unit tests + Integration tests via @vscode/test-electron
+#     on Fedora WSL (RPM-based Linux).
+#
+# The only untested gap is the VS Code <-> WSL Remote extension host
+# connection, which is Microsoft Remote-WSL plumbing (not our code).
+# wdio-vscode-service forces a local extension host and ignores --remote.
+#
+# Uses the official Fedora 44 WSL image (Red Hat project).
+# All jobs use continue-on-error while this pipeline is being hardened.
+
+name: "Windows + WSL2 (Fedora) CI"
+
+on:
+  push:
+    branches: [next]
+  pull_request:
+    branches: [next]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  WSL_DISTRO: Fedora
+  FEDORA_WSL_URL: >-
+    https://download.fedoraproject.org/pub/fedora/linux/releases/44/Container/x86_64/images/Fedora-WSL-Base-44-1.7.x86_64.wsl
+  WSL_CHECKOUT: /home/ci/vscode-ansible
+
+jobs:
+  # ╔═══════════════════════════════════════════════════════════════════╗
+  # ║  Job 1 — Windows-native: WDIO smoke + Integration tests        ║
+  # ╚═══════════════════════════════════════════════════════════════════╝
+  windows-tests:
+    name: Windows Tests
+    runs-on: windows-2022
+    continue-on-error: true
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Install test dependency extensions
+        run: npm run pretest:ui
+
+      - name: WDIO smoke tests
+        run: npx wdio run wdio.conf.wsl.ts
+
+      - name: Integration tests
+        run: npm run test:integration
+
+  # ╔═══════════════════════════════════════════════════════════════════╗
+  # ║  Job 2 — Fedora WSL: full WDIO test suite                      ║
+  # ╚═══════════════════════════════════════════════════════════════════╝
+  wsl-wdio:
+    name: WSL WDIO Tests
+    runs-on: windows-2022
+    continue-on-error: true
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # ── WSL2 Fedora setup ─────────────────────────────────────────
+      - name: Enable WSL2
+        shell: powershell
+        run: |
+          Write-Host "Updating WSL to latest version..."
+          wsl --update
+          wsl --version
+          wsl --set-default-version 2
+
+      - name: Cache WSL distro image
+        id: wsl-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\wsl-cache
+          key: wsl-fedora-44-base-v1
+
+      - name: Download Fedora WSL image (cache miss)
+        if: steps.wsl-cache.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\wsl-cache | Out-Null
+          Write-Host "Downloading Fedora 44 WSL image..."
+          Invoke-WebRequest -Uri "${{ env.FEDORA_WSL_URL }}" `
+            -OutFile "C:\wsl-cache\fedora.wsl"
+          $hash = (Get-FileHash "C:\wsl-cache\fedora.wsl" -Algorithm SHA256).Hash
+          Write-Host "Download complete: $([math]::Round((Get-Item C:\wsl-cache\fedora.wsl).Length / 1MB)) MB (SHA256: $hash)"
+
+      - name: Import Fedora into WSL2
+        shell: powershell
+        run: |
+          wsl --set-default-version 2
+          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          Write-Host "Listing registered distros:"
+          wsl --list --verbose
+          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+          wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
+
+      - name: Provision Fedora WSL2
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && useradd -m ci && node --version && python3 --version"
+
+      # ── Build and test inside WSL ─────────────────────────────────
+      - name: Copy source to WSL native filesystem
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "cd /mnt/d/a/vscode-ansible/vscode-ansible && tar cf - --exclude=node_modules --exclude=.wdio-vscode --exclude=.vscode-test . | (mkdir -p ${{ env.WSL_CHECKOUT }} && cd ${{ env.WSL_CHECKOUT }} && tar xf -) && chown -R ci:ci ${{ env.WSL_CHECKOUT }}"
+
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm ci"
+
+      - name: Compile
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+
+      - name: Install test dependency extensions
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 npm run pretest:ui"
+
+      - name: WDIO full test suite
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum npm run test:ui"
+
+  # ╔═══════════════════════════════════════════════════════════════════╗
+  # ║  Job 3 — Fedora WSL: unit tests + integration tests             ║
+  # ╚═══════════════════════════════════════════════════════════════════╝
+  wsl-unit-integration:
+    name: WSL Unit + Integration Tests
+    runs-on: windows-2022
+    continue-on-error: true
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # ── WSL2 Fedora setup ─────────────────────────────────────────
+      - name: Enable WSL2
+        shell: powershell
+        run: |
+          Write-Host "Updating WSL to latest version..."
+          wsl --update
+          wsl --version
+          wsl --set-default-version 2
+
+      - name: Cache WSL distro image
+        id: wsl-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\wsl-cache
+          key: wsl-fedora-44-base-v1
+
+      - name: Download Fedora WSL image (cache miss)
+        if: steps.wsl-cache.outputs.cache-hit != 'true'
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\wsl-cache | Out-Null
+          Write-Host "Downloading Fedora 44 WSL image..."
+          Invoke-WebRequest -Uri "${{ env.FEDORA_WSL_URL }}" `
+            -OutFile "C:\wsl-cache\fedora.wsl"
+          $hash = (Get-FileHash "C:\wsl-cache\fedora.wsl" -Algorithm SHA256).Hash
+          Write-Host "Download complete: $([math]::Round((Get-Item C:\wsl-cache\fedora.wsl).Length / 1MB)) MB (SHA256: $hash)"
+
+      - name: Import Fedora into WSL2
+        shell: powershell
+        run: |
+          wsl --set-default-version 2
+          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          Write-Host "Listing registered distros:"
+          wsl --list --verbose
+          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+          wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
+
+      - name: Provision Fedora WSL2
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && useradd -m ci && node --version && python3 --version"
+
+      # ── Build and test inside WSL ─────────────────────────────────
+      - name: Copy source to WSL native filesystem
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "cd /mnt/d/a/vscode-ansible/vscode-ansible && tar cf - --exclude=node_modules --exclude=.wdio-vscode --exclude=.vscode-test . | (mkdir -p ${{ env.WSL_CHECKOUT }} && cd ${{ env.WSL_CHECKOUT }} && tar xf -) && chown -R ci:ci ${{ env.WSL_CHECKOUT }}"
+
+      - name: Install dependencies
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm ci"
+
+      - name: Compile
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+
+      - name: Unit tests with coverage
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run test:coverage"
+
+      - name: Integration tests
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum npm run test:integration"
