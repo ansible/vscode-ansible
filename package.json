@@ -1169,7 +1169,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@11.5.1",
+  "packageManager": "pnpm@11.5.2",
   "publisher": "redhat",
   "qna": false,
   "repository": {
