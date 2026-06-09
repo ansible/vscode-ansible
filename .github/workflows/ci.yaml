@@ -156,7 +156,7 @@ jobs:
           task build && task build --status
 
       - name: task package
-        timeout-minutes: 2 # expected under 1 minutes
+        timeout-minutes: 3 # expected under 1 minutes
         run: |
           task als:package && task als:package --status
 
@@ -173,7 +173,7 @@ jobs:
           task docs && task docs --status
 
       - name: task package
-        timeout-minutes: 2
+        timeout-minutes: 3
         run: |
           task package -v && task package --status
 
