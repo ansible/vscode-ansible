@@ -1,10 +1,7 @@
 {
   "compounds": [
     {
-      "configurations": [
-        "Launch Extension",
-        "Attach to Server"
-      ],
+      "configurations": ["Launch Extension", "Attach to Server"],
       "name": "Both",
       "presentation": {
         "hidden": true,
@@ -13,10 +10,7 @@
       "stopAll": true
     },
     {
-      "configurations": [
-        "Launch Extension",
-        "Attach to Server (src)"
-      ],
+      "configurations": ["Launch Extension", "Attach to Server (src)"],
       "name": "Both (src)",
       "presentation": {
         "order": 1
@@ -26,26 +20,18 @@
   ],
   "configurations": [
     {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "name": "Debug Extension (Vite)",
-      "outFiles": [
-        "${workspaceFolder}/dist/extension/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
       "postDebugTask": "kill-vite-dev",
       "preLaunchTask": "build-then-vite-dev",
       "request": "launch",
       "type": "extensionHost"
     },
     {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "name": "Preview Extension (Vite)",
-      "outFiles": [
-        "${workspaceFolder}/dist/extension/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
       "preLaunchTask": "npm: vite-build",
       "request": "launch",
       "type": "extensionHost"
@@ -56,9 +42,7 @@
         "${workspaceFolder}/examples"
       ],
       "name": "Launch Extension",
-      "outFiles": [
-        "${workspaceFolder}/dist/extension/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
       "preLaunchTask": "build:extension",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -73,9 +57,7 @@
         "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
       },
       "name": "Launch Extension (packed)",
-      "outFiles": [
-        "${workspaceFolder}/dist/extension/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
       "preLaunchTask": "build:extension",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -89,9 +71,7 @@
       "port": 6010,
       "request": "attach",
       "restart": true,
-      "runtimeArgs": [
-        "--max-old-space-size=4096"
-      ],
+      "runtimeArgs": ["--max-old-space-size=4096"],
       "timeout": 30000,
       "type": "node"
     },
@@ -102,14 +82,12 @@
       ],
       "port": 6010,
       "request": "attach",
-      "restart": true,
-      "runtimeArgs": [
-        "--max-old-space-size=4096"
-      ],
       "resolveSourceMapLocations": [
         "${workspaceFolder}/**",
         "!**/node_modules/**"
       ],
+      "restart": true,
+      "runtimeArgs": ["--max-old-space-size=4096"],
       "timeout": 30000,
       "type": "node"
     },
@@ -119,9 +97,7 @@
         "--extensionTestsPath=${workspaceFolder}/lib/test/index"
       ],
       "name": "Extension Tests",
-      "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost"
