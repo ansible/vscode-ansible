@@ -7,6 +7,11 @@ import { existsSync, readFileSync } from "fs";
 
 type varType = { variable: string; priority: number };
 
+const getEnumerableKeys = (value: unknown): string[] =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? Object.keys(value)
+    : [];
+
 type varsPromptType = {
   name: string;
   prompt: string;
@@ -49,12 +54,12 @@ export function getVarsCompletion(
 
           if (Array.isArray(varsObject)) {
             varsObject.forEach((element) => {
-              Object.keys(element as object).forEach((key) => {
+              getEnumerableKeys(element).forEach((key) => {
                 varsCompletion.push({ variable: key, priority: varPriority });
               });
             });
           } else {
-            Object.keys(varsObject as object).forEach((key) => {
+            getEnumerableKeys(varsObject).forEach((key) => {
               varsCompletion.push({ variable: key, priority: varPriority });
             });
           }
@@ -83,12 +88,12 @@ export function getVarsCompletion(
 
           if (Array.isArray(varsObject)) {
             varsObject.forEach((element) => {
-              Object.keys(element as object).forEach((key) => {
+              getEnumerableKeys(element).forEach((key) => {
                 varsCompletion.push({ variable: key, priority: varPriority });
               });
             });
           } else {
-            Object.keys(varsObject as object).forEach((key) => {
+            getEnumerableKeys(varsObject).forEach((key) => {
               varsCompletion.push({ variable: key, priority: varPriority });
             });
           }
@@ -145,7 +150,7 @@ export function getVarsCompletion(
           if (Array.isArray(yamlDocContent)) {
             yamlDocContent.forEach((element) => {
               if (typeof element === "object") {
-                Object.keys(element as object).forEach((key) => {
+                getEnumerableKeys(element).forEach((key) => {
                   varsCompletion.push({ variable: key, priority: varPriority });
                 });
               }

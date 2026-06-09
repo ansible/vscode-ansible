@@ -165,7 +165,7 @@ export class ExecutionEnvironment {
         );
 
         this.connection.console.log(
-          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
       } else {
         /* v8 ignore next 4 */
@@ -184,7 +184,7 @@ export class ExecutionEnvironment {
         }
         /* v8 ignore next 38 */
         this.connection.console.log(
-          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
@@ -223,7 +223,7 @@ export class ExecutionEnvironment {
       }
       /* v8 ignore next 6 */
       this.connection.console.log(
-        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
       );
       // plugin cache successfully created
       fs.closeSync(
@@ -458,7 +458,7 @@ export class ExecutionEnvironment {
         }
       } catch (error) {
         console.error(
-          `Error detected while trying to stop the container ${containerName}: ${error}`,
+          `Error detected while trying to stop the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -491,7 +491,7 @@ export class ExecutionEnvironment {
         }
       } catch (error) {
         console.error(
-          `Error detected while trying to remove the container ${containerName}: ${error}`,
+          `Error detected while trying to remove the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -610,7 +610,7 @@ export class ExecutionEnvironment {
       spawnSyncWithResult(containerEngine, runArgv);
     } catch (error) {
       this.connection.window.showErrorMessage(
-        `Failed to initialize execution environment '${this._container_image}': ${error}`,
+        `Failed to initialize execution environment '${this._container_image}': ${error instanceof Error ? error.message : String(error)}`,
       );
       return false;
     }

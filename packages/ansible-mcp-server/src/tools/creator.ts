@@ -115,7 +115,7 @@ export function createProjectsHandler(workspaceRoot: string) {
           content: [
             {
               type: "text" as const,
-              text: `Error: Invalid project type '${args.projectType}'. Must be either 'collection' or 'playbook'.\n`,
+              text: `Error: Invalid project type '${String(args.projectType)}'. Must be either 'collection' or 'playbook'.\n`,
             },
           ],
           isError: true,

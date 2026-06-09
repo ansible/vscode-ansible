@@ -116,7 +116,7 @@ export class LightspeedStatusBar {
       });
     } catch (error) {
       console.log(
-        `an error occurred updating status bar and tooltip: ${error}`,
+        `an error occurred updating status bar and tooltip: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
 

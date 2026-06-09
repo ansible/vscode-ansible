@@ -188,7 +188,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
   } catch (error) {
-    console.error(`Error updating python status bar: ${error}`);
+    console.error(
+      `Error updating python status bar: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   // Subscribe to Python environment changes to update the status bar and LS
@@ -209,7 +211,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
       } catch (error) {
-        console.error(`Error updating after environment change: ${error}`);
+        console.error(
+          `Error updating after environment change: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
     }),
   );
@@ -912,7 +916,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             );
           } catch (error) {
             console.error(
-              `[Lightspeed Playbook Feedback] Telemetry failed: ${error}`,
+              `[Lightspeed Playbook Feedback] Telemetry failed: ${error instanceof Error ? error.message : String(error)}`,
               error,
             );
           }
@@ -962,7 +966,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             );
           } catch (error) {
             console.error(
-              `[Lightspeed Role Feedback] Telemetry failed: ${error}`,
+              `[Lightspeed Role Feedback] Telemetry failed: ${error instanceof Error ? error.message : String(error)}`,
               error,
             );
           }
@@ -1452,7 +1456,7 @@ export function makeConfigurationMiddleware(
         originalResult = await next(params, token);
       } catch (error) {
         outputChannel.appendLine(
-          `[Ansible] Configuration middleware error: ${error}`,
+          `[Ansible] Configuration middleware error: ${error instanceof Error ? error.message : String(error)}`,
         );
         return [] as unknown as LSPAny[];
       }
@@ -1513,7 +1517,7 @@ export function makeConfigurationMiddleware(
           // Treat resolution failure as "no path" - log once and leave config unchanged
           if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
             outputChannel.appendLine(
-              `[Ansible] Failed to resolve Python environment: ${error}`,
+              `[Ansible] Failed to resolve Python environment: ${error instanceof Error ? error.message : String(error)}`,
             );
             lastLoggedResolvedByScope.set(scopeUri, "");
           }

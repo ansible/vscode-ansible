@@ -193,7 +193,7 @@ function main(): void {
     const [vsix] = vsixFiles;
     if (vsixFiles.length !== 1 || vsix === undefined) {
       console.error(
-        `Publish command requires presence of exactly one '.vsix' on disk, found: ${vsixFiles}`,
+        `Publish command requires presence of exactly one '.vsix' on disk, found: ${vsixFiles.join(", ")}`,
       );
       process.exit(2);
     }

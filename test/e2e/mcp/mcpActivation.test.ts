@@ -79,7 +79,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
           `MCP CLI should be resolvable via module resolution or exist at:\n` +
             `  - Packaged: ${packagedCliPath} (exists: ${hasPackagedCli})\n` +
             `  - Development: ${devCliPath} (exists: ${hasDevCli})\n` +
-            `  - Module resolution error: ${error}`,
+            `  - Module resolution error: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });

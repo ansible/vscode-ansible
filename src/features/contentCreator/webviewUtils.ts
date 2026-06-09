@@ -40,10 +40,18 @@ interface MessageHandlerConfig {
 interface Message {
   type?: string;
   command?: string;
-  data?: any;
+  data?: unknown;
   homedir?: string;
   tempdir?: string;
-  arguments?: any;
+  arguments?: unknown;
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
 }
 
 class MessageRouter {
@@ -55,22 +63,50 @@ class MessageRouter {
     private commonState?: Partial<CommonWebviewState>,
   ) {
     this.typeHandlers = {
-      homeDirectory: (message) => this.onHomeDirectory(message.data as string),
-      folderSelected: (message) =>
-        this.onFolderSelected(message.data as string),
-      fileSelected: (message) => this.onFileSelected(message.data as string),
-      logs: (message) => this.onLogs(message.data as string),
+      homeDirectory: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onHomeDirectory(data);
+        }
+      },
+      folderSelected: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onFolderSelected(data);
+        }
+      },
+      fileSelected: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onFileSelected(data);
+        }
+      },
+      logs: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onLogs(data);
+        }
+      },
     };
 
     this.commandHandlers = {
       homedirAndTempdir: (message) => {
-        if (message.homedir && message.tempdir) {
-          this.onHomedirAndTempdir(message.homedir, message.tempdir);
+        const homedir = asString(message.homedir);
+        const tempdir = asString(message.tempdir);
+        if (homedir && tempdir) {
+          this.onHomedirAndTempdir(homedir, tempdir);
         }
       },
-      "execution-log": (message) => this.onExecutionLog(message.arguments),
-      ADEPresence: (message) =>
-        this.onADEPresence(message.arguments as boolean),
+      "execution-log": (message) => {
+        if (isRecord(message.arguments)) {
+          this.onExecutionLog(message.arguments);
+        }
+      },
+      ADEPresence: (message) => {
+        if (typeof message.arguments === "boolean") {
+          this.onADEPresence(message.arguments);
+        }
+      },
     };
   }
 
@@ -149,7 +185,18 @@ export function setupMessageHandler(
   const router = new MessageRouter(config, commonState);
 
   const messageHandler = (event: MessageEvent) => {
-    router.handle(event.data as Message);
+    const payload = event.data;
+    if (!isRecord(payload)) {
+      return;
+    }
+    const msg = payload as Message;
+    if (msg.type !== undefined && typeof msg.type !== "string") {
+      return;
+    }
+    if (msg.command !== undefined && typeof msg.command !== "string") {
+      return;
+    }
+    router.handle(msg);
   };
 
   window.addEventListener("message", messageHandler);

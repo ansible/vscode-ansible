@@ -86,7 +86,9 @@ export class AnsibleToxController {
 
     const fileName = splittedPath.pop();
     if (fileName === undefined) {
-      throw new TypeError(`Expected filename as string from ${splittedPath}`);
+      throw new TypeError(
+        `Expected filename as string from ${splittedPath.join("/")}`,
+      );
     }
 
     const parentFolderName = splittedPath.pop();
@@ -211,7 +213,7 @@ export class AnsibleToxController {
         if (e instanceof Error) {
           msg = e.message;
         } else {
-          msg = `${e}`;
+          msg = e instanceof Error ? e.message : String(e);
         }
         run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
       }

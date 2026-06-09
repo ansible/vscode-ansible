@@ -120,7 +120,9 @@ export class Vault {
             tabSize,
           );
         } catch (e) {
-          vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
+          vscode.window.showErrorMessage(
+            `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
+          );
           return;
         }
         const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
@@ -141,7 +143,9 @@ export class Vault {
             tabSize, // tabSize is always defined
           );
         } catch (e) {
-          vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
+          vscode.window.showErrorMessage(
+            `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
+          );
           return;
         }
         editor.edit((editBuilder) => {
@@ -169,7 +173,7 @@ export class Vault {
           );
         } catch (e) {
           vscode.window.showErrorMessage(
-            `Encryption of ${doc.fileName} failed: ${e}`,
+            `Encryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
           );
         }
       } else if (type === "encrypted") {
@@ -182,7 +186,7 @@ export class Vault {
           );
         } catch (e) {
           vscode.window.showErrorMessage(
-            `Decryption of ${doc.fileName} failed: ${e}`,
+            `Decryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
           );
         }
       }

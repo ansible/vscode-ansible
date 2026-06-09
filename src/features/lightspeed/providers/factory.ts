@@ -61,7 +61,7 @@ export class LLMProviderFactory implements ProviderFactory {
         return this.createRHCustomProvider(config, apiKey);
 
       default:
-        throw new Error(`Unsupported provider type: ${type}`);
+        throw new Error(`Unsupported provider type: ${String(type)}`);
     }
   }
 

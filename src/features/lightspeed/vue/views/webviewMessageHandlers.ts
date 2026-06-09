@@ -323,7 +323,10 @@ export class WebviewMessageHandlers {
       collectionUrl?: string;
       projectUrl?: string;
     };
-    const folderUrl = (payload.collectionUrl || payload.projectUrl) as string;
+    const folderUrl = payload.collectionUrl || payload.projectUrl;
+    if (typeof folderUrl !== "string" || folderUrl.trim().length === 0) {
+      return;
+    }
     await this.fileOps.openFolderInWorkspaceProjects(folderUrl);
   }
 

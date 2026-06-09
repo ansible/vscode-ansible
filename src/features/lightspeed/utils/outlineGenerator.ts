@@ -81,8 +81,14 @@ export function generateOutlineFromRole(roleYaml: string): string {
 
     // Extract task names
     for (const task of parsed) {
-      if (task.name) {
-        tasks.push(task.name as string);
+      if (
+        task &&
+        typeof task === "object" &&
+        "name" in task &&
+        typeof (task as { name?: unknown }).name === "string" &&
+        (task as { name: string }).name.trim().length > 0
+      ) {
+        tasks.push((task as { name: string }).name);
       }
     }
 

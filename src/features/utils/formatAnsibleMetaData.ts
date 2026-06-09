@@ -3,6 +3,11 @@ import { MarkdownString, workspace } from "vscode";
 import * as os from "os";
 import * as path from "path";
 
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
 export function formatAnsibleMetaData(ansibleMetaData: any) {
   let mdString = "";
   let ansiblePresent = true;
@@ -13,18 +18,16 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   const WARNING_STYLE = `style="color:${WARNING_COLOR};"`;
 
   // check if ansible is missing
-  if (
-    Object.keys(ansibleMetaData["ansible information"] as object).length === 0
-  ) {
+  const ansibleInfo = asRecord(ansibleMetaData?.["ansible information"]);
+  if (Object.keys(ansibleInfo).length === 0) {
     ansiblePresent = false;
     mdString += "#### $(close) Ansible not found in the environment\n";
 
     // if python exists
-    if (
-      Object.keys(ansibleMetaData["python information"] as object).length !== 0
-    ) {
-      const obj = ansibleMetaData["python information"];
-      mdString += `Python version used: \`${obj["version"]}\` from \`${obj["location"]}\``;
+    const pythonInfo = asRecord(ansibleMetaData?.["python information"]);
+    if (Object.keys(pythonInfo).length !== 0) {
+      const obj = pythonInfo;
+      mdString += `Python version used: \`${String(obj["version"])}\` from \`${String(obj["location"])}\``;
     }
 
     const markdown = new MarkdownString(mdString, true);
@@ -46,7 +49,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
   // check is ansible-lint is missing
   if (
-    Object.keys(ansibleMetaData["ansible-lint information"] as object)
+    Object.keys(asRecord(ansibleMetaData?.["ansible-lint information"]))
       .length === 0
   ) {
     ansibleLintPresent = false;
@@ -64,8 +67,10 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     .getConfiguration("ansible.validation.lint")
     .get("enabled");
 
-  Object.keys(ansibleMetaData as object).forEach((mainKey) => {
-    if (Object.keys(ansibleMetaData[mainKey] as object).length === 0) {
+  const root = asRecord(ansibleMetaData);
+  Object.keys(root).forEach((mainKey) => {
+    const section = asRecord(root[mainKey]);
+    if (Object.keys(section).length === 0) {
       return;
     }
     // put a marker stating ansible-lint setting is disabled
@@ -76,18 +81,18 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
       mdString += `\n**${mainKey}:** \n`;
     }
 
-    const valueObj = ansibleMetaData[mainKey];
-    Object.keys(valueObj as object).forEach((key) => {
+    const valueObj = section;
+    Object.keys(valueObj).forEach((key) => {
       if (key === "upgrade status") {
-        const value = valueObj[key];
+        const value = valueObj[key] as string | number | boolean | null;
         if (value != null && String(value).trim().toLowerCase() !== "nil") {
-          mdString += ` <span ${WARNING_STYLE}>${value}</span>`;
+          mdString += ` <span ${WARNING_STYLE}>${String(value)}</span>`;
         }
         return;
       }
       mdString += `\n   - ${key}: `;
-      const value = valueObj[key];
-      if (typeof value === "object") {
+      const value = valueObj[key] as any;
+      if (Array.isArray(value)) {
         value.forEach((val: any, index: any) => {
           if (val && val !== "None") {
             if (key.includes("path")) {
