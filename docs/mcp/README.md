@@ -325,7 +325,7 @@ You can test that the server starts correctly by sending an MCP
 
 ```bash
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' \
-  | npx -y @ansible/ansible-mcp-server --stdio
+  | npm exec -- ansible-mcp-server --stdio
 ```
 
 Or with the container:

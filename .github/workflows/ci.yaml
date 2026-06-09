@@ -155,8 +155,8 @@ jobs:
         run: |
           task build && task build --status
 
-      - name: task package
-        timeout-minutes: 4 # expected under 1 minutes
+      - name: task als:package
+        timeout-minutes: 4
         run: |
           task als:package && task als:package --status
 
@@ -164,18 +164,12 @@ jobs:
         if: >-
           steps.extract_context.outputs.context != '' &&
           !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
-        run: |
-          task ${{ steps.extract_context.outputs.context }}
+        run: task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
         timeout-minutes: 2
         run: |
           task docs && task docs --status
-
-      - name: task package
-        timeout-minutes: 4
-        run: |
-          task package -v && task package --status
 
       - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
         run: task dry
@@ -187,6 +181,12 @@ jobs:
         timeout-minutes: 3
         run: |
           task lint
+
+      - name: task package
+        timeout-minutes: 4
+        run: |
+          task als:package && task als:package --status
+          task package && task package --status
 
       - name: task finish
         run: task finish
