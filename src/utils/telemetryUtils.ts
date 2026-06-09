@@ -201,11 +201,11 @@ const errorMassagesToSkip = [
   { text: "Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED", contains: true },
 ];
 
-export class TelemetryOutputChannel implements vscode.OutputChannel {
+export class TelemetryOutputChannel implements vscode.LogOutputChannel {
   private errors!: string[];
   private throttleTimeout: vscode.Disposable | undefined;
   constructor(
-    private readonly delegate: vscode.OutputChannel,
+    private readonly delegate: vscode.LogOutputChannel,
     private readonly telemetry: TelemetryService,
   ) {
     // do nothing
@@ -213,6 +213,36 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
 
   get name(): string {
     return this.delegate.name;
+  }
+
+  get logLevel(): vscode.LogLevel {
+    return this.delegate.logLevel;
+  }
+
+  get onDidChangeLogLevel(): vscode.Event<vscode.LogLevel> {
+    return this.delegate.onDidChangeLogLevel;
+  }
+
+  trace(message: string, ...args: unknown[]): void {
+    this.delegate.trace(message, ...args);
+  }
+
+  debug(message: string, ...args: unknown[]): void {
+    this.delegate.debug(message, ...args);
+  }
+
+  info(message: string, ...args: unknown[]): void {
+    this.delegate.info(message, ...args);
+  }
+
+  warn(message: string, ...args: unknown[]): void {
+    this.delegate.warn(message, ...args);
+  }
+
+  error(error: string | Error, ...args: unknown[]): void {
+    const message = typeof error === "string" ? error : error.message;
+    this.checkError(message);
+    this.delegate.error(error, ...args);
   }
   append(value: string): void {
     this.checkError(value);
