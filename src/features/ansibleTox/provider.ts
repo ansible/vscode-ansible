@@ -39,7 +39,7 @@ export class AnsibleToxProvider implements vscode.TaskProvider {
       return new vscode.Task(
         definition,
         _task.scope ?? vscode.TaskScope.Workspace,
-        definition.ansible,
+        definition.ansible as string,
         AnsibleToxProvider.toxType,
         new vscode.ShellExecution(
           `${ANSIBLE_TOX_RUN_COMMAND} ${definition.ansible} --ansible --conf tox-ansible.ini`,

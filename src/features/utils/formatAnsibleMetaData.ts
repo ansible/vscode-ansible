@@ -13,12 +13,16 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   const WARNING_STYLE = `style="color:${WARNING_COLOR};"`;
 
   // check if ansible is missing
-  if (Object.keys(ansibleMetaData["ansible information"]).length === 0) {
+  if (
+    Object.keys(ansibleMetaData["ansible information"] as object).length === 0
+  ) {
     ansiblePresent = false;
     mdString += "#### $(close) Ansible not found in the environment\n";
 
     // if python exists
-    if (Object.keys(ansibleMetaData["python information"]).length !== 0) {
+    if (
+      Object.keys(ansibleMetaData["python information"] as object).length !== 0
+    ) {
       const obj = ansibleMetaData["python information"];
       mdString += `Python version used: \`${obj["version"]}\` from \`${obj["location"]}\``;
     }
@@ -41,7 +45,10 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   }
 
   // check is ansible-lint is missing
-  if (Object.keys(ansibleMetaData["ansible-lint information"]).length === 0) {
+  if (
+    Object.keys(ansibleMetaData["ansible-lint information"] as object)
+      .length === 0
+  ) {
     ansibleLintPresent = false;
   }
 
@@ -57,8 +64,8 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     .getConfiguration("ansible.validation.lint")
     .get("enabled");
 
-  Object.keys(ansibleMetaData).forEach((mainKey) => {
-    if (Object.keys(ansibleMetaData[mainKey]).length === 0) {
+  Object.keys(ansibleMetaData as object).forEach((mainKey) => {
+    if (Object.keys(ansibleMetaData[mainKey] as object).length === 0) {
       return;
     }
     // put a marker stating ansible-lint setting is disabled
@@ -70,7 +77,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     }
 
     const valueObj = ansibleMetaData[mainKey];
-    Object.keys(valueObj).forEach((key) => {
+    Object.keys(valueObj as object).forEach((key) => {
       if (key === "upgrade status") {
         const value = valueObj[key];
         if (value != null && String(value).trim().toLowerCase() !== "nil") {
@@ -86,9 +93,9 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
             if (key.includes("path")) {
               mdString += `\n       ${
                 index + 1
-              }. <a href='${val}'>${getTildePath(val)}</a>`;
+              }. <a href='${val}'>${getTildePath(val as string)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${getTildePath(val)}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(val as string)}`;
             }
           }
           if (index === value.length - 1) {
@@ -97,15 +104,15 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         });
       } else {
         if (key.includes("path")) {
-          mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
+          mdString += `<a href='${value}'>${getTildePath(value as string)}</a>`;
         } else if (key.includes("version")) {
-          const versionInfo = value.split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
+          const versionInfo = (value as string).split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
           mdString += `\`${versionInfo[0]}\`\n`;
           if (versionInfo[1]) {
             mdString += `*<span style="color:${WARNING_COLOR};">${versionInfo[1]}*\n`;
           }
         } else if (key.includes("location")) {
-          mdString += `${getTildePath(value)}\n`;
+          mdString += `${getTildePath(value as string)}\n`;
         } else {
           mdString += `${value}\n`;
         }

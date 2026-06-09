@@ -141,7 +141,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       if (
@@ -239,7 +239,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       if (showInfoMessage) {
@@ -290,7 +290,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       return data as ContentMatchesResponseParams;
@@ -323,7 +323,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       return data as ExplanationResponseParams;
@@ -356,7 +356,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       return data as PlaybookGenerationResponseParams;
@@ -392,7 +392,7 @@ export class LightSpeedAPI {
       }
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       return data as RoleGenerationResponseParams;
@@ -425,7 +425,7 @@ export class LightSpeedAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data);
+        throw new HTTPError(response, response.status, data as object);
       }
 
       return data as ExplanationResponseParams;

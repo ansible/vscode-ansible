@@ -15,10 +15,10 @@ const pkg = require(
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
 let EE_VERSION = "N/A";
-const DEFAULT_CONTAINER =
-  pkg.contributes.configuration[6]?.properties[
+const DEFAULT_CONTAINER: string =
+  (pkg.contributes.configuration[6]?.properties[
     "ansible.executionEnvironment.image"
-  ]?.default ?? "";
+  ]?.default as string | undefined) ?? "";
 
 function exec(cmd: string[], options: SpawnSyncOptions = {}) {
   options.stdio = "inherit";

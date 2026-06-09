@@ -138,12 +138,15 @@ describe("MCP server integration — packaged extension simulation", function ()
     // must fall back to the direct packaged path to find the CLI.
     const provider = new AnsibleMcpServerProvider(tempDir);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cliPath = (provider as any).findCliPath();
+    const cliPath = (
+      provider as unknown as { findCliPath: () => string | null }
+    ).findCliPath();
 
     expect(cliPath).not.toBeNull();
     expect(cliPath).toContain("cli.cjs");
-    expect(fs.existsSync(cliPath)).toBe(true);
+    if (cliPath !== null) {
+      expect(fs.existsSync(cliPath)).toBe(true);
+    }
   });
 
   it("MCP server should start and list tools via JSON-RPC stdio", async function () {

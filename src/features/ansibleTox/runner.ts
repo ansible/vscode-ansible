@@ -50,9 +50,13 @@ export async function getToxEnvs(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     const channel = getOutputChannel();
-    channel.appendLine(err.stderr || "");
-    channel.appendLine(err.stdout || "");
-    if (err.stderr.includes("unrecognized arguments: --ansible")) {
+    const stderr: string =
+      typeof err.stderr === "string" ? err.stderr : String(err.stderr ?? "");
+    const stdout: string =
+      typeof err.stdout === "string" ? err.stdout : String(err.stdout ?? "");
+    channel.appendLine(stderr);
+    channel.appendLine(stdout);
+    if (stderr.includes("unrecognized arguments: --ansible")) {
       channel.appendLine(
         "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'.",
       );

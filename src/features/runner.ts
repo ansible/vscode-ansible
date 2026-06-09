@@ -55,7 +55,7 @@ export class AnsiblePlaybookRunProvider {
       this.vsCodeExtCtx,
       this.telemetry,
       AnsibleCommands.ANSIBLE_PLAYBOOK_RUN,
-      (fileObj) => this.invokeViaAnsiblePlaybook(fileObj),
+      (fileObj?: vscode.Uri) => this.invokeViaAnsiblePlaybook(fileObj),
       false,
     );
     console.log('Added a "Run Ansible Playbook" command...');
@@ -64,7 +64,7 @@ export class AnsiblePlaybookRunProvider {
       this.vsCodeExtCtx,
       this.telemetry,
       AnsibleCommands.ANSIBLE_NAVIGATOR_RUN,
-      (fileObj) => this.invokeViaAnsibleNavigator(fileObj),
+      (fileObj?: vscode.Uri) => this.invokeViaAnsibleNavigator(fileObj),
       false,
     );
 
@@ -94,7 +94,7 @@ export class AnsiblePlaybookRunProvider {
     commandLineArgs.push("--ee true");
     commandLineArgs.push("--pae false");
     commandLineArgs.push(
-      `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
+      `--ce ${getContainerEngine(eeSettings.containerEngine as string)}`,
     );
     commandLineArgs.push(`--eei ${shellQuote(eeSettings.image)}`);
     if (eeSettings.containerOptions !== "") {
@@ -157,14 +157,12 @@ export class AnsiblePlaybookRunProvider {
    * A callback method for running `ansible-playbook` command.
    * @param fileObj - The file path to execute the command.
    */
-  private async invokeViaAnsiblePlaybook(
-    ...fileObj: vscode.Uri[] | undefined[]
-  ): Promise<void> {
+  private async invokeViaAnsiblePlaybook(fileObj?: vscode.Uri): Promise<void> {
     const runExecutable = this.ansiblePlaybookExecutablePath;
     const playbookArguments =
       this.extensionSettings.settings.playbook.arguments;
     const commandLineArgs: string[] = [];
-    const playbookFsPath = extractTargetFsPath(...fileObj);
+    const playbookFsPath = extractTargetFsPath(fileObj);
     if (typeof playbookFsPath === "undefined") {
       vscode.window.showErrorMessage(
         `No Ansible playbook file has been specified to be executed with ansible-playbook.`,
@@ -191,12 +189,10 @@ export class AnsiblePlaybookRunProvider {
    * A callback method for running `ansible-navigator run command`.
    * @param fileObj - The file path to execute the command.
    */
-  private async invokeViaAnsibleNavigator(
-    ...fileObj: vscode.Uri[] | undefined[]
-  ): Promise<void> {
+  private async invokeViaAnsibleNavigator(fileObj?: vscode.Uri): Promise<void> {
     const runExecutable = this.ansibleNavigatorExecutablePath;
     const commandLineArgs: string[] = [];
-    const playbookFsPath = extractTargetFsPath(...fileObj);
+    const playbookFsPath = extractTargetFsPath(fileObj);
     if (typeof playbookFsPath === "undefined") {
       vscode.window.showErrorMessage(
         `No Ansible playbook file has been specified to be executed with ansible-navigator run.`,
@@ -229,7 +225,7 @@ export class AnsiblePlaybookRunProvider {
  * @returns A path to the currently selected file.
  */
 function extractTargetFsPath(
-  ...priorityPathObjs: vscode.Uri[] | undefined[]
+  ...priorityPathObjs: (vscode.Uri | undefined)[]
 ): string | undefined {
   const pathCandidates: vscode.Uri[] = [
     ...priorityPathObjs,

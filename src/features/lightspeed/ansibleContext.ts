@@ -275,7 +275,7 @@ Generate Ansible inventory content with:
           // Check for required fields in tasks
           if (
             "name" in item ||
-            Object.keys(item).some(
+            Object.keys(item as object).some(
               (key) => key !== "name" && !key.startsWith("_"),
             )
           ) {

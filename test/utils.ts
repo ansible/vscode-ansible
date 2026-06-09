@@ -58,6 +58,8 @@ function ensureSettings(settings: Record<string, string | boolean>): void {
 }
 
 export function resetSettings(): void {
-  const settings = JSON.parse(fs.readFileSync(originalSettingsPath, "utf-8"));
+  const settings = JSON.parse(
+    fs.readFileSync(originalSettingsPath, "utf-8"),
+  ) as Record<string, string | boolean>;
   ensureSettings(settings);
 }

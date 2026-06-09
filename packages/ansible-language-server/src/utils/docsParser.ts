@@ -268,7 +268,10 @@ export class LazyModuleDocumentation implements IModuleMetadata {
           const document = parseDocument(m.groups.doc);
           // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
           // Still, document.toJSON() works on them
-          this._contents.set(m.groups.name, document.toJSON());
+          this._contents.set(
+            m.groups.name,
+            document.toJSON() as Record<string, unknown>,
+          );
           this.errors = document.errors;
         }
       }

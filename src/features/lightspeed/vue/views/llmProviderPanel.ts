@@ -5,6 +5,7 @@ import { disposePanelResources } from "@src/features/lightspeed/vue/views/panelU
 import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
+  LlmProviderMessage,
 } from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
@@ -55,7 +56,7 @@ export class LlmProviderPanel {
     // Set up message handler
     this.messageHandlers.setWebview(this._panel.webview);
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async (message: LlmProviderMessage) => {
         await this.messageHandlers.handleMessage(message);
       },
       undefined,

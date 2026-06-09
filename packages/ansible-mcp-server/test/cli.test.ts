@@ -8,7 +8,7 @@ const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, "package.json"), "utf8"));
 
 describe("CLI entry point", () => {
-  const binPath = resolve(pkgRoot, pkg.bin);
+  const binPath = resolve(pkgRoot, pkg.bin as string);
 
   it("bin field points to a file that exists after build", () => {
     expect(

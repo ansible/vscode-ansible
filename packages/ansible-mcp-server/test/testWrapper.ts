@@ -35,7 +35,7 @@ export function createTestServer(workspaceRoot: string) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const registeredTools = (server as any)._registeredTools;
       return registeredTools
-        ? Object.keys(registeredTools).map((name) => ({ name }))
+        ? Object.keys(registeredTools as object).map((name) => ({ name }))
         : [];
     },
     listResources: () => {
@@ -48,7 +48,9 @@ export function createTestServer(workspaceRoot: string) {
       // Resources are stored by URI, each resource has a 'name' property
       const resources: Array<{ name: string; uri: string }> = [];
 
-      for (const [uri, resource] of Object.entries(registeredResources)) {
+      for (const [uri, resource] of Object.entries(
+        registeredResources as Record<string, unknown>,
+      )) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const name = (resource as any)?.name || uri;
         resources.push({ name, uri });
@@ -68,7 +70,9 @@ export function createTestServer(workspaceRoot: string) {
 
       // If not found by URI, try to find by name
       if (!resourceHandler) {
-        for (const [, resource] of Object.entries(registeredResources)) {
+        for (const [, resource] of Object.entries(
+          registeredResources as Record<string, unknown>,
+        )) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((resource as any)?.name === nameOrUri) {
             resourceHandler = resource;

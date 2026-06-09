@@ -35,7 +35,7 @@ export class WelcomePagePanel {
     this._panel.webview.html = this.getWebviewHtml(context);
 
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async (message: WebviewMessage) => {
         await this.handleMessage(message);
       },
       undefined,

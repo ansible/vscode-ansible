@@ -1,11 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  McpServer,
+  type ToolCallback,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {
+  AnySchema,
+  ZodRawShapeCompat,
+} from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  type CallToolRequest,
   type CallToolResult,
   ErrorCode,
   McpError,
+  type ToolAnnotations,
 } from "@modelcontextprotocol/sdk/types.js";
 import {
   createZenOfAnsibleHandler,
@@ -209,18 +218,36 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   // Store original registerTool method
   const originalRegisterTool = server.registerTool.bind(server);
 
+  type RegisterToolConfig = {
+    title?: string;
+    description?: string;
+    inputSchema?: ZodRawShapeCompat | AnySchema;
+    outputSchema?: ZodRawShapeCompat | AnySchema;
+    annotations?: ToolAnnotations & {
+      keywords?: string[];
+      useCases?: string[];
+    };
+    _meta?: Record<string, unknown>;
+  };
+
+  type RegisterToolHandler = (
+    ...args: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+  ) => CallToolResult | Promise<CallToolResult>;
+
   // Helper function to register a tool with dependencies
   const registerToolWithDeps = (
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handler: any,
+    config: RegisterToolConfig,
+    handler: RegisterToolHandler,
     dependencies: Dependency[] = [],
   ) => {
     registeredTools.add(name);
     toolDependencies.set(name, dependencies);
-    return originalRegisterTool(name, config, handler);
+    return originalRegisterTool(
+      name,
+      config as Parameters<McpServer["registerTool"]>[1],
+      handler as ToolCallback,
+    );
   };
 
   // Register core tools
@@ -892,8 +919,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   // Add custom error handling for tool calls using the underlying server
   server.server.setRequestHandler(
     CallToolRequestSchema,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (request: any) => {
+    async (request: CallToolRequest) => {
       const toolName = request.params.name;
 
       if (!registeredTools.has(toolName)) {
@@ -945,7 +971,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
 
       // Log available tools for debugging
       const availableToolNames = handlers
-        ? Object.keys(handlers).join(", ")
+        ? Object.keys(handlers as object).join(", ")
         : "no handlers object";
       console.error(
         `[MCP] Tool '${toolName}' handler not found. Available handlers: ${availableToolNames}`,
