@@ -38,7 +38,7 @@ export function getAnsibleFileType(
   if (typeof lastObject !== "object") {
     return "other";
   }
-  const objectKeys = Object.keys(lastObject);
+  const objectKeys = Object.keys(lastObject as object);
   for (const keyword of objectKeys) {
     if (PlaybookKeywords.includes(keyword)) {
       return "playbook";

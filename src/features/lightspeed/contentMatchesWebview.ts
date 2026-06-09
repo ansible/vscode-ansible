@@ -228,9 +228,11 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       }
 
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
+      const taskDescription =
+        typeof taskNameDescription === "string" ? taskNameDescription : "";
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
         contentMatchValue.contentmatch,
-        taskNameDescription || "",
+        taskDescription,
       );
     }
     const html = `

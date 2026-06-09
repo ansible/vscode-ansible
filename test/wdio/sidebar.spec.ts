@@ -18,7 +18,7 @@ describe("Sidebar and settings", () => {
     const title = await sideBar.getTitlePart().getTitle();
     assert.match(title, /Ansible Development Tools/i);
 
-    const workspaceFolder = await browser.executeWorkbench((vscode) => {
+    const workspaceFolder: string = await browser.executeWorkbench((vscode) => {
       return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
     });
     if (workspaceFolder) {

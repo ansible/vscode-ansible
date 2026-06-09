@@ -20,7 +20,7 @@ export function getObjectKeys(content: string): string[] {
     const parsedAnsibleDocument = yaml.parse(content);
     const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
     if (typeof lastObject === "object") {
-      return Object.keys(lastObject);
+      return Object.keys(lastObject as object);
     }
   } catch {
     return [];

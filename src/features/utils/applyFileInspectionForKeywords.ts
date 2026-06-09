@@ -20,7 +20,7 @@ export async function applyFileInspectionForKeywords(
 
     if (parsedYaml && Array.isArray(parsedYaml)) {
       // Check for all seq
-      const topLevelKeys = Object.keys(parsedYaml[0]);
+      const topLevelKeys = Object.keys(parsedYaml[0] as object);
       const ansibleTopLevelKeys = [
         "hosts",
         "import_playbook",

@@ -409,7 +409,7 @@ export async function runAnsibleNavigator(
     );
 
     // Capture standard output with size limit
-    navProcess.stdout.on("data", (data) => {
+    navProcess.stdout.on("data", (data: Buffer | string) => {
       const dataStr = data.toString();
       outputSize += Buffer.byteLength(dataStr);
       if (outputSize > MAX_OUTPUT_SIZE) {
@@ -428,7 +428,7 @@ export async function runAnsibleNavigator(
     });
 
     // Capture standard error (for debug output) with size limit
-    navProcess.stderr.on("data", (data) => {
+    navProcess.stderr.on("data", (data: Buffer | string) => {
       const dataStr = data.toString();
       outputSize += Buffer.byteLength(dataStr);
       if (outputSize > MAX_OUTPUT_SIZE) {

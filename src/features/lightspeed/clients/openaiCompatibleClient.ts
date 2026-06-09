@@ -112,7 +112,7 @@ export class OpenAICompatibleClient {
           body?.error?.message ||
           body?.message ||
           `HTTP ${response.status} error`;
-        throw new OpenAIClientError(errorMessage, response.status);
+        throw new OpenAIClientError(String(errorMessage), response.status);
       }
 
       return body as ChatCompletionResponse;

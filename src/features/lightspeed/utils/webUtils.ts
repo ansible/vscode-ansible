@@ -40,6 +40,17 @@ export const generateCodeVerifier = (): string => {
     : generateCodeVerifier();
 };
 
+const DEFAULT_TOKEN_EXPIRES_IN_SECONDS = 3600;
+
+/** Coerce OAuth `expires_in` to a positive number of seconds. */
+export function coerceExpiresIn(
+  expiresIn: unknown,
+  defaultSeconds = DEFAULT_TOKEN_EXPIRES_IN_SECONDS,
+): number {
+  const num = typeof expiresIn === "number" ? expiresIn : Number(expiresIn);
+  return Number.isFinite(num) && num > 0 ? num : defaultSeconds;
+}
+
 // A function to return the expiry date and time in epoch
 export function calculateTokenExpiryTime(expiresIn: number) {
   const now = Math.floor(new Date().getTime() / 1000);

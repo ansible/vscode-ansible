@@ -9,7 +9,7 @@ import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { ProviderInfo } from "@src/interfaces/lightspeed";
 
-interface LlmProviderMessage {
+export interface LlmProviderMessage {
   command: string;
   provider?: string;
   config?: Record<string, string>;

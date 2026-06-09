@@ -539,10 +539,10 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
   if (!str) {
     return [];
   }
-  const doc = parseDocument(
-    str,
-    Object.assign({ keepSourceTokens: true, options }),
-  );
+  const doc = parseDocument(str, {
+    keepSourceTokens: true,
+    ...options,
+  });
   return [doc];
 }
 
