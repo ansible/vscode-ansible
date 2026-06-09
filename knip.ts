@@ -17,6 +17,11 @@ const config: KnipConfig = {
     ],
   },
   includeEntryExports: true,
+  ignoreBinaries: [
+    "adt", // Ansible Development Tools CLI; on $PATH in CI/test env, not an npm bin
+    "ansible-creator", // external pip-installed CLI invoked via spawnSync
+    "which", // POSIX system utility for resolving executables on $PATH
+  ],
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",

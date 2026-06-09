@@ -1214,7 +1214,7 @@ const startClient = async (
     lsName,
     4,
   );
-  const outputChannel = window.createOutputChannel(lsName);
+  const outputChannel = window.createOutputChannel(lsName, { log: true });
   lsOutputChannel = outputChannel;
 
   const clientOptions: LanguageClientOptions = {

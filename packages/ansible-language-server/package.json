@@ -32,22 +32,22 @@
     "shell-quote": "^1.8.3",
     "uuid": "^14.0.0",
     "vscode-languageserver": "^10.0.0",
-    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-languageserver-protocol": "^3.18.0",
     "vscode-languageserver-textdocument": "^1.0.12",
-    "vscode-languageserver-types": "^3.17.5",
+    "vscode-languageserver-types": "^3.18.0",
     "vscode-uri": "^3.1.0",
     "yaml": "^2.8.3"
   },
   "description": "Ansible language server",
   "devDependencies": {
-    "@types/node": "^24.10.2",
+    "@types/node": "^24.13.1",
     "@types/shell-quote": "^1",
-    "@types/vscode": "^1.85.0",
-    "fuse.js": "^7.4.1",
+    "@types/vscode": "^1.91.0",
+    "fuse.js": "^7.4.2",
     "rimraf": "^6.1.3",
     "typescript": "^5.9.3",
     "vitest": "^4.1.8",
-    "vscode-jsonrpc": "^8.2.1"
+    "vscode-jsonrpc": "^9.0.0"
   },
   "displayName": "Ansible",
   "engines": {
