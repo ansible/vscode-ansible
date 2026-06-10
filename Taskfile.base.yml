@@ -95,7 +95,7 @@ tasks:
     interactive: true # no prefix
     dir: "{{ .TASKFILE_DIR }}" # mandatory because running from subfolder will not enable knip to find its config
     deps:
-      - package # production needs package, development needs build
+      - build # now both production and development builds are done by build step, also package itself runs knip at the end
     cmds:
       - npm exec -- knip
       - npm exec -- knip --production

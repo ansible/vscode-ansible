@@ -10,9 +10,96 @@ import {
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { fileExists } from "@src/utils/misc.js";
+import { fileExists, isObject } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { CommandRunner } from "@src/utils/commandRunner.js";
+
+interface AnsibleLintPosition {
+  line: number;
+  column?: number;
+}
+
+interface AnsibleLintLinesLocation {
+  begin: AnsibleLintPosition | number;
+  column?: number;
+}
+
+interface AnsibleLintLocation {
+  path: string;
+  positions?: {
+    begin: AnsibleLintPosition;
+  };
+  lines?: AnsibleLintLinesLocation;
+}
+
+interface AnsibleLintReportItem {
+  check_name: string;
+  location: AnsibleLintLocation;
+  severity?: string;
+  url?: string;
+  description?: string;
+}
+
+function isAnsibleLintPosition(value: unknown): value is AnsibleLintPosition {
+  return (
+    isObject(value) &&
+    typeof value.line === "number" &&
+    (value.column === undefined || typeof value.column === "number")
+  );
+}
+
+function hasValidBeginLocation(location: AnsibleLintLocation): boolean {
+  if (location.positions?.begin) {
+    return isAnsibleLintPosition(location.positions.begin);
+  }
+  if (location.lines?.begin !== undefined) {
+    const begin = location.lines.begin;
+    return (
+      typeof begin === "number" ||
+      (isObject(begin) && typeof begin.line === "number")
+    );
+  }
+  return false;
+}
+
+function isAnsibleLintReportItem(item: unknown): item is AnsibleLintReportItem {
+  if (!isObject(item)) {
+    return false;
+  }
+  if (typeof item.check_name !== "string") {
+    return false;
+  }
+  if (!isObject(item.location) || typeof item.location.path !== "string") {
+    return false;
+  }
+  return hasValidBeginLocation(item.location as unknown as AnsibleLintLocation);
+}
+
+function getBeginLineAndColumn(location: AnsibleLintLocation): {
+  line: number;
+  column: number;
+} {
+  if (location.positions?.begin) {
+    return {
+      line: location.positions.begin.line,
+      column: location.positions.begin.column ?? 1,
+    };
+  }
+  const linesBegin = location.lines?.begin;
+  if (typeof linesBegin === "number") {
+    return {
+      line: linesBegin,
+      column: location.lines?.column ?? 1,
+    };
+  }
+  if (isObject(linesBegin)) {
+    return {
+      line: linesBegin.line,
+      column: linesBegin.column ?? location.lines?.column ?? 1,
+    };
+  }
+  return { line: 1, column: 1 };
+}
 
 /**
  * Acts as and interface to ansible-lint and a cache of its output.
@@ -164,72 +251,57 @@ export class AnsibleLint {
       return diagnostics;
     }
     try {
-      const report = JSON.parse(result);
-      if (report instanceof Array) {
+      const report: unknown = JSON.parse(result);
+      if (Array.isArray(report)) {
         for (const item of report) {
-          if (
-            typeof item.check_name === "string" &&
-            item.location &&
-            typeof item.location.path === "string" &&
-            ((item.location.positions && item.location.positions.begin) ||
-              (item.location.lines &&
-                (item.location.lines.begin ||
-                  typeof item.location.lines.begin === "number")))
-          ) {
-            const begin_line = item.location.positions
-              ? item.location.positions.begin.line
-              : item.location.lines.begin.line ||
-                item.location.lines.begin ||
-                1;
-            const begin_column = item.location.positions
-              ? item.location.positions.begin.column
-              : item.location.lines.begin.column || 1;
-            const start: Position = {
-              line: begin_line - 1,
-              character: begin_column - 1,
-            };
-            const end: Position = {
-              line: begin_line - 1,
-              character: integer.MAX_VALUE,
-            };
-            const range: Range = {
-              start: start,
-              end: end,
-            };
-
-            let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
-            if (item.severity) {
-              if (item.severity === "major") {
-                severity = DiagnosticSeverity.Error;
-              } else if (item.severity === "minor") {
-                severity = DiagnosticSeverity.Warning;
-              }
-            }
-
-            const path = `${workingDirectory}/${item.location.path}`;
-            const locationUri = URI.file(path).toString();
-
-            const helpUri: string = item.url ? item.url : undefined;
-            const helpUrlName: string = helpUri ? item.check_name : undefined;
-
-            let fileDiagnostics = diagnostics.get(locationUri);
-            if (!fileDiagnostics) {
-              fileDiagnostics = [];
-              diagnostics.set(locationUri, fileDiagnostics);
-            }
-            let message: string = item.check_name;
-            if (item.description) {
-              message = item.description;
-            }
-            fileDiagnostics.push({
-              message: message,
-              range: range || Range.create(0, 0, 0, 0),
-              severity: severity,
-              source: "ansible-lint",
-              code: helpUrlName,
-              codeDescription: { href: helpUri },
-            });
+          if (!isAnsibleLintReportItem(item)) {
+            continue;
           }
+          const { line: begin_line, column: begin_column } =
+            getBeginLineAndColumn(item.location);
+          const start: Position = {
+            line: begin_line - 1,
+            character: begin_column - 1,
+          };
+          const end: Position = {
+            line: begin_line - 1,
+            character: integer.MAX_VALUE,
+          };
+          const range: Range = {
+            start: start,
+            end: end,
+          };
+
+          let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
+          if (item.severity === "major") {
+            severity = DiagnosticSeverity.Error;
+          } else if (item.severity === "minor") {
+            severity = DiagnosticSeverity.Warning;
+          }
+
+          const path = `${workingDirectory}/${item.location.path}`;
+          const locationUri = URI.file(path).toString();
+
+          const helpUri = typeof item.url === "string" ? item.url : undefined;
+          const helpUrlName = helpUri ? item.check_name : undefined;
+
+          let fileDiagnostics = diagnostics.get(locationUri);
+          if (!fileDiagnostics) {
+            fileDiagnostics = [];
+            diagnostics.set(locationUri, fileDiagnostics);
+          }
+          const message =
+            typeof item.description === "string"
+              ? item.description
+              : item.check_name;
+          fileDiagnostics.push({
+            message: message,
+            range: range || Range.create(0, 0, 0, 0),
+            severity: severity,
+            source: "ansible-lint",
+            code: helpUrlName,
+            ...(helpUri ? { codeDescription: { href: helpUri } } : {}),
+          });
         }
       }
     } catch (error) {

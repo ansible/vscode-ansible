@@ -28,6 +28,7 @@ import {
   ChatMessage,
   OpenAIClientError,
 } from "@src/features/lightspeed/clients/openaiCompatibleClient";
+import * as yaml from "js-yaml";
 
 export interface RHCustomConfig {
   apiKey: string;
@@ -179,12 +180,15 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
    */
   private fixWindowsPathEscapes(yamlContent: string): string {
     // Find all double-quoted strings and fix unescaped backslashes
-    return yamlContent.replace(/"([^"]*)"/g, (match, content) => {
-      // Escape backslashes that aren't already escaped or part of valid escape sequences
-      // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
-      const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
-      return `"${fixed}"`;
-    });
+    return yamlContent.replace(
+      /"([^"]*)"/g,
+      (_match: string, content: string) => {
+        // Escape backslashes that aren't already escaped or part of valid escape sequences
+        // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
+        const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
+        return `"${fixed}"`;
+      },
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -505,8 +509,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
         // Try to parse and validate the structure before generating outline
         try {
-          const yaml = require("js-yaml");
-          const parsed = yaml.load(cleanedContent);
+          const parsed: unknown = yaml.load(cleanedContent);
           console.log(
             "[RHCustom Provider] Parsed YAML type:",
             Array.isArray(parsed) ? "array" : typeof parsed,

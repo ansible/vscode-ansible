@@ -152,24 +152,31 @@ class MessageRouter {
     }
   }
 
-  private onExecutionLog(args: any): void {
+  private onExecutionLog(args: unknown): void {
     this.config?.onExecutionLog?.(args);
 
     if (
-      this.commonState?.logs &&
-      this.commonState?.logFileUrl &&
-      this.commonState?.openLogFileButtonDisabled &&
-      this.commonState?.createButtonDisabled &&
-      this.commonState?.isCreating
+      !isRecord(args) ||
+      !this.commonState?.logs ||
+      !this.commonState?.logFileUrl ||
+      !this.commonState?.openLogFileButtonDisabled ||
+      !this.commonState?.createButtonDisabled ||
+      !this.commonState?.isCreating
     ) {
-      this.commonState.logs.value = args.commandOutput;
-      this.commonState.logFileUrl.value = args.logFileUrl;
-      this.commonState.openLogFileButtonDisabled.value = !args.logFileUrl;
-      this.commonState.createButtonDisabled.value = false;
+      return;
+    }
 
-      if (args.status === "passed" || args.status === "failed") {
-        this.commonState.isCreating.value = false;
-      }
+    const commandOutput = asString(args.commandOutput) ?? "";
+    const logFileUrl = asString(args.logFileUrl) ?? "";
+    const status = asString(args.status);
+
+    this.commonState.logs.value = commandOutput;
+    this.commonState.logFileUrl.value = logFileUrl;
+    this.commonState.openLogFileButtonDisabled.value = !logFileUrl;
+    this.commonState.createButtonDisabled.value = false;
+
+    if (status === "passed" || status === "failed") {
+      this.commonState.isCreating.value = false;
     }
   }
 

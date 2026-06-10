@@ -186,11 +186,11 @@ export async function executeCommand(
     let stdout = "";
     let stderr = "";
 
-    child.stdout?.on("data", (data) => {
+    child.stdout?.on("data", (data: Buffer | string) => {
       stdout += data.toString();
     });
 
-    child.stderr?.on("data", (data) => {
+    child.stderr?.on("data", (data: Buffer | string) => {
       stderr += data.toString();
     });
 
@@ -547,10 +547,12 @@ export async function checkConflictingPackages(): Promise<ADECommandResult> {
   const checkResult = await executeCommand("pip", ["list", "--format=json"]);
   if (checkResult.success) {
     try {
-      const packages = JSON.parse(checkResult.output);
+      const packages = JSON.parse(checkResult.output) as Array<{
+        name: string;
+        version: string;
+      }>;
       const oldAnsible = packages.find(
-        (pkg: { name: string; version: string }) =>
-          pkg.name === "ansible" && pkg.version.startsWith("2."),
+        (pkg) => pkg.name === "ansible" && pkg.version.startsWith("2."),
       );
 
       if (oldAnsible) {

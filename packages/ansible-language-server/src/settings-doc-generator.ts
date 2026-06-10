@@ -76,10 +76,8 @@ export function generateSettingsDocs(outputPath: string) {
   // Register a special function for handlebars to deal with the checking of "list" as value type of settings
   Handlebars.registerHelper(
     "ifValueArray",
-    function (this: unknown, arg1, options: Handlebars.HelperOptions) {
-      return arg1.toString() === "list"
-        ? options.fn(this)
-        : options.inverse(this);
+    function (this: unknown, arg1: unknown, options: Handlebars.HelperOptions) {
+      return String(arg1) === "list" ? options.fn(this) : options.inverse(this);
     },
   );
 

@@ -56,12 +56,12 @@ async function runAnsibleLintWithoutFix(
     let stderrData = "";
 
     // Capture standard output
-    lintProcess.stdout.on("data", (data) => {
+    lintProcess.stdout.on("data", (data: Buffer | string) => {
       stdoutData += data.toString();
     });
 
     // Capture standard error
-    lintProcess.stderr.on("data", (data) => {
+    lintProcess.stderr.on("data", (data: Buffer | string) => {
       stderrData += data.toString();
     });
 
@@ -138,12 +138,12 @@ async function runAnsibleLintOnFile(
     let stderrData = "";
 
     // Capture standard output
-    lintProcess.stdout.on("data", (data) => {
+    lintProcess.stdout.on("data", (data: Buffer | string) => {
       stdoutData += data.toString();
     });
 
     // Capture standard error
-    lintProcess.stderr.on("data", (data) => {
+    lintProcess.stderr.on("data", (data: Buffer | string) => {
       stderrData += data.toString();
     });
 

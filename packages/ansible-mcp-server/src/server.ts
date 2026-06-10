@@ -40,6 +40,20 @@ import {
 } from "@src/resources/eeSchema.js";
 import { getFullAgentsGuidelines } from "@src/resources/agents.js";
 
+type RegisteredToolHandler = (
+  args: Record<string, unknown>,
+  workspaceRoot?: string,
+) => CallToolResult | Promise<CallToolResult>;
+
+interface RegisteredToolEntry {
+  handler?: RegisteredToolHandler;
+}
+
+/** McpServer extension exposing the SDK's internal tool registry. */
+interface McpServerWithRegisteredTools {
+  _registeredTools?: Record<string, RegisteredToolEntry>;
+}
+
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
     name: "ansible-mcp-server",
@@ -952,21 +966,20 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       }
 
       // Execute the tool handler
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const handlers = (server as any)._registeredTools;
-      if (handlers && handlers[toolName]?.handler) {
+      const handlers: Record<string, RegisteredToolEntry> | undefined = (
+        server as unknown as McpServerWithRegisteredTools
+      )._registeredTools;
+      const toolHandler: RegisteredToolHandler | undefined =
+        handlers?.[toolName]?.handler;
+      if (toolHandler) {
         // Pass workspaceRoot to handlers that need it (like ansible_navigator)
-        const handlerArgs = request.params.arguments || {};
+        const handlerArgs: Record<string, unknown> =
+          request.params.arguments ?? {};
 
         if (toolName === "ansible_navigator") {
-          return (await handlers[toolName].handler(
-            handlerArgs,
-            workspaceRoot,
-          )) as CallToolResult;
+          return await toolHandler(handlerArgs, workspaceRoot);
         }
-        return (await handlers[toolName].handler(
-          handlerArgs,
-        )) as CallToolResult;
+        return await toolHandler(handlerArgs);
       }
 
       // Log available tools for debugging

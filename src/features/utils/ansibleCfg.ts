@@ -107,7 +107,16 @@ async function getValueByCfg(
     return undefined;
   }
 
-  const parsedConfig = ini.parse(await fs.promises.readFile(path, "utf-8"));
+  interface AnsibleIniDefaults {
+    vault_identity_list?: string;
+    vault_password_file?: string;
+  }
+  interface AnsibleIniConfig {
+    defaults?: AnsibleIniDefaults;
+  }
+  const parsedConfig = ini.parse(
+    await fs.promises.readFile(path, "utf-8"),
+  ) as AnsibleIniConfig;
   const vault_identity_list = parsedConfig.defaults?.vault_identity_list;
   const vault_password_file = parsedConfig.defaults?.vault_password_file;
 

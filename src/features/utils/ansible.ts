@@ -15,7 +15,7 @@ export function getAnsibleFileType(
   filePath: string,
   documentContent: string,
 ): IAnsibleFileType {
-  let parsedAnsibleDocument;
+  let parsedAnsibleDocument: unknown;
   for (const pattern in AnsibleFileTypes) {
     if (Object.prototype.hasOwnProperty.call(AnsibleFileTypes, pattern)) {
       if (minimatch(filePath, pattern)) {
@@ -31,7 +31,10 @@ export function getAnsibleFileType(
     console.log(err);
     return "other";
   }
-  if (!parsedAnsibleDocument || parsedAnsibleDocument.length === 0) {
+  if (
+    !Array.isArray(parsedAnsibleDocument) ||
+    parsedAnsibleDocument.length === 0
+  ) {
     return "other";
   }
   const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];

@@ -11,6 +11,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   doCompletion,
   doCompletionResolve,
+  hasCompletionDocumentUri,
 } from "@src/providers/completionProvider.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
 import { doHover } from "@src/providers/hoverProvider.js";
@@ -323,9 +324,9 @@ export class AnsibleLanguageService {
 
     this.connection.onCompletionResolve(async (completionItem) => {
       try {
-        if (completionItem.data?.documentUri) {
+        if (hasCompletionDocumentUri(completionItem.data)) {
           const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri as string,
+            completionItem.data.documentUri,
           );
           if (context) {
             return await doCompletionResolve(completionItem, context);

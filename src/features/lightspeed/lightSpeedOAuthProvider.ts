@@ -141,8 +141,12 @@ export class LightSpeedAuthenticationProvider
   }
 
   private static getRedirectUri(context: ExtensionContext) {
-    const publisher = context.extension.packageJSON.publisher;
-    const name = context.extension.packageJSON.name;
+    const manifest = context.extension.packageJSON as {
+      publisher?: string;
+      name?: string;
+    };
+    const publisher = manifest.publisher ?? "";
+    const name = manifest.name ?? "";
 
     return `${env.uriScheme}://${publisher}.${name}`;
   }
@@ -428,15 +432,20 @@ export class LightSpeedAuthenticationProvider
         },
       );
 
-      const data = await response.json();
+      interface OAuthTokenResponse {
+        access_token?: string;
+        refresh_token?: string;
+        expires_in?: unknown;
+      }
+      const data = (await response.json()) as OAuthTokenResponse;
 
       if (response.ok) {
         const account: OAuthAccount = {
           type: "oauth",
-          accessToken: data?.access_token,
-          refreshToken: data?.refresh_token,
+          accessToken: data.access_token ?? "",
+          refreshToken: data.refresh_token ?? "",
           expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-            coerceExpiresIn(data?.expires_in),
+            coerceExpiresIn(data.expires_in),
           ),
           // scope: data.scope,
         };
@@ -500,15 +509,20 @@ export class LightSpeedAuthenticationProvider
             },
           );
 
-          const data = await response.json();
+          interface OAuthTokenResponse {
+            access_token?: string;
+            refresh_token?: string;
+            expires_in?: unknown;
+          }
+          const data = (await response.json()) as OAuthTokenResponse;
 
           if (response.ok) {
             const account: OAuthAccount = {
               ...currentAccount,
-              accessToken: data?.access_token,
-              refreshToken: data?.refresh_token,
+              accessToken: data.access_token ?? currentAccount.accessToken,
+              refreshToken: data.refresh_token ?? currentAccount.refreshToken,
               expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-                coerceExpiresIn(data?.expires_in),
+                coerceExpiresIn(data.expires_in),
               ),
               // scope: data.scope,
             };

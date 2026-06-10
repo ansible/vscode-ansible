@@ -6,6 +6,17 @@ import type {
   ExtensionSettings,
   SettingsEntry,
 } from "@src/interfaces/extensionSettings";
+import { isObject } from "@src/utils/misc.js";
+
+interface LegacyConfigurationSettings {
+  ansible?: ExtensionSettings;
+}
+
+function hasLegacyAnsibleSettings(
+  settings: unknown,
+): settings is LegacyConfigurationSettings {
+  return isObject(settings) && "ansible" in settings;
+}
 
 export class SettingsManager {
   private connection: Connection | null;
@@ -215,12 +226,18 @@ export class SettingsManager {
         h();
       });
     } else {
-      if (params.settings.ansible) {
+      if (
+        hasLegacyAnsibleSettings(params.settings) &&
+        params.settings.ansible
+      ) {
         this.configurationChangeHandlers.forEach((h) => {
           h();
         });
       }
-      this.globalSettings = params.settings.ansible || this.defaultSettings;
+      this.globalSettings =
+        (hasLegacyAnsibleSettings(params.settings) &&
+          params.settings.ansible) ||
+        this.defaultSettings;
     }
   }
 

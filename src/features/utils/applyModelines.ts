@@ -64,9 +64,13 @@ async function applyModeLines(
   }
 
   try {
-    const modelineOptions: any = searchModelines(editor.document);
-
-    const language = modelineOptions.language;
+    const modelineOptions = searchModelines(editor.document);
+    const language =
+      typeof modelineOptions === "object" &&
+      modelineOptions !== null &&
+      "language" in modelineOptions
+        ? (modelineOptions as { language: unknown }).language
+        : undefined;
 
     if (typeof language === "string" && language.length > 0) {
       if (language === "ansible" || language === "yaml") {

@@ -20,6 +20,12 @@ interface Walkthrough {
   icon?: string;
 }
 
+interface ExtensionPackageManifest {
+  contributes?: {
+    walkthroughs?: Walkthrough[];
+  };
+}
+
 export class WelcomePagePanel {
   public static currentPanel: WelcomePagePanel | undefined;
   private readonly _panel: WebviewPanel;
@@ -186,10 +192,12 @@ export class WelcomePagePanel {
   private getWalkthroughs() {
     try {
       const extension = vscode.extensions.getExtension("redhat.ansible");
-      const walkthroughs =
-        extension?.packageJSON?.contributes?.walkthroughs || [];
+      const manifest = extension?.packageJSON as
+        | ExtensionPackageManifest
+        | undefined;
+      const walkthroughs = manifest?.contributes?.walkthroughs || [];
 
-      return walkthroughs.map((walkthrough: Walkthrough) => ({
+      return walkthroughs.map((walkthrough) => ({
         id: walkthrough.id,
         title: walkthrough.title,
         description: walkthrough.description,
