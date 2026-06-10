@@ -3,14 +3,24 @@ import { CollectionsService } from '@ansible/core';
 import type { PluginOption, PluginReturn, PluginData } from '@ansible/core';
 
 // Helper to normalize string or string[] to string[]
+interface PluginDocMessage {
+    type: string;
+    zoom?: number;
+    theme?: string;
+}
+
 function toArray(value: string | string[] | undefined): string[] {
-    if (!value) {return [];}
-    if (Array.isArray(value)) {return value;}
+    if (!value) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value;
+    }
     return [value];
 }
 
 export class PluginDocPanel {
-    private static _panels: Map<string, PluginDocPanel> = new Map();
+    private static _panels = new Map<string, PluginDocPanel>();
     public static readonly viewType = 'pluginDocPanel';
 
     private readonly _panel: vscode.WebviewPanel;
@@ -18,13 +28,9 @@ export class PluginDocPanel {
     private readonly _pluginKey: string;
     private _disposables: vscode.Disposable[] = [];
 
-    public static async show(
-        extensionUri: vscode.Uri,
-        pluginFullName: string,
-        pluginType: string
-    ) {
+    public static async show(extensionUri: vscode.Uri, pluginFullName: string, pluginType: string) {
         const pluginKey = `${pluginFullName}:${pluginType}`;
-        
+
         // If panel for this plugin already exists, reveal it
         const existingPanel = PluginDocPanel._panels.get(pluginKey);
         if (existingPanel) {
@@ -35,13 +41,13 @@ export class PluginDocPanel {
         // Create new panel in a new tab
         const panel = vscode.window.createWebviewPanel(
             PluginDocPanel.viewType,
-            `${pluginFullName}`,
+            pluginFullName,
             vscode.ViewColumn.Active,
             {
                 enableScripts: true,
                 localResourceRoots: [extensionUri],
-                retainContextWhenHidden: true
-            }
+                retainContextWhenHidden: true,
+            },
         );
 
         const docPanel = new PluginDocPanel(panel, extensionUri, pluginKey);
@@ -54,35 +60,51 @@ export class PluginDocPanel {
         this._extensionUri = extensionUri;
         this._pluginKey = pluginKey;
 
-        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        
+        this._panel.onDidDispose(
+            () => {
+                this.dispose();
+            },
+            null,
+            this._disposables,
+        );
+
         // Handle messages from the webview
         this._panel.webview.onDidReceiveMessage(
-            async (message) => {
+            async (message: PluginDocMessage) => {
                 if (message.type === 'aiPrompt') {
                     // Show info message with the copied prompt
-                    vscode.window.showInformationMessage(
-                        'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                        'Open Chat'
-                    ).then(selection => {
-                        if (selection === 'Open Chat') {
-                            // Try to open the chat panel
-                            vscode.commands.executeCommand('workbench.action.chat.open');
-                        }
-                    });
+                    void vscode.window
+                        .showInformationMessage(
+                            'AI prompt copied to clipboard. Paste it into an agent chat session.',
+                            'Open Chat',
+                        )
+                        .then((selection) => {
+                            if (selection === 'Open Chat') {
+                                // Try to open the chat panel
+                                void vscode.commands.executeCommand('workbench.action.chat.open');
+                            }
+                        });
                 } else if (message.type === 'updateSettings') {
                     // Save settings to workspace configuration
                     const config = vscode.workspace.getConfiguration('ansibleEnvironments');
                     if (message.zoom !== undefined) {
-                        await config.update('pluginDocZoom', message.zoom, vscode.ConfigurationTarget.Workspace);
+                        await config.update(
+                            'pluginDocZoom',
+                            message.zoom,
+                            vscode.ConfigurationTarget.Workspace,
+                        );
                     }
                     if (message.theme !== undefined) {
-                        await config.update('pluginDocTheme', message.theme, vscode.ConfigurationTarget.Workspace);
+                        await config.update(
+                            'pluginDocTheme',
+                            message.theme,
+                            vscode.ConfigurationTarget.Workspace,
+                        );
                     }
                 }
             },
             null,
-            this._disposables
+            this._disposables,
         );
     }
 
@@ -93,7 +115,7 @@ export class PluginDocPanel {
             const service = CollectionsService.getInstance();
             const pluginData = await service.getPluginDocumentation(pluginFullName, pluginType);
 
-            if (!pluginData || !pluginData.doc) {
+            if (!pluginData?.doc) {
                 this._panel.webview.html = this._getErrorHtml('Plugin documentation not found');
                 return;
             }
@@ -103,18 +125,28 @@ export class PluginDocPanel {
             const zoom = config.get<number>('pluginDocZoom', 100);
             const themeSetting = config.get<string>('pluginDocTheme', 'auto');
             const enableAiFeatures = config.get<boolean>('enableAiFeatures', true);
-            
+
             // Resolve 'auto' to actual theme based on VS Code's current theme
             const vscodeThemeKind = vscode.window.activeColorTheme.kind;
-            const isVsCodeLight = vscodeThemeKind === vscode.ColorThemeKind.Light || 
-                                  vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
-            const resolvedTheme = themeSetting === 'auto' 
-                ? (isVsCodeLight ? 'light' : 'dark')
-                : themeSetting;
+            const isVsCodeLight =
+                vscodeThemeKind === vscode.ColorThemeKind.Light ||
+                vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
+            const resolvedTheme =
+                themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
 
-            this._panel.webview.html = this._getDocHtml(pluginFullName, pluginType, pluginData, zoom, themeSetting, resolvedTheme, enableAiFeatures);
+            this._panel.webview.html = this._getDocHtml(
+                pluginFullName,
+                pluginType,
+                pluginData,
+                zoom,
+                themeSetting,
+                resolvedTheme,
+                enableAiFeatures,
+            );
         } catch (error) {
-            this._panel.webview.html = this._getErrorHtml(`Failed to load documentation: ${error}`);
+            this._panel.webview.html = this._getErrorHtml(
+                `Failed to load documentation: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -183,8 +215,19 @@ export class PluginDocPanel {
 </html>`;
     }
 
-    private _getDocHtml(pluginFullName: string, pluginType: string, data: PluginData, initialZoom: number = 100, themeSetting: string = 'auto', resolvedTheme: string = 'dark', enableAiFeatures: boolean = true): string {
-        const doc = data.doc!;
+    private _getDocHtml(
+        pluginFullName: string,
+        pluginType: string,
+        data: PluginData,
+        initialZoom = 100,
+        themeSetting = 'auto',
+        resolvedTheme = 'dark',
+        enableAiFeatures = true,
+    ): string {
+        const doc = data.doc;
+        if (!doc) {
+            return this._getErrorHtml('Plugin documentation not found');
+        }
         const parts = pluginFullName.split('.');
         const namespace = parts[0];
         const collection = parts[1];
@@ -701,14 +744,18 @@ export class PluginDocPanel {
 <body>
     <div class="toolbar">
         <button class="toolbar-btn" id="zoom-out-btn" title="Zoom out">−</button>
-        <span class="zoom-label" id="zoom-level">${initialZoom}%</span>
+        <span class="zoom-label" id="zoom-level">${String(initialZoom)}%</span>
         <button class="toolbar-btn" id="zoom-in-btn" title="Zoom in">+</button>
         <div class="toolbar-divider"></div>
         <button class="toolbar-btn" id="theme-btn" title="Toggle theme">${themeSetting}</button>
-        ${enableAiFeatures ? `
+        ${
+            enableAiFeatures
+                ? `
         <div class="toolbar-divider"></div>
         <button class="toolbar-btn ai-btn" id="ai-prompt-btn" title="Generate AI prompt for task builder">AI</button>
-        ` : ''}
+        `
+                : ''
+        }
     </div>
     
     <div class="container">
@@ -727,7 +774,7 @@ export class PluginDocPanel {
                 <h1>${pluginName}</h1>
                 <span class="plugin-type-badge">${pluginType}</span>
             </div>
-            <div class="short-desc">${this._escapeHtml(doc.short_description || '')}</div>
+            <div class="short-desc">${this._escapeHtml(doc.short_description ?? '')}</div>
             ${doc.version_added ? `<div class="version-info">Added in version ${doc.version_added}</div>` : ''}
         </div>
         
@@ -745,36 +792,48 @@ export class PluginDocPanel {
                 <h2 class="section-title">Synopsis</h2>
                 <div class="synopsis">
                     <ul>
-                        ${toArray(doc.description).map(d => `<li>${this._formatText(d)}</li>`).join('')}
+                        ${toArray(doc.description)
+                            .map((d) => `<li>${this._formatText(d)}</li>`)
+                            .join('')}
                     </ul>
                 </div>
             </div>
             
-            ${doc.requirements ? `
+            ${
+                doc.requirements
+                    ? `
             <div class="section">
                 <h2 class="section-title">Requirements</h2>
                 <div class="synopsis">
                     <ul>
-                        ${toArray(doc.requirements).map(r => `<li>${this._escapeHtml(r)}</li>`).join('')}
+                        ${toArray(doc.requirements)
+                            .map((r) => `<li>${this._escapeHtml(r)}</li>`)
+                            .join('')}
                     </ul>
                 </div>
             </div>
-            ` : ''}
+            `
+                    : ''
+            }
             
-            ${doc.author ? `
+            ${
+                doc.author
+                    ? `
             <div class="section">
                 <h2 class="section-title">Author</h2>
                 <div class="author">
                     ${Array.isArray(doc.author) ? doc.author.join(', ') : doc.author}
                 </div>
             </div>
-            ` : ''}
+            `
+                    : ''
+            }
         </div>
         
         <div id="parameters" class="tab-content">
             <div class="section">
                 <h2 class="section-title">Parameters</h2>
-                ${this._renderParameters(doc.options || {})}
+                ${this._renderParameters(doc.options ?? {})}
             </div>
         </div>
         
@@ -789,24 +848,32 @@ export class PluginDocPanel {
                 <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 12px;">
                     A template task showing all available parameters with their defaults or example values.
                 </p>
-                ${this._renderSampleTask(pluginFullName, doc.options || {})}
+                ${this._renderSampleTask(pluginFullName, doc.options ?? {})}
             </div>
         </div>
         
-        ${doc.notes ? `
+        ${
+            doc.notes
+                ? `
         <div id="notes" class="tab-content">
             <div class="section">
                 <h2 class="section-title">Notes</h2>
                 <div class="notes">
                     <ul>
-                        ${toArray(doc.notes).map(n => `<li>${this._formatText(n)}</li>`).join('')}
+                        ${toArray(doc.notes)
+                            .map((n) => `<li>${this._formatText(n)}</li>`)
+                            .join('')}
                     </ul>
                 </div>
             </div>
         </div>
-        ` : ''}
+        `
+                : ''
+        }
         
-        ${data.examples ? `
+        ${
+            data.examples
+                ? `
         <div id="examples" class="tab-content">
             <div class="section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -826,16 +893,22 @@ export class PluginDocPanel {
                 </div>
             </div>
         </div>
-        ` : ''}
+        `
+                : ''
+        }
         
-        ${data.return ? `
+        ${
+            data.return
+                ? `
         <div id="return" class="tab-content">
             <div class="section">
                 <h2 class="section-title">Return Values</h2>
                 ${this._renderReturnValues(data.return)}
             </div>
         </div>
-        ` : ''}
+        `
+                : ''
+        }
     </div>
     
     <script>
@@ -952,7 +1025,7 @@ export class PluginDocPanel {
         
         // Zoom functionality
         (function() {
-            let currentZoom = ${initialZoom};
+            let currentZoom = ${String(initialZoom)};
             const minZoom = 50;
             const maxZoom = 200;
             const zoomStep = 10;
@@ -1059,26 +1132,28 @@ export class PluginDocPanel {
 </html>`;
     }
 
-    private _renderParameters(options: { [key: string]: PluginOption }, depth: number = 0): string {
+    private _renderParameters(options: Record<string, PluginOption>, depth = 0): string {
         if (Object.keys(options).length === 0) {
             return '<p style="color: var(--text-dim);">No parameters</p>';
         }
 
         const sortedOptions = Object.entries(options).sort((a, b) => a[0].localeCompare(b[0]));
-        const items = sortedOptions.map(([name, opt]) => this._renderParamItem(name, opt, depth)).join('');
-        
+        const items = sortedOptions
+            .map(([name, opt]) => this._renderParamItem(name, opt, depth))
+            .join('');
+
         if (depth === 0) {
             return `<div class="param-tree">${items}</div>`;
         }
-        return `<div class="suboptions" id="sub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}">${items}</div>`;
+        return `<div class="suboptions" id="sub-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}">${items}</div>`;
     }
 
     private _renderParamItem(name: string, opt: PluginOption, depth: number): string {
-        const typeStr = opt.type || 'str';
+        const typeStr = opt.type ?? 'str';
         const elementsStr = opt.elements ? `/${opt.elements}` : '';
         const hasSuboptions = opt.suboptions && Object.keys(opt.suboptions).length > 0;
-        const subId = `sub-${name}-${depth}-${Math.random().toString(36).substr(2, 9)}`;
-        
+        const subId = `sub-${name}-${String(depth)}-${Math.random().toString(36).substring(2, 11)}`;
+
         return `
         <div class="param-item">
             <div class="param-header" ${hasSuboptions ? `onclick="toggleSub('${subId}')"` : ''}>
@@ -1089,27 +1164,38 @@ export class PluginDocPanel {
             </div>
             ${this._renderChoicesDefaults(opt, depth)}
             <div class="param-desc">
-                ${toArray(opt.description).map(d => `<p>${this._formatText(d)}</p>`).join('')}
+                ${toArray(opt.description)
+                    .map((d) => `<p>${this._formatText(d)}</p>`)
+                    .join('')}
             </div>
-            ${hasSuboptions ? `<div class="suboptions" id="${subId}">${Object.entries(opt.suboptions!).sort((a, b) => a[0].localeCompare(b[0])).map(([n, o]) => this._renderParamItem(n, o, depth + 1)).join('')}</div>` : ''}
+            ${
+                hasSuboptions
+                    ? `<div class="suboptions" id="${subId}">${Object.entries(opt.suboptions ?? {})
+                          .sort((a, b) => a[0].localeCompare(b[0]))
+                          .map(([n, o]) => this._renderParamItem(n, o, depth + 1))
+                          .join('')}</div>`
+                    : ''
+            }
         </div>`;
     }
 
-    private _renderChoicesDefaults(opt: PluginOption, depth: number = 0): string {
+    private _renderChoicesDefaults(opt: PluginOption, depth = 0): string {
         let html = '';
         const marginLeft = depth > 0 ? '' : 'margin-left: 22px;';
-        
+
         if (opt.choices && opt.choices.length > 0) {
             html += `<div class="param-choices" style="${marginLeft}">`;
-            html += opt.choices.map(c => {
-                const isDefault = opt.default === c;
-                return `<span class="param-choice${isDefault ? ' default' : ''}">${this._escapeHtml(String(c))}</span>`;
-            }).join('');
+            html += opt.choices
+                .map((c) => {
+                    const isDefault = opt.default === c;
+                    return `<span class="param-choice${isDefault ? ' default' : ''}">${this._escapeHtml(c)}</span>`;
+                })
+                .join('');
             html += '</div>';
         } else if (opt.default !== undefined && opt.default !== null) {
             html += `<div class="param-default" style="${marginLeft}">default: <code>${this._escapeHtml(JSON.stringify(opt.default))}</code></div>`;
         }
-        
+
         return html;
     }
 
@@ -1120,21 +1206,25 @@ export class PluginDocPanel {
         }
 
         return `<div class="param-tree">
-            ${entries.map(([name, val]) => `
+            ${entries
+                .map(
+                    ([name, val]) => `
             <div class="return-item">
                 <div class="return-name">${name}</div>
-                <div class="return-meta">${val.type || 'unknown'} — returned: ${val.returned || 'always'}</div>
-                <div class="return-desc">${Array.isArray(val.description) ? val.description.join(' ') : (val.description || '')}</div>
+                <div class="return-meta">${val.type ?? 'unknown'} — returned: ${val.returned ?? 'always'}</div>
+                <div class="return-desc">${Array.isArray(val.description) ? val.description.join(' ') : (val.description ?? '')}</div>
                 ${val.sample !== undefined ? `<div class="return-sample">${this._escapeHtml(JSON.stringify(val.sample, null, 2))}</div>` : ''}
             </div>
-            `).join('')}
+            `,
+                )
+                .join('')}
         </div>`;
     }
 
     private _renderExamples(examples: string): string {
         // Parse examples into sections based on the pattern
         const sections = this._parseExamples(examples);
-        
+
         if (sections.length === 0) {
             // Fallback: just show the raw examples with syntax highlighting
             return `<div class="example-section">
@@ -1143,67 +1233,71 @@ export class PluginDocPanel {
                 </div>
             </div>`;
         }
-        
-        return sections.map((section, index) => {
-            const taskId = `example-${index}`;
-            const escapedRaw = this._escapeHtml(section.task).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-            
-            let html = `<div class="example-section">`;
-            
-            // Header with title and copy button
-            html += `<div class="example-header">
+
+        return sections
+            .map((section, index) => {
+                const taskId = `example-${String(index)}`;
+                const escapedRaw = this._escapeHtml(section.task)
+                    .replace(/'/g, '&#39;')
+                    .replace(/"/g, '&quot;');
+
+                let html = `<div class="example-section">`;
+
+                // Header with title and copy button
+                html += `<div class="example-header">
                 <span class="example-title">${this._escapeHtml(section.title)}</span>
                 <button class="example-copy-btn" id="copy-btn-${taskId}" onclick="copyExample('${taskId}')">
                     Copy
                 </button>
             </div>`;
-            
-            // Before state context (if present)
-            if (section.beforeState) {
-                html += `<div class="example-context">
+
+                // Before state context (if present)
+                if (section.beforeState) {
+                    html += `<div class="example-context">
                     <div class="example-context-label">Before state:</div>
 ${this._escapeHtml(section.beforeState)}</div>`;
-            }
-            
-            // The actual task YAML with syntax highlighting
-            html += `<div class="example-code" id="task-${taskId}" data-raw="${escapedRaw}">
+                }
+
+                // The actual task YAML with syntax highlighting
+                html += `<div class="example-code" id="task-${taskId}" data-raw="${escapedRaw}">
                 <pre>${this._highlightYaml(section.task)}</pre>
             </div>`;
-            
-            // Task output context (if present)
-            if (section.taskOutput) {
-                html += `<div class="example-context">
+
+                // Task output context (if present)
+                if (section.taskOutput) {
+                    html += `<div class="example-context">
                     <div class="example-context-label">Task Output:</div>
 ${this._escapeHtml(section.taskOutput)}</div>`;
-            }
-            
-            // After state context (if present)
-            if (section.afterState) {
-                html += `<div class="example-context">
+                }
+
+                // After state context (if present)
+                if (section.afterState) {
+                    html += `<div class="example-context">
                     <div class="example-context-label">After state:</div>
 ${this._escapeHtml(section.afterState)}</div>`;
-            }
-            
-            html += `</div>`;
-            return html;
-        }).join('');
+                }
+
+                html += `</div>`;
+                return html;
+            })
+            .join('');
     }
 
-    private _parseExamples(examples: string): Array<{
+    private _parseExamples(examples: string): {
         title: string;
         beforeState?: string;
         task: string;
         taskOutput?: string;
         afterState?: string;
-    }> {
-        const sections: Array<{
+    }[] {
+        const sections: {
             title: string;
             beforeState?: string;
             task: string;
             taskOutput?: string;
             afterState?: string;
-        }> = [];
-        
+        }[] = [];
+
         const lines = examples.split('\n');
         let currentSection: {
             title: string;
@@ -1212,25 +1306,28 @@ ${this._escapeHtml(section.afterState)}</div>`;
             taskOutput?: string;
             afterState?: string;
         } | null = null;
-        
+
         let currentPart: 'start' | 'before' | 'task' | 'output' | 'after' = 'start';
         let buffer: string[] = [];
         let sectionHeader: string | null = null; // For "# Using merged" style headers
-        
+
         const flushBuffer = () => {
-            if (!currentSection) {return;}
+            if (!currentSection) {
+                return;
+            }
             const content = buffer.join('\n').trim();
             if (!content) {
                 buffer = [];
                 return;
             }
-            
+
             switch (currentPart) {
                 case 'before':
                     currentSection.beforeState = content;
                     break;
                 case 'task':
-                    currentSection.task = (currentSection.task ? currentSection.task + '\n\n' : '') + content;
+                    currentSection.task =
+                        (currentSection.task ? currentSection.task + '\n\n' : '') + content;
                     break;
                 case 'output':
                     currentSection.taskOutput = content;
@@ -1241,7 +1338,7 @@ ${this._escapeHtml(section.afterState)}</div>`;
             }
             buffer = [];
         };
-        
+
         const saveCurrentSection = () => {
             if (currentSection) {
                 flushBuffer();
@@ -1252,61 +1349,64 @@ ${this._escapeHtml(section.afterState)}</div>`;
             currentSection = null;
             currentPart = 'start';
         };
-        
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
+
+        for (const line of lines) {
             const trimmedLine = line.trim();
-            
+
             // Check for section header (# Using merged, # Using replaced, etc.)
             if (/^#\s*Using\s+\w+/.test(trimmedLine)) {
                 saveCurrentSection();
                 sectionHeader = trimmedLine.replace(/^#\s*/, '');
                 continue;
             }
-            
+
             // Check for state markers
             if (/^#\s*Before\s+state:?\s*$/i.test(trimmedLine)) {
                 flushBuffer();
                 currentPart = 'before';
                 continue;
             }
-            
+
             if (/^#\s*Task\s+[Oo]utput:?\s*$/i.test(trimmedLine)) {
                 flushBuffer();
                 currentPart = 'output';
                 continue;
             }
-            
+
             if (/^#\s*After\s+state:?\s*$/i.test(trimmedLine)) {
                 flushBuffer();
                 currentPart = 'after';
                 continue;
             }
-            
+
             // Check if this is a new task (starts with "- name:")
             if (trimmedLine.startsWith('- name:')) {
                 // Save previous section if we have one
                 saveCurrentSection();
-                
+
                 // Extract task name for title and capitalize it
-                const rawTaskName = trimmedLine.replace(/^-\s*name:\s*/, '').replace(/^["']|["']$/g, '');
+                const rawTaskName = trimmedLine
+                    .replace(/^-\s*name:\s*/, '')
+                    .replace(/^["']|["']$/g, '');
                 const taskName = this._capitalizeTitle(rawTaskName);
-                
+
                 // Start new section
                 currentSection = {
                     title: sectionHeader ? `${sectionHeader}: ${taskName}` : taskName,
-                    task: ''
+                    task: '',
                 };
                 sectionHeader = null; // Clear header after use
                 currentPart = 'task';
                 buffer = [line];
                 continue;
             }
-            
+
             // If we're in a task and hit a comment line after yaml content, check if it's output/after
             if (currentPart === 'task' && trimmedLine.startsWith('#') && buffer.length > 0) {
                 // Check if the previous lines look like YAML (not all comments)
-                const hasYaml = buffer.some(l => !l.trim().startsWith('#') && l.trim().length > 0);
+                const hasYaml = buffer.some(
+                    (l) => !l.trim().startsWith('#') && l.trim().length > 0,
+                );
                 if (hasYaml) {
                     // Skip divider lines
                     if (/^#\s*-+\s*$/.test(trimmedLine)) {
@@ -1318,33 +1418,38 @@ ${this._escapeHtml(section.afterState)}</div>`;
                     continue;
                 }
             }
-            
+
             // Add line to current buffer if we have an active section
             if (currentSection) {
                 buffer.push(line);
             }
         }
-        
+
         // Save final section
         saveCurrentSection();
-        
+
         return sections;
     }
 
     private _capitalizeTitle(text: string): string {
-        if (!text) {return text;}
+        if (!text) {
+            return text;
+        }
         // Capitalize first letter of each word
         return text
             .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
     }
 
-    private _renderSampleTask(pluginFullName: string, options: { [key: string]: PluginOption }): string {
+    private _renderSampleTask(
+        pluginFullName: string,
+        options: Record<string, PluginOption>,
+    ): string {
         const yamlNoComments = this._generateSampleYaml(pluginFullName, options, 'none');
         const yamlOptionalComments = this._generateSampleYaml(pluginFullName, options, 'optional');
         const yamlDescComments = this._generateSampleYaml(pluginFullName, options, 'descriptions');
-        
+
         return `
         <div class="sample-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div class="view-toggle">
@@ -1377,68 +1482,88 @@ ${this._escapeHtml(section.afterState)}</div>`;
     }
 
     private _escapeAttr(text: string): string {
-        return text.replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return text
+            .replace(/'/g, '&#39;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
-    private _generateSampleYaml(pluginFullName: string, options: { [key: string]: PluginOption }, commentMode: 'none' | 'optional' | 'descriptions'): string {
+    private _generateSampleYaml(
+        pluginFullName: string,
+        options: Record<string, PluginOption>,
+        commentMode: 'none' | 'optional' | 'descriptions',
+    ): string {
         const lines: string[] = [];
-        const pluginName = pluginFullName.split('.').pop() || pluginFullName;
-        
+        const pluginName = pluginFullName.split('.').pop() ?? pluginFullName;
+
         lines.push(`- name: ${this._capitalizeTitle(pluginName.replace(/_/g, ' '))} task`);
         lines.push(`  ${pluginFullName}:`);
-        
+
         // Sort: required first, then alphabetical
         const sortedOptions = Object.entries(options).sort((a, b) => {
             const aReq = a[1].required ? 0 : 1;
             const bReq = b[1].required ? 0 : 1;
-            if (aReq !== bReq) {return aReq - bReq;}
+            if (aReq !== bReq) {
+                return aReq - bReq;
+            }
             return a[0].localeCompare(b[0]);
         });
-        
+
         for (const [name, opt] of sortedOptions) {
             this._addParamToYaml(lines, name, opt, 4, false, commentMode);
         }
-        
+
         return lines.join('\n');
     }
 
-    private _addParamToYaml(lines: string[], name: string, opt: PluginOption, indent: number, isFirstInList: boolean = false, commentMode: 'none' | 'optional' | 'descriptions' = 'optional'): void {
+    private _addParamToYaml(
+        lines: string[],
+        name: string,
+        opt: PluginOption,
+        indent: number,
+        isFirstInList = false,
+        commentMode: 'none' | 'optional' | 'descriptions' = 'optional',
+    ): void {
         const spaces = ' '.repeat(indent);
-        
+
         // Build the comment suffix based on mode
         let comment = '';
         if (commentMode === 'descriptions') {
-            const desc = toArray(opt.description)[0] || '';
+            const desc = toArray(opt.description)[0] ?? '';
             // Truncate long descriptions and clean up
             const cleanDesc = desc.replace(/\s+/g, ' ').trim();
-            const truncatedDesc = cleanDesc.length > 60 ? cleanDesc.substring(0, 57) + '...' : cleanDesc;
-            const typeStr = opt.type || 'str';
+            const truncatedDesc =
+                cleanDesc.length > 60 ? cleanDesc.substring(0, 57) + '...' : cleanDesc;
+            const typeStr = opt.type ?? 'str';
             const reqMarker = opt.required ? 'required' : 'optional';
             comment = `  # (${typeStr}, ${reqMarker}) ${truncatedDesc}`;
         } else if (commentMode === 'optional') {
             comment = opt.required ? '' : '  # optional';
         }
         // commentMode === 'none' leaves comment as ''
-        
+
         // If this is the first item in a list, we need to prefix with "- "
         const prefix = isFirstInList ? '- ' : '';
         const prefixSpaces = isFirstInList ? ' '.repeat(indent - 2) : spaces;
-        
+
         // Generate example value based on type and available info
         const value = this._getExampleValue(name, opt);
-        
+
         if (opt.suboptions && Object.keys(opt.suboptions).length > 0) {
             // Sort suboptions: required first
             const sortedSubopts = Object.entries(opt.suboptions).sort((a, b) => {
                 const aReq = a[1].required ? 0 : 1;
                 const bReq = b[1].required ? 0 : 1;
-                if (aReq !== bReq) {return aReq - bReq;}
+                if (aReq !== bReq) {
+                    return aReq - bReq;
+                }
                 return a[0].localeCompare(b[0]);
             });
-            
+
             if (opt.type === 'list') {
                 lines.push(`${prefixSpaces}${prefix}${name}:${comment}`);
-                
+
                 // First suboption gets the list marker
                 let isFirst = true;
                 for (const [subName, subOpt] of sortedSubopts) {
@@ -1447,7 +1572,7 @@ ${this._escapeHtml(section.afterState)}</div>`;
                 }
             } else {
                 lines.push(`${prefixSpaces}${prefix}${name}:${comment}`);
-                
+
                 for (const [subName, subOpt] of sortedSubopts) {
                     this._addParamToYaml(lines, subName, subOpt, indent + 2, false, commentMode);
                 }
@@ -1466,12 +1591,12 @@ ${this._escapeHtml(section.afterState)}</div>`;
         if (opt.default !== undefined && opt.default !== null) {
             return this._formatYamlValue(opt.default);
         }
-        
+
         // If there are choices, use the first one
         if (opt.choices && opt.choices.length > 0) {
             return this._formatYamlValue(opt.choices[0]);
         }
-        
+
         // Generate based on type
         switch (opt.type) {
             case 'bool':
@@ -1522,39 +1647,91 @@ ${this._escapeHtml(section.afterState)}</div>`;
     private _getContextualExample(name: string): string {
         // Provide contextual examples based on common parameter names
         const lowerName = name.toLowerCase();
-        
-        if (lowerName.includes('name')) {return '"example_name"';}
+
+        if (lowerName.includes('name')) {
+            return '"example_name"';
+        }
         if (lowerName.includes('path') || lowerName.includes('dest') || lowerName.includes('src')) {
             return '"/path/to/file"';
         }
-        if (lowerName.includes('host')) {return '"hostname.example.com"';}
-        if (lowerName.includes('port')) {return '22';}
-        if (lowerName.includes('user')) {return '"admin"';}
-        if (lowerName.includes('pass') || lowerName.includes('secret')) {return '"{{ vault_password }}"';}
-        if (lowerName.includes('url')) {return '"https://example.com"';}
-        if (lowerName.includes('state')) {return '"present"';}
-        if (lowerName.includes('mode')) {return '"0644"';}
-        if (lowerName.includes('owner')) {return '"root"';}
-        if (lowerName.includes('group')) {return '"root"';}
-        if (lowerName.includes('text') || lowerName.includes('content') || lowerName.includes('data')) {
+        if (lowerName.includes('host')) {
+            return '"hostname.example.com"';
+        }
+        if (lowerName.includes('port')) {
+            return '22';
+        }
+        if (lowerName.includes('user')) {
+            return '"admin"';
+        }
+        if (lowerName.includes('pass') || lowerName.includes('secret')) {
+            return '"{{ vault_password }}"';
+        }
+        if (lowerName.includes('url')) {
+            return '"https://example.com"';
+        }
+        if (lowerName.includes('state')) {
+            return '"present"';
+        }
+        if (lowerName.includes('mode')) {
+            return '"0644"';
+        }
+        if (lowerName.includes('owner')) {
+            return '"root"';
+        }
+        if (lowerName.includes('group')) {
+            return '"root"';
+        }
+        if (
+            lowerName.includes('text') ||
+            lowerName.includes('content') ||
+            lowerName.includes('data')
+        ) {
             return '"example content"';
         }
-        if (lowerName.includes('command') || lowerName.includes('cmd')) {return '"echo hello"';}
-        if (lowerName.includes('timeout')) {return '30';}
-        if (lowerName.includes('delay')) {return '5';}
-        if (lowerName.includes('retries') || lowerName.includes('retry')) {return '3';}
-        if (lowerName.includes('regexp') || lowerName.includes('regex') || lowerName.includes('pattern')) {
+        if (lowerName.includes('command') || lowerName.includes('cmd')) {
+            return '"echo hello"';
+        }
+        if (lowerName.includes('timeout')) {
+            return '30';
+        }
+        if (lowerName.includes('delay')) {
+            return '5';
+        }
+        if (lowerName.includes('retries') || lowerName.includes('retry')) {
+            return '3';
+        }
+        if (
+            lowerName.includes('regexp') ||
+            lowerName.includes('regex') ||
+            lowerName.includes('pattern')
+        ) {
             return '"^.*$"';
         }
-        if (lowerName.includes('line')) {return '"example line"';}
-        if (lowerName.includes('key')) {return '"key_name"';}
-        if (lowerName.includes('value')) {return '"value"';}
-        if (lowerName.includes('version')) {return '"1.0.0"';}
-        if (lowerName.includes('interface')) {return '"eth0"';}
-        if (lowerName.includes('vlan')) {return '100';}
-        if (lowerName.includes('ip') || lowerName.includes('address')) {return '"192.168.1.1"';}
-        if (lowerName.includes('network') || lowerName.includes('subnet')) {return '"192.168.1.0/24"';}
-        
+        if (lowerName.includes('line')) {
+            return '"example line"';
+        }
+        if (lowerName.includes('key')) {
+            return '"key_name"';
+        }
+        if (lowerName.includes('value')) {
+            return '"value"';
+        }
+        if (lowerName.includes('version')) {
+            return '"1.0.0"';
+        }
+        if (lowerName.includes('interface')) {
+            return '"eth0"';
+        }
+        if (lowerName.includes('vlan')) {
+            return '100';
+        }
+        if (lowerName.includes('ip') || lowerName.includes('address')) {
+            return '"192.168.1.1"';
+        }
+        if (lowerName.includes('network') || lowerName.includes('subnet')) {
+            return '"192.168.1.0/24"';
+        }
+
         return `"${name}_value"`;
     }
 
@@ -1570,15 +1747,17 @@ ${this._escapeHtml(section.afterState)}</div>`;
         }
         if (typeof value === 'string') {
             // Check if it needs quoting
-            if (value === '' || 
-                value.includes(':') || 
+            if (
+                value === '' ||
+                value.includes(':') ||
                 value.includes('#') ||
                 value.includes("'") ||
                 value.includes('"') ||
                 value.includes('\n') ||
                 value.startsWith(' ') ||
                 value.endsWith(' ') ||
-                /^[{[\]|>*&!%@`]/.test(value)) {
+                /^[{[\]|>*&!%@`]/.test(value)
+            ) {
                 return `"${value.replace(/"/g, '\\"')}"`;
             }
             // Quote strings that look like booleans or numbers
@@ -1588,119 +1767,142 @@ ${this._escapeHtml(section.afterState)}</div>`;
             return value;
         }
         if (Array.isArray(value)) {
-            if (value.length === 0) {return '[]';}
+            if (value.length === 0) {
+                return '[]';
+            }
             return JSON.stringify(value);
         }
         if (typeof value === 'object') {
-            if (Object.keys(value).length === 0) {return '{}';}
+            if (Object.keys(value).length === 0) {
+                return '{}';
+            }
             return JSON.stringify(value);
         }
-        return String(value);
+        return JSON.stringify(value);
     }
 
     private _highlightYaml(yaml: string): string {
         const lines = yaml.split('\n');
-        return lines.map(line => {
-            // Full line comments
-            if (line.trim().startsWith('#')) {
-                return `<span class="yaml-comment">${this._escapeHtml(line)}</span>`;
-            }
-            
-            // Empty lines
-            if (line.trim() === '') {
-                return '';
-            }
-            
-            // Check if line has an inline comment
-            const commentMatch = line.match(/^(.+?)( {2}# .*)$/);
-            let codePart = line;
-            let commentPart = '';
-            
-            if (commentMatch) {
-                codePart = commentMatch[1];
-                commentPart = commentMatch[2];
-            }
-            
-            let result = this._escapeHtml(codePart);
-            
-            // List markers with inline key (e.g., "- neighbor_address: value")
-            result = result.replace(/^(\s*)(-\s)([a-zA-Z_][a-zA-Z0-9_]*)(:)/, 
-                '$1<span class="yaml-list-marker">$2</span><span class="yaml-key">$3</span>$4');
-            
-            // List markers with string value (e.g., '- "peers_item"')
-            result = result.replace(/^(\s*)(-\s)(&quot;[^&]*&quot;|&#039;[^&]*&#039;)(\s*)$/, 
-                '$1<span class="yaml-list-marker">$2</span><span class="yaml-string">$3</span>$4');
-            
-            // List markers with simple value (e.g., '- true', '- 123')
-            result = result.replace(/^(\s*)(-\s)([^\s].*)$/, (match, spaces, marker, value) => {
-                // Skip if already processed (contains span)
-                if (value.includes('<span')) {
-                    return match;
+        return lines
+            .map((line) => {
+                // Full line comments
+                if (line.trim().startsWith('#')) {
+                    return `<span class="yaml-comment">${this._escapeHtml(line)}</span>`;
                 }
-                const trimmedValue = value.trim();
-                let valueClass = 'yaml-string';
-                if (/^(true|false|yes|no|on|off)$/i.test(trimmedValue)) {
-                    valueClass = 'yaml-bool';
-                } else if (/^(null|~)$/i.test(trimmedValue)) {
-                    valueClass = 'yaml-null';
-                } else if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) {
-                    valueClass = 'yaml-number';
+
+                // Empty lines
+                if (line.trim() === '') {
+                    return '';
                 }
-                return `${spaces}<span class="yaml-list-marker">${marker}</span><span class="${valueClass}">${value}</span>`;
-            });
-            
-            // Regular list markers (no inline value)
-            result = result.replace(/^(\s*)(-\s)$/, '$1<span class="yaml-list-marker">$2</span>');
-            
-            // Key-value pairs (not starting with list marker)
-            result = result.replace(/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)(:)(\s|$)/, 
-                '$1<span class="yaml-key">$2</span>$3$4');
-            
-            // After colon values
-            result = result.replace(/:(\s+)(".*?"|'.*?')(\s*)$/, 
-                ':$1<span class="yaml-string">$2</span>$3');
-            
-            // Unquoted strings after colon (simple cases)
-            result = result.replace(/:(\s+)(\S.*)$/, (match, space, value) => {
-                const trimmedValue = value.trim();
-                // Check for booleans
-                if (/^(true|false|yes|no|on|off)$/i.test(trimmedValue)) {
-                    return `:${space}<span class="yaml-bool">${value}</span>`;
+
+                // Check if line has an inline comment
+                const commentMatch = /^(.+?)( {2}# .*)$/.exec(line);
+                let codePart = line;
+                let commentPart = '';
+
+                if (commentMatch) {
+                    codePart = commentMatch[1];
+                    commentPart = commentMatch[2];
                 }
-                // Check for null
-                if (/^(null|~)$/i.test(trimmedValue)) {
-                    return `:${space}<span class="yaml-null">${value}</span>`;
+
+                let result = this._escapeHtml(codePart);
+
+                // List markers with inline key (e.g., "- neighbor_address: value")
+                result = result.replace(
+                    /^(\s*)(-\s)([a-zA-Z_][a-zA-Z0-9_]*)(:)/,
+                    '$1<span class="yaml-list-marker">$2</span><span class="yaml-key">$3</span>$4',
+                );
+
+                // List markers with string value (e.g., '- "peers_item"')
+                result = result.replace(
+                    /^(\s*)(-\s)(&quot;[^&]*&quot;|&#039;[^&]*&#039;)(\s*)$/,
+                    '$1<span class="yaml-list-marker">$2</span><span class="yaml-string">$3</span>$4',
+                );
+
+                // List markers with simple value (e.g., '- true', '- 123')
+                result = result.replace(
+                    /^(\s*)(-\s)([^\s].*)$/,
+                    (match: string, spaces: string, marker: string, value: string) => {
+                        // Skip if already processed (contains span)
+                        if (value.includes('<span')) {
+                            return match;
+                        }
+                        const trimmedValue = value.trim();
+                        let valueClass = 'yaml-string';
+                        if (/^(true|false|yes|no|on|off)$/i.test(trimmedValue)) {
+                            valueClass = 'yaml-bool';
+                        } else if (/^(null|~)$/i.test(trimmedValue)) {
+                            valueClass = 'yaml-null';
+                        } else if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) {
+                            valueClass = 'yaml-number';
+                        }
+                        return `${spaces}<span class="yaml-list-marker">${marker}</span><span class="${valueClass}">${value}</span>`;
+                    },
+                );
+
+                // Regular list markers (no inline value)
+                result = result.replace(
+                    /^(\s*)(-\s)$/,
+                    '$1<span class="yaml-list-marker">$2</span>',
+                );
+
+                // Key-value pairs (not starting with list marker)
+                result = result.replace(
+                    /^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)(:)(\s|$)/,
+                    '$1<span class="yaml-key">$2</span>$3$4',
+                );
+
+                // After colon values
+                result = result.replace(
+                    /:(\s+)(".*?"|'.*?')(\s*)$/,
+                    ':$1<span class="yaml-string">$2</span>$3',
+                );
+
+                // Unquoted strings after colon (simple cases)
+                result = result.replace(/:(\s+)(\S.*)$/, (_match, space: string, value: string) => {
+                    const trimmedValue = value.trim();
+                    // Check for booleans
+                    if (/^(true|false|yes|no|on|off)$/i.test(trimmedValue)) {
+                        return `:${space}<span class="yaml-bool">${value}</span>`;
+                    }
+                    // Check for null
+                    if (/^(null|~)$/i.test(trimmedValue)) {
+                        return `:${space}<span class="yaml-null">${value}</span>`;
+                    }
+                    // Check for numbers
+                    if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) {
+                        return `:${space}<span class="yaml-number">${value}</span>`;
+                    }
+                    // String values
+                    return `:${space}<span class="yaml-string">${value}</span>`;
+                });
+
+                // Add highlighted comment if present
+                if (commentPart) {
+                    result += this._highlightComment(commentPart);
                 }
-                // Check for numbers
-                if (/^-?\d+(\.\d+)?$/.test(trimmedValue)) {
-                    return `:${space}<span class="yaml-number">${value}</span>`;
-                }
-                // String values
-                return `:${space}<span class="yaml-string">${value}</span>`;
-            });
-            
-            // Add highlighted comment if present
-            if (commentPart) {
-                result += this._highlightComment(commentPart);
-            }
-            
-            return result;
-        }).join('\n');
+
+                return result;
+            })
+            .join('\n');
     }
 
     private _highlightComment(comment: string): string {
         // Check for structured comment: # (type, required/optional) description
-        const structuredMatch = comment.match(/^( {2}# \()([^,]+)(, )(required|optional)(\) )(.*)$/);
+        const structuredMatch = /^( {2}# \()([^,]+)(, )(required|optional)(\) )(.*)$/.exec(comment);
         if (structuredMatch) {
             const [, prefix, type, comma, reqOpt, closeParen, desc] = structuredMatch;
-            const reqClass = reqOpt === 'required' ? 'yaml-comment-required' : 'yaml-comment-optional';
-            return `<span class="yaml-comment-dim">${this._escapeHtml(prefix)}</span>` +
-                   `<span class="yaml-comment-type">${this._escapeHtml(type)}</span>` +
-                   `<span class="yaml-comment-dim">${this._escapeHtml(comma)}</span>` +
-                   `<span class="${reqClass}">${this._escapeHtml(reqOpt)}</span>` +
-                   `<span class="yaml-comment-dim">${this._escapeHtml(closeParen)}${this._escapeHtml(desc)}</span>`;
+            const reqClass =
+                reqOpt === 'required' ? 'yaml-comment-required' : 'yaml-comment-optional';
+            return (
+                `<span class="yaml-comment-dim">${this._escapeHtml(prefix)}</span>` +
+                `<span class="yaml-comment-type">${this._escapeHtml(type)}</span>` +
+                `<span class="yaml-comment-dim">${this._escapeHtml(comma)}</span>` +
+                `<span class="${reqClass}">${this._escapeHtml(reqOpt)}</span>` +
+                `<span class="yaml-comment-dim">${this._escapeHtml(closeParen)}${this._escapeHtml(desc)}</span>`
+            );
         }
-        
+
         // Simple comment (# optional)
         return `<span class="yaml-comment-dim">${this._escapeHtml(comment)}</span>`;
     }
@@ -1708,7 +1910,7 @@ ${this._escapeHtml(section.afterState)}</div>`;
     private _formatText(text: string): string {
         // Convert Ansible doc formatting to HTML
         let html = this._escapeHtml(text);
-        
+
         // I(text) -> italic
         html = html.replace(/I\(([^)]+)\)/g, '<em>$1</em>');
         // C(text) -> code
@@ -1721,7 +1923,7 @@ ${this._escapeHtml(section.afterState)}</div>`;
         html = html.replace(/:ref:`([^<]+)\s*<[^>]+>`/g, '$1');
         // `text` -> code
         html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-        
+
         return html;
     }
 

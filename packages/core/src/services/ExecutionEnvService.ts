@@ -1,11 +1,11 @@
 // Conditional vscode import - only used when available
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone (not in VS Code)
 }
-
 
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 
@@ -36,18 +36,18 @@ export interface EEDetails {
         details: Record<string, string>;
     };
     python_packages?: {
-        details: Array<{
+        details: {
             name: string;
             version: string;
             summary?: string;
-        }>;
+        }[];
     };
     os_release?: {
-        details: Array<{
+        details: {
             'pretty-name'?: string;
             name?: string;
             version?: string;
-        }>;
+        }[];
     };
     image_name?: string;
 }
@@ -59,9 +59,9 @@ export interface EEDetails {
 export class ExecutionEnvService {
     private static _instance: ExecutionEnvService | undefined;
     private _executionEnvironments: ExecutionEnvironment[] = [];
-    private _detailsCache: Map<string, EEDetails> = new Map();
-    private _loading: boolean = false;
-    private _loaded: boolean = false;
+    private _detailsCache = new Map<string, EEDetails>();
+    private _loading = false;
+    private _loaded = false;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
@@ -80,9 +80,7 @@ export class ExecutionEnvService {
     }
 
     public static getInstance(): ExecutionEnvService {
-        if (!ExecutionEnvService._instance) {
-            ExecutionEnvService._instance = new ExecutionEnvService();
-        }
+        ExecutionEnvService._instance ??= new ExecutionEnvService();
         return ExecutionEnvService._instance;
     }
 
@@ -129,7 +127,7 @@ export class ExecutionEnvService {
      * Get a specific execution environment by name
      */
     public getExecutionEnvironment(fullName: string): ExecutionEnvironment | undefined {
-        return this._executionEnvironments.find(ee => ee.full_name === fullName);
+        return this._executionEnvironments.find((ee) => ee.full_name === fullName);
     }
 
     /**
@@ -142,11 +140,12 @@ export class ExecutionEnvService {
     /**
      * Refresh the execution environments list
      */
-    public async refresh(): Promise<void> {
+    public refresh(): Promise<void> {
         this._executionEnvironments = [];
         this._detailsCache.clear();
         this._loaded = false;
         (this._onDidChange as { fire: () => void }).fire();
+        return Promise.resolve();
     }
 
     /**
@@ -167,13 +166,18 @@ export class ExecutionEnvService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
+
             // Run ansible-navigator images command using CommandService
-            const result = await commandService.runTool(
-                'ansible-navigator',
-                ['images', '--mode', 'stdout', '--pull-policy', 'never', '--format', 'json']
-            );
-            
+            const result = await commandService.runTool('ansible-navigator', [
+                'images',
+                '--mode',
+                'stdout',
+                '--pull-policy',
+                'never',
+                '--format',
+                'json',
+            ]);
+
             const output = result.stdout || null;
 
             if (!output) {
@@ -182,15 +186,19 @@ export class ExecutionEnvService {
                 return [];
             }
 
-            const ees: ExecutionEnvironment[] = JSON.parse(output);
+            const ees = JSON.parse(output) as ExecutionEnvironment[];
             // Filter to only execution environments
-            this._executionEnvironments = ees.filter(ee => ee.execution_environment);
+            this._executionEnvironments = ees.filter((ee) => ee.execution_environment);
             this._loaded = true;
-            this._log(`Loaded ${this._executionEnvironments.length} execution environments`);
+            this._log(
+                `Loaded ${String(this._executionEnvironments.length)} execution environments`,
+            );
 
             return this._executionEnvironments;
         } catch (error) {
-            this._log(`Error loading execution environments: ${error}`);
+            this._log(
+                `Error loading execution environments: ${error instanceof Error ? error.message : String(error)}`,
+            );
             throw error;
         } finally {
             this._loading = false;
@@ -211,12 +219,19 @@ export class ExecutionEnvService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
+
             // Run ansible-navigator images with --details using CommandService
-            const result = await commandService.runTool(
-                'ansible-navigator',
-                ['images', fullName, '--mode', 'stdout', '--pull-policy', 'never', '--details', '--format', 'json']
-            );
+            const result = await commandService.runTool('ansible-navigator', [
+                'images',
+                fullName,
+                '--mode',
+                'stdout',
+                '--pull-policy',
+                'never',
+                '--details',
+                '--format',
+                'json',
+            ]);
 
             if (!result.stdout) {
                 return null;
@@ -226,7 +241,9 @@ export class ExecutionEnvService {
             this._detailsCache.set(fullName, details);
             return details;
         } catch (error) {
-            this._log(`Failed to load EE details for ${fullName}: ${error}`);
+            this._log(
+                `Failed to load EE details for ${fullName}: ${error instanceof Error ? error.message : String(error)}`,
+            );
             throw error;
         }
     }
@@ -234,7 +251,7 @@ export class ExecutionEnvService {
     /**
      * Get Ansible collections installed in an execution environment
      */
-    public async getCollections(fullName: string): Promise<Array<{ name: string; version: string }>> {
+    public async getCollections(fullName: string): Promise<{ name: string; version: string }[]> {
         const details = await this.loadDetails(fullName);
         if (!details?.ansible_collections?.details) {
             return [];
@@ -248,20 +265,23 @@ export class ExecutionEnvService {
     /**
      * Get Python packages installed in an execution environment
      */
-    public async getPythonPackages(fullName: string): Promise<Array<{ name: string; version: string; summary?: string }>> {
+    public async getPythonPackages(
+        fullName: string,
+    ): Promise<{ name: string; version: string; summary?: string }[]> {
         const details = await this.loadDetails(fullName);
         if (!details?.python_packages?.details) {
             return [];
         }
 
-        return [...details.python_packages.details]
-            .sort((a, b) => a.name.localeCompare(b.name));
+        return [...details.python_packages.details].sort((a, b) => a.name.localeCompare(b.name));
     }
 
     /**
      * Get OS and Ansible version info for an execution environment
      */
-    public async getInfo(fullName: string): Promise<{ ansible?: string; os?: string; image?: string }> {
+    public async getInfo(
+        fullName: string,
+    ): Promise<{ ansible?: string; os?: string; image?: string }> {
         const details = await this.loadDetails(fullName);
         if (!details) {
             return {};
@@ -273,9 +293,9 @@ export class ExecutionEnvService {
             info.ansible = details.ansible_version.details;
         }
 
-        if (details.os_release?.details?.[0]) {
+        if (details.os_release?.details[0]) {
             const os = details.os_release.details[0];
-            info.os = os['pretty-name'] || os.name || 'Unknown';
+            info.os = os['pretty-name'] ?? os.name ?? 'Unknown';
         }
 
         if (details.image_name) {
@@ -289,19 +309,19 @@ export class ExecutionEnvService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
+
             this._log(`Running command: ${command}`);
-            
+
             const result = await commandService.runCommand(command);
-            
+
             // Exit code 1 is normal for ansible-navigator when returning JSON
             if (result.exitCode !== 0 && result.exitCode !== 1) {
-                this._log(`Command error (exit ${result.exitCode}): ${result.stderr}`);
+                this._log(`Command error (exit ${String(result.exitCode)}): ${result.stderr}`);
             }
-            
+
             return result.stdout || null;
         } catch (error) {
-            this._log(`Command error: ${error}`);
+            this._log(`Command error: ${error instanceof Error ? error.message : String(error)}`);
             return null;
         }
     }

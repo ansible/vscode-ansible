@@ -20,8 +20,16 @@ import { PlaybookProgressPanel } from './panels/PlaybookProgressPanel';
 import { PlaybooksService, PlaybookInfo, PlaybookPlay } from './services/PlaybooksService';
 import { TerminalService } from './services/TerminalService';
 import { PythonEnvironmentService } from './services/PythonEnvironmentService';
-import { McpToolsProvider, injectToolPromptIntoChat } from './views/McpToolsProvider';
-import { CollectionSourcesProvider, setCollectionSourcesLogFunction } from './views/CollectionSourcesProvider';
+import {
+    McpToolsProvider,
+    injectToolPromptIntoChat,
+    type ToolInfo,
+} from './views/McpToolsProvider';
+import {
+    CollectionSourcesProvider,
+    setCollectionSourcesLogFunction,
+    type CollectionSourceInfo,
+} from './views/CollectionSourcesProvider';
 import {
     GalaxyCollectionCache,
     CollectionsService,
@@ -31,7 +39,15 @@ import {
     getCommandService,
 } from '@ansible/core';
 import type { PythonEnvironment, SchemaNode } from '@ansible/core';
-import { registerMcpServerProvider, isMcpAvailable, registerCursorMcpServer, configureCursorMcp, showCursorMcpStatus, getMcpStatus, detectIde } from './mcp';
+import {
+    registerMcpServerProvider,
+    isMcpAvailable,
+    registerCursorMcpServer,
+    configureCursorMcp,
+    showCursorMcpStatus,
+    getMcpStatus,
+    detectIde,
+} from './mcp';
 import { getLlmService } from './services/LlmService';
 import { registerFileAssociation } from './features/fileAssociation';
 import { registerVaultCommand } from './features/vault';
@@ -66,6 +82,10 @@ function _ensureLogFile(context: vscode.ExtensionContext): string {
     return _logFilePath;
 }
 
+function formatError(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
 export function log(message: string) {
     const timestamp = new Date().toISOString();
     const line = `[${timestamp}] ${message}`;
@@ -93,7 +113,7 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
             // Send message to OpenLLM chat using the correct command
             await vscode.commands.executeCommand('openLLM.chat.send', {
                 message: prompt,
-                newSession: false  // Continue existing session if any
+                newSession: false, // Continue existing session if any
             });
             vscode.window.showInformationMessage('Prompt sent to Open LLM chat.');
         } catch {
@@ -102,12 +122,12 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
                 await vscode.commands.executeCommand('openLLM.chatView.focus');
                 await vscode.env.clipboard.writeText(prompt);
                 vscode.window.showInformationMessage(
-                    'Open LLM chat focused. Prompt copied to clipboard - paste to send.'
+                    'Open LLM chat focused. Prompt copied to clipboard - paste to send.',
                 );
             } catch {
                 // OpenLLM extension not available
                 vscode.window.showWarningMessage(
-                    'Open LLM Provider extension not found. Install it or switch to VS Code chat in settings.'
+                    'Open LLM Provider extension not found. Install it or switch to VS Code chat in settings.',
                 );
             }
         }
@@ -120,14 +140,16 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
         } catch {
             // Fallback: copy to clipboard and let user paste
             await vscode.env.clipboard.writeText(prompt);
-            vscode.window.showInformationMessage(
-                'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                'Open Chat'
-            ).then(selection => {
-                if (selection === 'Open Chat') {
-                    vscode.commands.executeCommand('workbench.action.chat.open');
-                }
-            });
+            vscode.window
+                .showInformationMessage(
+                    'AI prompt copied to clipboard. Paste it into an agent chat session.',
+                    'Open Chat',
+                )
+                .then((selection) => {
+                    if (selection === 'Open Chat') {
+                        vscode.commands.executeCommand('workbench.action.chat.open');
+                    }
+                });
         }
     }
 }
@@ -145,7 +167,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Inject log function into services
     setCollectionsLogFunction(log);
     setCollectionSourcesLogFunction(log);
-    
+
     log('Ansible Environments extension is now active');
     console.log('Ansible Environments extension is now active');
 
@@ -153,9 +175,9 @@ export function activate(context: vscode.ExtensionContext) {
     const updateMcpStatusContext = () => {
         const status = getMcpStatus(context);
         vscode.commands.executeCommand('setContext', 'ansibleMcp.configured', status.isConfigured);
-        log(`MCP Status: IDE=${status.ide}, configured=${status.isConfigured}`);
+        log(`MCP Status: IDE=${status.ide}, configured=${String(status.isConfigured)}`);
     };
-    
+
     // Set initial MCP status context
     updateMcpStatusContext();
 
@@ -165,7 +187,9 @@ export function activate(context: vscode.ExtensionContext) {
         if (registerCursorMcpServer(context)) {
             log('MCP server registered via Cursor extension API');
         } else {
-            log('Cursor MCP auto-registration failed (API unavailable or server binary missing) — user can configure manually via command');
+            log(
+                'Cursor MCP auto-registration failed (API unavailable or server binary missing) — user can configure manually via command',
+            );
         }
     } else if (isMcpAvailable()) {
         registerMcpServerProvider(context);
@@ -184,10 +208,10 @@ export function activate(context: vscode.ExtensionContext) {
     const serverModule = context.asAbsolutePath(
         path.join('packages', 'language-server', 'out', 'cli.js'),
     );
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const serverEnv: Record<string, string> = {};
     if (workspaceRoot) {
-        serverEnv['ANSIBLE_ENV_WORKSPACE'] = workspaceRoot;
+        serverEnv.ANSIBLE_ENV_WORKSPACE = workspaceRoot;
     }
     const serverOptions: ServerOptions = {
         run: {
@@ -220,7 +244,7 @@ export function activate(context: vscode.ExtensionContext) {
         serverOptions,
         clientOptions,
     );
-    languageClient.start();
+    void languageClient.start();
     context.subscriptions.push(languageClient);
     log('Ansible Language Server started');
 
@@ -242,7 +266,7 @@ export function activate(context: vscode.ExtensionContext) {
     commandService.setBinDirResolver(async (workspaceUri) => {
         await pythonEnvService.initialize();
         const env = await pythonEnvService.getEnvironment(workspaceUri as vscode.Uri | undefined);
-        if (env?.execInfo?.run?.executable) {
+        if (env?.execInfo.run.executable) {
             const binDir = path.dirname(env.execInfo.run.executable);
             log(`binDirResolver: env=${env.displayName}, binDir=${binDir}`);
             return binDir;
@@ -251,62 +275,69 @@ export function activate(context: vscode.ExtensionContext) {
         return null;
     });
 
-    pythonEnvService.initialize().then((available) => {
-        log(`Python Environment Service initialized: available=${available}, fullApi=${pythonEnvService.hasFullApi()}, envsExt=${pythonEnvService.hasEnvsExtension()}`);
+    pythonEnvService
+        .initialize()
+        .then((available) => {
+            log(
+                `Python Environment Service initialized: available=${String(available)}, fullApi=${String(pythonEnvService.hasFullApi())}, envsExt=${String(pythonEnvService.hasEnvsExtension())}`,
+            );
 
-        // Wire package installer into DevToolsService when envs extension is available
-        if (pythonEnvService.hasEnvsExtension()) {
-            const devToolsService = DevToolsService.getInstance();
-            devToolsService.setPackageInstaller(async () => {
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-                const env = await pythonEnvService.getEnvironment(workspaceFolder);
-                if (!env) {
-                    throw new Error('No Python environment selected');
-                }
-                await pythonEnvService.managePackages(env, {
-                    install: ['ansible-dev-tools'],
-                    upgrade: false,
+            // Wire package installer into DevToolsService when envs extension is available
+            if (pythonEnvService.hasEnvsExtension()) {
+                const devToolsService = DevToolsService.getInstance();
+                devToolsService.setPackageInstaller(async () => {
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+                    const env = await pythonEnvService.getEnvironment(workspaceFolder);
+                    if (!env) {
+                        throw new Error('No Python environment selected');
+                    }
+                    await pythonEnvService.managePackages(env, {
+                        install: ['ansible-dev-tools'],
+                        upgrade: false,
+                    });
                 });
-            });
-        }
+            }
 
-        // Cache environment for standalone consumers (MCP server, language server)
-        const refreshCache = async () => {
-            try {
-                const env = await pythonEnvService.getEnvironment();
-                if (env?.execInfo?.run?.executable) {
-                    const execPath = env.execInfo.run.executable;
-                    log(`Caching environment: ${env.displayName} (${execPath})`);
-                    cacheSelectedEnvironment(execPath, env.displayName);
-                } else {
-                    log('No environment executable found to cache');
+            // Cache environment for standalone consumers (MCP server, language server)
+            const refreshCache = async () => {
+                try {
+                    const env = await pythonEnvService.getEnvironment();
+                    if (env?.execInfo.run.executable) {
+                        const execPath = env.execInfo.run.executable;
+                        log(`Caching environment: ${env.displayName} (${execPath})`);
+                        cacheSelectedEnvironment(execPath, env.displayName);
+                    } else {
+                        log('No environment executable found to cache');
+                    }
+                } catch (error) {
+                    log(`Failed to refresh environment cache: ${formatError(error)}`);
                 }
-            } catch (error) {
-                log(`Failed to refresh environment cache: ${error}`);
-            }
-        };
+            };
 
-        let cacheDebounce: ReturnType<typeof setTimeout> | undefined;
-        const envCacheListener = pythonEnvService.onDidChangeEnvironment(() => {
-            if (cacheDebounce) {
-                clearTimeout(cacheDebounce);
-            }
-            cacheDebounce = setTimeout(() => {
-                cacheDebounce = undefined;
+            let cacheDebounce: ReturnType<typeof setTimeout> | undefined;
+            const envCacheListener = pythonEnvService.onDidChangeEnvironment(() => {
+                if (cacheDebounce) {
+                    clearTimeout(cacheDebounce);
+                }
+                cacheDebounce = setTimeout(() => {
+                    cacheDebounce = undefined;
+                    void refreshCache();
+                }, 1000);
+            });
+            context.subscriptions.push(envCacheListener);
+            setTimeout(() => {
                 void refreshCache();
-            }, 1000);
+            }, 2000);
+        })
+        .catch((error: unknown) => {
+            log(`Python Environment Service initialization failed: ${formatError(error)}`);
         });
-        context.subscriptions.push(envCacheListener);
-        setTimeout(refreshCache, 2000);
-    }).catch((error) => {
-        log(`Python Environment Service initialization failed: ${error}`);
-    });
 
     // Register the Environment Managers view
     const envManagersProvider = new EnvironmentManagersProvider(pythonEnvService);
     const envManagersView = vscode.window.createTreeView('ansibleDevToolsEnvManagers', {
         treeDataProvider: envManagersProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(envManagersView);
 
@@ -314,7 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
     const devToolsProvider = new AnsibleDevToolsProvider(pythonEnvService);
     const packagesView = vscode.window.createTreeView('ansibleDevToolsPackages', {
         treeDataProvider: devToolsProvider,
-        showCollapseAll: false
+        showCollapseAll: false,
     });
     context.subscriptions.push(packagesView);
 
@@ -322,7 +353,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsProvider = new CollectionsProvider(pythonEnvService);
     const collectionsView = vscode.window.createTreeView('ansibleDevToolsCollections', {
         treeDataProvider: collectionsProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(collectionsView);
 
@@ -330,7 +361,7 @@ export function activate(context: vscode.ExtensionContext) {
     const eeProvider = new ExecutionEnvironmentsProvider();
     const eeView = vscode.window.createTreeView('ansibleExecutionEnvironments', {
         treeDataProvider: eeProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(eeView);
 
@@ -338,7 +369,7 @@ export function activate(context: vscode.ExtensionContext) {
     const creatorProvider = new CreatorProvider();
     const creatorView = vscode.window.createTreeView('ansibleCreator', {
         treeDataProvider: creatorProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(creatorView);
 
@@ -346,7 +377,7 @@ export function activate(context: vscode.ExtensionContext) {
     const playbooksProvider = new PlaybooksProvider();
     const playbooksView = vscode.window.createTreeView('ansiblePlaybooks', {
         treeDataProvider: playbooksProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(playbooksView);
 
@@ -361,7 +392,7 @@ export function activate(context: vscode.ExtensionContext) {
     const mcpToolsProvider = new McpToolsProvider(context);
     const mcpToolsView = vscode.window.createTreeView('ansibleMcpTools', {
         treeDataProvider: mcpToolsProvider,
-        showCollapseAll: true
+        showCollapseAll: true,
     });
     context.subscriptions.push(mcpToolsView);
 
@@ -369,7 +400,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionSourcesProvider = new CollectionSourcesProvider();
     const collectionSourcesView = vscode.window.createTreeView('ansibleCollectionSources', {
         treeDataProvider: collectionSourcesProvider,
-        showCollapseAll: false
+        showCollapseAll: false,
     });
     context.subscriptions.push(collectionSourcesView);
 
@@ -377,8 +408,8 @@ export function activate(context: vscode.ExtensionContext) {
     const refreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsPackages.refresh',
         () => {
-            devToolsProvider.refresh();
-        }
+            void devToolsProvider.refresh();
+        },
     );
 
     const installCommand = vscode.commands.registerCommand(
@@ -389,9 +420,11 @@ export function activate(context: vscode.ExtensionContext) {
                 await devToolsService.install();
                 vscode.window.showInformationMessage('ansible-dev-tools installation started.');
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to install ansible-dev-tools: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to install ansible-dev-tools: ${formatError(error)}`,
+                );
             }
-        }
+        },
     );
 
     const upgradeCommand = vscode.commands.registerCommand(
@@ -402,17 +435,19 @@ export function activate(context: vscode.ExtensionContext) {
                 await devToolsService.upgrade();
                 vscode.window.showInformationMessage('Upgrading ansible-dev-tools...');
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to upgrade ansible-dev-tools: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to upgrade ansible-dev-tools: ${formatError(error)}`,
+                );
             }
-        }
+        },
     );
 
     // Register Environment Managers commands
     const envManagersRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsEnvManagers.refresh',
         () => {
-            envManagersProvider.refresh();
-        }
+            void envManagersProvider.refresh();
+        },
     );
 
     const envManagersCreateCommand = vscode.commands.registerCommand(
@@ -426,19 +461,23 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 const environment = await pythonEnvService.createEnvironment(workspaceFolder, {
-                    quickCreate: false
+                    quickCreate: false,
                 });
 
                 if (environment) {
-                    vscode.window.showInformationMessage(`Created environment: ${environment.displayName}`);
-                    envManagersProvider.refresh();
-                    devToolsProvider.refresh();
-                    collectionsProvider.refresh();
+                    vscode.window.showInformationMessage(
+                        `Created environment: ${environment.displayName}`,
+                    );
+                    void envManagersProvider.refresh();
+                    void devToolsProvider.refresh();
+                    void collectionsProvider.refresh();
                 }
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to create environment: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to create environment: ${formatError(error)}`,
+                );
             }
-        }
+        },
     );
 
     const selectEnvCommand = vscode.commands.registerCommand(
@@ -448,17 +487,17 @@ export function activate(context: vscode.ExtensionContext) {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
 
                 // Check if this is a global/system environment
-                const isGlobalEnv = environment.envId?.managerId?.toLowerCase().includes('system');
-                
+                const isGlobalEnv = environment.envId.managerId.toLowerCase().includes('system');
+
                 if (isGlobalEnv) {
                     const selection = await vscode.window.showWarningMessage(
                         'Use of global Python environments for Ansible development is strongly discouraged. Please create and select a virtual environment instead.',
                         'Create Virtual Environment',
-                        'Use Anyway'
+                        'Use Anyway',
                     );
-                    
+
                     if (selection === 'Create Virtual Environment') {
-                        vscode.commands.executeCommand('ansibleDevToolsEnvManagers.create');
+                        void vscode.commands.executeCommand('ansibleDevToolsEnvManagers.create');
                         return;
                     } else if (selection !== 'Use Anyway') {
                         return;
@@ -466,15 +505,19 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 await pythonEnvService.setEnvironment(workspaceFolder, environment);
-                vscode.window.showInformationMessage(`Selected environment: ${environment.displayName}`);
-                
-                envManagersProvider.refresh();
-                devToolsProvider.refresh();
-                collectionsProvider.refresh();
+                vscode.window.showInformationMessage(
+                    `Selected environment: ${environment.displayName}`,
+                );
+
+                void envManagersProvider.refresh();
+                void devToolsProvider.refresh();
+                void collectionsProvider.refresh();
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to select environment: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to select environment: ${formatError(error)}`,
+                );
             }
-        }
+        },
     );
 
     // Start background loading of Galaxy collections cache
@@ -486,8 +529,8 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refresh',
         () => {
-            collectionsProvider.refresh();
-        }
+            void collectionsProvider.refresh();
+        },
     );
 
     // Register Collections search command
@@ -495,15 +538,15 @@ export function activate(context: vscode.ExtensionContext) {
         fullName: string;
         pluginType: string;
     }
-    
+
     const collectionsSearchCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.search',
-        async () => {
+        () => {
             const collectionsService = CollectionsService.getInstance();
-            
+
             // Get all plugins from all collections
             const allPlugins: PluginQuickPickItem[] = [];
-            
+
             for (const [, data] of collectionsService.getCollections()) {
                 for (const [pluginType, plugins] of data.pluginTypes) {
                     for (const plugin of plugins) {
@@ -512,56 +555,57 @@ export function activate(context: vscode.ExtensionContext) {
                             description: `(${pluginType})`,
                             detail: plugin.shortDescription,
                             fullName: plugin.fullName,
-                            pluginType: pluginType
+                            pluginType: pluginType,
                         });
                     }
                 }
             }
-            
+
             // Sort alphabetically
             allPlugins.sort((a, b) => a.label.localeCompare(b.label));
-            
+
             const quickPick = vscode.window.createQuickPick<PluginQuickPickItem>();
             quickPick.title = 'Search Plugins';
             quickPick.placeholder = 'Type to search... (e.g., "interface" or "module:config")';
             quickPick.matchOnDescription = true;
             quickPick.matchOnDetail = true;
             quickPick.items = allPlugins;
-            
-            quickPick.onDidChangeValue(value => {
+
+            quickPick.onDidChangeValue((value) => {
                 // Support typed search: "module:name" or "filter:name"
-                const typeMatch = value.match(/^(\w+):(.*)$/);
+                const typeMatch = /^(\w+):(.*)$/.exec(value);
                 if (typeMatch) {
                     const [, pluginType, query] = typeMatch;
                     const lowerQuery = query.toLowerCase();
                     const lowerType = pluginType.toLowerCase();
-                    quickPick.items = allPlugins.filter(p => 
-                        p.pluginType.toLowerCase() === lowerType &&
-                        (p.label.toLowerCase().includes(lowerQuery) || 
-                         (p.detail?.toLowerCase().includes(lowerQuery) ?? false))
+                    quickPick.items = allPlugins.filter(
+                        (p) =>
+                            p.pluginType.toLowerCase() === lowerType &&
+                            (p.label.toLowerCase().includes(lowerQuery) ||
+                                (p.detail?.toLowerCase().includes(lowerQuery) ?? false)),
                     );
                 } else {
                     // Regular search - let QuickPick handle matching
                     quickPick.items = allPlugins;
                 }
             });
-            
+
             quickPick.onDidAccept(() => {
                 const selected = quickPick.selectedItems[0];
-                if (selected) {
-                    quickPick.hide();
-                    // Open plugin documentation
-                    vscode.commands.executeCommand(
-                        'ansibleDevTools.showPluginDoc',
-                        selected.fullName,
-                        selected.pluginType
-                    );
-                }
+                quickPick.hide();
+                // Open plugin documentation
+                void vscode.commands.executeCommand(
+                    'ansibleDevTools.showPluginDoc',
+                    selected.fullName,
+                    selected.pluginType,
+                );
             });
-            
-            quickPick.onDidHide(() => quickPick.dispose());
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+            });
             quickPick.show();
-        }
+        },
     );
 
     // Register Execution Environments refresh command
@@ -569,7 +613,7 @@ export function activate(context: vscode.ExtensionContext) {
         'ansibleExecutionEnvironments.refresh',
         () => {
             eeProvider.refresh();
-        }
+        },
     );
 
     // AI Summary Commands - Collections
@@ -587,15 +631,17 @@ After your summary, ask the user if they would like to search for additional col
 
 **IMPORTANT**: To install any collection, use the \`install_ansible_collection\` MCP tool.
 Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     const collectionsAiCollectionSummaryCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.aiCollectionSummary',
         async (node: { name: string }) => {
-            if (!node?.name) {return;}
+            if (!node.name) {
+                return;
+            }
             const prompt = `Generate a summary of the Ansible collection "${node.name}".
 
 Use the \`get_collection_plugins\` MCP tool with collection="${node.name}" to get all plugins in this collection, then provide:
@@ -603,15 +649,17 @@ Use the \`get_collection_plugins\` MCP tool with collection="${node.name}" to ge
 2. The key modules, plugins, and roles it provides
 3. Common use cases and example scenarios
 4. Any dependencies or requirements`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     const collectionsAiPluginSummaryCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.aiPluginSummary',
         async (node: { fullName: string; pluginType: string }) => {
-            if (!node?.fullName) {return;}
+            if (!node.fullName) {
+                return;
+            }
             const prompt = `Explain the Ansible ${node.pluginType} plugin "${node.fullName}".
 
 Use the \`get_plugin_documentation\` MCP tool with plugin_name="${node.fullName}" and plugin_type="${node.pluginType}" to get the full documentation, then provide:
@@ -619,9 +667,9 @@ Use the \`get_plugin_documentation\` MCP tool with plugin_name="${node.fullName}
 2. The most important parameters and when to use them
 3. A practical example task showing common usage
 4. Any gotchas or best practices`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     // AI Summary Commands - Execution Environments
@@ -634,15 +682,17 @@ Use the \`list_execution_environments\` MCP tool to get the list of available EE
 1. An overview of each execution environment and its purpose
 2. Key tools and collections included in each
 3. Recommendations for which EE to use for different scenarios`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     const eeAiEESummaryCommand = vscode.commands.registerCommand(
         'ansibleExecutionEnvironments.aiEESummary',
         async (node: { label: string }) => {
-            if (!node?.label) {return;}
+            if (!node.label) {
+                return;
+            }
             const prompt = `Generate a detailed summary of the Ansible Execution Environment "${node.label}".
 
 Use the \`get_ee_details\` MCP tool with ee_name="${node.label}" to get all information about this EE.
@@ -658,9 +708,9 @@ Based on the tool output, provide:
 2. Key Python packages and what they enable
 3. Notable Ansible collections included and their use cases
 4. Best use cases for this execution environment`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     // AI Summary Commands - Creator
@@ -675,25 +725,43 @@ Use the \`get_ansible_creator_schema\` MCP tool to get the full schema, then pro
 3. The key parameters for each scaffolding command
 4. Best practices for starting new Ansible projects
 5. How the generated structure follows Ansible best practices`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     const creatorAiEntrySummaryCommand = vscode.commands.registerCommand(
         'ansibleCreator.aiEntrySummary',
-        async (node: { label: string; schema: { description?: string }; commandPath: string[] }) => {
-            if (!node?.commandPath) {return;}
+        async (node: {
+            label: string;
+            schema: { description?: string };
+            commandPath: string[];
+        }) => {
+            if (node.commandPath.length === 0) {
+                return;
+            }
             const commandStr = `ansible-creator ${node.commandPath.join(' ')}`;
             // Build the tool name from the command path (e.g., ['add', 'plugin', 'filter'] -> 'ac_add_plug_filter')
-            const toolName = `ac_${node.commandPath.map((p: string) => {
-                const abbr: Record<string, string> = { 'resource': 'res', 'execution_environment': 'ee', 'execution-environment': 'ee', 'devcontainer': 'devc', 'devfile': 'devf', 'collection': 'coll', 'plugin': 'plug', 'project': 'proj', 'playbook': 'play' };
-                return abbr[p] || p;
-            }).join('_')}`;
-            
+            const toolName = `ac_${node.commandPath
+                .map((p: string) => {
+                    const abbr: Record<string, string> = {
+                        resource: 'res',
+                        execution_environment: 'ee',
+                        'execution-environment': 'ee',
+                        devcontainer: 'devc',
+                        devfile: 'devf',
+                        collection: 'coll',
+                        plugin: 'plug',
+                        project: 'proj',
+                        playbook: 'play',
+                    };
+                    return abbr[p] || p;
+                })
+                .join('_')}`;
+
             const prompt = `Help me use the "${commandStr}" command to scaffold new Ansible content.
 
-${node.schema?.description ? `This command: ${node.schema.description}` : ''}
+${node.schema.description ? `This command: ${node.schema.description}` : ''}
 
 Use the \`${toolName}\` MCP tool to execute this command once I provide the required parameters.
 
@@ -702,28 +770,29 @@ Please:
 2. Walk me through the required and optional parameters
 3. Suggest best practices for the values I should provide
 4. After I provide the details, use the \`${toolName}\` tool to run the command`;
-            
+
             await openChatWithPrompt(prompt);
-        }
+        },
     );
 
     // Register Creator commands
-    const creatorRefreshCommand = vscode.commands.registerCommand(
-        'ansibleCreator.refresh',
-        () => {
-            creatorProvider.refresh();
-        }
-    );
+    const creatorRefreshCommand = vscode.commands.registerCommand('ansibleCreator.refresh', () => {
+        creatorProvider.refresh();
+    });
 
     const creatorOpenFormCommand = vscode.commands.registerCommand(
         'ansibleCreator.openForm',
         (arg1: string[] | { commandPath: string[]; schema: unknown }, arg2?: unknown) => {
             if (Array.isArray(arg1)) {
                 CreatorFormPanel.show(context.extensionUri, arg1, arg2 as SchemaNode);
-            } else if (arg1 && arg1.commandPath) {
-                CreatorFormPanel.show(context.extensionUri, arg1.commandPath, arg1.schema as SchemaNode);
+            } else {
+                CreatorFormPanel.show(
+                    context.extensionUri,
+                    arg1.commandPath,
+                    arg1.schema as SchemaNode,
+                );
             }
-        }
+        },
     );
 
     // Register Playbooks commands
@@ -731,157 +800,149 @@ Please:
         'ansiblePlaybooks.refresh',
         () => {
             playbooksProvider.refresh();
-        }
+        },
     );
 
     const playbooksEditConfigCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.editConfig',
         (node: { playbook: PlaybookInfo }) => {
-            if (node && node.playbook) {
-                PlaybookConfigPanel.show(context.extensionUri, node.playbook);
-            }
-        }
+            PlaybookConfigPanel.show(context.extensionUri, node.playbook);
+        },
     );
 
     const playbooksEditDefaultsCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.editDefaults',
         () => {
             PlaybookConfigPanel.show(context.extensionUri);
-        }
+        },
     );
 
     const playbooksRunCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.run',
         async (node: { playbook: PlaybookInfo }) => {
-            if (node && node.playbook) {
-                const playbooksService = PlaybooksService.getInstance();
-                const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
-                
-                // Calculate path relative to the playbook's workspace folder
-                const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
-                const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
-                
-                const command = playbooksService.buildCommand(playbookRelativePath, config);
+            const playbooksService = PlaybooksService.getInstance();
+            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-                log(`Running playbook: ${command} in ${workspaceFolderPath}`);
+            // Calculate path relative to the playbook's workspace folder
+            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
+            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-                // Use TerminalService for proper venv activation handling
-                // Use the playbook's workspace folder as cwd
-                const terminalService = TerminalService.getInstance();
-                const managed = await terminalService.createActivatedTerminal({
-                    name: `ansible-playbook: ${node.playbook.name}`,
-                    cwd: node.playbook.workspaceFolder,
-                    show: true,
-                });
+            const command = playbooksService.buildCommand(playbookRelativePath, config);
 
-                log('Terminal ready, sending command...');
-                
-                // Fire and forget - user watches terminal output
-                managed.sendCommand(command, { waitForCompletion: false });
-            }
-        }
+            log(`Running playbook: ${command} in ${workspaceFolderPath}`);
+
+            // Use TerminalService for proper venv activation handling
+            // Use the playbook's workspace folder as cwd
+            const terminalService = TerminalService.getInstance();
+            const managed = await terminalService.createActivatedTerminal({
+                name: `ansible-playbook: ${node.playbook.name}`,
+                cwd: node.playbook.workspaceFolder,
+                show: true,
+            });
+
+            log('Terminal ready, sending command...');
+
+            // Fire and forget - user watches terminal output
+            void managed.sendCommand(command, { waitForCompletion: false });
+        },
     );
 
     // Run playbook with progress viewer
     const playbooksRunWithProgressCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.runWithProgress',
         async (node: { playbook: PlaybookInfo }) => {
-            if (node && node.playbook) {
-                const playbooksService = PlaybooksService.getInstance();
-                const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
-                
-                // Calculate path relative to the playbook's workspace folder
-                const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
-                const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
-                
-                const command = playbooksService.buildCommand(playbookRelativePath, config);
+            const playbooksService = PlaybooksService.getInstance();
+            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-                log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
+            // Calculate path relative to the playbook's workspace folder
+            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
+            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-                // Show progress panel
-                await PlaybookProgressPanel.show(context.extensionUri, {
-                    playbookPath: node.playbook.path,
-                    playbookName: node.playbook.name,
-                    workspaceFolder: node.playbook.workspaceFolder,
-                    command: command,
-                    extensionPath: context.extensionPath,
-                });
-            }
-        }
+            const command = playbooksService.buildCommand(playbookRelativePath, config);
+
+            log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
+
+            // Show progress panel
+            await PlaybookProgressPanel.show(context.extensionUri, {
+                playbookPath: node.playbook.path,
+                playbookName: node.playbook.name,
+                workspaceFolder: node.playbook.workspaceFolder,
+                command: command,
+                extensionPath: context.extensionPath,
+            });
+        },
     );
 
     const playbooksOpenCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.openPlaybook',
         async (arg: PlaybookInfo | { playbook: PlaybookInfo }) => {
             // Handle both direct PlaybookInfo and node wrapper from context menu
-            const playbook = (arg as { playbook: PlaybookInfo }).playbook || arg as PlaybookInfo;
-            if (playbook && playbook.path) {
+            const playbook = 'playbook' in arg ? arg.playbook : arg;
+            if (playbook.path) {
                 // Use vscode.open command which handles files more robustly
                 const uri = vscode.Uri.file(playbook.path);
                 await vscode.commands.executeCommand('vscode.open', uri);
             }
-        }
+        },
     );
 
     const playbooksGoToPlayCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.goToPlay',
         async (playbook: PlaybookInfo, play: PlaybookPlay) => {
-            if (playbook && play) {
-                const uri = vscode.Uri.file(playbook.path);
-                const line = play.lineNumber - 1;
-                // Use vscode.open with selection option to go to specific line
-                await vscode.commands.executeCommand('vscode.open', uri, {
-                    selection: new vscode.Range(line, 0, line, 0)
-                });
-            }
-        }
+            const uri = vscode.Uri.file(playbook.path);
+            const line = play.lineNumber - 1;
+            // Use vscode.open with selection option to go to specific line
+            await vscode.commands.executeCommand('vscode.open', uri, {
+                selection: new vscode.Range(line, 0, line, 0),
+            });
+        },
     );
 
     const playbooksAiSummaryCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.aiSummary',
         async (node: { playbook: PlaybookInfo }) => {
-            if (node && node.playbook) {
-                const service = PlaybooksService.getInstance();
-                const prompt = service.generateAiPrompt(node.playbook);
-                
-                await openChatWithPrompt(prompt);
-            }
-        }
+            const service = PlaybooksService.getInstance();
+            const prompt = service.generateAiPrompt(node.playbook);
+
+            await openChatWithPrompt(prompt);
+        },
     );
 
     // Register Cursor MCP configuration commands
     const configureCursorMcpCommand = vscode.commands.registerCommand(
         'ansible-environments.configureCursorMcp',
-        () => configureCursorMcp(context)
+        () => {
+            void configureCursorMcp(context);
+        },
     );
 
     const showMcpStatusCommand = vscode.commands.registerCommand(
         'ansible-environments.showMcpStatus',
-        () => showCursorMcpStatus(context)
+        () => {
+            showCursorMcpStatus(context);
+        },
     );
 
     // Register MCP Tools commands
     const mcpToolsRefreshCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.refresh',
-        () => mcpToolsProvider.refresh()
+        () => {
+            mcpToolsProvider.refresh();
+        },
     );
 
     const mcpToolsUseInChatCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.useInChat',
-        async (toolInfo) => {
-            if (toolInfo) {
-                await injectToolPromptIntoChat(toolInfo);
-            }
-        }
+        async (toolInfo: ToolInfo) => {
+            await injectToolPromptIntoChat(toolInfo);
+        },
     );
 
     const mcpToolsCopyPromptCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.copyPrompt',
-        async (node) => {
-            if (node && node.toolInfo) {
-                await openChatWithPrompt(node.toolInfo.examplePrompt);
-            }
-        }
+        async (node: { toolInfo: ToolInfo }) => {
+            await openChatWithPrompt(node.toolInfo.examplePrompt);
+        },
     );
 
     const mcpToolsConfigureCommand = vscode.commands.registerCommand(
@@ -890,7 +951,7 @@ Please:
             await configureCursorMcp(context);
             updateMcpStatusContext();
             mcpToolsProvider.refresh();
-        }
+        },
     );
 
     // Register Collection Sources commands
@@ -898,89 +959,85 @@ Please:
         'ansibleCollectionSources.refresh',
         async () => {
             await collectionSourcesProvider.refreshAll();
-        }
+        },
     );
 
     const collectionSourcesRefreshSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.refreshSource',
-        async (node) => {
-            if (node && node.source) {
-                await collectionSourcesProvider.refreshSource(node.source);
-            }
-        }
+        async (node: { source: CollectionSourceInfo }) => {
+            await collectionSourcesProvider.refreshSource(node.source);
+        },
     );
 
     const collectionSourcesAddSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.addSource',
         async () => {
             await collectionSourcesProvider.addSource();
-        }
+        },
     );
 
     const collectionSourcesInstallCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.install',
         async () => {
             await collectionSourcesProvider.installCollection();
-        }
+        },
     );
 
     const collectionSourcesSearchCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.search',
         async () => {
             await collectionSourcesProvider.searchAllSources();
-        }
+        },
     );
 
     const collectionSourcesSearchSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.searchSource',
-        async (node) => {
-            if (node && node.source) {
-                await collectionSourcesProvider.searchSource(node.source);
-            }
-        }
+        async (node: { source: CollectionSourceInfo }) => {
+            await collectionSourcesProvider.searchSource(node.source);
+        },
     );
 
     const collectionSourcesInstallFromSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.installFromSource',
-        async (node) => {
-            if (node && node.source) {
-                await collectionSourcesProvider.installFromSource(node.source);
-            }
-        }
+        async (node: { source: CollectionSourceInfo }) => {
+            await collectionSourcesProvider.installFromSource(node.source);
+        },
     );
 
     const collectionSourcesAiSummaryCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.aiSummary',
         () => {
-            collectionSourcesProvider.generateAiSummary();
-        }
+            void collectionSourcesProvider.generateAiSummary();
+        },
     );
 
     const collectionSourcesAiSourceSummaryCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.aiSourceSummary',
-        (node) => {
-            if (node && node.source) {
-                collectionSourcesProvider.generateSourceAiSummary(node.source);
-            }
-        }
+        (node: { source: CollectionSourceInfo }) => {
+            void collectionSourcesProvider.generateSourceAiSummary(node.source);
+        },
     );
 
     // Register Galaxy cache refresh command
     const galaxyCacheRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refreshGalaxyCache',
-        async () => {
-            vscode.window.showInformationMessage('Refreshing Galaxy collections cache...');
-            await galaxyCache.forceRefresh();
-            vscode.window.showInformationMessage(`Galaxy cache refreshed: ${galaxyCache.getCollections().length} collections loaded`);
-        }
+        () => {
+            void (async () => {
+                vscode.window.showInformationMessage('Refreshing Galaxy collections cache...');
+                await galaxyCache.forceRefresh();
+                vscode.window.showInformationMessage(
+                    `Galaxy cache refreshed: ${String(galaxyCache.getCollections().length)} collections loaded`,
+                );
+            })();
+        },
     );
 
     const collectionsInstallCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.install',
-        async () => {
+        () => {
             try {
                 const collectionsService = CollectionsService.getInstance();
-                
+
                 // Show quick pick immediately
                 const quickPick = vscode.window.createQuickPick();
                 quickPick.title = 'Install Ansible Collection';
@@ -992,22 +1049,27 @@ Please:
                 const updateItems = (query: string) => {
                     if (!galaxyCache.isLoaded()) {
                         const progress = galaxyCache.getProgress();
-                        const progressText = progress.total > 0 
-                            ? `${progress.loaded} of ${progress.total}`
-                            : '...';
-                        quickPick.items = [{
-                            label: `$(sync~spin) Loading collections from Galaxy... ${progressText}`,
-                            description: '',
-                            alwaysShow: true
-                        }];
+                        const progressText =
+                            progress.total > 0
+                                ? `${String(progress.loaded)} of ${String(progress.total)}`
+                                : '...';
+                        quickPick.items = [
+                            {
+                                label: `$(sync~spin) Loading collections from Galaxy... ${progressText}`,
+                                description: '',
+                                alwaysShow: true,
+                            },
+                        ];
                         return;
                     }
-                    
+
                     const results = galaxyCache.search(query);
-                    quickPick.items = results.map(c => ({
+                    quickPick.items = results.map((c) => ({
                         label: `${c.namespace}.${c.name}`,
                         description: `v${c.version}`,
-                        detail: c.deprecated ? '(deprecated)' : `${c.downloadCount.toLocaleString()} downloads`
+                        detail: c.deprecated
+                            ? '(deprecated)'
+                            : `${c.downloadCount.toLocaleString()} downloads`,
                     }));
                 };
 
@@ -1027,7 +1089,7 @@ Please:
                     }
                 });
 
-                quickPick.onDidChangeValue(value => {
+                quickPick.onDidChangeValue((value) => {
                     updateItems(value);
                 });
 
@@ -1036,38 +1098,43 @@ Please:
                     galaxyCache.startBackgroundLoad();
                 }
 
-                quickPick.onDidAccept(async () => {
+                quickPick.onDidAccept(() => {
                     const selected = quickPick.selectedItems[0];
                     // Skip if loading placeholder or no selection
-                    if (!selected || selected.label.startsWith('$(sync~spin)')) {
+                    if (selected.label.startsWith('$(sync~spin)')) {
                         return;
                     }
-                    
+
                     quickPick.hide();
-                    
+
                     const collectionName = selected.label;
-                    
+
                     // Run installation with progress indicator
-                    vscode.window.withProgress(
+                    void vscode.window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
                             title: `Installing ${collectionName}`,
-                            cancellable: false
+                            cancellable: false,
                         },
                         async (progress) => {
                             progress.report({ message: 'Running ade install...' });
-                            
+
                             try {
-                                const output = await collectionsService.installCollection(collectionName);
-                                vscode.window.showInformationMessage(`Successfully installed ${collectionName}`);
+                                const output =
+                                    await collectionsService.installCollection(collectionName);
+                                vscode.window.showInformationMessage(
+                                    `Successfully installed ${collectionName}`,
+                                );
                                 log(`Collection install output: ${output}`);
-                                
+
                                 // Refresh the collections view
-                                collectionsProvider.refresh();
+                                void collectionsProvider.refresh();
                             } catch (error) {
-                                vscode.window.showErrorMessage(`Failed to install collection: ${error}`);
+                                vscode.window.showErrorMessage(
+                                    `Failed to install collection: ${formatError(error)}`,
+                                );
                             }
-                        }
+                        },
                     );
                 });
 
@@ -1077,11 +1144,12 @@ Please:
                     quickPick.dispose();
                 });
                 quickPick.show();
-
             } catch (error) {
-                vscode.window.showErrorMessage(`Failed to install collection: ${error}`);
+                vscode.window.showErrorMessage(
+                    `Failed to install collection: ${formatError(error)}`,
+                );
             }
-        }
+        },
     );
 
     // Register plugin documentation command
@@ -1089,17 +1157,15 @@ Please:
         'ansibleDevTools.showPluginDoc',
         async (pluginFullName: string, pluginType: string) => {
             await PluginDocPanel.show(context.extensionUri, pluginFullName, pluginType);
-        }
+        },
     );
 
     // Register plugin documentation command for context menu
     const collectionsShowPluginDocCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.showPluginDoc',
         async (node: { fullName: string; pluginType: string }) => {
-            if (node?.fullName && node?.pluginType) {
-                await PluginDocPanel.show(context.extensionUri, node.fullName, node.pluginType);
-            }
-        }
+            await PluginDocPanel.show(context.extensionUri, node.fullName, node.pluginType);
+        },
     );
 
     // Register LLM configuration commands
@@ -1108,7 +1174,7 @@ Please:
         async () => {
             const llmService = getLlmService();
             await llmService.showModelPicker();
-        }
+        },
     );
 
     const showLlmStatusCommand = vscode.commands.registerCommand(
@@ -1116,12 +1182,12 @@ Please:
         async () => {
             const llmService = getLlmService();
             await llmService.showStatus();
-        }
+        },
     );
 
     context.subscriptions.push(
-        refreshCommand, 
-        installCommand, 
+        refreshCommand,
+        installCommand,
         upgradeCommand,
         envManagersRefreshCommand,
         envManagersCreateCommand,
@@ -1166,9 +1232,8 @@ Please:
         collectionSourcesAiSummaryCommand,
         collectionSourcesAiSourceSummaryCommand,
         selectLlmModelCommand,
-        showLlmStatusCommand
+        showLlmStatusCommand,
     );
-
 }
 
 export function deactivate(): void {

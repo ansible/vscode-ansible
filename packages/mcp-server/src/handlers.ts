@@ -1,6 +1,6 @@
 /**
  * MCP Tool Handlers
- * 
+ *
  * Routes tool calls to appropriate service methods.
  */
 
@@ -24,8 +24,12 @@ import type { PluginOption, SchemaNode } from '@ansible/core';
 
 // Helper to convert string | string[] to string[]
 function toArray(value: string | string[] | undefined): string[] {
-    if (!value) { return []; }
-    if (Array.isArray(value)) { return value; }
+    if (!value) {
+        return [];
+    }
+    if (Array.isArray(value)) {
+        return value;
+    }
     return [value];
 }
 
@@ -48,62 +52,67 @@ export class McpToolHandler {
         try {
             // Creator tools
             if (this._creatorTools.isCreatorTool(name)) {
-                return this._creatorTools.handleTool(name, args);
+                return await this._creatorTools.handleTool(name, args);
             }
 
             // Route to appropriate handler
             switch (name) {
                 // Discovery
                 case 'search_ansible_plugins':
-                    return this._handleSearchPlugins(args);
+                    return await this._handleSearchPlugins(args);
                 case 'get_plugin_documentation':
-                    return this._handleGetPluginDoc(args);
+                    return await this._handleGetPluginDoc(args);
                 case 'list_ansible_collections':
-                    return this._handleListCollections(args);
+                    return await this._handleListCollections(args);
                 case 'install_ansible_collection':
-                    return this._handleInstallCollection(args);
+                    return await this._handleInstallCollection(args);
                 case 'search_available_collections':
-                    return this._handleSearchAvailableCollections(args);
+                    return await this._handleSearchAvailableCollections(args);
                 case 'list_source_collections':
-                    return this._handleListSourceCollections(args);
+                    return await this._handleListSourceCollections(args);
                 case 'get_collection_plugins':
-                    return this._handleGetCollectionPlugins(args);
+                    return await this._handleGetCollectionPlugins(args);
 
                 // Task generation
                 case 'generate_ansible_task':
-                    return this._handleGenerateTask(args);
+                    return await this._handleGenerateTask(args);
                 case 'build_ansible_task':
-                    return this._handleBuildTask(args);
+                    return await this._handleBuildTask(args);
                 case 'generate_ansible_playbook':
-                    return this._handleGeneratePlaybook(args);
+                    return await this._handleGeneratePlaybook(args);
 
                 // Execution environments
                 case 'list_execution_environments':
-                    return this._handleListEEs();
+                    return await this._handleListEEs();
                 case 'get_ee_details':
-                    return this._handleGetEEDetails(args);
+                    return await this._handleGetEEDetails(args);
 
                 // Dev tools
                 case 'list_ansible_dev_tools':
-                    return this._handleListDevTools();
+                    return await this._handleListDevTools();
 
                 // Creator
                 case 'get_ansible_creator_schema':
-                    return this._handleGetCreatorSchema();
+                    return await this._handleGetCreatorSchema();
 
                 case 'get_ansible_best_practices':
-                    return this._handleGetBestPractices(args);
+                    return await this._handleGetBestPractices(args);
 
                 default:
                     return {
                         content: [{ type: 'text', text: `Unknown tool: ${name}` }],
-                        isError: true
+                        isError: true,
                     };
             }
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Error: ${error instanceof Error ? error.message : error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Error: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
@@ -115,7 +124,7 @@ export class McpToolHandler {
         if (!query) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: query' }],
-                isError: true
+                isError: true,
             };
         }
 
@@ -124,27 +133,31 @@ export class McpToolHandler {
         const results = this._searchIndex.search(query, {
             pluginType: args.plugin_type as string,
             collection: args.collection as string,
-            limit: args.limit as number
+            limit: args.limit as number,
         });
 
         if (results.length === 0) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `No plugins found matching "${query}".\n\nTry different search terms or check if the collection is installed using list_ansible_collections.`
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: `No plugins found matching "${query}".\n\nTry different search terms or check if the collection is installed using list_ansible_collections.`,
+                    },
+                ],
             };
         }
 
-        const formatted = results.map(r =>
-            `• **${r.fullName}** (${r.pluginType})\n  ${r.shortDescription}`
-        ).join('\n\n');
+        const formatted = results
+            .map((r) => `• **${r.fullName}** (${r.pluginType})\n  ${r.shortDescription}`)
+            .join('\n\n');
 
         return {
-            content: [{
-                type: 'text',
-                text: `Found ${results.length} plugins:\n\n${formatted}\n\n---\nUse \`get_plugin_documentation\` for full details or \`generate_ansible_task\` to create a task.`
-            }]
+            content: [
+                {
+                    type: 'text',
+                    text: `Found ${String(results.length)} plugins:\n\n${formatted}\n\n---\nUse \`get_plugin_documentation\` for full details or \`generate_ansible_task\` to create a task.`,
+                },
+            ],
         };
     }
 
@@ -153,11 +166,11 @@ export class McpToolHandler {
         if (!plugin) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: plugin' }],
-                isError: true
+                isError: true,
             };
         }
 
-        const pluginType = (args.plugin_type as string) || 'module';
+        const pluginType = (args.plugin_type as string | undefined) ?? 'module';
         const service = CollectionsService.getInstance();
 
         const doc = await service.getPluginDocumentation(plugin, pluginType);
@@ -165,7 +178,7 @@ export class McpToolHandler {
         if (!doc?.doc) {
             return {
                 content: [{ type: 'text', text: `Plugin not found: ${plugin}` }],
-                isError: true
+                isError: true,
             };
         }
 
@@ -174,7 +187,7 @@ export class McpToolHandler {
 
         // Header
         sections.push(`# ${plugin} (${pluginType})`);
-        sections.push(`*${d.short_description || ''}*\n`);
+        sections.push(`*${d.short_description ?? ''}*\n`);
 
         // Synopsis
         if (d.description) {
@@ -186,7 +199,7 @@ export class McpToolHandler {
         if (d.requirements) {
             const reqs = toArray(d.requirements);
             if (reqs.length > 0) {
-                sections.push(`## Requirements\n${reqs.map(r => `• ${r}`).join('\n')}\n`);
+                sections.push(`## Requirements\n${reqs.map((r) => `• ${r}`).join('\n')}\n`);
             }
         }
 
@@ -198,9 +211,10 @@ export class McpToolHandler {
 
         // Examples (truncated)
         if (doc.examples) {
-            const examples = doc.examples.length > 2000
-                ? doc.examples.substring(0, 2000) + '\n... (truncated)'
-                : doc.examples;
+            const examples =
+                doc.examples.length > 2000
+                    ? doc.examples.substring(0, 2000) + '\n... (truncated)'
+                    : doc.examples;
             sections.push(`## Examples\n\`\`\`yaml\n${examples}\n\`\`\``);
         }
 
@@ -211,7 +225,7 @@ export class McpToolHandler {
         }
 
         return {
-            content: [{ type: 'text', text: sections.join('\n') }]
+            content: [{ type: 'text', text: sections.join('\n') }],
         };
     }
 
@@ -220,17 +234,24 @@ export class McpToolHandler {
 
         // Sort: required first
         const sorted = Object.entries(options).sort((a, b) => {
-            if (a[1].required && !b[1].required) { return -1; }
-            if (!a[1].required && b[1].required) { return 1; }
+            if (a[1].required && !b[1].required) {
+                return -1;
+            }
+            if (!a[1].required && b[1].required) {
+                return 1;
+            }
             return a[0].localeCompare(b[0]);
         });
 
         for (const [name, opt] of sorted) {
-            const type = opt.type || 'str';
+            const type = opt.type ?? 'str';
             const req = opt.required ? ' **required**' : '';
-            const def = opt.default !== undefined ? ` (default: \`${JSON.stringify(opt.default)}\`)` : '';
-            const choices = opt.choices ? ` choices: [${opt.choices.slice(0, 5).join(', ')}${opt.choices.length > 5 ? '...' : ''}]` : '';
-            const desc = toArray(opt.description)[0] || '';
+            const def =
+                opt.default !== undefined ? ` (default: \`${JSON.stringify(opt.default)}\`)` : '';
+            const choices = opt.choices
+                ? ` choices: [${opt.choices.slice(0, 5).join(', ')}${opt.choices.length > 5 ? '...' : ''}]`
+                : '';
+            const desc = toArray(opt.description)[0] ?? '';
             const shortDesc = desc.length > 150 ? desc.substring(0, 147) + '...' : desc;
 
             lines.push(`• **${name}** (${type})${req}${def}${choices}`);
@@ -255,31 +276,37 @@ export class McpToolHandler {
         let filtered = collections;
         if (filter) {
             const lowerFilter = filter.toLowerCase();
-            filtered = collections.filter(c => c.toLowerCase().includes(lowerFilter));
+            filtered = collections.filter((c) => c.toLowerCase().includes(lowerFilter));
         }
 
         if (filtered.length === 0) {
             return {
-                content: [{
-                    type: 'text',
-                    text: filter
-                        ? `No collections found matching "${filter}".`
-                        : 'No Ansible collections installed.'
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: filter
+                            ? `No collections found matching "${filter}".`
+                            : 'No Ansible collections installed.',
+                    },
+                ],
             };
         }
 
-        const formatted = filtered.map(name => {
-            const data = service.getCollection(name);
-            const version = data?.info.version ? ` (v${data.info.version})` : '';
-            return `• ${name}${version}`;
-        }).join('\n');
+        const formatted = filtered
+            .map((name) => {
+                const data = service.getCollection(name);
+                const version = data?.info.version ? ` (v${data.info.version})` : '';
+                return `• ${name}${version}`;
+            })
+            .join('\n');
 
         return {
-            content: [{
-                type: 'text',
-                text: `Installed collections (${filtered.length}):\n\n${formatted}`
-            }]
+            content: [
+                {
+                    type: 'text',
+                    text: `Installed collections (${String(filtered.length)}):\n\n${formatted}`,
+                },
+            ],
         };
     }
 
@@ -288,7 +315,7 @@ export class McpToolHandler {
         if (!name) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: name' }],
-                isError: true
+                isError: true,
             };
         }
 
@@ -296,36 +323,45 @@ export class McpToolHandler {
 
         try {
             const result = await service.installCollection(name);
-            
+
             // Refresh the search index after installation
             await this._searchIndex.rebuild();
-            
+
             return {
-                content: [{
-                    type: 'text',
-                    text: `✓ ${result}\n\nThe collection ${name} has been installed. You can now use its plugins.`
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: `✓ ${result}\n\nThe collection ${name} has been installed. You can now use its plugins.`,
+                    },
+                ],
             };
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Failed to install collection: ${error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to install collection: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
 
-    private async _handleSearchAvailableCollections(args: Record<string, unknown>): Promise<McpToolResult> {
+    private async _handleSearchAvailableCollections(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
         const query = args.query as string;
         if (!query) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: query' }],
-                isError: true
+                isError: true,
             };
         }
 
         const source = args.source as string | undefined;
-        const limit = Math.min(args.limit as number || 20, 100);
-        
+        const limit = Math.min((args.limit as number | undefined) ?? 20, 100);
+
         try {
             interface SearchResult {
                 fqcn: string;
@@ -334,42 +370,43 @@ export class McpToolHandler {
                 sourceType: 'galaxy' | 'github';
                 info: string;
             }
-            
+
             const allResults: SearchResult[] = [];
-            
+
             // Search Galaxy (unless source filter excludes it)
             if (!source || source.toLowerCase() === 'galaxy') {
                 const galaxyCache = GalaxyCollectionCache.getInstance();
                 await galaxyCache.ensureLoaded();
-                
+
                 const galaxyResults = galaxyCache.search(query);
                 for (const col of galaxyResults) {
                     const deprecated = col.deprecated ? ' [DEPRECATED]' : '';
-                    const downloads = col.downloadCount > 1000 
-                        ? `${Math.round(col.downloadCount / 1000)}k downloads`
-                        : `${col.downloadCount} downloads`;
+                    const downloads =
+                        col.downloadCount > 1000
+                            ? `${String(Math.round(col.downloadCount / 1000))}k downloads`
+                            : `${String(col.downloadCount)} downloads`;
                     allResults.push({
                         fqcn: `${col.namespace}.${col.name}`,
                         version: col.version,
                         source: 'Galaxy',
                         sourceType: 'galaxy',
-                        info: `${downloads}${deprecated}`
+                        info: `${downloads}${deprecated}`,
                     });
                 }
             }
-            
+
             // Search GitHub orgs (unless source filter limits to Galaxy)
-            if (!source || source.toLowerCase() !== 'galaxy') {
+            if (source?.toLowerCase() !== 'galaxy') {
                 const githubCache = GitHubCollectionCache.getInstance();
-                
+
                 // Load default orgs from disk (MCP server runs standalone)
                 const defaultOrgs = ['ansible', 'ansible-collections', 'redhat-cop'];
                 for (const org of defaultOrgs) {
                     githubCache.loadFromDisk(org);
                 }
-                
+
                 const githubResults = githubCache.search(query);
-                
+
                 for (const col of githubResults) {
                     // If source filter is set, only include matching org
                     if (source && col.org.toLowerCase() !== source.toLowerCase()) {
@@ -380,84 +417,99 @@ export class McpToolHandler {
                         version: col.version,
                         source: col.org,
                         sourceType: 'github',
-                        info: col.description || 'GitHub'
+                        info: col.description || 'GitHub',
                     });
                 }
             }
-            
+
             if (allResults.length === 0) {
                 const sourceInfo = source ? ` in source "${source}"` : '';
                 return {
-                    content: [{
-                        type: 'text',
-                        text: `No collections found matching "${query}"${sourceInfo}`
-                    }]
+                    content: [
+                        {
+                            type: 'text',
+                            text: `No collections found matching "${query}"${sourceInfo}`,
+                        },
+                    ],
                 };
             }
 
             // Limit results
             const limitedResults = allResults.slice(0, limit);
-            
+
             const sourceInfo = source ? ` (source: ${source})` : '';
             const lines = [
-                `Found ${Math.min(allResults.length, limit)} of ${allResults.length} collections matching "${query}"${sourceInfo}:`,
-                ''
+                `Found ${String(Math.min(allResults.length, limit))} of ${String(allResults.length)} collections matching "${query}"${sourceInfo}:`,
+                '',
             ];
 
             for (const result of limitedResults) {
                 const sourceIcon = result.sourceType === 'galaxy' ? '🌐' : '🐙';
-                lines.push(`${sourceIcon} ${result.fqcn} (v${result.version}) [${result.source}] - ${result.info}`);
+                lines.push(
+                    `${sourceIcon} ${result.fqcn} (v${result.version}) [${result.source}] - ${result.info}`,
+                );
             }
 
             lines.push('');
             lines.push('**To install a collection, use the install_ansible_collection MCP tool.**');
             lines.push('Example: install_ansible_collection({ name: "namespace.collection" })');
-            lines.push('For GitHub: install_ansible_collection({ name: "git+https://github.com/org/repo.git" })');
+            lines.push(
+                'For GitHub: install_ansible_collection({ name: "git+https://github.com/org/repo.git" })',
+            );
             lines.push('');
-            lines.push('**IMPORTANT: Do NOT suggest using ansible-galaxy collection install directly.**');
+            lines.push(
+                '**IMPORTANT: Do NOT suggest using ansible-galaxy collection install directly.**',
+            );
 
             return {
-                content: [{ type: 'text', text: lines.join('\n') }]
+                content: [{ type: 'text', text: lines.join('\n') }],
             };
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Failed to search collections: ${error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to search collections: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
 
-    private async _handleListSourceCollections(args: Record<string, unknown>): Promise<McpToolResult> {
+    private async _handleListSourceCollections(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
         const source = args.source as string;
         if (!source) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: source' }],
-                isError: true
+                isError: true,
             };
         }
 
-        const limit = Math.min(args.limit as number || 100, 500);
-        
+        const limit = Math.min((args.limit as number | undefined) ?? 100, 500);
+
         try {
             interface CollectionInfo {
                 fqcn: string;
                 version: string;
                 description: string;
             }
-            
+
             const collections: CollectionInfo[] = [];
-            
+
             if (source.toLowerCase() === 'galaxy') {
                 // List Galaxy collections
                 const galaxyCache = GalaxyCollectionCache.getInstance();
                 await galaxyCache.ensureLoaded();
-                
+
                 for (const col of galaxyCache.getCollections().slice(0, limit)) {
                     const deprecated = col.deprecated ? ' [DEPRECATED]' : '';
                     collections.push({
                         fqcn: `${col.namespace}.${col.name}`,
                         version: col.version,
-                        description: `${col.downloadCount.toLocaleString()} downloads${deprecated}`
+                        description: `${col.downloadCount.toLocaleString()} downloads${deprecated}`,
                     });
                 }
             } else {
@@ -466,29 +518,28 @@ export class McpToolHandler {
                 // Load from disk first (MCP server runs standalone)
                 githubCache.loadFromDisk(source);
                 const orgCollections = githubCache.getCollections(source);
-                
+
                 for (const col of orgCollections.slice(0, limit)) {
                     collections.push({
                         fqcn: `${col.namespace}.${col.name}`,
                         version: col.version,
-                        description: col.description || 'No description'
+                        description: col.description || 'No description',
                     });
                 }
             }
-            
+
             if (collections.length === 0) {
                 return {
-                    content: [{
-                        type: 'text',
-                        text: `No collections found in source "${source}". The source may need to be refreshed.`
-                    }]
+                    content: [
+                        {
+                            type: 'text',
+                            text: `No collections found in source "${source}". The source may need to be refreshed.`,
+                        },
+                    ],
                 };
             }
 
-            const lines = [
-                `Collections in "${source}" (${collections.length}):`,
-                ''
-            ];
+            const lines = [`Collections in "${source}" (${String(collections.length)}):`, ''];
 
             for (const col of collections) {
                 lines.push(`• ${col.fqcn} (v${col.version}): ${col.description}`);
@@ -497,27 +548,38 @@ export class McpToolHandler {
             lines.push('');
             lines.push('**To install a collection, use the install_ansible_collection MCP tool.**');
             lines.push('Example: install_ansible_collection({ name: "namespace.collection" })');
-            lines.push('For GitHub: install_ansible_collection({ name: "git+https://github.com/org/repo.git" })');
+            lines.push(
+                'For GitHub: install_ansible_collection({ name: "git+https://github.com/org/repo.git" })',
+            );
             lines.push('');
-            lines.push('**IMPORTANT: Do NOT suggest using ansible-galaxy collection install directly.**');
+            lines.push(
+                '**IMPORTANT: Do NOT suggest using ansible-galaxy collection install directly.**',
+            );
 
             return {
-                content: [{ type: 'text', text: lines.join('\n') }]
+                content: [{ type: 'text', text: lines.join('\n') }],
             };
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Failed to list collections: ${error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
 
-    private async _handleGetCollectionPlugins(args: Record<string, unknown>): Promise<McpToolResult> {
+    private async _handleGetCollectionPlugins(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
         const collection = args.collection as string;
         if (!collection) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: collection' }],
-                isError: true
+                isError: true,
             };
         }
 
@@ -528,27 +590,31 @@ export class McpToolHandler {
         }
 
         let collectionData = service.getCollection(collection);
-        
+
         // If collection not found, try a force refresh in case it was just installed externally
         if (!collectionData) {
-            console.error(`McpToolHandler: Collection "${collection}" not in cache, trying force refresh...`);
+            console.error(
+                `McpToolHandler: Collection "${collection}" not in cache, trying force refresh...`,
+            );
             await service.forceRefresh();
             collectionData = service.getCollection(collection);
         }
-        
+
         if (!collectionData) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `Collection "${collection}" not found.\n\nUse list_ansible_collections to see installed collections, or install_ansible_collection to install it.`
-                }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Collection "${collection}" not found.\n\nUse list_ansible_collections to see installed collections, or install_ansible_collection to install it.`,
+                    },
+                ],
+                isError: true,
             };
         }
 
         const pluginTypeFilter = args.plugin_type as string | undefined;
         const sections: string[] = [];
-        
+
         sections.push(`# ${collection} (v${collectionData.info.version || 'unknown'})`);
         if (collectionData.info.description) {
             sections.push(`*${collectionData.info.description}*\n`);
@@ -568,11 +634,11 @@ export class McpToolHandler {
             }
 
             totalPlugins += plugins.length;
-            sections.push(`## ${pluginType}s (${plugins.length})\n`);
+            sections.push(`## ${pluginType}s (${String(plugins.length)})\n`);
 
             // Show ALL plugins with descriptions
             for (const plugin of plugins) {
-                const desc = plugin.shortDescription 
+                const desc = plugin.shortDescription
                     ? ` - ${plugin.shortDescription.substring(0, 100)}${plugin.shortDescription.length > 100 ? '...' : ''}`
                     : '';
                 sections.push(`• **${plugin.name}**${desc}`);
@@ -582,19 +648,21 @@ export class McpToolHandler {
 
         if (totalPlugins === 0) {
             return {
-                content: [{
-                    type: 'text',
-                    text: pluginTypeFilter 
-                        ? `No ${pluginTypeFilter}s found in ${collection}.`
-                        : `No plugins found in ${collection}.`
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: pluginTypeFilter
+                            ? `No ${pluginTypeFilter}s found in ${collection}.`
+                            : `No plugins found in ${collection}.`,
+                    },
+                ],
             };
         }
 
         sections.push(`---\nUse \`get_plugin_documentation\` for full details on any plugin.`);
 
         return {
-            content: [{ type: 'text', text: sections.join('\n') }]
+            content: [{ type: 'text', text: sections.join('\n') }],
         };
     }
 
@@ -602,39 +670,39 @@ export class McpToolHandler {
 
     private async _handleGenerateTask(args: Record<string, unknown>): Promise<McpToolResult> {
         const plugin = args.plugin as string;
-        const params = args.params as Record<string, unknown>;
+        const params = args.params;
 
         if (!plugin) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: plugin' }],
-                isError: true
+                isError: true,
             };
         }
 
-        if (!params) {
+        if (typeof params !== 'object' || params === null || Array.isArray(params)) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: params' }],
-                isError: true
+                isError: true,
             };
         }
 
         const result = await this._taskGenerator.generate({
             plugin,
             plugin_type: args.plugin_type as string,
-            params,
+            params: params as Record<string, unknown>,
             task_name: args.task_name as string,
             register: args.register as string,
             when: args.when as string,
             loop: args.loop as unknown[],
             become: args.become as boolean,
             ignore_errors: args.ignore_errors as boolean,
-            tags: args.tags as string[]
+            tags: args.tags as string[],
         });
 
         let response = `\`\`\`yaml\n${result.yaml}\n\`\`\``;
 
         if (result.warnings.length > 0) {
-            response += `\n\n⚠️ Warnings:\n${result.warnings.map(w => `• ${w}`).join('\n')}`;
+            response += `\n\n⚠️ Warnings:\n${result.warnings.map((w) => `• ${w}`).join('\n')}`;
         }
 
         return { content: [{ type: 'text', text: response }] };
@@ -651,63 +719,87 @@ export class McpToolHandler {
             register: args.register as string,
             when: args.when as string,
             generate: args.generate as boolean,
-            cancel: args.cancel as boolean
+            cancel: args.cancel as boolean,
         });
 
         if (result.status === 'complete' && result.yaml) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `✓ Task generated:\n\n\`\`\`yaml\n${result.yaml}\n\`\`\``
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: `✓ Task generated:\n\n\`\`\`yaml\n${result.yaml}\n\`\`\``,
+                    },
+                ],
             };
         }
 
         return {
             content: [{ type: 'text', text: result.message }],
-            isError: result.status === 'error'
+            isError: result.status === 'error',
         };
     }
 
     private async _handleGeneratePlaybook(args: Record<string, unknown>): Promise<McpToolResult> {
         const name = args.name as string;
         const hosts = args.hosts as string;
-        const tasks = args.tasks as Array<{
+        const tasks = args.tasks;
+
+        if (!name || !hosts || !Array.isArray(tasks)) {
+            return {
+                content: [
+                    { type: 'text', text: 'Missing required parameters: name, hosts, tasks' },
+                ],
+                isError: true,
+            };
+        }
+
+        interface PlaybookTaskInput {
             plugin: string;
             params: Record<string, unknown>;
             task_name?: string;
             become?: boolean;
             when?: string;
             register?: string;
-        }>;
-
-        if (!name || !hosts || !tasks) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameters: name, hosts, tasks' }],
-                isError: true
-            };
         }
+
+        const playbookTasks: PlaybookTaskInput[] = tasks.map((task) => {
+            if (typeof task !== 'object' || task === null) {
+                throw new Error('Invalid task entry in tasks array');
+            }
+            const entry = task as Record<string, unknown>;
+            if (typeof entry.plugin !== 'string') {
+                throw new Error('Each task must include a plugin string');
+            }
+            if (
+                typeof entry.params !== 'object' ||
+                entry.params === null ||
+                Array.isArray(entry.params)
+            ) {
+                throw new Error('Each task must include a params object');
+            }
+            return {
+                plugin: entry.plugin,
+                params: entry.params as Record<string, unknown>,
+                task_name: typeof entry.task_name === 'string' ? entry.task_name : undefined,
+                become: typeof entry.become === 'boolean' ? entry.become : undefined,
+                when: typeof entry.when === 'string' ? entry.when : undefined,
+                register: typeof entry.register === 'string' ? entry.register : undefined,
+            };
+        });
 
         const result = await this._taskGenerator.generatePlaybook({
             name,
             hosts,
-            tasks: tasks.map(t => ({
-                plugin: t.plugin,
-                params: t.params,
-                task_name: t.task_name,
-                become: t.become,
-                when: t.when,
-                register: t.register
-            })),
+            tasks: playbookTasks,
             become: args.become as boolean,
             vars: args.vars as Record<string, unknown>,
-            gather_facts: args.gather_facts as boolean
+            gather_facts: args.gather_facts as boolean,
         });
 
         let response = `\`\`\`yaml\n${result.yaml}\n\`\`\``;
 
         if (result.warnings.length > 0) {
-            response += `\n\n⚠️ Warnings:\n${result.warnings.map(w => `• ${w}`).join('\n')}`;
+            response += `\n\n⚠️ Warnings:\n${result.warnings.map((w) => `• ${w}`).join('\n')}`;
         }
 
         return { content: [{ type: 'text', text: response }] };
@@ -723,27 +815,39 @@ export class McpToolHandler {
 
             if (ees.length === 0) {
                 return {
-                    content: [{
-                        type: 'text',
-                        text: 'No execution environments found.\n\nMake sure ansible-navigator and a container runtime (Podman/Docker) are installed.'
-                    }]
+                    content: [
+                        {
+                            type: 'text',
+                            text: 'No execution environments found.\n\nMake sure ansible-navigator and a container runtime (Podman/Docker) are installed.',
+                        },
+                    ],
                 };
             }
 
-            const formatted = ees.map(ee =>
-                `• **${ee.full_name}**\n  ID: ${ee.image_id.substring(0, 12)}  Created: ${ee.created}`
-            ).join('\n\n');
+            const formatted = ees
+                .map(
+                    (ee) =>
+                        `• **${ee.full_name}**\n  ID: ${ee.image_id.substring(0, 12)}  Created: ${ee.created}`,
+                )
+                .join('\n\n');
 
             return {
-                content: [{
-                    type: 'text',
-                    text: `Execution Environments (${ees.length}):\n\n${formatted}\n\n---\nUse \`get_ee_details\` for more information about a specific EE.`
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: `Execution Environments (${String(ees.length)}):\n\n${formatted}\n\n---\nUse \`get_ee_details\` for more information about a specific EE.`,
+                    },
+                ],
             };
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Error loading execution environments: ${error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Error loading execution environments: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
@@ -753,7 +857,7 @@ export class McpToolHandler {
         if (!eeName) {
             return {
                 content: [{ type: 'text', text: 'Missing required parameter: ee_name' }],
-                isError: true
+                isError: true,
             };
         }
 
@@ -765,7 +869,7 @@ export class McpToolHandler {
             if (!details) {
                 return {
                     content: [{ type: 'text', text: `Execution environment not found: ${eeName}` }],
-                    isError: true
+                    isError: true,
                 };
             }
 
@@ -778,52 +882,62 @@ export class McpToolHandler {
             if (details.ansible_version?.details) {
                 sections.push(`**Ansible Version:** ${details.ansible_version.details}`);
             }
-            if (details.os_release?.details?.[0]) {
+            if (details.os_release?.details[0]) {
                 const os = details.os_release.details[0];
-                sections.push(`**Base OS:** ${os['pretty-name'] || os.name || 'Unknown'}`);
+                sections.push(`**Base OS:** ${os['pretty-name'] ?? os.name ?? 'Unknown'}`);
             }
             if (details.redhat_release?.details) {
                 sections.push(`**Red Hat Release:** ${details.redhat_release.details}`);
             }
             if (details.system_packages?.details) {
                 const pkgCount = Object.keys(details.system_packages.details).length;
-                sections.push(`**System Packages:** ${pkgCount} installed`);
+                sections.push(`**System Packages:** ${String(pkgCount)} installed`);
             }
             sections.push('');
 
             // Ansible Collections - show ALL
             if (details.ansible_collections?.details) {
-                const collections = Object.entries(details.ansible_collections.details)
-                    .sort(([a], [b]) => a.localeCompare(b));
-                sections.push(`## Ansible Collections (${collections.length})\n`);
-                sections.push(collections.map(([name, version]) => `• ${name}: ${version}`).join('\n'));
+                const collections = Object.entries(details.ansible_collections.details).sort(
+                    ([a], [b]) => a.localeCompare(b),
+                );
+                sections.push(`## Ansible Collections (${String(collections.length)})\n`);
+                sections.push(
+                    collections.map(([name, version]) => `• ${name}: ${version}`).join('\n'),
+                );
                 sections.push('');
             }
 
             // Python packages - show ALL
             if (details.python_packages?.details) {
-                const packages = [...details.python_packages.details]
-                    .sort((a, b) => a.name.localeCompare(b.name));
-                sections.push(`## Python Packages (${packages.length})\n`);
-                sections.push(packages.map(p => `• ${p.name}: ${p.version}`).join('\n'));
+                const packages = [...details.python_packages.details].sort((a, b) =>
+                    a.name.localeCompare(b.name),
+                );
+                sections.push(`## Python Packages (${String(packages.length)})\n`);
+                sections.push(packages.map((p) => `• ${p.name}: ${p.version}`).join('\n'));
                 sections.push('');
             }
 
             // System packages if available
             if (details.system_packages?.details) {
-                const sysPkgs = Object.entries(details.system_packages.details)
-                    .sort(([a], [b]) => a.localeCompare(b));
-                sections.push(`## System Packages (${sysPkgs.length})\n`);
+                const sysPkgs = Object.entries(details.system_packages.details).sort(([a], [b]) =>
+                    a.localeCompare(b),
+                );
+                sections.push(`## System Packages (${String(sysPkgs.length)})\n`);
                 sections.push(sysPkgs.map(([name, version]) => `• ${name}: ${version}`).join('\n'));
             }
 
             return {
-                content: [{ type: 'text', text: sections.join('\n') }]
+                content: [{ type: 'text', text: sections.join('\n') }],
             };
         } catch (error) {
             return {
-                content: [{ type: 'text', text: `Error loading EE details: ${error}` }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: `Error loading EE details: ${error instanceof Error ? error.message : String(error)}`,
+                    },
+                ],
+                isError: true,
             };
         }
     }
@@ -841,20 +955,24 @@ export class McpToolHandler {
 
         if (packages.length === 0) {
             return {
-                content: [{
-                    type: 'text',
-                    text: 'ansible-dev-tools is not installed.\n\nInstall with: pip install ansible-dev-tools'
-                }]
+                content: [
+                    {
+                        type: 'text',
+                        text: 'ansible-dev-tools is not installed.\n\nInstall with: pip install ansible-dev-tools',
+                    },
+                ],
             };
         }
 
-        const formatted = packages.map(p => `• ${p.name}: ${p.version}`).join('\n');
+        const formatted = packages.map((p) => `• ${p.name}: ${p.version}`).join('\n');
 
         return {
-            content: [{
-                type: 'text',
-                text: `Ansible Dev Tools Packages:\n\n${formatted}`
-            }]
+            content: [
+                {
+                    type: 'text',
+                    text: `Ansible Dev Tools Packages:\n\n${formatted}`,
+                },
+            ],
         };
     }
 
@@ -871,59 +989,65 @@ export class McpToolHandler {
 
         if (!schema) {
             return {
-                content: [{
-                    type: 'text',
-                    text: 'ansible-creator is not available.\n\nInstall with: pip install ansible-dev-tools'
-                }],
-                isError: true
+                content: [
+                    {
+                        type: 'text',
+                        text: 'ansible-creator is not available.\n\nInstall with: pip install ansible-dev-tools',
+                    },
+                ],
+                isError: true,
             };
         }
 
         // Format the schema into a readable summary
-        const formatNode = (node: SchemaNode, indent: string = ''): string => {
+        const formatNode = (node: SchemaNode, indent = ''): string => {
             const lines: string[] = [];
-            
+
             if (node.name) {
                 lines.push(`${indent}**${node.name}**`);
             }
             if (node.description) {
                 lines.push(`${indent}  ${node.description}`);
             }
-            
+
             if (node.parameters?.properties) {
-                const required = node.parameters.required || [];
+                const required = node.parameters.required;
                 const props = Object.entries(node.parameters.properties);
                 if (props.length > 0) {
                     lines.push(`${indent}  Parameters:`);
                     for (const [name, prop] of props) {
                         const req = required.includes(name) ? ' (required)' : '';
-                        lines.push(`${indent}    - ${name}${req}: ${prop.description || prop.type || ''}`);
+                        lines.push(
+                            `${indent}    - ${name}${req}: ${prop.description || prop.type || ''}`,
+                        );
                     }
                 }
             }
-            
+
             if (node.subcommands) {
                 for (const [, subNode] of Object.entries(node.subcommands)) {
                     lines.push('');
                     lines.push(formatNode(subNode, indent + '  '));
                 }
             }
-            
+
             return lines.join('\n');
         };
 
         const formatted = formatNode(schema);
 
         return {
-            content: [{
-                type: 'text',
-                text: `# ansible-creator Schema\n\nThis tool can scaffold the following Ansible content:\n\n${formatted}`
-            }]
+            content: [
+                {
+                    type: 'text',
+                    text: `# ansible-creator Schema\n\nThis tool can scaffold the following Ansible content:\n\n${formatted}`,
+                },
+            ],
         };
     }
 
     private async _handleGetBestPractices(args: Record<string, unknown>): Promise<McpToolResult> {
-        const section = (args.section as string) || 'full';
+        const section = (args.section as string | undefined) ?? 'full';
 
         const content = await this._loadBestPractices();
         if (!content) {
@@ -938,22 +1062,24 @@ export class McpToolHandler {
         }
 
         const sectionMap: Record<string, string> = {
-            'principles': '## Guiding Principles',
-            'project_structure': '### Project structure',
-            'naming': '#### Naming Conventions',
-            'roles': '#### Roles',
-            'collections': '#### Collections',
-            'playbooks': '#### Playbooks',
-            'testing': '### Testing and Validation',
+            principles: '## Guiding Principles',
+            project_structure: '### Project structure',
+            naming: '#### Naming Conventions',
+            roles: '#### Roles',
+            collections: '#### Collections',
+            playbooks: '#### Playbooks',
+            testing: '### Testing and Validation',
         };
 
         const heading = sectionMap[section];
         if (!heading) {
             return {
-                content: [{
-                    type: 'text',
-                    text: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`,
-                }],
+                content: [
+                    {
+                        type: 'text',
+                        text: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`,
+                    },
+                ],
                 isError: true,
             };
         }
@@ -961,14 +1087,19 @@ export class McpToolHandler {
         const startIndex = content.indexOf(heading);
         if (startIndex === -1) {
             return {
-                content: [{ type: 'text', text: `Section "${section}" not found in best practices document.` }],
+                content: [
+                    {
+                        type: 'text',
+                        text: `Section "${section}" not found in best practices document.`,
+                    },
+                ],
                 isError: true,
             };
         }
 
-        const headingLevel = (heading.match(/^#+/) || ['##'])[0].length;
+        const headingLevel = (/^#+/.exec(heading) ?? ['##'])[0].length;
         const rest = content.slice(startIndex + heading.length);
-        const nextMatch = rest.match(new RegExp(`^#{1,${headingLevel}}\\s`, 'm'));
+        const nextMatch = new RegExp(`^#{1,${String(headingLevel)}}\\s`, 'm').exec(rest);
         const endIndex = nextMatch
             ? startIndex + heading.length + rest.indexOf(nextMatch[0])
             : content.length;
@@ -983,7 +1114,8 @@ export class McpToolHandler {
      * then fetches from the canonical upstream URL and caches for next time.
      */
     private async _loadBestPractices(): Promise<string | undefined> {
-        const UPSTREAM_URL = 'https://raw.githubusercontent.com/ansible/ansible-creator/refs/heads/main/docs/agents.md';
+        const UPSTREAM_URL =
+            'https://raw.githubusercontent.com/ansible/ansible-creator/refs/heads/main/docs/agents.md';
         const cacheDir = path.join(os.tmpdir(), 'ansible-mcp');
         const cachePath = path.join(cacheDir, 'best_practices.md');
 
@@ -991,7 +1123,11 @@ export class McpToolHandler {
             path.join(__dirname, '..', '..', 'resources', 'best_practices.md'),
             path.join(__dirname, '..', 'resources', 'best_practices.md'),
             process.env.ANSIBLE_ENV_EXTENSION_PATH
-                ? path.join(process.env.ANSIBLE_ENV_EXTENSION_PATH, 'resources', 'best_practices.md')
+                ? path.join(
+                      process.env.ANSIBLE_ENV_EXTENSION_PATH,
+                      'resources',
+                      'best_practices.md',
+                  )
                 : '',
             cachePath,
         ].filter(Boolean);
@@ -1011,10 +1147,14 @@ export class McpToolHandler {
                         fs.mkdirSync(cacheDir, { recursive: true });
                     }
                     fs.writeFileSync(cachePath, text, 'utf-8');
-                } catch { /* cache write is best-effort */ }
+                } catch {
+                    /* cache write is best-effort */
+                }
                 return text;
             }
-        } catch { /* network unavailable */ }
+        } catch {
+            /* network unavailable */
+        }
 
         return undefined;
     }

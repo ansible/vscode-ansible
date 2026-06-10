@@ -6,13 +6,11 @@ import * as os from 'os';
 let _outputChannel: vscode.OutputChannel | undefined;
 
 function log(message: string): void {
-    if (!_outputChannel) {
-        _outputChannel = vscode.window.createOutputChannel('Ansible Environments');
-    }
+    _outputChannel ??= vscode.window.createOutputChannel('Ansible Environments');
     _outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any -- Cursor extension API is not typed in @types/vscode */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- Cursor extension API is not typed in @types/vscode */
 
 const MCP_SERVER_NAME = 'ansible-environments';
 
@@ -21,7 +19,10 @@ const MCP_SERVER_NAME = 'ansible-environments';
 // -------------------------------------------------------------------------
 
 interface CursorMcpApi {
-    registerServer(config: { name: string; server: { command: string; args?: string[]; env?: Record<string, string> } }): void;
+    registerServer(config: {
+        name: string;
+        server: { command: string; args?: string[]; env?: Record<string, string> };
+    }): void;
     unregisterServer(name: string): void;
 }
 
@@ -67,7 +68,9 @@ function registerViaCursorApi(serverPath: string): boolean {
         log('MCP server registered via Cursor extension API');
         return true;
     } catch (error) {
-        log(`Cursor MCP API registration failed: ${error}`);
+        log(
+            `Cursor MCP API registration failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
         return false;
     }
 }
@@ -82,7 +85,9 @@ function registerViaCursorApi(serverPath: string): boolean {
  * for VS Code.
  */
 export function registerCursorMcpServer(context: vscode.ExtensionContext): boolean {
-    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+    const serverPath = context.asAbsolutePath(
+        path.join('packages', 'mcp-server', 'out', 'server.js'),
+    );
 
     if (!fs.existsSync(serverPath)) {
         log(`MCP server binary not found at ${serverPath}`);
@@ -111,32 +116,35 @@ interface McpConfig {
  * Used as a fallback when the Cursor extension API is unavailable.
  */
 async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+    const serverPath = context.asAbsolutePath(
+        path.join('packages', 'mcp-server', 'out', 'server.js'),
+    );
 
     if (!fs.existsSync(serverPath)) {
-        vscode.window.showErrorMessage(
-            `MCP server not found at: ${serverPath}`,
-        );
+        vscode.window.showErrorMessage(`MCP server not found at: ${serverPath}`);
         return;
     }
 
-    const configChoice = await vscode.window.showQuickPick([
+    const configChoice = await vscode.window.showQuickPick(
+        [
+            {
+                label: '$(home) Global Configuration',
+                description: 'Apply to all Cursor workspaces',
+                detail: '~/.cursor/mcp.json',
+                value: 'global',
+            },
+            {
+                label: '$(folder) Workspace Configuration',
+                description: 'Apply only to current workspace',
+                detail: '.cursor/mcp.json in workspace',
+                value: 'workspace',
+            },
+        ],
         {
-            label: '$(home) Global Configuration',
-            description: 'Apply to all Cursor workspaces',
-            detail: '~/.cursor/mcp.json',
-            value: 'global',
+            title: 'Configure Cursor MCP',
+            placeHolder: 'Where should the MCP configuration be saved?',
         },
-        {
-            label: '$(folder) Workspace Configuration',
-            description: 'Apply only to current workspace',
-            detail: '.cursor/mcp.json in workspace',
-            value: 'workspace',
-        },
-    ], {
-        title: 'Configure Cursor MCP',
-        placeHolder: 'Where should the MCP configuration be saved?',
-    });
+    );
 
     if (!configChoice) {
         return;
@@ -164,10 +172,8 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
     if (fs.existsSync(configPath)) {
         try {
             const content = fs.readFileSync(configPath, 'utf8');
-            config = JSON.parse(content);
-            if (!config.mcpServers) {
-                config.mcpServers = {};
-            }
+            const parsed = JSON.parse(content) as Partial<McpConfig>;
+            config = { ...parsed, mcpServers: parsed.mcpServers ?? {} };
         } catch {
             const overwrite = await vscode.window.showWarningMessage(
                 `Existing config at ${configPath} could not be parsed. Overwrite?`,
@@ -181,8 +187,9 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
         }
     }
 
-    if (config.mcpServers[MCP_SERVER_NAME]) {
-        const existingPath = config.mcpServers[MCP_SERVER_NAME].args?.[0];
+    if (MCP_SERVER_NAME in config.mcpServers) {
+        const existingServer = config.mcpServers[MCP_SERVER_NAME];
+        const existingPath = existingServer.args[0];
         if (existingPath === serverPath) {
             vscode.window.showInformationMessage(
                 'Cursor MCP is already configured for this extension.',
@@ -222,7 +229,9 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
             await vscode.window.showTextDocument(doc);
         }
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to write config: ${error}`);
+        vscode.window.showErrorMessage(
+            `Failed to write config: ${error instanceof Error ? error.message : String(error)}`,
+        );
     }
 }
 
@@ -235,12 +244,12 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
  * Tries the Cursor extension API first; falls back to mcp.json.
  */
 export async function configureCursorMcp(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+    const serverPath = context.asAbsolutePath(
+        path.join('packages', 'mcp-server', 'out', 'server.js'),
+    );
 
     if (!fs.existsSync(serverPath)) {
-        vscode.window.showErrorMessage(
-            `MCP server not found at: ${serverPath}`,
-        );
+        vscode.window.showErrorMessage(`MCP server not found at: ${serverPath}`);
         return;
     }
 
@@ -284,8 +293,10 @@ function escapeHtml(text: string): string {
 /**
  * Show the current Cursor MCP configuration status
  */
-export async function showCursorMcpStatus(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
+    const serverPath = context.asAbsolutePath(
+        path.join('packages', 'mcp-server', 'out', 'server.js'),
+    );
     const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const workspaceConfigPath = workspaceFolder
@@ -306,19 +317,21 @@ export async function showCursorMcpStatus(context: vscode.ExtensionContext): Pro
         ['Global (~/.cursor/mcp.json)', globalConfigPath],
         ['Workspace (.cursor/mcp.json)', workspaceConfigPath],
     ] as const) {
-        if (!cfgPath) { continue; }
+        if (!cfgPath) {
+            continue;
+        }
         if (!fs.existsSync(cfgPath)) {
             lines.push(`**${label}:** File not found`);
             continue;
         }
         try {
-            const content = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-            const configured = content.mcpServers?.[MCP_SERVER_NAME];
-            if (configured) {
-                const pathMatch = configured.args?.[0] === serverPath;
+            const content = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as McpConfig;
+            if (MCP_SERVER_NAME in content.mcpServers) {
+                const configured = content.mcpServers[MCP_SERVER_NAME];
+                const pathMatch = configured.args[0] === serverPath;
                 lines.push(`**${label}:** ${pathMatch ? 'Configured correctly' : 'Path mismatch'}`);
                 if (!pathMatch) {
-                    lines.push(`  - Configured: \`${escapeHtml(String(configured.args?.[0] ?? ''))}\``);
+                    lines.push(`  - Configured: \`${escapeHtml(configured.args[0])}\``);
                     lines.push(`  - Expected: \`${escapeHtml(serverPath)}\``);
                 }
             } else {
@@ -359,17 +372,19 @@ export async function showCursorMcpStatus(context: vscode.ExtensionContext): Pro
     </style>
 </head>
 <body>
-    ${lines.map(line => {
-        if (line.startsWith('###')) {
-            return `<h3>${line.replace('### ', '')}</h3>`;
-        } else if (line.startsWith('##')) {
-            return `<h2>${line.replace('## ', '')}</h2>`;
-        }
-        const html = line
-            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-            .replace(/`([^`]+)`/g, '<code>$1</code>');
-        return `<div class="status-line">${html}</div>`;
-    }).join('\n')}
+    ${lines
+        .map((line) => {
+            if (line.startsWith('###')) {
+                return `<h3>${line.replace('### ', '')}</h3>`;
+            } else if (line.startsWith('##')) {
+                return `<h2>${line.replace('## ', '')}</h2>`;
+            }
+            const html = line
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+            return `<div class="status-line">${html}</div>`;
+        })
+        .join('\n')}
 
     <div style="margin-top: 30px;">
         <p>To configure, run: <strong>Ansible Environments: Configure Cursor MCP</strong></p>
@@ -406,7 +421,9 @@ export interface McpStatus {
 }
 
 export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
-    const serverPath = context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+    const serverPath = context.asAbsolutePath(
+        path.join('packages', 'mcp-server', 'out', 'server.js'),
+    );
     const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const workspaceConfigPath = workspaceFolder
@@ -417,24 +434,30 @@ export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
     const serverExists = fs.existsSync(serverPath);
     const cursorApiAvailable = !!getCursorMcpApi();
 
-    const vscodeAvailable = typeof (vscode as unknown as { lm?: { registerTool?: unknown } }).lm?.registerTool === 'function';
+    const vscodeAvailable =
+        typeof (vscode as unknown as { lm?: { registerTool?: unknown } }).lm?.registerTool ===
+        'function';
 
     let cursorGlobalConfigured = false;
     if (fs.existsSync(globalConfigPath)) {
         try {
-            const content = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8'));
-            const configured = content.mcpServers?.[MCP_SERVER_NAME];
-            cursorGlobalConfigured = configured?.args?.[0] === serverPath;
-        } catch { /* invalid JSON */ }
+            const content = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8')) as McpConfig;
+            const configured = content.mcpServers[MCP_SERVER_NAME];
+            cursorGlobalConfigured = configured.args[0] === serverPath;
+        } catch {
+            /* invalid JSON */
+        }
     }
 
     let cursorWorkspaceConfigured = false;
     if (workspaceConfigPath && fs.existsSync(workspaceConfigPath)) {
         try {
-            const content = JSON.parse(fs.readFileSync(workspaceConfigPath, 'utf8'));
-            const configured = content.mcpServers?.[MCP_SERVER_NAME];
-            cursorWorkspaceConfigured = configured?.args?.[0] === serverPath;
-        } catch { /* invalid JSON */ }
+            const content = JSON.parse(fs.readFileSync(workspaceConfigPath, 'utf8')) as McpConfig;
+            const configured = content.mcpServers[MCP_SERVER_NAME];
+            cursorWorkspaceConfigured = configured.args[0] === serverPath;
+        } catch {
+            /* invalid JSON */
+        }
     }
 
     let isConfigured = false;

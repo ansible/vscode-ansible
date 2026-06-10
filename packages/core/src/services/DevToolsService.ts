@@ -1,6 +1,7 @@
 // Conditional vscode import - only used when available
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone (not in VS Code)
@@ -36,8 +37,8 @@ export class DevToolsService {
     private static _instance: DevToolsService | undefined;
     private _packageInstaller: PackageInstaller | undefined;
     private _packages: DevToolPackage[] = [];
-    private _loading: boolean = false;
-    private _loaded: boolean = false;
+    private _loading = false;
+    private _loaded = false;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
 
@@ -54,9 +55,7 @@ export class DevToolsService {
     }
 
     public static getInstance(): DevToolsService {
-        if (!DevToolsService._instance) {
-            DevToolsService._instance = new DevToolsService();
-        }
+        DevToolsService._instance ??= new DevToolsService();
         return DevToolsService._instance;
     }
 
@@ -96,7 +95,7 @@ export class DevToolsService {
     }
 
     public getPackage(name: string): DevToolPackage | undefined {
-        return this._packages.find(p => p.name === name);
+        return this._packages.find((p) => p.name === name);
     }
 
     public async refresh(): Promise<void> {
@@ -149,7 +148,9 @@ export class DevToolsService {
             name: 'Upgrade ansible-dev-tools',
             show: true,
         });
-        await managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', { waitForCompletion: true });
+        managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', {
+            waitForCompletion: true,
+        });
         log('DevToolsService: upgrade complete, refreshing packages');
         await this.refresh();
     }
@@ -161,11 +162,11 @@ export class DevToolsService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
+
             const adtPath = await commandService.getToolPath('adt');
             log(`DevToolsService: adt resolved to ${adtPath ?? 'not found'}`);
             const result = await commandService.runTool('adt', ['--version']);
-            
+
             if (result.exitCode !== 0) {
                 log('DevToolsService: adt not found or failed');
                 this._packages = [];
@@ -180,7 +181,7 @@ export class DevToolsService {
             const exeSuffix = process.platform === 'win32' ? '.exe' : '';
             const lines = result.stdout.trim().split('\n');
             for (const line of lines) {
-                const match = line.match(/^(\S+)\s+(\S+)$/);
+                const match = /^(\S+)\s+(\S+)$/.exec(line);
                 if (match) {
                     const toolPath = binDir ? path.join(binDir, match[1] + exeSuffix) : undefined;
                     packages.push({ name: match[1], version: match[2], location: toolPath });
@@ -188,7 +189,9 @@ export class DevToolsService {
             }
 
             this._packages = packages;
-            log(`DevToolsService: loaded ${packages.length} packages from ${binDir ?? 'PATH'}`);
+            log(
+                `DevToolsService: loaded ${String(packages.length)} packages from ${binDir ?? 'PATH'}`,
+            );
         } catch (error) {
             console.error('DevToolsService: Failed to load packages:', error);
             this._packages = [];

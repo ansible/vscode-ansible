@@ -1,6 +1,6 @@
 /**
  * Task Generator
- * 
+ *
  * One-shot Ansible task YAML generation for any plugin.
  */
 
@@ -26,21 +26,23 @@ export interface TaskGeneratorResult {
 }
 
 export class TaskGenerator {
-    private _docCache: Map<string, PluginData> = new Map();
+    private _docCache = new Map<string, PluginData>();
 
     async generate(input: TaskGeneratorInput): Promise<TaskGeneratorResult> {
-        const pluginType = input.plugin_type || 'module';
+        const pluginType = input.plugin_type ?? 'module';
         const warnings: string[] = [];
 
         // Fetch plugin documentation
         const doc = await this._getPluginDoc(input.plugin, pluginType);
 
         if (!doc?.doc) {
-            throw new Error(`Plugin not found: ${input.plugin}. Use search_ansible_plugins to find available plugins.`);
+            throw new Error(
+                `Plugin not found: ${input.plugin}. Use search_ansible_plugins to find available plugins.`,
+            );
         }
 
         // Validate parameters
-        const validation = this._validateParams(input.params, doc.doc.options || {});
+        const validation = this._validateParams(input.params, doc.doc.options ?? {});
         warnings.push(...validation.warnings);
 
         // Generate YAML
@@ -75,7 +77,7 @@ export class TaskGenerator {
         if (input.vars && Object.keys(input.vars).length > 0) {
             lines.push('  vars:');
             for (const [key, value] of Object.entries(input.vars)) {
-                lines.push(`    ${key}: ${this._formatValue(value, 2)}`);
+                lines.push(`    ${key}: ${this._formatValue(value)}`);
             }
         }
 
@@ -92,7 +94,8 @@ export class TaskGenerator {
                 lines.push(''); // Blank line between tasks
                 warnings.push(...result.warnings);
             } catch (error) {
-                warnings.push(`Failed to generate task for ${task.plugin}: ${error}`);
+                const message = error instanceof Error ? error.message : String(error);
+                warnings.push(`Failed to generate task for ${task.plugin}: ${message}`);
             }
         }
 
@@ -102,8 +105,9 @@ export class TaskGenerator {
     private async _getPluginDoc(plugin: string, pluginType: string): Promise<PluginData | null> {
         const cacheKey = `${plugin}:${pluginType}`;
 
-        if (this._docCache.has(cacheKey)) {
-            return this._docCache.get(cacheKey)!;
+        const cached = this._docCache.get(cacheKey);
+        if (cached) {
+            return cached;
         }
 
         const service = CollectionsService.getInstance();
@@ -118,7 +122,7 @@ export class TaskGenerator {
 
     private _validateParams(
         params: Record<string, unknown>,
-        options: Record<string, PluginOption>
+        options: Record<string, PluginOption>,
     ): { warnings: string[] } {
         const warnings: string[] = [];
 
@@ -126,7 +130,7 @@ export class TaskGenerator {
         for (const [name, spec] of Object.entries(options)) {
             if (spec.required && !(name in params)) {
                 // Check aliases
-                const hasAlias = spec.aliases?.some(alias => alias in params);
+                const hasAlias = spec.aliases?.some((alias) => alias in params);
                 if (!hasAlias) {
                     warnings.push(`Missing required parameter: ${name}`);
                 }
@@ -136,9 +140,7 @@ export class TaskGenerator {
         // Check for unknown parameters (soft warning)
         for (const name of Object.keys(params)) {
             if (!(name in options)) {
-                const isAlias = Object.values(options).some(
-                    spec => spec.aliases?.includes(name)
-                );
+                const isAlias = Object.values(options).some((spec) => spec.aliases?.includes(name));
                 if (!isAlias) {
                     // Don't warn - could be a valid param not in our docs
                 }
@@ -152,14 +154,14 @@ export class TaskGenerator {
         const lines: string[] = [];
 
         // Task name
-        const taskName = input.task_name || this._generateTaskName(input.plugin, doc);
+        const taskName = input.task_name ?? this._generateTaskName(input.plugin, doc);
         lines.push(`- name: ${taskName}`);
 
         // Plugin and parameters
         lines.push(`  ${input.plugin}:`);
 
         for (const [key, value] of Object.entries(input.params)) {
-            const formatted = this._formatValue(value, 2);
+            const formatted = this._formatValue(value);
             if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
                 lines.push(`    ${key}:`);
                 const objLines = this._formatObject(value as Record<string, unknown>, 3);
@@ -187,7 +189,7 @@ export class TaskGenerator {
         if (input.loop && input.loop.length > 0) {
             lines.push('  loop:');
             for (const item of input.loop) {
-                lines.push(`    - ${this._formatValue(item, 0)}`);
+                lines.push(`    - ${this._formatValue(item)}`);
             }
         }
 
@@ -212,14 +214,14 @@ export class TaskGenerator {
             return desc.charAt(0).toUpperCase() + desc.slice(1, 60);
         }
 
-        const name = plugin.split('.').pop() || plugin;
+        const name = plugin.split('.').pop() ?? plugin;
         return name
             .split('_')
-            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
             .join(' ');
     }
 
-    private _formatValue(value: unknown, _depth: number): string {
+    private _formatValue(value: unknown): string {
         if (value === null || value === undefined) {
             return 'null';
         }
@@ -240,8 +242,12 @@ export class TaskGenerator {
             if (value.length === 0) {
                 return '[]';
             }
-            if (value.every(v => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) {
-                return `[${value.map(v => this._formatValue(v, 0)).join(', ')}]`;
+            if (
+                value.every(
+                    (v) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean',
+                )
+            ) {
+                return `[${value.map((v) => this._formatValue(v)).join(', ')}]`;
             }
             return JSON.stringify(value);
         }
@@ -253,7 +259,11 @@ export class TaskGenerator {
             return JSON.stringify(value);
         }
 
-        return String(value);
+        if (typeof value === 'bigint' || typeof value === 'symbol') {
+            return value.toString();
+        }
+
+        return JSON.stringify(value);
     }
 
     private _formatString(value: string): string {
@@ -290,7 +300,7 @@ export class TaskGenerator {
                 lines.push(`${prefix}${key}:`);
                 lines.push(...this._formatObject(value as Record<string, unknown>, indent + 1));
             } else {
-                lines.push(`${prefix}${key}: ${this._formatValue(value, indent)}`);
+                lines.push(`${prefix}${key}: ${this._formatValue(value)}`);
             }
         }
 
@@ -305,15 +315,15 @@ export class TaskGenerator {
             const entries = Object.entries(item as Record<string, unknown>);
             if (entries.length > 0) {
                 const [firstKey, firstValue] = entries[0];
-                lines.push(`${prefix}- ${firstKey}: ${this._formatValue(firstValue, indent)}`);
-                
+                lines.push(`${prefix}- ${firstKey}: ${this._formatValue(firstValue)}`);
+
                 for (let i = 1; i < entries.length; i++) {
                     const [key, value] = entries[i];
-                    lines.push(`${prefix}  ${key}: ${this._formatValue(value, indent)}`);
+                    lines.push(`${prefix}  ${key}: ${this._formatValue(value)}`);
                 }
             }
         } else {
-            lines.push(`${prefix}- ${this._formatValue(item, indent)}`);
+            lines.push(`${prefix}- ${this._formatValue(item)}`);
         }
 
         return lines;

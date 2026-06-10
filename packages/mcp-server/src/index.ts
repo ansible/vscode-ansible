@@ -3,11 +3,7 @@
  */
 
 export { McpToolHandler } from './handlers';
-export {
-    STATIC_TOOLS,
-    type McpToolDefinition,
-    type McpToolResult,
-} from './tools';
+export { STATIC_TOOLS, type McpToolDefinition, type McpToolResult } from './tools';
 export { CreatorToolGenerator } from './creatorTools';
 export { PluginSearchIndex, type PluginSearchResult } from './pluginSearch';
 export { TaskBuilder, type TaskBuilderInput, type TaskBuilderResult } from './taskBuilder';

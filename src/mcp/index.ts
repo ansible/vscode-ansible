@@ -1,6 +1,6 @@
 /**
  * MCP Module Exports
- * 
+ *
  * Re-exports server implementation from @ansible/mcp-server plus VS Code–local MCP wiring.
  */
 
@@ -20,4 +20,12 @@ export {
     McpToolHandler,
 } from '@ansible/mcp-server';
 export { registerMcpServerProvider, isMcpAvailable } from './vscodeProvider';
-export { registerCursorMcpServer, configureCursorMcp, showCursorMcpStatus, getMcpStatus, McpStatus, detectIde, IdeType } from './cursorConfig';
+export {
+    registerCursorMcpServer,
+    configureCursorMcp,
+    showCursorMcpStatus,
+    getMcpStatus,
+    McpStatus,
+    detectIde,
+    IdeType,
+} from './cursorConfig';

@@ -7,6 +7,7 @@ import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 // Conditional vscode import - only used when available
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone (not in VS Code)
@@ -18,18 +19,16 @@ const COLLECTIONS_CACHE_FILE = 'collections-metadata.json';
 
 interface CollectionsCache {
     timestamp: string;
-    collections: Array<{
+    collections: {
         name: string;
         info: CollectionInfo;
-        pluginTypes: Array<{
+        pluginTypes: {
             type: string;
             plugins: PluginInfo[];
-        }>;
-    }>;
-    pluginDocs?: { [fqcnAndType: string]: PluginData };
+        }[];
+    }[];
+    pluginDocs?: Record<string, PluginData>;
 }
-
-
 
 /**
  * Information about an Ansible collection
@@ -70,7 +69,7 @@ export interface PluginOption {
     required?: boolean;
     elements?: string;
     aliases?: string[];
-    suboptions?: { [key: string]: PluginOption };
+    suboptions?: Record<string, PluginOption>;
     version_added?: string;
 }
 
@@ -86,24 +85,25 @@ export interface PluginDoc {
     plugin_name?: string;
     version_added?: string;
     notes?: string | string[];
-    options?: { [key: string]: PluginOption };
-    seealso?: Array<{ module?: string; description?: string; link?: string; name?: string }>;
+    options?: Record<string, PluginOption>;
+    seealso?: { module?: string; description?: string; link?: string; name?: string }[];
     requirements?: string | string[];
-    attributes?: { [key: string]: unknown };
+    attributes?: Record<string, unknown>;
 }
 
 /**
  * Plugin return value documentation
  */
-export interface PluginReturn {
-    [key: string]: {
+export type PluginReturn = Record<
+    string,
+    {
         description?: string | string[];
         returned?: string;
         type?: string;
         sample?: unknown;
-        contains?: { [key: string]: unknown };
-    };
-}
+        contains?: Record<string, unknown>;
+    }
+>;
 
 /**
  * Complete plugin data including documentation, examples, and return values
@@ -123,11 +123,7 @@ interface MetadataEntry {
     metadata?: unknown;
 }
 
-interface MetadataPluginTypes {
-    [pluginType: string]: {
-        [pluginFullName: string]: MetadataEntry;
-    };
-}
+type MetadataPluginTypes = Record<string, Record<string, MetadataEntry>>;
 
 interface MetadataDump {
     all?: MetadataPluginTypes;
@@ -142,9 +138,7 @@ interface AdeCollectionInfo {
     };
 }
 
-interface AdeInspectOutput {
-    [collectionName: string]: AdeCollectionInfo;
-}
+type AdeInspectOutput = Record<string, AdeCollectionInfo>;
 
 // Command execution is now handled by CommandService
 
@@ -152,7 +146,7 @@ interface AdeInspectOutput {
  * Get the workspace root directory
  */
 function getWorkspaceRoot(): string | null {
-    if (vscode?.workspace?.workspaceFolders?.[0]) {
+    if (vscode?.workspace.workspaceFolders?.[0]) {
         const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
         console.log(`CollectionsService: Workspace root: ${root}`);
         return root;
@@ -181,7 +175,7 @@ function ensureCacheDir(): boolean {
     if (!workspaceRoot) {
         return false;
     }
-    
+
     const cacheDir = path.join(workspaceRoot, CACHE_DIR);
     try {
         if (!fs.existsSync(cacheDir)) {
@@ -202,24 +196,29 @@ function readCollectionsCache(): CollectionsCache | null {
         logMessage('No cache path available (no workspace?)');
         return null;
     }
-    
+
     try {
         if (fs.existsSync(cachePath)) {
             const content = fs.readFileSync(cachePath, 'utf8');
             const cache = JSON.parse(content) as CollectionsCache;
             const ageMs = Date.now() - new Date(cache.timestamp).getTime();
-            const ageStr = ageMs < 60000 ? 'just now' : 
-                          ageMs < 3600000 ? `${Math.round(ageMs/60000)} min ago` :
-                          `${Math.round(ageMs/3600000)} hour(s) ago`;
-            logMessage(`Cache loaded: ${cache.collections?.length || 0} collections (${ageStr})`);
+            const ageStr =
+                ageMs < 60000
+                    ? 'just now'
+                    : ageMs < 3600000
+                      ? `${String(Math.round(ageMs / 60000))} min ago`
+                      : `${String(Math.round(ageMs / 3600000))} hour(s) ago`;
+            logMessage(`Cache loaded: ${String(cache.collections.length)} collections (${ageStr})`);
             return cache;
         } else {
             logMessage(`Cache file not found at ${cachePath}`);
         }
     } catch (error) {
-        logMessage(`Failed to read cache: ${error}`);
+        logMessage(
+            `Failed to read cache: ${error instanceof Error ? error.message : String(error)}`,
+        );
     }
-    
+
     return null;
 }
 
@@ -233,18 +232,21 @@ function logMessage(message: string): void {
 /**
  * Write the collections cache
  */
-function writeCollectionsCache(collections: Map<string, CollectionData>, pluginDocs: Map<string, PluginData>): boolean {
+function writeCollectionsCache(
+    collections: Map<string, CollectionData>,
+    pluginDocs: Map<string, PluginData>,
+): boolean {
     if (!ensureCacheDir()) {
         return false;
     }
-    
+
     const cachePath = getCollectionsCachePath();
     if (!cachePath) {
         return false;
     }
-    
+
     try {
-        const docsObj = Object.create(null) as { [key: string]: PluginData };
+        const docsObj = Object.create(null) as Record<string, PluginData>;
         for (const [key, data] of pluginDocs) {
             docsObj[key] = data;
         }
@@ -256,12 +258,12 @@ function writeCollectionsCache(collections: Map<string, CollectionData>, pluginD
                 info: data.info,
                 pluginTypes: Array.from(data.pluginTypes.entries()).map(([type, plugins]) => ({
                     type,
-                    plugins
-                }))
+                    plugins,
+                })),
             })),
-            pluginDocs: docsObj
+            pluginDocs: docsObj,
         };
-        
+
         fs.writeFileSync(cachePath, JSON.stringify(cache), 'utf8');
         return true;
     } catch (error) {
@@ -280,7 +282,7 @@ interface CacheResult {
  */
 function cacheToMaps(cache: CollectionsCache): CacheResult {
     const collections = new Map<string, CollectionData>();
-    
+
     for (const item of cache.collections) {
         const pluginTypes = new Map<string, PluginInfo[]>();
         for (const pt of item.pluginTypes) {
@@ -288,7 +290,7 @@ function cacheToMaps(cache: CollectionsCache): CacheResult {
         }
         collections.set(item.name, {
             info: item.info,
-            pluginTypes
+            pluginTypes,
         });
     }
 
@@ -298,7 +300,7 @@ function cacheToMaps(cache: CollectionsCache): CacheResult {
             pluginDocs.set(key, data);
         }
     }
-    
+
     return { collections, pluginDocs };
 }
 
@@ -308,11 +310,11 @@ function cacheToMaps(cache: CollectionsCache): CacheResult {
  */
 export class CollectionsService {
     private static _instance: CollectionsService | undefined;
-    private _collections: Map<string, CollectionData> = new Map();
-    private _pluginDocs: Map<string, PluginData> = new Map();
-    private _loading: boolean = false;
-    private _loaded: boolean = false;
-    private _backgroundRefreshing: boolean = false;
+    private _collections = new Map<string, CollectionData>();
+    private _pluginDocs = new Map<string, PluginData>();
+    private _loading = false;
+    private _loaded = false;
+    private _backgroundRefreshing = false;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
 
@@ -330,9 +332,7 @@ export class CollectionsService {
     }
 
     public static getInstance(): CollectionsService {
-        if (!CollectionsService._instance) {
-            CollectionsService._instance = new CollectionsService();
-        }
+        CollectionsService._instance ??= new CollectionsService();
         return CollectionsService._instance;
     }
 
@@ -383,7 +383,7 @@ export class CollectionsService {
         if (!collection) {
             return [];
         }
-        return collection.pluginTypes.get(pluginType) || [];
+        return collection.pluginTypes.get(pluginType) ?? [];
     }
 
     /**
@@ -400,8 +400,10 @@ export class CollectionsService {
     /**
      * Search for plugins across all collections
      */
-    public searchPlugins(query: string): Array<{ collection: string; pluginType: string; plugin: PluginInfo }> {
-        const results: Array<{ collection: string; pluginType: string; plugin: PluginInfo }> = [];
+    public searchPlugins(
+        query: string,
+    ): { collection: string; pluginType: string; plugin: PluginInfo }[] {
+        const results: { collection: string; pluginType: string; plugin: PluginInfo }[] = [];
         const lowerQuery = query.toLowerCase();
 
         for (const [collectionName, collection] of this._collections) {
@@ -442,20 +444,22 @@ export class CollectionsService {
         // Try to load from cache first for instant UI
         const cache = readCollectionsCache();
         if (cache) {
-            this._log(`Cache found with ${cache.collections.length} collections from ${cache.timestamp}`);
+            this._log(
+                `Cache found with ${String(cache.collections.length)} collections from ${cache.timestamp}`,
+            );
             const cached = cacheToMaps(cache);
             this._collections = cached.collections;
             this._pluginDocs = cached.pluginDocs;
             this._loaded = true;
             (this._onDidChange as { fire: () => void }).fire();
-            
+
             // Background refresh to update cache (don't await)
-            this._backgroundRefresh();
+            void this._backgroundRefresh();
             return;
         }
 
         this._log('No cache found, doing full load');
-        
+
         // No cache - do full load with loading state
         this._loading = true;
         (this._onDidChange as { fire: () => void }).fire();
@@ -463,18 +467,22 @@ export class CollectionsService {
         try {
             await this._doFullLoad();
             this._loaded = true;
-            
+
             // Save to cache
             writeCollectionsCache(this._collections, this._pluginDocs);
-            this._log(`Full load complete, ${this._collections.size} collections, ${this._pluginDocs.size} plugin docs cached`);
+            this._log(
+                `Full load complete, ${String(this._collections.size)} collections, ${String(this._pluginDocs.size)} plugin docs cached`,
+            );
         } catch (error) {
-            this._log(`Full load failed: ${error}`);
+            this._log(
+                `Full load failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
         } finally {
             this._loading = false;
             (this._onDidChange as { fire: () => void }).fire();
         }
     }
-    
+
     /**
      * Force a fresh refresh of collections, bypassing cache
      * Use this when you need the absolute latest collection data
@@ -487,18 +495,22 @@ export class CollectionsService {
         try {
             await this._doFullLoad();
             this._loaded = true;
-            
+
             // Save to cache
             writeCollectionsCache(this._collections, this._pluginDocs);
-            this._log(`Force refresh complete, ${this._collections.size} collections, ${this._pluginDocs.size} plugin docs cached`);
+            this._log(
+                `Force refresh complete, ${String(this._collections.size)} collections, ${String(this._pluginDocs.size)} plugin docs cached`,
+            );
         } catch (error) {
-            this._log(`Force refresh failed: ${error}`);
+            this._log(
+                `Force refresh failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
         } finally {
             this._loading = false;
             (this._onDidChange as { fire: () => void }).fire();
         }
     }
-    
+
     /**
      * Perform a full load of collections
      */
@@ -507,7 +519,7 @@ export class CollectionsService {
         this._pluginDocs.clear();
         await this._loadCollectionsWithCommandService();
     }
-    
+
     /**
      * Background refresh - updates cache and view if data changed
      * Keeps existing data visible while refreshing
@@ -520,46 +532,58 @@ export class CollectionsService {
         }
         this._backgroundRefreshing = true;
         this._log('Starting background refresh');
-        
+
         // Show status bar message if in VS Code
         let statusDisposable: { dispose: () => void } | undefined;
         if (vscode) {
-            statusDisposable = vscode.window.setStatusBarMessage('$(sync~spin) Updating collections index...');
+            statusDisposable = vscode.window.setStatusBarMessage(
+                '$(sync~spin) Updating collections index...',
+            );
         }
-        
+
         try {
             // Load into temporary maps WITHOUT touching this._collections/_pluginDocs
             const tempCollections = new Map<string, CollectionData>();
             const tempDocs = new Map<string, PluginData>();
             const oldCount = this._collections.size;
-            
+
             await this._loadCollectionsWithCommandService(tempCollections, tempDocs);
-            
+
             // Now swap atomically after load is complete
             const newCount = tempCollections.size;
             this._collections = tempCollections;
             this._pluginDocs = tempDocs;
-            
-            this._log(`Background refresh complete: ${oldCount} -> ${newCount} collections, ${tempDocs.size} plugin docs`);
-            
+
+            this._log(
+                `Background refresh complete: ${String(oldCount)} -> ${String(newCount)} collections, ${String(tempDocs.size)} plugin docs`,
+            );
+
             // Always update cache with fresh data
             writeCollectionsCache(this._collections, this._pluginDocs);
-            
+
             // Only update UI if data changed
             if (oldCount !== newCount) {
                 this._log('Data changed, updating UI');
                 (this._onDidChange as { fire: () => void }).fire();
                 if (vscode) {
-                    vscode.window.setStatusBarMessage(`$(check) Collections updated (${newCount} collections)`, 3000);
+                    vscode.window.setStatusBarMessage(
+                        `$(check) Collections updated (${String(newCount)} collections)`,
+                        3000,
+                    );
                 }
             } else {
                 this._log('No data change, UI unchanged');
                 if (vscode) {
-                    vscode.window.setStatusBarMessage(`$(check) Collections index up to date`, 2000);
+                    vscode.window.setStatusBarMessage(
+                        `$(check) Collections index up to date`,
+                        2000,
+                    );
                 }
             }
         } catch (error) {
-            this._log(`Background refresh failed: ${error}`);
+            this._log(
+                `Background refresh failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
             if (vscode) {
                 vscode.window.setStatusBarMessage(`$(error) Collections refresh failed`, 3000);
             }
@@ -576,7 +600,10 @@ export class CollectionsService {
      * ansible-doc --metadata-dump). Falls back to a per-plugin
      * ansible-doc subprocess only if the plugin is not in the cache.
      */
-    public async getPluginDocumentation(pluginFullName: string, pluginType: string): Promise<PluginData | null> {
+    public async getPluginDocumentation(
+        pluginFullName: string,
+        pluginType: string,
+    ): Promise<PluginData | null> {
         const docKey = `${pluginFullName}:${pluginType}`;
         const cached = this._pluginDocs.get(docKey);
         if (cached) {
@@ -585,15 +612,19 @@ export class CollectionsService {
 
         this._log(`Cache miss for ${docKey}, falling back to ansible-doc subprocess`);
         const typeFlag = this._getTypeFlag(pluginType);
-        
+
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
 
         try {
-            const result = await commandService.runTool('ansible-doc', [typeFlag, `"${pluginFullName}"`, '--json'], {
-                env: { ANSIBLE_NOCOLOR: '1' }
-            });
-            
+            const result = await commandService.runTool(
+                'ansible-doc',
+                [typeFlag, `"${pluginFullName}"`, '--json'],
+                {
+                    env: { ANSIBLE_NOCOLOR: '1' },
+                },
+            );
+
             const output = result.stdout;
 
             const jsonStart = output.indexOf('{');
@@ -601,10 +632,10 @@ export class CollectionsService {
                 console.error(`No JSON found in ansible-doc output for ${pluginFullName}`);
                 return null;
             }
-            
+
             const jsonStr = output.substring(jsonStart);
-            const data = JSON.parse(jsonStr);
-            const pluginData = data[pluginFullName] as PluginData || null;
+            const data = JSON.parse(jsonStr) as Record<string, PluginData | undefined>;
+            const pluginData = data[pluginFullName] ?? null;
 
             if (pluginData) {
                 this._pluginDocs.set(docKey, pluginData);
@@ -612,7 +643,9 @@ export class CollectionsService {
 
             return pluginData;
         } catch (error) {
-            console.error(`Failed to get plugin documentation: ${error}`);
+            console.error(
+                `Failed to get plugin documentation: ${error instanceof Error ? error.message : String(error)}`,
+            );
             return null;
         }
     }
@@ -623,31 +656,35 @@ export class CollectionsService {
      */
     /**
      * Install an Ansible collection from Galaxy
-     * 
+     *
      * @param collectionName - FQCN of the collection (e.g., "community.docker")
      * @param version - Optional version to install (e.g., "1.0.0")
      * @param force - If true, force reinstall/upgrade
      */
-    public async installCollection(collectionName: string, version?: string, force?: boolean): Promise<string> {
+    public async installCollection(
+        collectionName: string,
+        version?: string,
+        force?: boolean,
+    ): Promise<string> {
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
-        
+
         // Build collection spec with optional version
         const collectionSpec = version ? `${collectionName}:${version}` : collectionName;
-        
+
         // Build args - use --force for upgrades/reinstalls
         const args = ['install', collectionSpec];
         if (force) {
             args.push('--force');
         }
-        
+
         const result = await commandService.runTool('ade', args);
-        
+
         if (result.exitCode === 0) {
             // Trigger a refresh to pick up the newly installed collection
             // This will fire onDidChange event to notify consumers (e.g., PluginSearchIndex)
             await this.forceRefresh();
-            
+
             return result.stdout || `Successfully installed ${collectionName}`;
         } else {
             throw new Error(`Failed to install ${collectionName}: ${result.stderr}`);
@@ -656,19 +693,22 @@ export class CollectionsService {
 
     /**
      * List all installed Ansible collections
-     * 
+     *
      * @returns Array of installed collections with version info
      */
     public async listInstalledCollections(): Promise<CollectionInfo[]> {
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
         const collections: CollectionInfo[] = [];
-        
+
         try {
-            const result = await commandService.runTool('ansible-galaxy', 
-                ['collection', 'list', '--format', 'json']
-            );
-            
+            const result = await commandService.runTool('ansible-galaxy', [
+                'collection',
+                'list',
+                '--format',
+                'json',
+            ]);
+
             if (result.exitCode === 0 && result.stdout) {
                 try {
                     // The output may contain warnings and version info before the JSON
@@ -676,52 +716,58 @@ export class CollectionsService {
                     const stdout = result.stdout;
                     const jsonStart = stdout.indexOf('{');
                     const jsonEnd = stdout.lastIndexOf('}');
-                    
+
                     if (jsonStart === -1 || jsonEnd === -1) {
                         console.error('CollectionsService: No JSON object found in output');
                         return collections;
                     }
-                    
+
                     const jsonStr = stdout.substring(jsonStart, jsonEnd + 1);
-                    const parsed = JSON.parse(jsonStr);
-                    
+                    const parsed = JSON.parse(jsonStr) as Record<
+                        string,
+                        Record<string, { version: string }>
+                    >;
+
                     // Format is { "path": { "namespace.name": { "version": "x.y.z" } } }
                     // Use a Set to deduplicate collections that appear in multiple paths
                     const seen = new Set<string>();
-                    
+
                     for (const pathCollections of Object.values(parsed)) {
-                        if (typeof pathCollections === 'object' && pathCollections !== null) {
-                            for (const [name, info] of Object.entries(pathCollections as Record<string, { version: string }>)) {
-                                if (info && typeof info === 'object' && 'version' in info) {
-                                    // Skip duplicates and internal collections
-                                    if (seen.has(name) || name.startsWith('ansible._')) {
-                                        continue;
-                                    }
-                                    seen.add(name);
-                                    collections.push({
-                                        name,
-                                        version: info.version,
-                                        authors: [],
-                                        description: ''
-                                    });
+                        for (const [name, info] of Object.entries(pathCollections)) {
+                            if (typeof info === 'object' && 'version' in info) {
+                                // Skip duplicates and internal collections
+                                if (seen.has(name) || name.startsWith('ansible._')) {
+                                    continue;
                                 }
+                                seen.add(name);
+                                collections.push({
+                                    name,
+                                    version: info.version,
+                                    authors: [],
+                                    description: '',
+                                });
                             }
                         }
                     }
-                    console.log(`CollectionsService: Found ${collections.length} installed collections`);
+                    console.log(
+                        `CollectionsService: Found ${String(collections.length)} installed collections`,
+                    );
                 } catch (parseError) {
                     console.error('CollectionsService: Failed to parse JSON:', parseError);
-                    console.error('CollectionsService: stdout was:', result.stdout.substring(0, 500));
+                    console.error(
+                        'CollectionsService: stdout was:',
+                        result.stdout.substring(0, 500),
+                    );
                     // Fallback: try line-by-line parsing for non-JSON output
                     const lines = result.stdout.split('\n');
                     for (const line of lines) {
-                        const match = line.match(/^(\w+\.\w+)\s+([\d.]+)/);
+                        const match = /^(\w+\.\w+)\s+([\d.]+)/.exec(line);
                         if (match) {
                             collections.push({
                                 name: match[1],
                                 version: match[2],
                                 authors: [],
-                                description: ''
+                                description: '',
                             });
                         }
                     }
@@ -732,37 +778,40 @@ export class CollectionsService {
         } catch (error) {
             console.error('CollectionsService: Failed to list installed collections:', error);
         }
-        
+
         return collections;
     }
 
     private _getTypeFlag(pluginType: string): string {
-        const typeMap: { [key: string]: string } = {
-            'module': '-t module',
-            'become': '-t become',
-            'cache': '-t cache',
-            'callback': '-t callback',
-            'cliconf': '-t cliconf',
-            'connection': '-t connection',
-            'filter': '-t filter',
-            'httpapi': '-t httpapi',
-            'inventory': '-t inventory',
-            'lookup': '-t lookup',
-            'netconf': '-t netconf',
-            'shell': '-t shell',
-            'strategy': '-t strategy',
-            'test': '-t test',
-            'vars': '-t vars',
-            'role': '-t role',
-            'keyword': '-t keyword'
+        const typeMap: Record<string, string> = {
+            module: '-t module',
+            become: '-t become',
+            cache: '-t cache',
+            callback: '-t callback',
+            cliconf: '-t cliconf',
+            connection: '-t connection',
+            filter: '-t filter',
+            httpapi: '-t httpapi',
+            inventory: '-t inventory',
+            lookup: '-t lookup',
+            netconf: '-t netconf',
+            shell: '-t shell',
+            strategy: '-t strategy',
+            test: '-t test',
+            vars: '-t vars',
+            role: '-t role',
+            keyword: '-t keyword',
         };
         return typeMap[pluginType] || '';
     }
 
-    private async _loadCollectionsWithCommandService(targetMap?: Map<string, CollectionData>, targetDocs?: Map<string, PluginData>): Promise<void> {
+    private async _loadCollectionsWithCommandService(
+        targetMap?: Map<string, CollectionData>,
+        targetDocs?: Map<string, PluginData>,
+    ): Promise<void> {
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
-        
+
         const collections = targetMap ?? this._collections;
         const pluginDocs = targetDocs ?? this._pluginDocs;
         try {
@@ -772,18 +821,20 @@ export class CollectionsService {
                     // Get venv path for ade inspect if available
                     const binDir = await commandService.getBinDir();
                     const envPath = binDir ? path.dirname(binDir) : undefined;
-                    
-                    const args = envPath 
+
+                    const args = envPath
                         ? ['inspect', '--venv', envPath, '--no-ansi']
                         : ['inspect', '--no-ansi'];
-                    
+
                     const result = await commandService.runTool('ade', args);
                     if (result.exitCode === 0 && result.stdout) {
                         return JSON.parse(result.stdout) as AdeInspectOutput;
                     }
                     return null;
-                } catch (error) {
-                    console.error('CollectionsService: ade inspect not available, collection metadata will be limited');
+                } catch {
+                    console.error(
+                        'CollectionsService: ade inspect not available, collection metadata will be limited',
+                    );
                     return null;
                 }
             })();
@@ -792,16 +843,16 @@ export class CollectionsService {
             // ansible-doc still finds venv site-packages collections via Python's sys.path
             // This prevents picking up stray collections from ~/.ansible/collections
             const ansibleDocPromise = commandService.runTool(
-                'ansible-doc', 
+                'ansible-doc',
                 ['--metadata-dump', '--no-fail-on-errors'],
-                { 
-                    env: { 
-                        ANSIBLE_COLLECTIONS_PATH: '.', 
-                        ANSIBLE_WARNINGS: 'false', 
-                        ANSIBLE_NOCOLOR: '1' 
+                {
+                    env: {
+                        ANSIBLE_COLLECTIONS_PATH: '.',
+                        ANSIBLE_WARNINGS: 'false',
+                        ANSIBLE_NOCOLOR: '1',
                     },
-                    maxBuffer: 50 * 1024 * 1024 
-                }
+                    maxBuffer: 50 * 1024 * 1024,
+                },
             );
 
             // Wait for both to complete
@@ -812,15 +863,13 @@ export class CollectionsService {
             const collectionInfoMap = new Map<string, CollectionInfo>();
             if (adeData) {
                 for (const [collName, collData] of Object.entries(adeData)) {
-                    if (collData.collection_info) {
-                        collectionInfoMap.set(collName, {
-                            name: collName,
-                            version: collData.collection_info.version || '',
-                            authors: collData.collection_info.authors || [],
-                            description: collData.collection_info.description || '',
-                            path: collData.path
-                        });
-                    }
+                    collectionInfoMap.set(collName, {
+                        name: collName,
+                        version: collData.collection_info.version,
+                        authors: collData.collection_info.authors,
+                        description: collData.collection_info.description,
+                        path: collData.path,
+                    });
                 }
             }
 
@@ -831,13 +880,13 @@ export class CollectionsService {
                 console.error('Output starts with:', result.substring(0, 100));
                 return;
             }
-            
+
             const jsonStr = result.substring(jsonStart);
 
             // Parse the JSON output
             let metadata: MetadataDump;
             try {
-                metadata = JSON.parse(jsonStr);
+                metadata = JSON.parse(jsonStr) as MetadataDump;
             } catch (parseError) {
                 console.error('CollectionsService: Failed to parse ansible-doc JSON');
                 console.error('JSON starts with:', jsonStr.substring(0, 200));
@@ -855,11 +904,14 @@ export class CollectionsService {
             for (const [pluginType, plugins] of Object.entries(metadata.all)) {
                 for (const [fullName, pluginData] of Object.entries(plugins)) {
                     const doc = pluginData.doc;
-                    if (!doc) { continue; }
+                    if (!doc) {
+                        continue;
+                    }
 
-                    const collectionName = doc.collection || 'unknown';
-                    const pluginName = doc.plugin_name?.split('.').pop() || fullName.split('.').pop() || fullName;
-                    const shortDescription = doc.short_description || '';
+                    const collectionName = doc.collection ?? 'unknown';
+                    const pluginName =
+                        doc.plugin_name?.split('.').pop() ?? fullName.split('.').pop() ?? fullName;
+                    const shortDescription = doc.short_description ?? '';
 
                     // Create unique key to prevent duplicates
                     const uniqueKey = `${collectionName}:${pluginType}:${fullName}`;
@@ -878,29 +930,32 @@ export class CollectionsService {
                     });
 
                     // Get or create collection
-                    if (!collections.has(collectionName)) {
-                        const info = collectionInfoMap.get(collectionName) || {
+                    let collection = collections.get(collectionName);
+                    if (!collection) {
+                        const info = collectionInfoMap.get(collectionName) ?? {
                             name: collectionName,
                             version: '',
                             authors: [],
-                            description: ''
+                            description: '',
                         };
-                        collections.set(collectionName, {
+                        collection = {
                             info,
-                            pluginTypes: new Map()
-                        });
+                            pluginTypes: new Map(),
+                        };
+                        collections.set(collectionName, collection);
                     }
-                    const collection = collections.get(collectionName)!;
 
                     // Get or create plugin type
-                    if (!collection.pluginTypes.has(pluginType)) {
-                        collection.pluginTypes.set(pluginType, []);
+                    let plugins = collection.pluginTypes.get(pluginType);
+                    if (!plugins) {
+                        plugins = [];
+                        collection.pluginTypes.set(pluginType, plugins);
                     }
 
-                    collection.pluginTypes.get(pluginType)!.push({
+                    plugins.push({
                         name: pluginName,
                         fullName: fullName,
-                        shortDescription: shortDescription
+                        shortDescription: shortDescription,
                     });
                 }
             }

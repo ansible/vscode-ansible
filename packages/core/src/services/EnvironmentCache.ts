@@ -1,6 +1,6 @@
 /**
  * Environment Cache
- * 
+ *
  * Caches the selected Python environment to a file so standalone tools
  * (like the MCP server) can find it without VS Code.
  */
@@ -11,6 +11,7 @@ import * as path from 'path';
 // Conditional vscode import
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone
@@ -63,7 +64,7 @@ function ensureCacheDir(): boolean {
     if (!workspaceRoot) {
         return false;
     }
-    
+
     const cacheDir = path.join(workspaceRoot, CACHE_DIR);
     try {
         if (!fs.existsSync(cacheDir)) {
@@ -83,16 +84,16 @@ function readCache(): CacheFile | null {
     if (!cachePath) {
         return null;
     }
-    
+
     try {
         if (fs.existsSync(cachePath)) {
             const content = fs.readFileSync(cachePath, 'utf8');
-            return JSON.parse(content);
+            return JSON.parse(content) as CacheFile;
         }
     } catch (error) {
         console.error('Failed to read environment cache:', error);
     }
-    
+
     return null;
 }
 
@@ -103,12 +104,12 @@ function writeCache(cache: CacheFile): boolean {
     if (!ensureCacheDir()) {
         return false;
     }
-    
+
     const cachePath = getCacheFilePath();
     if (!cachePath) {
         return false;
     }
-    
+
     try {
         fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), 'utf8');
         return true;
@@ -121,21 +122,18 @@ function writeCache(cache: CacheFile): boolean {
 /**
  * Save the selected environment to cache (called from VS Code extension)
  */
-export function cacheSelectedEnvironment(
-    pythonPath: string,
-    displayName?: string
-): boolean {
+export function cacheSelectedEnvironment(pythonPath: string, displayName?: string): boolean {
     const binDir = path.dirname(pythonPath);
-    
+
     const cache: CacheFile = {
         selectedEnvironment: {
             pythonPath,
             binDir,
             displayName,
-            timestamp: new Date().toISOString()
-        }
+            timestamp: new Date().toISOString(),
+        },
     };
-    
+
     const success = writeCache(cache);
     if (success) {
         console.error(`Environment cached: ${pythonPath}`);
@@ -148,7 +146,7 @@ export function cacheSelectedEnvironment(
  */
 export function getCachedEnvironment(): CachedEnvironment | null {
     const cache = readCache();
-    return cache?.selectedEnvironment || null;
+    return cache?.selectedEnvironment ?? null;
 }
 
 /**
@@ -157,7 +155,7 @@ export function getCachedEnvironment(): CachedEnvironment | null {
  */
 export function getCachedBinDir(): string | null {
     const env = getCachedEnvironment();
-    return env?.binDir || null;
+    return env?.binDir ?? null;
 }
 
 /**
@@ -168,12 +166,12 @@ export function getCachedToolPath(toolName: string): string | null {
     if (!binDir) {
         return null;
     }
-    
+
     const toolPath = path.join(binDir, toolName);
     if (fs.existsSync(toolPath)) {
         return toolPath;
     }
-    
+
     return null;
 }
 
@@ -181,7 +179,7 @@ export function getCachedToolPath(toolName: string): string | null {
  * Clear the cached environment
  */
 export function clearCachedEnvironment(): boolean {
-    const cache = readCache() || {};
+    const cache = readCache() ?? {};
     delete cache.selectedEnvironment;
     return writeCache(cache);
 }
@@ -195,7 +193,7 @@ export async function findExecutableWithCache(name: string): Promise<string | nu
     if (cachedPath) {
         return cachedPath;
     }
-    
+
     // Fall back to PATH
     return findInPath(name);
 }
@@ -207,7 +205,7 @@ async function findInPath(name: string): Promise<string | null> {
     const { exec } = await import('child_process');
     const isWindows = process.platform === 'win32';
     const cmd = isWindows ? `where ${name}` : `which ${name}`;
-    
+
     return new Promise((resolve) => {
         exec(cmd, (error, stdout) => {
             if (error) {

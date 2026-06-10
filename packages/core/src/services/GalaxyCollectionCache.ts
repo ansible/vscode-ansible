@@ -1,6 +1,7 @@
 // Try to import vscode - will fail in standalone MCP mode
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running in standalone mode (MCP server)
@@ -31,47 +32,68 @@ interface CacheData {
 interface GalaxyApiResponse {
     meta: { count: number };
     links: { next: string | null };
-    data: Array<{
+    data: {
         namespace: string;
         name: string;
         deprecated: boolean;
-        download_count: number;
-        highest_version: { version: string };
-    }>;
+        download_count?: number;
+        highest_version?: { version: string };
+    }[];
 }
 
 const CACHE_FILE_NAME = 'galaxy-collections-cache.json';
 const CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
+interface StatusBarItemLike {
+    text: string;
+    tooltip?: string;
+    show(): void;
+    hide(): void;
+}
+
+interface ExtensionContextLike {
+    globalStorageUri: { fsPath: string };
+}
+
+function isCacheData(value: unknown): value is CacheData {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        'timestamp' in value &&
+        'collections' in value &&
+        Array.isArray((value as CacheData).collections)
+    );
+}
+
 export class GalaxyCollectionCache {
     private static _instance: GalaxyCollectionCache | undefined;
     private _collections: GalaxyCollection[] = [];
-    private _loading: boolean = false;
-    private _loaded: boolean = false;
+    private _loading = false;
+    private _loaded = false;
     private _loadPromise: Promise<void> | undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- VS Code StatusBarItem (conditional import)
-    private _statusBarItem: any | undefined;
+    private _statusBarItem: StatusBarItemLike | undefined;
     private _onDidLoad = vscode ? new vscode.EventEmitter<void>() : new SimpleEventEmitter<void>();
     public readonly onDidLoad = this._onDidLoad.event;
-    private _totalCount: number = 0;
-    private _loadedCount: number = 0;
-    private _onDidUpdateProgress = vscode 
-        ? new vscode.EventEmitter<{ loaded: number; total: number }>() 
+    private _totalCount = 0;
+    private _loadedCount = 0;
+    private _onDidUpdateProgress = vscode
+        ? new vscode.EventEmitter<{ loaded: number; total: number }>()
         : new SimpleEventEmitter<{ loaded: number; total: number }>();
     public readonly onDidUpdateProgress = this._onDidUpdateProgress.event;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- VS Code ExtensionContext (conditional import)
-    private _extensionContext: any | undefined;
-    private _cacheTimestamp: number = 0;
-    private _standaloneMode: boolean = !vscode;
+    private _extensionContext: ExtensionContextLike | undefined;
+    private _cacheTimestamp = 0;
+    private _standaloneMode = !vscode;
 
     private constructor() {
         if (vscode) {
-            this._statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
+            this._statusBarItem = vscode.window.createStatusBarItem(
+                vscode.StatusBarAlignment.Left,
+                0,
+            ) as StatusBarItemLike;
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- VS Code ExtensionContext (conditional import)
-    public setExtensionContext(context: any): void {
+    public setExtensionContext(context: ExtensionContextLike): void {
         this._extensionContext = context;
     }
 
@@ -80,13 +102,23 @@ export class GalaxyCollectionCache {
         if (this._extensionContext) {
             return path.join(this._extensionContext.globalStorageUri.fsPath, CACHE_FILE_NAME);
         }
-        
+
         // In standalone mode, use ~/.vscode/extensions/cidrblock.ansible-environments/ or fallback
         if (this._standaloneMode) {
             // Try to find the extension's global storage in standard locations
-            const vscodeDir = path.join(os.homedir(), '.vscode', 'extensions', 'cidrblock.ansible-environments-0.0.1');
-            const cursorDir = path.join(os.homedir(), '.cursor', 'extensions', 'cidrblock.ansible-environments-0.0.1');
-            
+            const vscodeDir = path.join(
+                os.homedir(),
+                '.vscode',
+                'extensions',
+                'cidrblock.ansible-environments-0.0.1',
+            );
+            const cursorDir = path.join(
+                os.homedir(),
+                '.cursor',
+                'extensions',
+                'cidrblock.ansible-environments-0.0.1',
+            );
+
             // Check which exists
             if (fs.existsSync(vscodeDir)) {
                 return path.join(vscodeDir, CACHE_FILE_NAME);
@@ -94,7 +126,7 @@ export class GalaxyCollectionCache {
             if (fs.existsSync(cursorDir)) {
                 return path.join(cursorDir, CACHE_FILE_NAME);
             }
-            
+
             // Fallback to home directory
             const fallbackDir = path.join(os.homedir(), '.ansible-environments');
             if (!fs.existsSync(fallbackDir)) {
@@ -102,7 +134,7 @@ export class GalaxyCollectionCache {
             }
             return path.join(fallbackDir, CACHE_FILE_NAME);
         }
-        
+
         return undefined;
     }
 
@@ -111,9 +143,7 @@ export class GalaxyCollectionCache {
     }
 
     public static getInstance(): GalaxyCollectionCache {
-        if (!GalaxyCollectionCache._instance) {
-            GalaxyCollectionCache._instance = new GalaxyCollectionCache();
-        }
+        GalaxyCollectionCache._instance ??= new GalaxyCollectionCache();
         return GalaxyCollectionCache._instance;
     }
 
@@ -136,11 +166,11 @@ export class GalaxyCollectionCache {
         const ageMs = Date.now() - this._cacheTimestamp;
         const days = Math.floor(ageMs / (24 * 60 * 60 * 1000));
         const hours = Math.floor((ageMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-        
+
         if (days > 0) {
-            return `${days} day${days > 1 ? 's' : ''} ago`;
+            return `${String(days)} day${days > 1 ? 's' : ''} ago`;
         } else if (hours > 0) {
-            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            return `${String(hours)} hour${hours > 1 ? 's' : ''} ago`;
         } else {
             return 'just now';
         }
@@ -173,7 +203,7 @@ export class GalaxyCollectionCache {
         await this._loadPromise;
     }
 
-    private async _loadFromFileCache(): Promise<boolean> {
+    private _loadFromFileCache(): boolean {
         const cacheFile = this._cacheFilePath;
         if (!cacheFile) {
             log('GalaxyCollectionCache: No cache file path available');
@@ -187,31 +217,37 @@ export class GalaxyCollectionCache {
             }
 
             const data = fs.readFileSync(cacheFile, 'utf-8');
-            const cache: CacheData = JSON.parse(data);
+            const parsed: unknown = JSON.parse(data);
 
-            if (!cache.timestamp || !cache.collections || !Array.isArray(cache.collections)) {
+            if (!isCacheData(parsed)) {
                 log('GalaxyCollectionCache: Invalid cache file format');
                 return false;
             }
 
-            const ageMs = Date.now() - cache.timestamp;
+            const ageMs = Date.now() - parsed.timestamp;
             if (ageMs > CACHE_MAX_AGE_MS) {
-                log(`GalaxyCollectionCache: Cache is expired (${Math.floor(ageMs / (24 * 60 * 60 * 1000))} days old)`);
+                log(
+                    `GalaxyCollectionCache: Cache is expired (${String(Math.floor(ageMs / (24 * 60 * 60 * 1000)))} days old)`,
+                );
                 return false;
             }
 
-            this._collections = cache.collections;
-            this._cacheTimestamp = cache.timestamp;
+            this._collections = parsed.collections;
+            this._cacheTimestamp = parsed.timestamp;
             this._loaded = true;
-            log(`GalaxyCollectionCache: Loaded ${cache.collections.length} collections from file cache (${this.getCacheAge()})`);
+            log(
+                `GalaxyCollectionCache: Loaded ${String(parsed.collections.length)} collections from file cache (${this.getCacheAge()})`,
+            );
             return true;
         } catch (error) {
-            log(`GalaxyCollectionCache: Failed to load from file cache: ${error}`);
+            log(
+                `GalaxyCollectionCache: Failed to load from file cache: ${error instanceof Error ? error.message : String(error)}`,
+            );
             return false;
         }
     }
 
-    private async _saveToFileCache(): Promise<void> {
+    private _saveToFileCache(): void {
         const cacheFile = this._cacheFilePath;
         if (!cacheFile) {
             log('GalaxyCollectionCache: No cache file path available, cannot save');
@@ -227,14 +263,18 @@ export class GalaxyCollectionCache {
 
             const cache: CacheData = {
                 timestamp: Date.now(),
-                collections: this._collections
+                collections: this._collections,
             };
 
             fs.writeFileSync(cacheFile, JSON.stringify(cache), 'utf-8');
             this._cacheTimestamp = cache.timestamp;
-            log(`GalaxyCollectionCache: Saved ${this._collections.length} collections to file cache`);
+            log(
+                `GalaxyCollectionCache: Saved ${String(this._collections.length)} collections to file cache`,
+            );
         } catch (error) {
-            log(`GalaxyCollectionCache: Failed to save to file cache: ${error}`);
+            log(
+                `GalaxyCollectionCache: Failed to save to file cache: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -245,7 +285,7 @@ export class GalaxyCollectionCache {
 
         // Try to load from file cache first (unless force refresh)
         if (!forceRefresh && !this._loaded) {
-            const loadedFromCache = await this._loadFromFileCache();
+            const loadedFromCache = this._loadFromFileCache();
             if (loadedFromCache) {
                 this._onDidLoad.fire();
                 return;
@@ -274,19 +314,19 @@ export class GalaxyCollectionCache {
 
             while (nextUrl && pageCount < maxPages) {
                 const response = await this._fetchPage(nextUrl);
-                
+
                 // Get total count from first response
-                if (pageCount === 0 && response.meta?.count) {
+                if (pageCount === 0 && response.meta.count) {
                     this._totalCount = Math.min(response.meta.count, maxPages * 100);
                 }
-                
+
                 for (const item of response.data) {
                     allCollections.push({
                         namespace: item.namespace,
                         name: item.name,
-                        version: item.highest_version?.version || '',
+                        version: item.highest_version?.version ?? '',
                         deprecated: item.deprecated,
-                        downloadCount: item.download_count || 0
+                        downloadCount: item.download_count ?? 0,
                     });
                 }
 
@@ -294,7 +334,7 @@ export class GalaxyCollectionCache {
 
                 // Handle next URL - could be relative or absolute
                 if (response.links.next) {
-                    nextUrl = response.links.next.startsWith('http') 
+                    nextUrl = response.links.next.startsWith('http')
                         ? response.links.next
                         : `https://galaxy.ansible.com${response.links.next}`;
                 } else {
@@ -304,11 +344,14 @@ export class GalaxyCollectionCache {
 
                 // Update status bar with progress
                 if (this._statusBarItem) {
-                    this._statusBarItem.text = `$(sync~spin) Loading Galaxy collections... ${allCollections.length} of ${this._totalCount}`;
+                    this._statusBarItem.text = `$(sync~spin) Loading Galaxy collections... ${String(allCollections.length)} of ${String(this._totalCount)}`;
                 }
-                
+
                 // Fire progress event
-                this._onDidUpdateProgress.fire({ loaded: this._loadedCount, total: this._totalCount });
+                this._onDidUpdateProgress.fire({
+                    loaded: this._loadedCount,
+                    total: this._totalCount,
+                });
             }
 
             // Sort by download count (most popular first)
@@ -316,14 +359,16 @@ export class GalaxyCollectionCache {
 
             this._collections = allCollections;
             this._loaded = true;
-            log(`GalaxyCollectionCache: Loaded ${allCollections.length} collections from API`);
+            log(
+                `GalaxyCollectionCache: Loaded ${String(allCollections.length)} collections from API`,
+            );
 
             // Save to file cache
-            await this._saveToFileCache();
+            this._saveToFileCache();
 
             // Update status bar to show completion briefly
             if (this._statusBarItem) {
-                this._statusBarItem.text = `$(check) ${allCollections.length} Galaxy collections loaded`;
+                this._statusBarItem.text = `$(check) ${String(allCollections.length)} Galaxy collections loaded`;
                 setTimeout(() => {
                     this._statusBarItem?.hide();
                 }, 3000);
@@ -332,29 +377,33 @@ export class GalaxyCollectionCache {
             // Fire the load event
             this._onDidLoad.fire();
         } catch (error) {
-            log(`GalaxyCollectionCache: Failed to load collections: ${error}`);
+            log(
+                `GalaxyCollectionCache: Failed to load collections: ${error instanceof Error ? error.message : String(error)}`,
+            );
             if (this._statusBarItem) {
                 this._statusBarItem.text = '$(error) Failed to load Galaxy collections';
                 setTimeout(() => {
                     this._statusBarItem?.hide();
                 }, 5000);
             }
-            
+
             // Show dismissable error message with details (only in extension mode)
             const errorMessage = error instanceof Error ? error.message : String(error);
             if (vscode) {
-                vscode.window.showErrorMessage(
-                    `Failed to load Galaxy collections: ${errorMessage}`,
-                    { modal: false },
-                    'Retry'
-                ).then(selection => {
-                    if (selection === 'Retry') {
-                        this._loaded = false;
-                        this._loading = false;
-                        this._loadPromise = undefined;
-                        this.startBackgroundLoad();
-                    }
-                });
+                vscode.window
+                    .showErrorMessage(
+                        `Failed to load Galaxy collections: ${errorMessage}`,
+                        { modal: false },
+                        'Retry',
+                    )
+                    .then((selection) => {
+                        if (selection === 'Retry') {
+                            this._loaded = false;
+                            this._loading = false;
+                            this._loadPromise = undefined;
+                            this.startBackgroundLoad();
+                        }
+                    });
             } else {
                 log(`Failed to load Galaxy collections: ${errorMessage}`);
             }
@@ -363,92 +412,137 @@ export class GalaxyCollectionCache {
         }
     }
 
-    private _fetchPage(url: string, retries: number = 3): Promise<GalaxyApiResponse> {
+    private _fetchPage(url: string, retries = 3): Promise<GalaxyApiResponse> {
         return new Promise((resolve, reject) => {
             const makeRequest = (attemptsLeft: number) => {
-                log(`GalaxyCollectionCache: Fetching ${url} (attempt ${retries - attemptsLeft + 1}/${retries})`);
-                
-                const req = https.get(url, {
-                    timeout: 30000, // 30 second timeout
-                    headers: {
-                        'Accept': 'application/json',
-                        'User-Agent': 'VSCode-Ansible-Environments/1.0'
-                    }
-                }, (res) => {
-                    log(`GalaxyCollectionCache: Response status ${res.statusCode} for ${url}`);
-                    
-                    // Check for HTTP errors
-                    if (res.statusCode && res.statusCode >= 400) {
-                        if (attemptsLeft > 1) {
-                            log(`GalaxyCollectionCache: HTTP ${res.statusCode}, retrying... (${attemptsLeft - 1} left)`);
-                            setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
-                            return;
-                        }
-                        reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
-                        return;
-                    }
+                log(
+                    `GalaxyCollectionCache: Fetching ${url} (attempt ${String(retries - attemptsLeft + 1)}/${String(retries)})`,
+                );
 
-                    // Handle redirects
-                    if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) {
-                        let redirectUrl = res.headers.location;
-                        if (redirectUrl) {
-                            // Handle relative URLs
-                            if (redirectUrl.startsWith('/')) {
-                                redirectUrl = `https://galaxy.ansible.com${redirectUrl}`;
-                            }
-                            log(`GalaxyCollectionCache: Redirected to ${redirectUrl}`);
-                            this._fetchPage(redirectUrl, attemptsLeft).then(resolve).catch(reject);
-                            return;
-                        }
-                    }
+                const req = https.get(
+                    url,
+                    {
+                        timeout: 30000, // 30 second timeout
+                        headers: {
+                            Accept: 'application/json',
+                            'User-Agent': 'VSCode-Ansible-Environments/1.0',
+                        },
+                    },
+                    (res) => {
+                        log(
+                            `GalaxyCollectionCache: Response status ${String(res.statusCode ?? 'unknown')} for ${url}`,
+                        );
 
-                    const chunks: Buffer[] = [];
-                    res.on('data', (chunk: Buffer) => chunks.push(chunk));
-                    res.on('end', () => {
-                        try {
-                            const data = Buffer.concat(chunks).toString('utf-8');
-                            log(`GalaxyCollectionCache: Received ${data.length} bytes`);
-                            
-                            if (!data || data.trim() === '') {
-                                log(`GalaxyCollectionCache: Empty response body`);
-                                if (attemptsLeft > 1) {
-                                    log(`GalaxyCollectionCache: Retrying... (${attemptsLeft - 1} left)`);
-                                    setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
-                                    return;
-                                }
-                                reject(new Error('Empty response from server'));
+                        // Check for HTTP errors
+                        if (res.statusCode && res.statusCode >= 400) {
+                            if (attemptsLeft > 1) {
+                                log(
+                                    `GalaxyCollectionCache: HTTP ${String(res.statusCode)}, retrying... (${String(attemptsLeft - 1)} left)`,
+                                );
+                                setTimeout(() => {
+                                    makeRequest(attemptsLeft - 1);
+                                }, 1000);
                                 return;
                             }
-                            
-                            const parsed = JSON.parse(data);
-                            log(`GalaxyCollectionCache: Parsed response, got ${parsed.data?.length || 0} items`);
-                            resolve(parsed);
-                        } catch (e) {
-                            log(`GalaxyCollectionCache: Parse error: ${e instanceof Error ? e.message : e}`);
-                            if (attemptsLeft > 1) {
-                                log(`GalaxyCollectionCache: Retrying... (${attemptsLeft - 1} left)`);
-                                setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
-                            } else {
-                                reject(new Error(`Failed to parse response: ${e instanceof Error ? e.message : e}`));
+                            reject(
+                                new Error(
+                                    `HTTP ${String(res.statusCode)}: ${res.statusMessage ?? 'unknown'}`,
+                                ),
+                            );
+                            return;
+                        }
+
+                        // Handle redirects
+                        if (
+                            res.statusCode === 301 ||
+                            res.statusCode === 302 ||
+                            res.statusCode === 307 ||
+                            res.statusCode === 308
+                        ) {
+                            let redirectUrl = res.headers.location;
+                            if (redirectUrl) {
+                                // Handle relative URLs
+                                if (redirectUrl.startsWith('/')) {
+                                    redirectUrl = `https://galaxy.ansible.com${redirectUrl}`;
+                                }
+                                log(`GalaxyCollectionCache: Redirected to ${redirectUrl}`);
+                                this._fetchPage(redirectUrl, attemptsLeft)
+                                    .then(resolve)
+                                    .catch(reject);
+                                return;
                             }
                         }
-                    });
-                    
-                    res.on('error', (err) => {
-                        log(`GalaxyCollectionCache: Response stream error: ${err.message}`);
-                        if (attemptsLeft > 1) {
-                            setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
-                        } else {
-                            reject(new Error(`Response error: ${err.message}`));
-                        }
-                    });
-                });
+
+                        const chunks: Buffer[] = [];
+                        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+                        res.on('end', () => {
+                            try {
+                                const data = Buffer.concat(chunks).toString('utf-8');
+                                log(`GalaxyCollectionCache: Received ${String(data.length)} bytes`);
+
+                                if (!data || data.trim() === '') {
+                                    log(`GalaxyCollectionCache: Empty response body`);
+                                    if (attemptsLeft > 1) {
+                                        log(
+                                            `GalaxyCollectionCache: Retrying... (${String(attemptsLeft - 1)} left)`,
+                                        );
+                                        setTimeout(() => {
+                                            makeRequest(attemptsLeft - 1);
+                                        }, 1000);
+                                        return;
+                                    }
+                                    reject(new Error('Empty response from server'));
+                                    return;
+                                }
+
+                                const parsed = JSON.parse(data) as GalaxyApiResponse;
+                                log(
+                                    `GalaxyCollectionCache: Parsed response, got ${String(parsed.data.length)} items`,
+                                );
+                                resolve(parsed);
+                            } catch (e) {
+                                log(
+                                    `GalaxyCollectionCache: Parse error: ${e instanceof Error ? e.message : String(e)}`,
+                                );
+                                if (attemptsLeft > 1) {
+                                    log(
+                                        `GalaxyCollectionCache: Retrying... (${String(attemptsLeft - 1)} left)`,
+                                    );
+                                    setTimeout(() => {
+                                        makeRequest(attemptsLeft - 1);
+                                    }, 1000);
+                                } else {
+                                    reject(
+                                        new Error(
+                                            `Failed to parse response: ${e instanceof Error ? e.message : String(e)}`,
+                                        ),
+                                    );
+                                }
+                            }
+                        });
+
+                        res.on('error', (err) => {
+                            log(`GalaxyCollectionCache: Response stream error: ${err.message}`);
+                            if (attemptsLeft > 1) {
+                                setTimeout(() => {
+                                    makeRequest(attemptsLeft - 1);
+                                }, 1000);
+                            } else {
+                                reject(new Error(`Response error: ${err.message}`));
+                            }
+                        });
+                    },
+                );
 
                 req.on('error', (err) => {
                     log(`GalaxyCollectionCache: Request error: ${err.message}`);
                     if (attemptsLeft > 1) {
-                        log(`GalaxyCollectionCache: Retrying... (${attemptsLeft - 1} left)`);
-                        setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
+                        log(
+                            `GalaxyCollectionCache: Retrying... (${String(attemptsLeft - 1)} left)`,
+                        );
+                        setTimeout(() => {
+                            makeRequest(attemptsLeft - 1);
+                        }, 1000);
                     } else {
                         reject(new Error(`Network error: ${err.message}`));
                     }
@@ -458,8 +552,12 @@ export class GalaxyCollectionCache {
                     log(`GalaxyCollectionCache: Request timeout`);
                     req.destroy();
                     if (attemptsLeft > 1) {
-                        log(`GalaxyCollectionCache: Retrying... (${attemptsLeft - 1} left)`);
-                        setTimeout(() => makeRequest(attemptsLeft - 1), 1000);
+                        log(
+                            `GalaxyCollectionCache: Retrying... (${String(attemptsLeft - 1)} left)`,
+                        );
+                        setTimeout(() => {
+                            makeRequest(attemptsLeft - 1);
+                        }, 1000);
                     } else {
                         reject(new Error('Request timed out after 30 seconds'));
                     }
@@ -478,10 +576,11 @@ export class GalaxyCollectionCache {
 
         const lowerQuery = query.toLowerCase();
         return this._collections
-            .filter(c => 
-                c.name.toLowerCase().includes(lowerQuery) ||
-                c.namespace.toLowerCase().includes(lowerQuery) ||
-                `${c.namespace}.${c.name}`.toLowerCase().includes(lowerQuery)
+            .filter(
+                (c) =>
+                    c.name.toLowerCase().includes(lowerQuery) ||
+                    c.namespace.toLowerCase().includes(lowerQuery) ||
+                    `${c.namespace}.${c.name}`.toLowerCase().includes(lowerQuery),
             )
             .slice(0, 100);
     }

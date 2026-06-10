@@ -3,6 +3,7 @@
 // Conditional vscode import - only used when available
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone (not in VS Code)
@@ -44,8 +45,8 @@ export type CreatorStatus = 'unknown' | 'not-installed' | 'outdated' | 'ready';
 export class CreatorService {
     private static _instance: CreatorService | undefined;
     private _schema: SchemaNode | null = null;
-    private _loading: boolean = false;
-    private _loaded: boolean = false;
+    private _loading = false;
+    private _loaded = false;
     private _status: CreatorStatus = 'unknown';
     private _installedVersion: string | undefined;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
@@ -66,9 +67,7 @@ export class CreatorService {
     }
 
     public static getInstance(): CreatorService {
-        if (!CreatorService._instance) {
-            CreatorService._instance = new CreatorService();
-        }
+        CreatorService._instance ??= new CreatorService();
         return CreatorService._instance;
     }
 
@@ -154,19 +153,23 @@ export class CreatorService {
             if (result.exitCode !== 0) {
                 this._log(`ansible-creator schema failed: ${result.stderr}`);
                 // Distinguish "not installed" from "installed but too old"
-                const isInvalidChoice = result.stderr?.includes('invalid choice');
+                const isInvalidChoice = result.stderr.includes('invalid choice');
                 if (isInvalidChoice) {
                     this._status = 'outdated';
                     // Try to get the installed version for the UI
                     try {
-                        const vResult = await commandService.runTool('ansible-creator', ['--version']);
+                        const vResult = await commandService.runTool('ansible-creator', [
+                            '--version',
+                        ]);
                         if (vResult.exitCode === 0 && vResult.stdout) {
                             this._installedVersion = vResult.stdout.trim().split(/\s+/).pop();
                         }
                     } catch {
                         // version check is best-effort
                     }
-                    this._log(`ansible-creator is installed (${this._installedVersion ?? 'unknown version'}) but too old — 'schema' subcommand not available`);
+                    this._log(
+                        `ansible-creator is installed (${this._installedVersion ?? 'unknown version'}) but too old — 'schema' subcommand not available`,
+                    );
                 } else {
                     this._status = 'not-installed';
                 }
@@ -174,7 +177,7 @@ export class CreatorService {
             }
 
             if (result.stdout) {
-                this._schema = JSON.parse(result.stdout);
+                this._schema = JSON.parse(result.stdout) as SchemaNode;
                 this._loaded = true;
                 this._status = 'ready';
                 this._log('Schema loaded successfully');
@@ -182,7 +185,9 @@ export class CreatorService {
 
             return this._schema;
         } catch (error) {
-            this._log(`Error loading schema: ${error}`);
+            this._log(
+                `Error loading schema: ${error instanceof Error ? error.message : String(error)}`,
+            );
             this._status = 'not-installed';
             return null;
         } finally {
@@ -194,7 +199,9 @@ export class CreatorService {
     /**
      * Get available commands at a given path
      */
-    public getCommands(path: string[] = []): Array<{ name: string; description?: string; hasSubcommands: boolean }> {
+    public getCommands(
+        path: string[] = [],
+    ): { name: string; description?: string; hasSubcommands: boolean }[] {
         if (!this._schema) {
             return [];
         }
@@ -216,14 +223,18 @@ export class CreatorService {
         return Object.entries(node.subcommands).map(([name, schema]) => ({
             name,
             description: schema.description,
-            hasSubcommands: !!(schema.subcommands && Object.keys(schema.subcommands).length > 0)
+            hasSubcommands: !!(schema.subcommands && Object.keys(schema.subcommands).length > 0),
         }));
     }
 
     /**
      * Get command parameters for a given command path
      */
-    public getCommandParameters(path: string[]): { required: string[]; optional: string[]; properties: Record<string, ParameterSchema> } | null {
+    public getCommandParameters(path: string[]): {
+        required: string[];
+        optional: string[];
+        properties: Record<string, ParameterSchema>;
+    } | null {
         if (!this._schema || path.length === 0) {
             return null;
         }
@@ -242,9 +253,9 @@ export class CreatorService {
             return null;
         }
 
-        const required = node.parameters.required || [];
-        const properties = node.parameters.properties || {};
-        const optional = Object.keys(properties).filter(key => !required.includes(key));
+        const required = node.parameters.required;
+        const properties = node.parameters.properties;
+        const optional = Object.keys(properties).filter((key) => !required.includes(key));
 
         return { required, optional, properties };
     }
@@ -273,15 +284,15 @@ export class CreatorService {
      * Run an ansible-creator command
      * In VS Code: opens a terminal
      * Standalone: executes via child_process and returns output
-     * 
+     *
      * @param path - Command path like ['init', 'playbook']
      * @param args - Arguments (positional args first, then flags)
      * @param positionalArgs - Ordered list of positional argument keys to extract from args
      */
     public async runCommand(
-        path: string[], 
+        path: string[],
         args: Record<string, string | boolean>,
-        positionalArgs?: string[]
+        positionalArgs?: string[],
     ): Promise<string> {
         // Build the command arguments (not including 'ansible-creator' itself)
         const cmdArgs: string[] = [...path];
@@ -291,7 +302,10 @@ export class CreatorService {
         if (positionalArgs) {
             for (const key of positionalArgs) {
                 const value = args[key];
-                if (value !== undefined && value !== '' && value !== false) {
+                if (typeof value === 'string' && value !== '') {
+                    cmdArgs.push(value);
+                    usedKeys.add(key);
+                } else if (value === true) {
                     cmdArgs.push(String(value));
                     usedKeys.add(key);
                 }
@@ -300,12 +314,14 @@ export class CreatorService {
 
         // Add remaining args as flags
         for (const [key, value] of Object.entries(args)) {
-            if (usedKeys.has(key)) { continue; }
-            
+            if (usedKeys.has(key)) {
+                continue;
+            }
+
             if (value === true) {
                 cmdArgs.push(`--${key}`);
-            } else if (value !== false && value !== '') {
-                cmdArgs.push(`--${key}`, String(value));
+            } else if (typeof value === 'string' && value !== '') {
+                cmdArgs.push(`--${key}`, value);
             }
         }
 
@@ -316,22 +332,26 @@ export class CreatorService {
         // This waits for completion and captures output
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
-        
+
         console.log('CreatorService.runCommand: Using CommandService (blocking execution)');
         const result = await commandService.runAnsibleCreator(cmdArgs);
-        
+
         if (result.exitCode !== 0) {
             const errorOutput = result.stderr || result.stdout || 'Unknown error';
             throw new Error(`Command failed: ${fullCommand}\n${errorOutput}`);
         }
-        
+
         return result.stdout || 'Command completed successfully';
     }
 
     /**
      * Build the command string for a creator command (useful for MCP)
      */
-    public buildCommandString(path: string[], args: Record<string, string | boolean>, positionalArgs?: string[]): string {
+    public buildCommandString(
+        path: string[],
+        args: Record<string, string | boolean>,
+        positionalArgs?: string[],
+    ): string {
         const commandParts = ['ansible-creator', ...path];
 
         // If we have positional args defined, extract them in order
@@ -339,7 +359,10 @@ export class CreatorService {
         if (positionalArgs) {
             for (const key of positionalArgs) {
                 const value = args[key];
-                if (value !== undefined && value !== '' && value !== false) {
+                if (typeof value === 'string' && value !== '') {
+                    commandParts.push(value);
+                    usedKeys.add(key);
+                } else if (value === true) {
                     commandParts.push(String(value));
                     usedKeys.add(key);
                 }
@@ -348,12 +371,14 @@ export class CreatorService {
 
         // Add remaining args as flags
         for (const [key, value] of Object.entries(args)) {
-            if (usedKeys.has(key)) { continue; }
-            
+            if (usedKeys.has(key)) {
+                continue;
+            }
+
             if (value === true) {
                 commandParts.push(`--${key}`);
-            } else if (value !== false && value !== '') {
-                commandParts.push(`--${key}`, String(value));
+            } else if (typeof value === 'string' && value !== '') {
+                commandParts.push(`--${key}`, value);
             }
         }
 
@@ -372,8 +397,10 @@ export class CreatorService {
         // Navigate to the command in the schema
         let node: SchemaNode | undefined = this._schema;
         for (const segment of path) {
-            node = node?.subcommands?.[segment];
-            if (!node) { return []; }
+            node = node.subcommands?.[segment];
+            if (!node) {
+                return [];
+            }
         }
 
         // Find parameters without aliases (these are positional)
@@ -393,17 +420,17 @@ export class CreatorService {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
-            
+
             const result = await commandService.runCommand(command);
-            
+
             if (result.exitCode !== 0) {
                 this._log(`Command error: ${result.stderr}`);
                 return null;
             }
-            
+
             return result.stdout;
         } catch (error) {
-            this._log(`Command error: ${error}`);
+            this._log(`Command error: ${error instanceof Error ? error.message : String(error)}`);
             return null;
         }
     }

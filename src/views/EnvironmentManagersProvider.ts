@@ -18,11 +18,13 @@ interface EnvironmentNode {
 }
 
 export class EnvironmentManagersProvider implements vscode.TreeDataProvider<TreeNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null | void> = new vscode.EventEmitter<TreeNode | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<TreeNode | undefined | null | void> = this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null> =
+        new vscode.EventEmitter<TreeNode | undefined | null>();
+    readonly onDidChangeTreeData: vscode.Event<TreeNode | undefined | null> =
+        this._onDidChangeTreeData.event;
 
     private _pythonEnvService: PythonEnvironmentService;
-    private _managers: Map<string, PythonEnvironment[]> = new Map();
+    private _managers = new Map<string, PythonEnvironment[]>();
     private _envListener: vscode.Disposable | undefined;
     private _currentExecPath: string | undefined;
     private _currentManagerId: string | undefined;
@@ -30,7 +32,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
 
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._pythonEnvService = pythonEnvService;
-        this._init();
+        void this._init();
     }
 
     private async _init() {
@@ -69,7 +71,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         try {
             await this._loadEnvironments();
         } finally {
-            this._onDidChangeTreeData.fire();
+            this._onDidChangeTreeData.fire(undefined);
         }
     }
 
@@ -84,7 +86,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         try {
             const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
             const currentEnv = await this._pythonEnvService.getEnvironment(workspaceFolder);
-            this._currentExecPath = currentEnv?.execInfo?.run?.executable;
+            this._currentExecPath = currentEnv?.execInfo.run.executable;
             this._currentManagerId = currentEnv?.envId.managerId;
 
             const environments = await this._pythonEnvService.getEnvironments('all');
@@ -94,7 +96,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
                 if (!managers.has(managerId)) {
                     managers.set(managerId, []);
                 }
-                managers.get(managerId)!.push(env);
+                managers.get(managerId)?.push(env);
             }
         } catch (error) {
             console.error('Failed to load environments:', error);
@@ -107,14 +109,14 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         if (!this._currentExecPath) {
             return false;
         }
-        return env.execInfo?.run?.executable === this._currentExecPath;
+        return env.execInfo.run.executable === this._currentExecPath;
     }
 
     private _getManagerDisplayName(managerId: string): string {
         const parts = managerId.split(':');
         const name = parts[parts.length - 1] || managerId;
         const lower = name.toLowerCase();
-        
+
         // Map known tool/type names to friendly labels
         if (lower === 'system' || lower === 'unknown') {
             return 'Global';
@@ -134,17 +136,17 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         if (lower === 'pipenv') {
             return 'Pipenv';
         }
-        
+
         return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
     private _isVenvManager(managerId: string): boolean {
-        const name = managerId.split(':').pop()?.toLowerCase() || '';
+        const name = managerId.split(':').pop()?.toLowerCase() ?? '';
         return name === 'venv' || name === 'virtualenv' || name === 'virtualenvwrapper';
     }
 
     private _isGlobalManager(managerId: string): boolean {
-        const name = managerId.split(':').pop()?.toLowerCase() || '';
+        const name = managerId.split(':').pop()?.toLowerCase() ?? '';
         return name === 'system' || name === 'unknown';
     }
 
@@ -152,19 +154,25 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         if (element.type === 'manager') {
             const isVenv = this._isVenvManager(element.id);
             const isGlobal = this._isGlobalManager(element.id);
-            const isGlobalEnvSelected = this._currentManagerId && this._isGlobalManager(this._currentManagerId);
-            
+            const isGlobalEnvSelected =
+                this._currentManagerId && this._isGlobalManager(this._currentManagerId);
+
             const item = new vscode.TreeItem(
                 element.name,
-                isVenv ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed
+                isVenv
+                    ? vscode.TreeItemCollapsibleState.Expanded
+                    : vscode.TreeItemCollapsibleState.Collapsed,
             );
-            
+
             if (isGlobal && isGlobalEnvSelected) {
-                item.iconPath = new vscode.ThemeIcon('globe', new vscode.ThemeColor('problemsWarningIcon.foreground'));
+                item.iconPath = new vscode.ThemeIcon(
+                    'globe',
+                    new vscode.ThemeColor('problemsWarningIcon.foreground'),
+                );
                 const tooltip = new vscode.MarkdownString(
                     '$(warning) **Global Python Environment Selected**\n\n' +
-                    'Use of global Python environments for Ansible development is strongly discouraged.\n\n' +
-                    'Please create and select a virtual environment instead.'
+                        'Use of global Python environments for Ansible development is strongly discouraged.\n\n' +
+                        'Please create and select a virtual environment instead.',
                 );
                 tooltip.supportThemeIcons = true;
                 item.tooltip = tooltip;
@@ -180,36 +188,44 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
             const env = element.environment;
             const isCurrent = this._isCurrent(env);
             const isGlobalEnv = this._isGlobalManager(element.managerId);
-            
+
             const item = new vscode.TreeItem(
                 env.displayName || env.name,
-                vscode.TreeItemCollapsibleState.None
+                vscode.TreeItemCollapsibleState.None,
             );
             if (isCurrent) {
-                item.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('charts.green'));
+                item.iconPath = new vscode.ThemeIcon(
+                    'check',
+                    new vscode.ThemeColor('charts.green'),
+                );
             } else if (isGlobalEnv) {
-                item.iconPath = new vscode.ThemeIcon('symbol-misc', new vscode.ThemeColor('problemsWarningIcon.foreground'));
+                item.iconPath = new vscode.ThemeIcon(
+                    'symbol-misc',
+                    new vscode.ThemeColor('problemsWarningIcon.foreground'),
+                );
             } else {
                 item.iconPath = new vscode.ThemeIcon('symbol-misc');
             }
             item.contextValue = isCurrent ? 'pythonEnvironmentCurrent' : 'pythonEnvironment';
-            
+
             const tooltip = new vscode.MarkdownString();
             tooltip.supportThemeIcons = true;
             if (isGlobalEnv) {
-                tooltip.appendMarkdown('$(warning) **Not recommended for Ansible development**\n\n');
+                tooltip.appendMarkdown(
+                    '$(warning) **Not recommended for Ansible development**\n\n',
+                );
             }
             tooltip.appendMarkdown(`**${env.displayName}**\n\n`);
             tooltip.appendMarkdown(`Version: ${env.version}\n\n`);
             tooltip.appendMarkdown(`Path: ${env.sysPrefix || env.displayPath}`);
             item.tooltip = tooltip;
-            
+
             item.command = {
                 command: 'ansibleDevTools.selectEnvironment',
                 title: 'Select Environment',
-                arguments: [env]
+                arguments: [env],
             };
-            
+
             return item;
         }
     }
@@ -222,7 +238,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
                     type: 'manager',
                     id: managerId,
                     name: this._getManagerDisplayName(managerId),
-                    environments
+                    environments,
                 });
             }
             // Sort: venv first, then alphabetical, Global last
@@ -231,24 +247,29 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
                 const bIsVenv = this._isVenvManager(b.id);
                 const aIsGlobal = this._isGlobalManager(a.id);
                 const bIsGlobal = this._isGlobalManager(b.id);
-                if (aIsVenv !== bIsVenv) { return aIsVenv ? -1 : 1; }
-                if (aIsGlobal !== bIsGlobal) { return aIsGlobal ? 1 : -1; }
+                if (aIsVenv !== bIsVenv) {
+                    return aIsVenv ? -1 : 1;
+                }
+                if (aIsGlobal !== bIsGlobal) {
+                    return aIsGlobal ? 1 : -1;
+                }
                 return a.name.localeCompare(b.name);
             });
             return Promise.resolve(managers);
         } else if (element.type === 'manager') {
-            const envNodes: EnvironmentNode[] = element.environments.map(env => ({
+            const envNodes: EnvironmentNode[] = element.environments.map((env) => ({
                 type: 'environment',
                 environment: env,
-                managerId: element.id
+                managerId: element.id,
             }));
-            envNodes.sort((a, b) => 
-                (a.environment.displayName || a.environment.name)
-                    .localeCompare(b.environment.displayName || b.environment.name)
+            envNodes.sort((a, b) =>
+                (a.environment.displayName || a.environment.name).localeCompare(
+                    b.environment.displayName || b.environment.name,
+                ),
             );
             return Promise.resolve(envNodes);
         }
-        
+
         return Promise.resolve([]);
     }
 

@@ -11,6 +11,14 @@ vi.mock('@ansible/core', () => ({
 }));
 
 import { TaskBuilder } from '../src/taskBuilder';
+import type { TaskBuilderResult } from '../src/taskBuilder';
+
+function requireSessionId(result: TaskBuilderResult): string {
+    if (!result.session_id) {
+        throw new Error('expected session_id');
+    }
+    return result.session_id;
+}
 
 function copyPluginDoc() {
     return {
@@ -54,7 +62,7 @@ describe('TaskBuilder', () => {
 
     it('tracks collected params and updates missing required list', async () => {
         const first = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sid = first.session_id!;
+        const sid = requireSessionId(first);
 
         const second = await builder.build({
             session_id: sid,
@@ -69,7 +77,7 @@ describe('TaskBuilder', () => {
 
     it('prompts in the message when generate is true but required params are missing', async () => {
         const first = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sid = first.session_id!;
+        const sid = requireSessionId(first);
 
         const result = await builder.build({
             session_id: sid,
@@ -84,7 +92,7 @@ describe('TaskBuilder', () => {
 
     it('generates YAML and completes when all required params are provided and generate is true', async () => {
         const first = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sid = first.session_id!;
+        const sid = requireSessionId(first);
 
         const result = await builder.build({
             session_id: sid,
@@ -110,7 +118,7 @@ describe('TaskBuilder', () => {
 
     it('cancel clears the session', async () => {
         const first = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sid = first.session_id!;
+        const sid = requireSessionId(first);
         expect(builder.getActiveSessionCount()).toBe(1);
 
         const cancelled = await builder.build({
@@ -128,7 +136,7 @@ describe('TaskBuilder', () => {
         now.mockReturnValue(1_700_000_000_000);
 
         const first = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sid = first.session_id!;
+        const sid = requireSessionId(first);
 
         now.mockReturnValue(1_700_000_000_000 + 11 * 60 * 1000);
 
@@ -152,7 +160,7 @@ describe('TaskBuilder', () => {
 
     it('cancel removes session', async () => {
         const startResult = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const sessionId = startResult.session_id!;
+        const sessionId = requireSessionId(startResult);
         const result = await builder.build({ session_id: sessionId, cancel: true });
         expect(result.status).toBe('cancelled');
         expect(builder.getActiveSessionCount()).toBe(0);
@@ -169,7 +177,7 @@ describe('TaskBuilder', () => {
         const result = await builder.build({ session_id: startResult.session_id, generate: true });
         expect(result.status).toBe('in_progress');
         expect(result.can_generate).toBe(false);
-        expect(result.missing_required!.length).toBeGreaterThan(0);
+        expect(result.missing_required?.length).toBeGreaterThan(0);
     });
 
     it('collects task options across builds', async () => {
@@ -194,14 +202,18 @@ describe('TaskBuilder', () => {
     });
 
     it('_formatYamlValue handles multiline strings with block scalar', () => {
-        const fmt = (builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string })._formatYamlValue.bind(builder);
+        const fmt = (
+            builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string }
+        )._formatYamlValue.bind(builder);
         const result = fmt('line1\nline2', 0);
         expect(result).toContain('|');
         expect(result).toContain('line1');
     });
 
     it('_formatYamlValue handles YAML-sensitive strings by quoting', () => {
-        const fmt = (builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string })._formatYamlValue.bind(builder);
+        const fmt = (
+            builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string }
+        )._formatYamlValue.bind(builder);
         expect(fmt('true', 0)).toBe('"true"');
         expect(fmt('123', 0)).toBe('"123"');
         expect(fmt('key: val', 0)).toContain('"');
@@ -209,7 +221,9 @@ describe('TaskBuilder', () => {
     });
 
     it('_formatYamlValue handles arrays and objects', () => {
-        const fmt = (builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string })._formatYamlValue.bind(builder);
+        const fmt = (
+            builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string }
+        )._formatYamlValue.bind(builder);
         expect(fmt([], 0)).toBe('[]');
         expect(fmt([1, 2], 0)).toBe('[1, 2]');
         expect(fmt([{ a: 1 }], 0)).toContain('{');
@@ -217,7 +231,9 @@ describe('TaskBuilder', () => {
     });
 
     it('_formatYamlValue handles null, undefined, boolean, number', () => {
-        const fmt = (builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string })._formatYamlValue.bind(builder);
+        const fmt = (
+            builder as unknown as { _formatYamlValue: (v: unknown, i: number) => string }
+        )._formatYamlValue.bind(builder);
         expect(fmt(null, 0)).toBe('null');
         expect(fmt(undefined, 0)).toBe('null');
         expect(fmt(true, 0)).toBe('true');
@@ -227,10 +243,18 @@ describe('TaskBuilder', () => {
 
     it('session cleanup removes expired sessions', async () => {
         const start = await builder.build({ plugin: 'ansible.builtin.copy' });
-        const session = (builder as unknown as { _sessions: Map<string, { createdAt: number }> })._sessions.get(start.session_id!);
-        session!.createdAt = Date.now() - 20 * 60 * 1000;
+        const sessionId = requireSessionId(start);
+        const sessions = (builder as unknown as { _sessions: Map<string, { createdAt: number }> })
+            ._sessions;
+        const session = sessions.get(sessionId);
+        if (!session) {
+            throw new Error('expected session');
+        }
+        session.createdAt = Date.now() - 20 * 60 * 1000;
         await builder.build({ plugin: 'ansible.builtin.copy' });
-        expect((builder as unknown as { _sessions: Map<string, unknown> })._sessions.has(start.session_id!)).toBe(false);
+        expect(
+            (builder as unknown as { _sessions: Map<string, unknown> })._sessions.has(sessionId),
+        ).toBe(false);
     });
 
     it('_generateYaml uses plugin suffix for default task name', async () => {
@@ -261,11 +285,13 @@ describe('TaskBuilder', () => {
             params: { src: 'a', dest: 'b' },
         });
         expect(result.message).toContain('Ready to generate');
-        expect(result.optional_available!.length).toBeGreaterThan(0);
+        expect(result.optional_available?.length).toBeGreaterThan(0);
     });
 
     it('_getShortDescription truncates long descriptions', () => {
-        const getDesc = (builder as unknown as { _getShortDescription: (spec?: unknown) => string })._getShortDescription.bind(builder);
+        const getDesc = (
+            builder as unknown as { _getShortDescription: (spec?: unknown) => string }
+        )._getShortDescription.bind(builder);
         expect(getDesc(undefined)).toBe('');
         expect(getDesc({ description: 'short' })).toBe('short');
         expect(getDesc({ description: 'x'.repeat(150) })).toHaveLength(100);

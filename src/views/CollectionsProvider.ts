@@ -32,8 +32,10 @@ interface PluginNode {
 }
 
 export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null | void> = new vscode.EventEmitter<TreeNode | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<TreeNode | undefined | null | void> = this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null> =
+        new vscode.EventEmitter<TreeNode | undefined | null>();
+    readonly onDidChangeTreeData: vscode.Event<TreeNode | undefined | null> =
+        this._onDidChangeTreeData.event;
 
     private _service: CollectionsService;
     private _envListener: vscode.Disposable | undefined;
@@ -42,17 +44,19 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
 
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = CollectionsService.getInstance();
-        
+
         this._serviceListener = (this._service.onDidChange as vscode.Event<void>)(() => {
-            this._onDidChangeTreeData.fire();
+            this._onDidChangeTreeData.fire(undefined);
         });
-        
+
         log('CollectionsProvider: Triggering initial refresh');
-        this.refresh().catch(err => {
-            log(`CollectionsProvider: Initial refresh failed: ${err}`);
+        void this.refresh().catch((err: unknown) => {
+            log(
+                `CollectionsProvider: Initial refresh failed: ${err instanceof Error ? err.message : String(err)}`,
+            );
         });
-        
-        this._initEnvListener(pythonEnvService);
+
+        void this._initEnvListener(pythonEnvService);
     }
 
     private async _initEnvListener(pythonEnvService: PythonEnvironmentService) {
@@ -65,11 +69,13 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
                 }
                 this._refreshDebounce = setTimeout(() => {
                     this._refreshDebounce = undefined;
-                    this.refresh();
+                    void this.refresh();
                 }, 1000);
             });
         } catch (error) {
-            log(`CollectionsProvider: Failed to set up env change listener: ${error}`);
+            log(
+                `CollectionsProvider: Failed to set up env change listener: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -81,27 +87,27 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
         if (element.type === 'loading') {
             const item = new vscode.TreeItem(
                 'Indexing collections...',
-                vscode.TreeItemCollapsibleState.None
+                vscode.TreeItemCollapsibleState.None,
             );
             item.iconPath = new vscode.ThemeIcon('sync~spin');
             item.tooltip = 'Scanning installed collections and plugins. This may take a moment.';
             return item;
         }
-        
+
         if (element.type === 'collection') {
             const item = new vscode.TreeItem(
                 element.name,
-                vscode.TreeItemCollapsibleState.Collapsed
+                vscode.TreeItemCollapsibleState.Collapsed,
             );
             item.description = element.info.version ? `v${element.info.version}` : undefined;
             item.iconPath = new vscode.ThemeIcon('library');
             item.contextValue = 'collection';
-            
+
             const tooltipParts: string[] = [`**${element.name}**`];
             if (element.info.version) {
                 tooltipParts.push(`\n\nVersion: ${element.info.version}`);
             }
-            if (element.info.authors && element.info.authors.length > 0) {
+            if (element.info.authors.length > 0) {
                 tooltipParts.push(`\n\nAuthors: ${element.info.authors.join(', ')}`);
             }
             if (element.info.description) {
@@ -111,56 +117,55 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
                 tooltipParts.push(`\n\n---\n\nPath: \`${element.info.path}\``);
             }
             item.tooltip = new vscode.MarkdownString(tooltipParts.join(''));
-            
+
             return item;
         } else if (element.type === 'pluginType') {
             const item = new vscode.TreeItem(
                 element.name,
-                vscode.TreeItemCollapsibleState.Collapsed
+                vscode.TreeItemCollapsibleState.Collapsed,
             );
-            item.description = `(${element.plugins.length})`;
+            item.description = `(${String(element.plugins.length)})`;
             item.iconPath = new vscode.ThemeIcon('symbol-folder');
             item.contextValue = 'pluginType';
             return item;
-        } else if (element.type === 'plugin') {
-            const item = new vscode.TreeItem(
-                element.name,
-                vscode.TreeItemCollapsibleState.None
-            );
+        } else {
+            const item = new vscode.TreeItem(element.name, vscode.TreeItemCollapsibleState.None);
             item.description = element.shortDescription;
             item.iconPath = new vscode.ThemeIcon('symbol-method');
             item.contextValue = 'plugin';
             item.tooltip = new vscode.MarkdownString(
-                `**${element.fullName}**\n\n${element.shortDescription}\n\n*Click to view documentation*`
+                `**${element.fullName}**\n\n${element.shortDescription}\n\n*Click to view documentation*`,
             );
             item.command = {
                 command: 'ansibleDevTools.showPluginDoc',
                 title: 'Show Plugin Documentation',
-                arguments: [element.fullName, element.pluginType]
+                arguments: [element.fullName, element.pluginType],
             };
             return item;
-        } else {
-            return new vscode.TreeItem('');
         }
     }
 
     getChildren(element?: TreeNode): Thenable<TreeNode[]> {
         if (!element) {
             if (this._service.isLoading() || !this._service.isLoaded()) {
-                log(`CollectionsProvider: getChildren - loading=${this._service.isLoading()}, loaded=${this._service.isLoaded()}`);
-                return Promise.resolve([{ type: 'loading' } as LoadingNode]);
+                log(
+                    `CollectionsProvider: getChildren - loading=${String(this._service.isLoading())}, loaded=${String(this._service.isLoaded())}`,
+                );
+                return Promise.resolve([{ type: 'loading' }]);
             }
-            
+
             const collections: CollectionNode[] = [];
             const serviceCollections = this._service.getCollections();
-            log(`CollectionsProvider: getChildren - service has ${serviceCollections.size} collections`);
-            
+            log(
+                `CollectionsProvider: getChildren - service has ${String(serviceCollections.size)} collections`,
+            );
+
             for (const [name, data] of serviceCollections) {
                 collections.push({
                     type: 'collection',
                     name,
                     info: data.info,
-                    pluginTypes: data.pluginTypes
+                    pluginTypes: data.pluginTypes,
                 });
             }
             collections.sort((a, b) => a.name.localeCompare(b.name));
@@ -172,22 +177,22 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
                     type: 'pluginType',
                     name: typeName,
                     collectionName: element.name,
-                    plugins
+                    plugins,
                 });
             }
             pluginTypes.sort((a, b) => a.name.localeCompare(b.name));
             return Promise.resolve(pluginTypes);
         } else if (element.type === 'pluginType') {
-            const plugins: PluginNode[] = element.plugins.map(p => ({
+            const plugins: PluginNode[] = element.plugins.map((p) => ({
                 type: 'plugin',
                 name: p.name,
                 fullName: p.fullName,
                 shortDescription: p.shortDescription,
-                pluginType: element.name
+                pluginType: element.name,
             }));
             return Promise.resolve(plugins);
         }
-        
+
         return Promise.resolve([]);
     }
 

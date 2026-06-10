@@ -1,6 +1,6 @@
 /**
  * Command Service
- * 
+ *
  * Centralized service for running commands with the correct Python environment.
  * Ensures all commands use the workspace's venv when available.
  *
@@ -17,6 +17,7 @@ import { promisify } from 'util';
 // Conditional vscode import — only used for workspace folder resolution
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone (MCP server)
@@ -50,15 +51,15 @@ export interface ExecResult {
  * CommandService - singleton for running commands with venv awareness
  */
 export class CommandService {
-    private static _instance: CommandService;
+    private static _instance: CommandService | undefined;
     private _binDirResolver: BinDirResolver | undefined;
 
-    private constructor() {}
+    private constructor() {
+        // singleton
+    }
 
     public static getInstance(): CommandService {
-        if (!CommandService._instance) {
-            CommandService._instance = new CommandService();
-        }
+        CommandService._instance ??= new CommandService();
         return CommandService._instance;
     }
 
@@ -83,7 +84,9 @@ export class CommandService {
                 }
                 log('CommandService: binDirResolver returned null');
             } catch (error) {
-                log(`CommandService: binDirResolver failed: ${error}`);
+                log(
+                    `CommandService: binDirResolver failed: ${error instanceof Error ? error.message : String(error)}`,
+                );
             }
         } else {
             log('CommandService: no binDirResolver set');
@@ -143,14 +146,14 @@ export class CommandService {
     public async runTool(
         toolName: string,
         args: string[],
-        options: CommandOptions = {}
+        options: CommandOptions = {},
     ): Promise<ExecResult> {
         const toolPath = await this.getToolPath(toolName);
         if (!toolPath) {
             return {
                 stdout: '',
                 stderr: `Tool '${toolName}' not found. Install ansible-dev-tools first.`,
-                exitCode: 1
+                exitCode: 1,
             };
         }
 
@@ -161,24 +164,19 @@ export class CommandService {
     /**
      * Run a raw command string
      */
-    public async runCommand(
-        command: string,
-        options: CommandOptions = {}
-    ): Promise<ExecResult> {
-        const cwd = options.cwd || this.getWorkspaceRoot() || process.cwd();
-        const maxBuffer = options.maxBuffer || 10 * 1024 * 1024; // 10MB default
-        
+    public async runCommand(command: string, options: CommandOptions = {}): Promise<ExecResult> {
+        const cwd = options.cwd ?? this.getWorkspaceRoot() ?? process.cwd();
+        const maxBuffer = options.maxBuffer ?? 10 * 1024 * 1024; // 10MB default
+
         // Merge environment with venv's bin in PATH
         const binDir = await this.getBinDir();
-        const processPath = process.env.PATH;
-        const envPath = binDir 
-            ? `${binDir}${path.delimiter}${processPath}`
-            : processPath;
+        const processPath = process.env.PATH ?? '';
+        const envPath = binDir ? `${binDir}${path.delimiter}${processPath}` : processPath;
 
         const env: Record<string, string | undefined> = {
             ...process.env,
             PATH: envPath,
-            ...options.env
+            ...options.env,
         };
 
         try {
@@ -186,19 +184,19 @@ export class CommandService {
                 cwd,
                 maxBuffer,
                 timeout: options.timeout,
-                env: env as NodeJS.ProcessEnv
+                env: env,
             });
             return {
                 stdout: stdout.trim(),
                 stderr: stderr.trim(),
-                exitCode: 0
+                exitCode: 0,
             };
         } catch (error) {
             const execError = error as cp.ExecException & { stdout?: string; stderr?: string };
             return {
-                stdout: execError.stdout?.trim() || '',
-                stderr: execError.stderr?.trim() || execError.message,
-                exitCode: execError.code || 1
+                stdout: execError.stdout?.trim() ?? '',
+                stderr: execError.stderr?.trim() ?? execError.message,
+                exitCode: execError.code ?? 1,
             };
         }
     }

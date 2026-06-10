@@ -30,10 +30,7 @@ function makeCollectionMap(): Map<
     string,
     {
         info: { name: string; version: string; description: string; authors: string[] };
-        pluginTypes: Map<
-            string,
-            Array<{ name: string; fullName: string; shortDescription: string }>
-        >;
+        pluginTypes: Map<string, { name: string; fullName: string; shortDescription: string }[]>;
     }
 > {
     const m = new Map();
