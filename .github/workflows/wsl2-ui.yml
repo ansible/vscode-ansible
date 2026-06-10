@@ -63,6 +63,9 @@ jobs:
       - name: Compile
         run: npm run compile
 
+      - name: Bundle
+        run: npm run build
+
       - name: Install test dependency extensions
         run: npm run pretest:ui
 
@@ -142,6 +145,11 @@ jobs:
         shell: powershell
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+
+      - name: Bundle
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run build"
 
       - name: Install test dependency extensions
         shell: powershell
@@ -223,6 +231,11 @@ jobs:
         shell: powershell
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+
+      - name: Bundle
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run build"
 
       - name: Unit tests with coverage
         shell: powershell

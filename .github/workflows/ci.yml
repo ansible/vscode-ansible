@@ -61,6 +61,7 @@ jobs:
 
       - run: npm ci
       - run: npm run compile
+      - run: npm run build
 
       - name: Run integration tests
         run: xvfb-run --auto-servernum npm run test:integration
@@ -78,6 +79,7 @@ jobs:
 
       - run: npm ci
       - run: npm run compile
+      - run: npm run build
 
       - name: Install test dependency extensions
         run: npm run pretest:ui
