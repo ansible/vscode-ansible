@@ -323,7 +323,10 @@ export class WebviewMessageHandlers {
       collectionUrl?: string;
       projectUrl?: string;
     };
-    const folderUrl = (payload.collectionUrl || payload.projectUrl) as string;
+    const folderUrl = payload.collectionUrl || payload.projectUrl;
+    if (typeof folderUrl !== "string" || folderUrl.trim().length === 0) {
+      return;
+    }
     await this.fileOps.openFolderInWorkspaceProjects(folderUrl);
   }
 
@@ -367,7 +370,7 @@ export class WebviewMessageHandlers {
     if (projectUrl) {
       // For execution environment, open the specific YAML file
       const filePath = `${projectUrl}/execution-environment.yml`;
-      await this.fileOps.openFileInEditor(filePath);
+      this.fileOps.openFileInEditor(filePath);
     }
   }
 
@@ -645,7 +648,7 @@ export class WebviewMessageHandlers {
     }
 
     // WCA provider - send to API
-    lightSpeedManager.apiInstance.feedbackRequest(
+    void lightSpeedManager.apiInstance.feedbackRequest(
       request,
       process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
     );

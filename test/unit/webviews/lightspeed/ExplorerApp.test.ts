@@ -62,7 +62,10 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: false, provider: "wca" });
+      void explorerStateUpdateHandler?.({
+        isAuthenticated: false,
+        provider: "wca",
+      });
       await flushPromises();
 
       expect(wrapper.text()).toContain("Experience smarter automation");
@@ -77,7 +80,10 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: false, provider: "wca" });
+      void explorerStateUpdateHandler?.({
+        isAuthenticated: false,
+        provider: "wca",
+      });
       await flushPromises();
 
       const connectButton = wrapper.find("#lightspeed-explorer-connect");
@@ -96,7 +102,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         userContent: "Logged in as: test@example.com",
         hasPlaybookOpened: false,
@@ -130,7 +136,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         provider: "wca",
         userContent: "Logged in as: test@example.com",
@@ -148,7 +154,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         provider: "ollama",
         userContent: "Logged in as: test@example.com",
@@ -166,7 +172,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: true });
+      void explorerStateUpdateHandler?.({ isAuthenticated: true });
       await flushPromises();
 
       const button = wrapper.find(
@@ -188,7 +194,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         hasPlaybookOpened: true,
       });
@@ -213,7 +219,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({ isAuthenticated: true });
+      void explorerStateUpdateHandler?.({ isAuthenticated: true });
       await flushPromises();
 
       const button = wrapper.find(
@@ -232,7 +238,7 @@ describe("ExplorerApp", () => {
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
 
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         hasRoleOpened: true,
       });
@@ -257,7 +263,7 @@ describe("ExplorerApp", () => {
       const explorerStateUpdateHandler = onCalls.find(
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         hasPlaybookOpened: false,
       });
@@ -273,7 +279,7 @@ describe("ExplorerApp", () => {
       const playbookStateHandler = onCalls.find(
         (call) => call[0] === "playbookOpenedStateChanged",
       )?.[1];
-      playbookStateHandler?.({ hasPlaybookOpened: true });
+      void playbookStateHandler?.({ hasPlaybookOpened: true });
       await flushPromises();
 
       // Button should now be enabled
@@ -293,7 +299,7 @@ describe("ExplorerApp", () => {
       const explorerStateUpdateHandler = onCalls.find(
         (call) => call[0] === "explorerStateUpdate",
       )?.[1];
-      explorerStateUpdateHandler?.({
+      void explorerStateUpdateHandler?.({
         isAuthenticated: true,
         hasRoleOpened: false,
       });
@@ -307,7 +313,7 @@ describe("ExplorerApp", () => {
       const roleStateHandler = onCalls.find(
         (call) => call[0] === "roleOpenedStateChanged",
       )?.[1];
-      roleStateHandler?.({ hasRoleOpened: true });
+      void roleStateHandler?.({ hasRoleOpened: true });
       await flushPromises();
 
       // Button should now be enabled
@@ -327,7 +333,7 @@ describe("ExplorerApp", () => {
       )?.[1];
 
       vi.mocked(vscodeApi.post).mockClear();
-      refreshHandler?.({});
+      void refreshHandler?.({});
 
       expect(vscodeApi.post).toHaveBeenCalledWith("getExplorerState", {});
     });

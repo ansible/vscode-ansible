@@ -190,7 +190,9 @@ async function getSchemaValidation(
   try {
     return schemaValidator.validate(textDocument, schema);
   } catch (err) {
-    connection?.console.error(`Schema validation error: ${err}`);
+    connection?.console.error(
+      `Schema validation error: ${err instanceof Error ? err.message : String(err)}`,
+    );
     return [];
   }
 }

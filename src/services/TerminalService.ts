@@ -108,7 +108,7 @@ export class TerminalService implements vscode.Disposable {
           );
         } catch (error) {
           console.warn(
-            `[Ansible] Terminal Service: Failed to create Python-activated terminal: ${error}`,
+            `[Ansible] Terminal Service: Failed to create Python-activated terminal: ${error instanceof Error ? error.message : String(error)}`,
           );
           terminal = vscode.window.createTerminal({
             name: options.name,
@@ -276,7 +276,7 @@ export class TerminalService implements vscode.Disposable {
       env: options?.env,
     });
 
-    managed.sendCommand(command, { waitForCompletion: false });
+    void managed.sendCommand(command, { waitForCompletion: false });
     return managed.terminal;
   }
 

@@ -88,7 +88,7 @@ export class MetadataLibrary {
         if (error instanceof Error) {
           msg = error.message;
         } else {
-          msg = `${error}`;
+          msg = error instanceof Error ? error.message : String(error);
         }
         this.connection.window.showErrorMessage(msg);
       }

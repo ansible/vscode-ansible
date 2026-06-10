@@ -261,7 +261,7 @@ export class LightSpeedAuthenticationProvider
       return session;
     } catch (e) {
       console.error(
-        `[ansible-lightspeed-oauth] Ansible Lightspeed sign in failed: ${e}`,
+        `[ansible-lightspeed-oauth] Ansible Lightspeed sign in failed: ${e instanceof Error ? e.message : String(e)}`,
       );
       throw e;
     }
@@ -303,7 +303,7 @@ export class LightSpeedAuthenticationProvider
 
       if (account) {
         const sessionId = account.id;
-        this.removeSession(sessionId);
+        void this.removeSession(sessionId);
       }
 
       this._logger.debug("[ansible-lightspeed-oauth] Disposing auth provider");

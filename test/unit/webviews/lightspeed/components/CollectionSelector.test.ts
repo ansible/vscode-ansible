@@ -73,7 +73,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -94,7 +94,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -116,7 +116,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -131,7 +131,7 @@ describe("CollectionSelector", () => {
       props: {
         collectionName: "",
         "onUpdate:collectionName": (value: string | undefined): void => {
-          wrapper.setProps({ collectionName: value ?? "" });
+          void wrapper.setProps({ collectionName: value ?? "" });
         },
       },
     }) as VueWrapper<InstanceType<typeof CollectionSelector>>;
@@ -141,7 +141,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();

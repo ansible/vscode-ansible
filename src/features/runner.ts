@@ -51,7 +51,7 @@ export class AnsiblePlaybookRunProvider {
    * within VS Code.
    */
   private configureCommands() {
-    registerCommandWithTelemetry(
+    void registerCommandWithTelemetry(
       this.vsCodeExtCtx,
       this.telemetry,
       AnsibleCommands.ANSIBLE_PLAYBOOK_RUN,
@@ -60,7 +60,7 @@ export class AnsiblePlaybookRunProvider {
     );
     console.log('Added a "Run Ansible Playbook" command...');
 
-    registerCommandWithTelemetry(
+    void registerCommandWithTelemetry(
       this.vsCodeExtCtx,
       this.telemetry,
       AnsibleCommands.ANSIBLE_NAVIGATOR_RUN,

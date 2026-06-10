@@ -18,14 +18,14 @@ const connection: Connection = createConnection(ProposedFeatures.all);
 // error message to the client if so.
 const errorMessage = getUnsupportedError();
 if (errorMessage) {
-  connection.sendNotification("ansible/errorMessage", errorMessage);
+  void connection.sendNotification("ansible/errorMessage", errorMessage);
 }
 
 const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] =
   [];
 connection.onDidChangeTextDocument((params) => {
   for (const handler of docChangeHandlers) {
-    handler(params);
+    void handler(params);
   }
 });
 

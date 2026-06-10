@@ -206,7 +206,7 @@ export class AnsibleLanguageService {
 
     this.connection.onDidChangeWatchedFiles((params) => {
       try {
-        this.workspaceManager.forEachContext((context) => {
+        void this.workspaceManager.forEachContext((context) => {
           context.handleWatchedDocumentChange(params);
         });
       } catch (error) {
@@ -361,7 +361,7 @@ export class AnsibleLanguageService {
     // Custom actions that are performed on receiving special notifications from the client
     // Resync ansible inventory service by clearing the cached items
     this.connection.onNotification("resync/ansible-inventory", async () => {
-      this.workspaceManager.forEachContext((e) => {
+      await this.workspaceManager.forEachContext((e) => {
         // Invalidate ansible inventory cache
         e.clearAnsibleInventory();
         this.connection.window.showInformationMessage(
@@ -387,7 +387,7 @@ export class AnsibleLanguageService {
             ctx,
             this.connection,
           );
-          this.connection.sendNotification("update/ansible-metadata", [
+          void this.connection.sendNotification("update/ansible-metadata", [
             ansibleMetaData,
           ]);
         }

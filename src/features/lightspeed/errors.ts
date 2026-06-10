@@ -118,7 +118,7 @@ class Errors {
       keys.forEach((key, index) => {
         pretty =
           pretty +
-          `${key}: ${items[key]}` +
+          `${key}: ${String(items[key])}` +
           (index < keys.length - 1 ? " " : "");
       });
     }

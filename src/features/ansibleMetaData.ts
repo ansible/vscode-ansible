@@ -127,7 +127,7 @@ export class MetadataManager {
       },
     );
     const activeFileUri = window.activeTextEditor?.document.uri.toString();
-    this.client.sendNotification(
+    void this.client.sendNotification(
       new NotificationType(`update/ansible-metadata`),
       [activeFileUri],
     );
