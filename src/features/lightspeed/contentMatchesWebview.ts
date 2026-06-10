@@ -17,6 +17,15 @@ import {
   IError,
 } from "@src/features/lightspeed/utils/errors";
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
   private _view?: vscode.WebviewView;
@@ -229,7 +238,9 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
       const taskDescription =
-        typeof taskNameDescription === "string" ? taskNameDescription : "";
+        typeof taskNameDescription === "string"
+          ? escapeHtml(taskNameDescription)
+          : "";
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
         contentMatchValue.contentmatch,
         taskDescription,

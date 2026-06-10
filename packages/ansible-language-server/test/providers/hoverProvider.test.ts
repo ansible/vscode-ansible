@@ -268,7 +268,7 @@ function testNonPlaybookAdjacentCollection(
       } else {
         expect(
           get_hover_value(actualHover),
-          `actual hover -> ${actualHover}`,
+          `actual hover -> ${String(actualHover)}`,
         ).toContain(doc);
       }
     });

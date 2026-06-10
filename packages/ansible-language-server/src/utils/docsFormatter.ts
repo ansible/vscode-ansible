@@ -88,7 +88,7 @@ export function formatOption(
     );
   }
   if (option.choices) {
-    const formattedChoiceArray = option.choices.map((c) => `\`${c}\``);
+    const formattedChoiceArray = option.choices.map((c) => `\`${String(c)}\``);
     sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
   }
   if (option.aliases) {

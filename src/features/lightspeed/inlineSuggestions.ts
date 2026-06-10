@@ -332,8 +332,11 @@ async function requestSuggestion(
       suggestionId,
     );
   } catch (error) {
-    inlineSuggestionData["error"] = `${error}`;
-    vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    inlineSuggestionData["error"] = errorMessage;
+    vscode.window.showErrorMessage(
+      `Error in inline suggestions: ${errorMessage}`,
+    );
     return { predictions: [], suggestionId: suggestionId };
   } finally {
     lightSpeedManager.statusBarProvider.statusBar.text =
@@ -578,7 +581,7 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
     });
   } catch (err) {
     vscode.window.showErrorMessage(
-      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`,
+      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err instanceof Error ? err.message : String(err)}`,
     );
     throw err;
   }

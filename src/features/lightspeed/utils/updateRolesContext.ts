@@ -20,7 +20,9 @@ function getVarsFromRoles(
   try {
     dirContent = fs.readdirSync(varsRootPath);
   } catch (err) {
-    console.error(`Failed to read a var directory with error ${err}`);
+    console.error(
+      `Failed to read a var directory with error ${err instanceof Error ? err.message : String(err)}`,
+    );
     return;
   }
 
@@ -43,7 +45,9 @@ function getVarsFromRoles(
         return varsContext;
       }
     } catch (err) {
-      console.error(`Failed to read ${varsFile} with error ${err}`);
+      console.error(
+        `Failed to read ${varsFile} with error ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -62,7 +66,9 @@ export function updateRolesContext(
   try {
     dirContent = fs.readdirSync(rolesRootPath);
   } catch (error) {
-    console.error(`Cannot read the directory: ${error}`);
+    console.error(
+      `Cannot read the directory: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return;
   }
 
@@ -98,7 +104,9 @@ export function updateRoleContext(
         .map((name) => path.basename(name, path.extname(name)));
       rolesContext[rolePath]["tasks"] = taskNames;
     } catch (err) {
-      console.error(`Failed to read "tasks" directory with error ${err}`);
+      console.error(
+        `Failed to read "tasks" directory with error ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 

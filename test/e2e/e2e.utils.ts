@@ -294,7 +294,7 @@ export async function testDiagnostics(
       assert.deepEqual(
         actualDiagnostic.range,
         expectedDiagnostic.range,
-        `Expected range ${expectedDiagnostic.range} but got ${actualDiagnostic.range}`,
+        `Expected range ${String(expectedDiagnostic.range)} but got ${String(actualDiagnostic.range)}`,
       );
       assert.strictEqual(
         actualDiagnostic.severity,
@@ -362,7 +362,7 @@ async function waitForDiagnosisCompletion(
       // treat it as if no processes were found to avoid test failures.
       // This makes the function more resilient to transient errors.
       console.warn(
-        `[waitForDiagnosisCompletion] Error checking for processes: ${error}`,
+        `[waitForDiagnosisCompletion] Error checking for processes: ${error instanceof Error ? error.message : String(error)}`,
       );
       processes = [];
     }

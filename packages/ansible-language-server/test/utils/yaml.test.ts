@@ -32,9 +32,9 @@ describe("yaml", function () {
     ]);
     const reason = brokenTests.get(context.task?.name);
     if (isWindows() && reason && context.task) {
-      const msg = `Marked ${context.task.name} as pending due to ${reason}`;
+      const msg = `Marked ${context.task.name} as pending due to ${String(reason)}`;
       if (process.env.GITHUB_ACTIONS) {
-        console.log(`::warning file=${context.task.file}:: ${msg}`);
+        console.log(`::warning file=${String(context.task.file)}:: ${msg}`);
       } else {
         console.log(`🚩 ${msg}`);
       }

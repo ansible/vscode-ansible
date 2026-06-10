@@ -89,7 +89,7 @@ export default defineConfig(
       "@typescript-eslint/unbound-method": "error",
       // "@typescript-eslint/no-unsafe-member-access": "error", // ~550 errors
       // "@typescript-eslint/no-floating-promises": "error", // ~100 errors
-      // "@typescript-eslint/restrict-template-expressions": "error",
+      "@typescript-eslint/restrict-template-expressions": "error",
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-return": "error",
     },

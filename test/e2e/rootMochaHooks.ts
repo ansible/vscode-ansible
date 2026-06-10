@@ -26,10 +26,10 @@ try {
   // do this are: mise, asdf, pyenv.
   const result = cp.spawnSync(command, { shell: true });
   if (result.status === 0) {
-    console.info(`Detected: ${result.stdout}`);
+    console.info(`Detected: ${result.stdout.toString()}`);
   } else {
     throw new Error(
-      `rc=${result.status} stderr=${result.stderr} stdout=${result.stdout}`,
+      `rc=${result.status} stderr=${result.stderr.toString()} stdout=${result.stdout.toString()}`,
     );
   }
 } catch (err) {
@@ -37,7 +37,7 @@ try {
     .map(([k, v]) => `${k}=${v}`)
     .join("\n");
   console.error(
-    `error: test requisites not met, '${command}' returned ${err}\n${env}`,
+    `error: test requisites not met, '${command}' returned ${err instanceof Error ? err.message : String(err)}\n${env}`,
   );
   process.exit(PRETEST_ERR_RC);
 }
@@ -49,7 +49,7 @@ const logger = createLogger({
   format: format.combine(
     format.timestamp(),
     format.printf(({ timestamp, level, message }) => {
-      return `${timestamp} ${level}: ${message}`;
+      return `${String(timestamp)} ${String(level)}: ${String(message)}`;
     }),
   ),
   transports: [
@@ -90,7 +90,9 @@ export const mochaHooks = {
         fs.unlinkSync(settingsPath);
       }
     } catch (err) {
-      console.warn(`Error deleting settings file: ${err}`);
+      console.warn(
+        `Error deleting settings file: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   },
 };

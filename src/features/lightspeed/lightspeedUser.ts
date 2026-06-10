@@ -284,7 +284,7 @@ export class LightspeedUser {
         );
       const isSupportedClient = isSupportedCallback(redirectUri);
       this._logger.info(
-        `[ansible-lightspeed-user] Redirect URI ${redirectUri} is${isSupportedClient ? "" : " not"} supported by Lightspeed auth provider.`,
+        `[ansible-lightspeed-user] Redirect URI ${redirectUri.toString()} is${isSupportedClient ? "" : " not"} supported by Lightspeed auth provider.`,
       );
       if (!isSupportedClient) {
         return [AuthProviderType.rhsso, AuthProviderType.lightspeed];
@@ -393,7 +393,7 @@ export class LightspeedUser {
       return true;
     } catch (error) {
       this._logger.info(
-        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
+        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error instanceof Error ? error.message : String(error)}`,
       );
       if (error instanceof LightspeedAccessDenied) {
         // Auth provider has a dead session stored. We need to force it out.
@@ -539,7 +539,7 @@ export class LightspeedUser {
       return;
     }
     this._logger.debug(
-      `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes}"`,
+      `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes.join(", ")}"`,
     );
 
     if (this._userType === AuthProviderType.lightspeed) {
