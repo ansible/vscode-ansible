@@ -153,8 +153,7 @@ describe('Language Server full stack e2e', function () {
                 const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
                 await vscode.window.showTextDocument(doc);
 
-                // Wait for the LS to settle
-                await new Promise((r) => setTimeout(r, 3000));
+                await new Promise((r) => setTimeout(r, 5000));
 
                 const pos = new vscode.Position(7, 8);
                 const result: { items?: { label: string | { label: string } }[] } | undefined =
@@ -172,11 +171,8 @@ describe('Language Server full stack e2e', function () {
             fixtureUri,
         );
 
-        // If the LS successfully called ansible-doc for ansible.builtin.debug,
-        // we should see its options.
         const debugOptions = ['msg', 'var', 'verbosity'];
         const foundOptions = debugOptions.filter((opt) => labels.includes(opt));
-
         await expect(foundOptions.length).toBeGreaterThan(0);
     });
 });

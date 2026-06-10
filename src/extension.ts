@@ -205,9 +205,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     // Start the Ansible Language Server
-    const serverModule = context.asAbsolutePath(
-        path.join('packages', 'language-server', 'out', 'cli.js'),
-    );
+    const serverModule = context.asAbsolutePath(path.join('dist', 'language-server.js'));
     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const serverEnv: Record<string, string> = {};
     if (workspaceRoot) {

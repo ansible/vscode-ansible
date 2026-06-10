@@ -23,9 +23,9 @@
     "onStartupFinished",
     "workspaceContains:**/*"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "bin": {
-    "ansible-environments-mcp": "./packages/mcp-server/out/server.js"
+    "ansible-environments-mcp": "./dist/mcp-server.js"
   },
   "extensionDependencies": [
     "ms-python.python",
@@ -792,9 +792,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run build",
     "compile": "tsc -b",
+    "build": "node scripts/build.mjs",
+    "build:production": "node scripts/build.mjs --production",
     "watch": "tsc -b -w",
+    "watch:bundle": "node scripts/build.mjs --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint .",
     "test": "vitest run",
@@ -822,6 +825,7 @@
     "@wdio/local-runner": "^8.46.0",
     "@wdio/mocha-framework": "^8.46.0",
     "@wdio/spec-reporter": "^8.43.0",
+    "esbuild": "^0.28.0",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
