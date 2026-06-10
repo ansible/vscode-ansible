@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Build VSIX
-        run: npx vsce package --no-dependencies
+        run: npm exec vsce -- package --no-dependencies
 
       - name: Upload VSIX to release
         env:

@@ -24,9 +24,9 @@ submitting your own PR (use `submit-pr` for that).
 
 - PR is **up to date with `next`** (no merge conflicts, clean rebase).
   See the `branching-strategy` skill for why `next` is the target branch.
-- **Lint and type checks pass**: `npx eslint .` and `npx tsc -b` on the full
+- **Lint and type checks pass**: `npm exec eslint -- .` and `npm exec tsc -- -b` on the full
   tree.
-- **Tests pass**: `npx vitest run` for unit tests.
+- **Tests pass**: `npm exec vitest -- run` for unit tests.
 - **PR description** follows the project template (Summary, Changes, Test
   plan) so reviewers and history have clear context.
 - Avoid pushing to the contributor's branch with failing CI or an outdated
@@ -64,9 +64,9 @@ If you are going to push changes to the contributor's branch:
 Run these checks on the **entire** tree, not only the changed files:
 
 ```bash
-npx eslint .
-npx tsc -b
-npx vitest run
+npm exec eslint -- .
+npm exec tsc -- -b
+npm exec vitest -- run
 ```
 
 All checks must pass. Fix any failures (unused imports, type errors, test
@@ -98,7 +98,7 @@ commit and then push so CI stays green.
 - Before pushing:
 
   1. Rebase onto `upstream/next` so the PR is up to date.
-  2. Ensure `npx eslint .` and `npx tsc -b` pass.
+  2. Ensure `npm exec eslint -- .` and `npm exec tsc -- -b` pass.
   3. Use `--force-with-lease` when pushing a rebased branch:
      `git push <remote> <local-branch>:<their-branch> --force-with-lease`.
 
@@ -141,9 +141,9 @@ When reviewing or preparing a contributor PR:
 - [ ] Fetched PR and know base/head and remotes.
 - [ ] PR targets `next` (not `main`). Retarget if needed.
 - [ ] Branch is up to date with `next` (rebase if needed before push).
-- [ ] `npx eslint .` passes.
-- [ ] `npx tsc -b` compiles cleanly.
-- [ ] `npx vitest run` passes.
+- [ ] `npm exec eslint -- .` passes.
+- [ ] `npm exec tsc -- -b` compiles cleanly.
+- [ ] `npm exec vitest -- run` passes.
 - [ ] PR description has Summary, Changes, and Test plan (submit-pr style).
 - [ ] If pushing to their branch: rebase onto upstream/next, checks green, then
       `git push <remote> <local>:<their-branch> --force-with-lease`.

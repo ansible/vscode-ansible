@@ -70,7 +70,7 @@ jobs:
         run: npm run pretest:ui
 
       - name: WDIO smoke tests
-        run: npx wdio run wdio.conf.wsl.ts
+        run: npm exec wdio -- run wdio.conf.wsl.ts
 
       - name: Integration tests
         run: npm run test:integration

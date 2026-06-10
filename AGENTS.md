@@ -58,9 +58,9 @@ See the `branching-strategy` skill for full details.
 
 Before committing:
 
-1. `npx tsc -b` — type check all packages
-2. `npx vitest run` — unit tests pass
-3. `npx eslint .` — no lint violations (when eslint config is available)
+1. `npm exec tsc -- -b` — type check all packages
+2. `npm exec vitest -- run` — unit tests pass
+3. `npm exec eslint -- .` — no lint violations (when eslint config is available)
 4. Verify no architectural invariants (above) were violated
 
 ## Commit Format
