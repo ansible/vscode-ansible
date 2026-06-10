@@ -32,7 +32,9 @@ const CACHE_DIR = '.cache/ansible-environments';
 const CACHE_FILE = 'environment.json';
 
 /**
- * Get the workspace root directory
+ * Resolves the workspace root from VS Code, ANSIBLE_ENV_WORKSPACE, or cwd.
+ *
+ * @returns Absolute workspace path, or null when no root can be determined.
  */
 function getWorkspaceRoot(): string | null {
     if (vscode?.workspace.workspaceFolders?.[0]) {
@@ -46,7 +48,9 @@ function getWorkspaceRoot(): string | null {
 }
 
 /**
- * Get the cache file path
+ * Builds the path to the environment cache file for the current workspace.
+ *
+ * @returns Absolute cache file path, or null when no workspace root exists.
  */
 function getCacheFilePath(): string | null {
     const workspaceRoot = getWorkspaceRoot();
@@ -57,7 +61,9 @@ function getCacheFilePath(): string | null {
 }
 
 /**
- * Ensure the cache directory exists
+ * Creates the cache directory under the workspace when it is missing.
+ *
+ * @returns True when the directory exists or was created successfully.
  */
 function ensureCacheDir(): boolean {
     const workspaceRoot = getWorkspaceRoot();
@@ -77,7 +83,9 @@ function ensureCacheDir(): boolean {
 }
 
 /**
- * Read the cache file
+ * Reads and parses the environment cache file from disk.
+ *
+ * @returns Parsed cache contents, or null when the file is missing or unreadable.
  */
 function readCache(): CacheFile | null {
     const cachePath = getCacheFilePath();
@@ -98,7 +106,10 @@ function readCache(): CacheFile | null {
 }
 
 /**
- * Write to the cache file
+ * Persists cache data to the workspace environment cache file.
+ *
+ * @param cache - Cache payload to write.
+ * @returns True when the file was written successfully.
  */
 function writeCache(cache: CacheFile): boolean {
     if (!ensureCacheDir()) {
@@ -120,7 +131,11 @@ function writeCache(cache: CacheFile): boolean {
 }
 
 /**
- * Save the selected environment to cache (called from VS Code extension)
+ * Saves the selected Python environment to the workspace cache (VS Code extension).
+ *
+ * @param pythonPath - Absolute path to the Python interpreter.
+ * @param displayName - Optional human-readable environment label.
+ * @returns True when the cache file was written successfully.
  */
 export function cacheSelectedEnvironment(pythonPath: string, displayName?: string): boolean {
     const binDir = path.dirname(pythonPath);
@@ -142,7 +157,9 @@ export function cacheSelectedEnvironment(pythonPath: string, displayName?: strin
 }
 
 /**
- * Get the cached environment (called from standalone MCP server)
+ * Returns the cached Python environment (used by the standalone MCP server).
+ *
+ * @returns Cached environment metadata, or null when no selection is stored.
  */
 export function getCachedEnvironment(): CachedEnvironment | null {
     const cache = readCache();
@@ -150,8 +167,9 @@ export function getCachedEnvironment(): CachedEnvironment | null {
 }
 
 /**
- * Get the bin directory for tools (ansible-doc, etc.)
- * Returns cached environment's bin dir, or null if not cached
+ * Returns the bin directory from the cached environment for tool resolution.
+ *
+ * @returns Absolute bin directory path, or null when no environment is cached.
  */
 export function getCachedBinDir(): string | null {
     const env = getCachedEnvironment();
@@ -159,7 +177,10 @@ export function getCachedBinDir(): string | null {
 }
 
 /**
- * Get path to a tool in the cached environment
+ * Resolves an executable within the cached environment's bin directory.
+ *
+ * @param toolName - Executable name to look up (e.g. ansible-doc).
+ * @returns Absolute tool path when it exists in the cached bin dir, otherwise null.
  */
 export function getCachedToolPath(toolName: string): string | null {
     const binDir = getCachedBinDir();
@@ -176,7 +197,9 @@ export function getCachedToolPath(toolName: string): string | null {
 }
 
 /**
- * Clear the cached environment
+ * Removes the selected environment entry from the workspace cache.
+ *
+ * @returns True when the updated cache was written successfully.
  */
 export function clearCachedEnvironment(): boolean {
     const cache = readCache() ?? {};
@@ -185,7 +208,10 @@ export function clearCachedEnvironment(): boolean {
 }
 
 /**
- * Find an executable - first checks cached environment, then PATH
+ * Locates an executable in the cached environment bin dir, then on PATH.
+ *
+ * @param name - Executable name to resolve.
+ * @returns Absolute path to the executable, or null when not found.
  */
 export async function findExecutableWithCache(name: string): Promise<string | null> {
     // First try cached environment
@@ -199,7 +225,10 @@ export async function findExecutableWithCache(name: string): Promise<string | nu
 }
 
 /**
- * Find an executable in PATH
+ * Locates an executable using the system which/where command.
+ *
+ * @param name - Executable name to search for on PATH.
+ * @returns Absolute path to the first match, or null when not found.
  */
 async function findInPath(name: string): Promise<string | null> {
     const { exec } = await import('child_process');

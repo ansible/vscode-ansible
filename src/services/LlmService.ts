@@ -55,12 +55,14 @@ export class LlmService {
     private _lastModelCheck = 0;
     private readonly MODEL_CACHE_TTL = 60000; // 1 minute
 
+    /** Private constructor for the singleton LLM service. */
     private constructor() {
         /* singleton */
     }
 
     /**
      * Get singleton instance
+     * @returns Shared LlmService instance
      */
     public static getInstance(): LlmService {
         LlmService._instance ??= new LlmService();
@@ -73,6 +75,7 @@ export class LlmService {
 
     /**
      * Get all available models grouped by vendor
+     * @returns Models grouped by provider vendor name
      */
     public async getAvailableModels(): Promise<Map<string, LlmModelInfo[]>> {
         if (typeof vscode.lm.selectChatModels !== 'function') {
@@ -104,6 +107,7 @@ export class LlmService {
 
     /**
      * Get list of available providers (vendors)
+     * @returns Sorted list of available LLM provider names
      */
     public async getAvailableProviders(): Promise<string[]> {
         const grouped = await this.getAvailableModels();
@@ -117,6 +121,7 @@ export class LlmService {
     /**
      * Show quick pick to select LLM provider and model
      * Saves selection to settings
+     * @returns True when the user saved a provider or model selection
      */
     public async showModelPicker(): Promise<boolean> {
         if (typeof vscode.lm.selectChatModels !== 'function') {
@@ -304,6 +309,7 @@ export class LlmService {
 
     /**
      * Show current LLM configuration status
+     * @returns Promise that resolves after the status webview is shown
      */
     public async showStatus(): Promise<void> {
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
@@ -403,6 +409,7 @@ export class LlmService {
      * 3. Claude Opus 4.5 from any provider
      * 4. Any Claude model
      * 5. First available model
+     * @returns Selected language model, or undefined when none is available
      */
     public async selectModel(): Promise<vscode.LanguageModelChat | undefined> {
         // Return cached model if still valid
@@ -503,6 +510,9 @@ export class LlmService {
 
     /**
      * Find model by legacy preferredLlmModel setting
+     * @param models - Available language models from VS Code
+     * @param legacyId - Legacy preferred model identifier from settings
+     * @returns Matching model, or undefined when no legacy match exists
      */
     private _findModelByLegacyId(
         models: vscode.LanguageModelChat[],
@@ -627,6 +637,11 @@ export class LlmService {
 
     /**
      * Generate content with iteration and validation
+     * @param prompt - Initial generation prompt
+     * @param validator - Async validator that reports whether content is acceptable
+     * @param maxIterations - Maximum number of correction attempts
+     * @param options - Additional LLM request options
+     * @returns Final validated response or the last failed attempt
      */
     public async generateWithValidation(
         prompt: string,
@@ -698,6 +713,8 @@ Generate the corrected version:`;
 
     /**
      * Extract JSON from a response that may contain markdown or other text
+     * @param content - Raw LLM response text
+     * @returns Parsed JSON string when found, or null when extraction fails
      */
     private _extractJson(content: string): string | null {
         // Try to find JSON in code blocks
@@ -727,6 +744,8 @@ Generate the corrected version:`;
 
     /**
      * Sleep helper for backoff
+     * @param ms - Delay duration in milliseconds
+     * @returns Promise that resolves after the delay elapses
      */
     private _sleep(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
@@ -743,6 +762,7 @@ Generate the corrected version:`;
 
     /**
      * Check if LLM is available
+     * @returns True when a language model can be selected
      */
     public async isAvailable(): Promise<boolean> {
         const model = await this.selectModel();
@@ -751,6 +771,7 @@ Generate the corrected version:`;
 
     /**
      * Get current model info for display
+     * @returns Human-readable provider and model name
      */
     public async getCurrentModelInfo(): Promise<string> {
         const model = await this.selectModel();
@@ -763,6 +784,7 @@ Generate the corrected version:`;
 
 /**
  * Get the singleton LlmService instance
+ * @returns Shared LlmService instance
  */
 export function getLlmService(): LlmService {
     return LlmService.getInstance();

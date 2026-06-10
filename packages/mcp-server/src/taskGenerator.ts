@@ -25,9 +25,16 @@ export interface TaskGeneratorResult {
     warnings: string[];
 }
 
+/** One-shot Ansible task and playbook YAML generator backed by plugin documentation. */
 export class TaskGenerator {
     private _docCache = new Map<string, PluginData>();
 
+    /**
+     * Generates a single Ansible task YAML block from plugin parameters.
+     *
+     * @param input - Plugin identity, module parameters, and task-level options
+     * @returns Generated YAML and any validation warnings
+     */
     async generate(input: TaskGeneratorInput): Promise<TaskGeneratorResult> {
         const pluginType = input.plugin_type ?? 'module';
         const warnings: string[] = [];
@@ -51,6 +58,18 @@ export class TaskGenerator {
         return { yaml, warnings };
     }
 
+    /**
+     * Assembles a multi-task playbook by generating each task individually.
+     *
+     * @param input - Play definition including hosts, tasks, and play-level options
+     * @param input.name - Playbook play name shown in the generated YAML
+     * @param input.hosts - Inventory host pattern for the play
+     * @param input.tasks - Task definitions passed to `generate()` for each entry
+     * @param input.become - When true, adds `become: true` at the play level
+     * @param input.vars - Optional play-level variables merged into the output
+     * @param input.gather_facts - When false, emits `gather_facts: false` on the play
+     * @returns Complete playbook YAML and aggregated warnings from each task
+     */
     async generatePlaybook(input: {
         name: string;
         hosts: string;
@@ -102,6 +121,13 @@ export class TaskGenerator {
         return { yaml: lines.join('\n'), warnings };
     }
 
+    /**
+     * Fetches plugin documentation, using an in-memory cache per plugin and type.
+     *
+     * @param plugin - FQCN or short plugin name
+     * @param pluginType - Ansible plugin type (e.g. `module`)
+     * @returns Cached or freshly loaded PluginData, or null when not found
+     */
     private async _getPluginDoc(plugin: string, pluginType: string): Promise<PluginData | null> {
         const cacheKey = `${plugin}:${pluginType}`;
 
@@ -120,6 +146,13 @@ export class TaskGenerator {
         return doc;
     }
 
+    /**
+     * Checks supplied parameters against documented plugin options.
+     *
+     * @param params - Caller-supplied module parameters
+     * @param options - Documented option specs from ansible-doc
+     * @returns Soft validation warnings (e.g. missing required parameters)
+     */
     private _validateParams(
         params: Record<string, unknown>,
         options: Record<string, PluginOption>,
@@ -150,6 +183,13 @@ export class TaskGenerator {
         return { warnings };
     }
 
+    /**
+     * Builds the YAML lines for one Ansible task from input and plugin metadata.
+     *
+     * @param input - Task generator input including parameters and task options
+     * @param doc - Plugin documentation used for default task naming
+     * @returns Single-task YAML string
+     */
     private _buildYaml(input: TaskGeneratorInput, doc: PluginData): string {
         const lines: string[] = [];
 
@@ -208,6 +248,13 @@ export class TaskGenerator {
         return lines.join('\n');
     }
 
+    /**
+     * Derives a human-readable task name from plugin docs or the module name.
+     *
+     * @param plugin - FQCN or short plugin name
+     * @param doc - Plugin documentation for short_description fallback
+     * @returns Title-cased task name suitable for the `name` field
+     */
     private _generateTaskName(plugin: string, doc: PluginData): string {
         if (doc.doc?.short_description) {
             const desc = doc.doc.short_description;
@@ -221,6 +268,12 @@ export class TaskGenerator {
             .join(' ');
     }
 
+    /**
+     * Serializes a value as a YAML scalar or compact JSON representation.
+     *
+     * @param value - Arbitrary parameter or task option value
+     * @returns YAML-safe string for inline task output
+     */
     private _formatValue(value: unknown): string {
         if (value === null || value === undefined) {
             return 'null';
@@ -266,6 +319,12 @@ export class TaskGenerator {
         return JSON.stringify(value);
     }
 
+    /**
+     * Quotes or block-formats a string when YAML syntax requires it.
+     *
+     * @param value - Raw string parameter value
+     * @returns Unquoted, quoted, or block-scalar YAML representation
+     */
     private _formatString(value: string): string {
         if (
             value === '' ||
@@ -291,6 +350,13 @@ export class TaskGenerator {
         return value;
     }
 
+    /**
+     * Renders a nested object as indented YAML mapping lines.
+     *
+     * @param obj - Object-valued module parameter
+     * @param indent - Current YAML indentation level
+     * @returns Lines to append under the parent key
+     */
     private _formatObject(obj: Record<string, unknown>, indent: number): string[] {
         const lines: string[] = [];
         const prefix = '  '.repeat(indent);
@@ -307,6 +373,13 @@ export class TaskGenerator {
         return lines;
     }
 
+    /**
+     * Renders one list element as YAML list-item lines.
+     *
+     * @param item - Object or scalar list entry
+     * @param indent - Current YAML indentation level
+     * @returns Lines representing a single `-` list item and nested keys
+     */
     private _formatListItem(item: unknown, indent: number): string[] {
         const lines: string[] = [];
         const prefix = '  '.repeat(indent);
@@ -329,6 +402,7 @@ export class TaskGenerator {
         return lines;
     }
 
+    /** Clears cached plugin documentation so the next lookup refetches from CollectionsService. */
     clearCache(): void {
         this._docCache.clear();
     }

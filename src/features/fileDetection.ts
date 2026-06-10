@@ -10,6 +10,8 @@ const ANSIBLE_TOP_LEVEL_KEYS = ['hosts', 'import_playbook', 'ansible.builtin.imp
 /**
  * Parse a VS Code-style modeline (e.g. `# code: language=ansible`) and return
  * the language value, or undefined if no valid language directive is found.
+ * @param line - A single line that may contain a modeline directive
+ * @returns The language identifier, or undefined when absent or invalid
  */
 export function parseModelineLanguage(line: string): string | undefined {
     const match = MODELINE_REGEX.exec(line);
@@ -34,6 +36,8 @@ export function parseModelineLanguage(line: string): string | undefined {
 /**
  * Search the first and last N lines of a document for a modeline language
  * directive. Returns the language string if found, undefined otherwise.
+ * @param text - Full document text to scan for modeline directives
+ * @returns The language from the first matching modeline, or undefined
  */
 export function searchModelineLanguage(text: string): string | undefined {
     const lines = text.split(/\n/g);
@@ -59,6 +63,8 @@ export function searchModelineLanguage(text: string): string | undefined {
  * Inspect a YAML document's content to determine if it looks like an Ansible
  * playbook. Returns true when the top-level structure is an array and the
  * first element contains a recognized Ansible key (hosts, import_playbook, etc.).
+ * @param text - YAML document content to inspect
+ * @returns True when the structure matches a typical Ansible playbook
  */
 export function looksLikePlaybook(text: string): boolean {
     try {
@@ -81,6 +87,8 @@ export function looksLikePlaybook(text: string): boolean {
 
 /**
  * Returns true if the given file extension (without dot) is a YAML extension.
+ * @param ext - File extension without the leading dot
+ * @returns True for `yaml` or `yml` extensions
  */
 export function isYamlExtension(ext: string | undefined): boolean {
     return ext === 'yaml' || ext === 'yml';

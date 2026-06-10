@@ -27,6 +27,7 @@ vi.mock('../../src/services/CommandService', () => ({
 
 import { DevToolsService } from '../../src/services/DevToolsService';
 
+/** Clears the DevToolsService singleton and terminal factory for test isolation. */
 function resetDevToolsSingleton(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (DevToolsService as any)._instance = undefined;

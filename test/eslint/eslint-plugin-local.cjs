@@ -18,9 +18,17 @@
 /** @typedef {import('estree').Node} EstreeNode */
 
 const rule = {
-    /** @param {import('eslint').Rule.RuleContext} context */
+    /**
+     * Create the rule listener.
+     * @param context - The ESLint rule context
+     * @returns An object mapping AST node types to visitor functions
+     */
     create(context) {
-        /** @param {CallExpression} node */
+        /**
+         * Extract the function name from a call expression's callee.
+         * @param node - The call expression AST node
+         * @returns The method or function name, or null if unresolvable
+         */
         function getMethodName(node) {
             const callee = node.callee;
             if (callee.type === 'Identifier') {
@@ -32,14 +40,22 @@ const rule = {
             return null;
         }
 
-        /** @param {EstreeNode} node */
+        /**
+         * Check whether a node is a call to spawn or spawnSync.
+         * @param node - The AST node to inspect
+         * @returns True when the node is a spawn/spawnSync call expression
+         */
         function isSpawnCall(node) {
             if (node.type !== 'CallExpression') return false;
             const name = getMethodName(node);
             return name === 'spawn' || name === 'spawnSync';
         }
 
-        /** @param {EstreeNode | null | undefined} optionsNode */
+        /**
+         * Determine whether an options argument contains `shell: true`.
+         * @param optionsNode - The AST node for the options object
+         * @returns True when the object has a `shell: true` property
+         */
         function hasShellTrue(optionsNode) {
             if (optionsNode?.type !== 'ObjectExpression') return false;
             return optionsNode.properties.some(
@@ -52,14 +68,21 @@ const rule = {
             );
         }
 
-        /** @param {CallExpression} node */
+        /**
+         * Check whether a spawn call violates DEP0190 (args + shell: true).
+         * @param node - The call expression AST node
+         * @returns True when the call has 3+ args and shell: true in options
+         */
         function isViolation(node) {
             const args = node.arguments;
             return args.length >= 3 && hasShellTrue(args[2]);
         }
 
         return {
-            /** @param {CallExpression} node */
+            /**
+             * Visit CallExpression nodes and report DEP0190 violations.
+             * @param node - The call expression AST node
+             */
             CallExpression(node) {
                 if (!isSpawnCall(node)) return;
                 if (isViolation(node)) {

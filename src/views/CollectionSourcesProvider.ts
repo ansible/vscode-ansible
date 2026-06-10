@@ -4,6 +4,10 @@ import { GalaxyCollectionCache, GitHubCollectionCache } from '@ansible/core';
 // Logging function
 let extensionLog: (msg: string) => void = console.log;
 
+/**
+ * Configure the logging function used by collection source operations.
+ * @param logFn - Logger invoked for collection source status messages
+ */
 export function setCollectionSourcesLogFunction(logFn: (msg: string) => void): void {
     extensionLog = logFn;
 }
@@ -11,6 +15,7 @@ export function setCollectionSourcesLogFunction(logFn: (msg: string) => void): v
 /**
  * Open the AI chat with a prompt pre-filled.
  * Falls back to clipboard if the command doesn't support the query parameter.
+ * @param prompt - Prompt text to send to chat or copy to the clipboard
  */
 async function openChatWithPrompt(prompt: string): Promise<void> {
     try {
@@ -43,10 +48,12 @@ export interface CollectionSourceInfo {
     isRefreshing: boolean;
 }
 
-/**
- * Tree item representing a collection source
- */
+/** Tree item representing a Galaxy or GitHub collection source. */
 class CollectionSourceNode extends vscode.TreeItem {
+    /**
+     * Create a collection source node with count and refresh status.
+     * @param source - Metadata describing the collection source
+     */
     constructor(public readonly source: CollectionSourceInfo) {
         super(source.name, vscode.TreeItemCollapsibleState.None);
 
@@ -81,9 +88,7 @@ class CollectionSourceNode extends vscode.TreeItem {
     }
 }
 
-/**
- * Provider for the Collection Sources view
- */
+/** Tree view provider for Galaxy and GitHub collection sources. */
 export class CollectionSourcesProvider implements vscode.TreeDataProvider<CollectionSourceNode> {
     private _onDidChangeTreeData = new vscode.EventEmitter<
         CollectionSourceNode | undefined | null
@@ -94,6 +99,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
     private _githubCache: GitHubCollectionCache;
     private _disposables: vscode.Disposable[] = [];
 
+    /** Create the provider and initialize configured collection source caches. */
     constructor() {
         this._galaxyCache = GalaxyCollectionCache.getInstance();
         this._githubCache = GitHubCollectionCache.getInstance();
@@ -113,6 +119,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         this._initialize();
     }
 
+    /** Load configured GitHub organizations and trigger an initial refresh. */
     private _initialize(): void {
         extensionLog('CollectionSourcesProvider: Initializing...');
 
@@ -122,6 +129,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         this.refresh();
     }
 
+    /** Load cached GitHub collection metadata for configured organizations. */
     private _initializeGitHubOrgs(): void {
         const orgs = this._getConfiguredOrgs();
         extensionLog(`CollectionSourcesProvider: Initializing GitHub orgs: ${orgs.join(', ')}`);
@@ -132,6 +140,10 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         }
     }
 
+    /**
+     * Read configured GitHub organization names from workspace settings.
+     * @returns GitHub organization names used as collection sources
+     */
     private _getConfiguredOrgs(): string[] {
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         return (
@@ -143,10 +155,12 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         );
     }
 
+    /** Notify the tree that source metadata changed. */
     public refresh(): void {
         this._onDidChangeTreeData.fire(undefined);
     }
 
+    /** Refresh Galaxy and all configured GitHub collection sources. */
     public async refreshAll(): Promise<void> {
         extensionLog('CollectionSourcesProvider: Refreshing all sources...');
 
@@ -162,6 +176,10 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         vscode.window.showInformationMessage('All collection sources refreshed');
     }
 
+    /**
+     * Refresh a single collection source cache.
+     * @param source - Source metadata identifying Galaxy or a GitHub organization
+     */
     public async refreshSource(source: CollectionSourceInfo): Promise<void> {
         extensionLog(`CollectionSourcesProvider: Refreshing source: ${source.id}`);
 
@@ -177,6 +195,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         vscode.window.showInformationMessage(`${source.name} refreshed`);
     }
 
+    /** Prompt for a GitHub organization and add it to workspace settings. */
     public async addSource(): Promise<void> {
         const orgName = await vscode.window.showInputBox({
             prompt: 'Enter GitHub organization name',
@@ -214,10 +233,19 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         vscode.window.showInformationMessage(`Added GitHub organization: ${orgName}`);
     }
 
+    /**
+     * Return the tree item for a collection source node.
+     * @param element - Source node whose tree item should be displayed
+     * @returns The node itself because source nodes extend TreeItem
+     */
     getTreeItem(element: CollectionSourceNode): vscode.TreeItem {
         return element;
     }
 
+    /**
+     * Return Galaxy and configured GitHub collection sources.
+     * @returns Source nodes for all configured collection catalogs
+     */
     getChildren(): CollectionSourceNode[] {
         const sources: CollectionSourceNode[] = [];
 
@@ -270,6 +298,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
 
     /**
      * Search within a specific source
+     * @param source - Collection source to search within
      */
     public async searchSource(source: CollectionSourceInfo): Promise<void> {
         const query = await vscode.window.showInputBox({
@@ -286,6 +315,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
 
     /**
      * Install from a specific source
+     * @param source - Collection source whose catalog should be browsed
      */
     public async installFromSource(source: CollectionSourceInfo): Promise<void> {
         interface InstallItem extends vscode.QuickPickItem {
@@ -344,6 +374,8 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
 
     /**
      * Show search results with install option
+     * @param query - Search text entered by the user
+     * @param source - Optional source limiting the search scope
      */
     private async _showSearchResults(query: string, source?: CollectionSourceInfo): Promise<void> {
         interface SearchResultItem extends vscode.QuickPickItem {
@@ -475,6 +507,8 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
 
     /**
      * Install a collection using ade from the Python environment
+     * @param installUrl - Galaxy name or Git URL passed to `ade install`
+     * @param sourceType - Source type used only for logging and messaging
      */
     private async _installCollection(
         installUrl: string,
@@ -546,6 +580,7 @@ Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
 
     /**
      * Generate AI summary for a specific source
+     * @param source - Collection source to summarize in chat
      */
     public async generateSourceAiSummary(source: CollectionSourceInfo): Promise<void> {
         let prompt: string;
@@ -586,6 +621,7 @@ Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
         await openChatWithPrompt(prompt);
     }
 
+    /** Release configuration listeners registered by the provider. */
     dispose(): void {
         for (const d of this._disposables) {
             d.dispose();

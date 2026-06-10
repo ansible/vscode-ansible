@@ -29,10 +29,16 @@ const PYTHON_ENVS_EXTENSION_ID = 'ms-python.vscode-python-envs';
 const PYTHON_EXT_ID = 'ms-python.python';
 const READY_TIMEOUT_MS = 5000;
 
+/**
+ * Convert an unknown thrown value into a log-safe error message.
+ * @param error - Error object or value to stringify
+ * @returns Human-readable error message text
+ */
 function formatError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+/** Centralized wrapper around Python environment extension APIs with fallbacks. */
 export class PythonEnvironmentService implements vscode.Disposable {
     private static _instance: PythonEnvironmentService | undefined;
     private _pythonEnvApi: PythonEnvironmentApi | undefined;
@@ -45,10 +51,15 @@ export class PythonEnvironmentService implements vscode.Disposable {
     private _onDidChangeEnvironment = new vscode.EventEmitter<DidChangeEnvironmentEventArgs>();
     public readonly onDidChangeEnvironment = this._onDidChangeEnvironment.event;
 
+    /** Private constructor for the singleton Python environment service. */
     private constructor() {
         /* singleton */
     }
 
+    /**
+     * Return the shared Python environment service instance.
+     * @returns Singleton PythonEnvironmentService instance
+     */
     public static getInstance(): PythonEnvironmentService {
         PythonEnvironmentService._instance ??= new PythonEnvironmentService();
         return PythonEnvironmentService._instance;
@@ -61,6 +72,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
      * createEnvironment / managePackages work regardless of PET. If PET is
      * missing, ms-python.python is also initialized for environment discovery
      * (hybrid mode).
+     * @returns True when at least one Python environment API is available
      */
     public async initialize(): Promise<boolean> {
         if (this._initPromise) {
@@ -70,6 +82,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return this._initPromise;
     }
 
+    /**
+     * Resolve and initialize the best available Python environment API.
+     * @returns True when at least one backend was successfully initialized
+     */
     private async _doInitialize(): Promise<boolean> {
         log(`Looking for Python Environments extension: ${PYTHON_ENVS_EXTENSION_ID}`);
 
@@ -98,6 +114,11 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // PET detection
     // -------------------------------------------------------------------------
 
+    /**
+     * Check whether the Python Environment Tools binary is installed.
+     * @param extensionPath - Installed Python Environments extension path
+     * @returns True when the PET binary exists for the current platform
+     */
     private _isPetAvailable(extensionPath: string): boolean {
         const binary = process.platform === 'win32' ? 'pet.exe' : 'pet';
         const petPath = path.join(extensionPath, 'python-env-tools', 'bin', binary);
@@ -110,6 +131,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // Primary: ms-python.vscode-python-envs
     // -------------------------------------------------------------------------
 
+    /**
+     * Initialize from the primary ms-python.vscode-python-envs extension.
+     * @param ext - The VS Code extension instance for Python Environments
+     */
     private async _initFromEnvsExtension(
         ext: vscode.Extension<PythonEnvironmentApi>,
     ): Promise<void> {
@@ -145,6 +170,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // Fallback: ms-python.python
     // -------------------------------------------------------------------------
 
+    /** Initialize from the fallback ms-python.python extension. */
     private async _initFromPythonExtension(): Promise<void> {
         try {
             const pythonExt = vscode.extensions.getExtension(PYTHON_EXT_ID);
@@ -188,6 +214,11 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // Adapter: map ms-python.python's ResolvedEnvironment → PythonEnvironment
     // -------------------------------------------------------------------------
 
+    /**
+     * Map a ms-python.python ResolvedEnvironment to the PythonEnvironment interface.
+     * @param resolved - Resolved environment from the Python extension
+     * @returns Normalized PythonEnvironment with display metadata
+     */
     private _adaptResolvedEnvironment(resolved: ResolvedEnvironment): PythonEnvironment {
         const rawPath = resolved.executable.uri?.fsPath ?? '';
         const isVirtualEnv = !!resolved.environment?.folderUri;
@@ -235,6 +266,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
      * Shorten an executable path for display. Keeps the last three
      * segments (e.g. "/home/user/.pyenv/versions/3.9.7/bin/python"
      * → "3.9.7/bin/python"). Returns the full path when already short.
+     * @param fullPath - Absolute path to the Python executable
+     * @returns Shortened display path
      */
     private _shortenPath(fullPath: string): string {
         const segments = fullPath.split(path.sep).filter(Boolean);
@@ -250,6 +283,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
     private static readonly _CHANGE_DEBOUNCE_MS = 1500;
 
+    /** Coalesce rapid environment change events into a single notification. */
     private _fireChangeDebounced(): void {
         if (this._changeDebounce) {
             clearTimeout(this._changeDebounce);
@@ -264,6 +298,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
     // Public API
     // -------------------------------------------------------------------------
 
+    /**
+     * Whether any Python environment API backend is available.
+     * @returns True if at least one backend was initialized
+     */
     public isAvailable(): boolean {
         return this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined;
     }
@@ -271,6 +309,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     /**
      * Whether the full Environments extension API is active with PET
      * working. When true, environment discovery is fast and complete.
+     * @returns True when PET-backed discovery is active
      */
     public hasFullApi(): boolean {
         return this._pythonEnvApi !== undefined && this._petAvailable;
@@ -279,6 +318,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     /**
      * Whether environment creation and package management are available
      * (envs extension active, PET not required for these operations).
+     * @returns True when the Environments extension API is available
      */
     public hasEnvsExtension(): boolean {
         return this._pythonEnvApi !== undefined;
@@ -287,11 +327,17 @@ export class PythonEnvironmentService implements vscode.Disposable {
     /**
      * Get the raw PythonEnvironmentApi. Returns undefined when only the
      * fallback is active or no Python extension is available.
+     * @returns The raw API, or undefined when unavailable
      */
     public getApi(): PythonEnvironmentApi | undefined {
         return this._pythonEnvApi;
     }
 
+    /**
+     * Resolve the active Python environment for a workspace scope.
+     * @param scope - Workspace URI to query, defaults to first workspace folder
+     * @returns The active environment, or undefined if none is configured
+     */
     public async getEnvironment(
         scope?: GetEnvironmentScope,
     ): Promise<PythonEnvironment | undefined> {
@@ -331,6 +377,11 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return undefined;
     }
 
+    /**
+     * List all discovered Python environments, deduplicated by executable path.
+     * @param scope - Filter scope: a workspace URI, 'all', or 'global'
+     * @returns Array of discovered Python environments
+     */
     public async getEnvironments(
         scope: vscode.Uri | 'all' | 'global' = 'all',
     ): Promise<PythonEnvironment[]> {
@@ -385,6 +436,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
     /**
      * Resolve symlinks to a canonical path. Returns the original path on error.
+     * @param p - File system path to resolve
+     * @returns Canonical path with symlinks resolved
      */
     private _realPath(p: string): string {
         try {
@@ -394,11 +447,21 @@ export class PythonEnvironmentService implements vscode.Disposable {
         }
     }
 
+    /**
+     * Get the Python executable path for a workspace scope.
+     * @param scope - Workspace URI to query
+     * @returns Absolute path to the Python binary, or undefined
+     */
     public async getExecutablePath(scope?: GetEnvironmentScope): Promise<string | undefined> {
         const env = await this.getEnvironment(scope);
         return env?.execInfo.run.executable;
     }
 
+    /**
+     * Switch the active Python environment for a workspace scope.
+     * @param scope - Workspace URI or scope to update
+     * @param environment - Environment to activate, or undefined to open the picker
+     */
     public async setEnvironment(
         scope: SetEnvironmentScope,
         environment?: PythonEnvironment,
@@ -446,6 +509,12 @@ export class PythonEnvironmentService implements vscode.Disposable {
         log('setEnvironment: no API available to set environment');
     }
 
+    /**
+     * Create a new Python virtual environment via the Environments extension.
+     * @param scope - Workspace URI(s) or 'global' for the environment location
+     * @param options - Creation options (manager, packages, etc.)
+     * @returns The newly created environment, or undefined if creation was cancelled
+     */
     public async createEnvironment(
         scope: vscode.Uri | vscode.Uri[] | 'global',
         options?: CreateEnvironmentOptions,
@@ -459,6 +528,12 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return this._pythonEnvApi.createEnvironment(scope, options);
     }
 
+    /**
+     * Install or uninstall packages in a Python environment.
+     * @param environment - Target environment for package operations
+     * @param options - Package management options (install, uninstall, etc.)
+     * @returns Resolves when the package operation completes
+     */
     public async managePackages(
         environment: PythonEnvironment,
         options: PackageManagementOptions,
@@ -471,6 +546,12 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return this._pythonEnvApi.managePackages(environment, options);
     }
 
+    /**
+     * Create a terminal activated with the given Python environment.
+     * @param environment - Python environment to activate in the terminal
+     * @param options - VS Code terminal creation options
+     * @returns The created terminal instance
+     */
     public async createTerminal(
         environment: PythonEnvironment,
         options: vscode.TerminalOptions,
@@ -484,11 +565,13 @@ export class PythonEnvironmentService implements vscode.Disposable {
     /**
      * Event for terminal activation state changes. Only available with the
      * full Environments extension API.
+     * @returns The event, or undefined when the Environments API is not active
      */
     public get onDidChangeTerminalActivationState() {
         return this._pythonEnvApi?.onDidChangeTerminalActivationState;
     }
 
+    /** Release all subscriptions and timers held by this service. */
     public dispose(): void {
         if (this._changeDebounce) {
             clearTimeout(this._changeDebounce);

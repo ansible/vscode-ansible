@@ -4,6 +4,7 @@ import type { DevToolPackage } from '@ansible/core';
 import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 import { log } from '@src/extension';
 
+/** Tree view provider for installed Ansible developer tool packages. */
 export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolPackage> {
     private _onDidChangeTreeData: vscode.EventEmitter<DevToolPackage | undefined | null> =
         new vscode.EventEmitter<DevToolPackage | undefined | null>();
@@ -15,6 +16,10 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
     private _serviceListener: vscode.Disposable | undefined;
     private _refreshDebounce: ReturnType<typeof setTimeout> | undefined;
 
+    /**
+     * Create the provider and refresh when the active Python environment changes.
+     * @param pythonEnvService - Service that reports Python environment changes
+     */
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = DevToolsService.getInstance();
 
@@ -25,6 +30,10 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         void this._init(pythonEnvService);
     }
 
+    /**
+     * Subscribe to environment changes and defer the first refresh until discovery completes.
+     * @param pythonEnvService - Service used to observe environment changes
+     */
     private async _init(pythonEnvService: PythonEnvironmentService) {
         try {
             await pythonEnvService.initialize();
@@ -52,10 +61,16 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         }
     }
 
+    /** Reload developer tool packages from the active environment. */
     async refresh(): Promise<void> {
         await this._service.refresh();
     }
 
+    /**
+     * Render a developer tool package as a tree item.
+     * @param element - Package entry to display
+     * @returns Tree item showing package name, version, and install location
+     */
     getTreeItem(element: DevToolPackage): vscode.TreeItem {
         const item = new vscode.TreeItem(element.name, vscode.TreeItemCollapsibleState.None);
         item.description = element.version;
@@ -67,6 +82,11 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         return item;
     }
 
+    /**
+     * Return installed developer tool packages at the tree root.
+     * @param element - Parent node, which is unused because the tree is flat
+     * @returns Installed packages, or an empty list for nested nodes
+     */
     getChildren(element?: DevToolPackage): Thenable<DevToolPackage[]> {
         if (element) {
             return Promise.resolve([]);
@@ -74,10 +94,15 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         return Promise.resolve(this._service.getPackages());
     }
 
+    /**
+     * Whether any developer tool packages are currently available.
+     * @returns True when at least one package is installed
+     */
     hasPackages(): boolean {
         return this._service.hasPackages();
     }
 
+    /** Release listeners and pending refresh timers. */
     dispose() {
         if (this._refreshDebounce) {
             clearTimeout(this._refreshDebounce);

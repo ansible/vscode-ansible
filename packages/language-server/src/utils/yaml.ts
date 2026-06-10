@@ -26,15 +26,30 @@ import type {
 
 type Options = ParseOptions & DocumentOptions & SchemaOptions;
 
+/**
+ * Walks a YAML node path upward to inspect parents, keys, and values.
+ */
 export class AncestryBuilder<N extends Node | Pair = Node> {
     private _path: Node[];
     private _index: number;
 
+    /**
+     * Positions the builder at the end of a YAML node path.
+     *
+     * @param path - Ancestry path from the document root, or null for empty.
+     * @param index - Optional starting index within the path.
+     */
     constructor(path: Node[] | null, index?: number) {
         this._path = path ?? [];
         this._index = index ?? this._path.length - 1;
     }
 
+    /**
+     * Moves to the parent node, optionally requiring a specific node type.
+     *
+     * @param type - Expected parent constructor; invalid parents invalidate the path.
+     * @returns This builder narrowed to the parent node type.
+     */
     parent<X extends Node | Pair>(type?: new (...args: Schema[]) => X): AncestryBuilder<X> {
         this._index--;
         if (isPair(this.get())) {
@@ -50,6 +65,11 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
         return this as unknown as AncestryBuilder<X>;
     }
 
+    /**
+     * Moves from a key or value to the containing YAML map.
+     *
+     * @returns Builder positioned on the parent map of the current key.
+     */
     parentOfKey(): AncestryBuilder<YAMLMap> {
         const node = this.get();
         this.parent(Pair);
@@ -62,6 +82,11 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
         return this as unknown as AncestryBuilder<YAMLMap>;
     }
 
+    /**
+     * Returns the node at the current path index.
+     *
+     * @returns Current node, or null when the index is out of range.
+     */
     get(): N | null {
         if (this._index < 0 || this._index >= this._path.length) {
             return null;
@@ -69,6 +94,11 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
         return this._path[this._index] as N;
     }
 
+    /**
+     * Reads the string key of the pair immediately after a map node.
+     *
+     * @returns Key string when the child pair has a scalar key.
+     */
     getStringKey(this: AncestryBuilder<YAMLMap>): string | null {
         const node = this._path[this._index + 1];
         if (isPair(node) && isScalar(node.key) && typeof node.key.value === 'string') {
@@ -77,6 +107,11 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
         return null;
     }
 
+    /**
+     * Reads the value node of the pair immediately after a map node.
+     *
+     * @returns Value node when the child is a YAML pair.
+     */
     getValue(this: AncestryBuilder<YAMLMap>): Node | null {
         const node = this._path[this._index + 1];
         if (isPair(node)) {
@@ -85,11 +120,21 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
         return null;
     }
 
+    /**
+     * Returns the ancestry path truncated at the current index.
+     *
+     * @returns Path prefix, or null when the index is invalid.
+     */
     getPath(): Node[] | null {
         if (this._index < 0) return null;
         return this._path.slice(0, this._index + 1);
     }
 
+    /**
+     * Extends the current path through the child pair and its key node.
+     *
+     * @returns Path ending at the key scalar, or null when no child pair exists.
+     */
     getKeyPath(this: AncestryBuilder<YAMLMap>): Node[] | null {
         if (this._index < 0) return null;
         const path = this._path.slice(0, this._index + 1);
@@ -103,6 +148,15 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
     }
 }
 
+/**
+ * Resolves the YAML node path at a document position across parsed documents.
+ *
+ * @param document - Text document containing the position.
+ * @param position - Cursor position to resolve.
+ * @param docs - Parsed YAML documents to search.
+ * @param inclusive - When true, positions at range end match the node.
+ * @returns Node ancestry path at the position, or null when not found.
+ */
 export function getPathAt(
     document: TextDocument,
     position: Position,
@@ -117,6 +171,14 @@ export function getPathAt(
     return null;
 }
 
+/**
+ * Tests whether a byte offset lies within a node's source range.
+ *
+ * @param node - YAML node whose range is tested.
+ * @param offset - Byte offset in the document text.
+ * @param inclusive - When true, offsets equal to the range end match.
+ * @returns True when the offset falls inside the node range.
+ */
 function contains(node: Node | null, offset: number, inclusive: boolean): boolean {
     const range = getOrigRange(node);
     return !!(
@@ -126,6 +188,15 @@ function contains(node: Node | null, offset: number, inclusive: boolean): boolea
     );
 }
 
+/**
+ * Recursively descends a YAML tree to find the deepest node at an offset.
+ *
+ * @param path - Current ancestry path while descending.
+ * @param offset - Byte offset in the document text.
+ * @param inclusive - When true, offsets at range end match child nodes.
+ * @param doc - YAML document used to synthesize placeholder nodes.
+ * @returns Deepest matching node path, including synthetic gap nodes.
+ */
 function getPathAtOffset(
     path: Node[],
     offset: number,
@@ -182,6 +253,12 @@ function getPathAtOffset(
 
 const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always|handlers)$/;
 
+/**
+ * Determines whether a YAML path refers to a task parameter map.
+ *
+ * @param path - YAML node ancestry path to test.
+ * @returns True when the path is inside a tasks, handlers, or block list item.
+ */
 export function isTaskParam(path: Node[]): boolean {
     const taskListPath = new AncestryBuilder(path).parentOfKey().parent(YAMLSeq).getPath();
     if (taskListPath) {
@@ -199,6 +276,12 @@ export function isTaskParam(path: Node[]): boolean {
     return false;
 }
 
+/**
+ * Collects collection names declared on enclosing plays, blocks, and tasks.
+ *
+ * @param modulePath - YAML path at a module or task parameter.
+ * @returns Deduplicated collection names from collections keys in scope.
+ */
 export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     const declaredCollections: string[] = [];
     const taskParamsNode = new AncestryBuilder(modulePath).parent(YAMLMap).get();
@@ -222,6 +305,12 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     return [...new Set(declaredCollections)];
 }
 
+/**
+ * Extracts collection names from a collections sequence on a YAML map.
+ *
+ * @param playNode - YAML map that may contain a collections key.
+ * @returns Collection names declared on the map.
+ */
 function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
     const declaredCollections: string[] = [];
     const collectionsPair = _.find(
@@ -241,6 +330,13 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
     return declaredCollections;
 }
 
+/**
+ * Determines whether a YAML path refers to a play-level parameter map.
+ *
+ * @param path - YAML node ancestry path to test.
+ * @param fileUri - Optional document URI used to exclude role task files.
+ * @returns True for play maps, false for non-play contexts, or undefined when ambiguous.
+ */
 export function isPlayParam(path: Node[], fileUri?: string): boolean | undefined {
     const isAtRoot =
         new AncestryBuilder(path).parentOfKey().parent(YAMLSeq).getPath()?.length === 1;
@@ -265,6 +361,12 @@ export function isPlayParam(path: Node[], fileUri?: string): boolean | undefined
     }
 }
 
+/**
+ * Determines whether a YAML path refers to a block/rescue/always parameter map.
+ *
+ * @param path - YAML node ancestry path to test.
+ * @returns True when the map contains a block key inside a sequence.
+ */
 export function isBlockParam(path: Node[]): boolean {
     const builder = new AncestryBuilder(path).parentOfKey();
     const mapNode = builder.get();
@@ -276,6 +378,12 @@ export function isBlockParam(path: Node[]): boolean {
     return false;
 }
 
+/**
+ * Determines whether a YAML path refers to an entry in a roles list.
+ *
+ * @param path - YAML node ancestry path to test.
+ * @returns True when the enclosing sequence belongs to a roles key.
+ */
 export function isRoleParam(path: Node[]): boolean {
     const rolesKey = new AncestryBuilder(path)
         .parentOfKey()
@@ -289,6 +397,11 @@ export function isRoleParam(path: Node[]): boolean {
  * Resolves a module name to its FQCN and plugin data using CollectionsService.
  * Uses a simple heuristic: if the name looks like a FQCN (has 2+ dots), look up
  * directly; otherwise try ansible.builtin.<name>.
+ *
+ * @param taskParamPath - YAML path inside a task parameter map.
+ * @param document - Text document containing the task.
+ * @param collectionsService - Source of cached plugin documentation.
+ * @returns Plugin data for the first resolvable module in the map, or null.
  */
 export async function findProvidedModule(
     taskParamPath: Node[],
@@ -308,6 +421,13 @@ export async function findProvidedModule(
     return null;
 }
 
+/**
+ * Looks up plugin documentation for a module name, inferring ansible.builtin when needed.
+ *
+ * @param name - Module name from the task YAML.
+ * @param collectionsService - Source of cached plugin documentation.
+ * @returns Plugin data when the module exists, or null.
+ */
 async function resolveModuleName(
     name: string,
     collectionsService: CollectionsService,
@@ -321,6 +441,11 @@ async function resolveModuleName(
 
 /**
  * Returns possible options/suboptions at the current path level.
+ *
+ * @param path - YAML node ancestry path at the cursor.
+ * @param document - Text document containing the task.
+ * @param collectionsService - Source of cached plugin documentation.
+ * @returns Option map for the current dict level, or null when not applicable.
  */
 export async function getPossibleOptionsForPath(
     path: Node[],
@@ -359,6 +484,12 @@ export async function getPossibleOptionsForPath(
     return options;
 }
 
+/**
+ * Walks upward from a nested option path to the enclosing task and records dict/list steps.
+ *
+ * @param path - YAML node ancestry path starting inside a task option.
+ * @returns Task parameter path and reversed trace of parent option types.
+ */
 function getTaskParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'dict'][]] {
     const trace: [string, 'list' | 'dict'][] = [];
     while (!isTaskParam(path)) {
@@ -389,6 +520,12 @@ function getTaskParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'di
     return [path, trace];
 }
 
+/**
+ * Collects string keys from all pairs in a YAML map.
+ *
+ * @param mapNode - YAML map whose keys are extracted.
+ * @returns Scalar key values as strings.
+ */
 export function getYamlMapKeys(mapNode: YAMLMap): string[] {
     return mapNode.items
         .map((pair) => {
@@ -400,6 +537,12 @@ export function getYamlMapKeys(mapNode: YAMLMap): string[] {
         .filter((e): e is string => !!e);
 }
 
+/**
+ * Returns the source byte range for a YAML node when available.
+ *
+ * @param node - YAML node whose range is read.
+ * @returns Start and end byte offsets, or undefined when absent.
+ */
 export function getOrigRange(node: Node | null | undefined): [number, number] | undefined {
     if (node?.range) {
         return [node.range[0], node.range[1]];
@@ -407,6 +550,13 @@ export function getOrigRange(node: Node | null | undefined): [number, number] | 
     return undefined;
 }
 
+/**
+ * Parses YAML text into documents, preserving source tokens for range mapping.
+ *
+ * @param str - Raw YAML text to parse.
+ * @param options - Optional parse, document, and schema options.
+ * @returns Parsed documents, or an empty array for blank input.
+ */
 export function parseAllDocuments(str: string, options?: Options): Document[] {
     if (!str) {
         return [];
@@ -414,6 +564,12 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
     return [parseDocument(str, { keepSourceTokens: true, ...options })];
 }
 
+/**
+ * Heuristically detects whether a document is an Ansible playbook.
+ *
+ * @param textDocument - Text document whose root structure is inspected.
+ * @returns True when the document root is a sequence with play-level keys.
+ */
 export function isPlaybook(textDocument: TextDocument): boolean {
     if (textDocument.getText().trim().length === 0) {
         return false;
@@ -443,6 +599,14 @@ export function isPlaybook(textDocument: TextDocument): boolean {
     return [...playbookKeysSet].some((r) => filteredList.includes(r));
 }
 
+/**
+ * Tests whether the cursor sits inside an unclosed `{{ }}` Jinja expression.
+ *
+ * @param document - Text document containing the cursor.
+ * @param position - Cursor position to test.
+ * @param path - YAML node path at the cursor.
+ * @returns True when the cursor is between opening and closing Jinja delimiters.
+ */
 export function isCursorInsideJinjaBrackets(
     document: TextDocument,
     position: Position,

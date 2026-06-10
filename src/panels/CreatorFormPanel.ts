@@ -28,6 +28,7 @@ interface CreatorFormMessage {
     theme?: string;
 }
 
+/** Webview panel that renders an ansible-creator command form from schema metadata. */
 export class CreatorFormPanel {
     public static currentPanel: CreatorFormPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
@@ -36,6 +37,12 @@ export class CreatorFormPanel {
     private readonly _schema: SchemaNode;
     private _disposables: vscode.Disposable[] = [];
 
+    /**
+     * Show or replace the creator form panel for a schema command.
+     * @param extensionUri - Extension root used for webview resources
+     * @param commandPath - ansible-creator command path segments
+     * @param schema - Schema definition used to build the form
+     */
     public static show(extensionUri: vscode.Uri, commandPath: string[], schema: SchemaNode): void {
         const column = vscode.ViewColumn.One;
 
@@ -59,6 +66,13 @@ export class CreatorFormPanel {
         );
     }
 
+    /**
+     * Create the creator form panel and wire webview message handlers.
+     * @param panel - Webview panel hosting the creator form
+     * @param extensionUri - Extension root used for webview resources
+     * @param commandPath - ansible-creator command path segments
+     * @param schema - Schema definition used to build the form
+     */
     private constructor(
         panel: vscode.WebviewPanel,
         extensionUri: vscode.Uri,
@@ -114,6 +128,10 @@ export class CreatorFormPanel {
         );
     }
 
+    /**
+     * Build and run the ansible-creator command from submitted form values.
+     * @param values - Form field values keyed by schema parameter name
+     */
     private async _executeCommand(values: Record<string, unknown>): Promise<void> {
         try {
             // Build the command
@@ -143,6 +161,11 @@ export class CreatorFormPanel {
         }
     }
 
+    /**
+     * Convert form values into ansible-creator CLI arguments.
+     * @param values - Form field values keyed by schema parameter name
+     * @returns Shell-ready argument string for ansible-creator
+     */
     private _buildCommandArgs(values: Record<string, unknown>): string {
         const args: string[] = [];
         const properties = this._schema.parameters?.properties ?? {};
@@ -185,6 +208,11 @@ export class CreatorFormPanel {
         return args.join(' ');
     }
 
+    /**
+     * Convert a form value into a CLI-safe string representation.
+     * @param value - Form value of any supported schema type
+     * @returns String value suitable for command-line arguments
+     */
     private _valueToString(value: unknown): string {
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
             return String(value);
@@ -192,6 +220,11 @@ export class CreatorFormPanel {
         return JSON.stringify(value);
     }
 
+    /**
+     * Quote argument values that contain shell-sensitive characters.
+     * @param value - Argument value to escape when needed
+     * @returns Quoted or unchanged argument text
+     */
     private _quoteIfNeeded(value: string): string {
         if (value.includes(' ') || value.includes('"') || value.includes("'")) {
             return `"${value.replace(/"/g, '\\"')}"`;
@@ -199,6 +232,10 @@ export class CreatorFormPanel {
         return value;
     }
 
+    /**
+     * Generate the creator form webview HTML and client-side script.
+     * @returns Complete HTML document rendered in the webview
+     */
     private _getHtml(): string {
         const schemaJson = JSON.stringify(this._schema);
         const commandPathJson = JSON.stringify(this._commandPath);
@@ -814,6 +851,7 @@ export class CreatorFormPanel {
 </html>`;
     }
 
+    /** Dispose the panel, listeners, and static current-panel reference. */
     public dispose(): void {
         CreatorFormPanel.currentPanel = undefined;
         this._panel.dispose();

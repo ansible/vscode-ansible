@@ -8,6 +8,10 @@ import {
     findProjectRoot,
 } from '../../../src/features/ansibleCfg';
 
+/**
+ * Creates a temporary directory for vault configuration tests.
+ * @returns Path to the newly created temporary directory.
+ */
 function tmpDir(): string {
     return fs.mkdtempSync(path.join(os.tmpdir(), 'vault-test-'));
 }

@@ -5,7 +5,17 @@ import { log } from '@src/extension';
 
 type TreeNode = EENode | EEDetailCategoryNode | EEDetailItemNode | MessageNode;
 
+/** Tree item that displays informational or actionable execution environment messages. */
 class MessageNode extends vscode.TreeItem {
+    /**
+     * Create a non-collapsible message node for the execution environments tree.
+     * @param label - Primary message text shown in the tree
+     * @param options - Optional presentation and command settings
+     * @param options.description - Secondary text shown inline in the tree
+     * @param options.tooltip - Hover text with additional detail
+     * @param options.icon - Theme icon name for the node
+     * @param options.command - VS Code command launched when the node is clicked
+     */
     constructor(
         label: string,
         options?: {
@@ -30,7 +40,12 @@ class MessageNode extends vscode.TreeItem {
     }
 }
 
+/** Collapsible tree item representing a single execution environment image. */
 class EENode extends vscode.TreeItem {
+    /**
+     * Create a tree node for an execution environment summary.
+     * @param ee - Execution environment metadata returned by ansible-navigator
+     */
     constructor(public readonly ee: ExecutionEnvironment) {
         super(ee.full_name, vscode.TreeItemCollapsibleState.Collapsed);
         this.description = ee.created;
@@ -43,7 +58,14 @@ class EENode extends vscode.TreeItem {
     }
 }
 
+/** Collapsible category node for execution environment detail sections. */
 class EEDetailCategoryNode extends vscode.TreeItem {
+    /**
+     * Create a detail category such as collections, packages, or info.
+     * @param label - Category label shown in the tree
+     * @param items - Detail items contained in this category
+     * @param eeName - Execution environment name that owns these details
+     */
     constructor(
         public readonly label: string,
         public readonly items: EEDetailItemNode[],
@@ -70,7 +92,14 @@ class EEDetailCategoryNode extends vscode.TreeItem {
     }
 }
 
+/** Leaf tree item for a single execution environment detail entry. */
 class EEDetailItemNode extends vscode.TreeItem {
+    /**
+     * Create a detail item with optional description and tooltip text.
+     * @param label - Primary label shown in the tree
+     * @param description - Optional secondary text shown inline
+     * @param tooltip - Optional hover text with additional detail
+     */
     constructor(label: string, description?: string, tooltip?: string) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.description = description;
@@ -81,6 +110,7 @@ class EEDetailItemNode extends vscode.TreeItem {
     }
 }
 
+/** Tree view provider for local execution environment images and their details. */
 export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null> =
         new vscode.EventEmitter<TreeNode | undefined | null>();
@@ -90,6 +120,7 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
     private _service: ExecutionEnvService;
     private _serviceListener: vscode.Disposable | undefined;
 
+    /** Create the provider and load execution environments from ansible-navigator. */
     constructor() {
         this._service = ExecutionEnvService.getInstance();
         this._service.setLogFunction(log);
@@ -103,14 +134,25 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
         this.refresh();
     }
 
+    /** Reload execution environment images and refresh the tree. */
     refresh(): void {
         void this._service.refresh();
     }
 
+    /**
+     * Return the tree item for an execution environment node.
+     * @param element - Node whose tree item should be displayed
+     * @returns The node itself because EE nodes extend TreeItem
+     */
     getTreeItem(element: TreeNode): vscode.TreeItem {
         return element;
     }
 
+    /**
+     * Return root execution environments or the children of an EE node.
+     * @param element - Parent node whose children should be listed
+     * @returns Execution environments, detail categories, or detail items
+     */
     async getChildren(element?: TreeNode): Promise<TreeNode[]> {
         if (!element) {
             // Root level - load execution environments
@@ -130,6 +172,10 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
         return [];
     }
 
+    /**
+     * Load execution environment images for the tree root.
+     * @returns EE nodes or status messages for loading, empty, and error states
+     */
     private async _getExecutionEnvironments(): Promise<TreeNode[]> {
         if (this._service.isLoading()) {
             return [
@@ -182,6 +228,11 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
         }
     }
 
+    /**
+     * Load detail categories for a selected execution environment.
+     * @param ee - Execution environment whose details should be shown
+     * @returns Detail categories or an error item when loading fails
+     */
     private async _getEEDetailCategories(ee: ExecutionEnvironment): Promise<TreeNode[]> {
         try {
             const details = await this._service.loadDetails(ee.full_name);

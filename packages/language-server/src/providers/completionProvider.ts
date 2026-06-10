@@ -61,6 +61,14 @@ const priorityMap = {
 let dummyMappingCharacter: string;
 let isAnsiblePlaybook: boolean;
 
+/**
+ * Provides Ansible-aware completion items for the cursor position in a document.
+ *
+ * @param document - Text document being completed.
+ * @param position - Cursor position in the document.
+ * @param context - Workspace folder context for settings and inventory.
+ * @returns Completion items for keywords, modules, options, hosts, or variables.
+ */
 export async function doCompletion(
     document: TextDocument,
     position: Position,
@@ -271,6 +279,17 @@ export async function doCompletion(
     return [];
 }
 
+/**
+ * Builds completion items for all modules in installed collections.
+ *
+ * @param collectionsService - Source of installed collection and module metadata.
+ * @param useFqcn - Whether to insert fully qualified collection names.
+ * @param cursorAtEnd - Whether the cursor is at the end of the line.
+ * @param cursorAtFirst - Whether the cursor is on the first list item.
+ * @param textEdit - Optional text edit range for the current token.
+ * @param documentUri - URI of the document receiving completions.
+ * @returns Module completion items with snippet insert text when appropriate.
+ */
 function getModuleCompletions(
     collectionsService: CollectionsService,
     useFqcn: boolean,
@@ -323,6 +342,13 @@ function getModuleCompletions(
     return items;
 }
 
+/**
+ * Enriches a completion item with module documentation and snippet insert text.
+ *
+ * @param completionItem - Completion item to resolve.
+ * @param context - Workspace folder context for settings lookup.
+ * @returns The completion item with documentation and insert text applied.
+ */
 export async function doCompletionResolve(
     completionItem: CompletionItem,
     context: WorkspaceFolderContext,
@@ -381,6 +407,15 @@ export async function doCompletionResolve(
     return completionItem;
 }
 
+/**
+ * Returns completion items for undocumented keywords in the current YAML map.
+ *
+ * @param document - Text document being completed.
+ * @param position - Cursor position in the document.
+ * @param path - YAML node path at the cursor.
+ * @param keywords - Map of keyword names to documentation.
+ * @returns Completion items for keywords not yet present in the map.
+ */
 function getKeywordCompletion(
     document: TextDocument,
     position: Position,
@@ -416,6 +451,12 @@ function getKeywordCompletion(
     });
 }
 
+/**
+ * Converts inventory host entries into completion items.
+ *
+ * @param hostObjectList - Hosts and groups from the Ansible inventory.
+ * @returns Completion items labeled by host or group name.
+ */
 function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
     return hostObjectList.map(({ host, priority }) => ({
         label: host,
@@ -424,6 +465,13 @@ function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
     }));
 }
 
+/**
+ * Computes the LSP range for a YAML node, excluding dummy completion characters.
+ *
+ * @param node - YAML node whose source range is mapped.
+ * @param document - Text document containing the node.
+ * @returns LSP range for the visible token, or undefined when unavailable.
+ */
 function getNodeRange(node: Node, document: TextDocument): Range | undefined {
     const range = getOrigRange(node);
     if (range && isScalar(node) && typeof node.value === 'string') {
@@ -438,11 +486,25 @@ function getNodeRange(node: Node, document: TextDocument): Range | undefined {
     }
 }
 
+/**
+ * Determines whether the cursor sits immediately before a line break.
+ *
+ * @param document - Text document being completed.
+ * @param position - Cursor position to test.
+ * @returns True when the next character is a newline.
+ */
 function atEndOfLine(document: TextDocument, position: Position): boolean {
     const charAfterCursor = `${document.getText()}\n`[document.offsetAt(position)];
     return charAfterCursor === '\n' || charAfterCursor === '\r';
 }
 
+/**
+ * Checks whether the node range begins the first element of a YAML sequence.
+ *
+ * @param document - Text document containing the list.
+ * @param nodeRange - Range of the node being completed.
+ * @returns True when a list marker appears on the same line before the node.
+ */
 function firstElementOfList(document: TextDocument, nodeRange: Range | undefined): boolean {
     if (!nodeRange) return false;
     const checkRange = {
@@ -452,6 +514,14 @@ function firstElementOfList(document: TextDocument, nodeRange: Range | undefined
     return document.getText(checkRange).trim() === '-';
 }
 
+/**
+ * Returns the snippet suffix to append after a completed option key.
+ *
+ * @param optionType - Ansible option type controlling indentation.
+ * @param isFirstElement - Whether the option is the first item in a list.
+ * @param isDocPlaybook - Whether the document is a playbook.
+ * @returns Whitespace or newline snippet suffix for insert text.
+ */
 export function resolveSuffix(
     optionType: string,
     isFirstElement: boolean,

@@ -5,6 +5,10 @@ vi.mock('@ansible/core/out/services/CommandService', () => ({
     getCommandService: () => ({ runTool: runToolMock }),
 }));
 
+/**
+ * Builds a minimal language-server connection stub for AnsibleInventory tests.
+ * @returns A stub connection with console and window helpers.
+ */
 function mockConnection() {
     return {
         console: { error: vi.fn(), log: vi.fn(), info: vi.fn() },
@@ -12,6 +16,11 @@ function mockConnection() {
     };
 }
 
+/**
+ * Builds a minimal document context with an optional workspace folder URI.
+ * @param folderUri - Workspace folder URI for the test context.
+ * @returns A stub document context with the given workspace folder.
+ */
 function mockContext(folderUri = 'file:///workspace') {
     return {
         workspaceFolder: { uri: folderUri, name: 'ws' },

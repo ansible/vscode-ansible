@@ -22,7 +22,12 @@ import {
 } from '@ansible/core';
 import type { PluginOption, SchemaNode } from '@ansible/core';
 
-// Helper to convert string | string[] to string[]
+/**
+ * Normalizes ansible-doc fields that may be a single string or string array.
+ *
+ * @param value - Raw field value from plugin documentation
+ * @returns Array of strings, empty when the value is undefined
+ */
 function toArray(value: string | string[] | undefined): string[] {
     if (!value) {
         return [];
@@ -33,21 +38,35 @@ function toArray(value: string | string[] | undefined): string[] {
     return [value];
 }
 
+/** Routes MCP tool invocations to Ansible core services and local generators. */
 export class McpToolHandler {
     private _searchIndex = PluginSearchIndex.getInstance();
     private _taskGenerator = new TaskGenerator();
     private _taskBuilder = new TaskBuilder();
     private _creatorTools = new CreatorToolGenerator();
 
+    /** Warms the plugin search index and loads ansible-creator tool definitions. */
     async initialize(): Promise<void> {
         await this._searchIndex.ensureBuilt();
         await this._creatorTools.initialize();
     }
 
+    /**
+     * Dynamic ansible-creator tool generator used when listing and invoking `ac_*` tools.
+     *
+     * @returns Shared CreatorToolGenerator instance owned by this handler
+     */
     getCreatorTools(): CreatorToolGenerator {
         return this._creatorTools;
     }
 
+    /**
+     * Dispatches an MCP tool call to the matching handler implementation.
+     *
+     * @param name - Registered MCP tool name
+     * @param args - Tool arguments from the MCP client
+     * @returns Text content suitable for the MCP tool response
+     */
     async handleTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
         try {
             // Creator tools
@@ -119,6 +138,12 @@ export class McpToolHandler {
 
     // === Discovery Handlers ===
 
+    /**
+     * Handles `search_ansible_plugins` by querying the plugin search index.
+     *
+     * @param args - Tool args: `query` (required), optional `plugin_type`, `collection`, `limit`
+     * @returns Formatted list of matching plugins or guidance when none match
+     */
     private async _handleSearchPlugins(args: Record<string, unknown>): Promise<McpToolResult> {
         const query = args.query as string;
         if (!query) {
@@ -161,6 +186,12 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Handles `get_plugin_documentation` by formatting full ansible-doc output.
+     *
+     * @param args - Tool args: `plugin` (required), optional `plugin_type` (default `module`)
+     * @returns Markdown documentation sections for the requested plugin
+     */
     private async _handleGetPluginDoc(args: Record<string, unknown>): Promise<McpToolResult> {
         const plugin = args.plugin as string;
         if (!plugin) {
@@ -229,6 +260,12 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Formats plugin option metadata as a readable parameter list.
+     *
+     * @param options - Documented module parameters keyed by name
+     * @returns Markdown bullet list with types, defaults, and short descriptions
+     */
     private _formatParameters(options: Record<string, PluginOption>): string {
         const lines: string[] = [];
 
@@ -263,6 +300,12 @@ export class McpToolHandler {
         return lines.join('\n');
     }
 
+    /**
+     * Handles `list_ansible_collections` after refreshing the installed collection cache.
+     *
+     * @param args - Optional `filter` substring to narrow FQCN results
+     * @returns Installed collections with versions
+     */
     private async _handleListCollections(args: Record<string, unknown>): Promise<McpToolResult> {
         const service = CollectionsService.getInstance();
 
@@ -310,6 +353,12 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Handles `install_ansible_collection` via ADE and rebuilds the plugin search index.
+     *
+     * @param args - Tool args: `name` (FQCN or Git URL, required)
+     * @returns Success confirmation or installation error details
+     */
     private async _handleInstallCollection(args: Record<string, unknown>): Promise<McpToolResult> {
         const name = args.name as string;
         if (!name) {
@@ -348,6 +397,12 @@ export class McpToolHandler {
         }
     }
 
+    /**
+     * Handles `search_available_collections` across Galaxy and configured GitHub orgs.
+     *
+     * @param args - Tool args: `query` (required), optional `source` and `limit`
+     * @returns Ranked installable collections with source metadata
+     */
     private async _handleSearchAvailableCollections(
         args: Record<string, unknown>,
     ): Promise<McpToolResult> {
@@ -477,6 +532,12 @@ export class McpToolHandler {
         }
     }
 
+    /**
+     * Handles `list_source_collections` for one Galaxy or GitHub organization.
+     *
+     * @param args - Tool args: `source` (required), optional `limit`
+     * @returns Collections available from the named source
+     */
     private async _handleListSourceCollections(
         args: Record<string, unknown>,
     ): Promise<McpToolResult> {
@@ -572,6 +633,12 @@ export class McpToolHandler {
         }
     }
 
+    /**
+     * Handles `get_collection_plugins` by listing plugins in an installed collection.
+     *
+     * @param args - Tool args: `collection` (required), optional `plugin_type` filter
+     * @returns Markdown inventory of plugins grouped by type
+     */
     private async _handleGetCollectionPlugins(
         args: Record<string, unknown>,
     ): Promise<McpToolResult> {
@@ -668,6 +735,12 @@ export class McpToolHandler {
 
     // === Task Generation Handlers ===
 
+    /**
+     * Handles `generate_ansible_task` using the one-shot TaskGenerator.
+     *
+     * @param args - Tool args: `plugin` and `params` (required), plus optional task options
+     * @returns YAML task block and any validation warnings
+     */
     private async _handleGenerateTask(args: Record<string, unknown>): Promise<McpToolResult> {
         const plugin = args.plugin as string;
         const params = args.params;
@@ -708,6 +781,12 @@ export class McpToolHandler {
         return { content: [{ type: 'text', text: response }] };
     }
 
+    /**
+     * Handles `build_ansible_task` for interactive, session-based task construction.
+     *
+     * @param args - Session and parameter fields accepted by TaskBuilder
+     * @returns Session prompts, generated YAML, or an error message
+     */
     private async _handleBuildTask(args: Record<string, unknown>): Promise<McpToolResult> {
         const result = await this._taskBuilder.build({
             plugin: args.plugin as string,
@@ -739,6 +818,12 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Handles `generate_ansible_playbook` by composing multiple generated tasks.
+     *
+     * @param args - Tool args: `name`, `hosts`, and `tasks` (required), plus optional play options
+     * @returns Full playbook YAML and aggregated task warnings
+     */
     private async _handleGeneratePlaybook(args: Record<string, unknown>): Promise<McpToolResult> {
         const name = args.name as string;
         const hosts = args.hosts as string;
@@ -807,6 +892,11 @@ export class McpToolHandler {
 
     // === Execution Environment Handlers ===
 
+    /**
+     * Handles `list_execution_environments` from ansible-navigator image metadata.
+     *
+     * @returns Summary of discovered execution environment images
+     */
     private async _handleListEEs(): Promise<McpToolResult> {
         const service = ExecutionEnvService.getInstance();
 
@@ -852,6 +942,12 @@ export class McpToolHandler {
         }
     }
 
+    /**
+     * Handles `get_ee_details` with full package and collection inventory for one EE.
+     *
+     * @param args - Tool args: `ee_name` (required)
+     * @returns Detailed execution environment report or a not-found error
+     */
     private async _handleGetEEDetails(args: Record<string, unknown>): Promise<McpToolResult> {
         const eeName = args.ee_name as string;
         if (!eeName) {
@@ -944,6 +1040,11 @@ export class McpToolHandler {
 
     // === Dev Tools Handlers ===
 
+    /**
+     * Handles `list_ansible_dev_tools` by reporting installed ansible-dev-tools packages.
+     *
+     * @returns Installed dev-tool package names and versions
+     */
     private async _handleListDevTools(): Promise<McpToolResult> {
         const service = DevToolsService.getInstance();
 
@@ -978,6 +1079,11 @@ export class McpToolHandler {
 
     // === Creator Handlers ===
 
+    /**
+     * Handles `get_ansible_creator_schema` with a human-readable schema summary.
+     *
+     * @returns Formatted ansible-creator command tree or an availability error
+     */
     private async _handleGetCreatorSchema(): Promise<McpToolResult> {
         const service = CreatorService.getInstance();
 
@@ -1046,6 +1152,12 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Handles `get_ansible_best_practices` from local cache or upstream documentation.
+     *
+     * @param args - Optional `section` key to return one document slice instead of the full guide
+     * @returns Best-practices markdown for the requested section
+     */
     private async _handleGetBestPractices(args: Record<string, unknown>): Promise<McpToolResult> {
         const section = (args.section as string | undefined) ?? 'full';
 
@@ -1110,8 +1222,11 @@ export class McpToolHandler {
     }
 
     /**
-     * Load the best practices document. Checks local cache paths first,
-     * then fetches from the canonical upstream URL and caches for next time.
+     * Loads the best practices document from local paths or the upstream URL.
+     *
+     * Checks bundled resources and a temp-file cache before fetching remotely.
+     *
+     * @returns Markdown document text, or undefined when no source is available
      */
     private async _loadBestPractices(): Promise<string | undefined> {
         const UPSTREAM_URL =

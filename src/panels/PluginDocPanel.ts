@@ -9,6 +9,11 @@ interface PluginDocMessage {
     theme?: string;
 }
 
+/**
+ * Normalize documentation fields that may be a string or string array.
+ * @param value - Single value or list from plugin documentation metadata
+ * @returns Array form of the value, or an empty array when absent
+ */
 function toArray(value: string | string[] | undefined): string[] {
     if (!value) {
         return [];
@@ -19,6 +24,7 @@ function toArray(value: string | string[] | undefined): string[] {
     return [value];
 }
 
+/** Webview panel that renders Ansible plugin documentation with interactive samples. */
 export class PluginDocPanel {
     private static _panels = new Map<string, PluginDocPanel>();
     public static readonly viewType = 'pluginDocPanel';
@@ -28,6 +34,12 @@ export class PluginDocPanel {
     private readonly _pluginKey: string;
     private _disposables: vscode.Disposable[] = [];
 
+    /**
+     * Show or reveal plugin documentation for the requested plugin.
+     * @param extensionUri - Extension root used for webview resources
+     * @param pluginFullName - Fully qualified plugin name
+     * @param pluginType - Plugin type such as module or lookup
+     */
     public static async show(extensionUri: vscode.Uri, pluginFullName: string, pluginType: string) {
         const pluginKey = `${pluginFullName}:${pluginType}`;
 
@@ -55,6 +67,12 @@ export class PluginDocPanel {
         await docPanel._loadPluginDoc(pluginFullName, pluginType);
     }
 
+    /**
+     * Create the plugin documentation panel and wire webview message handlers.
+     * @param panel - Webview panel hosting the documentation view
+     * @param extensionUri - Extension root used for webview resources
+     * @param pluginKey - Stable key used to track open documentation panels
+     */
     private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, pluginKey: string) {
         this._panel = panel;
         this._extensionUri = extensionUri;
@@ -108,6 +126,11 @@ export class PluginDocPanel {
         );
     }
 
+    /**
+     * Load plugin documentation from the collections cache and render the panel.
+     * @param pluginFullName - Fully qualified plugin name
+     * @param pluginType - Plugin type such as module or lookup
+     */
     private async _loadPluginDoc(pluginFullName: string, pluginType: string) {
         this._panel.webview.html = this._getLoadingHtml();
 
@@ -150,6 +173,10 @@ export class PluginDocPanel {
         }
     }
 
+    /**
+     * Generate the loading placeholder HTML for the documentation webview.
+     * @returns Minimal HTML shown while documentation is loading
+     */
     private _getLoadingHtml(): string {
         return `<!DOCTYPE html>
 <html lang="en">
@@ -193,6 +220,11 @@ export class PluginDocPanel {
 </html>`;
     }
 
+    /**
+     * Generate an error page for the documentation webview.
+     * @param message - Error text to display to the user
+     * @returns HTML error page rendered in the webview
+     */
     private _getErrorHtml(message: string): string {
         return `<!DOCTYPE html>
 <html lang="en">
@@ -215,6 +247,17 @@ export class PluginDocPanel {
 </html>`;
     }
 
+    /**
+     * Generate the full plugin documentation webview HTML.
+     * @param pluginFullName - Fully qualified plugin name
+     * @param pluginType - Plugin type such as module or lookup
+     * @param data - Cached plugin documentation payload
+     * @param initialZoom - Initial zoom percentage for the webview
+     * @param themeSetting - Saved theme preference including auto mode
+     * @param resolvedTheme - Resolved light or dark theme for rendering
+     * @param enableAiFeatures - Whether AI helper actions should be shown
+     * @returns Complete HTML document rendered in the webview
+     */
     private _getDocHtml(
         pluginFullName: string,
         pluginType: string,
@@ -1132,6 +1175,12 @@ export class PluginDocPanel {
 </html>`;
     }
 
+    /**
+     * Render plugin parameter documentation as nested HTML.
+     * @param options - Parameter schema map for the plugin
+     * @param depth - Current nesting depth for suboptions
+     * @returns HTML fragment for the parameter tree
+     */
     private _renderParameters(options: Record<string, PluginOption>, depth = 0): string {
         if (Object.keys(options).length === 0) {
             return '<p style="color: var(--text-dim);">No parameters</p>';
@@ -1148,6 +1197,13 @@ export class PluginDocPanel {
         return `<div class="suboptions" id="sub-${String(Date.now())}-${Math.random().toString(36).substring(2, 11)}">${items}</div>`;
     }
 
+    /**
+     * Render a single parameter item and its nested suboptions.
+     * @param name - Parameter name
+     * @param opt - Parameter schema metadata
+     * @param depth - Current nesting depth for suboptions
+     * @returns HTML fragment for one parameter row
+     */
     private _renderParamItem(name: string, opt: PluginOption, depth: number): string {
         const typeStr = opt.type ?? 'str';
         const elementsStr = opt.elements ? `/${opt.elements}` : '';
@@ -1179,6 +1235,12 @@ export class PluginDocPanel {
         </div>`;
     }
 
+    /**
+     * Render parameter choices or default values beneath a parameter header.
+     * @param opt - Parameter schema metadata
+     * @param depth - Current nesting depth used for indentation
+     * @returns HTML fragment for choices and defaults
+     */
     private _renderChoicesDefaults(opt: PluginOption, depth = 0): string {
         let html = '';
         const marginLeft = depth > 0 ? '' : 'margin-left: 22px;';
@@ -1199,6 +1261,11 @@ export class PluginDocPanel {
         return html;
     }
 
+    /**
+     * Render documented return values for the plugin.
+     * @param returnVals - Return value schema map from plugin documentation
+     * @returns HTML fragment for the return values section
+     */
     private _renderReturnValues(returnVals: PluginReturn): string {
         const entries = Object.entries(returnVals);
         if (entries.length === 0) {
@@ -1221,6 +1288,11 @@ export class PluginDocPanel {
         </div>`;
     }
 
+    /**
+     * Render plugin examples as structured sections with copy buttons.
+     * @param examples - Raw examples text from plugin documentation
+     * @returns HTML fragment for the examples section
+     */
     private _renderExamples(examples: string): string {
         // Parse examples into sections based on the pattern
         const sections = this._parseExamples(examples);
@@ -1283,6 +1355,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
             .join('');
     }
 
+    /**
+     * Parse raw example text into titled task sections and context blocks.
+     * @param examples - Raw examples text from plugin documentation
+     * @returns Parsed example sections used by the examples renderer
+     */
     private _parseExamples(examples: string): {
         title: string;
         beforeState?: string;
@@ -1431,6 +1508,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return sections;
     }
 
+    /**
+     * Convert example or task titles into title case for display.
+     * @param text - Raw title text from plugin documentation
+     * @returns Title-cased display text
+     */
     private _capitalizeTitle(text: string): string {
         if (!text) {
             return text;
@@ -1442,6 +1524,12 @@ ${this._escapeHtml(section.afterState)}</div>`;
             .join(' ');
     }
 
+    /**
+     * Render the interactive sample task builder with comment mode toggles.
+     * @param pluginFullName - Fully qualified plugin name
+     * @param options - Parameter schema map for the plugin
+     * @returns HTML fragment for the sample task section
+     */
     private _renderSampleTask(
         pluginFullName: string,
         options: Record<string, PluginOption>,
@@ -1481,6 +1569,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         </div>`;
     }
 
+    /**
+     * Escape text for safe use inside HTML attribute values.
+     * @param text - Raw text to embed in a data attribute
+     * @returns HTML-escaped attribute-safe text
+     */
     private _escapeAttr(text: string): string {
         return text
             .replace(/'/g, '&#39;')
@@ -1489,6 +1582,13 @@ ${this._escapeHtml(section.afterState)}</div>`;
             .replace(/>/g, '&gt;');
     }
 
+    /**
+     * Generate sample task YAML for the requested comment mode.
+     * @param pluginFullName - Fully qualified plugin name
+     * @param options - Parameter schema map for the plugin
+     * @param commentMode - Comment style to apply to generated YAML
+     * @returns Sample task YAML text
+     */
     private _generateSampleYaml(
         pluginFullName: string,
         options: Record<string, PluginOption>,
@@ -1517,6 +1617,15 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return lines.join('\n');
     }
 
+    /**
+     * Append one parameter and its suboptions to generated sample YAML lines.
+     * @param lines - Accumulated YAML lines for the sample task
+     * @param name - Parameter name
+     * @param opt - Parameter schema metadata
+     * @param indent - Current indentation level in spaces
+     * @param isFirstInList - Whether this parameter starts a YAML list item
+     * @param commentMode - Comment style to apply to generated YAML
+     */
     private _addParamToYaml(
         lines: string[],
         name: string,
@@ -1586,6 +1695,12 @@ ${this._escapeHtml(section.afterState)}</div>`;
         }
     }
 
+    /**
+     * Choose a representative example value for a parameter.
+     * @param name - Parameter name
+     * @param opt - Parameter schema metadata
+     * @returns Example YAML value text for the parameter
+     */
     private _getExampleValue(name: string, opt: PluginOption): string {
         // If there's a default, use it
         if (opt.default !== undefined && opt.default !== null) {
@@ -1624,6 +1739,12 @@ ${this._escapeHtml(section.afterState)}</div>`;
         }
     }
 
+    /**
+     * Choose an example list element value for a list-typed parameter.
+     * @param name - Parameter name
+     * @param opt - Parameter schema metadata
+     * @returns Example YAML list item value
+     */
     private _getElementValue(name: string, opt: PluginOption): string {
         if (opt.elements) {
             switch (opt.elements) {
@@ -1644,6 +1765,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return `"${name}_item"`;
     }
 
+    /**
+     * Generate a contextual string example based on common parameter names.
+     * @param name - Parameter name used to infer a realistic example
+     * @returns Quoted example string for the parameter
+     */
     private _getContextualExample(name: string): string {
         // Provide contextual examples based on common parameter names
         const lowerName = name.toLowerCase();
@@ -1735,6 +1861,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return `"${name}_value"`;
     }
 
+    /**
+     * Format a JavaScript value as YAML literal text.
+     * @param value - Value to render into sample YAML
+     * @returns YAML-safe literal representation
+     */
     private _formatYamlValue(value: unknown): string {
         if (value === null || value === undefined) {
             return 'null';
@@ -1781,6 +1912,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return JSON.stringify(value);
     }
 
+    /**
+     * Apply lightweight syntax highlighting to YAML example text.
+     * @param yaml - YAML text to highlight
+     * @returns HTML with span-wrapped YAML tokens
+     */
     private _highlightYaml(yaml: string): string {
         const lines = yaml.split('\n');
         return lines
@@ -1887,6 +2023,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
             .join('\n');
     }
 
+    /**
+     * Highlight inline YAML comments, including structured parameter comments.
+     * @param comment - Comment text including leading spaces and `#`
+     * @returns HTML with styled comment spans
+     */
     private _highlightComment(comment: string): string {
         // Check for structured comment: # (type, required/optional) description
         const structuredMatch = /^( {2}# \()([^,]+)(, )(required|optional)(\) )(.*)$/.exec(comment);
@@ -1907,6 +2048,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return `<span class="yaml-comment-dim">${this._escapeHtml(comment)}</span>`;
     }
 
+    /**
+     * Convert ansible-doc text markup into HTML for parameter descriptions.
+     * @param text - Raw documentation text with ansible-doc formatting
+     * @returns HTML-safe formatted description text
+     */
     private _formatText(text: string): string {
         // Convert Ansible doc formatting to HTML
         let html = this._escapeHtml(text);
@@ -1927,6 +2073,11 @@ ${this._escapeHtml(section.afterState)}</div>`;
         return html;
     }
 
+    /**
+     * Escape raw text for safe embedding in generated HTML.
+     * @param text - Raw text that may contain HTML metacharacters
+     * @returns HTML-safe text
+     */
     private _escapeHtml(text: string): string {
         return text
             .replace(/&/g, '&amp;')
@@ -1936,6 +2087,7 @@ ${this._escapeHtml(section.afterState)}</div>`;
             .replace(/'/g, '&#039;');
     }
 
+    /** Dispose the panel, listeners, and cached panel registry entry. */
     public dispose() {
         PluginDocPanel._panels.delete(this._pluginKey);
         this._panel.dispose();

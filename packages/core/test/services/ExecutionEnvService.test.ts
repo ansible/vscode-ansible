@@ -60,6 +60,7 @@ vi.mock('../../src/services/CommandService', () => ({
 
 import { ExecutionEnvService } from '../../src/services/ExecutionEnvService';
 
+/** Clears the ExecutionEnvService singleton so each test starts with a fresh instance. */
 function resetExecutionEnvSingleton(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ExecutionEnvService as any)._instance = undefined;

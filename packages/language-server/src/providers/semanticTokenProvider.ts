@@ -32,6 +32,13 @@ export const tokenModifiers = [SemanticTokenModifiers.definition] as const;
 
 const tokenModifiersLegend = new Map(tokenModifiers.map((value, index) => [value, index]));
 
+/**
+ * Builds semantic token data for Ansible playbook YAML structure and modules.
+ *
+ * @param document - Text document to tokenize.
+ * @param collectionsService - Source of module documentation for classification.
+ * @returns Encoded semantic tokens for the document.
+ */
 export async function doSemanticTokens(
     document: TextDocument,
     collectionsService: CollectionsService,
@@ -46,6 +53,14 @@ export async function doSemanticTokens(
     return builder.build();
 }
 
+/**
+ * Recursively walks a YAML path and pushes semantic tokens to the builder.
+ *
+ * @param path - YAML node ancestry path being visited.
+ * @param builder - Semantic token builder accumulating encoded tokens.
+ * @param document - Text document whose positions are resolved.
+ * @param collectionsService - Source of module documentation for classification.
+ */
 async function markSemanticTokens(
     path: Node[],
     builder: SemanticTokensBuilder,
@@ -146,11 +161,25 @@ async function markSemanticTokens(
     }
 }
 
+/**
+ * Normalizes a short module name to its fully qualified collection name.
+ *
+ * @param name - Module name from the playbook YAML.
+ * @returns FQCN suitable for documentation lookup.
+ */
 function resolveFqcn(name: string): string {
     const dotCount = (name.match(/\./g) ?? []).length;
     return dotCount >= 2 ? name : `ansible.builtin.${name}`;
 }
 
+/**
+ * Marks module option keys and nested suboptions with semantic token types.
+ *
+ * @param moduleParamMap - YAML map of module parameters at the current level.
+ * @param options - Option specifications from plugin documentation.
+ * @param builder - Semantic token builder receiving token entries.
+ * @param document - Text document whose positions are resolved.
+ */
 function markModuleParameters(
     moduleParamMap: YAMLMap,
     options: Record<string, PluginOption>,
@@ -184,6 +213,13 @@ function markModuleParameters(
     }
 }
 
+/**
+ * Marks all scalar keys in a subtree as ordinary property definitions.
+ *
+ * @param node - YAML node subtree to traverse.
+ * @param builder - Semantic token builder receiving token entries.
+ * @param document - Text document whose positions are resolved.
+ */
 function markAllNestedKeysAsOrdinary(
     node: Node,
     builder: SemanticTokensBuilder,
@@ -209,10 +245,24 @@ function markAllNestedKeysAsOrdinary(
     }
 }
 
+/**
+ * Marks a scalar node as an Ansible keyword token.
+ *
+ * @param node - YAML scalar keyword node.
+ * @param builder - Semantic token builder receiving the token.
+ * @param document - Text document whose positions are resolved.
+ */
 function markKeyword(node: Scalar, builder: SemanticTokensBuilder, document: TextDocument): void {
     markNode(node, SemanticTokenTypes.keyword, [], builder, document);
 }
 
+/**
+ * Marks a scalar key as a generic property definition token.
+ *
+ * @param node - YAML scalar key node.
+ * @param builder - Semantic token builder receiving the token.
+ * @param document - Text document whose positions are resolved.
+ */
 function markOrdinaryKey(
     node: Scalar,
     builder: SemanticTokensBuilder,
@@ -227,6 +277,15 @@ function markOrdinaryKey(
     );
 }
 
+/**
+ * Pushes a semantic token for a scalar node when its source range is known.
+ *
+ * @param node - YAML scalar node to tokenize.
+ * @param tokenType - Semantic token type from the legend.
+ * @param modifiers - Token modifiers to encode.
+ * @param builder - Semantic token builder receiving the token.
+ * @param document - Text document whose positions are resolved.
+ */
 function markNode(
     node: Scalar,
     tokenType: SemanticTokenTypes,
@@ -248,6 +307,12 @@ function markNode(
     }
 }
 
+/**
+ * Maps a semantic token type to its legend index.
+ *
+ * @param tokenType - Token type declared in the server legend.
+ * @returns Numeric index used by the semantic tokens builder.
+ */
 function encodeTokenType(tokenType: SemanticTokenTypes): number {
     const index = tokenTypesLegend.get(tokenType as (typeof tokenTypes)[number]);
     if (index === undefined) {
@@ -256,6 +321,12 @@ function encodeTokenType(tokenType: SemanticTokenTypes): number {
     return index;
 }
 
+/**
+ * Bit-packs semantic token modifiers into the encoded modifier field.
+ *
+ * @param modifiers - Modifier list to encode.
+ * @returns Bitmask of modifier indices.
+ */
 function encodeTokenModifiers(modifiers: SemanticTokenModifiers[]): number {
     let encoded = 0;
     for (const modifier of modifiers) {

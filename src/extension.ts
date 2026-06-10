@@ -59,6 +59,11 @@ let _logFilePath: string | undefined;
 let _logStream: fs.WriteStream | undefined;
 const _LOG_MAX_SIZE = 512 * 1024; // 512 KB — rotate when exceeded
 
+/**
+ * Ensure the extension log file exists and rotate it when oversized.
+ * @param context - Extension context providing the log directory URI
+ * @returns Absolute path to the active extension log file
+ */
 function _ensureLogFile(context: vscode.ExtensionContext): string {
     if (_logFilePath) {
         return _logFilePath;
@@ -82,10 +87,19 @@ function _ensureLogFile(context: vscode.ExtensionContext): string {
     return _logFilePath;
 }
 
+/**
+ * Convert an unknown thrown value into a log-safe error message.
+ * @param error - Error object or value to stringify
+ * @returns Human-readable error message text
+ */
 function formatError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Write a timestamped message to the output channel and log file.
+ * @param message - Log message to record
+ */
 export function log(message: string) {
     const timestamp = new Date().toISOString();
     const line = `[${timestamp}] ${message}`;
@@ -93,7 +107,10 @@ export function log(message: string) {
     _logStream?.write(line + '\n');
 }
 
-/** Path to the current log file (available after activation). */
+/**
+ * Path to the current log file (available after activation).
+ * @returns Absolute log file path, or undefined before activation
+ */
 export function getLogFilePath(): string | undefined {
     return _logFilePath;
 }
@@ -102,6 +119,7 @@ export function getLogFilePath(): string | undefined {
  * Open the AI chat with a prompt pre-filled.
  * Uses the configured chat provider (vscode or openllm).
  * Falls back to clipboard if the command doesn't support the query parameter.
+ * @param prompt - Prompt text to send to the configured chat provider
  */
 async function openChatWithPrompt(prompt: string): Promise<void> {
     const config = vscode.workspace.getConfiguration('ansibleEnvironments');
@@ -154,6 +172,10 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
     }
 }
 
+/**
+ * Activate the Ansible Environments extension and register providers and commands.
+ * @param context - VS Code extension activation context
+ */
 export function activate(context: vscode.ExtensionContext) {
     // Initialize file-based logging (before anything else so all messages are captured)
     const logFile = _ensureLogFile(context);
@@ -1234,6 +1256,7 @@ Please:
     );
 }
 
+/** Shut down extension logging resources on deactivation. */
 export function deactivate(): void {
     _logStream?.end();
     outputChannel.dispose();

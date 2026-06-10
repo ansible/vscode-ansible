@@ -15,16 +15,28 @@ interface InventoryHostEntry {
 
 type InventoryData = Record<string, InventoryHostEntry | undefined>;
 
+/**
+ * Loads and parses the Ansible inventory for a workspace folder.
+ */
 export class AnsibleInventory {
     private connection: Connection;
     private context: WorkspaceFolderContext;
     private _hostList: HostType[] = [];
 
+    /**
+     * Binds the inventory service to an LSP connection and workspace context.
+     *
+     * @param connection - LSP connection for error logging.
+     * @param context - Workspace folder whose inventory is loaded.
+     */
     constructor(connection: Connection, context: WorkspaceFolderContext) {
         this.connection = connection;
         this.context = context;
     }
 
+    /**
+     * Runs ansible-inventory --list and builds the host completion list.
+     */
     public async initialize(): Promise<void> {
         const commandService = getCommandService();
         const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
@@ -51,11 +63,22 @@ export class AnsibleInventory {
         }
     }
 
+    /**
+     * Hosts and groups available for playbook completion, with sort priorities.
+     *
+     * @returns Prioritized inventory hosts and groups.
+     */
     get hostList(): HostType[] {
         return this._hostList;
     }
 }
 
+/**
+ * Flattens ansible-inventory JSON into prioritized host and group entries.
+ *
+ * @param hostObj - Parsed inventory tree from ansible-inventory --list.
+ * @returns Host entries ordered for completion sorting.
+ */
 function parseInventoryHosts(hostObj: InventoryData): HostType[] {
     if (
         !('all' in hostObj) ||
@@ -107,6 +130,14 @@ function parseInventoryHosts(hostObj: InventoryData): HostType[] {
     return [...allGroups, ...allHosts];
 }
 
+/**
+ * Recursively collects leaf group names from nested inventory children.
+ *
+ * @param groupList - Top-level group names to traverse.
+ * @param hostObj - Full inventory data tree.
+ * @param result - Accumulator for discovered leaf groups.
+ * @returns Leaf group names found under the given groups.
+ */
 function getChildGroups(
     groupList: string[],
     hostObj: InventoryData,

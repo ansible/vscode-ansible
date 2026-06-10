@@ -8,11 +8,13 @@ import { CreatorService } from '@ansible/core';
 import type { SchemaNode } from '@ansible/core';
 import { McpToolDefinition, McpToolResult } from './tools';
 
+/** Generates and dispatches MCP tools from the ansible-creator command schema. */
 export class CreatorToolGenerator {
     private _tools: McpToolDefinition[] = [];
     private _toolPathMap = new Map<string, string[]>();
     private _initialized = false;
 
+    /** Loads the ansible-creator schema and builds MCP tool definitions from it. */
     async initialize(): Promise<void> {
         if (this._initialized) {
             return;
@@ -37,18 +39,41 @@ export class CreatorToolGenerator {
         }
     }
 
+    /**
+     * Whether the creator schema has been loaded and tools are available.
+     *
+     * @returns True after `initialize()` has successfully built tool definitions
+     */
     isInitialized(): boolean {
         return this._initialized;
     }
 
+    /**
+     * All dynamically generated ansible-creator MCP tool definitions.
+     *
+     * @returns Creator tools derived from the loaded schema (empty until initialized)
+     */
     getTools(): McpToolDefinition[] {
         return this._tools;
     }
 
+    /**
+     * Checks whether a tool name belongs to the ansible-creator tool set.
+     *
+     * @param name - MCP tool name to check
+     * @returns True when the name uses the `ac_` creator prefix
+     */
     isCreatorTool(name: string): boolean {
         return name.startsWith('ac_');
     }
 
+    /**
+     * Runs an ansible-creator command for the given MCP tool.
+     *
+     * @param name - Creator tool name (e.g. `ac_coll_init`)
+     * @param args - Tool arguments mapped to CLI flags and positional values
+     * @returns MCP result with command output or an error message
+     */
     async handleTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
         const toolPath = this._toolPathMap.get(name);
         if (!toolPath) {
@@ -130,6 +155,13 @@ export class CreatorToolGenerator {
         }
     }
 
+    /**
+     * Recursively walks the schema tree and collects MCP tools for leaf commands.
+     *
+     * @param schema - Current schema node in the ansible-creator tree
+     * @param path - Command path segments accumulated from the root
+     * @returns Tool definitions for all leaf commands under this node
+     */
     private _generateTools(schema: SchemaNode, path: string[] = []): McpToolDefinition[] {
         const tools: McpToolDefinition[] = [];
 
@@ -152,6 +184,13 @@ export class CreatorToolGenerator {
         return tools;
     }
 
+    /**
+     * Builds a single MCP tool definition from a leaf ansible-creator command.
+     *
+     * @param path - Full command path (e.g. `['collection', 'init']`)
+     * @param schema - Schema node describing parameters for the leaf command
+     * @returns MCP tool definition with input schema derived from CLI parameters
+     */
     private _createTool(path: string[], schema: SchemaNode): McpToolDefinition {
         // Shorten tool names to avoid exceeding MCP's 60 char limit for server:tool
         // "ansible-environments:" is 21 chars, leaving 39 for the tool name
@@ -205,7 +244,10 @@ export class CreatorToolGenerator {
     }
 
     /**
-     * Shorten path segments to keep tool names under the MCP limit
+     * Shortens a schema path segment so the combined tool name stays within MCP limits.
+     *
+     * @param segment - Raw command segment from the ansible-creator schema path
+     * @returns Abbreviated segment when a known mapping exists, otherwise the original
      */
     private _shortenPathSegment(segment: string): string {
         const abbreviations: Record<string, string> = {
@@ -223,6 +265,7 @@ export class CreatorToolGenerator {
         return abbreviations[segment] || segment;
     }
 
+    /** Clears cached tools and reloads the ansible-creator schema from scratch. */
     async refresh(): Promise<void> {
         this._initialized = false;
         this._tools = [];

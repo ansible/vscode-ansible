@@ -314,6 +314,7 @@ export const BADGE_STYLES = `
 
 /**
  * Get all common styles combined
+ * @returns Concatenated CSS for shared webview panel styling
  */
 export function getCommonStyles(): string {
     return `
@@ -332,6 +333,7 @@ export function getCommonStyles(): string {
 
 /**
  * Generate zoom/theme control HTML
+ * @returns HTML markup for zoom and theme toggle buttons
  */
 export function getZoomThemeControls(): string {
     return `
@@ -346,6 +348,7 @@ export function getZoomThemeControls(): string {
 /**
  * Generate zoom/theme control JavaScript
  * @param settingsKey - Unique key for storing settings (e.g., 'pluginDoc', 'creatorForm')
+ * @returns Inline script that persists zoom and theme preferences in localStorage
  */
 export function getZoomThemeScript(settingsKey: string): string {
     return `
@@ -427,6 +430,7 @@ export const THEME_OVERRIDE_STYLES = `
 
 /**
  * Get complete styles including theme overrides
+ * @returns Shared webview styles plus manual light/dark theme overrides
  */
 export function getFullStyles(): string {
     return getCommonStyles() + THEME_OVERRIDE_STYLES;
@@ -557,6 +561,7 @@ export const AGENT_PROGRESS_STYLES = `
  * Generate Agent Progress Panel HTML
  * @param title - Title for the progress panel
  * @param showLoading - Whether to show the panel initially
+ * @returns HTML for the agent progress overlay and log panel
  */
 export function getAgentProgressHtml(title: string, showLoading: boolean): string {
     return `
@@ -578,6 +583,7 @@ export function getAgentProgressHtml(title: string, showLoading: boolean): strin
  * Handles 'agentProgress' messages from extension
  * @param completionTitle - Title to show when complete
  * @param autoHideDelay - Delay in ms before auto-hiding (0 to disable)
+ * @returns Inline script that renders agent progress log entries
  */
 export function getAgentProgressScript(completionTitle: string, autoHideDelay = 2000): string {
     return `
@@ -644,6 +650,9 @@ export function getAgentProgressScript(completionTitle: string, autoHideDelay = 
 /**
  * Format log message for agent progress
  * Returns "SYMBOL message" where SYMBOL is a Unicode icon
+ * @param message - Raw progress message from the agent
+ * @param type - Progress entry type such as tool_call or error
+ * @returns A compact, icon-prefixed message for the progress log
  */
 export function formatAgentLogMessage(message: string, type: string): string {
     // Unicode symbols that work well in monospace fonts

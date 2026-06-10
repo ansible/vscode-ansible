@@ -11,6 +11,10 @@ import { getVaultConfig, parseVaultIdentities, findProjectRoot } from '@src/feat
 // FIFO-based password passing — password never touches disk
 // ---------------------------------------------------------------------------
 
+/**
+ * Build a unique FIFO path in the system temp directory for vault passwords.
+ * @returns Absolute path to a temporary named pipe file
+ */
 function fifoPath(): string {
     return path.join(os.tmpdir(), `ansible-vault-pw-${crypto.randomBytes(8).toString('hex')}`);
 }
@@ -20,6 +24,8 @@ function fifoPath(): string {
  * The write completes once ansible-vault opens the FIFO for reading,
  * so the caller must spawn ansible-vault after calling this.
  * The password only exists in memory (kernel pipe buffer) — never on disk.
+ * @param password - Vault password to write into the FIFO
+ * @returns FIFO path and a cleanup function that removes the pipe file
  */
 function createPasswordFifo(password: string): {
     fifo: string;
@@ -50,6 +56,11 @@ function createPasswordFifo(password: string): {
 // Password resolution
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolve ansible-vault password arguments from config or user input.
+ * @param projectRoot - Project root used to locate ansible.cfg settings
+ * @returns CLI password arguments, or undefined when resolution is cancelled
+ */
 async function resolvePasswordArgs(projectRoot: string | undefined): Promise<string[] | undefined> {
     const cfg = await getVaultConfig(projectRoot);
 
@@ -100,6 +111,10 @@ interface PasswordArgs extends Array<string> {
     __cleanup?: () => void;
 }
 
+/**
+ * Remove any temporary FIFO created for inline password passing.
+ * @param args - Password arguments that may carry an attached cleanup callback
+ */
 function cleanupArgs(args: string[] | undefined): void {
     if (args) {
         (args as PasswordArgs).__cleanup?.();
@@ -110,6 +125,13 @@ function cleanupArgs(args: string[] | undefined): void {
 // Spawn helper — runs ansible-vault with stdin piping
 // ---------------------------------------------------------------------------
 
+/**
+ * Spawn ansible-vault and capture stdout for inline encrypt/decrypt operations.
+ * @param args - ansible-vault CLI arguments excluding the executable path
+ * @param stdin - Optional stdin payload for encrypt_string or decrypt operations
+ * @param cwd - Working directory for the child process
+ * @returns Command stdout on success
+ */
 async function spawnVault(
     args: string[],
     stdin: string | undefined,
@@ -164,15 +186,30 @@ async function spawnVault(
 // Encrypt / decrypt helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Detect whether selected inline YAML text is ansible-vault encrypted.
+ * @param text - Selected editor text that may include a `!vault |` prefix
+ * @returns True when the selection contains an inline vault payload
+ */
 function isEncryptedInline(text: string): boolean {
     const stripped = text.replace('!vault |', '').trim();
     return stripped.startsWith('$ANSIBLE_VAULT;');
 }
 
+/**
+ * Detect whether a whole file begins with an ansible-vault header.
+ * @param text - Full document text to inspect
+ * @returns True when the file starts with `$ANSIBLE_VAULT;`
+ */
 function isEncryptedFile(text: string): boolean {
     return text.startsWith('$ANSIBLE_VAULT;');
 }
 
+/**
+ * Remove the `!vault |` prefix and normalize whitespace from inline vault text.
+ * @param text - Inline vault selection from the editor
+ * @returns Vault ciphertext suitable for ansible-vault decrypt stdin
+ */
 function stripInlineVaultPrefix(text: string): string {
     return text
         .replace('!vault |', '')
@@ -222,6 +259,14 @@ export async function toggleVaultEncrypt(): Promise<void> {
     }
 }
 
+/**
+ * Encrypt or decrypt the current editor selection as inline vault content.
+ * @param editor - Active text editor containing the selection
+ * @param selection - Selected range to encrypt or decrypt
+ * @param text - Selected text content
+ * @param passwordArgs - Resolved ansible-vault password arguments
+ * @param cwd - Working directory passed to ansible-vault
+ */
 async function handleInline(
     editor: vscode.TextEditor,
     selection: vscode.Selection,
@@ -262,6 +307,12 @@ async function handleInline(
     }
 }
 
+/**
+ * Encrypt or decrypt the entire active file using ansible-vault file commands.
+ * @param doc - Document to encrypt or decrypt on disk
+ * @param passwordArgs - Resolved ansible-vault password arguments
+ * @param cwd - Working directory passed to ansible-vault
+ */
 async function handleFile(
     doc: vscode.TextDocument,
     passwordArgs: string[],
@@ -287,6 +338,12 @@ async function handleFile(
 // Indentation / multiline helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Compute the YAML indentation level at the start of the selection.
+ * @param editor - Active text editor used to read tab size and line text
+ * @param selection - Selection whose starting line determines indentation
+ * @returns Indentation level measured in tab stops
+ */
 function getIndentLevel(editor: vscode.TextEditor, selection: vscode.Selection): number {
     const tabSize = Number(editor.options.tabSize) || 2;
     const line = editor.document.lineAt(selection.start.line).text;
@@ -294,6 +351,13 @@ function getIndentLevel(editor: vscode.TextEditor, selection: vscode.Selection):
     return Math.floor(leading / tabSize);
 }
 
+/**
+ * Normalize multiline YAML block content before encrypt_string processing.
+ * @param text - Selected plaintext or block scalar content
+ * @param indentLevel - Current YAML indentation level in tab stops
+ * @param tabSize - Editor tab size used to compute leading spaces
+ * @returns Text prepared for ansible-vault encrypt_string stdin
+ */
 function prepareForEncrypt(text: string, indentLevel: number, tabSize: number): string {
     const lines = text.replace(/\r\n/g, '\n').split('\n');
     if (lines.length <= 1) {
@@ -321,6 +385,12 @@ function prepareForEncrypt(text: string, indentLevel: number, tabSize: number): 
     return applyChomp(joined, chomp);
 }
 
+/**
+ * Apply YAML block chomping indicators to encrypted block scalar content.
+ * @param text - Block body text after indentation normalization
+ * @param chomp - Chomping indicator from the original block scalar header
+ * @returns Text with trailing newlines adjusted for the chomp style
+ */
 function applyChomp(text: string, chomp: string): string {
     if (chomp === '-') {
         return text.replace(/\n*$/, '');
@@ -331,6 +401,13 @@ function applyChomp(text: string, chomp: string): string {
     return text.replace(/\n*$/, '\n');
 }
 
+/**
+ * Re-wrap decrypted plaintext as an indented YAML literal block scalar.
+ * @param text - Decrypted plaintext returned by ansible-vault
+ * @param indentLevel - YAML indentation level where the block should be inserted
+ * @param tabSize - Editor tab size used to compute leading spaces
+ * @returns YAML literal block scalar with appropriate chomping indicator
+ */
 function reindentDecrypted(text: string, indentLevel: number, tabSize: number): string {
     const lines = text.split('\n');
     if (lines.length <= 1) {
@@ -360,6 +437,7 @@ function reindentDecrypted(text: string, indentLevel: number, tabSize: number): 
 
 /**
  * Register the vault toggle command.
+ * @param context - Extension context used to register the command
  */
 export function registerVaultCommand(context: vscode.ExtensionContext): void {
     context.subscriptions.push(

@@ -12,11 +12,16 @@ vi.mock('https', () => ({
 
 import { GalaxyCollectionCache } from '../../src/services/GalaxyCollectionCache';
 
+/** Clears the GalaxyCollectionCache singleton so each test starts with a fresh instance. */
 function resetGalaxySingleton(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (GalaxyCollectionCache as any)._instance = undefined;
 }
 
+/**
+ * Configures the mocked HTTPS client to return a single successful Galaxy API response.
+ * @param body - JSON-serializable response body to emit.
+ */
 function installMockGalaxyResponse(body: object): void {
     httpsGetMock.mockImplementation(
         (_url: unknown, _options: unknown, cb: (res: EventEmitter) => void) => {
@@ -39,6 +44,10 @@ function installMockGalaxyResponse(body: object): void {
     );
 }
 
+/**
+ * Configures the mocked HTTPS client to return a sequence of Galaxy API responses.
+ * @param responses - Ordered list of status codes and response bodies.
+ */
 function installMockGalaxySequence(responses: { statusCode: number; body: string }[]): void {
     let index = 0;
     httpsGetMock.mockImplementation(

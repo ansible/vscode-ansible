@@ -54,10 +54,18 @@ export class CommandService {
     private static _instance: CommandService | undefined;
     private _binDirResolver: BinDirResolver | undefined;
 
+    /**
+     * Private constructor for singleton access via getInstance().
+     */
     private constructor() {
         // singleton
     }
 
+    /**
+     * Returns the shared CommandService instance.
+     *
+     * @returns Singleton service for venv-aware command execution.
+     */
     public static getInstance(): CommandService {
         CommandService._instance ??= new CommandService();
         return CommandService._instance;
@@ -66,13 +74,18 @@ export class CommandService {
     /**
      * Inject a bin dir resolver. Called by the extension at startup to wire
      * PythonEnvironmentService into the core package without a hard vscode dep.
+     *
+     * @param resolver - Async callback that returns the active environment bin dir.
      */
     public setBinDirResolver(resolver: BinDirResolver): void {
         this._binDirResolver = resolver;
     }
 
     /**
-     * Get the bin directory for the current Python environment
+     * Get the bin directory for the current Python environment.
+     *
+     * @param workspaceUri - Optional VS Code workspace URI passed to the injected resolver.
+     * @returns Absolute bin directory path, or null when none can be resolved.
      */
     public async getBinDir(workspaceUri?: unknown): Promise<string | null> {
         if (this._binDirResolver) {
@@ -98,8 +111,12 @@ export class CommandService {
     }
 
     /**
-     * Get the full path to a tool (e.g., 'ade', 'ansible-doc')
-     * Checks venv first, then cached environment, then PATH
+     * Get the full path to a tool (e.g., 'ade', 'ansible-doc').
+     * Checks venv first, then cached environment, then PATH.
+     *
+     * @param toolName - Executable name to resolve.
+     * @param workspaceUri - Optional workspace URI for bin dir resolution.
+     * @returns Absolute tool path, or null when the executable is not found.
      */
     public async getToolPath(toolName: string, workspaceUri?: unknown): Promise<string | null> {
         // Try to get from current venv
@@ -127,7 +144,9 @@ export class CommandService {
     }
 
     /**
-     * Get the workspace root directory
+     * Get the workspace root directory.
+     *
+     * @returns Absolute workspace path from VS Code, ANSIBLE_ENV_WORKSPACE, or cwd.
      */
     public getWorkspaceRoot(): string | null {
         if (vscode?.workspace.workspaceFolders?.[0]) {
@@ -140,8 +159,13 @@ export class CommandService {
     }
 
     /**
-     * Run a tool from the venv (e.g., 'ade install collection-name')
-     * Automatically resolves the tool path from the environment
+     * Run a tool from the venv (e.g., 'ade install collection-name').
+     * Automatically resolves the tool path from the environment.
+     *
+     * @param toolName - Executable name to run.
+     * @param args - Command-line arguments passed to the tool.
+     * @param options - Execution options such as cwd, env, and timeout.
+     * @returns Captured stdout, stderr, and exit code from the subprocess.
      */
     public async runTool(
         toolName: string,
@@ -162,7 +186,11 @@ export class CommandService {
     }
 
     /**
-     * Run a raw command string
+     * Run a raw command string with venv-aware PATH and workspace cwd defaults.
+     *
+     * @param command - Full shell command to execute.
+     * @param options - Execution options such as cwd, env, and timeout.
+     * @returns Captured stdout, stderr, and exit code from the subprocess.
      */
     public async runCommand(command: string, options: CommandOptions = {}): Promise<ExecResult> {
         const cwd = options.cwd ?? this.getWorkspaceRoot() ?? process.cwd();
@@ -202,35 +230,50 @@ export class CommandService {
     }
 
     /**
-     * Run ade install for a collection
+     * Run ade install for a collection.
+     *
+     * @param collectionName - Fully qualified collection name to install.
+     * @returns Captured stdout, stderr, and exit code from ade install.
      */
     public async installCollection(collectionName: string): Promise<ExecResult> {
         return this.runTool('ade', ['install', collectionName]);
     }
 
     /**
-     * Run ansible-doc command
+     * Run ansible-doc command.
+     *
+     * @param args - Arguments passed to ansible-doc.
+     * @returns Captured stdout, stderr, and exit code from ansible-doc.
      */
     public async runAnsibleDoc(args: string[]): Promise<ExecResult> {
         return this.runTool('ansible-doc', args);
     }
 
     /**
-     * Run ansible-creator command
+     * Run ansible-creator command.
+     *
+     * @param args - Arguments passed to ansible-creator.
+     * @returns Captured stdout, stderr, and exit code from ansible-creator.
      */
     public async runAnsibleCreator(args: string[]): Promise<ExecResult> {
         return this.runTool('ansible-creator', args);
     }
 
     /**
-     * Run ansible-navigator command
+     * Run ansible-navigator command.
+     *
+     * @param args - Arguments passed to ansible-navigator.
+     * @returns Captured stdout, stderr, and exit code from ansible-navigator.
      */
     public async runAnsibleNavigator(args: string[]): Promise<ExecResult> {
         return this.runTool('ansible-navigator', args);
     }
 
     /**
-     * Check if a tool is available
+     * Check if a tool is available in the active environment or PATH.
+     *
+     * @param toolName - Executable name to check.
+     * @returns True when getToolPath resolves a valid executable.
      */
     public async isToolAvailable(toolName: string): Promise<boolean> {
         const toolPath = await this.getToolPath(toolName);
@@ -238,7 +281,11 @@ export class CommandService {
     }
 }
 
-// Export singleton getter for convenience
+/**
+ * Returns the shared CommandService singleton.
+ *
+ * @returns CommandService instance for venv-aware command execution.
+ */
 export function getCommandService(): CommandService {
     return CommandService.getInstance();
 }

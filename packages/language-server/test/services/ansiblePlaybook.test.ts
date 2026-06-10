@@ -7,6 +7,10 @@ vi.mock('@ansible/core/out/services/CommandService', () => ({
     getCommandService: () => ({ runTool: runToolMock }),
 }));
 
+/**
+ * Builds a minimal language-server connection stub for AnsiblePlaybook tests.
+ * @returns A stub connection with window and console helpers.
+ */
 function mockConnection() {
     return {
         window: {
@@ -20,6 +24,12 @@ function mockConnection() {
     };
 }
 
+/**
+ * Builds a document context with optional workspace folder and progress support.
+ * @param folderUri - Workspace folder URI for the test context.
+ * @param progressSupport - Whether the client advertises work-done progress.
+ * @returns A stub document context with workspace folder and client capabilities.
+ */
 function mockContext(folderUri = 'file:///workspace', progressSupport = false) {
     return {
         workspaceFolder: { uri: folderUri, name: 'ws' },
@@ -29,6 +39,12 @@ function mockContext(folderUri = 'file:///workspace', progressSupport = false) {
     };
 }
 
+/**
+ * Creates a TextDocument for ansible-playbook validation tests.
+ * @param content - YAML playbook content.
+ * @param uri - Document URI.
+ * @returns A language-server TextDocument instance.
+ */
 function makeDoc(
     content = '---\n- hosts: all\n  tasks: []',
     uri = 'file:///workspace/playbook.yml',

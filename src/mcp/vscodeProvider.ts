@@ -76,6 +76,7 @@ export function registerMcpServerProvider(context: vscode.ExtensionContext): voi
 
 /**
  * Check if VS Code MCP is available
+ * @returns True when the MCP server definition provider API is present
  */
 export function isMcpAvailable(): boolean {
     /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- VS Code MCP API is not yet stable/typed */

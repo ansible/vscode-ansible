@@ -198,6 +198,7 @@ process.on('SIGTERM', () => {
 });
 
 // Start the server
+/** Initializes services and connects the MCP server over stdio transport. */
 async function main() {
     console.error('[MCP Server] Starting Ansible Environments MCP server...');
 

@@ -3,7 +3,12 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-/** Node may call exec(cmd, cb) or exec(cmd, opts, cb); promisify uses the latter. */
+/**
+ * Node may call exec(cmd, cb) or exec(cmd, opts, cb); promisify uses the latter.
+ * @param arg2 - Callback or options argument from the exec call.
+ * @param arg3 - Callback when arg2 is options.
+ * @returns The exec completion callback.
+ */
 function asExecCallback(
     arg2: unknown,
     arg3?: unknown,

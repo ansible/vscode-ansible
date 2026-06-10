@@ -53,10 +53,17 @@ export interface TaskBuilderResult {
     message: string;
 }
 
+/** Stateful, multi-step Ansible task builder with guided parameter collection. */
 export class TaskBuilder {
     private _sessions = new Map<string, TaskBuilderSession>();
     private _sessionTimeout = 10 * 60 * 1000; // 10 minutes
 
+    /**
+     * Starts, continues, or completes an interactive task-building session.
+     *
+     * @param input - Session controls, plugin selection, parameters, and generate/cancel flags
+     * @returns Session progress, prompts for missing parameters, or generated YAML when complete
+     */
     async build(input: TaskBuilderInput): Promise<TaskBuilderResult> {
         // Clean up old sessions
         this._cleanupSessions();
@@ -150,6 +157,13 @@ export class TaskBuilder {
         return this._buildPrompt(session);
     }
 
+    /**
+     * Opens a new session by loading plugin documentation and required parameters.
+     *
+     * @param plugin - FQCN or short plugin name
+     * @param pluginType - Ansible plugin type (e.g. `module`)
+     * @returns Initialized session tracking collected and missing parameters
+     */
     private async _startSession(plugin: string, pluginType: string): Promise<TaskBuilderSession> {
         const service = CollectionsService.getInstance();
         const doc = await service.getPluginDocumentation(plugin, pluginType);
@@ -187,6 +201,12 @@ export class TaskBuilder {
         };
     }
 
+    /**
+     * Returns the plugin documentation body for a session.
+     *
+     * @param session - Active task builder session
+     * @returns Non-null plugin doc content from the cached PluginData
+     */
     private _getDocContent(session: TaskBuilderSession): NonNullable<PluginData['doc']> {
         const docContent = session.doc.doc;
         if (!docContent) {
@@ -195,6 +215,11 @@ export class TaskBuilder {
         return docContent;
     }
 
+    /**
+     * Recomputes which required parameters are still unset in the session.
+     *
+     * @param session - Session whose missing-required list should be refreshed
+     */
     private _updateMissingRequired(session: TaskBuilderSession): void {
         const options = this._getDocContent(session).options ?? {};
         session.missingRequired = session.requiredParams.filter((param) => {
@@ -209,6 +234,12 @@ export class TaskBuilder {
         });
     }
 
+    /**
+     * Builds an in-progress result with current state and user-facing prompts.
+     *
+     * @param session - Active session to summarize
+     * @returns TaskBuilderResult prompting for the next required or optional parameters
+     */
     private _buildPrompt(session: TaskBuilderSession): TaskBuilderResult {
         return {
             status: 'in_progress',
@@ -224,6 +255,13 @@ export class TaskBuilder {
         };
     }
 
+    /**
+     * Formats a markdown message describing collected, missing, and optional parameters.
+     *
+     * @param session - Active session to describe
+     * @param prefix - Optional leading message (e.g. when generation is blocked)
+     * @returns Human-readable prompt text for the MCP tool response
+     */
     private _buildPromptMessage(session: TaskBuilderSession, prefix?: string): string {
         const docContent = this._getDocContent(session);
         const options = docContent.options ?? {};
@@ -310,6 +348,12 @@ export class TaskBuilder {
         return lines.join('\n');
     }
 
+    /**
+     * Extracts a truncated parameter description for display in prompts.
+     *
+     * @param spec - Plugin option metadata from ansible-doc
+     * @returns First description line, trimmed to a readable length
+     */
     private _getShortDescription(spec?: PluginOption): string {
         if (!spec?.description) {
             return '';
@@ -318,6 +362,12 @@ export class TaskBuilder {
         return desc.length > 100 ? desc.substring(0, 97) + '...' : desc;
     }
 
+    /**
+     * Renders the collected session state as a single Ansible task YAML block.
+     *
+     * @param session - Completed session with all required parameters collected
+     * @returns YAML string for one Ansible task
+     */
     private _generateYaml(session: TaskBuilderSession): string {
         const lines: string[] = [];
         const pluginName = session.plugin.split('.').pop() ?? session.plugin;
@@ -360,6 +410,13 @@ export class TaskBuilder {
         return lines.join('\n');
     }
 
+    /**
+     * Converts a JavaScript value to a YAML-safe scalar or block representation.
+     *
+     * @param value - Parameter or task option value to serialize
+     * @param indent - Nesting depth for multiline block scalars
+     * @returns YAML fragment suitable for embedding in generated task output
+     */
     private _formatYamlValue(value: unknown, indent = 0): string {
         const prefix = '    '.repeat(indent);
 
@@ -417,10 +474,16 @@ export class TaskBuilder {
         return JSON.stringify(value);
     }
 
+    /**
+     * Creates a unique session identifier.
+     *
+     * @returns Opaque session ID prefixed with `task_`
+     */
     private _generateId(): string {
         return `task_${String(Date.now())}_${Math.random().toString(36).slice(2, 11)}`;
     }
 
+    /** Removes sessions that have exceeded the inactivity timeout. */
     private _cleanupSessions(): void {
         const now = Date.now();
         for (const [id, session] of this._sessions) {
@@ -430,6 +493,11 @@ export class TaskBuilder {
         }
     }
 
+    /**
+     * Number of task-building sessions currently held in memory.
+     *
+     * @returns Active session count before expired sessions are cleaned up
+     */
     getActiveSessionCount(): number {
         return this._sessions.size;
     }

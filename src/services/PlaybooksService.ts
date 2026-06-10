@@ -71,6 +71,7 @@ const CACHE_DIR = '.cache/ansible-environments';
 const GLOBAL_CONFIG_FILE = 'playbook-defaults.json';
 const PLAYBOOKS_CONFIG_DIR = 'playbooks';
 
+/** Service for discovering workspace playbooks and managing run configuration. */
 export class PlaybooksService {
     private static _instance: PlaybooksService | undefined;
     private _playbooks = new Map<string, PlaybookInfo>();
@@ -80,33 +81,56 @@ export class PlaybooksService {
     private readonly _onDidChange = new vscode.EventEmitter<void>();
     public readonly onDidChange = this._onDidChange.event;
 
+    /** Private constructor for the singleton playbooks service. */
     private constructor() {
         /* singleton */
     }
 
+    /**
+     * Return the shared playbooks service instance.
+     * @returns Singleton PlaybooksService instance
+     */
     public static getInstance(): PlaybooksService {
         PlaybooksService._instance ??= new PlaybooksService();
         return PlaybooksService._instance;
     }
 
+    /**
+     * Whether a playbook discovery pass is currently running.
+     * @returns True while discovery is in progress
+     */
     public isLoading(): boolean {
         return this._loading;
     }
 
+    /**
+     * Whether at least one discovery pass has completed.
+     * @returns True after the first successful refresh
+     */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
+    /**
+     * Return discovered playbooks sorted by relative path.
+     * @returns Playbook metadata for all discovered files
+     */
     public getPlaybooks(): PlaybookInfo[] {
         return Array.from(this._playbooks.values()).sort((a, b) =>
             a.relativePath.localeCompare(b.relativePath),
         );
     }
 
+    /**
+     * Look up a single playbook by its workspace-relative path.
+     * @param relativePath - Workspace-relative path of the playbook
+     * @returns The playbook info, or undefined if not found
+     */
     public getPlaybook(relativePath: string): PlaybookInfo | undefined {
         return this._playbooks.get(relativePath);
     }
 
+    /** Scan workspace folders for playbooks and refresh the cache. */
     public async refresh(): Promise<void> {
         if (this._loading) {
             return;
@@ -129,6 +153,7 @@ export class PlaybooksService {
         }
     }
 
+    /** Walk workspace folders to find Ansible playbook files and populate the cache. */
     private async _discoverPlaybooks(): Promise<void> {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -174,6 +199,11 @@ export class PlaybooksService {
         }
     }
 
+    /**
+     * Parse playbook YAML content into play summaries.
+     * @param content - Raw playbook file content
+     * @returns Parsed plays with names, hosts, and line numbers
+     */
     private _parsePlaybook(content: string): PlaybookPlay[] {
         const plays: PlaybookPlay[] = [];
         const lines = content.split('\n');
@@ -264,6 +294,10 @@ export class PlaybooksService {
     }
 
     // Configuration management
+    /**
+     * Resolve the workspace cache directory for playbook configuration files.
+     * @returns Cache directory path, or null when no workspace is open
+     */
     private _getConfigDir(): string | null {
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!workspaceRoot) {
@@ -272,6 +306,7 @@ export class PlaybooksService {
         return path.join(workspaceRoot, CACHE_DIR);
     }
 
+    /** Ensure playbook configuration directories exist under the workspace cache. */
     private _ensureConfigDir(): void {
         const configDir = this._getConfigDir();
         if (!configDir) {
@@ -284,6 +319,10 @@ export class PlaybooksService {
         }
     }
 
+    /**
+     * Load workspace-wide default ansible-playbook settings.
+     * @returns Global playbook configuration merged with defaults
+     */
     public getGlobalConfig(): PlaybookConfig {
         const configDir = this._getConfigDir();
         if (!configDir) {
@@ -307,6 +346,10 @@ export class PlaybooksService {
         return { ...DEFAULT_CONFIG };
     }
 
+    /**
+     * Persist workspace-wide default ansible-playbook settings.
+     * @param config - Global playbook configuration to save
+     */
     public saveGlobalConfig(config: PlaybookConfig): void {
         this._ensureConfigDir();
         const configDir = this._getConfigDir();
@@ -325,6 +368,11 @@ export class PlaybooksService {
         }
     }
 
+    /**
+     * Load per-playbook settings merged over global defaults.
+     * @param relativePath - Workspace-relative or multi-root display path
+     * @returns Effective playbook configuration for the requested file
+     */
     public getPlaybookConfig(relativePath: string): PlaybookConfig {
         const globalConfig = this.getGlobalConfig();
         const configDir = this._getConfigDir();
@@ -350,6 +398,11 @@ export class PlaybooksService {
         return globalConfig;
     }
 
+    /**
+     * Persist per-playbook settings under the workspace cache directory.
+     * @param relativePath - Workspace-relative or multi-root display path
+     * @param config - Playbook-specific configuration to save
+     */
     public savePlaybookConfig(relativePath: string, config: PlaybookConfig): void {
         this._ensureConfigDir();
         const configDir = this._getConfigDir();
@@ -375,12 +428,24 @@ export class PlaybooksService {
         }
     }
 
+    /**
+     * Map a playbook path to its cached JSON configuration file path.
+     * @param configDir - Workspace cache directory root
+     * @param relativePath - Workspace-relative or multi-root display path
+     * @returns Absolute path to the playbook config JSON file
+     */
     private _getPlaybookConfigPath(configDir: string, relativePath: string): string {
         // Preserve directory hierarchy: deploy/app.yml → playbooks/deploy/app.json
         const configRelPath = relativePath.replace(/\.ya?ml$/, '') + '.json';
         return path.join(configDir, PLAYBOOKS_CONFIG_DIR, configRelPath);
     }
 
+    /**
+     * Build an ansible-playbook shell command from saved configuration.
+     * @param playbookPath - Playbook file path passed to ansible-playbook
+     * @param config - Effective playbook run settings
+     * @returns Shell-ready ansible-playbook command string
+     */
     public buildCommand(playbookPath: string, config: PlaybookConfig): string {
         const args: string[] = ['ansible-playbook'];
 
@@ -512,6 +577,11 @@ export class PlaybooksService {
         return args.join(' ');
     }
 
+    /**
+     * Build an AI analysis prompt for a discovered playbook.
+     * @param playbook - Playbook metadata discovered in the workspace
+     * @returns Prompt text suitable for chat injection
+     */
     public generateAiPrompt(playbook: PlaybookInfo): string {
         return `Please analyze the Ansible playbook at "${playbook.relativePath}" and provide a comprehensive summary.
 

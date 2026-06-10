@@ -36,15 +36,21 @@ export interface CreateTerminalOptions {
     activationTimeout?: number;
 }
 
+/** Central dispatcher for terminal operations with Python venv support. */
 export class TerminalService {
     private static _instance: TerminalService | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _pythonEnvService: PythonEnvironmentService | undefined;
 
+    /** Private constructor for the singleton terminal service. */
     private constructor() {
         /* singleton */
     }
 
+    /**
+     * Return the shared terminal service instance.
+     * @returns Singleton TerminalService instance
+     */
     public static getInstance(): TerminalService {
         TerminalService._instance ??= new TerminalService();
         return TerminalService._instance;
@@ -52,6 +58,7 @@ export class TerminalService {
 
     /**
      * Inject the centralized Python environment service.
+     * @param service - Service used to create activated Python terminals
      */
     public setPythonEnvService(service: PythonEnvironmentService): void {
         this._pythonEnvService = service;
@@ -59,6 +66,8 @@ export class TerminalService {
 
     /**
      * Create a terminal with Python venv activated, waiting for activation to complete
+     * @param options - Terminal name, cwd, visibility, and activation timeout
+     * @returns Managed terminal with helpers to send commands and dispose resources
      */
     public async createActivatedTerminal(options: CreateTerminalOptions): Promise<ManagedTerminal> {
         const workspaceFolder = options.cwd ?? vscode.workspace.workspaceFolders?.[0]?.uri;
@@ -129,6 +138,11 @@ export class TerminalService {
         return { terminal, sendCommand, dispose };
     }
 
+    /**
+     * Wait until Python environment activation completes for a terminal.
+     * @param terminal - Terminal whose activation state should be observed
+     * @param timeout - Maximum time to wait for activation in milliseconds
+     */
     private async _waitForActivation(terminal: vscode.Terminal, timeout: number): Promise<void> {
         const activationEvent = this._pythonEnvService?.onDidChangeTerminalActivationState;
         if (activationEvent) {
@@ -150,10 +164,22 @@ export class TerminalService {
         await new Promise((resolve) => setTimeout(resolve, Math.min(timeout, 3000)));
     }
 
+    /**
+     * Wait briefly for a plain terminal shell to become ready.
+     * @param _terminal - Terminal being prepared, unused because no activation event exists
+     * @param timeout - Upper bound used to derive the readiness delay
+     */
     private async _waitForShellReady(_terminal: vscode.Terminal, timeout: number): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, Math.min(timeout, 1000)));
     }
 
+    /**
+     * Send a command to a terminal and wait for shell integration completion.
+     * @param terminal - Terminal that should execute the command
+     * @param command - Shell command to send
+     * @param timeout - Maximum time to wait for completion in milliseconds
+     * @returns Captured exit status when shell integration is available
+     */
     private async _sendAndCapture(
         terminal: vscode.Terminal,
         command: string,
@@ -194,6 +220,15 @@ export class TerminalService {
         return { output: '', exitCode: undefined, success: true };
     }
 
+    /**
+     * Create an activated terminal and run a command without waiting for output.
+     * @param name - Terminal display name
+     * @param command - Shell command to execute
+     * @param options - Optional terminal creation settings
+     * @param options.show - Whether to reveal the terminal after creation
+     * @param options.cwd - Working directory for the terminal session
+     * @returns The underlying VS Code terminal instance
+     */
     public async runInTerminal(
         name: string,
         command: string,
@@ -209,6 +244,7 @@ export class TerminalService {
         return managed.terminal;
     }
 
+    /** Dispose registered terminal service listeners. */
     public dispose(): void {
         for (const d of this._disposables) {
             d.dispose();

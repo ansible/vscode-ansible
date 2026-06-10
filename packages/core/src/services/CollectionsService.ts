@@ -143,7 +143,9 @@ type AdeInspectOutput = Record<string, AdeCollectionInfo>;
 // Command execution is now handled by CommandService
 
 /**
- * Get the workspace root directory
+ * Resolves the workspace root from VS Code or the current working directory.
+ *
+ * @returns Absolute workspace path, or null when no folder is open.
  */
 function getWorkspaceRoot(): string | null {
     if (vscode?.workspace.workspaceFolders?.[0]) {
@@ -157,7 +159,9 @@ function getWorkspaceRoot(): string | null {
 }
 
 /**
- * Get the collections cache file path
+ * Builds the path to the collections plugin cache file for the workspace.
+ *
+ * @returns Absolute cache file path, or null when no workspace root exists.
  */
 function getCollectionsCachePath(): string | null {
     const workspaceRoot = getWorkspaceRoot();
@@ -168,7 +172,9 @@ function getCollectionsCachePath(): string | null {
 }
 
 /**
- * Ensure the cache directory exists
+ * Creates the collections cache directory under the workspace when missing.
+ *
+ * @returns True when the directory exists or was created successfully.
  */
 function ensureCacheDir(): boolean {
     const workspaceRoot = getWorkspaceRoot();
@@ -188,7 +194,9 @@ function ensureCacheDir(): boolean {
 }
 
 /**
- * Read the collections cache
+ * Reads and parses the collections plugin cache from disk.
+ *
+ * @returns Parsed cache payload, or null when the file is missing or unreadable.
  */
 function readCollectionsCache(): CollectionsCache | null {
     const cachePath = getCollectionsCachePath();
@@ -223,14 +231,20 @@ function readCollectionsCache(): CollectionsCache | null {
 }
 
 /**
- * Log a message via shared logging (extension or console fallback)
+ * Log a message via shared logging (extension or console fallback).
+ *
+ * @param message - Diagnostic text prefixed with CollectionsService.
  */
 function logMessage(message: string): void {
     log(`CollectionsService: ${message}`);
 }
 
 /**
- * Write the collections cache
+ * Persists collection metadata and plugin docs to the workspace cache file.
+ *
+ * @param collections - In-memory collection map to serialize.
+ * @param pluginDocs - In-memory plugin documentation map to serialize.
+ * @returns True when the cache file was written successfully.
  */
 function writeCollectionsCache(
     collections: Map<string, CollectionData>,
@@ -278,7 +292,10 @@ interface CacheResult {
 }
 
 /**
- * Convert cached data back to Map structures
+ * Converts serialized cache data back into in-memory Map structures.
+ *
+ * @param cache - Parsed collections cache read from disk.
+ * @returns Collection and plugin documentation maps ready for service use.
  */
 function cacheToMaps(cache: CollectionsCache): CacheResult {
     const collections = new Map<string, CollectionData>();
@@ -318,6 +335,9 @@ export class CollectionsService {
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
 
+    /**
+     * Initializes change notifications using VS Code or a standalone event emitter.
+     */
     private constructor() {
         // Use VS Code EventEmitter if available, otherwise use simple implementation
         if (vscode) {
@@ -331,52 +351,77 @@ export class CollectionsService {
         }
     }
 
+    /**
+     * Returns the shared CollectionsService instance.
+     *
+     * @returns Singleton service for collection and plugin documentation.
+     */
     public static getInstance(): CollectionsService {
         CollectionsService._instance ??= new CollectionsService();
         return CollectionsService._instance;
     }
 
+    /**
+     * Indicates whether the service is running inside the VS Code extension host.
+     *
+     * @returns True when the vscode module is available.
+     */
     public isInVSCode(): boolean {
         return vscode !== undefined;
     }
 
     /**
-     * Check if the service is currently loading data
+     * Check if the service is currently loading data.
+     *
+     * @returns True while a full collection index load is in progress.
      */
     public isLoading(): boolean {
         return this._loading;
     }
 
     /**
-     * Check if the service has loaded data
+     * Check if the service has loaded data.
+     *
+     * @returns True after collections are available from cache or a full load.
      */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
     /**
-     * Get all loaded collections
+     * Get all loaded collections.
+     *
+     * @returns Map of collection FQCN to metadata and plugin type index.
      */
     public getCollections(): Map<string, CollectionData> {
         return this._collections;
     }
 
     /**
-     * Get a specific collection by name
+     * Get a specific collection by name.
+     *
+     * @param name - Fully qualified collection name.
+     * @returns Collection metadata and plugin index, or undefined when not loaded.
      */
     public getCollection(name: string): CollectionData | undefined {
         return this._collections.get(name);
     }
 
     /**
-     * List all collection names
+     * List all collection names.
+     *
+     * @returns Sorted fully qualified collection names from the loaded index.
      */
     public listCollectionNames(): string[] {
         return Array.from(this._collections.keys()).sort();
     }
 
     /**
-     * Get plugins for a specific collection and type
+     * Get plugins for a specific collection and type.
+     *
+     * @param collectionName - Fully qualified collection name.
+     * @param pluginType - Plugin category such as module or lookup.
+     * @returns Plugin entries for the collection and type, or an empty array.
      */
     public getPlugins(collectionName: string, pluginType: string): PluginInfo[] {
         const collection = this._collections.get(collectionName);
@@ -387,7 +432,10 @@ export class CollectionsService {
     }
 
     /**
-     * List all plugin types for a collection
+     * List all plugin types for a collection.
+     *
+     * @param collectionName - Fully qualified collection name.
+     * @returns Sorted plugin type names available in the collection.
      */
     public listPluginTypes(collectionName: string): string[] {
         const collection = this._collections.get(collectionName);
@@ -398,7 +446,10 @@ export class CollectionsService {
     }
 
     /**
-     * Search for plugins across all collections
+     * Search for plugins across all collections.
+     *
+     * @param query - Case-insensitive match against plugin name, FQCN, or description.
+     * @returns Matching plugins with their collection and plugin type context.
      */
     public searchPlugins(
         query: string,
@@ -423,6 +474,11 @@ export class CollectionsService {
         return results;
     }
 
+    /**
+     * Writes a diagnostic message through the shared CollectionsService logger.
+     *
+     * @param message - Log text forwarded to logMessage.
+     */
     private _log(message: string): void {
         logMessage(message);
     }
@@ -599,6 +655,10 @@ export class CollectionsService {
      * Returns instantly from the in-memory cache (populated from
      * ansible-doc --metadata-dump). Falls back to a per-plugin
      * ansible-doc subprocess only if the plugin is not in the cache.
+     *
+     * @param pluginFullName - Fully qualified plugin name.
+     * @param pluginType - Plugin category used to build the ansible-doc type flag.
+     * @returns Plugin documentation object, or null when lookup fails.
      */
     public async getPluginDocumentation(
         pluginFullName: string,
@@ -651,15 +711,12 @@ export class CollectionsService {
     }
 
     /**
-     * Install a collection using ade install
-     * Runs as a background process and returns output when complete
-     */
-    /**
-     * Install an Ansible collection from Galaxy
+     * Install an Ansible collection from Galaxy via ade and refresh the local index.
      *
-     * @param collectionName - FQCN of the collection (e.g., "community.docker")
-     * @param version - Optional version to install (e.g., "1.0.0")
-     * @param force - If true, force reinstall/upgrade
+     * @param collectionName - FQCN of the collection (e.g., "community.docker").
+     * @param version - Optional version to install (e.g., "1.0.0").
+     * @param force - When true, force reinstall or upgrade of the collection.
+     * @returns Install command stdout or a success message when stdout is empty.
      */
     public async installCollection(
         collectionName: string,
@@ -782,6 +839,12 @@ export class CollectionsService {
         return collections;
     }
 
+    /**
+     * Maps a plugin type to the corresponding ansible-doc -t flag fragment.
+     *
+     * @param pluginType - Plugin category such as module or lookup.
+     * @returns ansible-doc type flag string, or empty when the type is unknown.
+     */
     private _getTypeFlag(pluginType: string): string {
         const typeMap: Record<string, string> = {
             module: '-t module',
@@ -805,6 +868,12 @@ export class CollectionsService {
         return typeMap[pluginType] || '';
     }
 
+    /**
+     * Loads collection metadata via ade inspect and plugin docs via ansible-doc.
+     *
+     * @param targetMap - Optional map to populate instead of the service instance maps.
+     * @param targetDocs - Optional plugin doc map used during background refresh.
+     */
     private async _loadCollectionsWithCommandService(
         targetMap?: Map<string, CollectionData>,
         targetDocs?: Map<string, PluginData>,

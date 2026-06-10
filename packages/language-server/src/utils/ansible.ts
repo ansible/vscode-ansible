@@ -622,6 +622,12 @@ export const playWithoutTaskKeywords = new Map(
     [...playKeywords].filter(([k]) => !taskKeywords.has(k)),
 );
 
+/**
+ * Determines whether a YAML key is a reserved Ansible task keyword.
+ *
+ * @param value - Key name to test.
+ * @returns True for built-in task keywords and legacy `with_` loops.
+ */
 export function isTaskKeyword(value: string): boolean {
     return taskKeywords.has(value) || value.startsWith('with_');
 }
