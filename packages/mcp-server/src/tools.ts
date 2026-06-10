@@ -1,6 +1,6 @@
 /**
  * MCP Tool Definitions
- * 
+ *
  * These define the tools available to AI agents via the MCP protocol.
  */
 
@@ -15,7 +15,7 @@ export interface McpToolDefinition {
 }
 
 export interface McpToolResult {
-    content: Array<{ type: 'text'; text: string }>;
+    content: { type: 'text'; text: string }[];
     isError?: boolean;
 }
 
@@ -38,24 +38,25 @@ Examples:
         properties: {
             query: {
                 type: 'string',
-                description: 'Search terms (e.g., "copy file", "network acl", "kubernetes pod")'
+                description: 'Search terms (e.g., "copy file", "network acl", "kubernetes pod")',
             },
             plugin_type: {
                 type: 'string',
                 enum: ['module', 'filter', 'lookup', 'callback', 'connection', 'inventory'],
-                description: 'Optional: filter by plugin type'
+                description: 'Optional: filter by plugin type',
             },
             collection: {
                 type: 'string',
-                description: 'Optional: filter by collection (e.g., "cisco.nxos", "ansible.builtin")'
+                description:
+                    'Optional: filter by collection (e.g., "cisco.nxos", "ansible.builtin")',
             },
             limit: {
                 type: 'number',
-                description: 'Maximum results (default: 15, max: 50)'
-            }
+                description: 'Maximum results (default: 15, max: 50)',
+            },
         },
-        required: ['query']
-    }
+        required: ['query'],
+    },
 };
 
 export const GET_PLUGIN_DOC_TOOL: McpToolDefinition = {
@@ -69,16 +70,33 @@ Use search_ansible_plugins first if you need to find the plugin name.`,
         properties: {
             plugin: {
                 type: 'string',
-                description: 'Full plugin name (e.g., "ansible.builtin.copy", "cisco.nxos.nxos_vlans")'
+                description:
+                    'Full plugin name (e.g., "ansible.builtin.copy", "cisco.nxos.nxos_vlans")',
             },
             plugin_type: {
                 type: 'string',
-                enum: ['module', 'filter', 'lookup', 'callback', 'connection', 'inventory', 'become', 'cache', 'cliconf', 'httpapi', 'netconf', 'shell', 'strategy', 'test', 'vars'],
-                description: 'Plugin type (default: module)'
-            }
+                enum: [
+                    'module',
+                    'filter',
+                    'lookup',
+                    'callback',
+                    'connection',
+                    'inventory',
+                    'become',
+                    'cache',
+                    'cliconf',
+                    'httpapi',
+                    'netconf',
+                    'shell',
+                    'strategy',
+                    'test',
+                    'vars',
+                ],
+                description: 'Plugin type (default: module)',
+            },
         },
-        required: ['plugin']
-    }
+        required: ['plugin'],
+    },
 };
 
 export const LIST_COLLECTIONS_TOOL: McpToolDefinition = {
@@ -89,10 +107,10 @@ export const LIST_COLLECTIONS_TOOL: McpToolDefinition = {
         properties: {
             filter: {
                 type: 'string',
-                description: 'Optional: filter by namespace or name'
-            }
-        }
-    }
+                description: 'Optional: filter by namespace or name',
+            },
+        },
+    },
 };
 
 export const INSTALL_COLLECTION_TOOL: McpToolDefinition = {
@@ -107,11 +125,11 @@ Examples:
         properties: {
             name: {
                 type: 'string',
-                description: 'Collection name (e.g., "hetzner.hcloud", "cisco.nxos")'
-            }
+                description: 'Collection name (e.g., "hetzner.hcloud", "cisco.nxos")',
+            },
         },
-        required: ['name']
-    }
+        required: ['name'],
+    },
 };
 
 export const SEARCH_AVAILABLE_COLLECTIONS_TOOL: McpToolDefinition = {
@@ -130,19 +148,20 @@ Examples:
         properties: {
             query: {
                 type: 'string',
-                description: 'Search terms (e.g., "kubernetes", "cisco", "aws", "vmware")'
+                description: 'Search terms (e.g., "kubernetes", "cisco", "aws", "vmware")',
             },
             source: {
                 type: 'string',
-                description: 'Optional: limit to a specific source ("galaxy" or a GitHub org name like "redhat-cop")'
+                description:
+                    'Optional: limit to a specific source ("galaxy" or a GitHub org name like "redhat-cop")',
             },
             limit: {
                 type: 'number',
-                description: 'Maximum results (default: 20, max: 100)'
-            }
+                description: 'Maximum results (default: 20, max: 100)',
+            },
         },
-        required: ['query']
-    }
+        required: ['query'],
+    },
 };
 
 export const LIST_SOURCE_COLLECTIONS_TOOL: McpToolDefinition = {
@@ -160,15 +179,15 @@ Examples:
         properties: {
             source: {
                 type: 'string',
-                description: 'Source to list: "galaxy" or a GitHub org name'
+                description: 'Source to list: "galaxy" or a GitHub org name',
             },
             limit: {
                 type: 'number',
-                description: 'Maximum results (default: 100, max: 500)'
-            }
+                description: 'Maximum results (default: 100, max: 500)',
+            },
         },
-        required: ['source']
-    }
+        required: ['source'],
+    },
 };
 
 export const GET_COLLECTION_PLUGINS_TOOL: McpToolDefinition = {
@@ -185,16 +204,32 @@ Examples:
         properties: {
             collection: {
                 type: 'string',
-                description: 'Collection name (e.g., "cisco.nxos", "ansible.builtin")'
+                description: 'Collection name (e.g., "cisco.nxos", "ansible.builtin")',
             },
             plugin_type: {
                 type: 'string',
-                enum: ['module', 'filter', 'lookup', 'callback', 'connection', 'inventory', 'become', 'cache', 'cliconf', 'httpapi', 'netconf', 'shell', 'strategy', 'test', 'vars'],
-                description: 'Optional: filter by plugin type'
-            }
+                enum: [
+                    'module',
+                    'filter',
+                    'lookup',
+                    'callback',
+                    'connection',
+                    'inventory',
+                    'become',
+                    'cache',
+                    'cliconf',
+                    'httpapi',
+                    'netconf',
+                    'shell',
+                    'strategy',
+                    'test',
+                    'vars',
+                ],
+                description: 'Optional: filter by plugin type',
+            },
         },
-        required: ['collection']
-    }
+        required: ['collection'],
+    },
 };
 
 // === Task Generation Tools ===
@@ -230,50 +265,50 @@ Examples:
         properties: {
             plugin: {
                 type: 'string',
-                description: 'Full plugin name (e.g., "ansible.builtin.copy")'
+                description: 'Full plugin name (e.g., "ansible.builtin.copy")',
             },
             plugin_type: {
                 type: 'string',
-                description: 'Plugin type (default: module)'
+                description: 'Plugin type (default: module)',
             },
             params: {
                 type: 'object',
                 additionalProperties: true,
-                description: 'Plugin parameters as key-value pairs'
+                description: 'Plugin parameters as key-value pairs',
             },
             task_name: {
                 type: 'string',
-                description: 'Custom task name (auto-generated if not provided)'
+                description: 'Custom task name (auto-generated if not provided)',
             },
             register: {
                 type: 'string',
-                description: 'Variable name to store task result'
+                description: 'Variable name to store task result',
             },
             when: {
                 type: 'string',
-                description: 'Conditional expression (e.g., "ansible_os_family == \'Debian\'")'
+                description: 'Conditional expression (e.g., "ansible_os_family == \'Debian\'")',
             },
             loop: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Items to iterate over'
+                description: 'Items to iterate over',
             },
             become: {
                 type: 'boolean',
-                description: 'Run with elevated privileges (sudo)'
+                description: 'Run with elevated privileges (sudo)',
             },
             ignore_errors: {
                 type: 'boolean',
-                description: 'Continue playbook on task failure'
+                description: 'Continue playbook on task failure',
             },
             tags: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Tags to apply to the task'
-            }
+                description: 'Tags to apply to the task',
+            },
         },
-        required: ['plugin', 'params']
-    }
+        required: ['plugin', 'params'],
+    },
 };
 
 export const BUILD_TASK_TOOL: McpToolDefinition = {
@@ -303,47 +338,47 @@ Sessions timeout after 10 minutes of inactivity.`,
         properties: {
             plugin: {
                 type: 'string',
-                description: 'Start new session: Full plugin name'
+                description: 'Start new session: Full plugin name',
             },
             plugin_type: {
                 type: 'string',
-                description: 'Plugin type (default: module)'
+                description: 'Plugin type (default: module)',
             },
             session_id: {
                 type: 'string',
-                description: 'Continue existing session'
+                description: 'Continue existing session',
             },
             params: {
                 type: 'object',
                 additionalProperties: true,
-                description: 'Parameters to add to the task'
+                description: 'Parameters to add to the task',
             },
             task_name: {
                 type: 'string',
-                description: 'Custom task name'
+                description: 'Custom task name',
             },
             become: {
                 type: 'boolean',
-                description: 'Run with elevated privileges'
+                description: 'Run with elevated privileges',
             },
             register: {
                 type: 'string',
-                description: 'Variable to store result'
+                description: 'Variable to store result',
             },
             when: {
                 type: 'string',
-                description: 'Conditional expression'
+                description: 'Conditional expression',
             },
             generate: {
                 type: 'boolean',
-                description: 'Generate YAML with current parameters'
+                description: 'Generate YAML with current parameters',
             },
             cancel: {
                 type: 'boolean',
-                description: 'Cancel the session'
-            }
-        }
-    }
+                description: 'Cancel the session',
+            },
+        },
+    },
 };
 
 export const GENERATE_PLAYBOOK_TOOL: McpToolDefinition = {
@@ -356,11 +391,11 @@ Provide a list of tasks and this tool generates a properly formatted playbook.`,
         properties: {
             name: {
                 type: 'string',
-                description: 'Playbook name/description'
+                description: 'Playbook name/description',
             },
             hosts: {
                 type: 'string',
-                description: 'Target hosts or group (e.g., "all", "webservers", "localhost")'
+                description: 'Target hosts or group (e.g., "all", "webservers", "localhost")',
             },
             tasks: {
                 type: 'array',
@@ -372,27 +407,27 @@ Provide a list of tasks and this tool generates a properly formatted playbook.`,
                         task_name: { type: 'string' },
                         become: { type: 'boolean' },
                         when: { type: 'string' },
-                        register: { type: 'string' }
+                        register: { type: 'string' },
                     },
-                    required: ['plugin', 'params']
+                    required: ['plugin', 'params'],
                 },
-                description: 'List of tasks to include'
+                description: 'List of tasks to include',
             },
             become: {
                 type: 'boolean',
-                description: 'Run all tasks with elevated privileges'
+                description: 'Run all tasks with elevated privileges',
             },
             vars: {
                 type: 'object',
-                description: 'Playbook variables'
+                description: 'Playbook variables',
             },
             gather_facts: {
                 type: 'boolean',
-                description: 'Gather facts before running (default: true)'
-            }
+                description: 'Gather facts before running (default: true)',
+            },
         },
-        required: ['name', 'hosts', 'tasks']
-    }
+        required: ['name', 'hosts', 'tasks'],
+    },
 };
 
 // === Execution Environment Tools ===
@@ -402,8 +437,8 @@ export const LIST_EE_TOOL: McpToolDefinition = {
     description: 'List available Ansible execution environment container images.',
     inputSchema: {
         type: 'object',
-        properties: {}
-    }
+        properties: {},
+    },
 };
 
 export const GET_EE_DETAILS_TOOL: McpToolDefinition = {
@@ -422,11 +457,12 @@ Use the ee_name exactly as returned by list_execution_environments.`,
         properties: {
             ee_name: {
                 type: 'string',
-                description: 'Execution environment image name (e.g., "quay.io/ansible/creator-ee:latest")'
-            }
+                description:
+                    'Execution environment image name (e.g., "quay.io/ansible/creator-ee:latest")',
+            },
         },
-        required: ['ee_name']
-    }
+        required: ['ee_name'],
+    },
 };
 
 // === Dev Tools ===
@@ -436,19 +472,20 @@ export const LIST_DEV_TOOLS_TOOL: McpToolDefinition = {
     description: 'List installed ansible-dev-tools packages and their versions.',
     inputSchema: {
         type: 'object',
-        properties: {}
-    }
+        properties: {},
+    },
 };
 
 // === Creator ===
 
 export const GET_CREATOR_SCHEMA_TOOL: McpToolDefinition = {
     name: 'get_ansible_creator_schema',
-    description: 'Get the full ansible-creator command schema showing all available scaffolding commands and their parameters. Use this to understand what content types can be created (collections, playbooks, plugins, etc.) and what options are available for each.',
+    description:
+        'Get the full ansible-creator command schema showing all available scaffolding commands and their parameters. Use this to understand what content types can be created (collections, playbooks, plugins, etc.) and what options are available for each.',
     inputSchema: {
         type: 'object',
-        properties: {}
-    }
+        properties: {},
+    },
 };
 
 // === Best Practices ===
@@ -491,11 +528,20 @@ Returns the guidelines in Markdown format.`,
             section: {
                 type: 'string',
                 description: 'Specific section to retrieve. Use "full" for complete document.',
-                enum: ['full', 'principles', 'project_structure', 'naming', 'roles', 'collections', 'playbooks', 'testing'],
-                default: 'full'
-            }
-        }
-    }
+                enum: [
+                    'full',
+                    'principles',
+                    'project_structure',
+                    'naming',
+                    'roles',
+                    'collections',
+                    'playbooks',
+                    'testing',
+                ],
+                default: 'full',
+            },
+        },
+    },
 };
 
 // === Collection of all static tools ===
@@ -509,22 +555,22 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     SEARCH_AVAILABLE_COLLECTIONS_TOOL,
     LIST_SOURCE_COLLECTIONS_TOOL,
     GET_COLLECTION_PLUGINS_TOOL,
-    
+
     // Task generation
     GENERATE_TASK_TOOL,
     BUILD_TASK_TOOL,
     GENERATE_PLAYBOOK_TOOL,
-    
+
     // Execution environments
     LIST_EE_TOOL,
     GET_EE_DETAILS_TOOL,
-    
+
     // Dev tools
     LIST_DEV_TOOLS_TOOL,
-    
+
     // Creator
     GET_CREATOR_SCHEMA_TOOL,
-    
+
     // Best practices
     GET_BEST_PRACTICES_TOOL,
 ];

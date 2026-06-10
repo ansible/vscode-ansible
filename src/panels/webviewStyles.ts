@@ -1,6 +1,6 @@
 /**
  * Shared Webview Styles and Utilities
- * 
+ *
  * Centralizes CSS, zoom/theme controls, and common UI patterns
  * to ensure consistency across all webview panels.
  */
@@ -620,13 +620,17 @@ export function getAgentProgressScript(completionTitle: string, autoHideDelay = 
                     if (title) title.textContent = '${completionTitle}';
                     if (spinner) spinner.textContent = '✓';
                     
-                    ${autoHideDelay > 0 ? `
+                    ${
+                        autoHideDelay > 0
+                            ? `
                     // Auto-hide after delay
                     setTimeout(() => {
                         panel.classList.add('hidden');
                         if (backdrop) backdrop.classList.add('hidden');
-                    }, ${autoHideDelay});
-                    ` : ''}
+                    }, ${String(autoHideDelay)});
+                    `
+                            : ''
+                    }
                 } else if (status === 'error') {
                     panel.classList.add('error');
                     if (title) title.textContent = 'Error';
@@ -644,13 +648,13 @@ export function getAgentProgressScript(completionTitle: string, autoHideDelay = 
 export function formatAgentLogMessage(message: string, type: string): string {
     // Unicode symbols that work well in monospace fonts
     if (type === 'tool_call') {
-        const toolMatch = message.match(/Tool call requested: (\w+)/);
+        const toolMatch = /Tool call requested: (\w+)/.exec(message);
         if (toolMatch) {
             return `▶ ${toolMatch[1].replace('ansible_', '')}`;
         }
         return `▶ ${message}`;
     } else if (type === 'tool_result') {
-        const resultMatch = message.match(/Tool (\w+) completed/);
+        const resultMatch = /Tool (\w+) completed/.exec(message);
         if (resultMatch) {
             return `◀ ${resultMatch[1].replace('ansible_', '')}`;
         }

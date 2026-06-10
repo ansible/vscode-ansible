@@ -1,6 +1,6 @@
 /**
  * Task Builder
- * 
+ *
  * Interactive, stateful task building with guided parameter collection.
  */
 
@@ -54,7 +54,7 @@ export interface TaskBuilderResult {
 }
 
 export class TaskBuilder {
-    private _sessions: Map<string, TaskBuilderSession> = new Map();
+    private _sessions = new Map<string, TaskBuilderSession>();
     private _sessionTimeout = 10 * 60 * 1000; // 10 minutes
 
     async build(input: TaskBuilderInput): Promise<TaskBuilderResult> {
@@ -66,7 +66,7 @@ export class TaskBuilder {
             this._sessions.delete(input.session_id);
             return {
                 status: 'cancelled',
-                message: 'Task building session cancelled.'
+                message: 'Task building session cancelled.',
             };
         }
 
@@ -74,14 +74,21 @@ export class TaskBuilder {
 
         // Continue existing session or start new one
         if (input.session_id && this._sessions.has(input.session_id)) {
-            session = this._sessions.get(input.session_id)!;
+            const existing = this._sessions.get(input.session_id);
+            if (!existing) {
+                return {
+                    status: 'error',
+                    message: `Session not found: ${input.session_id}`,
+                };
+            }
+            session = existing;
         } else if (input.plugin) {
-            session = await this._startSession(input.plugin, input.plugin_type || 'module');
+            session = await this._startSession(input.plugin, input.plugin_type ?? 'module');
             this._sessions.set(session.id, session);
         } else {
             return {
                 status: 'error',
-                message: 'Provide either session_id to continue or plugin to start a new session.'
+                message: 'Provide either session_id to continue or plugin to start a new session.',
             };
         }
 
@@ -120,7 +127,7 @@ export class TaskBuilder {
             return {
                 status: 'complete',
                 yaml,
-                message: 'Task generated successfully.'
+                message: 'Task generated successfully.',
             };
         }
 
@@ -132,7 +139,10 @@ export class TaskBuilder {
                 collected: session.collectedParams,
                 missing_required: session.missingRequired,
                 can_generate: false,
-                message: this._buildPromptMessage(session, 'Cannot generate yet - missing required parameters.')
+                message: this._buildPromptMessage(
+                    session,
+                    'Cannot generate yet - missing required parameters.',
+                ),
             };
         }
 
@@ -148,7 +158,7 @@ export class TaskBuilder {
             throw new Error(`Plugin not found: ${plugin}`);
         }
 
-        const options = doc.doc.options || {};
+        const options = doc.doc.options ?? {};
         const requiredParams: string[] = [];
         const optionalParams: string[] = [];
 
@@ -173,19 +183,27 @@ export class TaskBuilder {
             requiredParams,
             optionalParams,
             missingRequired: [...requiredParams],
-            createdAt: Date.now()
+            createdAt: Date.now(),
         };
     }
 
+    private _getDocContent(session: TaskBuilderSession): NonNullable<PluginData['doc']> {
+        const docContent = session.doc.doc;
+        if (!docContent) {
+            throw new Error(`Plugin documentation missing for ${session.plugin}`);
+        }
+        return docContent;
+    }
+
     private _updateMissingRequired(session: TaskBuilderSession): void {
-        const options = session.doc.doc?.options || {};
-        session.missingRequired = session.requiredParams.filter(param => {
+        const options = this._getDocContent(session).options ?? {};
+        session.missingRequired = session.requiredParams.filter((param) => {
             if (param in session.collectedParams) {
                 return false;
             }
             const spec = options[param];
-            if (spec?.aliases) {
-                return !spec.aliases.some(alias => alias in session.collectedParams);
+            if (spec.aliases) {
+                return !spec.aliases.some((alias) => alias in session.collectedParams);
             }
             return true;
         });
@@ -198,14 +216,17 @@ export class TaskBuilder {
             plugin: session.plugin,
             collected: session.collectedParams,
             missing_required: session.missingRequired,
-            optional_available: session.optionalParams.filter(p => !(p in session.collectedParams)).slice(0, 10),
+            optional_available: session.optionalParams
+                .filter((p) => !(p in session.collectedParams))
+                .slice(0, 10),
             can_generate: session.missingRequired.length === 0,
-            message: this._buildPromptMessage(session)
+            message: this._buildPromptMessage(session),
         };
     }
 
     private _buildPromptMessage(session: TaskBuilderSession, prefix?: string): string {
-        const options = session.doc.doc?.options || {};
+        const docContent = this._getDocContent(session);
+        const options = docContent.options ?? {};
         const lines: string[] = [];
 
         if (prefix) {
@@ -214,16 +235,17 @@ export class TaskBuilder {
         }
 
         lines.push(`**Building task: ${session.plugin}**`);
-        lines.push(`*${session.doc.doc?.short_description || ''}*`);
+        lines.push(`*${docContent.short_description ?? ''}*`);
         lines.push('');
 
         // Show collected parameters
         if (Object.keys(session.collectedParams).length > 0) {
             lines.push('**Collected parameters:**');
             for (const [key, value] of Object.entries(session.collectedParams)) {
-                const displayValue = typeof value === 'string' && value.length > 50
-                    ? value.substring(0, 47) + '...'
-                    : JSON.stringify(value);
+                const displayValue =
+                    typeof value === 'string' && value.length > 50
+                        ? value.substring(0, 47) + '...'
+                        : JSON.stringify(value);
                 lines.push(`  ✓ ${key}: ${displayValue}`);
             }
             lines.push('');
@@ -234,9 +256,9 @@ export class TaskBuilder {
             lines.push('**Required parameters (must provide):**');
             for (const param of session.missingRequired) {
                 const spec = options[param];
-                const typeStr = spec?.type || 'string';
+                const typeStr = spec.type ?? 'string';
                 const desc = this._getShortDescription(spec);
-                const choices = spec?.choices
+                const choices = spec.choices
                     ? ` choices: [${spec.choices.slice(0, 4).join(', ')}${spec.choices.length > 4 ? '...' : ''}]`
                     : '';
                 lines.push(`  • **${param}** (${typeStr})${choices}`);
@@ -249,20 +271,22 @@ export class TaskBuilder {
 
         // Show some optional parameters
         const unsetOptional = session.optionalParams
-            .filter(p => !(p in session.collectedParams))
+            .filter((p) => !(p in session.collectedParams))
             .slice(0, 8);
 
         if (unsetOptional.length > 0 && session.missingRequired.length === 0) {
             lines.push('**Optional parameters available:**');
             for (const param of unsetOptional) {
                 const spec = options[param];
-                const typeStr = spec?.type || 'string';
-                const defVal = spec?.default !== undefined ? ` (default: ${JSON.stringify(spec.default)})` : '';
+                const typeStr = spec.type ?? 'string';
+                const defVal =
+                    spec.default !== undefined ? ` (default: ${JSON.stringify(spec.default)})` : '';
                 lines.push(`  • ${param} (${typeStr})${defVal}`);
             }
-            const remaining = session.optionalParams.filter(p => !(p in session.collectedParams)).length - 8;
+            const remaining =
+                session.optionalParams.filter((p) => !(p in session.collectedParams)).length - 8;
             if (remaining > 0) {
-                lines.push(`  ... and ${remaining} more`);
+                lines.push(`  ... and ${String(remaining)} more`);
             }
             lines.push('');
         }
@@ -273,7 +297,7 @@ export class TaskBuilder {
             lines.push('**Next:** Provide the required parameters:');
             lines.push('```json');
             lines.push(`{ "session_id": "${session.id}", "params": { `);
-            lines.push(`    ${session.missingRequired.map(p => `"${p}": "..."`).join(', ')}`);
+            lines.push(`    ${session.missingRequired.map((p) => `"${p}": "..."`).join(', ')}`);
             lines.push('} }');
             lines.push('```');
         } else {
@@ -296,9 +320,13 @@ export class TaskBuilder {
 
     private _generateYaml(session: TaskBuilderSession): string {
         const lines: string[] = [];
-        const pluginName = session.plugin.split('.').pop() || session.plugin;
-        const taskName = session.taskOptions.task_name ||
-            pluginName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        const pluginName = session.plugin.split('.').pop() ?? session.plugin;
+        const taskName =
+            session.taskOptions.task_name ??
+            pluginName
+                .split('_')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ');
 
         lines.push(`- name: ${taskName}`);
         lines.push(`  ${session.plugin}:`);
@@ -332,7 +360,7 @@ export class TaskBuilder {
         return lines.join('\n');
     }
 
-    private _formatYamlValue(value: unknown, indent: number = 0): string {
+    private _formatYamlValue(value: unknown, indent = 0): string {
         const prefix = '    '.repeat(indent);
 
         if (value === null || value === undefined) {
@@ -349,11 +377,20 @@ export class TaskBuilder {
 
         if (typeof value === 'string') {
             if (value.includes('\n')) {
-                return '|\n' + value.split('\n').map(l => prefix + '  ' + l).join('\n');
+                return (
+                    '|\n' +
+                    value
+                        .split('\n')
+                        .map((l) => prefix + '  ' + l)
+                        .join('\n')
+                );
             }
-            if (value.includes(':') || value.includes('#') || 
+            if (
+                value.includes(':') ||
+                value.includes('#') ||
                 /^(true|false|yes|no|null)$/i.test(value) ||
-                /^\d+$/.test(value)) {
+                /^\d+$/.test(value)
+            ) {
                 return `"${value.replace(/"/g, '\\"')}"`;
             }
             return value;
@@ -363,7 +400,7 @@ export class TaskBuilder {
             if (value.length === 0) {
                 return '[]';
             }
-            if (value.every(v => typeof v === 'string' || typeof v === 'number')) {
+            if (value.every((v) => typeof v === 'string' || typeof v === 'number')) {
                 return `[${value.join(', ')}]`;
             }
             return JSON.stringify(value);
@@ -373,11 +410,15 @@ export class TaskBuilder {
             return JSON.stringify(value);
         }
 
-        return String(value);
+        if (typeof value === 'bigint' || typeof value === 'symbol') {
+            return value.toString();
+        }
+
+        return JSON.stringify(value);
     }
 
     private _generateId(): string {
-        return `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return `task_${String(Date.now())}_${Math.random().toString(36).slice(2, 11)}`;
     }
 
     private _cleanupSessions(): void {

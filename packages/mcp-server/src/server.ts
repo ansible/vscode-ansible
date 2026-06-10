@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 /**
  * Ansible Environments MCP Server
- * 
+ *
  * Standalone MCP server that exposes Ansible tools for AI agents.
  * Can be used with Cursor, VS Code Copilot, or any MCP-compatible client.
- * 
+ *
  * Usage:
  *   node packages/mcp-server/out/server.js
- *   
+ *
  * Or via npx (when published):
  *   npx @ansible/environments-mcp
- * 
+ *
  * Configuration for Cursor (.cursor/mcp.json):
  * {
  *   "mcpServers": {
@@ -40,7 +40,8 @@ import {
 import { STATIC_TOOLS, McpToolDefinition } from './tools';
 import { McpToolHandler } from './handlers';
 
-// Initialize the server
+// Initialize the server (low-level Server API; McpServer wrapper not used for custom handlers)
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- setRequestHandler requires the low-level Server API
 const server = new Server(
     {
         name: 'ansible-environments',
@@ -51,7 +52,7 @@ const server = new Server(
             tools: {},
             resources: {},
         },
-    }
+    },
 );
 
 // Best practices resource content
@@ -106,7 +107,8 @@ const RESOURCES = [
     {
         uri: 'ansible://best-practices',
         name: 'Ansible Environments Best Practices',
-        description: 'Guidelines for using the Ansible Environments extension and MCP tools correctly',
+        description:
+            'Guidelines for using the Ansible Environments extension and MCP tools correctly',
         mimeType: 'text/markdown',
     },
 ];
@@ -118,16 +120,13 @@ const handler = new McpToolHandler();
 server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Ensure handler is initialized
     await handler.initialize();
-    
+
     // Combine static tools with dynamic creator tools
     const creatorTools = handler.getCreatorTools();
-    const allTools: McpToolDefinition[] = [
-        ...STATIC_TOOLS,
-        ...creatorTools.getTools(),
-    ];
-    
+    const allTools: McpToolDefinition[] = [...STATIC_TOOLS, ...creatorTools.getTools()];
+
     return {
-        tools: allTools.map(tool => ({
+        tools: allTools.map((tool) => ({
             name: tool.name,
             description: tool.description,
             inputSchema: tool.inputSchema,
@@ -138,12 +137,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // Handle tool calls
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    
+
     // Ensure handler is initialized
     await handler.initialize();
-    
-    const result = await handler.handleTool(name, args || {});
-    
+
+    const result = await handler.handleTool(name, args ?? {});
+
     return {
         content: result.content,
         isError: result.isError,
@@ -151,26 +150,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // List available resources
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
+server.setRequestHandler(ListResourcesRequestSchema, () => {
     return {
         resources: RESOURCES,
     };
 });
 
 // Read a specific resource
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+server.setRequestHandler(ReadResourceRequestSchema, (request) => {
     const { uri } = request.params;
-    
+
     if (uri === 'ansible://best-practices') {
         return {
-            contents: [{
-                uri,
-                mimeType: 'text/markdown',
-                text: BEST_PRACTICES_RESOURCE,
-            }],
+            contents: [
+                {
+                    uri,
+                    mimeType: 'text/markdown',
+                    text: BEST_PRACTICES_RESOURCE,
+                },
+            ],
         };
     }
-    
+
     throw new Error(`Unknown resource: ${uri}`);
 });
 
@@ -180,31 +181,35 @@ server.onerror = (error) => {
 };
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
-    console.error('[MCP Server] Shutting down...');
-    await server.close();
-    process.exit(0);
+process.on('SIGINT', () => {
+    void (async () => {
+        console.error('[MCP Server] Shutting down...');
+        await server.close();
+        process.exit(0);
+    })();
 });
 
-process.on('SIGTERM', async () => {
-    console.error('[MCP Server] Shutting down...');
-    await server.close();
-    process.exit(0);
+process.on('SIGTERM', () => {
+    void (async () => {
+        console.error('[MCP Server] Shutting down...');
+        await server.close();
+        process.exit(0);
+    })();
 });
 
 // Start the server
 async function main() {
     console.error('[MCP Server] Starting Ansible Environments MCP server...');
-    
+
     try {
         // Initialize handler (loads collections, creator schema, etc.)
         await handler.initialize();
         console.error('[MCP Server] Handler initialized');
-        
+
         // Connect via stdio
         const transport = new StdioServerTransport();
         await server.connect(transport);
-        
+
         console.error('[MCP Server] Connected and ready');
     } catch (error) {
         console.error('[MCP Server] Failed to start:', error);
@@ -212,4 +217,4 @@ async function main() {
     }
 }
 
-main();
+void main();

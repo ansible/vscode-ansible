@@ -19,7 +19,7 @@ describe('STATIC_TOOLS', () => {
     });
 
     it('has unique tool names', () => {
-        const names = STATIC_TOOLS.map(t => t.name);
+        const names = STATIC_TOOLS.map((t) => t.name);
         const unique = new Set(names);
         expect(unique.size).toBe(names.length);
     });

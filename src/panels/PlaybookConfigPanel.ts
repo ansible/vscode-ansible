@@ -3,6 +3,13 @@ import { PlaybooksService, PlaybookInfo, PlaybookConfig } from '../services/Play
 import { TerminalService } from '../services/TerminalService';
 import { log } from '../extension';
 
+interface PlaybookConfigMessage {
+    command: string;
+    config?: PlaybookConfig;
+    zoom?: number;
+    theme?: string;
+}
+
 export class PlaybookConfigPanel {
     public static currentPanel: PlaybookConfigPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
@@ -11,12 +18,9 @@ export class PlaybookConfigPanel {
     private readonly _isGlobal: boolean;
     private _disposables: vscode.Disposable[] = [];
 
-    public static show(
-        extensionUri: vscode.Uri,
-        playbook?: PlaybookInfo,
-    ): void {
+    public static show(extensionUri: vscode.Uri, playbook?: PlaybookInfo): void {
         const isGlobal = !playbook;
-        const title = isGlobal ? 'Playbook Defaults' : `Config: ${playbook!.name}`;
+        const title = isGlobal ? 'Playbook Defaults' : `Config: ${playbook.name}`;
 
         // Close existing panel
         if (PlaybookConfigPanel.currentPanel) {
@@ -50,34 +54,43 @@ export class PlaybookConfigPanel {
     ) {
         this._panel = panel;
         this._extensionUri = extensionUri;
-        this._playbook = playbook || { 
-            name: 'Global Defaults', 
-            path: '', 
-            relativePath: '', 
-            workspaceFolder: vscode.workspace.workspaceFolders?.[0]?.uri || vscode.Uri.file('/'),
-            plays: [] 
+        this._playbook = playbook ?? {
+            name: 'Global Defaults',
+            path: '',
+            relativePath: '',
+            workspaceFolder: vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file('/'),
+            plays: [],
         };
         this._isGlobal = isGlobal;
 
         this._panel.webview.html = this._getHtml();
 
         this._panel.webview.onDidReceiveMessage(
-            async (message) => {
+            async (message: PlaybookConfigMessage) => {
                 const service = PlaybooksService.getInstance();
-                
+
                 switch (message.command) {
                     case 'save':
                         if (this._isGlobal) {
-                            service.saveGlobalConfig(message.config);
+                            service.saveGlobalConfig(message.config ?? service.getGlobalConfig());
                             vscode.window.showInformationMessage('Global playbook defaults saved.');
                         } else {
-                            service.savePlaybookConfig(this._playbook.relativePath, message.config);
-                            vscode.window.showInformationMessage(`Configuration saved for ${this._playbook.name}.`);
+                            service.savePlaybookConfig(
+                                this._playbook.relativePath,
+                                message.config ??
+                                    service.getPlaybookConfig(this._playbook.relativePath),
+                            );
+                            vscode.window.showInformationMessage(
+                                `Configuration saved for ${this._playbook.name}.`,
+                            );
                         }
                         break;
                     case 'run':
                         if (!this._isGlobal) {
-                            await this._runPlaybook(message.config);
+                            await this._runPlaybook(
+                                message.config ??
+                                    service.getPlaybookConfig(this._playbook.relativePath),
+                            );
                         }
                         break;
                     case 'resetToDefaults':
@@ -87,10 +100,18 @@ export class PlaybookConfigPanel {
                     case 'updateSettings': {
                         const vsConfig = vscode.workspace.getConfiguration('ansibleEnvironments');
                         if (message.zoom !== undefined) {
-                            await vsConfig.update('pluginDocZoom', message.zoom, vscode.ConfigurationTarget.Workspace);
+                            await vsConfig.update(
+                                'pluginDocZoom',
+                                message.zoom,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
                         }
                         if (message.theme !== undefined) {
-                            await vsConfig.update('pluginDocTheme', message.theme, vscode.ConfigurationTarget.Workspace);
+                            await vsConfig.update(
+                                'pluginDocTheme',
+                                message.theme,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
                         }
                         break;
                     }
@@ -100,7 +121,13 @@ export class PlaybookConfigPanel {
             this._disposables,
         );
 
-        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this._panel.onDidDispose(
+            () => {
+                this.dispose();
+            },
+            null,
+            this._disposables,
+        );
     }
 
     private async _runPlaybook(config: PlaybookConfig): Promise<void> {
@@ -116,31 +143,34 @@ export class PlaybookConfigPanel {
                 name: `ansible-playbook: ${this._playbook.name}`,
                 show: true,
             });
-            managed.sendCommand(command, { waitForCompletion: false });
+            void managed.sendCommand(command, { waitForCompletion: false });
             this._panel.dispose();
-
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to run playbook: ${error}`);
+            vscode.window.showErrorMessage(
+                `Failed to run playbook: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
     private _getHtml(): string {
         const service = PlaybooksService.getInstance();
-        const config = this._isGlobal 
-            ? service.getGlobalConfig() 
+        const config = this._isGlobal
+            ? service.getGlobalConfig()
             : service.getPlaybookConfig(this._playbook.relativePath);
-        
+
         const configJson = JSON.stringify(config);
 
         // Get view settings
         const vsConfig = vscode.workspace.getConfiguration('ansibleEnvironments');
         const zoom = vsConfig.get<number>('pluginDocZoom', 100);
         const themeSetting = vsConfig.get<string>('pluginDocTheme', 'auto');
-        
+
         const vscodeThemeKind = vscode.window.activeColorTheme.kind;
-        const isVsCodeLight = vscodeThemeKind === vscode.ColorThemeKind.Light || 
-                              vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
-        const resolvedTheme = themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
+        const isVsCodeLight =
+            vscodeThemeKind === vscode.ColorThemeKind.Light ||
+            vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
+        const resolvedTheme =
+            themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
 
         return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedTheme}" data-theme-setting="${themeSetting}">
@@ -248,7 +278,7 @@ export class PlaybookConfigPanel {
         .main-content {
             padding: 20px;
             padding-top: 60px;
-            zoom: ${zoom / 100};
+            zoom: ${String(zoom / 100)};
         }
         
         .container {
@@ -396,7 +426,7 @@ export class PlaybookConfigPanel {
 <body>
     <div class="toolbar">
         <button id="zoom-out-btn" class="toolbar-btn" title="Zoom out">−</button>
-        <span class="zoom-label" id="zoom-level">${zoom}%</span>
+        <span class="zoom-label" id="zoom-level">${String(zoom)}%</span>
         <button id="zoom-in-btn" class="toolbar-btn" title="Zoom in">+</button>
         <div class="toolbar-divider"></div>
         <button id="theme-toggle-btn" class="toolbar-btn" title="Toggle theme">${themeSetting}</button>
@@ -562,7 +592,7 @@ export class PlaybookConfigPanel {
     <script>
         const vscode = acquireVsCodeApi();
         const initialConfig = ${configJson};
-        const isGlobal = ${this._isGlobal};
+        const isGlobal = ${String(this._isGlobal)};
         const playbookPath = ${JSON.stringify(this._isGlobal ? '[playbook]' : this._playbook.relativePath)};
         
         // Form elements
@@ -711,7 +741,7 @@ export class PlaybookConfigPanel {
         
         // Zoom functionality
         (function() {
-            let currentZoom = ${zoom};
+            let currentZoom = ${String(zoom)};
             const minZoom = 50;
             const maxZoom = 200;
             const zoomStep = 10;

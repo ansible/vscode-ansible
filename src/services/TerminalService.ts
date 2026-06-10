@@ -1,6 +1,6 @@
 /**
  * Terminal Service
- * 
+ *
  * Central dispatcher for terminal operations with Python venv support.
  * Delegates Python environment resolution to PythonEnvironmentService.
  */
@@ -37,16 +37,16 @@ export interface CreateTerminalOptions {
 }
 
 export class TerminalService {
-    private static _instance: TerminalService;
+    private static _instance: TerminalService | undefined;
     private _disposables: vscode.Disposable[] = [];
     private _pythonEnvService: PythonEnvironmentService | undefined;
 
-    private constructor() {}
+    private constructor() {
+        /* singleton */
+    }
 
     public static getInstance(): TerminalService {
-        if (!TerminalService._instance) {
-            TerminalService._instance = new TerminalService();
-        }
+        TerminalService._instance ??= new TerminalService();
         return TerminalService._instance;
     }
 
@@ -61,16 +61,16 @@ export class TerminalService {
      * Create a terminal with Python venv activated, waiting for activation to complete
      */
     public async createActivatedTerminal(options: CreateTerminalOptions): Promise<ManagedTerminal> {
-        const workspaceFolder = options.cwd || vscode.workspace.workspaceFolders?.[0]?.uri;
+        const workspaceFolder = options.cwd ?? vscode.workspace.workspaceFolders?.[0]?.uri;
         const showTerminal = options.show !== false;
-        const activationTimeout = options.activationTimeout || 10000;
+        const activationTimeout = options.activationTimeout ?? 10000;
 
         let terminal: vscode.Terminal;
         let expectActivation = false;
 
         if (this._pythonEnvService?.hasEnvsExtension() && workspaceFolder) {
             const environment = await this._pythonEnvService.getEnvironment(workspaceFolder);
-            
+
             if (environment) {
                 terminal = await this._pythonEnvService.createTerminal(environment, {
                     name: options.name,
@@ -105,10 +105,10 @@ export class TerminalService {
         const disposables: vscode.Disposable[] = [];
 
         const sendCommand = async (
-            command: string, 
-            cmdOptions?: SendCommandOptions
+            command: string,
+            cmdOptions?: SendCommandOptions,
         ): Promise<CommandResult> => {
-            const timeout = cmdOptions?.timeout || 300000;
+            const timeout = cmdOptions?.timeout ?? 300000;
             const waitForCompletion = cmdOptions?.waitForCompletion !== false;
 
             if (!waitForCompletion) {
@@ -120,20 +120,19 @@ export class TerminalService {
         };
 
         const dispose = () => {
-            disposables.forEach(d => d.dispose());
+            for (const d of disposables) {
+                d.dispose();
+            }
             terminal.dispose();
         };
 
         return { terminal, sendCommand, dispose };
     }
 
-    private async _waitForActivation(
-        terminal: vscode.Terminal, 
-        timeout: number
-    ): Promise<void> {
+    private async _waitForActivation(terminal: vscode.Terminal, timeout: number): Promise<void> {
         const activationEvent = this._pythonEnvService?.onDidChangeTerminalActivationState;
         if (activationEvent) {
-            return new Promise(resolve => {
+            return new Promise((resolve) => {
                 const listener = activationEvent((event) => {
                     if (event.terminal === terminal && event.activated) {
                         listener.dispose();
@@ -148,39 +147,45 @@ export class TerminalService {
             });
         }
 
-        await new Promise(resolve => setTimeout(resolve, Math.min(timeout, 3000)));
+        await new Promise((resolve) => setTimeout(resolve, Math.min(timeout, 3000)));
     }
 
-    private async _waitForShellReady(
-        _terminal: vscode.Terminal, 
-        timeout: number
-    ): Promise<void> {
-        await new Promise(resolve => setTimeout(resolve, Math.min(timeout, 1000)));
+    private async _waitForShellReady(_terminal: vscode.Terminal, timeout: number): Promise<void> {
+        await new Promise((resolve) => setTimeout(resolve, Math.min(timeout, 1000)));
     }
 
     private async _sendAndCapture(
         terminal: vscode.Terminal,
         command: string,
-        timeout: number
+        timeout: number,
     ): Promise<CommandResult> {
         terminal.sendText(command);
 
-        const shellIntegration = (terminal as { shellIntegration?: { onDidEndCommandExecution?: (cb: (e: { exitCode: number | undefined }) => void) => { dispose(): void } } }).shellIntegration;
-        
-        if (shellIntegration?.onDidEndCommandExecution) {
-            return new Promise(resolve => {
+        const shellIntegration = (
+            terminal as {
+                shellIntegration?: {
+                    onDidEndCommandExecution?: (
+                        cb: (e: { exitCode: number | undefined }) => void,
+                    ) => { dispose(): void };
+                };
+            }
+        ).shellIntegration;
+
+        const onDidEndCommandExecution = shellIntegration?.onDidEndCommandExecution;
+        if (onDidEndCommandExecution) {
+            return new Promise((resolve) => {
                 const timeoutId = setTimeout(() => {
                     listener.dispose();
                     resolve({ output: '', exitCode: undefined, success: false });
                 }, timeout);
 
-                const listener = shellIntegration.onDidEndCommandExecution!((e: { exitCode: number | undefined }) => {
+                const listener = onDidEndCommandExecution((e: { exitCode: number | undefined }) => {
                     clearTimeout(timeoutId);
                     listener.dispose();
                     resolve({
                         output: '',
                         exitCode: e.exitCode,
-                        success: e.exitCode === 0
+                        success: e.exitCode === 0,
                     });
                 });
             });
@@ -192,7 +197,7 @@ export class TerminalService {
     public async runInTerminal(
         name: string,
         command: string,
-        options?: { show?: boolean; cwd?: vscode.Uri }
+        options?: { show?: boolean; cwd?: vscode.Uri },
     ): Promise<vscode.Terminal> {
         const managed = await this.createActivatedTerminal({
             name,
@@ -200,12 +205,14 @@ export class TerminalService {
             show: options?.show,
         });
 
-        managed.sendCommand(command, { waitForCompletion: false });
+        void managed.sendCommand(command, { waitForCompletion: false });
         return managed.terminal;
     }
 
     public dispose(): void {
-        this._disposables.forEach(d => d.dispose());
+        for (const d of this._disposables) {
+            d.dispose();
+        }
         this._disposables = [];
     }
 }

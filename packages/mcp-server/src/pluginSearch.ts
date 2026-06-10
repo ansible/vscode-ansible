@@ -1,6 +1,6 @@
 /**
  * Plugin Search Index
- * 
+ *
  * Provides fast keyword-based search across all installed Ansible plugins.
  * Automatically rebuilds when CollectionsService data changes.
  */
@@ -30,11 +30,13 @@ export class PluginSearchIndex {
         if (this._subscribed) {
             return;
         }
-        
+
         try {
             const service = CollectionsService.getInstance();
-            const onDidChange = service.onDidChange as { (listener: () => void): { dispose: () => void } } | undefined;
-            
+            const onDidChange = service.onDidChange as
+                | ((listener: () => void) => { dispose: () => void })
+                | undefined;
+
             if (onDidChange && typeof onDidChange === 'function') {
                 onDidChange(() => {
                     // Mark as needing rebuild when collections change
@@ -43,15 +45,24 @@ export class PluginSearchIndex {
                 });
                 this._subscribed = true;
                 console.error('PluginSearchIndex: Subscribed to CollectionsService changes');
-            } else if (service.onDidChange && typeof (service.onDidChange as unknown as { event?: unknown }).event === 'function') {
+            } else if (
+                service.onDidChange &&
+                typeof (service.onDidChange as unknown as { event?: unknown }).event === 'function'
+            ) {
                 // VS Code EventEmitter style
-                const event = (service.onDidChange as unknown as { event: (listener: () => void) => { dispose: () => void } }).event;
+                const event = (
+                    service.onDidChange as unknown as {
+                        event: (listener: () => void) => { dispose: () => void };
+                    }
+                ).event;
                 event(() => {
                     console.error('PluginSearchIndex: Collections changed, marking for rebuild');
                     this._built = false;
                 });
                 this._subscribed = true;
-                console.error('PluginSearchIndex: Subscribed to CollectionsService changes (VS Code style)');
+                console.error(
+                    'PluginSearchIndex: Subscribed to CollectionsService changes (VS Code style)',
+                );
             }
         } catch (error) {
             console.error('PluginSearchIndex: Failed to subscribe to changes:', error);
@@ -59,9 +70,7 @@ export class PluginSearchIndex {
     }
 
     public static getInstance(): PluginSearchIndex {
-        if (!PluginSearchIndex._instance) {
-            PluginSearchIndex._instance = new PluginSearchIndex();
-        }
+        PluginSearchIndex._instance ??= new PluginSearchIndex();
         return PluginSearchIndex._instance;
     }
 
@@ -78,12 +87,13 @@ export class PluginSearchIndex {
 
     public async rebuild(): Promise<void> {
         const service = CollectionsService.getInstance();
-        
+
         if (!service.isLoaded()) {
             try {
                 await service.refresh();
             } catch (error) {
-                console.error(`PluginSearchIndex: Failed to load collections: ${error}`);
+                const message = error instanceof Error ? error.message : String(error);
+                console.error(`PluginSearchIndex: Failed to load collections: ${message}`);
                 // Continue with empty index - tools will still work, just no search results
             }
         }
@@ -98,22 +108,27 @@ export class PluginSearchIndex {
                         collection: collName,
                         pluginType,
                         name: plugin.name,
-                        shortDescription: plugin.shortDescription
+                        shortDescription: plugin.shortDescription,
                     });
                 }
             }
         }
 
-        console.error(`PluginSearchIndex: Loaded ${this._entries.length} plugins from ${service.getCollections().size} collections`);
+        console.error(
+            `PluginSearchIndex: Loaded ${String(this._entries.length)} plugins from ${String(service.getCollections().size)} collections`,
+        );
         this._built = true;
     }
 
-    public search(query: string, options?: {
-        pluginType?: string;
-        collection?: string;
-        limit?: number;
-    }): PluginSearchResult[] {
-        const limit = Math.min(options?.limit || 15, 50);
+    public search(
+        query: string,
+        options?: {
+            pluginType?: string;
+            collection?: string;
+            limit?: number;
+        },
+    ): PluginSearchResult[] {
+        const limit = Math.min(options?.limit ?? 15, 50);
         const queryTerms = this._tokenize(query.toLowerCase());
 
         if (queryTerms.length === 0) {
@@ -121,24 +136,27 @@ export class PluginSearchIndex {
         }
 
         const results = this._entries
-            .filter(entry => {
+            .filter((entry) => {
                 // Apply filters
                 if (options?.pluginType && entry.pluginType !== options.pluginType) {
                     return false;
                 }
-                if (options?.collection && !entry.collection.toLowerCase().includes(options.collection.toLowerCase())) {
+                if (
+                    options?.collection &&
+                    !entry.collection.toLowerCase().includes(options.collection.toLowerCase())
+                ) {
                     return false;
                 }
                 return true;
             })
-            .map(entry => ({
+            .map((entry) => ({
                 entry,
-                score: this._scoreMatch(queryTerms, entry)
+                score: this._scoreMatch(queryTerms, entry),
             }))
-            .filter(r => r.score > 0)
+            .filter((r) => r.score > 0)
             .sort((a, b) => b.score - a.score)
             .slice(0, limit)
-            .map(r => r.entry);
+            .map((r) => r.entry);
 
         return results;
     }
@@ -147,7 +165,7 @@ export class PluginSearchIndex {
         return text
             .toLowerCase()
             .split(/[\s_\-.]+/)
-            .filter(t => t.length > 1);
+            .filter((t) => t.length > 1);
     }
 
     private _scoreMatch(queryTerms: string[], entry: PluginSearchResult): number {
@@ -185,10 +203,11 @@ export class PluginSearchIndex {
         }
 
         // Bonus for matching multiple terms
-        const matchedTerms = queryTerms.filter(term => 
-            nameLower.includes(term) || 
-            fullNameLower.includes(term) || 
-            descLower.includes(term)
+        const matchedTerms = queryTerms.filter(
+            (term) =>
+                nameLower.includes(term) ||
+                fullNameLower.includes(term) ||
+                descLower.includes(term),
         ).length;
 
         if (matchedTerms > 1) {

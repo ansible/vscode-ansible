@@ -10,7 +10,8 @@ vi.mock('fs', async (importOriginal) => {
     return {
         ...mod,
         existsSync: (...args: Parameters<typeof mod.existsSync>) => fsMock.existsSync(...args),
-        readFileSync: (...args: Parameters<typeof mod.readFileSync>) => fsMock.readFileSync(...args),
+        readFileSync: (...args: Parameters<typeof mod.readFileSync>) =>
+            fsMock.readFileSync(...args),
     };
 });
 
@@ -62,51 +63,65 @@ const hoisted = vi.hoisted(() => {
         listPluginTypes,
         getPlugins,
         installCollection,
-        onDidChange: vi.fn((_listener: () => void) => ({ dispose: vi.fn() })),
+        onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
     };
 
     const galaxyInstance = {
         ensureLoaded: vi.fn().mockResolvedValue(undefined),
-        search: vi.fn(() => [] as Array<{
-            namespace: string;
-            name: string;
-            version: string;
-            deprecated: boolean;
-            downloadCount: number;
-        }>),
-        getCollections: vi.fn(() => [] as Array<{
-            namespace: string;
-            name: string;
-            version: string;
-            deprecated: boolean;
-            downloadCount: number;
-        }>),
+        search: vi.fn(
+            () =>
+                [] as {
+                    namespace: string;
+                    name: string;
+                    version: string;
+                    deprecated: boolean;
+                    downloadCount: number;
+                }[],
+        ),
+        getCollections: vi.fn(
+            () =>
+                [] as {
+                    namespace: string;
+                    name: string;
+                    version: string;
+                    deprecated: boolean;
+                    downloadCount: number;
+                }[],
+        ),
     };
 
     const githubInstance = {
         loadFromDisk: vi.fn(),
-        search: vi.fn(() => [] as Array<{
-            namespace: string;
-            name: string;
-            version: string;
-            description: string;
-            org: string;
-        }>),
-        getCollections: vi.fn(() => [] as Array<{
-            namespace: string;
-            name: string;
-            version: string;
-            description: string;
-        }>),
+        search: vi.fn(
+            () =>
+                [] as {
+                    namespace: string;
+                    name: string;
+                    version: string;
+                    description: string;
+                    org: string;
+                }[],
+        ),
+        getCollections: vi.fn(
+            () =>
+                [] as {
+                    namespace: string;
+                    name: string;
+                    version: string;
+                    description: string;
+                }[],
+        ),
     };
 
     const eeInstance = {
-        loadExecutionEnvironments: vi.fn().mockResolvedValue([] as Array<{
-            full_name: string;
-            image_id: string;
-            created: string;
-        }>),
-        loadDetails: vi.fn().mockResolvedValue(null as unknown),
+        loadExecutionEnvironments: vi.fn().mockResolvedValue(
+            [] as {
+                full_name: string;
+                image_id: string;
+                created: string;
+            }[],
+        ),
+        loadDetails: vi.fn().mockResolvedValue(null),
     };
 
     const devToolsInstance = {
@@ -118,7 +133,7 @@ const hoisted = vi.hoisted(() => {
     const creatorInstance = {
         isLoaded: vi.fn(() => true),
         refresh: vi.fn().mockResolvedValue(undefined),
-        getSchema: vi.fn(() => null as unknown),
+        getSchema: vi.fn(() => null),
         loadSchema: vi.fn().mockResolvedValue(null),
     };
 
@@ -216,7 +231,9 @@ describe('McpToolHandler', () => {
         hoisted.eeInstance.loadExecutionEnvironments.mockResolvedValue([]);
         hoisted.eeInstance.loadDetails.mockResolvedValue(null);
         hoisted.devToolsInstance.isLoaded.mockReturnValue(true);
-        hoisted.devToolsInstance.getPackages.mockReturnValue([{ name: 'ansible-lint', version: '1.0.0' }]);
+        hoisted.devToolsInstance.getPackages.mockReturnValue([
+            { name: 'ansible-lint', version: '1.0.0' },
+        ]);
         hoisted.creatorInstance.getSchema.mockReturnValue(null);
         hoisted.creatorInstance.isLoaded.mockReturnValue(true);
 
@@ -258,7 +275,10 @@ describe('McpToolHandler', () => {
 
         expect(result.isError).toBeUndefined();
         expect(result.content[0].text).toContain('ansible.builtin.copy');
-        expect(hoisted.getPluginDocumentation).toHaveBeenCalledWith('ansible.builtin.copy', 'module');
+        expect(hoisted.getPluginDocumentation).toHaveBeenCalledWith(
+            'ansible.builtin.copy',
+            'module',
+        );
     });
 
     it('routes generate_ansible_task through TaskGenerator', async () => {
@@ -304,7 +324,9 @@ describe('McpToolHandler', () => {
         it('filters collections when filter arg is set', async () => {
             hoisted.listCollectionNames.mockReturnValue(['ansible.builtin', 'community.general']);
 
-            const result = await handler.handleTool('list_ansible_collections', { filter: 'community' });
+            const result = await handler.handleTool('list_ansible_collections', {
+                filter: 'community',
+            });
 
             expect(result.content[0].text).toContain('community.general');
             expect(result.content[0].text).not.toContain('ansible.builtin');
@@ -321,7 +343,9 @@ describe('McpToolHandler', () => {
         it('returns message when filter matches nothing', async () => {
             hoisted.listCollectionNames.mockReturnValue(['ansible.builtin']);
 
-            const result = await handler.handleTool('list_ansible_collections', { filter: 'nomatch' });
+            const result = await handler.handleTool('list_ansible_collections', {
+                filter: 'nomatch',
+            });
 
             expect(result.content[0].text).toContain('No collections found matching');
         });
@@ -409,7 +433,9 @@ describe('McpToolHandler', () => {
         });
 
         it('returns empty message when no matches', async () => {
-            const result = await handler.handleTool('search_available_collections', { query: 'zzznone' });
+            const result = await handler.handleTool('search_available_collections', {
+                query: 'zzznone',
+            });
 
             expect(result.content[0].text).toContain('No collections found');
         });
@@ -443,7 +469,10 @@ describe('McpToolHandler', () => {
                 },
             ]);
 
-            const result = await handler.handleTool('list_source_collections', { source: 'galaxy', limit: 50 });
+            const result = await handler.handleTool('list_source_collections', {
+                source: 'galaxy',
+                limit: 50,
+            });
 
             expect(hoisted.galaxyInstance.ensureLoaded).toHaveBeenCalled();
             expect(result.content[0].text).toContain('a.b');
@@ -471,7 +500,9 @@ describe('McpToolHandler', () => {
         it('returns message when source has no collections', async () => {
             hoisted.githubInstance.getCollections.mockReturnValue([]);
 
-            const result = await handler.handleTool('list_source_collections', { source: 'emptyorg' });
+            const result = await handler.handleTool('list_source_collections', {
+                source: 'emptyorg',
+            });
 
             expect(result.content[0].text).toContain('No collections found in source');
         });
@@ -479,7 +510,9 @@ describe('McpToolHandler', () => {
         it('returns error when listing throws', async () => {
             hoisted.galaxyInstance.ensureLoaded.mockRejectedValue(new Error('disk'));
 
-            const result = await handler.handleTool('list_source_collections', { source: 'galaxy' });
+            const result = await handler.handleTool('list_source_collections', {
+                source: 'galaxy',
+            });
 
             expect(result.isError).toBe(true);
             expect(result.content[0].text).toContain('Failed to list collections');
@@ -543,9 +576,11 @@ describe('McpToolHandler', () => {
             const first = await handler.handleTool('build_ansible_task', {
                 plugin: 'ansible.builtin.copy',
             });
-            const sidMatch = first.content[0].text.match(/"session_id": "(task_[^"]+)"/);
-            expect(sidMatch).toBeTruthy();
-            const sid = sidMatch![1];
+            const sidMatch = /"session_id": "(task_[^"]+)"/.exec(first.content[0].text);
+            if (!sidMatch) {
+                throw new Error('session_id not found in response');
+            }
+            const sid = sidMatch[1];
 
             const complete = await handler.handleTool('build_ansible_task', {
                 session_id: sid,
@@ -761,7 +796,10 @@ describe('McpToolHandler', () => {
 
         it('calls refresh when creator service is not loaded', async () => {
             hoisted.creatorInstance.isLoaded.mockReturnValue(false);
-            hoisted.creatorInstance.getSchema.mockReturnValue({ name: 'ansible-creator', subcommands: {} });
+            hoisted.creatorInstance.getSchema.mockReturnValue({
+                name: 'ansible-creator',
+                subcommands: {},
+            });
 
             await handler.handleTool('get_ansible_creator_schema', {});
 
@@ -786,7 +824,9 @@ describe('McpToolHandler', () => {
             fsMock.existsSync.mockReturnValue(true);
             fsMock.readFileSync.mockReturnValue(doc);
 
-            const result = await handler.handleTool('get_ansible_best_practices', { section: 'full' });
+            const result = await handler.handleTool('get_ansible_best_practices', {
+                section: 'full',
+            });
 
             expect(result.isError).toBeUndefined();
             expect(result.content[0].text).toBe(doc);

@@ -54,7 +54,7 @@ describe('TaskGenerator', () => {
         });
 
         expect(yaml).toBeTruthy();
-        expect(warnings.some(w => w.includes('Missing required parameter: dest'))).toBe(true);
+        expect(warnings.some((w) => w.includes('Missing required parameter: dest'))).toBe(true);
     });
 
     it('generate includes become, when, register, loop, ignore_errors, and tags when set', async () => {
@@ -118,9 +118,7 @@ describe('TaskGenerator', () => {
             become: true,
             gather_facts: false,
             vars: { app_version: '1.2.3', feature_enabled: true },
-            tasks: [
-                { plugin: 'ansible.builtin.copy', params: { src: '1', dest: '2' } },
-            ],
+            tasks: [{ plugin: 'ansible.builtin.copy', params: { src: '1', dest: '2' } }],
         });
 
         expect(yaml).toMatch(/^\s{2}gather_facts: false$/m);
@@ -194,7 +192,12 @@ describe('TaskGenerator', () => {
     it('generate handles array of objects in params', async () => {
         const { yaml } = await generator.generate({
             plugin: 'ansible.builtin.copy',
-            params: { items: [{ name: 'a', path: '/a' }, { name: 'b', path: '/b' }] },
+            params: {
+                items: [
+                    { name: 'a', path: '/a' },
+                    { name: 'b', path: '/b' },
+                ],
+            },
         });
         expect(yaml).toContain('items:');
         expect(yaml).toContain('- name:');
@@ -275,19 +278,31 @@ describe('TaskGenerator', () => {
             ],
         });
         expect(yaml).toContain('ansible.builtin.copy');
-        expect(warnings.some(w => w.includes('Failed to generate task'))).toBe(true);
+        expect(warnings.some((w) => w.includes('Failed to generate task'))).toBe(true);
     });
 
     it('generate caches plugin docs across calls', async () => {
-        await generator.generate({ plugin: 'ansible.builtin.copy', params: { src: 'a', dest: 'b' } });
-        await generator.generate({ plugin: 'ansible.builtin.copy', params: { src: 'c', dest: 'd' } });
+        await generator.generate({
+            plugin: 'ansible.builtin.copy',
+            params: { src: 'a', dest: 'b' },
+        });
+        await generator.generate({
+            plugin: 'ansible.builtin.copy',
+            params: { src: 'c', dest: 'd' },
+        });
         expect(mockGetPluginDocumentation).toHaveBeenCalledTimes(1);
     });
 
     it('clearCache clears the doc cache', async () => {
-        await generator.generate({ plugin: 'ansible.builtin.copy', params: { src: 'a', dest: 'b' } });
+        await generator.generate({
+            plugin: 'ansible.builtin.copy',
+            params: { src: 'a', dest: 'b' },
+        });
         generator.clearCache();
-        await generator.generate({ plugin: 'ansible.builtin.copy', params: { src: 'c', dest: 'd' } });
+        await generator.generate({
+            plugin: 'ansible.builtin.copy',
+            params: { src: 'c', dest: 'd' },
+        });
         expect(mockGetPluginDocumentation).toHaveBeenCalledTimes(2);
     });
 
@@ -305,6 +320,6 @@ describe('TaskGenerator', () => {
             plugin: 'test.module',
             params: { src: '/a', dest: '/b' },
         });
-        expect(warnings.some(w => w.includes('source'))).toBe(false);
+        expect(warnings.some((w) => w.includes('source'))).toBe(false);
     });
 });

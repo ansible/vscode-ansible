@@ -3,7 +3,7 @@ export interface Disposable {
 }
 
 export class SimpleEventEmitter<T> {
-    private listeners: Array<(e: T) => void> = [];
+    private listeners: ((e: T) => void)[] = [];
 
     public event = (listener: (e: T) => void): Disposable => {
         this.listeners.push(listener);
@@ -18,6 +18,8 @@ export class SimpleEventEmitter<T> {
     };
 
     public fire(e: T): void {
-        this.listeners.forEach((l) => l(e));
+        this.listeners.forEach((l) => {
+            l(e);
+        });
     }
 }

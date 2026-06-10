@@ -1,10 +1,12 @@
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 
 // Conditional vscode import for standalone mode
 let vscode: typeof import('vscode') | undefined;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment -- conditional require for VS Code-optional usage
     vscode = require('vscode');
 } catch {
     // Running standalone
@@ -21,7 +23,7 @@ export interface GitHubCollection {
     repository: string;
     org: string;
     htmlUrl: string;
-    installUrl: string;  // git+https://github.com/org/repo.git
+    installUrl: string; // git+https://github.com/org/repo.git
 }
 
 /**
@@ -37,17 +39,17 @@ interface GitHubOrgCache {
  * Service to discover and cache Ansible collections from GitHub organizations
  */
 export class GitHubCollectionCache {
-    private static _instance: GitHubCollectionCache;
-    private _caches: Map<string, GitHubOrgCache> = new Map();
-    private _refreshInProgress: Set<string> = new Set();
+    private static _instance: GitHubCollectionCache | undefined;
+    private _caches = new Map<string, GitHubOrgCache>();
+    private _refreshInProgress = new Set<string>();
     private _log: (msg: string) => void = console.log;
 
-    private constructor() {}
+    private constructor() {
+        // singleton
+    }
 
     public static getInstance(): GitHubCollectionCache {
-        if (!GitHubCollectionCache._instance) {
-            GitHubCollectionCache._instance = new GitHubCollectionCache();
-        }
+        GitHubCollectionCache._instance ??= new GitHubCollectionCache();
         return GitHubCollectionCache._instance;
     }
 
@@ -59,8 +61,6 @@ export class GitHubCollectionCache {
      * Get the cache directory path (global, in ~/.cache/ansible-environments/)
      */
     private _getCacheDir(): string {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires -- dynamic require for standalone/extension dual-mode
-        const os = require('os');
         return path.join(os.homedir(), '.cache', 'ansible-environments');
     }
 
@@ -84,14 +84,18 @@ export class GitHubCollectionCache {
             const data = fs.readFileSync(filePath, 'utf-8');
             const cache = JSON.parse(data) as GitHubOrgCache;
             this._caches.set(org, cache);
-            
+
             const age = Date.now() - new Date(cache.lastUpdated).getTime();
             const ageStr = this._formatAge(age);
-            this._log(`GitHubCollectionCache: Loaded ${cache.collections.length} collections for ${org} (${ageStr})`);
-            
+            this._log(
+                `GitHubCollectionCache: Loaded ${String(cache.collections.length)} collections for ${org} (${ageStr})`,
+            );
+
             return cache;
         } catch (error) {
-            this._log(`GitHubCollectionCache: Error loading cache for ${org}: ${error}`);
+            this._log(
+                `GitHubCollectionCache: Error loading cache for ${org}: ${error instanceof Error ? error.message : String(error)}`,
+            );
             return undefined;
         }
     }
@@ -108,9 +112,13 @@ export class GitHubCollectionCache {
                 fs.mkdirSync(cacheDir, { recursive: true });
             }
             fs.writeFileSync(filePath, JSON.stringify(cache, null, 2));
-            this._log(`GitHubCollectionCache: Saved ${cache.collections.length} collections for ${org}`);
+            this._log(
+                `GitHubCollectionCache: Saved ${String(cache.collections.length)} collections for ${org}`,
+            );
         } catch (error) {
-            this._log(`GitHubCollectionCache: Error saving cache for ${org}: ${error}`);
+            this._log(
+                `GitHubCollectionCache: Error saving cache for ${org}: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -121,13 +129,15 @@ export class GitHubCollectionCache {
         const hours = Math.floor(ms / (1000 * 60 * 60));
         if (hours < 1) {
             const minutes = Math.floor(ms / (1000 * 60));
-            return minutes < 1 ? 'just now' : `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+            return minutes < 1
+                ? 'just now'
+                : `${String(minutes)} minute${minutes === 1 ? '' : 's'} ago`;
         }
         if (hours < 24) {
-            return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+            return `${String(hours)} hour${hours === 1 ? '' : 's'} ago`;
         }
         const days = Math.floor(hours / 24);
-        return `${days} day${days === 1 ? '' : 's'} ago`;
+        return `${String(days)} day${days === 1 ? '' : 's'} ago`;
     }
 
     /**
@@ -135,7 +145,7 @@ export class GitHubCollectionCache {
      */
     public getCollections(org: string): GitHubCollection[] {
         const cache = this._caches.get(org);
-        return cache?.collections || [];
+        return cache?.collections ?? [];
     }
 
     /**
@@ -153,7 +163,7 @@ export class GitHubCollectionCache {
      * Get collection count for an org
      */
     public getCount(org: string): number {
-        return this._caches.get(org)?.collections.length || 0;
+        return this._caches.get(org)?.collections.length ?? 0;
     }
 
     /**
@@ -191,28 +201,27 @@ export class GitHubCollectionCache {
         try {
             // Get GitHub authentication
             const session = await vscode.authentication.getSession('github', ['public_repo'], {
-                createIfNone: true
+                createIfNone: true,
             });
 
-            if (!session) {
-                this._log(`GitHubCollectionCache: GitHub authentication required for ${org}`);
-                return;
-            }
-
             const collections = await this._scanOrg(org, session.accessToken);
-            
+
             const cache: GitHubOrgCache = {
                 org,
                 collections,
-                lastUpdated: new Date().toISOString()
+                lastUpdated: new Date().toISOString(),
             };
 
             this._caches.set(org, cache);
             this._saveToDisk(org, cache);
 
-            this._log(`GitHubCollectionCache: Found ${collections.length} collections in ${org}`);
+            this._log(
+                `GitHubCollectionCache: Found ${String(collections.length)} collections in ${org}`,
+            );
         } catch (error) {
-            this._log(`GitHubCollectionCache: Error refreshing ${org}: ${error}`);
+            this._log(
+                `GitHubCollectionCache: Error refreshing ${org}: ${error instanceof Error ? error.message : String(error)}`,
+            );
         } finally {
             this._refreshInProgress.delete(org);
         }
@@ -227,23 +236,27 @@ export class GitHubCollectionCache {
         try {
             // Search for repos with galaxy.yml at root
             const searchUrl = `https://api.github.com/search/code?q=org:${org}+filename:galaxy.yml+path:/`;
-            
+
             const searchResponse = await fetch(searchUrl, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'VSCode-Ansible-Environments'
-                }
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/vnd.github.v3+json',
+                    'User-Agent': 'VSCode-Ansible-Environments',
+                },
             });
 
             if (!searchResponse.ok) {
                 // If code search fails (rate limit, etc.), fall back to repo listing
-                this._log(`GitHubCollectionCache: Code search failed for ${org}, falling back to repo scan`);
+                this._log(
+                    `GitHubCollectionCache: Code search failed for ${org}, falling back to repo scan`,
+                );
                 return await this._scanOrgRepos(org, token);
             }
 
-            const searchData = await searchResponse.json() as { items?: Array<{ repository: { full_name: string, html_url: string } }> };
-            
+            const searchData = (await searchResponse.json()) as {
+                items?: { repository: { full_name: string; html_url: string } }[];
+            };
+
             if (!searchData.items || searchData.items.length === 0) {
                 this._log(`GitHubCollectionCache: No galaxy.yml files found in ${org}`);
                 return collections;
@@ -258,17 +271,24 @@ export class GitHubCollectionCache {
             // Fetch galaxy.yml for each repo
             for (const repoFullName of repoSet) {
                 try {
-                    const collection = await this._fetchCollectionMetadata(repoFullName, token, org);
+                    const collection = await this._fetchCollectionMetadata(
+                        repoFullName,
+                        token,
+                        org,
+                    );
                     if (collection) {
                         collections.push(collection);
                     }
                 } catch (error) {
-                    this._log(`GitHubCollectionCache: Error fetching metadata for ${repoFullName}: ${error}`);
+                    this._log(
+                        `GitHubCollectionCache: Error fetching metadata for ${repoFullName}: ${error instanceof Error ? error.message : String(error)}`,
+                    );
                 }
             }
-
         } catch (error) {
-            this._log(`GitHubCollectionCache: Error scanning ${org}: ${error}`);
+            this._log(
+                `GitHubCollectionCache: Error scanning ${org}: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
 
         return collections;
@@ -282,24 +302,23 @@ export class GitHubCollectionCache {
         let page = 1;
         const perPage = 100;
 
-        // eslint-disable-next-line no-constant-condition -- paginated fetch loop, exits via break
-        while (true) {
-            const url = `https://api.github.com/orgs/${org}/repos?per_page=${perPage}&page=${page}`;
-            
+        for (;;) {
+            const url = `https://api.github.com/orgs/${org}/repos?per_page=${String(perPage)}&page=${String(page)}`;
+
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'VSCode-Ansible-Environments'
-                }
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/vnd.github.v3+json',
+                    'User-Agent': 'VSCode-Ansible-Environments',
+                },
             });
 
             if (!response.ok) {
                 break;
             }
 
-            const repos = await response.json() as Array<{ full_name: string, html_url: string }>;
-            
+            const repos = (await response.json()) as { full_name: string; html_url: string }[];
+
             if (repos.length === 0) {
                 break;
             }
@@ -307,7 +326,11 @@ export class GitHubCollectionCache {
             // Check each repo for galaxy.yml
             for (const repo of repos) {
                 try {
-                    const collection = await this._fetchCollectionMetadata(repo.full_name, token, org);
+                    const collection = await this._fetchCollectionMetadata(
+                        repo.full_name,
+                        token,
+                        org,
+                    );
                     if (collection) {
                         collections.push(collection);
                     }
@@ -328,16 +351,20 @@ export class GitHubCollectionCache {
     /**
      * Fetch and parse galaxy.yml from a repo
      */
-    private async _fetchCollectionMetadata(repoFullName: string, token: string, org: string): Promise<GitHubCollection | null> {
+    private async _fetchCollectionMetadata(
+        repoFullName: string,
+        token: string,
+        org: string,
+    ): Promise<GitHubCollection | null> {
         // Try galaxy.yml first, then galaxy.yaml
         for (const filename of ['galaxy.yml', 'galaxy.yaml']) {
             const rawUrl = `https://raw.githubusercontent.com/${repoFullName}/main/${filename}`;
-            
+
             const response = await fetch(rawUrl, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'User-Agent': 'VSCode-Ansible-Environments'
-                }
+                    Authorization: `Bearer ${token}`,
+                    'User-Agent': 'VSCode-Ansible-Environments',
+                },
             });
 
             if (response.ok) {
@@ -349,9 +376,9 @@ export class GitHubCollectionCache {
             const defaultUrl = `https://raw.githubusercontent.com/${repoFullName}/HEAD/${filename}`;
             const defaultResponse = await fetch(defaultUrl, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'User-Agent': 'VSCode-Ansible-Environments'
-                }
+                    Authorization: `Bearer ${token}`,
+                    'User-Agent': 'VSCode-Ansible-Environments',
+                },
             });
 
             if (defaultResponse.ok) {
@@ -366,16 +393,21 @@ export class GitHubCollectionCache {
     /**
      * Parse galaxy.yml content using proper YAML parser
      */
-    private _parseGalaxyYml(content: string, repoFullName: string, org: string): GitHubCollection | null {
+    private _parseGalaxyYml(
+        content: string,
+        repoFullName: string,
+        org: string,
+    ): GitHubCollection | null {
         try {
-            const data = yaml.load(content) as Record<string, unknown>;
+            const data = yaml.load(content);
 
-            if (!data || typeof data !== 'object') {
+            if (typeof data !== 'object' || data === null) {
                 return null;
             }
 
-            const namespace = data.namespace as string | undefined;
-            const name = data.name as string | undefined;
+            const record = data as Record<string, unknown>;
+            const namespace = record.namespace as string | undefined;
+            const name = record.name as string | undefined;
 
             if (!namespace || !name) {
                 return null;
@@ -383,24 +415,26 @@ export class GitHubCollectionCache {
 
             // Get description - handle string or array
             let description = '';
-            if (typeof data.description === 'string') {
-                description = data.description.trim();
-            } else if (Array.isArray(data.description)) {
-                description = data.description.join(' ').trim();
+            if (typeof record.description === 'string') {
+                description = record.description.trim();
+            } else if (Array.isArray(record.description)) {
+                description = record.description.join(' ').trim();
             }
 
             return {
                 namespace,
                 name,
-                version: (data.version as string) || '0.0.0',
+                version: (record.version as string) || '0.0.0',
                 description,
                 repository: repoFullName,
                 org,
                 htmlUrl: `https://github.com/${repoFullName}`,
-                installUrl: `git+https://github.com/${repoFullName}.git`
+                installUrl: `git+https://github.com/${repoFullName}.git`,
             };
         } catch (error) {
-            this._log(`GitHubCollectionCache: Failed to parse galaxy.yml for ${repoFullName}: ${error}`);
+            this._log(
+                `GitHubCollectionCache: Failed to parse galaxy.yml for ${repoFullName}: ${error instanceof Error ? error.message : String(error)}`,
+            );
             return null;
         }
     }
@@ -434,7 +468,7 @@ export class GitHubCollectionCache {
         for (const org of orgs) {
             // Load from disk first
             const cached = this.loadFromDisk(org);
-            
+
             if (!cached) {
                 // No cache, try to refresh
                 await this.refresh(org);

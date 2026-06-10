@@ -73,15 +73,27 @@ export interface PythonEnvironmentApi {
     getEnvironment(scope: GetEnvironmentScope): Promise<PythonEnvironment | undefined>;
     setEnvironment(scope: SetEnvironmentScope, environment?: PythonEnvironment): Promise<void>;
     getEnvironments(scope: vscode.Uri | 'all' | 'global'): Promise<PythonEnvironment[]>;
-    createEnvironment(scope: vscode.Uri | vscode.Uri[] | 'global', options?: CreateEnvironmentOptions): Promise<PythonEnvironment | undefined>;
-    
+    createEnvironment(
+        scope: vscode.Uri | vscode.Uri[] | 'global',
+        options?: CreateEnvironmentOptions,
+    ): Promise<PythonEnvironment | undefined>;
+
     // Package Management
-    managePackages(environment: PythonEnvironment, options: PackageManagementOptions): Promise<void>;
-    
+    managePackages(
+        environment: PythonEnvironment,
+        options: PackageManagementOptions,
+    ): Promise<void>;
+
     // Terminal/Execution
-    runInTerminal(environment: PythonEnvironment, options: PythonTerminalExecutionOptions): Promise<vscode.Terminal>;
-    createTerminal(environment: PythonEnvironment, options: vscode.TerminalOptions): Promise<vscode.Terminal>;
-    
+    runInTerminal(
+        environment: PythonEnvironment,
+        options: PythonTerminalExecutionOptions,
+    ): Promise<vscode.Terminal>;
+    createTerminal(
+        environment: PythonEnvironment,
+        options: vscode.TerminalOptions,
+    ): Promise<vscode.Terminal>;
+
     // Events
     onDidChangeEnvironment?: vscode.Event<DidChangeEnvironmentEventArgs>;
     onDidChangeTerminalActivationState?: vscode.Event<TerminalActivationStateEventArgs>;

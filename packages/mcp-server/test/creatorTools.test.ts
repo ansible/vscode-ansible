@@ -50,7 +50,9 @@ describe('CreatorToolGenerator', () => {
         vi.clearAllMocks();
         mockLoadSchema.mockResolvedValue(mockSchema);
         mockGetPositionalArgs.mockReturnValue(['project']);
-        mockBuildCommandString.mockReturnValue('ansible-creator init playbook myproj --output /out --overwrite');
+        mockBuildCommandString.mockReturnValue(
+            'ansible-creator init playbook myproj --output /out --overwrite',
+        );
         mockRunCommand.mockResolvedValue('done');
     });
 
@@ -72,12 +74,17 @@ describe('CreatorToolGenerator', () => {
         await gen.initialize();
 
         const tools = gen.getTools();
-        expect(tools[0].inputSchema.type).toBe('object');
-        expect(tools[0].inputSchema.properties).toMatchObject({
-            project: expect.objectContaining({ type: 'string', description: 'Project name' }),
-            output: expect.objectContaining({ type: 'string' }),
+        const schema = tools[0].inputSchema as {
+            type: string;
+            properties: Record<string, { type?: string; description?: string }>;
+            required?: string[];
+        };
+        expect(schema.type).toBe('object');
+        expect(schema.properties).toMatchObject({
+            project: { type: 'string', description: 'Project name' },
+            output: { type: 'string' },
         });
-        expect(tools[0].inputSchema.required).toEqual(['project']);
+        expect(schema.required).toEqual(['project']);
     });
 
     it('initialize() is idempotent', async () => {
@@ -236,11 +243,13 @@ describe('CreatorToolGenerator', () => {
         await gen.initialize();
 
         const tool = gen.getTools().find((t) => t.name === 'ac_sample_leaf');
-        expect(tool).toBeDefined();
-        expect(tool!.inputSchema.properties).toMatchObject({
+        if (!tool) {
+            throw new Error('expected ac_sample_leaf tool');
+        }
+        expect(tool.inputSchema.properties).toMatchObject({
             dry_run: { type: 'boolean', description: 'Dry run' },
             format: { type: 'string', enum: ['json', 'yaml'] },
-            count: expect.objectContaining({ type: 'string', default: 1 }),
+            count: { type: 'string', default: 1 },
         });
     });
 });

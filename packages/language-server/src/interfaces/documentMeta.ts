@@ -1,4 +1,4 @@
 export interface IDocumentMetadata {
-  source: string;
-  collections: string[];
+    source: string;
+    collections: string[];
 }

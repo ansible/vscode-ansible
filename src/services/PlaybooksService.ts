@@ -72,20 +72,20 @@ const GLOBAL_CONFIG_FILE = 'playbook-defaults.json';
 const PLAYBOOKS_CONFIG_DIR = 'playbooks';
 
 export class PlaybooksService {
-    private static _instance: PlaybooksService;
-    private _playbooks: Map<string, PlaybookInfo> = new Map();
+    private static _instance: PlaybooksService | undefined;
+    private _playbooks = new Map<string, PlaybookInfo>();
     private _loading = false;
     private _loaded = false;
-    
+
     private readonly _onDidChange = new vscode.EventEmitter<void>();
     public readonly onDidChange = this._onDidChange.event;
 
-    private constructor() {}
+    private constructor() {
+        /* singleton */
+    }
 
     public static getInstance(): PlaybooksService {
-        if (!PlaybooksService._instance) {
-            PlaybooksService._instance = new PlaybooksService();
-        }
+        PlaybooksService._instance ??= new PlaybooksService();
         return PlaybooksService._instance;
     }
 
@@ -98,8 +98,8 @@ export class PlaybooksService {
     }
 
     public getPlaybooks(): PlaybookInfo[] {
-        return Array.from(this._playbooks.values()).sort((a, b) => 
-            a.relativePath.localeCompare(b.relativePath)
+        return Array.from(this._playbooks.values()).sort((a, b) =>
+            a.relativePath.localeCompare(b.relativePath),
         );
     }
 
@@ -118,9 +118,11 @@ export class PlaybooksService {
         try {
             await this._discoverPlaybooks();
             this._loaded = true;
-            log(`PlaybooksService: Discovered ${this._playbooks.size} playbooks`);
+            log(`PlaybooksService: Discovered ${String(this._playbooks.size)} playbooks`);
         } catch (error) {
-            log(`PlaybooksService: Error discovering playbooks: ${error}`);
+            log(
+                `PlaybooksService: Error discovering playbooks: ${error instanceof Error ? error.message : String(error)}`,
+            );
         } finally {
             this._loading = false;
             this._onDidChange.fire();
@@ -138,7 +140,7 @@ export class PlaybooksService {
         // Scan all workspace folders
         for (const folder of workspaceFolders) {
             const workspaceRoot = folder.uri.fsPath;
-            
+
             // Find all yml/yaml files, excluding dot directories
             const pattern = new vscode.RelativePattern(folder, '**/*.{yml,yaml}');
             const files = await vscode.workspace.findFiles(pattern, '**/.*/**');
@@ -147,15 +149,16 @@ export class PlaybooksService {
                 try {
                     const content = await fs.promises.readFile(file.fsPath, 'utf-8');
                     const plays = this._parsePlaybook(content);
-                    
+
                     if (plays.length > 0) {
                         const relativePath = path.relative(workspaceRoot, file.fsPath);
                         // For multi-root, prefix with folder name to avoid collisions
-                        const displayPath = workspaceFolders.length > 1 
-                            ? `${folder.name}/${relativePath}` 
-                            : relativePath;
+                        const displayPath =
+                            workspaceFolders.length > 1
+                                ? `${folder.name}/${relativePath}`
+                                : relativePath;
                         const name = path.basename(file.fsPath, path.extname(file.fsPath));
-                        
+
                         this._playbooks.set(displayPath, {
                             name,
                             path: file.fsPath,
@@ -164,7 +167,7 @@ export class PlaybooksService {
                             plays,
                         });
                     }
-                } catch (error) {
+                } catch {
                     // Skip files that can't be read
                 }
             }
@@ -174,7 +177,7 @@ export class PlaybooksService {
     private _parsePlaybook(content: string): PlaybookPlay[] {
         const plays: PlaybookPlay[] = [];
         const lines = content.split('\n');
-        
+
         let currentPlay: Partial<PlaybookPlay> | null = null;
         let inPlay = false;
         let playIndent = 0;
@@ -182,21 +185,21 @@ export class PlaybooksService {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const trimmed = line.trim();
-            
+
             // Skip comments and empty lines
             if (trimmed.startsWith('#') || trimmed === '') {
                 continue;
             }
 
             // Check for list item start (play start)
-            const listMatch = line.match(/^(\s*)-\s*/);
+            const listMatch = /^(\s*)-\s*/.exec(line);
             if (listMatch) {
                 // If we have a previous play with hosts, save it
-                if (currentPlay && currentPlay.hosts) {
+                if (currentPlay?.hosts) {
                     plays.push({
-                        name: currentPlay.name || 'Unknown',
+                        name: currentPlay.name ?? 'Unknown',
                         hosts: currentPlay.hosts,
-                        lineNumber: currentPlay.lineNumber || 0,
+                        lineNumber: currentPlay.lineNumber ?? 0,
                     });
                 }
 
@@ -208,12 +211,12 @@ export class PlaybooksService {
                 // Check if hosts is on the same line
                 const restOfLine = line.substring(listMatch[0].length);
                 if (restOfLine.startsWith('hosts:')) {
-                    const hostsMatch = restOfLine.match(/^hosts:\s*(.+)/);
+                    const hostsMatch = /^hosts:\s*(.+)/.exec(restOfLine);
                     if (hostsMatch) {
                         currentPlay.hosts = hostsMatch[1].trim();
                     }
                 } else if (restOfLine.startsWith('name:')) {
-                    const nameMatch = restOfLine.match(/^name:\s*(.+)/);
+                    const nameMatch = /^name:\s*(.+)/.exec(restOfLine);
                     if (nameMatch) {
                         currentPlay.name = nameMatch[1].trim().replace(/^['"]|['"]$/g, '');
                     }
@@ -223,24 +226,24 @@ export class PlaybooksService {
 
             // If we're in a play, look for hosts: and name:
             if (inPlay && currentPlay) {
-                const indent = line.match(/^(\s*)/)?.[1].length || 0;
-                
+                const indent = /^(\s*)/.exec(line)?.[1].length ?? 0;
+
                 // Check if we've exited the play (less or equal indent with content)
                 if (indent <= playIndent && trimmed !== '' && !trimmed.startsWith('#')) {
                     // This line is at a level that suggests we're starting a new top-level item
                     // But only if it's a list item
-                    if (!line.match(/^\s*-\s/)) {
+                    if (!/^\s*-\s/.exec(line)) {
                         // Not a list item, still in play content
                     }
                 }
 
                 if (trimmed.startsWith('hosts:')) {
-                    const hostsMatch = trimmed.match(/^hosts:\s*(.+)/);
+                    const hostsMatch = /^hosts:\s*(.+)/.exec(trimmed);
                     if (hostsMatch) {
                         currentPlay.hosts = hostsMatch[1].trim();
                     }
                 } else if (trimmed.startsWith('name:')) {
-                    const nameMatch = trimmed.match(/^name:\s*(.+)/);
+                    const nameMatch = /^name:\s*(.+)/.exec(trimmed);
                     if (nameMatch) {
                         currentPlay.name = nameMatch[1].trim().replace(/^['"]|['"]$/g, '');
                     }
@@ -249,11 +252,11 @@ export class PlaybooksService {
         }
 
         // Don't forget the last play
-        if (currentPlay && currentPlay.hosts) {
+        if (currentPlay?.hosts) {
             plays.push({
-                name: currentPlay.name || 'Unknown',
+                name: currentPlay.name ?? 'Unknown',
                 hosts: currentPlay.hosts,
-                lineNumber: currentPlay.lineNumber || 0,
+                lineNumber: currentPlay.lineNumber ?? 0,
             });
         }
 
@@ -271,7 +274,9 @@ export class PlaybooksService {
 
     private _ensureConfigDir(): void {
         const configDir = this._getConfigDir();
-        if (!configDir) {return;}
+        if (!configDir) {
+            return;
+        }
 
         const playbooksDir = path.join(configDir, PLAYBOOKS_CONFIG_DIR);
         if (!fs.existsSync(playbooksDir)) {
@@ -289,10 +294,15 @@ export class PlaybooksService {
         try {
             if (fs.existsSync(configPath)) {
                 const content = fs.readFileSync(configPath, 'utf-8');
-                return { ...DEFAULT_CONFIG, ...JSON.parse(content) };
+                return {
+                    ...DEFAULT_CONFIG,
+                    ...(JSON.parse(content) as Partial<PlaybookConfig>),
+                };
             }
         } catch (error) {
-            log(`PlaybooksService: Error reading global config: ${error}`);
+            log(
+                `PlaybooksService: Error reading global config: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
         return { ...DEFAULT_CONFIG };
     }
@@ -300,14 +310,18 @@ export class PlaybooksService {
     public saveGlobalConfig(config: PlaybookConfig): void {
         this._ensureConfigDir();
         const configDir = this._getConfigDir();
-        if (!configDir) {return;}
+        if (!configDir) {
+            return;
+        }
 
         const configPath = path.join(configDir, GLOBAL_CONFIG_FILE);
         try {
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             log(`PlaybooksService: Saved global config`);
         } catch (error) {
-            log(`PlaybooksService: Error saving global config: ${error}`);
+            log(
+                `PlaybooksService: Error saving global config: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -319,14 +333,19 @@ export class PlaybooksService {
         }
 
         const configPath = this._getPlaybookConfigPath(configDir, relativePath);
-        
+
         try {
             if (fs.existsSync(configPath)) {
                 const content = fs.readFileSync(configPath, 'utf-8');
-                return { ...globalConfig, ...JSON.parse(content) };
+                return {
+                    ...globalConfig,
+                    ...(JSON.parse(content) as Partial<PlaybookConfig>),
+                };
             }
         } catch (error) {
-            log(`PlaybooksService: Error reading playbook config: ${error}`);
+            log(
+                `PlaybooksService: Error reading playbook config: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
         return globalConfig;
     }
@@ -334,21 +353,25 @@ export class PlaybooksService {
     public savePlaybookConfig(relativePath: string, config: PlaybookConfig): void {
         this._ensureConfigDir();
         const configDir = this._getConfigDir();
-        if (!configDir) {return;}
+        if (!configDir) {
+            return;
+        }
 
         const configPath = this._getPlaybookConfigPath(configDir, relativePath);
-        
+
         // Ensure the directory exists (for nested paths)
         const configDirPath = path.dirname(configPath);
         if (!fs.existsSync(configDirPath)) {
             fs.mkdirSync(configDirPath, { recursive: true });
         }
-        
+
         try {
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             log(`PlaybooksService: Saved config for ${relativePath}`);
         } catch (error) {
-            log(`PlaybooksService: Error saving playbook config: ${error}`);
+            log(
+                `PlaybooksService: Error saving playbook config: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 

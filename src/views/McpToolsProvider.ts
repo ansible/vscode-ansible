@@ -1,6 +1,6 @@
 /**
  * MCP Tools Tree View Provider
- * 
+ *
  * Displays available MCP tools and allows users to inject prompts
  * into Cursor/Copilot chat to invoke them.
  */
@@ -13,7 +13,7 @@ import { getMcpStatus, McpStatus } from '../mcp/cursorConfig';
 
 type ToolCategory = 'discovery' | 'generation' | 'execution' | 'devtools' | 'creator';
 
-interface ToolInfo {
+export interface ToolInfo {
     tool: McpToolDefinition;
     category: ToolCategory;
     examplePrompt: string;
@@ -23,69 +23,62 @@ class ToolCategoryNode extends vscode.TreeItem {
     constructor(
         public readonly categoryLabel: string,
         public readonly categoryId: ToolCategory,
-        public readonly toolCount: number
+        public readonly toolCount: number,
     ) {
         super(categoryLabel, vscode.TreeItemCollapsibleState.Expanded);
         this.contextValue = 'toolCategory';
-        this.description = `${toolCount} tools`;
-        
+        this.description = `${String(toolCount)} tools`;
+
         // Set icons based on category
         const iconMap: Record<ToolCategory, string> = {
             discovery: 'search',
             generation: 'code',
             execution: 'package',
             devtools: 'tools',
-            creator: 'wand'
+            creator: 'wand',
         };
-        this.iconPath = new vscode.ThemeIcon(iconMap[categoryId] || 'symbol-method');
+        this.iconPath = new vscode.ThemeIcon(iconMap[categoryId]);
     }
 }
 
 class ToolNode extends vscode.TreeItem {
     public readonly sortKey: string;
-    
-    constructor(
-        public readonly toolInfo: ToolInfo
-    ) {
+
+    constructor(public readonly toolInfo: ToolInfo) {
         // Use the first line of description as the label
         const firstLine = toolInfo.tool.description.split('\n')[0].trim();
         const label = firstLine.length > 60 ? firstLine.substring(0, 57) + '...' : firstLine;
         super(label, vscode.TreeItemCollapsibleState.None);
-        
+
         // Store lowercase for sorting
         this.sortKey = firstLine.toLowerCase();
-        
+
         this.tooltip = new vscode.MarkdownString(this._formatTooltip());
         this.contextValue = 'mcpTool';
         this.iconPath = new vscode.ThemeIcon('sparkle');
-        
+
         // Command to inject prompt into chat
         this.command = {
             command: 'ansibleMcpTools.useInChat',
             title: 'Use in Chat',
-            arguments: [toolInfo]
+            arguments: [toolInfo],
         };
     }
 
     private _formatTooltip(): string {
         const tool = this.toolInfo.tool;
-        const lines: string[] = [
-            `### ${tool.name}`,
-            '',
-            tool.description,
-            ''
-        ];
+        const lines: string[] = [`### ${tool.name}`, '', tool.description, ''];
 
         // Show parameters
         const props = tool.inputSchema.properties;
-        const required = new Set(tool.inputSchema.required || []);
-        
+        const required = new Set(tool.inputSchema.required ?? []);
+
         if (Object.keys(props).length > 0) {
             lines.push('**Parameters:**');
             for (const [name, schema] of Object.entries(props)) {
                 const s = schema as { description?: string; type?: string };
                 const reqMark = required.has(name) ? ' *(required)*' : '';
-                lines.push(`- \`${name}\`${reqMark}: ${s.description || s.type || 'any'}`);
+                lines.push(`- \`${name}\`${reqMark}: ${s.description ?? s.type ?? 'any'}`);
             }
             lines.push('');
         }
@@ -101,14 +94,17 @@ class McpWarningNode extends vscode.TreeItem {
     constructor(status: McpStatus) {
         const ideName = status.ide === 'cursor' ? 'Cursor' : 'VS Code Copilot';
         super(`MCP not configured for ${ideName}`, vscode.TreeItemCollapsibleState.None);
-        
+
         this.description = 'click to configure';
-        this.iconPath = new vscode.ThemeIcon('warning', new vscode.ThemeColor('problemsWarningIcon.foreground'));
+        this.iconPath = new vscode.ThemeIcon(
+            'warning',
+            new vscode.ThemeColor('problemsWarningIcon.foreground'),
+        );
         this.tooltip = `AI tools require MCP to be configured.\n\nClick to configure for ${ideName}.`;
         this.contextValue = 'mcpWarning';
         this.command = {
             command: 'ansibleMcpTools.configure',
-            title: 'Configure MCP'
+            title: 'Configure MCP',
         };
     }
 }
@@ -116,7 +112,7 @@ class McpWarningNode extends vscode.TreeItem {
 type ToolTreeItem = ToolCategoryNode | ToolNode | McpWarningNode;
 
 export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<ToolTreeItem | undefined | null | void>();
+    private _onDidChangeTreeData = new vscode.EventEmitter<ToolTreeItem | undefined | null>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     private _tools: ToolInfo[] = [];
@@ -128,17 +124,17 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
     constructor(context: vscode.ExtensionContext) {
         this._extensionContext = context;
         this._creatorToolGenerator = new CreatorToolGenerator();
-        
+
         // Listen for CreatorService changes to auto-refresh when schema loads
         const creatorService = CreatorService.getInstance();
         this._creatorServiceListener = (creatorService.onDidChange as vscode.Event<void>)(() => {
             if (creatorService.isLoaded()) {
                 log('McpToolsProvider: CreatorService loaded, refreshing tools...');
-                this._loadTools();
+                void this._loadTools();
             }
         });
-        
-        this._loadTools();
+
+        void this._loadTools();
     }
 
     dispose(): void {
@@ -146,7 +142,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
     }
 
     refresh(): void {
-        this._loadTools();
+        void this._loadTools();
     }
 
     private async _loadTools(): Promise<void> {
@@ -170,27 +166,36 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
                 log('McpToolsProvider: Loading creator tools...');
                 await this._creatorToolGenerator.refresh();
                 const creatorTools = this._creatorToolGenerator.getTools();
-                log(`McpToolsProvider: CreatorToolGenerator returned ${creatorTools.length} tools`);
-                
+                log(
+                    `McpToolsProvider: CreatorToolGenerator returned ${String(creatorTools.length)} tools`,
+                );
+
                 for (const tool of creatorTools) {
                     const examplePrompt = this._generateExamplePrompt(tool);
                     this._tools.push({ tool, category: 'creator', examplePrompt });
                 }
-                
-                log(`McpToolsProvider: Loaded ${STATIC_TOOLS.length} static + ${creatorTools.length} creator tools`);
+
+                log(
+                    `McpToolsProvider: Loaded ${String(STATIC_TOOLS.length)} static + ${String(creatorTools.length)} creator tools`,
+                );
             } catch (error) {
-                log(`McpToolsProvider: Failed to load creator tools: ${error}`);
+                log(
+                    `McpToolsProvider: Failed to load creator tools: ${error instanceof Error ? error.message : String(error)}`,
+                );
                 // Continue with static tools only
             }
-
         } finally {
             this._isLoading = false;
-            this._onDidChangeTreeData.fire();
+            this._onDidChangeTreeData.fire(undefined);
         }
     }
 
     private _categorizeStaticTool(name: string): ToolCategory {
-        if (name.includes('search') || name.includes('list') || name.includes('get_plugin_documentation')) {
+        if (
+            name.includes('search') ||
+            name.includes('list') ||
+            name.includes('get_plugin_documentation')
+        ) {
             return 'discovery';
         }
         if (name.includes('generate') || name.includes('build_ansible_task')) {
@@ -258,32 +263,32 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         return element;
     }
 
-    async getChildren(element?: ToolTreeItem): Promise<ToolTreeItem[]> {
+    getChildren(element?: ToolTreeItem): ToolTreeItem[] | Promise<ToolTreeItem[]> {
         if (!element) {
             const items: ToolTreeItem[] = [];
-            
+
             // Check MCP status and show warning if not configured
             const status = getMcpStatus(this._extensionContext);
             if (!status.isConfigured) {
                 items.push(new McpWarningNode(status));
             }
-            
+
             // Show tool categories
             const categories: { id: ToolCategory; label: string }[] = [
                 { id: 'discovery', label: 'Discovery' },
                 { id: 'generation', label: 'Task Generation' },
                 { id: 'execution', label: 'Execution Environments' },
                 { id: 'devtools', label: 'Dev Tools' },
-                { id: 'creator', label: 'Creator' }
+                { id: 'creator', label: 'Creator' },
             ];
 
             const categoryNodes = categories
-                .map(cat => {
-                    const count = this._tools.filter(t => t.category === cat.id).length;
+                .map((cat) => {
+                    const count = this._tools.filter((t) => t.category === cat.id).length;
                     return new ToolCategoryNode(cat.label, cat.id, count);
                 })
-                .filter(node => node.toolCount > 0);
-            
+                .filter((node) => node.toolCount > 0);
+
             items.push(...categoryNodes);
             return items;
         }
@@ -291,8 +296,8 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         if (element instanceof ToolCategoryNode) {
             // Return tools in this category, sorted by description
             const nodes = this._tools
-                .filter(t => t.category === element.categoryId)
-                .map(t => new ToolNode(t));
+                .filter((t) => t.category === element.categoryId)
+                .map((t) => new ToolNode(t));
             // Sort alphabetically by description
             nodes.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
             return nodes;
@@ -330,13 +335,15 @@ export async function injectToolPromptIntoChat(toolInfo: ToolInfo): Promise<void
     } catch {
         // Fallback: copy to clipboard and notify user
         await vscode.env.clipboard.writeText(prompt);
-        vscode.window.showInformationMessage(
-            'AI prompt copied to clipboard. Paste it into an agent chat session.',
-            'Open Chat'
-        ).then(selection => {
-            if (selection === 'Open Chat') {
-                vscode.commands.executeCommand('workbench.action.chat.open');
-            }
-        });
+        vscode.window
+            .showInformationMessage(
+                'AI prompt copied to clipboard. Paste it into an agent chat session.',
+                'Open Chat',
+            )
+            .then((selection) => {
+                if (selection === 'Open Chat') {
+                    vscode.commands.executeCommand('workbench.action.chat.open');
+                }
+            });
     }
 }

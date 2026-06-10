@@ -21,6 +21,13 @@ interface ParameterSchema {
     aliases?: string[];
 }
 
+interface CreatorFormMessage {
+    command: string;
+    values?: Record<string, unknown>;
+    zoom?: number;
+    theme?: string;
+}
+
 export class CreatorFormPanel {
     public static currentPanel: CreatorFormPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
@@ -29,11 +36,7 @@ export class CreatorFormPanel {
     private readonly _schema: SchemaNode;
     private _disposables: vscode.Disposable[] = [];
 
-    public static show(
-        extensionUri: vscode.Uri,
-        commandPath: string[],
-        schema: SchemaNode,
-    ): void {
+    public static show(extensionUri: vscode.Uri, commandPath: string[], schema: SchemaNode): void {
         const column = vscode.ViewColumn.One;
 
         // Close existing panel
@@ -42,16 +45,11 @@ export class CreatorFormPanel {
         }
 
         const title = `Create: ${commandPath.join(' → ')}`;
-        
-        const panel = vscode.window.createWebviewPanel(
-            'creatorForm',
-            title,
-            column,
-            {
-                enableScripts: true,
-                localResourceRoots: [extensionUri],
-            },
-        );
+
+        const panel = vscode.window.createWebviewPanel('creatorForm', title, column, {
+            enableScripts: true,
+            localResourceRoots: [extensionUri],
+        });
 
         CreatorFormPanel.currentPanel = new CreatorFormPanel(
             panel,
@@ -75,10 +73,10 @@ export class CreatorFormPanel {
         this._panel.webview.html = this._getHtml();
 
         this._panel.webview.onDidReceiveMessage(
-            async (message) => {
+            async (message: CreatorFormMessage) => {
                 switch (message.command) {
                     case 'execute':
-                        await this._executeCommand(message.values);
+                        await this._executeCommand(message.values ?? {});
                         break;
                     case 'cancel':
                         this._panel.dispose();
@@ -86,10 +84,18 @@ export class CreatorFormPanel {
                     case 'updateSettings': {
                         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
                         if (message.zoom !== undefined) {
-                            await config.update('pluginDocZoom', message.zoom, vscode.ConfigurationTarget.Workspace);
+                            await config.update(
+                                'pluginDocZoom',
+                                message.zoom,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
                         }
                         if (message.theme !== undefined) {
-                            await config.update('pluginDocTheme', message.theme, vscode.ConfigurationTarget.Workspace);
+                            await config.update(
+                                'pluginDocTheme',
+                                message.theme,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
                         }
                         break;
                     }
@@ -99,7 +105,13 @@ export class CreatorFormPanel {
             this._disposables,
         );
 
-        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this._panel.onDidDispose(
+            () => {
+                this.dispose();
+            },
+            null,
+            this._disposables,
+        );
     }
 
     private async _executeCommand(values: Record<string, unknown>): Promise<void> {
@@ -116,52 +128,68 @@ export class CreatorFormPanel {
                 name: `ansible-creator ${this._commandPath.join(' ')}`,
                 show: true,
             });
-            managed.sendCommand(commandStr, { waitForCompletion: false });
+            void managed.sendCommand(commandStr, { waitForCompletion: false });
 
             // Close the form panel
             this._panel.dispose();
 
-            vscode.window.showInformationMessage(`Running: ansible-creator ${this._commandPath.join(' ')}`);
+            vscode.window.showInformationMessage(
+                `Running: ansible-creator ${this._commandPath.join(' ')}`,
+            );
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to execute command: ${error}`);
+            vscode.window.showErrorMessage(
+                `Failed to execute command: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
     private _buildCommandArgs(values: Record<string, unknown>): string {
         const args: string[] = [];
-        const properties = this._schema.parameters?.properties || {};
-        const required = this._schema.parameters?.required || [];
+        const properties = this._schema.parameters?.properties ?? {};
+        const required = this._schema.parameters?.required ?? [];
 
         for (const [key, value] of Object.entries(values)) {
             if (value === undefined || value === null || value === '') {
                 continue;
             }
 
+            if (!(key in properties)) {
+                args.push(this._quoteIfNeeded(this._valueToString(value)));
+                continue;
+            }
             const prop = properties[key];
-            
+
             // Check if it's a positional argument (required and no aliases)
-            const isPositional = required.includes(key) && (!prop?.aliases || prop.aliases.length === 0);
-            
+            const isPositional = required.includes(key) && (prop.aliases?.length ?? 0) === 0;
+
             if (isPositional) {
                 // Positional arguments are added directly
-                args.push(this._quoteIfNeeded(String(value)));
-            } else if (prop?.type === 'boolean') {
+                args.push(this._quoteIfNeeded(this._valueToString(value)));
+            } else if (prop.type === 'boolean') {
                 // Boolean flags
                 if (value === true && prop.aliases) {
                     // Use the long form alias (usually the second one)
-                    const flag = prop.aliases.find(a => a.startsWith('--')) || prop.aliases[0];
+                    const flag = prop.aliases.find((a) => a.startsWith('--')) ?? prop.aliases[0];
                     args.push(flag);
                 }
-            } else if (prop?.aliases) {
+            } else if (prop.aliases && prop.aliases.length > 0) {
                 // Optional arguments with values
-                const flag = prop.aliases.find(a => a.startsWith('--')) || prop.aliases[0];
+                const aliases = prop.aliases;
+                const flag = aliases.find((a) => a.startsWith('--')) ?? aliases[0];
                 // Clean up flag (remove <placeholder> parts)
                 const cleanFlag = flag.split(' ')[0];
-                args.push(`${cleanFlag} ${this._quoteIfNeeded(String(value))}`);
+                args.push(`${cleanFlag} ${this._quoteIfNeeded(this._valueToString(value))}`);
             }
         }
 
         return args.join(' ');
+    }
+
+    private _valueToString(value: unknown): string {
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            return String(value);
+        }
+        return JSON.stringify(value);
     }
 
     private _quoteIfNeeded(value: string): string {
@@ -174,18 +202,20 @@ export class CreatorFormPanel {
     private _getHtml(): string {
         const schemaJson = JSON.stringify(this._schema);
         const commandPathJson = JSON.stringify(this._commandPath);
-        const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || './';
-        
+        const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? './';
+
         // Get settings
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         const zoom = config.get<number>('pluginDocZoom', 100);
         const themeSetting = config.get<string>('pluginDocTheme', 'auto');
-        
+
         // Resolve 'auto' to actual theme based on VS Code's current theme
         const vscodeThemeKind = vscode.window.activeColorTheme.kind;
-        const isVsCodeLight = vscodeThemeKind === vscode.ColorThemeKind.Light || 
-                              vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
-        const resolvedTheme = themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
+        const isVsCodeLight =
+            vscodeThemeKind === vscode.ColorThemeKind.Light ||
+            vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
+        const resolvedTheme =
+            themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
 
         return `<!DOCTYPE html>
 <html lang="en" data-theme="${resolvedTheme}" data-theme-setting="${themeSetting}">
@@ -297,7 +327,7 @@ export class CreatorFormPanel {
         .main-content {
             padding: 20px;
             padding-top: 60px;
-            zoom: ${zoom / 100};
+            zoom: ${String(zoom / 100)};
         }
         
         .container {
@@ -429,7 +459,7 @@ export class CreatorFormPanel {
 <body>
     <div class="toolbar">
         <button id="zoom-out-btn" class="toolbar-btn" title="Zoom out">−</button>
-        <span class="zoom-label" id="zoom-level">${zoom}%</span>
+        <span class="zoom-label" id="zoom-level">${String(zoom)}%</span>
         <button id="zoom-in-btn" class="toolbar-btn" title="Zoom in">+</button>
         <div class="toolbar-divider"></div>
         <button id="theme-toggle-btn" class="toolbar-btn" title="Toggle theme">${themeSetting}</button>
@@ -470,7 +500,7 @@ export class CreatorFormPanel {
         
         // Zoom functionality
         (function() {
-            let currentZoom = ${zoom};
+            let currentZoom = ${String(zoom)};
             const minZoom = 50;
             const maxZoom = 200;
             const zoomStep = 10;

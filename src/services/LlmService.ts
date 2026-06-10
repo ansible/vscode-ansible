@@ -1,6 +1,6 @@
 /**
  * Centralized Language Model Service
- * 
+ *
  * Provides unified access to VS Code's Language Model API with:
  * - Provider and model selection with quick pick UI
  * - Configurable model selection via settings
@@ -52,18 +52,18 @@ export class LlmService {
     private static _instance: LlmService | undefined;
     private _cachedModel: vscode.LanguageModelChat | undefined;
     private _cachedModels: vscode.LanguageModelChat[] = [];
-    private _lastModelCheck: number = 0;
+    private _lastModelCheck = 0;
     private readonly MODEL_CACHE_TTL = 60000; // 1 minute
 
-    private constructor() {}
+    private constructor() {
+        /* singleton */
+    }
 
     /**
      * Get singleton instance
      */
     public static getInstance(): LlmService {
-        if (!LlmService._instance) {
-            LlmService._instance = new LlmService();
-        }
+        LlmService._instance ??= new LlmService();
         return LlmService._instance;
     }
 
@@ -75,7 +75,7 @@ export class LlmService {
      * Get all available models grouped by vendor
      */
     public async getAvailableModels(): Promise<Map<string, LlmModelInfo[]>> {
-        if (!vscode.lm || !vscode.lm.selectChatModels) {
+        if (typeof vscode.lm.selectChatModels !== 'function') {
             return new Map();
         }
 
@@ -84,16 +84,18 @@ export class LlmService {
 
         for (const model of models) {
             const vendor = model.vendor || 'unknown';
-            if (!grouped.has(vendor)) {
-                grouped.set(vendor, []);
+            let vendorModels = grouped.get(vendor);
+            if (!vendorModels) {
+                vendorModels = [];
+                grouped.set(vendor, vendorModels);
             }
-            grouped.get(vendor)!.push({
+            vendorModels.push({
                 id: model.id,
                 name: model.name,
                 vendor: model.vendor,
                 family: model.family,
                 maxInputTokens: model.maxInputTokens,
-                displayName: `${model.name} (${model.family})`
+                displayName: `${model.name} (${model.family})`,
             });
         }
 
@@ -117,14 +119,18 @@ export class LlmService {
      * Saves selection to settings
      */
     public async showModelPicker(): Promise<boolean> {
-        if (!vscode.lm || !vscode.lm.selectChatModels) {
-            vscode.window.showErrorMessage('Language Model API not available. Install GitHub Copilot, Open LLM Provider, or another LLM extension.');
+        if (typeof vscode.lm.selectChatModels !== 'function') {
+            vscode.window.showErrorMessage(
+                'Language Model API not available. Install GitHub Copilot, Open LLM Provider, or another LLM extension.',
+            );
             return false;
         }
 
         const models = await vscode.lm.selectChatModels({});
         if (models.length === 0) {
-            vscode.window.showWarningMessage('No language models found. Install and configure an LLM provider extension.');
+            vscode.window.showWarningMessage(
+                'No language models found. Install and configure an LLM provider extension.',
+            );
             return false;
         }
 
@@ -132,29 +138,37 @@ export class LlmService {
         const grouped = new Map<string, vscode.LanguageModelChat[]>();
         for (const model of models) {
             const vendor = model.vendor || 'unknown';
-            if (!grouped.has(vendor)) {
-                grouped.set(vendor, []);
+            let vendorGroup = grouped.get(vendor);
+            if (!vendorGroup) {
+                vendorGroup = [];
+                grouped.set(vendor, vendorGroup);
             }
-            grouped.get(vendor)!.push(model);
+            vendorGroup.push(model);
         }
 
         // Step 1: Select provider
-        const providerItems: vscode.QuickPickItem[] = Array.from(grouped.entries()).map(([vendor, vendorModels]) => ({
-            label: vendor,
-            description: `${vendorModels.length} model${vendorModels.length !== 1 ? 's' : ''}`,
-            detail: vendorModels.map(m => m.name).slice(0, 3).join(', ') + (vendorModels.length > 3 ? '...' : '')
-        }));
+        const providerItems: vscode.QuickPickItem[] = Array.from(grouped.entries()).map(
+            ([vendor, vendorModels]) => ({
+                label: vendor,
+                description: `${String(vendorModels.length)} model${vendorModels.length !== 1 ? 's' : ''}`,
+                detail:
+                    vendorModels
+                        .map((m) => m.name)
+                        .slice(0, 3)
+                        .join(', ') + (vendorModels.length > 3 ? '...' : ''),
+            }),
+        );
 
         // Add auto-select option
         providerItems.unshift({
             label: '$(sparkle) Auto-select',
             description: 'Let extension choose the best model',
-            detail: 'Prefers Claude models when available'
+            detail: 'Prefers Claude models when available',
         });
 
         const selectedProvider = await vscode.window.showQuickPick(providerItems, {
             placeHolder: 'Select LLM Provider',
-            title: 'Ansible Content Designer - LLM Configuration'
+            title: 'Ansible Content Designer - LLM Configuration',
         });
 
         if (!selectedProvider) {
@@ -165,17 +179,29 @@ export class LlmService {
 
         if (selectedProvider.label === '$(sparkle) Auto-select') {
             // Ask where to save
-            const hasWorkspace = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+            const hasWorkspace =
+                vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
             let configTarget = vscode.ConfigurationTarget.Global;
 
             if (hasWorkspace) {
-                const saveLocation = await vscode.window.showQuickPick([
-                    { label: 'Workspace', description: 'Save to this workspace only', target: vscode.ConfigurationTarget.Workspace },
-                    { label: 'User', description: 'Save globally for all workspaces', target: vscode.ConfigurationTarget.Global }
-                ], {
-                    placeHolder: 'Where should this setting be saved?',
-                    title: 'Save LLM Configuration'
-                });
+                const saveLocation = await vscode.window.showQuickPick(
+                    [
+                        {
+                            label: 'Workspace',
+                            description: 'Save to this workspace only',
+                            target: vscode.ConfigurationTarget.Workspace,
+                        },
+                        {
+                            label: 'User',
+                            description: 'Save globally for all workspaces',
+                            target: vscode.ConfigurationTarget.Global,
+                        },
+                    ],
+                    {
+                        placeHolder: 'Where should this setting be saved?',
+                        title: 'Save LLM Configuration',
+                    },
+                );
 
                 if (!saveLocation) {
                     return false;
@@ -187,31 +213,34 @@ export class LlmService {
             await config.update('llm.provider', '', configTarget);
             await config.update('llm.model', '', configTarget);
             this.clearCache();
-            const location = configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
-            vscode.window.showInformationMessage(`LLM: Using auto-selection (prefers Claude) ${location}`);
+            const location =
+                configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
+            vscode.window.showInformationMessage(
+                `LLM: Using auto-selection (prefers Claude) ${location}`,
+            );
             return true;
         }
 
         const vendorName = selectedProvider.label;
-        const vendorModels = grouped.get(vendorName) || [];
+        const vendorModels = grouped.get(vendorName) ?? [];
 
         // Step 2: Select model within provider
-        const modelItems: vscode.QuickPickItem[] = vendorModels.map(m => ({
+        const modelItems: vscode.QuickPickItem[] = vendorModels.map((m) => ({
             label: m.name,
             description: m.family,
-            detail: `${m.maxInputTokens?.toLocaleString() || '?'} tokens • ID: ${m.id}`
+            detail: `${m.maxInputTokens.toLocaleString()} tokens • ID: ${m.id}`,
         }));
 
         // Add auto-select for this provider
         modelItems.unshift({
             label: '$(sparkle) Auto-select from ' + vendorName,
             description: 'Use best model from this provider',
-            detail: 'Automatically selects based on capability'
+            detail: 'Automatically selects based on capability',
         });
 
         const selectedModel = await vscode.window.showQuickPick(modelItems, {
             placeHolder: `Select Model from ${vendorName}`,
-            title: 'Ansible Content Designer - LLM Configuration'
+            title: 'Ansible Content Designer - LLM Configuration',
         });
 
         if (!selectedModel) {
@@ -219,17 +248,29 @@ export class LlmService {
         }
 
         // Step 3: Ask where to save (User or Workspace)
-        const hasWorkspace = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
+        const hasWorkspace =
+            vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
         let configTarget = vscode.ConfigurationTarget.Global;
 
         if (hasWorkspace) {
-            const saveLocation = await vscode.window.showQuickPick([
-                { label: 'Workspace', description: 'Save to this workspace only', target: vscode.ConfigurationTarget.Workspace },
-                { label: 'User', description: 'Save globally for all workspaces', target: vscode.ConfigurationTarget.Global }
-            ], {
-                placeHolder: 'Where should this setting be saved?',
-                title: 'Save LLM Configuration'
-            });
+            const saveLocation = await vscode.window.showQuickPick(
+                [
+                    {
+                        label: 'Workspace',
+                        description: 'Save to this workspace only',
+                        target: vscode.ConfigurationTarget.Workspace,
+                    },
+                    {
+                        label: 'User',
+                        description: 'Save globally for all workspaces',
+                        target: vscode.ConfigurationTarget.Global,
+                    },
+                ],
+                {
+                    placeHolder: 'Where should this setting be saved?',
+                    title: 'Save LLM Configuration',
+                },
+            );
 
             if (!saveLocation) {
                 return false; // Cancelled
@@ -242,13 +283,19 @@ export class LlmService {
 
         if (selectedModel.label.startsWith('$(sparkle)')) {
             await config.update('llm.model', '', configTarget);
-            const location = configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
-            vscode.window.showInformationMessage(`LLM: Using ${vendorName} with auto-selected model ${location}`);
+            const location =
+                configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
+            vscode.window.showInformationMessage(
+                `LLM: Using ${vendorName} with auto-selected model ${location}`,
+            );
         } else {
-            const model = vendorModels.find(m => m.name === selectedModel.label);
-            await config.update('llm.model', model?.id || '', configTarget);
-            const location = configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
-            vscode.window.showInformationMessage(`LLM: Using ${vendorName} / ${model?.name || selectedModel.label} ${location}`);
+            const model = vendorModels.find((m) => m.name === selectedModel.label);
+            await config.update('llm.model', model?.id ?? '', configTarget);
+            const location =
+                configTarget === vscode.ConfigurationTarget.Workspace ? '(Workspace)' : '(User)';
+            vscode.window.showInformationMessage(
+                `LLM: Using ${vendorName} / ${model?.name ?? selectedModel.label} ${location}`,
+            );
         }
 
         this.clearCache();
@@ -264,7 +311,7 @@ export class LlmService {
         const modelId = config.get<string>('llm.model', '');
 
         const currentModel = await this.selectModel();
-        
+
         const lines: string[] = [
             '## LLM Configuration Status',
             '',
@@ -273,15 +320,15 @@ export class LlmService {
             `- Model: ${modelId || '(auto)'}`,
             '',
             '**Active Model:**',
-            currentModel 
+            currentModel
                 ? `- ${currentModel.name} (${currentModel.vendor}/${currentModel.family})`
                 : '- None available',
-            ''
+            '',
         ];
 
         if (currentModel) {
             lines.push(`**Capabilities:**`);
-            lines.push(`- Max tokens: ${currentModel.maxInputTokens?.toLocaleString() || 'Unknown'}`);
+            lines.push(`- Max tokens: ${currentModel.maxInputTokens.toLocaleString()}`);
         }
 
         // Show available providers
@@ -289,14 +336,14 @@ export class LlmService {
         if (providers.length > 0) {
             lines.push('');
             lines.push('**Available Providers:**');
-            lines.push(providers.map(p => `- ${p}`).join('\n'));
+            lines.push(providers.map((p) => `- ${p}`).join('\n'));
         }
 
         const panel = vscode.window.createWebviewPanel(
             'llmStatus',
             'LLM Status',
             vscode.ViewColumn.One,
-            {}
+            {},
         );
 
         // Simple markdown-like display
@@ -323,16 +370,17 @@ export class LlmService {
     
     <p><strong>Active Model:</strong></p>
     <ul>
-        ${currentModel 
-            ? `<li>${currentModel.name} (${currentModel.vendor}/${currentModel.family})</li>
-               <li>Max tokens: ${currentModel.maxInputTokens?.toLocaleString() || 'Unknown'}</li>`
-            : '<li><em>None available</em></li>'
+        ${
+            currentModel
+                ? `<li>${currentModel.name} (${currentModel.vendor}/${currentModel.family})</li>
+               <li>Max tokens: ${currentModel.maxInputTokens.toLocaleString()}</li>`
+                : '<li><em>None available</em></li>'
         }
     </ul>
     
     <p><strong>Available Providers:</strong></p>
     <ul>
-        ${providers.map(p => `<li>${p}</li>`).join('\n        ')}
+        ${providers.map((p) => `<li>${p}</li>`).join('\n        ')}
     </ul>
     
     <p style="margin-top: 20px;">
@@ -348,7 +396,7 @@ export class LlmService {
 
     /**
      * Select the best available language model based on settings
-     * 
+     *
      * Priority:
      * 1. Configured provider + model from settings
      * 2. Configured provider with auto model selection
@@ -358,55 +406,65 @@ export class LlmService {
      */
     public async selectModel(): Promise<vscode.LanguageModelChat | undefined> {
         // Return cached model if still valid
-        if (this._cachedModel && (Date.now() - this._lastModelCheck) < this.MODEL_CACHE_TTL) {
+        if (this._cachedModel && Date.now() - this._lastModelCheck < this.MODEL_CACHE_TTL) {
             return this._cachedModel;
         }
 
-        if (!vscode.lm || !vscode.lm.selectChatModels) {
+        if (typeof vscode.lm.selectChatModels !== 'function') {
             console.log('LlmService: Language Model API not available');
             return undefined;
         }
 
         const allModels = await vscode.lm.selectChatModels({});
         this._cachedModels = allModels;
-        
+
         if (allModels.length === 0) {
             console.log('LlmService: No language models available');
             return undefined;
         }
 
         // Log available models for debugging
-        console.log('LlmService: Available models:', allModels.map(m => `${m.vendor}/${m.id}`).join(', '));
+        console.log(
+            'LlmService: Available models:',
+            allModels.map((m) => `${m.vendor}/${m.id}`).join(', '),
+        );
 
         // Check for configured settings
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         const configuredProvider = config.get<string>('llm.provider', '');
         const configuredModel = config.get<string>('llm.model', '');
-        
+
         // Also check legacy setting
         const legacyModel = config.get<string>('preferredLlmModel', '');
-        
+
         let selectedModel: vscode.LanguageModelChat | undefined;
 
         // Try configured provider + model first
         if (configuredProvider && configuredModel) {
-            selectedModel = allModels.find(m => 
-                m.vendor === configuredProvider && m.id === configuredModel
+            selectedModel = allModels.find(
+                (m) => m.vendor === configuredProvider && m.id === configuredModel,
             );
             if (selectedModel) {
-                console.log(`LlmService: Using configured provider+model: ${selectedModel.vendor}/${selectedModel.id}`);
+                console.log(
+                    `LlmService: Using configured provider+model: ${selectedModel.vendor}/${selectedModel.id}`,
+                );
             }
         }
 
         // Try configured provider with auto model selection
         if (!selectedModel && configuredProvider) {
-            const providerModels = allModels.filter(m => m.vendor === configuredProvider);
+            const providerModels = allModels.filter((m) => m.vendor === configuredProvider);
             if (providerModels.length > 0) {
                 // Prefer Claude/Opus models within provider
-                selectedModel = providerModels.find(m => 
-                    m.id.toLowerCase().includes('opus') || m.id.toLowerCase().includes('claude')
-                ) || providerModels[0];
-                console.log(`LlmService: Using provider ${configuredProvider} with auto-selected model: ${selectedModel.id}`);
+                selectedModel =
+                    providerModels.find(
+                        (m) =>
+                            m.id.toLowerCase().includes('opus') ||
+                            m.id.toLowerCase().includes('claude'),
+                    ) ?? providerModels[0];
+                console.log(
+                    `LlmService: Using provider ${configuredProvider} with auto-selected model: ${selectedModel.id}`,
+                );
             }
         }
 
@@ -420,59 +478,69 @@ export class LlmService {
 
         // Fallback: Prefer Claude Opus 4.5, then any Claude, then any model
         if (!selectedModel) {
-            selectedModel = allModels.find(m => 
-                m.id.toLowerCase().includes('claude') && 
-                (m.id.toLowerCase().includes('opus') || m.id.toLowerCase().includes('4.5') || m.id.toLowerCase().includes('4-5'))
+            selectedModel = allModels.find(
+                (m) =>
+                    m.id.toLowerCase().includes('claude') &&
+                    (m.id.toLowerCase().includes('opus') ||
+                        m.id.toLowerCase().includes('4.5') ||
+                        m.id.toLowerCase().includes('4-5')),
             );
-            
-            if (!selectedModel) {
-                selectedModel = allModels.find(m => m.id.toLowerCase().includes('claude'));
-            }
-            
-            if (!selectedModel) {
-                selectedModel = allModels[0];
-            }
-            
-            console.log(`LlmService: Using auto-selected model: ${selectedModel?.vendor}/${selectedModel?.id}`);
+
+            selectedModel ??= allModels.find((m) => m.id.toLowerCase().includes('claude'));
+            selectedModel ??= allModels[0];
+
+            console.log(
+                `LlmService: Using auto-selected model: ${selectedModel.vendor}/${selectedModel.id}`,
+            );
         }
 
         // Cache the selected model
         this._cachedModel = selectedModel;
         this._lastModelCheck = Date.now();
-        
+
         return selectedModel;
     }
 
     /**
      * Find model by legacy preferredLlmModel setting
      */
-    private _findModelByLegacyId(models: vscode.LanguageModelChat[], legacyId: string): vscode.LanguageModelChat | undefined {
+    private _findModelByLegacyId(
+        models: vscode.LanguageModelChat[],
+        legacyId: string,
+    ): vscode.LanguageModelChat | undefined {
         // Normalize for comparison
-        const normalize = (id: string) => id.toLowerCase()
-            .replace(/[.\-_]/g, '')
-            .replace(/\d{8,}$/, '');  // Remove date suffixes
-        
+        const normalize = (id: string) =>
+            id
+                .toLowerCase()
+                .replace(/[.\-_]/g, '')
+                .replace(/\d{8,}$/, ''); // Remove date suffixes
+
         const normalizedLegacy = normalize(legacyId);
-        
+
         // Exact match
-        let match = models.find(m => m.id === legacyId);
-        if (match) { return match; }
-        
+        let match = models.find((m) => m.id === legacyId);
+        if (match) {
+            return match;
+        }
+
         // Normalized match
-        match = models.find(m => {
+        match = models.find((m) => {
             const normalized = normalize(m.id);
             return normalized.includes(normalizedLegacy) || normalizedLegacy.includes(normalized);
         });
-        if (match) { return match; }
-        
+        if (match) {
+            return match;
+        }
+
         // Partial match on key terms
         if (legacyId.toLowerCase().includes('opus')) {
-            match = models.find(m => 
-                m.id.toLowerCase().includes('opus') && 
-                (m.id.includes('4.5') || m.id.includes('4-5'))
+            match = models.find(
+                (m) =>
+                    m.id.toLowerCase().includes('opus') &&
+                    (m.id.includes('4.5') || m.id.includes('4-5')),
             );
         }
-        
+
         return match;
     }
 
@@ -482,7 +550,7 @@ export class LlmService {
 
     /**
      * Send a request to the LLM
-     * 
+     *
      * @param prompt - The user prompt
      * @param options - Request options
      * @returns LLM response
@@ -495,22 +563,18 @@ export class LlmService {
             return {
                 success: false,
                 content: '',
-                error: 'No language model available. Use "Ansible Environments: Select LLM Provider & Model" to configure.'
+                error: 'No language model available. Use "Ansible Environments: Select LLM Provider & Model" to configure.',
             };
         }
 
-        let lastError: string = '';
-        
+        let lastError = '';
+
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 // Build messages
-                const fullPrompt = systemContext 
-                    ? `${systemContext}\n\n---\n\n${prompt}`
-                    : prompt;
+                const fullPrompt = systemContext ? `${systemContext}\n\n---\n\n${prompt}` : prompt;
 
-                const messages = [
-                    vscode.LanguageModelChatMessage.User(fullPrompt)
-                ];
+                const messages = [vscode.LanguageModelChatMessage.User(fullPrompt)];
 
                 // Send request
                 const response = await model.sendRequest(messages, {});
@@ -526,7 +590,9 @@ export class LlmService {
                     const jsonContent = this._extractJson(content);
                     if (!jsonContent) {
                         lastError = 'Response did not contain valid JSON';
-                        console.log(`LlmService: Attempt ${attempt}/${maxRetries} - ${lastError}`);
+                        console.log(
+                            `LlmService: Attempt ${String(attempt)}/${String(maxRetries)} - ${lastError}`,
+                        );
                         continue;
                     }
                     content = jsonContent;
@@ -535,13 +601,15 @@ export class LlmService {
                 return {
                     success: true,
                     content,
-                    modelUsed: `${model.vendor}/${model.id}`
+                    modelUsed: `${model.vendor}/${model.id}`,
                 };
-
             } catch (error) {
                 lastError = error instanceof Error ? error.message : String(error);
-                console.error(`LlmService: Attempt ${attempt}/${maxRetries} failed:`, lastError);
-                
+                console.error(
+                    `LlmService: Attempt ${String(attempt)}/${String(maxRetries)} failed:`,
+                    lastError,
+                );
+
                 // Exponential backoff
                 if (attempt < maxRetries) {
                     const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
@@ -553,7 +621,7 @@ export class LlmService {
         return {
             success: false,
             content: '',
-            error: `Failed after ${maxRetries} attempts: ${lastError}`
+            error: `Failed after ${String(maxRetries)} attempts: ${lastError}`,
         };
     }
 
@@ -563,8 +631,8 @@ export class LlmService {
     public async generateWithValidation(
         prompt: string,
         validator: (content: string) => Promise<{ valid: boolean; errors: string[] }>,
-        maxIterations: number = 5,
-        options: LlmRequestOptions = {}
+        maxIterations = 5,
+        options: LlmRequestOptions = {},
     ): Promise<LlmResponse> {
         let currentPrompt = prompt;
         let lastContent = '';
@@ -572,10 +640,12 @@ export class LlmService {
 
         while (iteration < maxIterations) {
             iteration++;
-            console.log(`LlmService: Generation iteration ${iteration}/${maxIterations}`);
+            console.log(
+                `LlmService: Generation iteration ${String(iteration)}/${String(maxIterations)}`,
+            );
 
             const response = await this.request(currentPrompt, options);
-            
+
             if (!response.success) {
                 return response;
             }
@@ -584,13 +654,15 @@ export class LlmService {
 
             // Validate the content
             const validation = await validator(lastContent);
-            
+
             if (validation.valid) {
-                console.log(`LlmService: Content validated successfully on iteration ${iteration}`);
+                console.log(
+                    `LlmService: Content validated successfully on iteration ${String(iteration)}`,
+                );
                 return {
                     success: true,
                     content: lastContent,
-                    modelUsed: response.modelUsed
+                    modelUsed: response.modelUsed,
                 };
             }
 
@@ -608,13 +680,15 @@ ${lastContent}
 
 Generate the corrected version:`;
 
-            console.log(`LlmService: Iteration ${iteration} validation failed with ${validation.errors.length} errors`);
+            console.log(
+                `LlmService: Iteration ${String(iteration)} validation failed with ${String(validation.errors.length)} errors`,
+            );
         }
 
         return {
             success: false,
             content: lastContent,
-            error: `Content validation failed after ${maxIterations} iterations`
+            error: `Content validation failed after ${String(maxIterations)} iterations`,
         };
     }
 
@@ -627,7 +701,7 @@ Generate the corrected version:`;
      */
     private _extractJson(content: string): string | null {
         // Try to find JSON in code blocks
-        const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        const codeBlockMatch = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(content);
         if (codeBlockMatch) {
             try {
                 JSON.parse(codeBlockMatch[1]);
@@ -638,7 +712,7 @@ Generate the corrected version:`;
         }
 
         // Try to find bare JSON object or array
-        const jsonMatch = content.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+        const jsonMatch = /(\{[\s\S]*\}|\[[\s\S]*\])/.exec(content);
         if (jsonMatch) {
             try {
                 JSON.parse(jsonMatch[1]);
@@ -655,7 +729,7 @@ Generate the corrected version:`;
      * Sleep helper for backoff
      */
     private _sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**

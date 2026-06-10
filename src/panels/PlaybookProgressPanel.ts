@@ -1,6 +1,6 @@
 /**
  * Playbook Progress Panel
- * 
+ *
  * Real-time playbook execution progress viewer with hierarchical tree
  * and detail panel for task results.
  */
@@ -27,21 +27,37 @@ interface ProgressEvent {
     data: Record<string, unknown>;
 }
 
+interface AiAnalyzeData {
+    taskName: string;
+    module: string;
+    host: string;
+    status: string;
+    args: Record<string, unknown>;
+    result: Record<string, unknown>;
+    path: string | null;
+}
+
+interface PlaybookProgressMessage {
+    command: string;
+    data?: AiAnalyzeData;
+    path?: string;
+}
+
 export class PlaybookProgressPanel {
     private static _currentPanel: PlaybookProgressPanel | undefined;
-    
+
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
     private _socketServer: net.Server | undefined;
     private _socketPath: string | undefined;
     private _events: ProgressEvent[] = [];
-    private _isRunning: boolean = false;
+    private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
 
     public static async show(
         extensionUri: vscode.Uri,
-        options: PlaybookRunOptions
+        options: PlaybookRunOptions,
     ): Promise<PlaybookProgressPanel> {
         // Reuse existing panel or create new
         if (PlaybookProgressPanel._currentPanel) {
@@ -58,12 +74,12 @@ export class PlaybookProgressPanel {
                 enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [extensionUri],
-            }
+            },
         );
 
         const progressPanel = new PlaybookProgressPanel(panel, extensionUri);
         PlaybookProgressPanel._currentPanel = progressPanel;
-        
+
         await progressPanel._startRun(options);
         return progressPanel;
     }
@@ -72,10 +88,16 @@ export class PlaybookProgressPanel {
         this._panel = panel;
         this._extensionUri = extensionUri;
 
-        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-        
+        this._panel.onDidDispose(
+            () => {
+                this.dispose();
+            },
+            null,
+            this._disposables,
+        );
+
         this._panel.webview.onDidReceiveMessage(
-            async (message) => {
+            (message: PlaybookProgressMessage) => {
                 switch (message.command) {
                     case 'toggleTerminal':
                         if (this._terminal) {
@@ -103,15 +125,19 @@ export class PlaybookProgressPanel {
                         // TODO: Implement rerun functionality
                         break;
                     case 'aiAnalyze':
-                        this._generateAiPrompt(message.data);
+                        if (message.data) {
+                            void this._generateAiPrompt(message.data);
+                        }
                         break;
                     case 'editSource':
-                        this._openSource(message.path);
+                        if (message.path) {
+                            void this._openSource(message.path);
+                        }
                         break;
                 }
             },
             null,
-            this._disposables
+            this._disposables,
         );
 
         this._updateHtml();
@@ -121,7 +147,7 @@ export class PlaybookProgressPanel {
         this._events = [];
         this._isRunning = true;
         this._panel.title = `Playbook: ${options.playbookName}`;
-        
+
         // Clean up previous socket if any
         if (this._socketServer) {
             this._socketServer.close();
@@ -134,22 +160,22 @@ export class PlaybookProgressPanel {
                 // Ignore
             }
         }
-        
+
         // Create socket server
         await this._createSocketServer();
-        
+
         // Reset the webview state for new run
         this._panel.webview.postMessage({ command: 'reset' });
-        
+
         const callbackPath = path.join(options.extensionPath, 'resources', 'callback_plugins');
 
-        log(`PlaybookProgress: Starting with socket ${this._socketPath}`);
+        log(`PlaybookProgress: Starting with socket ${this._socketPath ?? ''}`);
         log(`PlaybookProgress: Callback plugins path: ${callbackPath}`);
 
         // Run the playbook command in a hidden terminal
         const { TerminalService } = await import('../services/TerminalService');
         const terminalService = TerminalService.getInstance();
-        
+
         const managed = await terminalService.createActivatedTerminal({
             name: `ansible-playbook: ${options.playbookName}`,
             cwd: options.workspaceFolder,
@@ -162,9 +188,9 @@ export class PlaybookProgressPanel {
         // Send command with our environment variables
         managed.terminal.sendText(
             `ANSIBLE_CALLBACK_PLUGINS="${callbackPath}" ` +
-            `ANSIBLE_CALLBACKS_ENABLED=vscode_progress ` +
-            `ANSIBLE_ENV_SOCKET="${this._socketPath}" ` +
-            options.command
+                `ANSIBLE_CALLBACKS_ENABLED=vscode_progress ` +
+                `ANSIBLE_ENV_SOCKET="${this._socketPath ?? ''}" ` +
+                options.command,
         );
     }
 
@@ -175,8 +201,8 @@ export class PlaybookProgressPanel {
         }
 
         // Create unique socket path
-        this._socketPath = path.join(os.tmpdir(), `ansible-env-${Date.now()}.sock`);
-        
+        this._socketPath = path.join(os.tmpdir(), `ansible-env-${String(Date.now())}.sock`);
+
         // Remove socket file if exists
         try {
             if (fs.existsSync(this._socketPath)) {
@@ -189,36 +215,42 @@ export class PlaybookProgressPanel {
         return new Promise((resolve, reject) => {
             this._socketServer = net.createServer((socket) => {
                 let buffer = '';
-                
+
                 socket.on('data', (data) => {
                     buffer += data.toString();
                     const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-                    
+                    buffer = lines.pop() ?? '';
+
                     for (const line of lines) {
                         if (line.trim()) {
                             try {
                                 const event = JSON.parse(line) as ProgressEvent;
                                 this._handleEvent(event);
                             } catch (e) {
-                                log(`PlaybookProgress: Failed to parse event: ${e}`);
+                                log(
+                                    `PlaybookProgress: Failed to parse event: ${e instanceof Error ? e.message : String(e)}`,
+                                );
                             }
                         }
                     }
                 });
 
                 socket.on('error', (err) => {
-                    log(`PlaybookProgress: Socket error: ${err}`);
+                    log(
+                        `PlaybookProgress: Socket error: ${err instanceof Error ? err.message : String(err)}`,
+                    );
                 });
             });
 
             this._socketServer.on('error', (err) => {
-                log(`PlaybookProgress: Server error: ${err}`);
+                log(
+                    `PlaybookProgress: Server error: ${err instanceof Error ? err.message : String(err)}`,
+                );
                 reject(err);
             });
 
             this._socketServer.listen(this._socketPath, () => {
-                log(`PlaybookProgress: Socket server listening on ${this._socketPath}`);
+                log(`PlaybookProgress: Socket server listening on ${this._socketPath ?? ''}`);
                 resolve();
             });
         });
@@ -226,7 +258,7 @@ export class PlaybookProgressPanel {
 
     private _handleEvent(event: ProgressEvent): void {
         this._events.push(event);
-        
+
         // Check for completion
         if (event.type === 'playbook_complete') {
             this._isRunning = false;
@@ -243,18 +275,18 @@ export class PlaybookProgressPanel {
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         const themeSetting = config.get<string>('pluginDocTheme', 'auto');
         const vscodeThemeKind = vscode.window.activeColorTheme.kind;
-        const isVsCodeLight = vscodeThemeKind === vscode.ColorThemeKind.Light || 
-                              vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
-        const resolvedTheme = themeSetting === 'auto' 
-            ? (isVsCodeLight ? 'light' : 'dark')
-            : themeSetting;
+        const isVsCodeLight =
+            vscodeThemeKind === vscode.ColorThemeKind.Light ||
+            vscodeThemeKind === vscode.ColorThemeKind.HighContrastLight;
+        const resolvedTheme =
+            themeSetting === 'auto' ? (isVsCodeLight ? 'light' : 'dark') : themeSetting;
 
         this._panel.webview.html = this._getHtml(resolvedTheme);
     }
 
     private _getHtml(theme: string): string {
         const isDark = theme === 'dark';
-        
+
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1621,12 +1653,15 @@ export class PlaybookProgressPanel {
 
     private async _openSource(taskPath: string): Promise<void> {
         // taskPath is in format "file.yml:line"
-        const match = taskPath.match(/^(.+):(\d+)$/);
+        const match = /^(.+):(\d+)$/.exec(taskPath);
         if (match) {
             const [, filePath, lineStr] = match;
             const line = parseInt(lineStr, 10);
             const uri = vscode.Uri.file(filePath);
-            await vscode.commands.executeCommand('vscode.open', uri.with({ fragment: `L${line}` }));
+            await vscode.commands.executeCommand(
+                'vscode.open',
+                uri.with({ fragment: `L${String(line)}` }),
+            );
         } else {
             // No line number, just open the file
             const uri = vscode.Uri.file(taskPath);
@@ -1634,17 +1669,9 @@ export class PlaybookProgressPanel {
         }
     }
 
-    private async _generateAiPrompt(data: {
-        taskName: string;
-        module: string;
-        host: string;
-        status: string;
-        args: Record<string, unknown>;
-        result: Record<string, unknown>;
-        path: string | null;
-    }): Promise<void> {
+    private async _generateAiPrompt(data: AiAnalyzeData): Promise<void> {
         const { taskName, module, host, status, args, result, path: taskPath } = data;
-        
+
         // Clean up result for prompt (remove internal keys)
         const cleanResult: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(result)) {
@@ -1655,7 +1682,7 @@ export class PlaybookProgressPanel {
 
         const statusText = status === 'failed' ? 'FAILED' : status === 'changed' ? 'CHANGED' : 'OK';
         const sourceInfo = taskPath ? `**Source:** \`${taskPath}\`\n` : '';
-        
+
         const prompt = `Analyze this Ansible task execution result and provide insights:
 
 ## Task: ${taskName}
@@ -1692,7 +1719,7 @@ ${JSON.stringify(cleanResult, null, 2)}
             await vscode.env.clipboard.writeText(prompt);
             const action = await vscode.window.showInformationMessage(
                 'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                'Open Chat'
+                'Open Chat',
             );
             if (action === 'Open Chat') {
                 await vscode.commands.executeCommand('workbench.action.chat.open');
@@ -1716,6 +1743,8 @@ ${JSON.stringify(cleanResult, null, 2)}
         }
 
         this._panel.dispose();
-        this._disposables.forEach(d => d.dispose());
+        for (const d of this._disposables) {
+            d.dispose();
+        }
     }
 }

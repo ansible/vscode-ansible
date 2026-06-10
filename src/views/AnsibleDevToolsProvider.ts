@@ -5,8 +5,10 @@ import type { PythonEnvironmentService } from '../services/PythonEnvironmentServ
 import { log } from '../extension';
 
 export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolPackage> {
-    private _onDidChangeTreeData: vscode.EventEmitter<DevToolPackage | undefined | null | void> = new vscode.EventEmitter<DevToolPackage | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<DevToolPackage | undefined | null | void> = this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: vscode.EventEmitter<DevToolPackage | undefined | null> =
+        new vscode.EventEmitter<DevToolPackage | undefined | null>();
+    readonly onDidChangeTreeData: vscode.Event<DevToolPackage | undefined | null> =
+        this._onDidChangeTreeData.event;
 
     private _service: DevToolsService;
     private _envListener: vscode.Disposable | undefined;
@@ -15,12 +17,12 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
 
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = DevToolsService.getInstance();
-        
+
         this._serviceListener = (this._service.onDidChange as vscode.Event<void>)(() => {
-            this._onDidChangeTreeData.fire();
+            this._onDidChangeTreeData.fire(undefined);
         });
-        
-        this._init(pythonEnvService);
+
+        void this._init(pythonEnvService);
     }
 
     private async _init(pythonEnvService: PythonEnvironmentService) {
@@ -44,7 +46,9 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
             // because the venv hasn't been discovered yet.
             log('AnsibleDevToolsProvider: initialized, waiting for environment discovery');
         } catch (error) {
-            log(`AnsibleDevToolsProvider: init failed: ${error}`);
+            log(
+                `AnsibleDevToolsProvider: init failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 

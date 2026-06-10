@@ -13,7 +13,7 @@ class MessageNode extends vscode.TreeItem {
             tooltip?: string;
             icon?: string;
             command?: vscode.Command;
-        }
+        },
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.contextValue = 'creatorMessage';
@@ -23,7 +23,7 @@ class MessageNode extends vscode.TreeItem {
         if (options?.tooltip) {
             this.tooltip = options.tooltip;
         }
-        this.iconPath = new vscode.ThemeIcon(options?.icon || 'info');
+        this.iconPath = new vscode.ThemeIcon(options?.icon ?? 'info');
         if (options?.command) {
             this.command = options.command;
         }
@@ -40,7 +40,7 @@ class CategoryNode extends vscode.TreeItem {
         super(label, vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'creatorCategory';
         this.iconPath = new vscode.ThemeIcon('folder');
-        
+
         // Use description for tooltip
         if (description) {
             this.tooltip = description;
@@ -57,17 +57,17 @@ class CommandNode extends vscode.TreeItem {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.contextValue = 'creatorCommand';
         this.iconPath = new vscode.ThemeIcon('new-file');
-        
+
         // Use description for tooltip (full text on hover)
-        const desc = schema.description || '';
+        const desc = schema.description ?? '';
         this.tooltip = desc || label;
-        
+
         // Show truncated description inline if available
         if (desc && desc.length > 0) {
             // Truncate long descriptions for inline display
             this.description = desc.length > 50 ? desc.substring(0, 47) + '...' : desc;
         }
-        
+
         // Click to open form
         this.command = {
             command: 'ansibleCreator.openForm',
@@ -78,7 +78,7 @@ class CommandNode extends vscode.TreeItem {
 }
 
 export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | null | void>();
+    private _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | null>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     private _service: CreatorService;
@@ -87,25 +87,25 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
     constructor() {
         this._service = CreatorService.getInstance();
         this._service.setLogFunction(log);
-        
+
         // Listen for service changes
         this._serviceListener = (this._service.onDidChange as vscode.Event<void>)(() => {
-            this._onDidChangeTreeData.fire();
+            this._onDidChangeTreeData.fire(undefined);
         });
-        
+
         // Initial load
-        this._service.loadSchema();
+        void this._service.loadSchema();
     }
 
     refresh(): void {
-        this._service.refresh();
+        void this._service.refresh();
     }
 
     getTreeItem(element: TreeNode): vscode.TreeItem {
         return element;
     }
 
-    async getChildren(element?: TreeNode): Promise<TreeNode[]> {
+    getChildren(element?: TreeNode): TreeNode[] | Promise<TreeNode[]> {
         if (!element) {
             // Root level - show Init and Add categories
             if (this._service.isLoading()) {
@@ -120,13 +120,14 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
                     return [
                         new MessageNode('ansible-creator outdated', {
                             description: ver ? `v${ver} — upgrade required` : 'Upgrade required',
-                            tooltip: 'The installed ansible-creator does not support the "schema" subcommand.\nUpgrade ansible-dev-tools to get the latest version.',
+                            tooltip:
+                                'The installed ansible-creator does not support the "schema" subcommand.\nUpgrade ansible-dev-tools to get the latest version.',
                             icon: 'warning',
                             command: {
                                 command: 'ansibleDevToolsPackages.upgrade',
-                                title: 'Upgrade ansible-dev-tools'
-                            }
-                        })
+                                title: 'Upgrade ansible-dev-tools',
+                            },
+                        }),
                     ];
                 }
                 return [
@@ -136,9 +137,9 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
                         icon: 'warning',
                         command: {
                             command: 'ansibleDevToolsPackages.install',
-                            title: 'Install ansible-dev-tools'
-                        }
-                    })
+                            title: 'Install ansible-dev-tools',
+                        },
+                    }),
                 ];
             }
 
@@ -172,7 +173,7 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
         if (schema.subcommands) {
             for (const [name, subSchema] of Object.entries(schema.subcommands)) {
                 const subPath = [...path, name];
-                
+
                 // Check if this has further subcommands
                 if (subSchema.subcommands && Object.keys(subSchema.subcommands).length > 0) {
                     // It's a category with more children
@@ -184,11 +185,7 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
                     children.push(categoryNode);
                 } else {
                     // It's a leaf command
-                    children.push(new CommandNode(
-                        this._formatLabel(name),
-                        subSchema,
-                        subPath,
-                    ));
+                    children.push(new CommandNode(this._formatLabel(name), subSchema, subPath));
                 }
             }
         }
@@ -200,14 +197,14 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
         // Convert snake_case to Title Case
         return name
             .split(/[_-]/)
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
     }
 
     public getSchema(): SchemaNode | null {
         return this._service.getSchema();
     }
-    
+
     dispose() {
         this._serviceListener?.dispose();
         this._onDidChangeTreeData.dispose();
