@@ -46,6 +46,8 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch(): typeof globalThis.fetch {
   try {
+    // Do not remove this as this is a special exception for testing and web versions
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const electron = require("electron") as
       | { net?: { fetch?: typeof globalThis.fetch } }
       | undefined;

@@ -77,7 +77,7 @@ export default defineConfig(
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-base-to-string": "error",
-      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-require-imports": "error",
       "local/node-DEP0190": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",

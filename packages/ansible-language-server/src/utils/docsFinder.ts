@@ -12,14 +12,14 @@ import {
 } from "@src/interfaces/pluginRouting.js";
 import { globArray } from "@src/utils/pathUtils.js";
 
-export async function findDocumentation(
+export function findDocumentation(
   dir: string,
   kind:
     | "builtin"
     | "collection"
     | "builtin_doc_fragment"
     | "collection_doc_fragment",
-): Promise<IModuleMetadata[]> {
+): IModuleMetadata[] {
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
   }
