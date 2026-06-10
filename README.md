@@ -197,7 +197,7 @@ The test suite uses:
 ### Building
 
 ```bash
-npx vsce package      # Package the extension as a VSIX
+npm exec vsce -- package   # Package the extension as a VSIX
 ```
 
 ### Alpha releases (VSIX on GitHub)

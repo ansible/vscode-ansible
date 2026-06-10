@@ -118,11 +118,11 @@ gh run view RUN_ID --log-failed 2>&1 | tail -80
 
 Common CI failures and how to fix them:
 
-- **lint (eslint)**: Run `npx eslint . --fix` locally. Common issues:
+- **lint (eslint)**: Run `npm exec eslint -- . --fix` locally. Common issues:
   unused imports, missing type annotations, inconsistent formatting.
-- **compile (tsc)**: Run `npx tsc -b` to check for type errors across all
+- **compile (tsc)**: Run `npm exec tsc -- -b` to check for type errors across all
   packages. Fix type mismatches, missing imports, and `any` type leaks.
-- **unit tests (vitest)**: Run `npx vitest run` to reproduce. Update tests
+- **unit tests (vitest)**: Run `npm exec vitest -- run` to reproduce. Update tests
   when behavior changes.
 - **e2e tests (wdio)**: Run `npm run test:ui` to reproduce. These tests
   launch a real VS Code instance — check for timing issues and flaky

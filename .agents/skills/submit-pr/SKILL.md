@@ -36,9 +36,9 @@ session), cherry-pick or rebase them onto the new branch.
 ### Step 2: Run lint and type checks
 
 ```bash
-npx eslint .
-npx tsc -b
-npx vitest run
+npm exec eslint -- .
+npm exec tsc -- -b
+npm exec vitest -- run
 ```
 
 **All checks must pass cleanly on all files** — not just the files you
@@ -46,7 +46,7 @@ changed. If the branch has pre-existing violations (e.g., from an old base),
 rebase onto `upstream/next` first.
 
 If violations are found:
-1. Run `npx eslint . --fix` to auto-fix what it can
+1. Run `npm exec eslint -- . --fix` to auto-fix what it can
 2. Manually fix remaining violations (type errors, test failures)
 3. Re-run until clean
 
@@ -118,9 +118,9 @@ gh pr create --base next --label "<type>" --title "conventional commit style tit
 - List each AI-generated artifact and its purpose
 
 ## Test plan
-- [ ] `npx eslint .` passes
-- [ ] `npx tsc -b` compiles cleanly
-- [ ] `npx vitest run` passes
+- [ ] `npm exec eslint -- .` passes
+- [ ] `npm exec tsc -- -b` compiles cleanly
+- [ ] `npm exec vitest -- run` passes
 - [ ] `npm run test:ui` passes (if e2e-relevant changes)
 
 related: #<issue_number>

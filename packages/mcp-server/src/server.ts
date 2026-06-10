@@ -8,8 +8,8 @@
  * Usage:
  *   node packages/mcp-server/out/server.js
  *
- * Or via npx (when published):
- *   npx @ansible/environments-mcp
+ * Or via npm exec (when published):
+ *   npm exec --package @ansible/mcp-server -- ansible-environments-mcp
  *
  * Configuration for Cursor (.cursor/mcp.json):
  * {
