@@ -227,13 +227,11 @@ describe("withInterpreter", function () {
     });
 
     it("should accept activation script with tilde home directory shorthand", function () {
-      // Create a test file in user's home directory
       const homeDir = os.homedir();
       const tmpDir = fs.mkdtempSync(path.join(homeDir, ".als-test-"));
       const scriptPath = path.join(tmpDir, "activate");
       fs.writeFileSync(scriptPath, "# activation script");
 
-      // Get the relative path from home with tilde
       const relativePath = `~${scriptPath.slice(homeDir.length)}`;
 
       try {
@@ -245,7 +243,7 @@ describe("withInterpreter", function () {
         );
 
         expect(result.command).toBe(
-          `sh -c '. ${relativePath} && ansible-lint playbook.yml'`,
+          `sh -c '. ${scriptPath} && ansible-lint playbook.yml'`,
         );
       } finally {
         fs.unlinkSync(scriptPath);
@@ -254,13 +252,11 @@ describe("withInterpreter", function () {
     });
 
     it("should accept activation script with ~/ prefix", function () {
-      // Create a test file in user's home directory
       const homeDir = os.homedir();
       const tmpDir = fs.mkdtempSync(path.join(homeDir, ".als-test-"));
       const scriptPath = path.join(tmpDir, "activate");
       fs.writeFileSync(scriptPath, "# activation script");
 
-      // Get the relative path from home with ~/
       const relativePath = `~/${path.relative(homeDir, scriptPath)}`;
 
       try {
@@ -272,7 +268,7 @@ describe("withInterpreter", function () {
         );
 
         expect(result.command).toBe(
-          `sh -c '. ${relativePath} && ansible-lint playbook.yml'`,
+          `sh -c '. ${scriptPath} && ansible-lint playbook.yml'`,
         );
       } finally {
         fs.unlinkSync(scriptPath);

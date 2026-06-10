@@ -169,7 +169,8 @@ export function withInterpreter(
   if (activationScript) {
     const validationError = validateActivationScript(activationScript);
     if (!validationError) {
-      command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
+      const resolvedScript = resolveTilde(activationScript);
+      command = `sh -c '. ${resolvedScript} && ${executable} ${args}'`;
       return { command: command, env: process.env };
     } else {
       console.debug(validationError);
