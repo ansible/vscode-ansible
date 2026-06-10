@@ -37,18 +37,16 @@ export async function findModulesUtils(
   const playbookAdjacentDocFragments = new Map<string, IModuleMetadata>();
 
   // find documentation for PAC
-  (
-    await findDocumentation(playbookAdjacentCollectionsPath, "collection")
-  ).forEach((doc) => {
-    playbookAdjacentModules.set(doc.fqcn, doc);
-    playbookAdjacentModuleFqcns.add(doc.fqcn);
-  });
+  findDocumentation(playbookAdjacentCollectionsPath, "collection").forEach(
+    (doc) => {
+      playbookAdjacentModules.set(doc.fqcn, doc);
+      playbookAdjacentModuleFqcns.add(doc.fqcn);
+    },
+  );
 
-  (
-    await findDocumentation(
-      playbookAdjacentCollectionsPath,
-      "collection_doc_fragment",
-    )
+  findDocumentation(
+    playbookAdjacentCollectionsPath,
+    "collection_doc_fragment",
   ).forEach((doc) => {
     playbookAdjacentDocFragments.set(doc.fqcn, doc);
   });
@@ -126,18 +124,16 @@ export async function getModuleFqcnsUtils(
   const playbookAdjacentModuleFqcns = new Set<string>();
   const playbookAdjacentDocFragments = new Map<string, IModuleMetadata>();
 
-  (
-    await findDocumentation(playbookAdjacentCollectionsPath, "collection")
-  ).forEach((doc) => {
-    playbookAdjacentModules.set(doc.fqcn, doc);
-    playbookAdjacentModuleFqcns.add(doc.fqcn);
-  });
+  findDocumentation(playbookAdjacentCollectionsPath, "collection").forEach(
+    (doc) => {
+      playbookAdjacentModules.set(doc.fqcn, doc);
+      playbookAdjacentModuleFqcns.add(doc.fqcn);
+    },
+  );
 
-  (
-    await findDocumentation(
-      playbookAdjacentCollectionsPath,
-      "collection_doc_fragment",
-    )
+  findDocumentation(
+    playbookAdjacentCollectionsPath,
+    "collection_doc_fragment",
   ).forEach((doc) => {
     playbookAdjacentDocFragments.set(doc.fqcn, doc);
   });

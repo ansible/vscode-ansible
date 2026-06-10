@@ -1,5 +1,3 @@
-require("assert");
-
 import { mapError } from "@src/features/lightspeed/handleApiError";
 import assert from "assert";
 import { integer } from "vscode-languageclient";
