@@ -513,7 +513,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      void lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
+      lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
       void lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
@@ -1460,11 +1460,12 @@ export function makeConfigurationMiddleware(
         outputChannel.appendLine(
           `[Ansible] Configuration middleware error: ${error instanceof Error ? error.message : String(error)}`,
         );
-        return [] as unknown as LSPAny[];
+        return [];
       }
 
-      if (!Array.isArray(originalResult))
+      if (!Array.isArray(originalResult)) {
         return originalResult as unknown as LSPAny[];
+      }
 
       // Clone result array to avoid mutating the original
       const result = [...originalResult];

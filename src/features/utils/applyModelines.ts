@@ -69,7 +69,7 @@ async function applyModeLines(
       typeof modelineOptions === "object" &&
       modelineOptions !== null &&
       "language" in modelineOptions
-        ? (modelineOptions as { language: unknown }).language
+        ? modelineOptions.language
         : undefined;
 
     if (typeof language === "string" && language.length > 0) {

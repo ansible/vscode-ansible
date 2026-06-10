@@ -13,7 +13,7 @@ import type {
 } from "@src/interfaces/lightspeed";
 import { RoleFileType } from "@src/interfaces/lightspeed";
 import type { LightSpeedAPI } from "@src/features/lightspeed/api";
-import { IError, isError } from "@src/features/lightspeed/utils/errors";
+import { isError } from "@src/features/lightspeed/utils/errors";
 import {
   TEST_PROMPTS,
   TEST_CONTENT,
@@ -76,7 +76,7 @@ describe("lightspeedUtils", () => {
       PROVIDER_TYPES.GOOGLE;
 
     // Get references to mocks
-    mockApiInstance = lightSpeedManager.apiInstance as LightSpeedAPI;
+    mockApiInstance = lightSpeedManager.apiInstance;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     mockProviderManager = lightSpeedManager.providerManager!;
   });
@@ -160,7 +160,7 @@ describe("lightspeedUtils", () => {
       expect(result).toEqual({
         message: errorMessage,
         code: "GENERATION_ERROR",
-      } as IError);
+      });
     });
 
     it("should fallback to WCA provider when provider is WCA", async () => {
@@ -242,7 +242,7 @@ describe("lightspeedUtils", () => {
       expect(result).toEqual({
         message: errorMessage,
         code: "EXPLANATION_ERROR",
-      } as IError);
+      });
     });
 
     it("should fallback to WCA provider when provider is WCA", async () => {
@@ -389,7 +389,7 @@ describe("lightspeedUtils", () => {
       expect(result).toEqual({
         message: errorMessage,
         code: "GENERATION_ERROR",
-      } as IError);
+      });
     });
 
     it("should fallback to WCA provider when provider is WCA", async () => {
@@ -547,7 +547,7 @@ describe("lightspeedUtils", () => {
       expect(result).toEqual({
         message: errorMessage,
         code: "EXPLANATION_ERROR",
-      } as IError);
+      });
     });
 
     it("should fallback to WCA provider when provider is WCA", async () => {

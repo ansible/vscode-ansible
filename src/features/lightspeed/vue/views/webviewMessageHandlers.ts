@@ -30,7 +30,6 @@ import {
   DevcontainerFormInterface,
   DevfileFormInterface,
   AnsibleExecutionEnvInterface,
-  PostMessageEvent,
 } from "@src/features/contentCreator/types";
 
 import {
@@ -823,7 +822,7 @@ export class WebviewMessageHandlers {
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
-    } as PostMessageEvent);
+    });
   }
 
   private getContainerImage(dropdownImage: string): string {
@@ -965,7 +964,7 @@ export class WebviewMessageHandlers {
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
-    } as PostMessageEvent);
+    });
   }
 
   private getDevfileContainerImage(dropdownImage: string): string {
@@ -1152,7 +1151,7 @@ export class WebviewMessageHandlers {
             projectUrl: destinationPathUrl,
             status: "in-progress",
           },
-        } as PostMessageEvent);
+        });
         await webView.postMessage({ command: "disable-build-button" });
         await webView.postMessage({ command: "enable-open-file-button" });
 
@@ -1194,7 +1193,7 @@ export class WebviewMessageHandlers {
             projectUrl: destinationPathUrl,
             status: "in-progress",
           },
-        } as PostMessageEvent);
+        });
         await webView.postMessage({ command: "disable-build-button" });
         await webView.postMessage({ command: "enable-open-file-button" });
 
@@ -1237,7 +1236,7 @@ export class WebviewMessageHandlers {
           projectUrl: destinationPathUrl,
           status: commandResult,
         },
-      } as PostMessageEvent);
+      });
 
       if (executionFileCreated) {
         await webView.postMessage({ command: "enable-open-file-button" });
@@ -1261,7 +1260,7 @@ export class WebviewMessageHandlers {
           projectUrl: "",
           status: "failed",
         },
-      } as PostMessageEvent);
+      });
 
       await webView.postMessage({
         command: "enable-build-button",

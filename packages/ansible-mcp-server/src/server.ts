@@ -984,7 +984,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
 
       // Log available tools for debugging
       const availableToolNames = handlers
-        ? Object.keys(handlers as object).join(", ")
+        ? Object.keys(handlers).join(", ")
         : "no handlers object";
       console.error(
         `[MCP] Tool '${toolName}' handler not found. Available handlers: ${availableToolNames}`,

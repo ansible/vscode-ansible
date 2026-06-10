@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { Hover, MarkupContent, Position } from "vscode-languageserver";
+import { Hover, MarkupContent } from "vscode-languageserver";
 import { expect, beforeAll, afterAll } from "vitest";
 import {
   createTestWorkspaceManager,
@@ -31,17 +31,17 @@ function testPlayKeywords(
   const tests = [
     {
       word: "name",
-      position: { line: 0, character: 4 } as Position,
+      position: { line: 0, character: 4 },
       doc: "Identifier. Can be used for documentation, or in tasks/handlers.",
     },
     {
       word: "host",
-      position: { line: 1, character: 4 } as Position,
+      position: { line: 1, character: 4 },
       doc: "A list of groups, hosts or host pattern that translates into a list of hosts that are the play’s target.",
     },
     {
       word: "tasks",
-      position: { line: 3, character: 4 } as Position,
+      position: { line: 3, character: 4 },
       doc: "Main list of tasks to execute in the play, they run after roles and before post_tasks.",
     },
   ];
@@ -69,7 +69,7 @@ function testTaskKeywords(
   const tests = [
     {
       word: "register",
-      position: { line: 6, character: 8 } as Position,
+      position: { line: 6, character: 8 },
       doc: "Name of variable that will contain task status and module return data.",
     },
   ];
@@ -97,7 +97,7 @@ function testBlockKeywords(
   const tests = [
     {
       word: "become",
-      position: { line: 11, character: 8 } as Position,
+      position: { line: 11, character: 8 },
       doc: "Boolean that controls if privilege escalation is used or not on Task execution. Implemented by the become plugin.",
     },
   ];
@@ -125,7 +125,7 @@ function testRoleKeywords(
   const tests = [
     {
       word: "tags",
-      position: { line: 6, character: 8 } as Position,
+      position: { line: 6, character: 8 },
       doc: "Tags applied to the task or included tasks, this allows selecting subsets of tasks from the command line.",
     },
   ];
@@ -153,12 +153,12 @@ function testModuleNames(
   const tests = [
     {
       word: "ansible.builtin.debug",
-      position: { line: 4, character: 8 } as Position,
+      position: { line: 4, character: 8 },
       doc: "Print statements during execution",
     },
     {
       word: "ansible.builtin.debug -> msg",
-      position: { line: 5, character: 10 } as Position,
+      position: { line: 5, character: 10 },
       doc: "The customized message that is printed\\. If omitted\\, prints a generic message\\.",
     },
   ];
@@ -179,7 +179,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
   it("should not provide hovering for values", async function () {
     const actualHover = await doHover(
       textDoc,
-      { line: 13, character: 24 } as Position,
+      { line: 13, character: 24 },
       await context.docsLibrary,
     );
     expect(actualHover).toBeNull();
@@ -188,7 +188,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
   it("should not provide hovering for improper module name and options", async function () {
     const actualHover = await doHover(
       textDoc,
-      { line: 13, character: 8 } as Position,
+      { line: 13, character: 8 },
       await context.docsLibrary,
     );
     expect(actualHover).toBeNull();
@@ -197,7 +197,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
   it("should not provide hovering for improper module option", async function () {
     const actualHover = await doHover(
       textDoc,
-      { line: 14, character: 10 } as Position,
+      { line: 14, character: 10 },
       await context.docsLibrary,
     );
     expect(actualHover).toBeNull();
@@ -211,17 +211,17 @@ function testPlaybookAdjacentCollection(
   const tests = [
     {
       word: "playbook adjacent module name",
-      position: { line: 5, character: 19 } as Position,
+      position: { line: 5, character: 19 },
       doc: "This is a test module for playbook adjacent collection",
     },
     {
       word: "playbook adjacent module option",
-      position: { line: 6, character: 11 } as Position,
+      position: { line: 6, character: 11 },
       doc: "Option 1",
     },
     {
       word: "playbook adjacent module sub option",
-      position: { line: 7, character: 19 } as Position,
+      position: { line: 7, character: 19 },
       doc: "Sub option 1",
     },
   ];
@@ -245,12 +245,12 @@ function testNonPlaybookAdjacentCollection(
   const tests = [
     {
       word: "non playbook adjacent module name",
-      position: { line: 5, character: 19 } as Position,
+      position: { line: 5, character: 19 },
       doc: "",
     },
     {
       word: "non playbook adjacent module option",
-      position: { line: 6, character: 11 } as Position,
+      position: { line: 6, character: 11 },
       doc: "",
     },
   ];

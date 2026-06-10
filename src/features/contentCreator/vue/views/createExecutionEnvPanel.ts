@@ -19,7 +19,9 @@ export class MainPanel {
       context,
       "create-execution-env",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
 
     this._panel.webview.onDidReceiveMessage(

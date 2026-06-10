@@ -199,7 +199,7 @@ describe("ProviderCommands", () => {
           const mockToken: vscode.CancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: vi.fn(),
-          } as vscode.CancellationToken;
+          };
           return await task(mockProgress, mockToken);
         },
       );
@@ -247,7 +247,7 @@ describe("ProviderCommands", () => {
           const mockToken: vscode.CancellationToken = {
             isCancellationRequested: false,
             onCancellationRequested: vi.fn(),
-          } as vscode.CancellationToken;
+          };
           return await task(mockProgress, mockToken);
         },
       );
@@ -311,9 +311,7 @@ describe("ProviderCommands", () => {
         mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as unknown as vscode.QuickPickItem & {
-          provider: unknown;
-        },
+        mockProviderInfo,
       );
       vi.mocked(vscode.window.showInputBox)
         .mockResolvedValueOnce(TEST_API_KEYS.GOOGLE) // API key
@@ -402,9 +400,7 @@ describe("ProviderCommands", () => {
         mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as unknown as vscode.QuickPickItem & {
-          provider: unknown;
-        },
+        mockProviderInfo,
       );
       vi.mocked(vscode.window.showInputBox).mockResolvedValue(undefined);
 
@@ -467,9 +463,7 @@ describe("ProviderCommands", () => {
         mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as unknown as vscode.QuickPickItem & {
-          provider: unknown;
-        },
+        mockProviderInfo,
       );
       vi.mocked(vscode.window.showInputBox).mockResolvedValue(
         TEST_API_KEYS.GOOGLE,
@@ -536,13 +530,7 @@ describe("ProviderCommands", () => {
       );
       getActiveProvider.mockReturnValue("llmprovider");
       getProviderStatus.mockReturnValue(mockStatus);
-      getAvailableProviders.mockReturnValue(
-        mockAvailableProviders as unknown as Array<{
-          type: string;
-          displayName: string;
-          active: boolean;
-        }>,
-      );
+      getAvailableProviders.mockReturnValue(mockAvailableProviders);
 
       const mockDoc = {
         content: "",
@@ -603,13 +591,7 @@ describe("ProviderCommands", () => {
         mockProviderManager.getAvailableProviders,
       );
       getActiveProvider.mockReturnValue(null);
-      getAvailableProviders.mockReturnValue(
-        mockAvailableProviders as unknown as Array<{
-          type: string;
-          displayName: string;
-          active: boolean;
-        }>,
-      );
+      getAvailableProviders.mockReturnValue(mockAvailableProviders);
 
       const mockDoc = {
         content: "",
@@ -658,13 +640,7 @@ describe("ProviderCommands", () => {
       );
       getActiveProvider.mockReturnValue("llmprovider");
       getProviderStatus.mockReturnValue(mockStatus);
-      getAvailableProviders.mockReturnValue(
-        mockAvailableProviders as unknown as Array<{
-          type: string;
-          displayName: string;
-          active: boolean;
-        }>,
-      );
+      getAvailableProviders.mockReturnValue(mockAvailableProviders);
 
       const mockDoc = {
         content: "",
@@ -727,17 +703,9 @@ describe("ProviderCommands", () => {
           type: p.provider.type,
           displayName: p.provider.displayName,
           active: p.description.includes("Active"),
-        })) as unknown as Array<{
-          type: string;
-          displayName: string;
-          active: boolean;
-        }>,
+        })),
       );
-      showQuickPick.mockResolvedValue(
-        mockAvailableProviders[0] as unknown as vscode.QuickPickItem & {
-          provider: unknown;
-        },
-      );
+      showQuickPick.mockResolvedValue(mockAvailableProviders[0]);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();
@@ -782,11 +750,7 @@ describe("ProviderCommands", () => {
           displayName: GOOGLE_PROVIDER.DISPLAY_NAME,
           active: false,
         },
-      ] as unknown as Array<{
-        type: string;
-        displayName: string;
-        active: boolean;
-      }>);
+      ]);
       showQuickPick4.mockResolvedValue(undefined);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -828,17 +792,9 @@ describe("ProviderCommands", () => {
           type: p.provider.type,
           displayName: p.provider.displayName,
           active: false,
-        })) as unknown as Array<{
-          type: string;
-          displayName: string;
-          active: boolean;
-        }>,
+        })),
       );
-      showQuickPick3.mockResolvedValue(
-        mockAvailableProviders[0] as unknown as vscode.QuickPickItem & {
-          provider: unknown;
-        },
-      );
+      showQuickPick3.mockResolvedValue(mockAvailableProviders[0]);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();

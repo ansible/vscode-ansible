@@ -127,7 +127,7 @@ async function getValueByCfg(
   return {
     path: path,
     defaults: { vault_identity_list, vault_password_file },
-  } as AnsibleVaultConfig;
+  };
 }
 
 export async function getAnsibleCfg(

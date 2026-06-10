@@ -294,7 +294,7 @@ export async function getRoleYamlFiles(
             path: `${dir}/${file}`,
             file_type: dir.slice(0, -1) as RoleFileType,
             content: fileContents,
-          } as GenerationListEntry);
+          });
         }
       }
     }
