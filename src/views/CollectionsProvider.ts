@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { CollectionsService, CollectionInfo, PluginInfo } from '@ansible/core';
-import type { PythonEnvironmentService } from '../services/PythonEnvironmentService';
-import { log } from '../extension';
+import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
+import { log } from '@src/extension';
 
 type TreeNode = CollectionNode | PluginTypeNode | PluginNode | LoadingNode;
 

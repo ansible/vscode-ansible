@@ -105,6 +105,35 @@ export default defineConfig(
         },
     },
     {
+        files: ['src/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'chai',
+                            message:
+                                'No direct import from chai, use vitest or node:assert alternatives.',
+                        },
+                    ],
+                    patterns: [
+                        {
+                            group: ['./*', '../*', '../../*', '../../../*', '../../../../*'],
+                            message: 'Do not use relative imports; use @src/ path aliases instead.',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        files: ['**/test/**/*.{js,ts,tsx,cjs}'],
+        rules: {
+            'no-restricted-imports': 'off',
+        },
+    },
+    {
         ignores: ['scripts/**'],
     },
     {

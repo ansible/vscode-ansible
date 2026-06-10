@@ -10,8 +10,8 @@ import * as net from 'net';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { log } from '../extension';
-import { getZoomThemeScript } from './webviewStyles';
+import { log } from '@src/extension';
+import { getZoomThemeScript } from '@src/panels/webviewStyles';
 
 export interface PlaybookRunOptions {
     playbookPath: string;

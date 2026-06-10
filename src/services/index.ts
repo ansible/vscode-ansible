@@ -13,13 +13,13 @@
 
 export * from '@ansible/core';
 
-export { TerminalService } from './TerminalService';
+export { TerminalService } from '@src/services/TerminalService';
 export type {
     CommandResult,
     ManagedTerminal,
     SendCommandOptions,
     CreateTerminalOptions,
-} from './TerminalService';
+} from '@src/services/TerminalService';
 
-export { PlaybooksService } from './PlaybooksService';
-export type { PlaybookPlay, PlaybookInfo, PlaybookConfig } from './PlaybooksService';
+export { PlaybooksService } from '@src/services/PlaybooksService';
+export type { PlaybookPlay, PlaybookInfo, PlaybookConfig } from '@src/services/PlaybooksService';

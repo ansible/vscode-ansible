@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { PythonEnvironmentService } from './PythonEnvironmentService';
+import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 
 export interface CommandResult {
     output: string;
