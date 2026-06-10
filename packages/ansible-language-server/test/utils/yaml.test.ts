@@ -44,50 +44,50 @@ describe("yaml", function () {
 
   describe("ancestryBuilder", function () {
     it("canGetParent", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().get();
       expect(node).toBeInstanceOf(YAMLMap);
     });
 
     it("canGetAssertedParent", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLMap).get();
       expect(node).toBeInstanceOf(YAMLMap);
     });
 
     it("canAssertParent", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLSeq).get();
       expect(node).toBeNull();
     });
 
     it("canGetAncestor", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().parent().get();
       expect(node).toBeInstanceOf(YAMLSeq);
     });
 
     it("canGetParentPath", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent().getPath();
       expect(subPath).toBeInstanceOf(Array);
       expect(subPath).toHaveLength((path?.length || 0) - 2);
     });
 
     it("canGetKey", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
       expect(key).toBe("name");
     });
 
     it("canGetKeyForValue", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 13);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
       expect(key).toBe("name");
     });
 
     it("canGetKeyPath", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
       expect(subPath).toBeInstanceOf(Array);
       expect(subPath).toHaveLength(path?.length || 0);
@@ -98,7 +98,7 @@ describe("yaml", function () {
     });
 
     it("canGetAssertedParentOfKey", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parentOfKey().get();
       expect(node).toBeInstanceOf(YAMLMap);
       if (node) {
@@ -113,13 +113,13 @@ describe("yaml", function () {
     });
 
     it("canAssertParentOfKey", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
+      const path = getPathInFile("ancestryBuilder.yml", 4, 13);
       const node = new AncestryBuilder(path).parentOfKey().get();
       expect(node).toBeNull();
     });
 
     it("canGetIndentationParent", async function () {
-      const path = await getPathInFile("ancestryBuilder.yml", 7, 9);
+      const path = getPathInFile("ancestryBuilder.yml", 7, 9);
       const node = new AncestryBuilder(path)
         .parent(YAMLMap)
         .parent(YAMLMap)
@@ -131,7 +131,7 @@ describe("yaml", function () {
       // skipped -> the YAML parser doesn't correctly interpret indentation in
       // otherwise empty lines; a workaround is implemented for completion
       // provider
-      const path = await getPathInFile("ancestryBuilder.yml", 9, 9);
+      const path = getPathInFile("ancestryBuilder.yml", 9, 9);
       if (path) {
         const node = new AncestryBuilder(path)
           .parent(YAMLMap)
@@ -145,7 +145,7 @@ describe("yaml", function () {
       // skipped -> the YAML parser doesn't correctly interpret indentation in
       // otherwise empty lines; a workaround is implemented for completion
       // provider
-      const path = await getPathInFile("ancestryBuilder.yml", 15, 9);
+      const path = getPathInFile("ancestryBuilder.yml", 15, 9);
       const node = new AncestryBuilder(path)
         .parent(YAMLMap)
         .parent(YAMLMap)
@@ -156,7 +156,7 @@ describe("yaml", function () {
 
   describe("getDeclaredCollections", function () {
     it("canGetCollections", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 13, 7);
+      const path = getPathInFile("getDeclaredCollections.yml", 13, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -167,7 +167,7 @@ describe("yaml", function () {
     });
 
     it("canGetCollectionsFromPreTasks", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 9, 7);
+      const path = getPathInFile("getDeclaredCollections.yml", 9, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -178,7 +178,7 @@ describe("yaml", function () {
     });
 
     it("canGetCollectionsFromBlock", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 12, 11);
+      const path = getPathInFile("getDeclaredCollections.yml", 12, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -189,7 +189,7 @@ describe("yaml", function () {
     });
 
     it("canGetCollectionsFromNestedBlock", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 23, 15);
+      const path = getPathInFile("getDeclaredCollections.yml", 23, 15);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -200,7 +200,7 @@ describe("yaml", function () {
     });
 
     it("canGetCollectionsFromRescue", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 27, 11);
+      const path = getPathInFile("getDeclaredCollections.yml", 27, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -211,7 +211,7 @@ describe("yaml", function () {
     });
 
     it("canGetCollectionsFromAlways", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 31, 11);
+      const path = getPathInFile("getDeclaredCollections.yml", 31, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(
         expect.arrayContaining([
@@ -222,13 +222,13 @@ describe("yaml", function () {
     });
 
     it("canWorkWithoutCollections", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 38, 7);
+      const path = getPathInFile("getDeclaredCollections.yml", 38, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(expect.arrayContaining([]));
     });
 
     it("canWorkWithEmptyCollections", async function () {
-      const path = await getPathInFile("getDeclaredCollections.yml", 46, 7);
+      const path = getPathInFile("getDeclaredCollections.yml", 46, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).toEqual(expect.arrayContaining([]));
     });
@@ -236,91 +236,55 @@ describe("yaml", function () {
 
   describe("isTaskParam", function () {
     it("canCorrectlyConfirmTaskParam", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInTaskFile.yml",
-        2,
-        3,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInTaskFile.yml", 2, 3) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyNegateTaskParam", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInvalid.yml",
-        1,
-        1,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInvalid.yml", 1, 1) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForValue", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInTaskFile.yml",
-        2,
-        9,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInTaskFile.yml", 2, 9) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForPlay", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        4,
-        3,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 4, 3) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForBlock", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        14,
-        7,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 14, 7) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForRole", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        17,
-        7,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 17, 7) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyConfirmTaskParamInPreTasks", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        6,
-        7,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 6, 7) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmTaskParamInTasks", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        9,
-        7,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 9, 7) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmTaskParamInBlock", async function () {
-      const path = (await getPathInFile(
-        "isTaskParamInPlaybook.yml",
-        13,
-        11,
-      )) as Node[];
+      const path = getPathInFile("isTaskParamInPlaybook.yml", 13, 11) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
@@ -328,43 +292,43 @@ describe("yaml", function () {
 
   describe("isPlayParam", function () {
     it("canCorrectlyConfirmPlayParam", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 1, 3) as Node[];
       const test = isPlayParam(path, "file://test/isPlay.yml");
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmPlayParamWithoutPath", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 1, 3) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmPlayParamInStrangePath", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 1, 3) as Node[];
       const test = isPlayParam(path, "file:///roles/test/tasks/isPlay.yml");
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyNegatePlayParamInRolePathWithoutPlayKeywords", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 7, 3)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 7, 3) as Node[];
       const test = isPlayParam(path, "file:///roles/test/tasks/isPlay.yml");
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegatePlayParamForNonRootSequence", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 14, 7)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 14, 7) as Node[];
       const test = isPlayParam(path, "file://test/isPlay.yml");
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegatePlayParamForNonRootSequenceWithoutPath", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 14, 7)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 14, 7) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegatePlayParamForValue", async function () {
-      const path = (await getPathInFile("isPlayParam.yml", 1, 9)) as Node[];
+      const path = getPathInFile("isPlayParam.yml", 1, 9) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(false);
     });
@@ -372,19 +336,19 @@ describe("yaml", function () {
 
   describe("isBlockParam", function () {
     it("canCorrectlyConfirmBlockParam", async function () {
-      const path = (await getPathInFile("isBlockParam.yml", 2, 3)) as Node[];
+      const path = getPathInFile("isBlockParam.yml", 2, 3) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyNegateBlockParam", async function () {
-      const path = (await getPathInFile("isBlockParam.yml", 5, 3)) as Node[];
+      const path = getPathInFile("isBlockParam.yml", 5, 3) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateBlockParamOnValue", async function () {
-      const path = (await getPathInFile("isBlockParam.yml", 2, 11)) as Node[];
+      const path = getPathInFile("isBlockParam.yml", 2, 11) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(false);
     });
@@ -392,19 +356,19 @@ describe("yaml", function () {
 
   describe("isRoleParam", function () {
     it("canCorrectlyConfirmRoleParam", async function () {
-      const path = (await getPathInFile("isRoleParam.yml", 5, 7)) as Node[];
+      const path = getPathInFile("isRoleParam.yml", 5, 7) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyNegateRoleParam", async function () {
-      const path = (await getPathInFile("isRoleParam.yml", 4, 3)) as Node[];
+      const path = getPathInFile("isRoleParam.yml", 4, 3) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateRoleParamOnValue", async function () {
-      const path = (await getPathInFile("isRoleParam.yml", 5, 13)) as Node[];
+      const path = getPathInFile("isRoleParam.yml", 5, 13) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(false);
     });
