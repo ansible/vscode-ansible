@@ -28,10 +28,15 @@ export function processDocumentationFragments(
     mainDocumentationFragment &&
     hasOwnProperty(mainDocumentationFragment, "extends_documentation_fragment")
   ) {
-    const docFragmentNames: string[] =
-      mainDocumentationFragment.extends_documentation_fragment instanceof Array
-        ? mainDocumentationFragment.extends_documentation_fragment
-        : [mainDocumentationFragment.extends_documentation_fragment];
+    const rawFragments =
+      mainDocumentationFragment.extends_documentation_fragment;
+    const docFragmentNames: string[] = Array.isArray(rawFragments)
+      ? rawFragments.filter(
+          (fragment): fragment is string => typeof fragment === "string",
+        )
+      : typeof rawFragments === "string"
+        ? [rawFragments]
+        : [];
     const resultContents = {};
     for (const docFragmentName of docFragmentNames) {
       const fragmentNameArray = docFragmentName.split(".");

@@ -85,7 +85,7 @@ async function runAnsibleLintWithoutFix(
 
       try {
         // Even with linting errors, valid JSON is printed to stdout.
-        const result = JSON.parse(stdoutData);
+        const result: unknown = JSON.parse(stdoutData);
         resolve({ result });
       } catch {
         reject(
@@ -171,7 +171,7 @@ async function runAnsibleLintOnFile(
       try {
         // Try to parse JSON output
         if (stdoutData.trim()) {
-          const result = JSON.parse(stdoutData);
+          const result: unknown = JSON.parse(stdoutData);
           resolve(result);
         } else {
           // If no JSON output, return empty array (no issues found)

@@ -215,7 +215,7 @@ async function getExecutionEnvironmentInfo() {
           encoding: "utf-8",
         },
       ),
-    );
+    ) as Record<string, unknown>;
     eeServiceWorking = true;
   } catch (error) {
     eeServiceWorking = false;

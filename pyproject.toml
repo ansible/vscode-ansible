@@ -106,6 +106,7 @@ sort_table_keys = true
 package = false
 default-groups = "all"
 # exclude-newer-package = { ansible-dev-tools = "0 seconds", ansible-navigator = "0 seconds", ansible-creator = "0 seconds", ansible-lint = "0 seconds", ansible-core = "0 seconds", ansible-dev-environment = "0 seconds", tox-ansible = "0 seconds", pytest-ansible = "0 seconds", molecule = "0 seconds", ansible-builder = "0 seconds", ansible-sign = "0 seconds" }
+python-downloads = "automatic"
 
 [tool.uv.pip]
 annotation-style = "line"

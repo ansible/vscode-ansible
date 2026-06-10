@@ -131,8 +131,9 @@ export class AnsiblePlaybookRunProvider {
    * Create or reuse a terminal with Python environment activated.
    */
   private async getTerminal(): Promise<vscode.Terminal> {
-    const reuseTerminal =
-      vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal;
+    const reuseTerminal = vscode.workspace
+      .getConfiguration("ansible.ansible")
+      .get<boolean>("reuseTerminal", false);
     const terminalService = TerminalService.getInstance();
 
     const managed = await terminalService.createActivatedTerminal({

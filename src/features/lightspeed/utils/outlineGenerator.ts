@@ -43,7 +43,7 @@ function extractTasksFromPlay(play: Record<string, unknown>): string[] {
  */
 export function generateOutlineFromPlaybook(playbookYaml: string): string {
   try {
-    const parsed = yaml.parse(playbookYaml);
+    const parsed: unknown = yaml.parse(playbookYaml);
 
     if (!parsed || !Array.isArray(parsed)) {
       return "";
@@ -71,7 +71,7 @@ export function generateOutlineFromPlaybook(playbookYaml: string): string {
  */
 export function generateOutlineFromRole(roleYaml: string): string {
   try {
-    const parsed = yaml.parse(roleYaml);
+    const parsed: unknown = yaml.parse(roleYaml);
 
     if (!parsed || !Array.isArray(parsed)) {
       return "";

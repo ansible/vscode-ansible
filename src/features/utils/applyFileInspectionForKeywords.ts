@@ -16,7 +16,7 @@ export async function applyFileInspectionForKeywords(
     }
 
     const fileText = editor.document.getText();
-    const parsedYaml = fileText ? yaml.parse(fileText) : "";
+    const parsedYaml: unknown = fileText ? yaml.parse(fileText) : "";
 
     if (parsedYaml && Array.isArray(parsedYaml)) {
       // Check for all seq

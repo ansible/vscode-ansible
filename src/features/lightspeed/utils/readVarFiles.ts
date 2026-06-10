@@ -7,7 +7,7 @@ export function readVarFiles(varFile: string): string | undefined {
       return undefined;
     }
     const contents = fs.readFileSync(varFile, "utf8");
-    const parsedAnsibleVars = yaml.parse(contents, {
+    const parsedAnsibleVars: unknown = yaml.parse(contents, {
       keepSourceTokens: true,
     });
     const updatedFileContents = yaml.stringify(parsedAnsibleVars);

@@ -192,7 +192,7 @@ export function setupMessageHandler(
   const router = new MessageRouter(config, commonState);
 
   const messageHandler = (event: MessageEvent) => {
-    const payload = event.data;
+    const payload: unknown = event.data;
     if (!isRecord(payload)) {
       return;
     }
@@ -293,14 +293,14 @@ export function initializeUI() {
 }
 
 export function clearAllFields(
-  fields: Record<string, Ref>,
-  defaults: Record<string, any> = {},
+  fields: Record<string, Ref<unknown>>,
+  defaults: Record<string, unknown> = {},
 ) {
   Object.keys(fields).forEach((key) => {
     if (defaults[key] !== undefined) {
       fields[key].value = defaults[key];
     } else {
-      const currentValue = fields[key].value;
+      const currentValue: unknown = fields[key].value;
       if (typeof currentValue === "string") {
         fields[key].value = "";
       } else if (typeof currentValue === "boolean") {

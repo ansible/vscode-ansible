@@ -164,7 +164,7 @@ export function getVarsCompletion(
 
           const contents = parseDocument(file).contents;
           if (contents !== null) {
-            const yamlDocContent = contents.toJSON();
+            const yamlDocContent: unknown = contents.toJSON();
 
             // variables declared in the file should be in list format only
             if (Array.isArray(yamlDocContent)) {

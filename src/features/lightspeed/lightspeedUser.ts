@@ -162,17 +162,18 @@ export class LightspeedUser {
       );
 
       if (response.ok) {
-        const userInfo: LoggedInUserInfo = await response.json();
-        if (!userInfo) {
+        const userInfo: unknown = await response.json();
+        if (!userInfo || typeof userInfo !== "object") {
           throw new Error("Unexpected userinfo payload");
         }
-        this._getUserInfoCache.userInfo = userInfo;
+        const parsedUserInfo = userInfo as LoggedInUserInfo;
+        this._getUserInfoCache.userInfo = parsedUserInfo;
 
         this._getUserInfoCache.time = Date.now();
         this._getUserInfoCache.token = token;
         this._getUserInfoCache.locked = false;
 
-        return userInfo;
+        return parsedUserInfo;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
