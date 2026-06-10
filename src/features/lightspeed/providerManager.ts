@@ -32,7 +32,7 @@ export class ProviderManager {
     this.settingsManager = settingsManager;
     this.wcaApi = wcaApi;
     this.llmProviderSettings = llmProviderSettings;
-    this.initializeLlmProvider();
+    void this.initializeLlmProvider();
   }
 
   /**

@@ -133,7 +133,7 @@ export class LightSpeedManager {
       return;
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
-      this.statusBarProvider.setLightSpeedStatusBarTooltip();
+      void this.statusBarProvider.setLightSpeedStatusBarTooltip();
       this.setContext();
     }
 

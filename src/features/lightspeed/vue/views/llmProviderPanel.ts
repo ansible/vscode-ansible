@@ -64,7 +64,7 @@ export class LlmProviderPanel {
     );
 
     // Send initial settings
-    this.messageHandlers.sendProviderSettings();
+    void this.messageHandlers.sendProviderSettings();
   }
 
   // Renders the LLM Provider panel or reveals it if already open.

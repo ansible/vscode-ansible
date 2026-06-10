@@ -136,7 +136,7 @@ export class LlmProviderMessageHandlers {
     this.quickLinksProvider?.refreshProviderInfo();
 
     // Run heavy operations in background (don't block UI)
-    this.settingsManager.reinitialize().then(() => {
+    void this.settingsManager.reinitialize().then(() => {
       this.providerManager.refreshProviders().catch((error) => {
         console.error("Failed to refresh providers:", error);
       });

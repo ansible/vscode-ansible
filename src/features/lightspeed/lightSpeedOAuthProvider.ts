@@ -303,7 +303,7 @@ export class LightSpeedAuthenticationProvider
 
       if (account) {
         const sessionId = account.id;
-        this.removeSession(sessionId);
+        void this.removeSession(sessionId);
       }
 
       this._logger.debug("[ansible-lightspeed-oauth] Disposing auth provider");

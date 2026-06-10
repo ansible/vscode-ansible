@@ -64,7 +64,7 @@ export class LightspeedStatusBar {
     this.settingsManager = settingsManager;
     // create a new project lightspeed status bar item that we can manage
     this.statusBar = this.initialiseStatusBar();
-    this.updateLightSpeedStatusbar();
+    void this.updateLightSpeedStatusbar();
   }
 
   private initialiseStatusBar(): vscode.StatusBarItem {
@@ -110,9 +110,9 @@ export class LightspeedStatusBar {
 
   private handleStatusBar() {
     try {
-      this.getLightSpeedStatusBarText().then((text) => {
+      void this.getLightSpeedStatusBarText().then((text) => {
         this.statusBar.text = text;
-        this.setLightSpeedStatusBarTooltip();
+        void this.setLightSpeedStatusBarTooltip();
       });
     } catch (error) {
       console.log(
@@ -132,7 +132,7 @@ export class LightspeedStatusBar {
         "statusBarItem.warningBackground",
       );
     }
-    this.setLightSpeedStatusBarTooltip();
+    void this.setLightSpeedStatusBarTooltip();
     this.statusBar.show();
   }
 
