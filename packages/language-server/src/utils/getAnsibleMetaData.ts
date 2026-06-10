@@ -14,6 +14,13 @@ export interface AnsibleMetaDataType {
     ansibleLintVersion?: string;
 }
 
+/**
+ * Collects installed Ansible and ansible-lint version metadata for a workspace.
+ *
+ * @param ctx - Workspace folder context used to resolve tool paths.
+ * @param connection - LSP connection for logging failures.
+ * @returns Metadata entries keyed by tool name.
+ */
 export async function getAnsibleMetaData(
     ctx: WorkspaceFolderContext,
     connection: Connection,

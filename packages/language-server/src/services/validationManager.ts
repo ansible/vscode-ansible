@@ -20,11 +20,23 @@ export class ValidationManager {
     private referencedFilesByOrigin = new Map<string, Set<string>>();
     private referencedFileRefCounter = new Map<string, number>();
 
+    /**
+     * Creates a validation manager bound to the LSP connection and documents.
+     *
+     * @param connection - LSP connection used to publish diagnostics.
+     * @param documents - Open document collection for origin tracking.
+     */
     constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
         this.connection = connection;
         this.documents = documents;
     }
 
+    /**
+     * Publishes diagnostics and updates cross-file reference tracking.
+     *
+     * @param originFileUri - URI of the document that triggered validation.
+     * @param diagnosticsByFile - Diagnostics grouped by affected file URI.
+     */
     public processDiagnostics(
         originFileUri: string,
         diagnosticsByFile: Map<string, Diagnostic[]>,
@@ -61,6 +73,12 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Stores diagnostics in an interval tree for incremental invalidation.
+     *
+     * @param originFileUri - URI of the document that produced the diagnostics.
+     * @param cacheableDiagnostics - Diagnostics to cache by file URI.
+     */
     public cacheDiagnostics(
         originFileUri: string,
         cacheableDiagnostics: Map<string, Diagnostic[]>,
@@ -81,6 +99,12 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Invalidates or shifts cached diagnostics when document content changes.
+     *
+     * @param fileUri - URI of the changed document.
+     * @param changes - Incremental content change events from the client.
+     */
     public reconcileCacheItems(fileUri: string, changes: TextDocumentContentChangeEvent[]): void {
         const diagnosticTree = this.validationCache.get(fileUri);
         if (!diagnosticTree) return;
@@ -124,6 +148,12 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Returns cached diagnostics for quick validation without re-running tools.
+     *
+     * @param fileUri - URI of the document requesting cached diagnostics.
+     * @returns Cached diagnostics by file URI, or undefined when absent.
+     */
     public getValidationFromCache(fileUri: string): Map<string, Diagnostic[]> | undefined {
         const referencedFiles = this.referencedFilesByOrigin.get(fileUri);
         if (referencedFiles) {
@@ -143,6 +173,11 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Clears reference tracking and diagnostics when an origin document closes.
+     *
+     * @param fileUri - URI of the closed document.
+     */
     public handleDocumentClosed(fileUri: string): void {
         const referencedFiles = this.referencedFilesByOrigin.get(fileUri);
         if (referencedFiles) {
@@ -153,10 +188,20 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Increments the reference count for a file receiving external diagnostics.
+     *
+     * @param fileUri - URI of the referenced file.
+     */
     private handleFileReferenced(fileUri: string): void {
         this.referencedFileRefCounter.set(fileUri, this.getRefCounter(fileUri) + 1);
     }
 
+    /**
+     * Decrements references and clears diagnostics when a file is no longer cited.
+     *
+     * @param fileUri - URI of the unreferenced file.
+     */
     private handleFileUnreferenced(fileUri: string): void {
         const counter = this.getRefCounter(fileUri) - 1;
         if (counter <= 0) {
@@ -168,6 +213,12 @@ export class ValidationManager {
         }
     }
 
+    /**
+     * Returns how many origin documents currently reference a file.
+     *
+     * @param fileUri - URI of the referenced file.
+     * @returns Current reference count, or zero when untracked.
+     */
     private getRefCounter(fileUri: string): number {
         return this.referencedFileRefCounter.get(fileUri) ?? 0;
     }

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import process from 'node:process';
 
+/**
+ * Entry point for the Ansible language server CLI.
+ */
 async function main(): Promise<void> {
     const args = new Set(process.argv.slice(2));
 

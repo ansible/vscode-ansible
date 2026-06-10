@@ -15,17 +15,20 @@ export interface PluginSearchResult {
     shortDescription: string;
 }
 
+/** In-memory keyword search index over installed Ansible plugin documentation. */
 export class PluginSearchIndex {
     private static _instance: PluginSearchIndex | undefined;
     private _entries: PluginSearchResult[] = [];
     private _built = false;
     private _subscribed = false;
 
+    /** Creates the singleton index and subscribes to collection change events. */
     private constructor() {
         // Subscribe to CollectionsService changes
         this._subscribeToChanges();
     }
 
+    /** Marks the index stale when CollectionsService reports installed collections changed. */
     private _subscribeToChanges(): void {
         if (this._subscribed) {
             return;
@@ -69,15 +72,26 @@ export class PluginSearchIndex {
         }
     }
 
+    /**
+     * Returns the shared PluginSearchIndex singleton.
+     *
+     * @returns Lazily constructed PluginSearchIndex instance
+     */
     public static getInstance(): PluginSearchIndex {
         PluginSearchIndex._instance ??= new PluginSearchIndex();
         return PluginSearchIndex._instance;
     }
 
+    /**
+     * Whether the index has been populated from the current collection cache.
+     *
+     * @returns True when `rebuild()` has completed without a subsequent invalidation
+     */
     public isBuilt(): boolean {
         return this._built;
     }
 
+    /** Builds the index on first use without rebuilding when already current. */
     public async ensureBuilt(): Promise<void> {
         if (this._built) {
             return;
@@ -85,6 +99,7 @@ export class PluginSearchIndex {
         await this.rebuild();
     }
 
+    /** Rebuilds the search index from all plugins in CollectionsService. */
     public async rebuild(): Promise<void> {
         const service = CollectionsService.getInstance();
 
@@ -120,6 +135,16 @@ export class PluginSearchIndex {
         this._built = true;
     }
 
+    /**
+     * Searches indexed plugins by keyword relevance with optional filters.
+     *
+     * @param query - Free-text search terms matched against name, FQCN, and description
+     * @param options - Optional search filters
+     * @param options.pluginType - Restrict results to one Ansible plugin type
+     * @param options.collection - Substring filter on collection FQCN
+     * @param options.limit - Maximum number of results (capped at 50)
+     * @returns Ranked plugin matches, highest relevance first
+     */
     public search(
         query: string,
         options?: {
@@ -161,6 +186,12 @@ export class PluginSearchIndex {
         return results;
     }
 
+    /**
+     * Splits search text into lowercase terms for matching.
+     *
+     * @param text - Raw query string from the caller
+     * @returns Non-trivial tokens after splitting on whitespace and punctuation
+     */
     private _tokenize(text: string): string[] {
         return text
             .toLowerCase()
@@ -168,6 +199,13 @@ export class PluginSearchIndex {
             .filter((t) => t.length > 1);
     }
 
+    /**
+     * Scores how well a plugin entry matches the tokenized query.
+     *
+     * @param queryTerms - Lowercase search tokens
+     * @param entry - Plugin index entry to score
+     * @returns Relevance score; zero means no meaningful match
+     */
     private _scoreMatch(queryTerms: string[], entry: PluginSearchResult): number {
         let score = 0;
         const nameLower = entry.name.toLowerCase();
@@ -217,6 +255,11 @@ export class PluginSearchIndex {
         return score;
     }
 
+    /**
+     * Number of plugin entries currently held in the index.
+     *
+     * @returns Count of indexed plugins (zero before the first rebuild)
+     */
     public getCount(): number {
         return this._entries.length;
     }

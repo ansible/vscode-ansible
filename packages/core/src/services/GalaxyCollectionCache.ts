@@ -55,6 +55,12 @@ interface ExtensionContextLike {
     globalStorageUri: { fsPath: string };
 }
 
+/**
+ * Type guard that validates parsed JSON matches the on-disk cache shape.
+ *
+ * @param value - Parsed JSON value read from the cache file.
+ * @returns True when value contains a timestamp and collections array.
+ */
 function isCacheData(value: unknown): value is CacheData {
     return (
         typeof value === 'object' &&
@@ -65,6 +71,9 @@ function isCacheData(value: unknown): value is CacheData {
     );
 }
 
+/**
+ * Caches Ansible Galaxy collection metadata from the public API with file persistence.
+ */
 export class GalaxyCollectionCache {
     private static _instance: GalaxyCollectionCache | undefined;
     private _collections: GalaxyCollection[] = [];
@@ -84,6 +93,9 @@ export class GalaxyCollectionCache {
     private _cacheTimestamp = 0;
     private _standaloneMode = !vscode;
 
+    /**
+     * Creates the cache and optional VS Code status bar item for load progress.
+     */
     private constructor() {
         if (vscode) {
             this._statusBarItem = vscode.window.createStatusBarItem(
@@ -93,10 +105,20 @@ export class GalaxyCollectionCache {
         }
     }
 
+    /**
+     * Stores the VS Code extension context used to resolve global storage paths.
+     *
+     * @param context - Extension context providing globalStorageUri.
+     */
     public setExtensionContext(context: ExtensionContextLike): void {
         this._extensionContext = context;
     }
 
+    /**
+     * Resolves the on-disk cache file path for extension or standalone mode.
+     *
+     * @returns Absolute cache file path, or undefined when no location is available.
+     */
     private get _cacheFilePath(): string | undefined {
         // In extension mode, use extension context's global storage
         if (this._extensionContext) {
@@ -138,27 +160,57 @@ export class GalaxyCollectionCache {
         return undefined;
     }
 
+    /**
+     * Returns the current Galaxy API pagination progress counters.
+     *
+     * @returns Loaded and total collection counts from the in-flight fetch.
+     */
     public getProgress(): { loaded: number; total: number } {
         return { loaded: this._loadedCount, total: this._totalCount };
     }
 
+    /**
+     * Returns the shared GalaxyCollectionCache instance.
+     *
+     * @returns Singleton cache for Galaxy collection metadata.
+     */
     public static getInstance(): GalaxyCollectionCache {
         GalaxyCollectionCache._instance ??= new GalaxyCollectionCache();
         return GalaxyCollectionCache._instance;
     }
 
+    /**
+     * Indicates whether collection metadata has been loaded into memory.
+     *
+     * @returns True after a successful file or API load completes.
+     */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
+    /**
+     * Indicates whether a Galaxy API fetch is currently in progress.
+     *
+     * @returns True while collections are being downloaded or parsed.
+     */
     public isLoading(): boolean {
         return this._loading;
     }
 
+    /**
+     * Returns the cached Galaxy collections sorted by popularity.
+     *
+     * @returns In-memory collection list from the latest successful load.
+     */
     public getCollections(): GalaxyCollection[] {
         return this._collections;
     }
 
+    /**
+     * Returns a human-readable age string for the current cache timestamp.
+     *
+     * @returns Relative age such as "3 days ago", or "never" when uncached.
+     */
     public getCacheAge(): string {
         if (this._cacheTimestamp === 0) {
             return 'never';
@@ -176,6 +228,11 @@ export class GalaxyCollectionCache {
         }
     }
 
+    /**
+     * Ensures collections are loaded, awaiting any in-flight background fetch.
+     *
+     * @returns Promise that resolves when collections are available in memory.
+     */
     public async ensureLoaded(): Promise<void> {
         if (this._loaded) {
             return;
@@ -187,12 +244,18 @@ export class GalaxyCollectionCache {
         await this._loadPromise;
     }
 
+    /**
+     * Starts a non-blocking background load when none is already running.
+     */
     public startBackgroundLoad(): void {
         if (!this._loading) {
             this._loadPromise = this._loadCollections(false);
         }
     }
 
+    /**
+     * Clears in-memory and on-disk state, then reloads collections from the Galaxy API.
+     */
     public async forceRefresh(): Promise<void> {
         log('GalaxyCollectionCache: Force refresh requested');
         this._loaded = false;
@@ -203,6 +266,11 @@ export class GalaxyCollectionCache {
         await this._loadPromise;
     }
 
+    /**
+     * Attempts to hydrate collections from the persisted file cache.
+     *
+     * @returns True when a valid, non-expired cache file was loaded.
+     */
     private _loadFromFileCache(): boolean {
         const cacheFile = this._cacheFilePath;
         if (!cacheFile) {
@@ -247,6 +315,9 @@ export class GalaxyCollectionCache {
         }
     }
 
+    /**
+     * Persists the in-memory collection list and timestamp to disk.
+     */
     private _saveToFileCache(): void {
         const cacheFile = this._cacheFilePath;
         if (!cacheFile) {
@@ -278,6 +349,11 @@ export class GalaxyCollectionCache {
         }
     }
 
+    /**
+     * Loads collections from file cache or the Galaxy API with progress events.
+     *
+     * @param forceRefresh - When true, bypasses file cache and refetches from the API.
+     */
     private async _loadCollections(forceRefresh: boolean): Promise<void> {
         if (this._loading) {
             return;
@@ -412,6 +488,13 @@ export class GalaxyCollectionCache {
         }
     }
 
+    /**
+     * Fetches a single paginated Galaxy API page with retry and redirect handling.
+     *
+     * @param url - Absolute Galaxy API URL to request.
+     * @param retries - Number of attempts before failing the request.
+     * @returns Parsed Galaxy API response for the requested page.
+     */
     private _fetchPage(url: string, retries = 3): Promise<GalaxyApiResponse> {
         return new Promise((resolve, reject) => {
             const makeRequest = (attemptsLeft: number) => {
@@ -568,6 +651,12 @@ export class GalaxyCollectionCache {
         });
     }
 
+    /**
+     * Searches cached collections by namespace, name, or FQCN.
+     *
+     * @param query - Case-insensitive search string; empty returns top 100 by popularity.
+     * @returns Up to 100 matching collections from the in-memory cache.
+     */
     public search(query: string): GalaxyCollection[] {
         if (!query) {
             // Return top 100 by popularity

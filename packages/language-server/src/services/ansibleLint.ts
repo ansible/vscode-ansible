@@ -28,18 +28,33 @@ interface CodeClimateItem {
     url?: string;
 }
 
+/**
+ * Validates Ansible content by running ansible-lint and parsing Code Climate output.
+ */
 export class AnsibleLint {
     private connection: Connection;
     private context: WorkspaceFolderContext;
     private useProgressTracker = false;
     private _ansibleLintConfigFilePath: string | undefined;
 
+    /**
+     * Binds the lint service to an LSP connection and workspace context.
+     *
+     * @param connection - LSP connection for progress and error reporting.
+     * @param context - Workspace folder providing settings and working directory.
+     */
     constructor(connection: Connection, context: WorkspaceFolderContext) {
         this.connection = connection;
         this.context = context;
         this.useProgressTracker = !!context.clientCapabilities.window?.workDoneProgress;
     }
 
+    /**
+     * Runs ansible-lint on the document and returns parsed diagnostics.
+     *
+     * @param textDocument - Document to lint.
+     * @returns Diagnostics keyed by affected file URI.
+     */
     public async doValidate(textDocument: TextDocument): Promise<Map<string, Diagnostic[]>> {
         let diagnostics = new Map<string, Diagnostic[]>();
 
@@ -110,6 +125,13 @@ export class AnsibleLint {
         return diagnostics;
     }
 
+    /**
+     * Parses ansible-lint Code Climate JSON into LSP diagnostics.
+     *
+     * @param result - Standard output from ansible-lint.
+     * @param workingDirectory - Workspace root used to resolve relative paths.
+     * @returns Diagnostics keyed by file URI.
+     */
     private processReport(result: string, workingDirectory: string): Map<string, Diagnostic[]> {
         const diagnostics = new Map<string, Diagnostic[]>();
         if (!result) {
@@ -184,6 +206,12 @@ export class AnsibleLint {
         return diagnostics;
     }
 
+    /**
+     * Walks upward from the document path to find a .ansible-lint config file.
+     *
+     * @param uri - Document URI to start the search from.
+     * @returns Absolute path to the config file, or undefined when not found.
+     */
     private async findAnsibleLintConfigFile(uri: string): Promise<string | undefined> {
         const workspacePath = URI.parse(this.context.workspaceFolder.uri).path;
         let dir = path.dirname(URI.parse(uri).path);
@@ -200,13 +228,21 @@ export class AnsibleLint {
         return undefined;
     }
 
+    /**
+     * Path to the .ansible-lint config used in the last lint run.
+     *
+     * @returns Resolved config file path, or undefined when none was used.
+     */
     get ansibleLintConfigFilePath(): string | undefined {
         return this._ansibleLintConfigFilePath;
     }
 }
 
 /**
- * Splits a shell-like argument string, respecting single and double quotes.
+ * Type guard for ansible-lint Code Climate JSON report items.
+ *
+ * @param value - Parsed JSON value to test.
+ * @returns True when the value matches the Code Climate item shape.
  */
 function isCodeClimateItem(value: unknown): value is CodeClimateItem {
     if (typeof value !== 'object' || value === null) {
@@ -222,6 +258,12 @@ function isCodeClimateItem(value: unknown): value is CodeClimateItem {
     );
 }
 
+/**
+ * Extracts a one-based line number from a Code Climate position value.
+ *
+ * @param begin - Line position object or bare line number.
+ * @returns One-based line number, defaulting to 1.
+ */
 function getLineNumber(begin: CodeClimatePosition | number | undefined): number {
     if (begin === undefined) {
         return 1;
@@ -229,6 +271,12 @@ function getLineNumber(begin: CodeClimatePosition | number | undefined): number 
     return typeof begin === 'number' ? begin : begin.line;
 }
 
+/**
+ * Extracts a one-based column number from a Code Climate position value.
+ *
+ * @param begin - Column position object or bare line number.
+ * @returns One-based column number, defaulting to 1.
+ */
 function getColumnNumber(begin: CodeClimatePosition | number | undefined): number {
     if (begin === undefined || typeof begin === 'number') {
         return 1;
@@ -236,6 +284,12 @@ function getColumnNumber(begin: CodeClimatePosition | number | undefined): numbe
     return begin.column ?? 1;
 }
 
+/**
+ * Splits a shell-like argument string, respecting single and double quotes.
+ *
+ * @param input - Raw argument string from lint settings.
+ * @returns Tokenized argument list.
+ */
 function parseArgv(input: string): string[] {
     const args: string[] = [];
     let current = '';

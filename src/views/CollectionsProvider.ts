@@ -31,6 +31,7 @@ interface PluginNode {
     pluginType: string;
 }
 
+/** Tree view provider for installed Ansible collections and their plugins. */
 export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null> =
         new vscode.EventEmitter<TreeNode | undefined | null>();
@@ -42,6 +43,10 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
     private _serviceListener: vscode.Disposable | undefined;
     private _refreshDebounce: ReturnType<typeof setTimeout> | undefined;
 
+    /**
+     * Create the provider and refresh when collections or the environment change.
+     * @param pythonEnvService - Service that reports Python environment changes
+     */
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._service = CollectionsService.getInstance();
 
@@ -59,6 +64,10 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
         void this._initEnvListener(pythonEnvService);
     }
 
+    /**
+     * Debounce collection refreshes when the active Python environment changes.
+     * @param pythonEnvService - Service used to observe environment changes
+     */
     private async _initEnvListener(pythonEnvService: PythonEnvironmentService) {
         try {
             await pythonEnvService.initialize();
@@ -79,10 +88,16 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
         }
     }
 
+    /** Reload installed collections and plugin metadata. */
     async refresh(): Promise<void> {
         await this._service.refresh();
     }
 
+    /**
+     * Render a collection, plugin type, plugin, or loading node.
+     * @param element - Tree node to display
+     * @returns Tree item with labels, icons, and commands for plugin nodes
+     */
     getTreeItem(element: TreeNode): vscode.TreeItem {
         if (element.type === 'loading') {
             const item = new vscode.TreeItem(
@@ -145,6 +160,11 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
         }
     }
 
+    /**
+     * Return root collections or the children of a collection or plugin type node.
+     * @param element - Parent node whose children should be listed
+     * @returns Child nodes for the requested tree level
+     */
     getChildren(element?: TreeNode): Thenable<TreeNode[]> {
         if (!element) {
             if (this._service.isLoading() || !this._service.isLoaded()) {
@@ -196,6 +216,7 @@ export class CollectionsProvider implements vscode.TreeDataProvider<TreeNode> {
         return Promise.resolve([]);
     }
 
+    /** Release listeners and pending refresh timers. */
     dispose() {
         if (this._refreshDebounce) {
             clearTimeout(this._refreshDebounce);

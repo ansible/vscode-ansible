@@ -10,6 +10,12 @@ const VENV_BIN = path.join(VENV_DIR, 'bin');
 const VENV_PYTHON = path.join(VENV_BIN, 'python');
 const COMPLETION_PLAYBOOK = 'completion-test.ansible.yml';
 
+/**
+ * Runs a shell command synchronously and returns trimmed stdout.
+ * @param cmd - Shell command to execute.
+ * @param opts - Additional options passed to execSync.
+ * @returns Trimmed standard output from the command.
+ */
 function shell(cmd: string, opts: Record<string, unknown> = {}): string {
     return execSync(cmd, {
         encoding: 'utf-8',

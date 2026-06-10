@@ -15,6 +15,7 @@ vi.mock('../../src/services/CommandService', () => ({
 
 import { CollectionsService } from '../../src/services/CollectionsService';
 
+/** Clears the CollectionsService singleton so each test starts with a fresh instance. */
 function resetCollectionsSingleton(): void {
     (CollectionsService as unknown as { _instance: CollectionsService | undefined })._instance =
         undefined;

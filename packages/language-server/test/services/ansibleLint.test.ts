@@ -12,6 +12,10 @@ vi.mock('../../src/utils/misc', async (importOriginal) => {
     return { ...orig, fileExists: vi.fn().mockResolvedValue(false) };
 });
 
+/**
+ * Builds a minimal language-server connection stub for AnsibleLint tests.
+ * @returns A stub connection with window, console, and progress helpers.
+ */
 function mockConnection() {
     return {
         window: {
@@ -30,6 +34,12 @@ function mockConnection() {
     };
 }
 
+/**
+ * Builds a document context with optional workspace folder and validation settings.
+ * @param folderUri - Workspace folder URI for the test context.
+ * @param settings - Partial validation settings to merge into defaults.
+ * @returns A stub document context with workspace folder and settings accessors.
+ */
 function mockContext(
     folderUri = 'file:///workspace',
     settings?: Partial<{
@@ -54,6 +64,12 @@ function mockContext(
     };
 }
 
+/**
+ * Creates a TextDocument for ansible-lint validation tests.
+ * @param content - YAML playbook content.
+ * @param uri - Document URI.
+ * @returns A language-server TextDocument instance.
+ */
 function makeDoc(
     content = '---\n- hosts: all\n  tasks: []',
     uri = 'file:///workspace/playbook.yml',

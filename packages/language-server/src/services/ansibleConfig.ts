@@ -8,6 +8,9 @@ import type { WorkspaceFolderContext } from './workspaceManager';
 
 export type AnsibleMetaData = Record<string, string | undefined>;
 
+/**
+ * Loads Ansible configuration and version metadata for a workspace folder.
+ */
 export class AnsibleConfig {
     private connection: Connection;
     private context: WorkspaceFolderContext;
@@ -17,11 +20,20 @@ export class AnsibleConfig {
     private _defaultHostList: string[] = [];
     private _ansibleMetaData: AnsibleMetaData = {};
 
+    /**
+     * Binds the config service to an LSP connection and workspace context.
+     *
+     * @param connection - LSP connection for error reporting.
+     * @param context - Workspace folder whose Ansible config is loaded.
+     */
     constructor(connection: Connection, context: WorkspaceFolderContext) {
         this.connection = connection;
         this.context = context;
     }
 
+    /**
+     * Fetches ansible-config dump and ansible --version output for the workspace.
+     */
     public async initialize(): Promise<void> {
         try {
             const commandService = getCommandService();
@@ -64,27 +76,58 @@ export class AnsibleConfig {
         }
     }
 
+    /**
+     * Collection search paths from ansible-config.
+     *
+     * @returns Configured collection search paths.
+     */
     get collectionPaths(): string[] {
         return this._collectionPaths;
     }
 
+    /**
+     * Default inventory sources from ansible-config.
+     *
+     * @returns Default host list paths from configuration.
+     */
     get defaultHostList(): string[] {
         return this._defaultHostList;
     }
 
+    /**
+     * Module search paths reported by ansible --version.
+     *
+     * @returns Module directories Ansible searches for plugins.
+     */
     get moduleLocations(): string[] {
         return this._moduleLocations;
     }
 
+    /**
+     * Path to the ansible Python module installation.
+     *
+     * @returns Ansible Python package location from version output.
+     */
     get ansibleLocation(): string {
         return this._ansibleLocation;
     }
 
+    /**
+     * Parsed ansible --version metadata key-value pairs.
+     *
+     * @returns Version and configuration metadata from ansible --version.
+     */
     get ansibleMetaData(): AnsibleMetaData {
         return this._ansibleMetaData;
     }
 }
 
+/**
+ * Parses a Python list literal string into an array of path strings.
+ *
+ * @param stringList - Bracketed, comma-separated quoted paths from ansible-config.
+ * @returns Unquoted path entries.
+ */
 function parsePythonStringArray(stringList: string): string[] {
     if (!stringList || stringList.length < 2) return [];
     const cleaned = stringList.slice(1, stringList.length - 1);

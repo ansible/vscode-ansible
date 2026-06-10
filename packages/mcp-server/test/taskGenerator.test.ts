@@ -12,6 +12,10 @@ vi.mock('@ansible/core', () => ({
 
 import { TaskGenerator } from '../src/taskGenerator';
 
+/**
+ * Returns mock ansible.builtin.copy plugin documentation for TaskGenerator tests.
+ * @returns Mock plugin documentation with copy module options.
+ */
 function copyPluginDoc() {
     return {
         doc: {

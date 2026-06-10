@@ -19,7 +19,14 @@ export interface ToolInfo {
     examplePrompt: string;
 }
 
+/** Collapsible tree item representing a category of MCP tools. */
 class ToolCategoryNode extends vscode.TreeItem {
+    /**
+     * Create a category node with a tool count description.
+     * @param categoryLabel - Display label for the category
+     * @param categoryId - Internal category identifier
+     * @param toolCount - Number of tools contained in the category
+     */
     constructor(
         public readonly categoryLabel: string,
         public readonly categoryId: ToolCategory,
@@ -41,9 +48,14 @@ class ToolCategoryNode extends vscode.TreeItem {
     }
 }
 
+/** Leaf tree item for a single MCP tool with chat injection command. */
 class ToolNode extends vscode.TreeItem {
     public readonly sortKey: string;
 
+    /**
+     * Create a tool node from MCP tool metadata and an example prompt.
+     * @param toolInfo - Tool definition, category, and example chat prompt
+     */
     constructor(public readonly toolInfo: ToolInfo) {
         // Use the first line of description as the label
         const firstLine = toolInfo.tool.description.split('\n')[0].trim();
@@ -65,6 +77,10 @@ class ToolNode extends vscode.TreeItem {
         };
     }
 
+    /**
+     * Build markdown tooltip content describing the tool and its parameters.
+     * @returns Markdown tooltip text for the tool node
+     */
     private _formatTooltip(): string {
         const tool = this.toolInfo.tool;
         const lines: string[] = [`### ${tool.name}`, '', tool.description, ''];
@@ -90,7 +106,12 @@ class ToolNode extends vscode.TreeItem {
     }
 }
 
+/** Warning node shown when MCP is not configured for the current IDE. */
 class McpWarningNode extends vscode.TreeItem {
+    /**
+     * Create a warning node that links to MCP configuration.
+     * @param status - Current MCP status for the active IDE
+     */
     constructor(status: McpStatus) {
         const ideName = status.ide === 'cursor' ? 'Cursor' : 'VS Code Copilot';
         super(`MCP not configured for ${ideName}`, vscode.TreeItemCollapsibleState.None);
@@ -111,6 +132,7 @@ class McpWarningNode extends vscode.TreeItem {
 
 type ToolTreeItem = ToolCategoryNode | ToolNode | McpWarningNode;
 
+/** Tree view provider for Ansible MCP tools and example chat prompts. */
 export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<ToolTreeItem | undefined | null>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -121,6 +143,10 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
     private _creatorServiceListener: vscode.Disposable | undefined;
     private _extensionContext: vscode.ExtensionContext;
 
+    /**
+     * Create the provider and load static and creator MCP tools.
+     * @param context - Extension context used to evaluate MCP configuration status
+     */
     constructor(context: vscode.ExtensionContext) {
         this._extensionContext = context;
         this._creatorToolGenerator = new CreatorToolGenerator();
@@ -137,14 +163,17 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         void this._loadTools();
     }
 
+    /** Release creator service listeners. */
     dispose(): void {
         this._creatorServiceListener?.dispose();
     }
 
+    /** Reload MCP tool definitions and refresh the tree. */
     refresh(): void {
         void this._loadTools();
     }
 
+    /** Load static and creator-generated MCP tools into the tree model. */
     private async _loadTools(): Promise<void> {
         if (this._isLoading) {
             return;
@@ -190,6 +219,11 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         }
     }
 
+    /**
+     * Assign a display category to a static MCP tool by name.
+     * @param name - MCP tool identifier
+     * @returns Category used to group the tool in the tree
+     */
     private _categorizeStaticTool(name: string): ToolCategory {
         if (
             name.includes('search') ||
@@ -210,6 +244,11 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         return 'discovery'; // default
     }
 
+    /**
+     * Build an example chat prompt that instructs an agent to use the tool.
+     * @param tool - MCP tool definition to describe in the prompt
+     * @returns Example prompt suitable for injection into chat
+     */
     private _generateExamplePrompt(tool: McpToolDefinition): string {
         const name = tool.name;
 
@@ -259,10 +298,20 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
         }
     }
 
+    /**
+     * Return the tree item for an MCP tool tree node.
+     * @param element - Node whose tree item should be displayed
+     * @returns The node itself because MCP tool nodes extend TreeItem
+     */
     getTreeItem(element: ToolTreeItem): vscode.TreeItem {
         return element;
     }
 
+    /**
+     * Return MCP warning, categories, or tools within a selected category.
+     * @param element - Parent node whose children should be listed
+     * @returns Root categories, category tools, or an empty list
+     */
     getChildren(element?: ToolTreeItem): ToolTreeItem[] | Promise<ToolTreeItem[]> {
         if (!element) {
             const items: ToolTreeItem[] = [];
@@ -308,6 +357,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
 
     /**
      * Get the CreatorToolGenerator instance for MCP handlers
+     * @returns Shared generator used to build dynamic creator MCP tools
      */
     getCreatorToolGenerator(): CreatorToolGenerator {
         return this._creatorToolGenerator;
@@ -315,6 +365,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
 
     /**
      * Get all loaded tools
+     * @returns Copy of the currently loaded MCP tool metadata
      */
     getAllTools(): ToolInfo[] {
         return [...this._tools];
@@ -323,6 +374,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
 
 /**
  * Inject a tool prompt into the chat
+ * @param toolInfo - Tool metadata containing the example prompt to send
  */
 export async function injectToolPromptIntoChat(toolInfo: ToolInfo): Promise<void> {
     const prompt = toolInfo.examplePrompt;

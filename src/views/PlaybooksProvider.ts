@@ -5,11 +5,23 @@ import { log } from '@src/extension';
 
 type TreeNode = WorkspaceFolderNode | FolderNode | PlaybookNode | PlayNode | LoadingNode;
 
+/** Tree node representing a workspace folder in a multi-root workspace. */
 class WorkspaceFolderNode {
+    /**
+     * Create a workspace folder node for multi-root playbook browsing.
+     * @param folder - Workspace folder whose playbooks should be shown
+     */
     constructor(public readonly folder: vscode.WorkspaceFolder) {}
 }
 
+/** Tree node representing a subdirectory that contains playbooks. */
 class FolderNode {
+    /**
+     * Create a folder node within a workspace playbook hierarchy.
+     * @param name - Folder name shown in the tree
+     * @param fullPath - Absolute path to the folder on disk
+     * @param workspaceFolder - Workspace folder that owns this path
+     */
     constructor(
         public readonly name: string,
         public readonly fullPath: string,
@@ -17,26 +29,44 @@ class FolderNode {
     ) {}
 }
 
+/** Tree node representing a discovered Ansible playbook file. */
 class PlaybookNode {
+    /**
+     * Create a playbook node from discovered playbook metadata.
+     * @param playbook - Parsed playbook information from the workspace scan
+     */
     constructor(public readonly playbook: PlaybookInfo) {}
 }
 
+/** Tree node representing a single play within a playbook. */
 class PlayNode {
+    /**
+     * Create a play node linked back to its parent playbook.
+     * @param play - Parsed play metadata from the playbook
+     * @param playbook - Parent playbook containing the play
+     */
     constructor(
         public readonly play: PlaybookPlay,
         public readonly playbook: PlaybookInfo,
     ) {}
 }
 
+/** Placeholder tree node shown while playbooks are loading or absent. */
 class LoadingNode {
+    /**
+     * Create a loading or empty-state node with a status message.
+     * @param message - Status text shown in the tree
+     */
     constructor(public readonly message: string) {}
 }
 
+/** Tree view provider for workspace playbooks and their plays. */
 export class PlaybooksProvider implements vscode.TreeDataProvider<TreeNode> {
     private _service: PlaybooksService;
     private readonly _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | null>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
+    /** Create the provider and trigger an initial playbook discovery pass. */
     constructor() {
         this._service = PlaybooksService.getInstance();
 
@@ -50,10 +80,16 @@ export class PlaybooksProvider implements vscode.TreeDataProvider<TreeNode> {
         void this._service.refresh();
     }
 
+    /** Reload playbooks from the workspace and refresh the tree. */
     public refresh(): void {
         void this._service.refresh();
     }
 
+    /**
+     * Render a workspace folder, folder, playbook, play, or loading node.
+     * @param element - Tree node to display
+     * @returns Tree item with icons, tooltips, and navigation commands
+     */
     getTreeItem(element: TreeNode): vscode.TreeItem {
         if (element instanceof LoadingNode) {
             const item = new vscode.TreeItem(element.message);
@@ -142,6 +178,11 @@ export class PlaybooksProvider implements vscode.TreeDataProvider<TreeNode> {
         return new vscode.TreeItem('Unknown');
     }
 
+    /**
+     * Return workspace roots, folder contents, plays, or loading placeholders.
+     * @param element - Parent node whose children should be listed
+     * @returns Child nodes for the requested tree level
+     */
     getChildren(element?: TreeNode): TreeNode[] | Promise<TreeNode[]> {
         if (!element) {
             // Root level
@@ -198,6 +239,12 @@ export class PlaybooksProvider implements vscode.TreeDataProvider<TreeNode> {
         return [];
     }
 
+    /**
+     * Build the folder and playbook hierarchy for a workspace root.
+     * @param playbooks - Playbooks discovered within the workspace
+     * @param workspaceFolder - Workspace folder used as the hierarchy root
+     * @returns Top-level folder and playbook nodes for the workspace
+     */
     private _buildFolderHierarchy(
         playbooks: PlaybookInfo[],
         workspaceFolder: vscode.WorkspaceFolder,
@@ -206,6 +253,13 @@ export class PlaybooksProvider implements vscode.TreeDataProvider<TreeNode> {
         return this._buildFolderContents(playbooks, rootPath, workspaceFolder);
     }
 
+    /**
+     * Build child folder and playbook nodes for a specific directory.
+     * @param playbooks - Playbooks that live under the target folder
+     * @param folderPath - Absolute path of the folder being expanded
+     * @param workspaceFolder - Workspace folder that owns the path
+     * @returns Sorted subfolder and playbook nodes for the directory
+     */
     private _buildFolderContents(
         playbooks: PlaybookInfo[],
         folderPath: string,

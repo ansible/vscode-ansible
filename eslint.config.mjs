@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { defineConfig } from 'eslint/config';
 import { createRequire } from 'module';
 import importPlugin from 'eslint-plugin-import';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
 import { includeIgnoreFile } from '@eslint/config-helpers';
 
 const require = createRequire(import.meta.url);
@@ -60,6 +61,7 @@ export default defineConfig(
         },
         plugins: {
             local: eslintPluginLocal,
+            jsdoc: jsdocPlugin,
         },
         rules: {
             eqeqeq: ['error', 'smart'],
@@ -81,6 +83,28 @@ export default defineConfig(
             'no-control-regex': 'error',
             'no-empty-function': 'error',
             'no-prototype-builtins': 'error',
+            'jsdoc/require-jsdoc': [
+                'error',
+                {
+                    require: {
+                        FunctionDeclaration: true,
+                        MethodDefinition: true,
+                        ClassDeclaration: true,
+                        ArrowFunctionExpression: false,
+                        FunctionExpression: false,
+                    },
+                    checkConstructors: true,
+                    checkGetters: true,
+                    checkSetters: true,
+                },
+            ],
+            'jsdoc/require-param': 'error',
+            'jsdoc/require-param-description': 'error',
+            'jsdoc/require-returns': 'error',
+            'jsdoc/require-returns-description': 'error',
+            'jsdoc/check-param-names': 'error',
+            'jsdoc/check-tag-names': 'error',
+            'jsdoc/no-types': 'error',
         },
         settings: {
             'import/core-modules': ['vscode'],
@@ -96,6 +120,8 @@ export default defineConfig(
             '@typescript-eslint/no-base-to-string': 'off',
             '@typescript-eslint/no-unsafe-return': 'off',
             '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
         },
     },
     {

@@ -6,6 +6,16 @@ import type { WorkspaceFolderContext } from '../services/workspaceManager';
 import { isPlaybook, parseAllDocuments } from '../utils/yaml';
 import { getCommandService } from '@ansible/core/out/services/CommandService';
 
+/**
+ * Runs Ansible and YAML validation for a document and publishes diagnostics.
+ *
+ * @param textDocument - Document to validate.
+ * @param validationManager - Manager that caches and publishes diagnostics.
+ * @param quick - When true, returns cached diagnostics without re-running tools.
+ * @param context - Workspace context providing lint and playbook services.
+ * @param connection - Optional LSP connection for logging and user messages.
+ * @returns Diagnostics grouped by affected file URI.
+ */
 export async function doValidate(
     textDocument: TextDocument,
     validationManager: ValidationManager,
@@ -72,6 +82,12 @@ export async function doValidate(
     return diagnosticsByFile;
 }
 
+/**
+ * Extracts YAML parse errors and warnings from a document as LSP diagnostics.
+ *
+ * @param textDocument - Document whose YAML content is parsed.
+ * @returns Diagnostics for YAML syntax issues.
+ */
 export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
     const diagnostics: Diagnostic[] = [];
     const yDocuments = parseAllDocuments(textDocument.getText());

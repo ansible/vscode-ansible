@@ -17,6 +17,7 @@ interface EnvironmentNode {
     managerId: string;
 }
 
+/** Tree view provider for Python environment managers and their environments. */
 export class EnvironmentManagersProvider implements vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null> =
         new vscode.EventEmitter<TreeNode | undefined | null>();
@@ -30,11 +31,16 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
     private _currentManagerId: string | undefined;
     private _refreshDebounce: ReturnType<typeof setTimeout> | undefined;
 
+    /**
+     * Create the provider and load environments from the Python extension.
+     * @param pythonEnvService - Service used to discover Python environments
+     */
     constructor(pythonEnvService: PythonEnvironmentService) {
         this._pythonEnvService = pythonEnvService;
         void this._init();
     }
 
+    /** Initialize environment discovery and subscribe to environment changes. */
     private async _init() {
         try {
             await this._pythonEnvService.initialize();
@@ -49,6 +55,10 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         }
     }
 
+    /**
+     * Reload Python environments and refresh the tree.
+     * @returns Resolves when the refresh is complete
+     */
     async refresh(): Promise<void> {
         return this._doRefresh();
     }
@@ -67,6 +77,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         }, 500);
     }
 
+    /** Reload environments and notify tree listeners of the update. */
     private async _doRefresh(): Promise<void> {
         try {
             await this._loadEnvironments();
@@ -75,6 +86,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         }
     }
 
+    /** Populate manager groups from the Python environment service. */
     private async _loadEnvironments(): Promise<void> {
         const managers = new Map<string, PythonEnvironment[]>();
 
@@ -105,6 +117,11 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         this._managers = managers;
     }
 
+    /**
+     * Whether the environment matches the currently selected interpreter.
+     * @param env - Python environment to compare against the active selection
+     * @returns True when the environment executable matches the current one
+     */
     private _isCurrent(env: PythonEnvironment): boolean {
         if (!this._currentExecPath) {
             return false;
@@ -112,6 +129,11 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         return env.execInfo.run.executable === this._currentExecPath;
     }
 
+    /**
+     * Convert a manager identifier into a user-friendly tree label.
+     * @param managerId - Raw manager ID from the Python extension
+     * @returns Display name for the environment manager group
+     */
     private _getManagerDisplayName(managerId: string): string {
         const parts = managerId.split(':');
         const name = parts[parts.length - 1] || managerId;
@@ -140,16 +162,31 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         return name.charAt(0).toUpperCase() + name.slice(1);
     }
 
+    /**
+     * Whether the manager ID represents a virtual environment manager.
+     * @param managerId - Raw manager ID from the Python extension
+     * @returns True for venv-style managers
+     */
     private _isVenvManager(managerId: string): boolean {
         const name = managerId.split(':').pop()?.toLowerCase() ?? '';
         return name === 'venv' || name === 'virtualenv' || name === 'virtualenvwrapper';
     }
 
+    /**
+     * Whether the manager ID represents a global/system Python installation.
+     * @param managerId - Raw manager ID from the Python extension
+     * @returns True for global or unknown system managers
+     */
     private _isGlobalManager(managerId: string): boolean {
         const name = managerId.split(':').pop()?.toLowerCase() ?? '';
         return name === 'system' || name === 'unknown';
     }
 
+    /**
+     * Render a manager group or individual Python environment node.
+     * @param element - Tree node to display
+     * @returns Tree item with warnings for discouraged global environments
+     */
     getTreeItem(element: TreeNode): vscode.TreeItem {
         if (element.type === 'manager') {
             const isVenv = this._isVenvManager(element.id);
@@ -230,6 +267,11 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         }
     }
 
+    /**
+     * Return manager groups at the root or environments within a manager.
+     * @param element - Parent node whose children should be listed
+     * @returns Manager nodes or environment nodes for the requested level
+     */
     getChildren(element?: TreeNode): Thenable<TreeNode[]> {
         if (!element) {
             const managers: ManagerNode[] = [];
@@ -273,6 +315,7 @@ export class EnvironmentManagersProvider implements vscode.TreeDataProvider<Tree
         return Promise.resolve([]);
     }
 
+    /** Release listeners and pending refresh timers. */
     dispose() {
         if (this._refreshDebounce) {
             clearTimeout(this._refreshDebounce);

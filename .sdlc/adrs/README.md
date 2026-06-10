@@ -13,6 +13,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-002](ADR-002-centralized-plugin-doc-cache.md) | Centralized Plugin Documentation Cache | 2026-05-26 |
 | [ADR-007](ADR-007-npm-exec-over-npx.md) | Use `npm exec` Instead of `npx` | 2026-06-10 |
 | [ADR-008](ADR-008-strict-eslint-configuration.md) | Strict ESLint Configuration with Type-Checked Presets | 2026-06-10 |
+| [ADR-009](ADR-009-jsdoc-enforcement.md) | Mandatory JSDoc on All Functions and Methods | 2026-06-10 |
 
 ## Accepted
 
@@ -35,7 +36,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-009)
+2. Use the next available number (currently ADR-010)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date

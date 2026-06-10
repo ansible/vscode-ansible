@@ -13,6 +13,11 @@ vi.mock('@ansible/core', () => ({
 import { TaskBuilder } from '../src/taskBuilder';
 import type { TaskBuilderResult } from '../src/taskBuilder';
 
+/**
+ * Asserts that a TaskBuilder result includes a session ID and returns it.
+ * @param result - TaskBuilder response to validate.
+ * @returns The session ID from the result.
+ */
 function requireSessionId(result: TaskBuilderResult): string {
     if (!result.session_id) {
         throw new Error('expected session_id');
@@ -20,6 +25,10 @@ function requireSessionId(result: TaskBuilderResult): string {
     return result.session_id;
 }
 
+/**
+ * Returns mock ansible.builtin.copy plugin documentation for TaskBuilder tests.
+ * @returns Mock plugin documentation with copy module options.
+ */
 function copyPluginDoc() {
     return {
         doc: {

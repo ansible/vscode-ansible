@@ -26,10 +26,16 @@ interface GitHubCollectionCachePrivate {
     ): Promise<GitHubCollection | null>;
 }
 
+/**
+ * Exposes private GitHubCollectionCache methods for unit testing.
+ * @param svc - Cache service instance under test.
+ * @returns The service cast to its private method interface.
+ */
 function privateCache(svc: GitHubCollectionCache): GitHubCollectionCachePrivate {
     return svc as unknown as GitHubCollectionCachePrivate;
 }
 
+/** Clears the GitHubCollectionCache singleton so each test starts with a fresh instance. */
 function resetGitHubCacheSingleton(): void {
     (
         GitHubCollectionCache as unknown as { _instance: GitHubCollectionCache | undefined }

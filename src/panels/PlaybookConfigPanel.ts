@@ -10,6 +10,7 @@ interface PlaybookConfigMessage {
     theme?: string;
 }
 
+/** Webview panel for editing global or per-playbook ansible-playbook settings. */
 export class PlaybookConfigPanel {
     public static currentPanel: PlaybookConfigPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
@@ -18,6 +19,11 @@ export class PlaybookConfigPanel {
     private readonly _isGlobal: boolean;
     private _disposables: vscode.Disposable[] = [];
 
+    /**
+     * Show or replace the playbook configuration panel.
+     * @param extensionUri - Extension root used for webview resources
+     * @param playbook - Playbook to configure, or undefined for global defaults
+     */
     public static show(extensionUri: vscode.Uri, playbook?: PlaybookInfo): void {
         const isGlobal = !playbook;
         const title = isGlobal ? 'Playbook Defaults' : `Config: ${playbook.name}`;
@@ -46,6 +52,13 @@ export class PlaybookConfigPanel {
         );
     }
 
+    /**
+     * Create the playbook configuration panel and wire webview message handlers.
+     * @param panel - Webview panel hosting the configuration form
+     * @param extensionUri - Extension root used for webview resources
+     * @param playbook - Playbook being configured, if not editing global defaults
+     * @param isGlobal - Whether the panel edits workspace-wide defaults
+     */
     private constructor(
         panel: vscode.WebviewPanel,
         extensionUri: vscode.Uri,
@@ -130,6 +143,10 @@ export class PlaybookConfigPanel {
         );
     }
 
+    /**
+     * Build and run ansible-playbook with the submitted configuration.
+     * @param config - Playbook run settings from the webview form
+     */
     private async _runPlaybook(config: PlaybookConfig): Promise<void> {
         try {
             const service = PlaybooksService.getInstance();
@@ -152,6 +169,10 @@ export class PlaybookConfigPanel {
         }
     }
 
+    /**
+     * Generate the playbook configuration webview HTML and client-side script.
+     * @returns Complete HTML document rendered in the webview
+     */
     private _getHtml(): string {
         const service = PlaybooksService.getInstance();
         const config = this._isGlobal
@@ -796,6 +817,7 @@ export class PlaybookConfigPanel {
 </html>`;
     }
 
+    /** Dispose the panel, listeners, and static current-panel reference. */
     public dispose(): void {
         PlaybookConfigPanel.currentPanel = undefined;
         this._panel.dispose();

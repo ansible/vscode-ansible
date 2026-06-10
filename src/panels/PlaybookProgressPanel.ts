@@ -43,6 +43,7 @@ interface PlaybookProgressMessage {
     path?: string;
 }
 
+/** Webview panel that streams ansible-playbook execution progress over a local socket. */
 export class PlaybookProgressPanel {
     private static _currentPanel: PlaybookProgressPanel | undefined;
 
@@ -55,6 +56,12 @@ export class PlaybookProgressPanel {
     private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
 
+    /**
+     * Show or reuse the playbook progress panel and start a new run.
+     * @param extensionUri - Extension root used for webview resources
+     * @param options - Playbook path, command, and workspace metadata
+     * @returns The active progress panel instance
+     */
     public static async show(
         extensionUri: vscode.Uri,
         options: PlaybookRunOptions,
@@ -84,6 +91,11 @@ export class PlaybookProgressPanel {
         return progressPanel;
     }
 
+    /**
+     * Create the progress panel and register webview message handlers.
+     * @param panel - Webview panel hosting the progress UI
+     * @param extensionUri - Extension root used for webview resources
+     */
     private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
         this._panel = panel;
         this._extensionUri = extensionUri;
@@ -143,6 +155,10 @@ export class PlaybookProgressPanel {
         this._updateHtml();
     }
 
+    /**
+     * Start a playbook run and stream callback events into the webview.
+     * @param options - Playbook path, command, and workspace metadata
+     */
     private async _startRun(options: PlaybookRunOptions): Promise<void> {
         this._events = [];
         this._isRunning = true;
@@ -194,6 +210,9 @@ export class PlaybookProgressPanel {
         );
     }
 
+    /**
+     * Create a Unix domain socket server for ansible callback plugin events.
+     */
     private async _createSocketServer(): Promise<void> {
         // Clean up existing server
         if (this._socketServer) {
@@ -256,6 +275,10 @@ export class PlaybookProgressPanel {
         });
     }
 
+    /**
+     * Record a progress event and forward it to the webview.
+     * @param event - Parsed callback event from the socket server
+     */
     private _handleEvent(event: ProgressEvent): void {
         this._events.push(event);
 
@@ -271,6 +294,7 @@ export class PlaybookProgressPanel {
         });
     }
 
+    /** Re-render the progress webview using the current theme settings. */
     private _updateHtml(): void {
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         const themeSetting = config.get<string>('pluginDocTheme', 'auto');
@@ -284,6 +308,11 @@ export class PlaybookProgressPanel {
         this._panel.webview.html = this._getHtml(resolvedTheme);
     }
 
+    /**
+     * Generate the playbook progress webview HTML and client-side script.
+     * @param theme - Resolved light or dark theme for the webview
+     * @returns Complete HTML document rendered in the webview
+     */
     private _getHtml(theme: string): string {
         const isDark = theme === 'dark';
 
@@ -1651,6 +1680,10 @@ export class PlaybookProgressPanel {
 </html>`;
     }
 
+    /**
+     * Open the task source file at the reported line number.
+     * @param taskPath - Source path in `file.yml:line` format
+     */
     private async _openSource(taskPath: string): Promise<void> {
         // taskPath is in format "file.yml:line"
         const match = /^(.+):(\d+)$/.exec(taskPath);
@@ -1669,6 +1702,10 @@ export class PlaybookProgressPanel {
         }
     }
 
+    /**
+     * Build and send an AI analysis prompt for a task result.
+     * @param data - Task execution details captured from the progress UI
+     */
     private async _generateAiPrompt(data: AiAnalyzeData): Promise<void> {
         const { taskName, module, host, status, args, result, path: taskPath } = data;
 
@@ -1727,6 +1764,7 @@ ${JSON.stringify(cleanResult, null, 2)}
         }
     }
 
+    /** Dispose the panel, socket server, and static current-panel reference. */
     public dispose(): void {
         PlaybookProgressPanel._currentPanel = undefined;
 

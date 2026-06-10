@@ -5,6 +5,10 @@ import * as os from 'os';
 
 let _outputChannel: vscode.OutputChannel | undefined;
 
+/**
+ * Append a timestamped message to the Ansible Environments output channel.
+ * @param message - Log message to record
+ */
 function log(message: string): void {
     _outputChannel ??= vscode.window.createOutputChannel('Ansible Environments');
     _outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
@@ -30,6 +34,10 @@ interface CursorNamespace {
     mcp?: CursorMcpApi;
 }
 
+/**
+ * Return Cursor's MCP registration API when running inside Cursor.
+ * @returns Cursor MCP API object, or undefined when unavailable
+ */
 function getCursorMcpApi(): CursorMcpApi | undefined {
     const cursor = (vscode as any).cursor as CursorNamespace | undefined;
     if (cursor?.mcp && typeof cursor.mcp.registerServer === 'function') {
@@ -46,6 +54,8 @@ function getCursorMcpApi(): CursorMcpApi | undefined {
  * Register the MCP server via Cursor's extension API.
  * The server is immediately available and enabled -- no config files,
  * no manual toggle needed.
+ * @param serverPath - Absolute path to the MCP server entry script
+ * @returns True when registration succeeds through the Cursor API
  */
 function registerViaCursorApi(serverPath: string): boolean {
     const api = getCursorMcpApi();
@@ -83,6 +93,8 @@ function registerViaCursorApi(serverPath: string): boolean {
  * Automatically register the MCP server when running in Cursor.
  * Called during extension activation, mirrors registerMcpServerProvider()
  * for VS Code.
+ * @param context - Extension context used to resolve the MCP server path
+ * @returns True when the server was registered successfully
  */
 export function registerCursorMcpServer(context: vscode.ExtensionContext): boolean {
     const serverPath = context.asAbsolutePath(
@@ -114,6 +126,7 @@ interface McpConfig {
 /**
  * Write the MCP server entry to a Cursor mcp.json file.
  * Used as a fallback when the Cursor extension API is unavailable.
+ * @param context - Extension context used to resolve the MCP server path
  */
 async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<void> {
     const serverPath = context.asAbsolutePath(
@@ -242,6 +255,7 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
 /**
  * Configure Cursor to use the Ansible Environments MCP server.
  * Tries the Cursor extension API first; falls back to mcp.json.
+ * @param context - Extension context used to resolve the MCP server path
  */
 export async function configureCursorMcp(context: vscode.ExtensionContext): Promise<void> {
     const serverPath = context.asAbsolutePath(
@@ -267,6 +281,9 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
 // Settings helper
 // -------------------------------------------------------------------------
 
+/**
+ * Open Cursor MCP settings, falling back to guidance when the command is unavailable.
+ */
 async function openCursorMcpSettings(): Promise<void> {
     try {
         await vscode.commands.executeCommand('workbench.action.openSettings', 'mcp');
@@ -281,6 +298,11 @@ async function openCursorMcpSettings(): Promise<void> {
 // Status
 // -------------------------------------------------------------------------
 
+/**
+ * Escape user-controlled text before embedding it in webview HTML.
+ * @param text - Raw text that may contain HTML metacharacters
+ * @returns HTML-safe text for status panel rendering
+ */
 function escapeHtml(text: string): string {
     return text
         .replace(/&/g, '&amp;')
@@ -292,6 +314,7 @@ function escapeHtml(text: string): string {
 
 /**
  * Show the current Cursor MCP configuration status
+ * @param context - Extension context used to resolve the MCP server path
  */
 export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
     const serverPath = context.asAbsolutePath(
@@ -399,6 +422,10 @@ export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
 
 export type IdeType = 'cursor' | 'vscode' | 'unknown';
 
+/**
+ * Detect whether the extension is running in Cursor, VS Code, or another host.
+ * @returns Identified IDE type based on the application name
+ */
 export function detectIde(): IdeType {
     const appName = vscode.env.appName.toLowerCase();
     if (appName.includes('cursor')) {
@@ -420,6 +447,11 @@ export interface McpStatus {
     isConfigured: boolean;
 }
 
+/**
+ * Summarize MCP availability and configuration for the current IDE.
+ * @param context - Extension context used to resolve the MCP server path
+ * @returns Status flags for IDE type, APIs, config files, and server presence
+ */
 export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
     const serverPath = context.asAbsolutePath(
         path.join('packages', 'mcp-server', 'out', 'server.js'),

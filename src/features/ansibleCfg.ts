@@ -10,11 +10,21 @@ export interface VaultConfig {
     vaultPasswordFile: string | undefined;
 }
 
+/**
+ * Expand a leading tilde in a path to the current user's home directory.
+ * @param p - Path that may start with `~`
+ * @returns The path with `~` replaced by the home directory when present
+ */
 function untildify(p: string): string {
     const home = os.homedir();
     return home ? p.replace(/^~(?=$|\/|\\)/, home) : p;
 }
 
+/**
+ * Read vault-related settings from an ansible.cfg file when it exists and is readable.
+ * @param cfgPath - Path to the ansible.cfg file to parse
+ * @returns Parsed vault configuration, or undefined when unavailable or empty
+ */
 async function readCfg(cfgPath: string): Promise<VaultConfig | undefined> {
     const resolved = untildify(cfgPath);
     try {
@@ -52,6 +62,8 @@ async function readCfg(cfgPath: string): Promise<VaultConfig | undefined> {
  *   3. ansible.cfg in the workspace/project root
  *   4. ~/.ansible.cfg
  *   5. /etc/ansible/ansible.cfg
+ * @param workspaceRoot - Optional workspace root used to locate project ansible.cfg
+ * @returns The first matching vault configuration, or undefined when none is found
  */
 export async function getVaultConfig(workspaceRoot?: string): Promise<VaultConfig | undefined> {
     if (process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
@@ -84,6 +96,8 @@ export async function getVaultConfig(workspaceRoot?: string): Promise<VaultConfi
 /**
  * Parse the vault_identity_list into individual identity labels.
  * Format: "id1@script1, id2@script2"
+ * @param identityList - Raw vault_identity_list value from ansible.cfg
+ * @returns Vault identity labels with script paths removed
  */
 export function parseVaultIdentities(identityList: string): string[] {
     return identityList
@@ -96,6 +110,9 @@ export function parseVaultIdentities(identityList: string): string[] {
  * Walk up from a document's directory looking for ansible.cfg, stopping at
  * the workspace root. Returns the directory containing ansible.cfg, or the
  * workspace root if none is found.
+ * @param documentDir - Directory containing the active document
+ * @param workspaceRoot - Workspace boundary to stop searching at
+ * @returns The project root directory, or undefined when no boundary is available
  */
 export function findProjectRoot(
     documentDir: string,

@@ -16,6 +16,11 @@ import {
     isCursorInsideJinjaBrackets,
 } from '../../src/utils/yaml';
 
+/**
+ * Creates a TextDocument from YAML content for utility tests.
+ * @param content - YAML source text.
+ * @returns A language-server TextDocument instance.
+ */
 function doc(content: string): TextDocument {
     return TextDocument.create('file:///test.yml', 'ansible', 1, content);
 }

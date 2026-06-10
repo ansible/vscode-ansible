@@ -26,6 +26,10 @@ vi.mock('@ansible/core', () => ({
     },
 }));
 
+/**
+ * Builds a sample collection map with ansible.builtin plugins for search tests.
+ * @returns A map of collection names to collection metadata and plugin types.
+ */
 function makeCollectionMap(): Map<
     string,
     {

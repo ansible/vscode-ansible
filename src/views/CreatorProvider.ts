@@ -5,7 +5,17 @@ import { log } from '@src/extension';
 
 type TreeNode = CategoryNode | CommandNode | MessageNode;
 
+/** Tree item that displays informational or actionable creator messages. */
 class MessageNode extends vscode.TreeItem {
+    /**
+     * Create a non-collapsible message node for the creator tree.
+     * @param label - Primary message text shown in the tree
+     * @param options - Optional presentation and command settings
+     * @param options.description - Secondary text shown inline in the tree
+     * @param options.tooltip - Hover text with additional detail
+     * @param options.icon - Theme icon name for the node
+     * @param options.command - VS Code command launched when the node is clicked
+     */
     constructor(
         label: string,
         options?: {
@@ -30,7 +40,15 @@ class MessageNode extends vscode.TreeItem {
     }
 }
 
+/** Collapsible tree item representing a creator schema category. */
 class CategoryNode extends vscode.TreeItem {
+    /**
+     * Create a category node that groups related creator commands.
+     * @param label - Category label shown in the tree
+     * @param children - Child nodes contained in this category
+     * @param commandPath - Schema path prefix for commands in this category
+     * @param description - Optional tooltip description from the schema
+     */
     constructor(
         public readonly label: string,
         public readonly children: TreeNode[],
@@ -48,7 +66,14 @@ class CategoryNode extends vscode.TreeItem {
     }
 }
 
+/** Leaf tree item that opens a creator form for a schema command. */
 class CommandNode extends vscode.TreeItem {
+    /**
+     * Create a command node that launches the creator form on click.
+     * @param label - Command label shown in the tree
+     * @param schema - Schema definition for the command form
+     * @param commandPath - Schema path used to invoke ansible-creator
+     */
     constructor(
         public readonly label: string,
         public readonly schema: SchemaNode,
@@ -77,6 +102,7 @@ class CommandNode extends vscode.TreeItem {
     }
 }
 
+/** Tree view provider for ansible-creator init and add commands. */
 export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | null>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -84,6 +110,7 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
     private _service: CreatorService;
     private _serviceListener: vscode.Disposable | undefined;
 
+    /** Create the provider and load the ansible-creator schema. */
     constructor() {
         this._service = CreatorService.getInstance();
         this._service.setLogFunction(log);
@@ -97,14 +124,25 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
         void this._service.loadSchema();
     }
 
+    /** Reload the ansible-creator schema and refresh the tree. */
     refresh(): void {
         void this._service.refresh();
     }
 
+    /**
+     * Return the tree item for a creator node.
+     * @param element - Node whose tree item should be displayed
+     * @returns The node itself because creator nodes extend TreeItem
+     */
     getTreeItem(element: TreeNode): vscode.TreeItem {
         return element;
     }
 
+    /**
+     * Return root categories or the children of a category node.
+     * @param element - Parent node whose children should be listed
+     * @returns Creator categories, commands, or status messages
+     */
     getChildren(element?: TreeNode): TreeNode[] | Promise<TreeNode[]> {
         if (!element) {
             // Root level - show Init and Add categories
@@ -167,6 +205,13 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
         return [];
     }
 
+    /**
+     * Build a category node and recursively attach child commands or subcategories.
+     * @param label - Category label shown in the tree
+     * @param schema - Schema subtree for this category
+     * @param path - Command path prefix accumulated from parent categories
+     * @returns A populated category node for the creator tree
+     */
     private _buildCategoryNode(label: string, schema: SchemaNode, path: string[]): CategoryNode {
         const children: TreeNode[] = [];
 
@@ -193,6 +238,11 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
         return new CategoryNode(label, children, path, schema.description);
     }
 
+    /**
+     * Convert a schema key into a human-readable tree label.
+     * @param name - Schema key in snake_case or kebab-case
+     * @returns Title-cased label for display in the tree
+     */
     private _formatLabel(name: string): string {
         // Convert snake_case to Title Case
         return name
@@ -201,10 +251,15 @@ export class CreatorProvider implements vscode.TreeDataProvider<TreeNode> {
             .join(' ');
     }
 
+    /**
+     * Expose the loaded ansible-creator schema for other extension components.
+     * @returns The current creator schema, or null when unavailable
+     */
     public getSchema(): SchemaNode | null {
         return this._service.getSchema();
     }
 
+    /** Release service listeners and tree event emitters. */
     dispose() {
         this._serviceListener?.dispose();
         this._onDidChangeTreeData.dispose();

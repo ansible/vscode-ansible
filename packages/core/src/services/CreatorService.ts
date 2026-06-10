@@ -42,6 +42,9 @@ export interface SchemaNode {
  */
 export type CreatorStatus = 'unknown' | 'not-installed' | 'outdated' | 'ready';
 
+/**
+ * Loads ansible-creator schema and runs scaffolding commands in VS Code or standalone mode.
+ */
 export class CreatorService {
     private static _instance: CreatorService | undefined;
     private _schema: SchemaNode | null = null;
@@ -53,6 +56,9 @@ export class CreatorService {
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
 
+    /**
+     * Initializes change notifications using VS Code or a standalone event emitter.
+     */
     private constructor() {
         // Use VS Code EventEmitter if available, otherwise use simple implementation
         if (vscode) {
@@ -66,54 +72,84 @@ export class CreatorService {
         }
     }
 
+    /**
+     * Returns the shared CreatorService instance.
+     *
+     * @returns Singleton service for ansible-creator schema and commands.
+     */
     public static getInstance(): CreatorService {
         CreatorService._instance ??= new CreatorService();
         return CreatorService._instance;
     }
 
     /**
-     * Check if running in VS Code
+     * Check if running in VS Code.
+     *
+     * @returns True when the vscode module is available.
      */
     public isInVSCode(): boolean {
         return vscode !== undefined;
     }
 
     /**
-     * Set a custom logging function
+     * Set a custom logging function.
+     *
+     * @param fn - Callback invoked for CreatorService diagnostic messages.
      */
     public setLogFunction(fn: (message: string) => void): void {
         this._logFn = fn;
     }
 
+    /**
+     * Writes a prefixed diagnostic message through the configured log function.
+     *
+     * @param message - Log text without the CreatorService prefix.
+     */
     private _log(message: string): void {
         this._logFn(`CreatorService: ${message}`);
     }
 
     /**
-     * Check if the service is currently loading data
+     * Check if the service is currently loading data.
+     *
+     * @returns True while schema discovery is in progress.
      */
     public isLoading(): boolean {
         return this._loading;
     }
 
     /**
-     * Check if the service has loaded data
+     * Check if the service has loaded data.
+     *
+     * @returns True after schema loading completes successfully.
      */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
     /**
-     * Get the loaded schema
+     * Get the loaded schema.
+     *
+     * @returns Parsed ansible-creator schema tree, or null when not yet loaded.
      */
     public getSchema(): SchemaNode | null {
         return this._schema;
     }
 
+    /**
+     * Returns the ansible-creator readiness status derived from schema loading.
+     *
+     * @returns Installation state: unknown, not-installed, outdated, or ready.
+     */
     public getStatus(): CreatorStatus {
         return this._status;
     }
 
+    /**
+     * Returns the detected ansible-creator version when installed but outdated.
+     *
+     * @returns Version string from --version output, or undefined when unknown.
+     */
     public getInstalledVersion(): string | undefined {
         return this._installedVersion;
     }
@@ -130,7 +166,9 @@ export class CreatorService {
     }
 
     /**
-     * Load the ansible-creator schema
+     * Load the ansible-creator schema.
+     *
+     * @returns Parsed schema node, or null when ansible-creator is unavailable.
      */
     public async loadSchema(): Promise<SchemaNode | null> {
         if (this._loading) {
@@ -197,7 +235,10 @@ export class CreatorService {
     }
 
     /**
-     * Get available commands at a given path
+     * Get available commands at a given path.
+     *
+     * @param path - Command path segments (e.g. ['init', 'playbook']).
+     * @returns Subcommands at the path with descriptions and subcommand flags.
      */
     public getCommands(
         path: string[] = [],
@@ -228,7 +269,10 @@ export class CreatorService {
     }
 
     /**
-     * Get command parameters for a given command path
+     * Get command parameters for a given command path.
+     *
+     * @param path - Command path segments identifying the target subcommand.
+     * @returns Required, optional, and property schemas, or null when not found.
      */
     public getCommandParameters(path: string[]): {
         required: string[];
@@ -261,7 +305,10 @@ export class CreatorService {
     }
 
     /**
-     * Get command description for a given path
+     * Get command description for a given path.
+     *
+     * @param path - Command path segments identifying the target subcommand.
+     * @returns Human-readable description from the schema, or undefined when missing.
      */
     public getCommandDescription(path: string[]): string | undefined {
         if (!this._schema || path.length === 0) {
@@ -281,13 +328,12 @@ export class CreatorService {
     }
 
     /**
-     * Run an ansible-creator command
-     * In VS Code: opens a terminal
-     * Standalone: executes via child_process and returns output
+     * Run an ansible-creator command via CommandService and return captured output.
      *
-     * @param path - Command path like ['init', 'playbook']
-     * @param args - Arguments (positional args first, then flags)
-     * @param positionalArgs - Ordered list of positional argument keys to extract from args
+     * @param path - Command path like ['init', 'playbook'].
+     * @param args - Flag and positional argument values keyed by schema parameter name.
+     * @param positionalArgs - Ordered positional parameter keys to emit before flags.
+     * @returns Command stdout, or a success message when stdout is empty.
      */
     public async runCommand(
         path: string[],
@@ -345,7 +391,12 @@ export class CreatorService {
     }
 
     /**
-     * Build the command string for a creator command (useful for MCP)
+     * Build the command string for a creator command (useful for MCP).
+     *
+     * @param path - Command path segments appended after ansible-creator.
+     * @param args - Flag and positional argument values keyed by schema parameter name.
+     * @param positionalArgs - Ordered positional parameter keys to emit before flags.
+     * @returns Shell-ready ansible-creator command string.
      */
     public buildCommandString(
         path: string[],
@@ -386,8 +437,11 @@ export class CreatorService {
     }
 
     /**
-     * Get positional argument names for a command from the schema
-     * Positional args are those without 'aliases' in the schema
+     * Get positional argument names for a command from the schema.
+     * Positional args are those without aliases in the schema.
+     *
+     * @param path - Command path segments identifying the target subcommand.
+     * @returns Parameter names that should be passed positionally.
      */
     public getPositionalArgs(path: string[]): string[] {
         if (!this._schema) {
@@ -416,6 +470,12 @@ export class CreatorService {
         return positionalArgs;
     }
 
+    /**
+     * Executes a raw shell command and returns stdout on success.
+     *
+     * @param command - Full shell command to run via CommandService.
+     * @returns Captured stdout, or null when the command fails.
+     */
     private async _runCommand(command: string): Promise<string | null> {
         try {
             const { getCommandService } = await import('./CommandService');

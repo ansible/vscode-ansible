@@ -74,6 +74,7 @@ vi.mock('../../src/services/CommandService', () => ({
 
 import { CreatorService } from '../../src/services/CreatorService';
 
+/** Clears the CreatorService singleton so each test starts with a fresh instance. */
 function resetCreatorSingleton(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (CreatorService as any)._instance = undefined;

@@ -22,14 +22,33 @@ interface PlayNodeJson {
     vars_files?: string[];
 }
 
+/**
+ * Type guard for play-level JSON nodes that may contain vars definitions.
+ *
+ * @param value - Parsed YAML JSON value.
+ * @returns True when the value is a non-null object.
+ */
 function isPlayNodeJson(value: unknown): value is PlayNodeJson {
     return typeof value === 'object' && value !== null;
 }
 
+/**
+ * Narrows a parsed YAML value to a play node when possible.
+ *
+ * @param value - Parsed YAML JSON value.
+ * @returns Play node object, or undefined when the value is not an object.
+ */
 function asPlayNodeJson(value: unknown): PlayNodeJson | undefined {
     return isPlayNodeJson(value) ? value : undefined;
 }
 
+/**
+ * Collects Jinja variable completion items from play scope, prompts, and vars files.
+ *
+ * @param documentUri - URI of the document being completed.
+ * @param path - YAML node path at the cursor inside Jinja brackets.
+ * @returns Variable completion items sorted by scope priority.
+ */
 export function getVarsCompletion(documentUri: string, path: Node[]): CompletionItem[] {
     const varsCompletion: VarEntry[] = [];
     let varPriority = 0;
@@ -115,6 +134,13 @@ export function getVarsCompletion(documentUri: string, path: Node[]): Completion
     }));
 }
 
+/**
+ * Recursively extracts variable names from a vars object or list into the result.
+ *
+ * @param varsObject - vars mapping or list from a play node.
+ * @param result - Accumulator for discovered variable entries.
+ * @param priority - Sort priority assigned to variables from this scope.
+ */
 function collectVars(varsObject: unknown, result: VarEntry[], priority: number): void {
     if (Array.isArray(varsObject)) {
         for (const element of varsObject) {

@@ -7,6 +7,9 @@ import type {
     SettingsEntry,
 } from '../interfaces/extensionSettings';
 
+/**
+ * Resolves per-document Ansible extension settings from the client or defaults.
+ */
 export class SettingsManager {
     private connection: Connection | null;
     private clientSupportsConfigRequests: boolean;
@@ -77,15 +80,33 @@ export class SettingsManager {
 
     public globalSettings: ExtensionSettings = this.defaultSettings;
 
+    /**
+     * Creates a settings manager for a workspace folder context.
+     *
+     * @param connection - LSP connection for configuration requests, or null.
+     * @param clientSupportsConfigRequests - Whether the client supports scoped config.
+     */
     constructor(connection: Connection | null, clientSupportsConfigRequests: boolean) {
         this.connection = connection;
         this.clientSupportsConfigRequests = clientSupportsConfigRequests;
     }
 
+    /**
+     * Registers a callback to run when settings change for a workspace URI.
+     *
+     * @param uri - Workspace folder URI to watch.
+     * @param handler - Function invoked after settings are updated.
+     */
     public onConfigurationChanged(uri: string, handler: () => void): void {
         this.configurationChangeHandlers.set(uri, handler);
     }
 
+    /**
+     * Returns merged extension settings for a document URI.
+     *
+     * @param uri - Document URI whose scoped settings are requested.
+     * @returns Resolved extension settings for the document.
+     */
     public async get(uri: string): Promise<ExtensionSettings> {
         if (!this.clientSupportsConfigRequests) {
             return this.globalSettings;
@@ -109,10 +130,20 @@ export class SettingsManager {
         return result;
     }
 
+    /**
+     * Drops cached settings when a document is closed.
+     *
+     * @param uri - URI of the closed document.
+     */
     public handleDocumentClosed(uri: string): void {
         this.documentSettings.delete(uri);
     }
 
+    /**
+     * Refreshes cached settings and notifies registered handlers on change.
+     *
+     * @param params - Configuration change notification from the client.
+     */
     public async handleConfigurationChanged(params: DidChangeConfigurationParams): Promise<void> {
         if (this.clientSupportsConfigRequests) {
             const newDocumentSettings = new Map<string, Thenable<ExtensionSettings>>();
@@ -148,6 +179,12 @@ export class SettingsManager {
         }
     }
 
+    /**
+     * Flattens default/description settings objects into plain value trees.
+     *
+     * @param settingsObject - Settings object that may nest default values.
+     * @returns Settings object with defaults promoted to leaf values.
+     */
     private settingsAdjustment(
         settingsObject: ExtensionSettingsWithDescription | SettingsEntry,
     ): ExtensionSettingsWithDescription {

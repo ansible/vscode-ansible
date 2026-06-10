@@ -31,6 +31,9 @@ interface TerminalServiceLike {
     };
 }
 
+/**
+ * Discovers and manages ansible-dev-tools packages in the active Python environment.
+ */
 export class DevToolsService {
     private static terminalServiceFactory: (() => TerminalServiceLike) | undefined;
 
@@ -42,6 +45,9 @@ export class DevToolsService {
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
 
+    /**
+     * Initializes change notifications using VS Code or a standalone event emitter.
+     */
     private constructor() {
         if (vscode) {
             const emitter = new vscode.EventEmitter<void>();
@@ -54,6 +60,11 @@ export class DevToolsService {
         }
     }
 
+    /**
+     * Returns the shared DevToolsService instance.
+     *
+     * @returns Singleton service for ansible-dev-tools discovery.
+     */
     public static getInstance(): DevToolsService {
         DevToolsService._instance ??= new DevToolsService();
         return DevToolsService._instance;
@@ -61,6 +72,8 @@ export class DevToolsService {
 
     /**
      * Register how to obtain TerminalService from the extension host (VS Code only).
+     *
+     * @param factory - Callback that returns a TerminalService-like instance.
      */
     public static setTerminalServiceFactory(factory: () => TerminalServiceLike): void {
         DevToolsService.terminalServiceFactory = factory;
@@ -69,35 +82,71 @@ export class DevToolsService {
     /**
      * Inject a package installer callback. The extension sets this when the
      * full PythonEnvironmentApi (managePackages) is available.
+     *
+     * @param installer - Async callback that installs ansible-dev-tools.
      */
     public setPackageInstaller(installer: PackageInstaller): void {
         this._packageInstaller = installer;
     }
 
+    /**
+     * Indicates whether the service is running inside the VS Code extension host.
+     *
+     * @returns True when the vscode module is available.
+     */
     public isInVSCode(): boolean {
         return vscode !== undefined;
     }
 
+    /**
+     * Indicates whether a package refresh is currently in progress.
+     *
+     * @returns True while adt package discovery is running.
+     */
     public isLoading(): boolean {
         return this._loading;
     }
 
+    /**
+     * Indicates whether packages have been loaded at least once.
+     *
+     * @returns True after a successful refresh completes.
+     */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
+    /**
+     * Returns the discovered ansible-dev-tools packages.
+     *
+     * @returns Installed tool packages with name, version, and optional path.
+     */
     public getPackages(): DevToolPackage[] {
         return this._packages;
     }
 
+    /**
+     * Indicates whether any dev tool packages were discovered.
+     *
+     * @returns True when at least one package is loaded.
+     */
     public hasPackages(): boolean {
         return this._packages.length > 0;
     }
 
+    /**
+     * Looks up a dev tool package by executable name.
+     *
+     * @param name - Package or tool name reported by adt --version.
+     * @returns Matching package metadata, or undefined when not found.
+     */
     public getPackage(name: string): DevToolPackage | undefined {
         return this._packages.find((p) => p.name === name);
     }
 
+    /**
+     * Reloads ansible-dev-tools packages from the active environment via adt --version.
+     */
     public async refresh(): Promise<void> {
         if (this._loading) {
             return;

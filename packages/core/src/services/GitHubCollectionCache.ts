@@ -44,35 +44,56 @@ export class GitHubCollectionCache {
     private _refreshInProgress = new Set<string>();
     private _log: (msg: string) => void = console.log;
 
+    /**
+     * Private constructor for singleton access via getInstance().
+     */
     private constructor() {
         // singleton
     }
 
+    /**
+     * Returns the shared GitHubCollectionCache instance.
+     *
+     * @returns Singleton cache for GitHub organization collections.
+     */
     public static getInstance(): GitHubCollectionCache {
         GitHubCollectionCache._instance ??= new GitHubCollectionCache();
         return GitHubCollectionCache._instance;
     }
 
+    /**
+     * Sets the logging callback used for cache diagnostics.
+     *
+     * @param logFn - Function invoked with formatted cache log messages.
+     */
     public setLogFunction(logFn: (msg: string) => void): void {
         this._log = logFn;
     }
 
     /**
-     * Get the cache directory path (global, in ~/.cache/ansible-environments/)
+     * Get the cache directory path (global, in ~/.cache/ansible-environments/).
+     *
+     * @returns Absolute path to the global ansible-environments cache directory.
      */
     private _getCacheDir(): string {
         return path.join(os.homedir(), '.cache', 'ansible-environments');
     }
 
     /**
-     * Get the cache file path for an org
+     * Get the cache file path for an org.
+     *
+     * @param org - GitHub organization slug used in the cache filename.
+     * @returns Absolute path to the org-specific cache JSON file.
      */
     private _getCacheFilePath(org: string): string {
         return path.join(this._getCacheDir(), `github-${org}.json`);
     }
 
     /**
-     * Load cache from disk for an org
+     * Load cache from disk for an org.
+     *
+     * @param org - GitHub organization whose cache file should be read.
+     * @returns Parsed org cache when the file exists and is valid, otherwise undefined.
      */
     public loadFromDisk(org: string): GitHubOrgCache | undefined {
         const filePath = this._getCacheFilePath(org);
@@ -101,7 +122,10 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Save cache to disk for an org
+     * Save cache to disk for an org.
+     *
+     * @param org - GitHub organization slug for the cache filename.
+     * @param cache - Org cache payload to persist.
      */
     private _saveToDisk(org: string, cache: GitHubOrgCache): void {
         const cacheDir = this._getCacheDir();
@@ -123,7 +147,10 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Format age in human-readable format
+     * Format age in human-readable format.
+     *
+     * @param ms - Elapsed milliseconds since the cache was last updated.
+     * @returns Relative age string such as "2 hours ago".
      */
     private _formatAge(ms: number): string {
         const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -141,7 +168,10 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Get collections for an org (from cache)
+     * Get collections for an org (from cache).
+     *
+     * @param org - GitHub organization whose cached collections are requested.
+     * @returns Collection list for the org, or an empty array when not cached.
      */
     public getCollections(org: string): GitHubCollection[] {
         const cache = this._caches.get(org);
@@ -149,7 +179,9 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Get all collections from all cached orgs
+     * Get all collections from all cached orgs.
+     *
+     * @returns Flattened list of collections across every loaded organization.
      */
     public getAllCollections(): GitHubCollection[] {
         const all: GitHubCollection[] = [];
@@ -160,14 +192,20 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Get collection count for an org
+     * Get collection count for an org.
+     *
+     * @param org - GitHub organization whose cached collection count is requested.
+     * @returns Number of collections stored for the org, or zero when not cached.
      */
     public getCount(org: string): number {
         return this._caches.get(org)?.collections.length ?? 0;
     }
 
     /**
-     * Get last updated time for an org
+     * Get last updated time for an org.
+     *
+     * @param org - GitHub organization whose cache timestamp is requested.
+     * @returns Last refresh time, or undefined when the org is not cached.
      */
     public getLastUpdated(org: string): Date | undefined {
         const cache = this._caches.get(org);
@@ -175,14 +213,19 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Check if a refresh is in progress for an org
+     * Check if a refresh is in progress for an org.
+     *
+     * @param org - GitHub organization to check for an active refresh.
+     * @returns True when a background scan is running for the org.
      */
     public isRefreshing(org: string): boolean {
         return this._refreshInProgress.has(org);
     }
 
     /**
-     * Refresh collections for a GitHub org
+     * Refresh collections for a GitHub org using authenticated GitHub API access.
+     *
+     * @param org - GitHub organization to scan for galaxy.yml repositories.
      */
     public async refresh(org: string): Promise<void> {
         if (!vscode) {
@@ -228,7 +271,11 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Scan a GitHub org for Ansible collections
+     * Scan a GitHub org for Ansible collections via code search or repo listing.
+     *
+     * @param org - GitHub organization to scan.
+     * @param token - GitHub API bearer token for authenticated requests.
+     * @returns Discovered collections with metadata parsed from galaxy.yml files.
      */
     private async _scanOrg(org: string, token: string): Promise<GitHubCollection[]> {
         const collections: GitHubCollection[] = [];
@@ -295,7 +342,11 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Fallback: scan org repos directly
+     * Fallback: scan org repos directly when code search is unavailable.
+     *
+     * @param org - GitHub organization whose repositories should be enumerated.
+     * @param token - GitHub API bearer token for authenticated requests.
+     * @returns Collections discovered by checking each repository for galaxy.yml.
      */
     private async _scanOrgRepos(org: string, token: string): Promise<GitHubCollection[]> {
         const collections: GitHubCollection[] = [];
@@ -349,7 +400,12 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Fetch and parse galaxy.yml from a repo
+     * Fetch and parse galaxy.yml from a repo.
+     *
+     * @param repoFullName - GitHub repository in org/repo form.
+     * @param token - GitHub API bearer token for raw content requests.
+     * @param org - Owning organization stored on the returned collection record.
+     * @returns Parsed collection metadata, or null when galaxy.yml is absent.
      */
     private async _fetchCollectionMetadata(
         repoFullName: string,
@@ -391,7 +447,12 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Parse galaxy.yml content using proper YAML parser
+     * Parse galaxy.yml content using proper YAML parser.
+     *
+     * @param content - Raw galaxy.yml file contents.
+     * @param repoFullName - GitHub repository in org/repo form.
+     * @param org - Owning organization stored on the returned collection record.
+     * @returns Parsed GitHubCollection, or null when required fields are missing.
      */
     private _parseGalaxyYml(
         content: string,
@@ -440,7 +501,10 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Search collections across all cached orgs
+     * Search collections across all cached orgs.
+     *
+     * @param query - Case-insensitive match against FQCN or description.
+     * @returns Matching collections from every loaded organization cache.
      */
     public search(query: string): GitHubCollection[] {
         const q = query.toLowerCase();
@@ -462,7 +526,9 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Initialize caches for configured orgs
+     * Initialize caches for configured orgs.
+     *
+     * @param orgs - GitHub organizations to load from disk or refresh when missing.
      */
     public async initialize(orgs: string[]): Promise<void> {
         for (const org of orgs) {
@@ -477,7 +543,9 @@ export class GitHubCollectionCache {
     }
 
     /**
-     * Refresh all configured orgs
+     * Refresh all configured orgs sequentially.
+     *
+     * @param orgs - GitHub organizations to rescan and persist to disk.
      */
     public async refreshAll(orgs: string[]): Promise<void> {
         for (const org of orgs) {

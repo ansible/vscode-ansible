@@ -17,6 +17,9 @@ import { WorkspaceManager } from './services/workspaceManager';
 import { getAnsibleMetaData } from './utils/getAnsibleMetaData';
 import { CollectionsService } from '@ansible/core/out/services/CollectionsService';
 
+/**
+ * Wires LSP lifecycle events to Ansible language features for a workspace.
+ */
 export class AnsibleLanguageService {
     private connection: Connection;
     private documents: TextDocuments<TextDocument>;
@@ -24,6 +27,12 @@ export class AnsibleLanguageService {
     private workspaceManager: WorkspaceManager;
     private validationManager: ValidationManager;
 
+    /**
+     * Creates the language service and its workspace and validation managers.
+     *
+     * @param connection - LSP connection used to register handlers.
+     * @param documents - Managed text document collection.
+     */
     constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
         this.connection = connection;
         this.documents = documents;
@@ -31,11 +40,17 @@ export class AnsibleLanguageService {
         this.validationManager = new ValidationManager(connection, documents);
     }
 
+    /**
+     * Registers initialization handlers and document lifecycle listeners.
+     */
     public initialize(): void {
         this.initializeConnection();
         this.registerLifecycleEventHandlers();
     }
 
+    /**
+     * Configures server capabilities and workspace folder support on initialize.
+     */
     private initializeConnection(): void {
         this.connection.onInitialize((params: InitializeParams) => {
             this.workspaceManager.setWorkspaceFolders(params.workspaceFolders ?? []);
@@ -92,6 +107,9 @@ export class AnsibleLanguageService {
         });
     }
 
+    /**
+     * Subscribes to document, configuration, and feature request events.
+     */
     private registerLifecycleEventHandlers(): void {
         this.connection.onDidChangeConfiguration((params) => {
             void (async () => {
@@ -270,6 +288,12 @@ export class AnsibleLanguageService {
         });
     }
 
+    /**
+     * Logs handler failures to the LSP console with context and stack traces.
+     *
+     * @param error - Thrown value or error object.
+     * @param contextName - Name of the handler where the error occurred.
+     */
     private handleError(error: unknown, contextName: string): void {
         const lead = `An error occurred in '${contextName}' handler: `;
         if (error instanceof Error) {

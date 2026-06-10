@@ -14,24 +14,48 @@ import { AnsibleInventory } from './ansibleInventory';
 import { SettingsManager } from './settingsManager';
 import { IDocumentMetadata } from '../interfaces/documentMeta';
 
+/**
+ * Maps document URIs to workspace folders and their per-folder service contexts.
+ */
 export class WorkspaceManager {
     public connection: Connection;
     private sortedWorkspaceFolders: WorkspaceFolder[] = [];
     private folderContexts = new Map<string, WorkspaceFolderContext>();
     public clientCapabilities: ClientCapabilities = {};
 
+    /**
+     * Creates a workspace manager for the given LSP connection.
+     *
+     * @param connection - LSP connection used for logging and notifications.
+     */
     constructor(connection: Connection) {
         this.connection = connection;
     }
 
+    /**
+     * Replaces the sorted workspace folder list from initialize or change events.
+     *
+     * @param workspaceFolders - Workspace folders reported by the client.
+     */
     public setWorkspaceFolders(workspaceFolders: WorkspaceFolder[]): void {
         this.sortedWorkspaceFolders = this.sortWorkspaceFolders(workspaceFolders);
     }
 
+    /**
+     * Stores client capabilities used by per-folder contexts.
+     *
+     * @param capabilities - Client capabilities from the initialize request.
+     */
     public setCapabilities(capabilities: ClientCapabilities): void {
         this.clientCapabilities = capabilities;
     }
 
+    /**
+     * Returns or lazily creates the service context for a document URI.
+     *
+     * @param uri - Document URI whose workspace context is needed.
+     * @returns Per-folder context, or undefined when no folder matches.
+     */
     public getContext(uri: string): WorkspaceFolderContext | undefined {
         const workspaceFolder = this.getWorkspaceFolder(uri);
         if (workspaceFolder) {
@@ -44,6 +68,11 @@ export class WorkspaceManager {
         }
     }
 
+    /**
+     * Invokes a callback for every active workspace folder context.
+     *
+     * @param callbackfn - Function run for each folder context.
+     */
     public async forEachContext(
         callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
     ): Promise<void> {
@@ -54,6 +83,12 @@ export class WorkspaceManager {
         );
     }
 
+    /**
+     * Resolves the workspace folder containing a URI, or synthesizes one from its path.
+     *
+     * @param uri - Document or resource URI to locate.
+     * @returns Matching workspace folder, or a folder derived from the file path.
+     */
     public getWorkspaceFolder(uri: string): WorkspaceFolder | undefined {
         for (const workspaceFolder of this.sortedWorkspaceFolders) {
             if (URI.parse(uri).toString().startsWith(workspaceFolder.uri)) {
@@ -76,6 +111,11 @@ export class WorkspaceManager {
         return workspaceFolder;
     }
 
+    /**
+     * Removes stale contexts and merges added folders after a workspace change.
+     *
+     * @param event - Workspace folders added and removed by the client.
+     */
     public handleWorkspaceChanged(event: WorkspaceFoldersChangeEvent): void {
         const removedUris = new Set(event.removed.map((folder) => folder.uri));
 
@@ -90,11 +130,20 @@ export class WorkspaceManager {
         this.sortedWorkspaceFolders = this.sortWorkspaceFolders(newWorkspaceFolders);
     }
 
+    /**
+     * Sorts folders longest-uri-first so nested folders match before parents.
+     *
+     * @param workspaceFolders - Folders to sort.
+     * @returns Sorted copy of the folder list.
+     */
     private sortWorkspaceFolders(workspaceFolders: WorkspaceFolder[]): WorkspaceFolder[] {
         return workspaceFolders.sort((a, b) => b.uri.length - a.uri.length);
     }
 }
 
+/**
+ * Per-workspace-folder cache of Ansible services, settings, and document metadata.
+ */
 export class WorkspaceFolderContext {
     private connection: Connection;
     public clientCapabilities: ClientCapabilities;
@@ -107,6 +156,13 @@ export class WorkspaceFolderContext {
     private _ansibleLint: AnsibleLint | undefined;
     private _ansiblePlaybook: AnsiblePlaybook | undefined;
 
+    /**
+     * Initializes settings and invalidation hooks for a workspace folder.
+     *
+     * @param connection - LSP connection for service construction.
+     * @param workspaceFolder - Folder this context represents.
+     * @param workspaceManager - Parent manager providing client capabilities.
+     */
     constructor(
         connection: Connection,
         workspaceFolder: WorkspaceFolder,
@@ -125,6 +181,11 @@ export class WorkspaceFolderContext {
         });
     }
 
+    /**
+     * Clears cached Ansible config when watched config files change.
+     *
+     * @param params - Watched file change notification from the client.
+     */
     public handleWatchedDocumentChange(params: DidChangeWatchedFilesParams): void {
         for (const fileEvent of params.changes) {
             if (fileEvent.uri.startsWith(this.workspaceFolder.uri)) {
@@ -133,6 +194,11 @@ export class WorkspaceFolderContext {
         }
     }
 
+    /**
+     * Lazily loaded Ansible configuration for this workspace folder.
+     *
+     * @returns Promise that resolves to the initialized config service.
+     */
     public get ansibleConfig(): Thenable<AnsibleConfig> {
         if (!this._ansibleConfig) {
             const config = new AnsibleConfig(this.connection, this);
@@ -141,6 +207,11 @@ export class WorkspaceFolderContext {
         return this._ansibleConfig;
     }
 
+    /**
+     * Lazily loaded Ansible inventory for this workspace folder.
+     *
+     * @returns Promise that resolves to the initialized inventory service.
+     */
     public get ansibleInventory(): Thenable<AnsibleInventory> {
         if (!this._ansibleInventory) {
             const inventory = new AnsibleInventory(this.connection, this);
@@ -149,20 +220,32 @@ export class WorkspaceFolderContext {
         return this._ansibleInventory;
     }
 
+    /** Forces the inventory cache to reload on the next access. */
     public clearAnsibleInventory(): void {
         this._ansibleInventory = undefined;
     }
 
+    /** Clears lazily initialized Ansible config and inventory services. */
     public clearCachedServices(): void {
         this._ansibleConfig = undefined;
         this._ansibleInventory = undefined;
     }
 
+    /**
+     * Shared ansible-lint validator instance for this workspace folder.
+     *
+     * @returns Cached AnsibleLint service for the folder.
+     */
     public get ansibleLint(): AnsibleLint {
         this._ansibleLint ??= new AnsibleLint(this.connection, this);
         return this._ansibleLint;
     }
 
+    /**
+     * Shared ansible-playbook syntax-check instance for this workspace folder.
+     *
+     * @returns Cached AnsiblePlaybook service for the folder.
+     */
     public get ansiblePlaybook(): AnsiblePlaybook {
         this._ansiblePlaybook ??= new AnsiblePlaybook(this.connection, this);
         return this._ansiblePlaybook;

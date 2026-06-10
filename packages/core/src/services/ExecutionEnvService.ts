@@ -66,6 +66,9 @@ export class ExecutionEnvService {
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
 
+    /**
+     * Initializes change notifications using VS Code or a standalone event emitter.
+     */
     private constructor() {
         // Use VS Code EventEmitter if available, otherwise use simple implementation
         if (vscode) {
@@ -79,66 +82,94 @@ export class ExecutionEnvService {
         }
     }
 
+    /**
+     * Returns the shared ExecutionEnvService instance.
+     *
+     * @returns Singleton service for execution environment discovery.
+     */
     public static getInstance(): ExecutionEnvService {
         ExecutionEnvService._instance ??= new ExecutionEnvService();
         return ExecutionEnvService._instance;
     }
 
     /**
-     * Check if running in VS Code
+     * Check if running in VS Code.
+     *
+     * @returns True when the vscode module is available.
      */
     public isInVSCode(): boolean {
         return vscode !== undefined;
     }
 
     /**
-     * Set a custom logging function
+     * Set a custom logging function.
+     *
+     * @param fn - Callback invoked for ExecutionEnvService diagnostic messages.
      */
     public setLogFunction(fn: (message: string) => void): void {
         this._logFn = fn;
     }
 
+    /**
+     * Writes a prefixed diagnostic message through the configured log function.
+     *
+     * @param message - Log text without the ExecutionEnvService prefix.
+     */
     private _log(message: string): void {
         this._logFn(`ExecutionEnvService: ${message}`);
     }
 
     /**
-     * Check if the service is currently loading data
+     * Check if the service is currently loading data.
+     *
+     * @returns True while ansible-navigator discovery is in progress.
      */
     public isLoading(): boolean {
         return this._loading;
     }
 
     /**
-     * Check if the service has loaded data
+     * Check if the service has loaded data.
+     *
+     * @returns True after execution environments are loaded at least once.
      */
     public isLoaded(): boolean {
         return this._loaded;
     }
 
     /**
-     * Get all loaded execution environments
+     * Get all loaded execution environments.
+     *
+     * @returns Container images flagged as execution environments.
      */
     public getExecutionEnvironments(): ExecutionEnvironment[] {
         return this._executionEnvironments;
     }
 
     /**
-     * Get a specific execution environment by name
+     * Get a specific execution environment by name.
+     *
+     * @param fullName - Full image name reported by ansible-navigator.
+     * @returns Matching environment metadata, or undefined when not loaded.
      */
     public getExecutionEnvironment(fullName: string): ExecutionEnvironment | undefined {
         return this._executionEnvironments.find((ee) => ee.full_name === fullName);
     }
 
     /**
-     * Get cached details for an execution environment
+     * Get cached details for an execution environment.
+     *
+     * @param fullName - Full image name to look up in the details cache.
+     * @returns Cached inspection details, or undefined when not yet loaded.
      */
     public getCachedDetails(fullName: string): EEDetails | undefined {
         return this._detailsCache.get(fullName);
     }
 
     /**
-     * Refresh the execution environments list
+     * Clears in-memory execution environment data and signals consumers to reload.
+     *
+     * @returns Promise that resolves after caches are cleared and listeners notified.
      */
     public refresh(): Promise<void> {
         this._executionEnvironments = [];
@@ -149,7 +180,9 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Load execution environments from ansible-navigator
+     * Load execution environments from ansible-navigator.
+     *
+     * @returns Filtered list of images marked as execution environments.
      */
     public async loadExecutionEnvironments(): Promise<ExecutionEnvironment[]> {
         if (this._loading) {
@@ -207,7 +240,10 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Load detailed information for a specific execution environment
+     * Load detailed information for a specific execution environment.
+     *
+     * @param fullName - Full image name to inspect with ansible-navigator.
+     * @returns Parsed inspection details, or null when the command yields no output.
      */
     public async loadDetails(fullName: string): Promise<EEDetails | null> {
         // Check cache first
@@ -249,7 +285,10 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Get Ansible collections installed in an execution environment
+     * Get Ansible collections installed in an execution environment.
+     *
+     * @param fullName - Full image name to inspect.
+     * @returns Sorted collection name and version pairs from EE details.
      */
     public async getCollections(fullName: string): Promise<{ name: string; version: string }[]> {
         const details = await this.loadDetails(fullName);
@@ -263,7 +302,10 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Get Python packages installed in an execution environment
+     * Get Python packages installed in an execution environment.
+     *
+     * @param fullName - Full image name to inspect.
+     * @returns Sorted Python package entries from EE details.
      */
     public async getPythonPackages(
         fullName: string,
@@ -277,7 +319,10 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Get OS and Ansible version info for an execution environment
+     * Get OS and Ansible version info for an execution environment.
+     *
+     * @param fullName - Full image name to inspect.
+     * @returns Summary of Ansible version, OS name, and image name when available.
      */
     public async getInfo(
         fullName: string,
@@ -305,6 +350,12 @@ export class ExecutionEnvService {
         return info;
     }
 
+    /**
+     * Executes a raw shell command and returns stdout when available.
+     *
+     * @param command - Full shell command to run via CommandService.
+     * @returns Captured stdout, or null when the command fails.
+     */
     private async _runCommand(command: string): Promise<string | null> {
         try {
             const { getCommandService } = await import('./CommandService');
