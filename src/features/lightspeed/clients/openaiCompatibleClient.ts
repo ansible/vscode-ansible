@@ -78,7 +78,9 @@ export class OpenAICompatibleClient {
 
     const controller = new AbortController();
     const requestTimeout = options?.timeout ?? this.timeout;
-    const timeoutId = setTimeout(() => controller.abort(), requestTimeout);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, requestTimeout);
 
     try {
       const response = await fetchFn(endpoint, {

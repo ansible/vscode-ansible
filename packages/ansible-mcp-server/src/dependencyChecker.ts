@@ -31,8 +31,12 @@ async function commandExists(command: string): Promise<boolean> {
       env: process.env,
     });
 
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
+    child.on("error", () => {
+      resolve(false);
+    });
+    child.on("close", (code) => {
+      resolve(code === 0);
+    });
   });
 }
 
@@ -68,7 +72,9 @@ async function getCommandVersion(
       }
     });
 
-    child.on("error", () => resolve(null));
+    child.on("error", () => {
+      resolve(null);
+    });
   });
 }
 

@@ -147,7 +147,7 @@ export class LightSpeedAPI {
       const data = (await response.json()) as CompletionApiResponse;
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data as object);
+        throw new HTTPError(response, response.status, data);
       }
 
       if (
@@ -399,7 +399,7 @@ export class LightSpeedAPI {
       }
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data as object);
+        throw new HTTPError(response, response.status, data);
       }
 
       return data;

@@ -1080,7 +1080,6 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@biomejs/biome": "^2.4.10",
-    "@eslint/compat": "^2.0.3",
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/ini": "^4.1.1",

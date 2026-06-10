@@ -28,7 +28,9 @@ vi.mock("vscode", () => {
 
     fire(value: T): void {
       if (this.listeners && this.listeners.length > 0) {
-        this.listeners.forEach((listener) => listener(value));
+        this.listeners.forEach((listener) => {
+          listener(value);
+        });
       }
     }
 
@@ -44,7 +46,7 @@ vi.mock("vscode", () => {
         dispose: vi.fn(() => {
           disposables.forEach((d) => d.dispose());
         }),
-      } as MockDisposable;
+      };
     }
   }
 

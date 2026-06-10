@@ -177,7 +177,7 @@ function parseInventoryHosts(hostObj: inventoryType): HostType[] {
     hostObj.ungrouped
   ) {
     ungroupedHostsObjList = hostObj.ungrouped.hosts.map((item) => {
-      return { host: item, priority: 3 } as HostType;
+      return { host: item, priority: 3 };
     });
   }
 

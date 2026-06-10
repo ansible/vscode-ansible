@@ -13,8 +13,6 @@ import { LightSpeedAPI } from "@src/features/lightspeed/api";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  IContentMatch,
-  IContentMatchParams,
   ISuggestionDetails,
 } from "@src/interfaces/lightspeed";
 import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
@@ -28,12 +26,12 @@ function createMatchResponse(): ContentMatchesResponseParams {
     license: "GPLv3+",
     data_source_description: "ansible-core repository",
     score: 123,
-  } as IContentMatchParams;
+  };
   const icontent_match = {
     contentmatch: [contentMatchParams],
-  } as IContentMatch;
+  };
 
-  return { contentmatches: [icontent_match] } as ContentMatchesResponseParams;
+  return { contentmatches: [icontent_match] };
 }
 
 function createMatchErrorResponse(detail: unknown): IError {
@@ -41,7 +39,7 @@ function createMatchErrorResponse(detail: unknown): IError {
     code: "an_error",
     message: "An error occurred",
     detail: detail,
-  } as IError;
+  };
 }
 
 function createContentMatchesWebview(): ContentMatchesWebview {

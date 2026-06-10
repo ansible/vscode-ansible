@@ -15,10 +15,17 @@ export const UNKNOWN_ERROR: string = "An unknown error occurred.";
 /** Format error detail for display; avoids [object Object] when detail is an object. */
 export function formatErrorDetail(detail: unknown): string {
   if (detail === undefined || detail === null) return "";
+  if (typeof detail === "string") return detail;
   if (typeof detail === "object") return JSON.stringify(detail);
-  return typeof detail === "string"
-    ? detail
-    : String(detail as number | boolean);
+  if (typeof detail === "number" || typeof detail === "boolean") {
+    return detail.toString();
+  }
+  if (typeof detail === "bigint") return detail.toString();
+  if (typeof detail === "symbol") return detail.toString();
+  if (typeof detail === "function") {
+    return detail.name.length > 0 ? detail.name : "function";
+  }
+  return "unknown";
 }
 
 export function isError(

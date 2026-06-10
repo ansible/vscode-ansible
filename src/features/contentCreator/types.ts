@@ -65,36 +65,3 @@ export type RoleFormInterface = {
   verbosity: string;
   isOverwritten: boolean;
 };
-
-export type PostMessageEvent =
-  | {
-      command: "ADEPresence";
-      arguments: boolean;
-    }
-  | {
-      command: "execution-log";
-      arguments: {
-        commandOutput: string;
-        logFileUrl: string;
-        collectionUrl?: string;
-        projectUrl?: string;
-        status: string;
-      };
-      data?: string;
-    }
-  | {
-      command: "file-uri";
-      arguments: { selectedUri: string | undefined };
-    }
-  | {
-      command: "disable-build-button";
-      arguments?: never;
-    }
-  | {
-      command: "enable-build-button";
-      arguments?: never;
-    }
-  | {
-      command: "enable-open-file-button";
-      arguments?: never;
-    };

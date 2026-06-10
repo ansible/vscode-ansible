@@ -521,7 +521,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
           if (parsed && typeof parsed === "object") {
             console.log(
               "[RHCustom Provider] Parsed YAML keys:",
-              Object.keys(parsed as object),
+              Object.keys(parsed),
             );
           }
         } catch (parseError) {

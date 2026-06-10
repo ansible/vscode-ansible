@@ -22,21 +22,23 @@ async function runCreator(
 
     // Check if the process failed to spawn (command not found, etc.)
     if (creatorProcess.error) {
-      return reject(
+      reject(
         new Error(
           `Failed to run ansible-creator: ${creatorProcess.error.message}`,
         ),
       );
+      return;
     }
 
     // Check if the process exited with a non-zero status code
     if (creatorProcess.status !== 0) {
       const errorMessage = stderrData || stdoutData || "Unknown error";
-      return reject(
+      reject(
         new Error(
           `ansible-creator exited with code ${creatorProcess.status}:\n${errorMessage}`,
         ),
       );
+      return;
     }
 
     resolve({

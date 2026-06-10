@@ -36,7 +36,13 @@ export class WelcomePagePanel {
     this._panel = panel;
     this.context = context;
 
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
 
     this._panel.webview.html = this.getWebviewHtml(context);
 

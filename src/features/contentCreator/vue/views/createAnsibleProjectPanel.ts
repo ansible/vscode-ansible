@@ -40,7 +40,9 @@ export class MainPanel {
       context,
       "create-ansible-project",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

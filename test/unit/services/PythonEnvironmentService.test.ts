@@ -478,7 +478,7 @@ describe("PythonEnvironmentService", function () {
         uri: explicitScope,
         name: "explicit",
         index: 0,
-      } as vscode.WorkspaceFolder);
+      });
       Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
         value: mockGetWorkspaceFolder,
         configurable: true,
@@ -574,7 +574,7 @@ describe("PythonEnvironmentService", function () {
         uri: explicitScope,
         name: "explicit",
         index: 0,
-      } as vscode.WorkspaceFolder);
+      });
       Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
         value: mockGetWorkspaceFolder,
         configurable: true,
