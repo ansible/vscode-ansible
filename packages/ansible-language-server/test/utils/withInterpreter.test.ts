@@ -225,6 +225,78 @@ describe("withInterpreter", function () {
         fs.rmdirSync(tmpDir);
       }
     });
+
+    it("should accept activation script with tilde home directory shorthand", function () {
+      const homeDir = os.homedir();
+      const tmpDir = fs.mkdtempSync(path.join(homeDir, ".als-test-"));
+      const scriptPath = path.join(tmpDir, "activate");
+      fs.writeFileSync(scriptPath, "# activation script");
+
+      const relativePath = `~${scriptPath.slice(homeDir.length)}`;
+
+      try {
+        const result = withInterpreter(
+          "ansible-lint",
+          "playbook.yml",
+          "",
+          relativePath,
+        );
+
+        expect(result.command).toBe(
+          `sh -c '. ${scriptPath} && ansible-lint playbook.yml'`,
+        );
+      } finally {
+        fs.unlinkSync(scriptPath);
+        fs.rmdirSync(tmpDir);
+      }
+    });
+
+    it("should accept activation script with ~/ prefix", function () {
+      const homeDir = os.homedir();
+      const tmpDir = fs.mkdtempSync(path.join(homeDir, ".als-test-"));
+      const scriptPath = path.join(tmpDir, "activate");
+      fs.writeFileSync(scriptPath, "# activation script");
+
+      const relativePath = `~/${path.relative(homeDir, scriptPath)}`;
+
+      try {
+        const result = withInterpreter(
+          "ansible-lint",
+          "playbook.yml",
+          "",
+          relativePath,
+        );
+
+        expect(result.command).toBe(
+          `sh -c '. ${scriptPath} && ansible-lint playbook.yml'`,
+        );
+      } finally {
+        fs.unlinkSync(scriptPath);
+        fs.rmdirSync(tmpDir);
+      }
+    });
+
+    it("should reject tilde path with shell metacharacters", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "",
+        "~/activate; rm -rf /",
+      );
+
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    });
+
+    it("should reject tilde path that does not exist after expansion", function () {
+      const result = withInterpreter(
+        "ansible-lint",
+        "playbook.yml",
+        "",
+        "~/nonexistent/venv/bin/activate",
+      );
+
+      expect(result.command).toBe("ansible-lint playbook.yml");
+    });
   });
 });
 
@@ -260,6 +332,35 @@ describe("validatePlaybookPath", function () {
 
   it("should reject a nonexistent path", function () {
     expect(validatePlaybookPath("/nonexistent/playbook.yml")).toContain(
+      "does not exist",
+    );
+  });
+
+  it("should accept a valid playbook path with tilde", function () {
+    const homeDir = os.homedir();
+    const tmpDir = fs.mkdtempSync(path.join(homeDir, ".als-test-"));
+    const filePath = path.join(tmpDir, "playbook.yml");
+    fs.writeFileSync(filePath, "---\n- hosts: all\n");
+
+    // Get the relative path from home with ~/
+    const relativePath = `~/${path.relative(homeDir, filePath)}`;
+
+    try {
+      expect(validatePlaybookPath(relativePath)).toBeUndefined();
+    } finally {
+      fs.unlinkSync(filePath);
+      fs.rmdirSync(tmpDir);
+    }
+  });
+
+  it("should reject tilde playbook path with shell metacharacters", function () {
+    expect(validatePlaybookPath("~/playbook.yml; rm -rf /")).toContain(
+      "unsafe characters",
+    );
+  });
+
+  it("should reject tilde playbook path that does not exist", function () {
+    expect(validatePlaybookPath("~/nonexistent/playbook.yml")).toContain(
       "does not exist",
     );
   });
