@@ -32,7 +32,7 @@ export class AnsibleToxController {
       "Ansible Tox",
       vscode.TestRunProfileKind.Run,
       (request, token) => {
-        this.runHandler(request, token);
+        void this.runHandler(request, token);
       },
     );
     this.controller.refreshHandler = async () => {
@@ -40,7 +40,7 @@ export class AnsibleToxController {
     };
     // Check all existing documents
     for (const document of vscode.workspace.textDocuments) {
-      this.parseTestsInAnsibleToxFile(document);
+      void this.parseTestsInAnsibleToxFile(document);
     }
 
     // Check for tox.ini files when a new document is opened or saved.

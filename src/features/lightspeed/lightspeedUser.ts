@@ -404,7 +404,7 @@ export class LightspeedUser {
             { forceNewSession: true },
           );
         } else if (this._userType === AuthProviderType.lightspeed) {
-          this._lightspeedAuthenticationProvider.removeSession(session.id);
+          void this._lightspeedAuthenticationProvider.removeSession(session.id);
         }
       }
     }

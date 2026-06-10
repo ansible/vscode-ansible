@@ -74,10 +74,10 @@ class WebviewApi<StateType = unknown> {
     const listeners = this.listeners.get(type);
     if (listeners) {
       if (result !== undefined && result !== null) {
-        listeners[0]?.(result);
+        void listeners[0]?.(result);
       }
       if (error !== undefined && error !== null) {
-        listeners[1]?.(error);
+        void listeners[1]?.(error);
       }
     }
   }

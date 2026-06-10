@@ -278,7 +278,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.contentMatchesProvider.showContentMatches();
+        void lightSpeedManager.contentMatchesProvider.showContentMatches();
       },
     ),
   );
@@ -287,7 +287,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_CLEAR_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.contentMatchesProvider.clearContentMatches();
+        void lightSpeedManager.contentMatchesProvider.clearContentMatches();
       },
     ),
   );
@@ -368,7 +368,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
-      rejectPendingSuggestion();
+      void rejectPendingSuggestion();
     }),
   );
 
@@ -376,7 +376,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.window.onDidChangeWindowState(async (state: vscode.WindowState) => {
       if (!state.focused) {
-        ignorePendingSuggestion();
+        void ignorePendingSuggestion();
       }
     }),
   );
@@ -411,7 +411,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      metaData.sendAnsibleMetadataTelemetry();
+      void metaData.sendAnsibleMetadataTelemetry();
     }),
   );
   context.subscriptions.push(
@@ -463,19 +463,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
-      metaData.sendAnsibleMetadataTelemetry();
+      void metaData.sendAnsibleMetadataTelemetry();
     }),
   );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
-      inlineSuggestionTextDocumentChangeHandler(e);
+      void inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
-      inlineSuggestionTextDocumentChangeHandler(e);
+      void inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
 
@@ -513,8 +513,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
-      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+      void lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
+      void lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
 
@@ -553,7 +553,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         );
         return;
       }
-      lightspeedLogin(AuthProviderType.rhsso);
+      void lightspeedLogin(AuthProviderType.rhsso);
     },
   );
   context.subscriptions.push(lightspeedSignInWithRedHatCommand);
@@ -562,7 +562,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const lightspeedSignInWithLightspeedCommand = vscode.commands.registerCommand(
     LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED,
     () => {
-      lightspeedLogin(AuthProviderType.lightspeed);
+      void lightspeedLogin(AuthProviderType.lightspeed);
     },
   );
   context.subscriptions.push(lightspeedSignInWithLightspeedCommand);
@@ -927,13 +927,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         // WCA provider - send to API
         if (param.explanationId) {
-          lightSpeedManager.apiInstance.feedbackRequest(
+          void lightSpeedManager.apiInstance.feedbackRequest(
             { playbookExplanationFeedback: param },
             true,
             true,
           );
         } else {
-          lightSpeedManager.apiInstance.feedbackRequest(
+          void lightSpeedManager.apiInstance.feedbackRequest(
             { playbookOutlineFeedback: param },
             true,
             true,
@@ -976,7 +976,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
 
         // WCA provider - send to API
-        lightSpeedManager.apiInstance.feedbackRequest(
+        void lightSpeedManager.apiInstance.feedbackRequest(
           { roleExplanationFeedback: param },
           true,
           true,
@@ -1380,7 +1380,7 @@ async function updateAnsibleStatusBar(
 function notifyAboutConflicts(): void {
   const conflictingExtensions = getConflictingExtensions();
   if (conflictingExtensions.length > 0) {
-    showUninstallConflictsNotification(conflictingExtensions);
+    void showUninstallConflictsNotification(conflictingExtensions);
   }
 }
 
@@ -1397,7 +1397,9 @@ async function resyncAnsibleInventory(): Promise<void> {
         console.log("resync ansible inventory event ->", event);
       },
     );
-    client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+    void client.sendNotification(
+      new NotificationType(`resync/ansible-inventory`),
+    );
   }
 }
 

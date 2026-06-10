@@ -158,7 +158,7 @@ export class TelemetryErrorHandler implements ErrorHandler {
   }
 
   error(error: Error, message: Message, count: number): ErrorHandlerResult {
-    sendTelemetry(this.telemetry, true, "ansible.lsp.error", {
+    void sendTelemetry(this.telemetry, true, "ansible.lsp.error", {
       jsonrpc: message.jsonrpc,
       error: error.message,
     });
@@ -269,7 +269,7 @@ export class TelemetryOutputChannel implements vscode.LogOutputChannel {
       }
       this.errors.push(value);
       const timeoutHandle = setTimeout(() => {
-        sendTelemetry(this.telemetry, true, "ansible.server.error", {
+        void sendTelemetry(this.telemetry, true, "ansible.server.error", {
           error: this.createErrorMessage(),
         });
         this.errors = [];

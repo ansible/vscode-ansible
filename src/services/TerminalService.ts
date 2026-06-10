@@ -276,7 +276,7 @@ export class TerminalService implements vscode.Disposable {
       env: options?.env,
     });
 
-    managed.sendCommand(command, { waitForCompletion: false });
+    void managed.sendCommand(command, { waitForCompletion: false });
     return managed.terminal;
   }
 

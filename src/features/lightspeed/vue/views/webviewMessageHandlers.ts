@@ -648,7 +648,7 @@ export class WebviewMessageHandlers {
     }
 
     // WCA provider - send to API
-    lightSpeedManager.apiInstance.feedbackRequest(
+    void lightSpeedManager.apiInstance.feedbackRequest(
       request,
       process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
     );

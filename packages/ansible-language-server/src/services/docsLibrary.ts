@@ -62,7 +62,7 @@ export class DocsLibrary {
       for (const collectionsPath of ansibleConfig.collections_paths) {
         await this.findDocumentationInCollectionsPath(collectionsPath);
       }
-      this.connection.sendNotification("ansible/docsLibraryReady", {
+      void this.connection.sendNotification("ansible/docsLibraryReady", {
         modulesCount: this.modules.size,
       });
     } catch (error) {

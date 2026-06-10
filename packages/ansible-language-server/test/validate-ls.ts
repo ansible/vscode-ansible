@@ -19,7 +19,7 @@ const exit = async (languageServer: rpc.MessageConnection) => {
   });
 
   const notification = new rpc.NotificationType<string>("exit");
-  languageServer.sendNotification(notification);
+  void languageServer.sendNotification(notification);
 
   return ret;
 };
@@ -35,7 +35,7 @@ const notification = new rpc.NotificationType<string>(
 );
 
 connection.listen();
-connection.sendNotification(notification);
+void connection.sendNotification(notification);
 
-exit(connection);
+void exit(connection);
 console.log("Apparently ALS initialized successfully.");
