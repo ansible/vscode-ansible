@@ -4,8 +4,8 @@ export function compareObjects(baseObject: any, newObject: any): boolean {
     return false;
   }
   // compare the number of keys
-  const baseObjectKeys = Object.keys(baseObject);
-  const newObjectKeys = Object.keys(newObject);
+  const baseObjectKeys = Object.keys(baseObject as object);
+  const newObjectKeys = Object.keys(newObject as object);
 
   if (baseObjectKeys.length !== newObjectKeys.length) {
     return false;

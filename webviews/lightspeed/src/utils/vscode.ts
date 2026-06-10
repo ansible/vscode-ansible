@@ -44,9 +44,9 @@ class WebviewApi<StateType = unknown> {
 
     this.webviewApi = acquireVsCodeApi<StateType>();
     window.addEventListener("message", (event: MessageEvent) => {
-      const message = event.data || {};
+      const message = (event.data ?? {}) as Record<string, unknown>;
       this._runListener(
-        message[this._options.typeKey],
+        message[this._options.typeKey] as string | number | undefined,
         message[this._options.dataKey],
       );
     });

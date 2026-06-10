@@ -76,13 +76,18 @@ export class AnsibleConfig {
       const versionInfo = ini.parse(ansibleVersionResult.stdout);
       this._ansible_meta_data = versionInfo;
       this._module_locations = parsePythonStringArray(
-        versionInfo["configured module search path"],
+        versionInfo["configured module search path"] as string,
       );
       this._module_locations.push(
-        path.resolve(versionInfo["ansible python module location"], "modules"),
+        path.resolve(
+          versionInfo["ansible python module location"] as string,
+          "modules",
+        ),
       );
 
-      this._ansible_location = versionInfo["ansible python module location"];
+      this._ansible_location = versionInfo[
+        "ansible python module location"
+      ] as string;
 
       // get Python sys.path
       // this is needed to get the pre-installed collections to work

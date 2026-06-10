@@ -64,7 +64,7 @@ import {
   isDocumentInRole,
 } from "@src/features/lightspeed/utils/explanationUtils";
 
-interface WebviewMessage {
+export interface WebviewMessage {
   type: string;
   data?: any;
   payload?: any;
@@ -133,8 +133,8 @@ export class WebviewMessageHandlers {
       explorerExplainRole: this.handleExplorerExplainRole.bind(this),
 
       // Data handlers
-      setPlaybookData: this.handleSetPlaybookData.bind(this),
-      setRoleData: this.handleSetRoleData.bind(this),
+      setPlaybookData: this.handleSetData.bind(this),
+      setRoleData: this.handleSetData.bind(this),
       getRecentPrompts: this.handleGetRecentPrompts.bind(this),
       getCollectionList: this.handleGetCollectionList.bind(this),
       writeRoleInWorkspace: this.handleWriteRoleInWorkspace.bind(this),
@@ -183,7 +183,7 @@ export class WebviewMessageHandlers {
     });
   }
 
-  private handleUiMounted(message: any, webview: vscode.Webview) {
+  private handleUiMounted(message: WebviewMessage, webview: vscode.Webview) {
     // Get workspace directory instead of home directory
     let workspaceDir = os.homedir(); // fallback
     if (vscode.workspace.workspaceFolders) {
@@ -200,10 +200,10 @@ export class WebviewMessageHandlers {
   // File/Folder Handlers
 
   private async handleOpenFolderExplorer(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
   ) {
-    const defaultPath = message.payload?.defaultPath;
+    const defaultPath = message.payload?.defaultPath as string | undefined;
     const uri = await window.showOpenDialog({
       canSelectFolders: true,
       canSelectFiles: false,
@@ -218,8 +218,11 @@ export class WebviewMessageHandlers {
     }
   }
 
-  private async handleOpenFileExplorer(message: any, webview: vscode.Webview) {
-    const defaultPath = message.payload?.defaultPath;
+  private async handleOpenFileExplorer(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
+    const defaultPath = message.payload?.defaultPath as string | undefined;
     const uri = await window.showOpenDialog({
       canSelectFolders: false,
       canSelectFiles: true,
@@ -234,31 +237,40 @@ export class WebviewMessageHandlers {
     }
   }
 
-  private async handleOpenEditor(message: any) {
-    const content: string = message.data.content;
+  private async handleOpenEditor(message: WebviewMessage) {
+    const content = message.data.content as string;
     await openNewPlaybookEditor(content);
   }
 
   // Creator Handlers
-  private async handleInitCreate(message: any, webview: vscode.Webview) {
+  private async handleInitCreate(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     const payload = message.payload as
       | AnsibleCollectionFormInterface
       | AnsibleProjectFormInterface;
     await this.creatorOps.runInitCommand(payload, webview);
   }
 
-  private async handleInitCreatePlugin(message: any, webview: vscode.Webview) {
+  private async handleInitCreatePlugin(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     const payload = message.payload as PluginFormInterface;
     await this.creatorOps.runPluginAddCommand(payload, webview);
   }
 
-  private async handleInitCreateRole(message: any, webview: vscode.Webview) {
+  private async handleInitCreateRole(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     const payload = message.payload as RoleFormInterface;
     await this.creatorOps.runRoleAddCommand(payload, webview);
   }
 
   private async handleInitCreateDevcontainer(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
@@ -271,7 +283,7 @@ export class WebviewMessageHandlers {
   }
 
   private async handleInitCreateDevfile(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
@@ -280,37 +292,47 @@ export class WebviewMessageHandlers {
   }
 
   private async handleInitCreateExecutionEnv(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
   ) {
     const payload = message.payload as AnsibleExecutionEnvInterface;
     await this.runExecutionEnvCreateProcess(payload, webview);
   }
 
-  private async handleCheckAdePresence(message: any, webview: vscode.Webview) {
+  private async handleCheckAdePresence(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     await this.creatorOps.isADEPresent(webview);
   }
 
   // File Operation Handlers
-  private async handleInitCopyLogs(message: any) {
-    const payload = message.payload;
+  private async handleInitCopyLogs(message: WebviewMessage) {
+    const payload = message.payload as { initExecutionLogs: string };
     vscode.env.clipboard.writeText(payload.initExecutionLogs);
     await vscode.window.showInformationMessage("Logs copied to clipboard");
   }
 
-  private async handleInitOpenLogFile(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenLogFile(message: WebviewMessage) {
+    const payload = message.payload as { logFileUrl: string };
     await this.fileOps.openLogFile(payload.logFileUrl);
   }
 
-  private async handleInitOpenScaffoldedFolder(message: any) {
-    const payload = message.payload;
-    const folderUrl = payload.collectionUrl || payload.projectUrl;
+  private async handleInitOpenScaffoldedFolder(message: WebviewMessage) {
+    const payload = message.payload as {
+      collectionUrl?: string;
+      projectUrl?: string;
+    };
+    const folderUrl = (payload.collectionUrl || payload.projectUrl) as string;
     await this.fileOps.openFolderInWorkspaceProjects(folderUrl);
   }
 
-  private async handleInitOpenScaffoldedFolderPlugin(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenScaffoldedFolderPlugin(message: WebviewMessage) {
+    const payload = message.payload as {
+      projectUrl: string;
+      pluginName: string;
+      pluginType: string;
+    };
     await this.fileOps.openFolderInWorkspacePlugin(
       payload.projectUrl,
       payload.pluginName,
@@ -318,26 +340,29 @@ export class WebviewMessageHandlers {
     );
   }
 
-  private async handleInitOpenRoleFolder(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenRoleFolder(message: WebviewMessage) {
+    const payload = message.payload as {
+      projectUrl: string;
+      roleName: string;
+    };
     await this.fileOps.openFolderInWorkspaceRole(
       payload.projectUrl,
       payload.roleName,
     );
   }
 
-  private async handleInitOpenDevcontainerFolder(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenDevcontainerFolder(message: WebviewMessage) {
+    const payload = message.payload as { projectUrl: string };
     await this.fileOps.openFolderInWorkspaceDevcontainer(payload.projectUrl);
   }
 
-  private async handleInitOpenDevfile(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenDevfile(message: WebviewMessage) {
+    const payload = message.payload as { projectUrl: string };
     await this.fileOps.openDevfile(payload.projectUrl);
   }
 
-  private async handleInitOpenScaffoldedFile(message: any) {
-    const payload = message.payload;
+  private async handleInitOpenScaffoldedFile(message: WebviewMessage) {
+    const payload = message.payload as { projectUrl?: string };
     const projectUrl = payload.projectUrl;
     if (projectUrl) {
       // For execution environment, open the specific YAML file
@@ -347,8 +372,14 @@ export class WebviewMessageHandlers {
   }
 
   // LightSpeed Handlers
-  private async handleExplainPlaybook(message: any, webview: vscode.Webview) {
-    const { data } = message;
+  private async handleExplainPlaybook(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
+    const data = message.data as {
+      content: string;
+      explanationId: string;
+    };
     const lightSpeedStatusbarText =
       await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
@@ -381,8 +412,15 @@ export class WebviewMessageHandlers {
       lightSpeedStatusbarText;
   }
 
-  private async handleExplainRole(message: any, webview: vscode.Webview) {
-    const { data } = message;
+  private async handleExplainRole(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
+    const data = message.data as {
+      files: GenerationListEntry[];
+      roleName: string;
+      explanationId: string;
+    };
     const lightSpeedStatusbarText =
       await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
@@ -417,11 +455,15 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGenerateRole(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
-    const { data } = message;
+    const data = message.data as {
+      name?: string;
+      text: string;
+      outline: string;
+    };
     const generationId = uuidv4();
 
     const response = await generateRole(
@@ -455,11 +497,14 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGeneratePlaybook(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
-    const { data } = message;
+    const data = message.data as {
+      text: string;
+      outline: string;
+    };
     const generationId = uuidv4();
     const response = await generatePlaybook(
       lightSpeedManager.apiInstance,
@@ -484,38 +529,44 @@ export class WebviewMessageHandlers {
     updatePromptHistory(context, data.text);
   }
 
-  private async handleExplanationThumbsUp(message: any) {
+  private async handleExplanationThumbsUp(message: WebviewMessage) {
+    const data = message.data as {
+      action?: ThumbsUpDownAction;
+      explanationId: string;
+      explanationType?: "playbook" | "role";
+    };
     await thumbsUpDown(
-      message.data.action ?? ThumbsUpDownAction.UP,
-      message.data.explanationId,
-      message.data.explanationType ?? "playbook",
+      data.action ?? ThumbsUpDownAction.UP,
+      data.explanationId,
+      data.explanationType ?? "playbook",
     );
   }
 
-  private async handleExplanationThumbsDown(message: any) {
+  private async handleExplanationThumbsDown(message: WebviewMessage) {
+    const data = message.data as {
+      action?: ThumbsUpDownAction;
+      explanationId: string;
+      explanationType?: "playbook" | "role";
+    };
     await thumbsUpDown(
-      message.data.action ?? ThumbsUpDownAction.DOWN,
-      message.data.explanationId,
-      message.data.explanationType ?? "playbook",
+      data.action ?? ThumbsUpDownAction.DOWN,
+      data.explanationId,
+      data.explanationType ?? "playbook",
     );
   }
 
   // Data Handlers
-  private handleSetPlaybookData(message: any, webview: vscode.Webview) {
+  private handleSetData(message: WebviewMessage, webview: vscode.Webview) {
     webview.postMessage({
       type: message.type,
       data: message.data,
     });
   }
 
-  private handleSetRoleData(message: any, webview: vscode.Webview) {
-    webview.postMessage({
-      type: message.type,
-      data: message.data,
-    });
-  }
-
-  private handleGetTelemetryStatus(message: any, webview: vscode.Webview) {
+  private handleGetTelemetryStatus(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     const telemetryEnabled = vscode.workspace
       .getConfiguration("redhat")
       .get<boolean>("telemetry.enabled", true);
@@ -531,7 +582,7 @@ export class WebviewMessageHandlers {
   }
 
   private handleGetRecentPrompts(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
@@ -545,7 +596,10 @@ export class WebviewMessageHandlers {
     });
   }
 
-  private async handleGetCollectionList(message: any, webview: vscode.Webview) {
+  private async handleGetCollectionList(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     await new Promise((resolve) => setTimeout(resolve, 200));
     webview.postMessage({
       type: message.type,
@@ -553,7 +607,7 @@ export class WebviewMessageHandlers {
     });
   }
 
-  private async handleFeedback(message: any) {
+  private async handleFeedback(message: WebviewMessage) {
     const request = message.data.request as FeedbackRequestParams;
     const provider =
       lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
@@ -598,10 +652,14 @@ export class WebviewMessageHandlers {
   }
 
   private async handleWriteRoleInWorkspace(
-    message: any,
+    message: WebviewMessage,
     webview: vscode.Webview,
   ) {
-    const { data } = message;
+    const data = message.data as {
+      roleName: string;
+      collectionName: string;
+      files: string[][];
+    };
     const roleName: string = data.roleName;
     const collectionName: string = data.collectionName;
     const files = data.files.map((i: string[]) => ({
@@ -1203,7 +1261,10 @@ export class WebviewMessageHandlers {
   }
 
   // Explorer Handlers
-  private async handleGetExplorerState(message: any, webview: vscode.Webview) {
+  private async handleGetExplorerState(
+    message: WebviewMessage,
+    webview: vscode.Webview,
+  ) {
     const hasPlaybookOpened = this.hasPlaybookOpened();
     const hasRoleOpened = await this.hasRoleOpened();
 

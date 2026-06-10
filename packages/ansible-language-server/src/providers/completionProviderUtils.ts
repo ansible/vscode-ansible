@@ -49,12 +49,12 @@ export function getVarsCompletion(
 
           if (Array.isArray(varsObject)) {
             varsObject.forEach((element) => {
-              Object.keys(element).forEach((key) => {
+              Object.keys(element as object).forEach((key) => {
                 varsCompletion.push({ variable: key, priority: varPriority });
               });
             });
           } else {
-            Object.keys(varsObject).forEach((key) => {
+            Object.keys(varsObject as object).forEach((key) => {
               varsCompletion.push({ variable: key, priority: varPriority });
             });
           }
@@ -83,12 +83,12 @@ export function getVarsCompletion(
 
           if (Array.isArray(varsObject)) {
             varsObject.forEach((element) => {
-              Object.keys(element).forEach((key) => {
+              Object.keys(element as object).forEach((key) => {
                 varsCompletion.push({ variable: key, priority: varPriority });
               });
             });
           } else {
-            Object.keys(varsObject).forEach((key) => {
+            Object.keys(varsObject as object).forEach((key) => {
               varsCompletion.push({ variable: key, priority: varPriority });
             });
           }
@@ -145,7 +145,7 @@ export function getVarsCompletion(
           if (Array.isArray(yamlDocContent)) {
             yamlDocContent.forEach((element) => {
               if (typeof element === "object") {
-                Object.keys(element).forEach((key) => {
+                Object.keys(element as object).forEach((key) => {
                   varsCompletion.push({ variable: key, priority: varPriority });
                 });
               }

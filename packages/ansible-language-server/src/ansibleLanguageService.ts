@@ -325,7 +325,7 @@ export class AnsibleLanguageService {
       try {
         if (completionItem.data?.documentUri) {
           const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri,
+            completionItem.data?.documentUri as string,
           );
           if (context) {
             return await doCompletionResolve(completionItem, context);
@@ -380,7 +380,7 @@ export class AnsibleLanguageService {
     // Send ansible info to client on receive of notification
     this.connection.onNotification(
       "update/ansible-metadata",
-      async (activeFileUri) => {
+      async (activeFileUri: string) => {
         const ctx = this.workspaceManager.getContext(activeFileUri);
         if (ctx !== undefined) {
           const ansibleMetaData = await getAnsibleMetaData(

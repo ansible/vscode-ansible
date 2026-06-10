@@ -1,7 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeConfigurationMiddleware } from "@src/extension";
 import type { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
+import type {
+  CancellationToken,
+  ConfigurationParams,
+  LSPAny,
+} from "vscode-languageserver-protocol";
+import type { HandlerResult } from "vscode-jsonrpc";
+
+type ConfigurationNext = (
+  params: ConfigurationParams,
+  token: CancellationToken,
+) => HandlerResult<LSPAny[], void>;
 
 describe("makeConfigurationMiddleware", function () {
   let mockPythonEnvService: {
@@ -12,12 +22,16 @@ describe("makeConfigurationMiddleware", function () {
     appendLine: ReturnType<typeof vi.fn>;
   };
   let middleware: ReturnType<typeof makeConfigurationMiddleware>;
-  let mockNext: ReturnType<typeof vi.fn>;
+  let mockNext: ReturnType<typeof vi.fn<ConfigurationNext>>;
 
-  const mockToken = {
+  const mockToken: CancellationToken = {
     isCancellationRequested: false,
     onCancellationRequested: vi.fn(),
   };
+
+  async function invokeMiddleware(params: ConfigurationParams) {
+    return middleware(params, mockToken, mockNext);
+  }
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -36,37 +50,29 @@ describe("makeConfigurationMiddleware", function () {
       mockOutputChannel as unknown as import("vscode").OutputChannel,
     );
 
-    mockNext = vi.fn();
+    mockNext = vi.fn<ConfigurationNext>();
   });
 
   it("should pass through non-ansible config sections unchanged", async function () {
-    const params = { items: [{ section: "editor" }] };
+    const params: ConfigurationParams = { items: [{ section: "editor" }] };
     const originalResult = [{ fontSize: 14 }];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     expect(result).toEqual(originalResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
   });
 
   it("should inject resolved path when interpreterPath is not set", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [{ python: { activationScript: "" } }];
     mockNext.mockResolvedValue(originalResult);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -77,17 +83,13 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should respect user-configured interpreterPath and not override it", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [
       { python: { interpreterPath: "/usr/local/bin/python3" } },
     ];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -99,19 +101,19 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should log when transitioning from a path to no path", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
 
     // First call — env resolves a path; mockNext returns a fresh object
     mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
-    await middleware(params as any, mockToken as any, mockNext as any);
+    await invokeMiddleware(params);
 
     // Second call — env returns nothing; fresh object avoids mutation leak
     mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(undefined);
-    await middleware(params as any, mockToken as any, mockNext as any);
+    await invokeMiddleware(params);
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringContaining("No Python environment available"),
@@ -119,18 +121,14 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should handle config with no python section", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [{ ansible: { path: "/usr/bin/ansible" } }];
     mockNext.mockResolvedValue(originalResult);
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/usr/bin/python3",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -138,22 +136,18 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should handle null/undefined config entries", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [undefined];
     mockNext.mockResolvedValue(originalResult);
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     expect(result).toEqual([undefined]);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
   });
 
   it("should call getExecutablePath when scopeUri is present", async function () {
-    const params = {
+    const params: ConfigurationParams = {
       items: [{ section: "ansible", scopeUri: "file:///workspace/project" }],
     };
     const originalResult = [{ python: {} }];
@@ -162,11 +156,7 @@ describe("makeConfigurationMiddleware", function () {
       "/workspace/.venv/bin/python",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     expect(mockPythonEnvService.getExecutablePath).toHaveBeenCalledTimes(1);
     const config = (result as Record<string, unknown>[])[0];
@@ -175,7 +165,7 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should handle multiple config items in a single request", async function () {
-    const params = {
+    const params: ConfigurationParams = {
       items: [
         { section: "editor" },
         { section: "ansible" },
@@ -192,11 +182,7 @@ describe("makeConfigurationMiddleware", function () {
       "/resolved/python",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const editorConfig = (result as Record<string, unknown>[])[0];
     expect(editorConfig).toEqual({ fontSize: 14 });
@@ -213,22 +199,18 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should return non-array results from next() unchanged", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const nonArrayResult = "unexpected";
-    mockNext.mockResolvedValue(nonArrayResult);
+    mockNext.mockResolvedValue(nonArrayResult as unknown as LSPAny[]);
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     expect(result).toBe(nonArrayResult);
     expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
   });
 
   it("should preserve existing python config properties when injecting", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [
       { python: { activationScript: "/path/to/activate" } },
     ];
@@ -237,11 +219,7 @@ describe("makeConfigurationMiddleware", function () {
       "/injected/python",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;
@@ -250,7 +228,7 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should only log once when same path is injected multiple times", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/home/user/.venv/bin/python",
     );
@@ -258,7 +236,7 @@ describe("makeConfigurationMiddleware", function () {
     // Each call returns a fresh object to avoid mutation leakage
     for (let n = 0; n < 3; n++) {
       mockNext.mockResolvedValue([{ python: {} }]);
-      await middleware(params as any, mockToken as any, mockNext as any);
+      await invokeMiddleware(params);
     }
 
     expect(mockOutputChannel.appendLine).toHaveBeenCalledTimes(1);
@@ -268,13 +246,13 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should log when transitioning between user-configured and auto-resolved with same path", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
 
     // First call: user has configured path
     mockNext.mockResolvedValue([
       { python: { interpreterPath: "/usr/bin/python3" } },
     ]);
-    await middleware(params as any, mockToken as any, mockNext as any);
+    await invokeMiddleware(params);
 
     // Should log user-configured
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -286,7 +264,7 @@ describe("makeConfigurationMiddleware", function () {
     mockPythonEnvService.getExecutablePath.mockResolvedValue(
       "/usr/bin/python3",
     );
-    await middleware(params as any, mockToken as any, mockNext as any);
+    await invokeMiddleware(params);
 
     // Should STILL log because source changed (user → auto-resolved)
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -295,14 +273,10 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should handle errors from next() gracefully", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     mockNext.mockRejectedValue(new Error("Configuration fetch failed"));
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     // Should return empty array and log error
     expect(result).toEqual([]);
@@ -312,17 +286,13 @@ describe("makeConfigurationMiddleware", function () {
   });
 
   it("should handle errors from getExecutablePath gracefully", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     mockNext.mockResolvedValue([{ python: {} }]);
     mockPythonEnvService.getExecutablePath.mockRejectedValue(
       new Error("Python env resolution failed"),
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     // Should return unmodified result and log error once
     expect(result).toEqual([{ python: {} }]);
@@ -337,14 +307,14 @@ describe("makeConfigurationMiddleware", function () {
       new Error("Python env resolution failed"),
     );
 
-    await middleware(params as any, mockToken as any, mockNext as any);
+    await invokeMiddleware(params);
 
     // Should NOT log again
     expect(mockOutputChannel.appendLine).not.toHaveBeenCalled();
   });
 
   it("should expand tilde in user-configured interpreterPath", async function () {
-    const params = { items: [{ section: "ansible" }] };
+    const params: ConfigurationParams = { items: [{ section: "ansible" }] };
     const originalResult = [
       {
         python: {
@@ -359,11 +329,7 @@ describe("makeConfigurationMiddleware", function () {
       "/home/user/.local/share/virtualenvs/vsa/bin/python",
     );
 
-    const result = await middleware(
-      params as any,
-      mockToken as any,
-      mockNext as any,
-    );
+    const result = await invokeMiddleware(params);
 
     const config = (result as Record<string, unknown>[])[0];
     const pythonConfig = config.python as Record<string, unknown>;

@@ -24,6 +24,7 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
+  coerceExpiresIn,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   getBaseUri,
@@ -435,7 +436,7 @@ export class LightSpeedAuthenticationProvider
           accessToken: data?.access_token,
           refreshToken: data?.refresh_token,
           expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-            data?.expires_in,
+            coerceExpiresIn(data?.expires_in),
           ),
           // scope: data.scope,
         };
@@ -507,7 +508,7 @@ export class LightSpeedAuthenticationProvider
               accessToken: data?.access_token,
               refreshToken: data?.refresh_token,
               expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-                data?.expires_in,
+                coerceExpiresIn(data?.expires_in),
               ),
               // scope: data.scope,
             };

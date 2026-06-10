@@ -55,10 +55,11 @@ class MessageRouter {
     private commonState?: Partial<CommonWebviewState>,
   ) {
     this.typeHandlers = {
-      homeDirectory: (message) => this.onHomeDirectory(message.data),
-      folderSelected: (message) => this.onFolderSelected(message.data),
-      fileSelected: (message) => this.onFileSelected(message.data),
-      logs: (message) => this.onLogs(message.data),
+      homeDirectory: (message) => this.onHomeDirectory(message.data as string),
+      folderSelected: (message) =>
+        this.onFolderSelected(message.data as string),
+      fileSelected: (message) => this.onFileSelected(message.data as string),
+      logs: (message) => this.onLogs(message.data as string),
     };
 
     this.commandHandlers = {
@@ -68,7 +69,8 @@ class MessageRouter {
         }
       },
       "execution-log": (message) => this.onExecutionLog(message.arguments),
-      ADEPresence: (message) => this.onADEPresence(message.arguments),
+      ADEPresence: (message) =>
+        this.onADEPresence(message.arguments as boolean),
     };
   }
 
@@ -147,7 +149,7 @@ export function setupMessageHandler(
   const router = new MessageRouter(config, commonState);
 
   const messageHandler = (event: MessageEvent) => {
-    router.handle(event.data);
+    router.handle(event.data as Message);
   };
 
   window.addEventListener("message", messageHandler);

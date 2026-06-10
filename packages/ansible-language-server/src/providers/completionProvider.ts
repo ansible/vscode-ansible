@@ -548,15 +548,18 @@ export async function doCompletionResolve(
 
     const docsLibrary = await context.docsLibrary;
     const [module] = await docsLibrary.findModule(
-      completionItem.data.moduleFqcn,
+      completionItem.data.moduleFqcn as string,
     );
 
     if (module && module.documentation) {
-      const [namespace, collection, name] =
-        completionItem.data.moduleFqcn.split(".");
+      const [namespace, collection, name] = (
+        completionItem.data.moduleFqcn as string
+      ).split(".");
 
       let useFqcn = (
-        await context.documentSettings.get(completionItem.data.documentUri)
+        await context.documentSettings.get(
+          completionItem.data.documentUri as string,
+        )
       ).ansible.useFullyQualifiedCollectionNames;
 
       if (!useFqcn) {
@@ -567,7 +570,7 @@ export async function doCompletionResolve(
         declaredCollections.push("ansible.builtin");
 
         const metadata = await context.documentMetadata.get(
-          completionItem.data.documentUri,
+          completionItem.data.documentUri as string,
         );
         if (metadata) {
           declaredCollections.push(...metadata.collections);
@@ -587,7 +590,7 @@ export async function doCompletionResolve(
       const insertText = completionItem.data.atEndOfLine
         ? `${insertName}:${resolveSuffix(
             "dict", // since a module is always a dictionary
-            completionItem.data.firstElementOfList,
+            completionItem.data.firstElementOfList as boolean,
             isAnsiblePlaybook,
           )}`
         : insertName;
@@ -602,7 +605,7 @@ export async function doCompletionResolve(
 
       completionItem.documentation = formatModule(
         module.documentation,
-        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn),
+        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn as string),
       );
     }
   }
@@ -612,8 +615,8 @@ export async function doCompletionResolve(
 
     const insertText = completionItem.data.atEndOfLine
       ? `${completionItem.label}:${resolveSuffix(
-          completionItem.data.type,
-          completionItem.data.firstElementOfList,
+          completionItem.data.type as string,
+          completionItem.data.firstElementOfList as boolean,
           isAnsiblePlaybook,
         )}`
       : completionItem.label;

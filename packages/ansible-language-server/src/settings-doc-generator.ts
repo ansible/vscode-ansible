@@ -100,7 +100,11 @@ function toDotNotation(
     const newKey = current ? `${current}.${key}` : key; // joined key with dot
     if (value && typeof value === "object") {
       if (_.isArray(value) && value[0]) {
-        toDotNotation(value[0], res, `${newKey}._array`); // it's an array object, so do it again (to identify array '._array' is added)
+        toDotNotation(
+          value[0] as ExtensionSettingsWithDescriptionBase,
+          res,
+          `${newKey}._array`,
+        ); // it's an array object, so do it again (to identify array '._array' is added)
       } else if (_.isArray(value) && !value[0]) {
         res[newKey] = value; // empty array
       } else {

@@ -179,12 +179,13 @@ function main(): void {
   const resolved = resolveVersion();
 
   if (wantVersion) {
-    logVersionResolution(resolved);
+    if (process.env.DEBUG === "1") {
+      logVersionResolution(resolved);
+    }
     console.log(resolved.version);
     return;
   }
 
-  logVersionResolution(resolved);
   const preReleaseArg = resolved.preRelease ? "--pre-release" : "";
 
   if (wantPublish) {
@@ -197,7 +198,9 @@ function main(): void {
       process.exit(2);
     }
     run([
-      "npx",
+      "npm",
+      "exec",
+      "--",
       "vsce",
       "publish",
       preReleaseArg,
@@ -207,17 +210,28 @@ function main(): void {
       "--readme-path",
       "docs/README.md",
     ]);
-    run(["npx", "ovsx", "publish", preReleaseArg, "--skip-duplicate", vsix]);
+    run([
+      "npm",
+      "exec",
+      "--",
+      "ovsx",
+      "publish",
+      preReleaseArg,
+      "--skip-duplicate",
+      vsix,
+    ]);
     return;
   }
 
   if (wantPackage) {
-    run(["npx", "rimraf", "-g", "./out/*.vsix"]);
+    run(["npm", "exec", "--", "rimraf", "-g", "./out/*.vsix"]);
     // --no-dependencies needed due to https://github.com/microsoft/vscode-vsce/issues/439
     // most options are supposed to be loaded from package.json but --no-update-package-json apparently is still needed
     const vsixFile = `out/ansible-${resolved.version}.vsix`;
     run([
-      "npx",
+      "npm",
+      "exec",
+      "--",
       "vsce",
       "package",
       "--no-update-package-json",
