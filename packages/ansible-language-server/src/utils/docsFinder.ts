@@ -26,16 +26,16 @@ export async function findDocumentation(
   let files;
   switch (kind) {
     case "builtin":
-      files = await globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
+      files = globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
       break;
     case "builtin_doc_fragment":
-      files = await globArray([
+      files = globArray([
         `${path.resolve(dir, "../")}/plugins/doc_fragments/*.py`,
         "!/**/_*.py",
       ]);
       break;
     case "collection":
-      files = await globArray([
+      files = globArray([
         `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
         `${dir}/ansible_collections/*/*/plugins/modules/**/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
@@ -43,7 +43,7 @@ export async function findDocumentation(
       ]).filter((item) => !fs.lstatSync(item).isSymbolicLink());
       break;
     case "collection_doc_fragment":
-      files = await globArray([
+      files = globArray([
         `${dir}/ansible_collections/*/*/plugins/doc_fragments/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/doc_fragments/_*.py`,
       ]);
@@ -97,12 +97,10 @@ export async function findPluginRouting(
   let files;
   switch (kind) {
     case "builtin":
-      files = await globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
+      files = globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
       break;
     case "collection":
-      files = await globArray([
-        `${dir}/ansible_collections/*/*/meta/runtime.yml`,
-      ]);
+      files = globArray([`${dir}/ansible_collections/*/*/meta/runtime.yml`]);
       break;
   }
   for (const file of files) {

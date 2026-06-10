@@ -571,7 +571,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
    * Handle "Ansible Tox" in the extension
    */
   const ansibleToxController = new AnsibleToxController();
-  context.subscriptions.push(await ansibleToxController.create());
+  context.subscriptions.push(ansibleToxController.create());
 
   const workspaceTox = findProjectDir();
 

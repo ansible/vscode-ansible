@@ -370,7 +370,7 @@ export class WebviewMessageHandlers {
     if (projectUrl) {
       // For execution environment, open the specific YAML file
       const filePath = `${projectUrl}/execution-environment.yml`;
-      await this.fileOps.openFileInEditor(filePath);
+      this.fileOps.openFileInEditor(filePath);
     }
   }
 
