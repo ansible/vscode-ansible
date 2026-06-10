@@ -105,12 +105,16 @@ export class OpenAICompatibleClient {
 
       clearTimeout(timeoutId);
 
-      const body = await response.json();
+      interface ErrorResponseBody {
+        error?: { message?: string };
+        message?: string;
+      }
+      const body = (await response.json()) as ErrorResponseBody;
 
       if (!response.ok) {
         const errorMessage =
-          body?.error?.message ||
-          body?.message ||
+          body.error?.message ||
+          body.message ||
           `HTTP ${response.status} error`;
         throw new OpenAIClientError(String(errorMessage), response.status);
       }

@@ -23,8 +23,14 @@ export class MainPanel {
     );
 
     this._panel.webview.onDidReceiveMessage(
-      async (msg) => {
-        if (msg && msg.type === "request-requirements-status") {
+      async (msg: unknown) => {
+        if (
+          typeof msg === "object" &&
+          msg !== null &&
+          "type" in msg &&
+          (msg as Record<string, unknown>).type ===
+            "request-requirements-status"
+        ) {
           const status = await checkContentCreatorRequirements();
           this._panel.webview.postMessage({
             type: "requirements-status",

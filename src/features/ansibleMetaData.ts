@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import {
   ExtensionContext,
   window,
@@ -10,9 +9,20 @@ import {
 import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager, sendTelemetry } from "@src/utils/telemetryUtils";
-import { formatAnsibleMetaData } from "@src/features/utils/formatAnsibleMetaData";
+import {
+  formatAnsibleMetaData,
+  type FormattedAnsibleMetaData,
+} from "@src/features/utils/formatAnsibleMetaData";
 import { compareObjects, getValueFromObject } from "@src/features/utils/data";
 import { SettingsManager } from "@src/settings";
+
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+const asMetadataString = (value: unknown): string =>
+  typeof value === "string" || typeof value === "number" ? String(value) : "";
 
 interface ansibleMetadataEvent {
   ansibleVersion: string;
@@ -34,7 +44,7 @@ export class MetadataManager {
   private extensionSettings: SettingsManager;
   private currentAnsibleMetaEventData: ansibleMetadataEvent | undefined;
   private previousAnsibleMetaEventData: ansibleMetadataEvent | undefined;
-  private ansibleMetaData: any;
+  private ansibleMetaData: FormattedAnsibleMetaData | undefined;
 
   constructor(
     context: ExtensionContext,
@@ -90,15 +100,18 @@ export class MetadataManager {
     );
     this.metadataStatusBarItem.show();
     this.client.onNotification(
-      new NotificationType(`update/ansible-metadata`),
-      (ansibleMetaDataList: any) => {
-        this.ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
+      new NotificationType<unknown[]>(`update/ansible-metadata`),
+      (ansibleMetaDataList) => {
+        const firstEntry = ansibleMetaDataList[0];
+        this.ansibleMetaData = formatAnsibleMetaData(firstEntry);
         if (this.ansibleMetaData.ansiblePresent) {
           console.log("Ansible found in the workspace");
-          this.cachedAnsibleVersion =
-            this.ansibleMetaData.metaData["ansible information"][
-              "core version"
-            ];
+          const ansibleInfo = asRecord(
+            this.ansibleMetaData.metaData["ansible information"],
+          );
+          this.cachedAnsibleVersion = asMetadataString(
+            ansibleInfo["core version"],
+          );
           const tooltip = this.ansibleMetaData.markdown;
           this.metadataStatusBarItem.text = this.ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${this.cachedAnsibleVersion}`
@@ -128,7 +141,7 @@ export class MetadataManager {
     );
     const activeFileUri = window.activeTextEditor?.document.uri.toString();
     void this.client.sendNotification(
-      new NotificationType(`update/ansible-metadata`),
+      new NotificationType<unknown[]>(`update/ansible-metadata`),
       [activeFileUri],
     );
 
@@ -140,20 +153,26 @@ export class MetadataManager {
       return;
     }
     // Extract ansibleVersion and pythonVersion safely
-    const ansibleVersion = getValueFromObject(this.ansibleMetaData.metaData, [
-      "ansible information",
-      "core version",
-    ]);
-    const pythonVersion = getValueFromObject(this.ansibleMetaData.metaData, [
-      "python information",
-      "version",
-    ]);
+    const ansibleVersion = asMetadataString(
+      getValueFromObject(this.ansibleMetaData.metaData, [
+        "ansible information",
+        "core version",
+      ]),
+    );
+    const pythonVersion = asMetadataString(
+      getValueFromObject(this.ansibleMetaData.metaData, [
+        "python information",
+        "version",
+      ]),
+    );
     const ansibleLintVersion = this.ansibleMetaData.ansibleLintPresent
-      ? getValueFromObject(this.ansibleMetaData.metaData, [
-          "ansible-lint information",
-          "version",
-        ])
-      : null;
+      ? asMetadataString(
+          getValueFromObject(this.ansibleMetaData.metaData, [
+            "ansible-lint information",
+            "version",
+          ]),
+        )
+      : undefined;
     this.currentAnsibleMetaEventData = {
       ansibleVersion,
       pythonVersion,

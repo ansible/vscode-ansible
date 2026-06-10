@@ -8,7 +8,17 @@ const asRecord = (value: unknown): Record<string, unknown> =>
     ? (value as Record<string, unknown>)
     : {};
 
-export function formatAnsibleMetaData(ansibleMetaData: any) {
+export interface FormattedAnsibleMetaData {
+  metaData: Record<string, unknown>;
+  markdown: MarkdownString;
+  ansiblePresent: boolean;
+  ansibleLintPresent: boolean;
+  eeEnabled?: boolean;
+}
+
+export function formatAnsibleMetaData(
+  ansibleMetaData: unknown,
+): FormattedAnsibleMetaData {
   let mdString = "";
   let ansiblePresent = true;
   let ansibleLintPresent = true;
@@ -18,13 +28,17 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   const WARNING_STYLE = `style="color:${WARNING_COLOR};"`;
 
   // check if ansible is missing
-  const ansibleInfo = asRecord(ansibleMetaData?.["ansible information"]);
+  const ansibleInfo = asRecord(
+    asRecord(ansibleMetaData)["ansible information"],
+  );
   if (Object.keys(ansibleInfo).length === 0) {
     ansiblePresent = false;
     mdString += "#### $(close) Ansible not found in the environment\n";
 
     // if python exists
-    const pythonInfo = asRecord(ansibleMetaData?.["python information"]);
+    const pythonInfo = asRecord(
+      asRecord(ansibleMetaData)["python information"],
+    );
     if (Object.keys(pythonInfo).length !== 0) {
       const obj = pythonInfo;
       mdString += `Python version used: \`${String(obj["version"])}\` from \`${String(obj["location"])}\``;
@@ -35,22 +49,23 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     markdown.isTrusted = true;
 
     return {
-      metaData: ansibleMetaData,
+      metaData: asRecord(ansibleMetaData),
       markdown,
       ansiblePresent,
       ansibleLintPresent,
     };
   }
 
+  const metaDataRoot = asRecord(ansibleMetaData);
+
   // check if ee is enabled or not
-  if (ansibleMetaData["execution environment information"]) {
+  if (metaDataRoot["execution environment information"]) {
     eeEnabled = true;
   }
 
   // check is ansible-lint is missing
   if (
-    Object.keys(asRecord(ansibleMetaData?.["ansible-lint information"]))
-      .length === 0
+    Object.keys(asRecord(metaDataRoot["ansible-lint information"])).length === 0
   ) {
     ansibleLintPresent = false;
   }
@@ -67,7 +82,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     .getConfiguration("ansible.validation.lint")
     .get("enabled");
 
-  const root = asRecord(ansibleMetaData);
+  const root = metaDataRoot;
   Object.keys(root).forEach((mainKey) => {
     const section = asRecord(root[mainKey]);
     if (Object.keys(section).length === 0) {
@@ -141,7 +156,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   }
 
   return {
-    metaData: ansibleMetaData,
+    metaData: metaDataRoot,
     markdown,
     ansiblePresent,
     ansibleLintPresent,

@@ -36,6 +36,7 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "pnpm",
     "ts-node", // used by wdio autoCompileOpts, not directly imported
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:

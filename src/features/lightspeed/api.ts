@@ -77,7 +77,8 @@ export class LightSpeedAPI {
     this.settingsManager = settingsManager;
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this._suggestionFeedbacks = [];
-    this._extensionVersion = context.extension.packageJSON.version;
+    const packageJson = context.extension.packageJSON as { version?: string };
+    this._extensionVersion = packageJson.version ?? "";
     this._oneClickTrialProvider = getOneClickTrialProvider();
     this.logger = logger;
   }
@@ -138,7 +139,10 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      interface CompletionApiResponse {
+        predictions?: unknown[];
+      }
+      const data = (await response.json()) as CompletionApiResponse;
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
@@ -146,6 +150,7 @@ export class LightSpeedAPI {
 
       if (
         response.status === 204 ||
+        !data.predictions ||
         data.predictions.length === 0 ||
         // currently we only support one inline suggestion
         !data.predictions[0]
@@ -384,7 +389,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data = (await response.json()) as RoleGenerationResponseParams;
 
       // to remove after roleGen GA
       if (data.role && !data.name) {
@@ -395,7 +400,7 @@ export class LightSpeedAPI {
         throw new HTTPError(response, response.status, data as object);
       }
 
-      return data as RoleGenerationResponseParams;
+      return data;
     } catch (error) {
       const mappedError: IError = mapError(error as Error);
       return mappedError;

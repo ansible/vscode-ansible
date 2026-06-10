@@ -87,7 +87,7 @@ export default defineConfig(
       // "@typescript-eslint/require-await": "error",  // electron import
       "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",
-      // "@typescript-eslint/no-unsafe-member-access": "error", // ~550 errors
+      "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/restrict-template-expressions": "error",
       "@typescript-eslint/no-unsafe-argument": "error",
@@ -110,12 +110,21 @@ export default defineConfig(
       "@typescript-eslint/no-base-to-string": "off",
       // Mocks and dynamic fixtures routinely return `any`
       "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
     },
   },
   {
     // WDIO tests use their own tsconfig with relative imports; path aliases aren't practical
     files: ["test/wdio/**/*.ts", "wdio.conf.ts"],
-    rules: { "no-restricted-imports": "off" },
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+    },
+  },
+  {
+    // Webview TypeScript uses dynamic message payloads; Vue SFCs are linted by biome
+    files: ["webviews/**/*.{js,ts,tsx}"],
+    rules: { "@typescript-eslint/no-unsafe-member-access": "off" },
   },
   {
     // Standalone scripts have no tsconfig; skip eslint entirely

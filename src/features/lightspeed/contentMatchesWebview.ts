@@ -208,19 +208,21 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let suggestedTasks: any[];
+    interface SuggestedTask {
+      name?: string;
+    }
+    let suggestedTasks: SuggestedTask[];
     try {
       suggestedTasks = yaml.parse(suggestion, {
         keepSourceTokens: true,
-      });
+      }) as SuggestedTask[];
     } catch (err) {
       this.log(err);
       return noContentMatchesFoundHtml;
     }
     if (isPlaybook) {
       // Note: When isPlaybook is True, suggestedTasks contains plays in a playbook instead of tasks.
-      suggestedTasks = parsePlays(suggestedTasks);
+      suggestedTasks = parsePlays(suggestedTasks) as SuggestedTask[];
     }
     if (
       !suggestedTasks ||

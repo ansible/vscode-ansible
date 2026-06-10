@@ -238,18 +238,31 @@ export class TerminalService implements vscode.Disposable {
   ): Promise<CommandResult> {
     terminal.sendText(command);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shellIntegration = (terminal as any).shellIntegration;
+    interface ShellIntegrationCommandEndEvent {
+      exitCode?: number;
+    }
 
-    if (shellIntegration?.onDidEndCommandExecution) {
+    interface TerminalShellIntegrationLike {
+      onDidEndCommandExecution?: (
+        callback: (event: ShellIntegrationCommandEndEvent) => void,
+      ) => vscode.Disposable;
+    }
+
+    const shellIntegration = (
+      terminal as vscode.Terminal & {
+        shellIntegration?: TerminalShellIntegrationLike;
+      }
+    ).shellIntegration;
+    const onDidEndCommandExecution = shellIntegration?.onDidEndCommandExecution;
+
+    if (onDidEndCommandExecution) {
       return new Promise((resolve) => {
         const timeoutId = setTimeout(() => {
           listener.dispose();
           resolve({ output: "", exitCode: undefined, success: false });
         }, timeout);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const listener = shellIntegration.onDidEndCommandExecution((e: any) => {
+        const listener = onDidEndCommandExecution((e) => {
           clearTimeout(timeoutId);
           listener.dispose();
           resolve({

@@ -66,8 +66,46 @@ import {
 
 export interface WebviewMessage {
   type: string;
-  data?: any;
-  payload?: any;
+  command?: string;
+  data?: unknown;
+  payload?: unknown;
+}
+
+function getPayloadDefaultPath(payload: unknown): string | undefined {
+  if (typeof payload !== "object" || payload === null) {
+    return undefined;
+  }
+  const defaultPath = (payload as { defaultPath?: unknown }).defaultPath;
+  return typeof defaultPath === "string" ? defaultPath : undefined;
+}
+
+function getMessageDataField<T extends string>(
+  data: unknown,
+  field: T,
+): unknown {
+  if (typeof data !== "object" || data === null) {
+    return undefined;
+  }
+  return (data as Record<string, unknown>)[field];
+}
+
+interface ExecutionEnvironmentDefinition {
+  version: number;
+  images: { base_image: { name?: string } };
+  dependencies: {
+    ansible_core: { package_pip: string };
+    ansible_runner: { package_pip: string };
+    galaxy?: { collections: Array<{ name: string }> };
+    system?: string[];
+    python?: string[];
+  };
+  options: {
+    tags?: string[];
+    package_manager_path?: string;
+  };
+  additional_build_steps?: {
+    prepend_base?: string[];
+  };
 }
 
 type MessageHandler = {
@@ -149,7 +187,11 @@ export class WebviewMessageHandlers {
     context: vscode.ExtensionContext,
   ) {
     // Support both 'type' and 'command' fields for message routing
-    const messageKey = message.type || (message as any).command;
+    const messageKey = message.type || message.command;
+    if (!messageKey) {
+      console.warn("Unknown message type/command: undefined");
+      return;
+    }
 
     const handler = this.handlers[messageKey];
     if (handler) {
@@ -203,7 +245,7 @@ export class WebviewMessageHandlers {
     message: WebviewMessage,
     webview: vscode.Webview,
   ) {
-    const defaultPath = message.payload?.defaultPath as string | undefined;
+    const defaultPath = getPayloadDefaultPath(message.payload);
     const uri = await window.showOpenDialog({
       canSelectFolders: true,
       canSelectFiles: false,
@@ -222,7 +264,7 @@ export class WebviewMessageHandlers {
     message: WebviewMessage,
     webview: vscode.Webview,
   ) {
-    const defaultPath = message.payload?.defaultPath as string | undefined;
+    const defaultPath = getPayloadDefaultPath(message.payload);
     const uri = await window.showOpenDialog({
       canSelectFolders: false,
       canSelectFiles: true,
@@ -238,8 +280,10 @@ export class WebviewMessageHandlers {
   }
 
   private async handleOpenEditor(message: WebviewMessage) {
-    const content = message.data.content as string;
-    await openNewPlaybookEditor(content);
+    const content = getMessageDataField(message.data, "content");
+    if (typeof content === "string") {
+      await openNewPlaybookEditor(content);
+    }
   }
 
   // Creator Handlers
@@ -611,7 +655,11 @@ export class WebviewMessageHandlers {
   }
 
   private async handleFeedback(message: WebviewMessage) {
-    const request = message.data.request as FeedbackRequestParams;
+    const requestField = getMessageDataField(message.data, "request");
+    if (typeof requestField !== "object" || requestField === null) {
+      return;
+    }
+    const request = requestField as FeedbackRequestParams;
     const provider =
       lightSpeedManager.settingsManager.settings.lightSpeedService.provider;
 
@@ -621,7 +669,7 @@ export class WebviewMessageHandlers {
         const telemetry = lightSpeedManager.telemetry;
 
         // Prepare telemetry data - exclude inlineSuggestion (WCA-only feature)
-        const telemetryData: any = {
+        const telemetryData: Record<string, unknown> = {
           provider: provider,
           model:
             lightSpeedManager.settingsManager.settings.lightSpeedService
@@ -629,9 +677,11 @@ export class WebviewMessageHandlers {
         };
 
         // Copy all fields except inlineSuggestion
-        for (const key in request) {
+        for (const key of Object.keys(request) as Array<
+          keyof FeedbackRequestParams
+        >) {
           if (key !== "inlineSuggestion" && Object.hasOwn(request, key)) {
-            telemetryData[key] = (request as any)[key];
+            telemetryData[key] = request[key];
           }
         }
 
@@ -1003,7 +1053,7 @@ export class WebviewMessageHandlers {
         commandOutput += `${message}\n`;
         commandResult = "failed";
       } else {
-        const jsonData: any = {
+        const jsonData: ExecutionEnvironmentDefinition = {
           version: 3,
           images: {
             base_image: {

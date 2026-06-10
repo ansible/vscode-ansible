@@ -50,8 +50,8 @@ async function getCommandVersion(
     });
     let output = "";
 
-    child.stdout?.on("data", (d) => (output += d.toString()));
-    child.stderr?.on("data", (d) => (output += d.toString()));
+    child.stdout?.on("data", (d: Buffer | string) => (output += d.toString()));
+    child.stderr?.on("data", (d: Buffer | string) => (output += d.toString()));
 
     child.on("close", (code) => {
       if (code !== 0) {

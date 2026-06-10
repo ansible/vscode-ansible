@@ -1,4 +1,5 @@
 import * as child_process from "child_process";
+import { Buffer } from "node:buffer";
 import { existsSync, statSync, promises as fs } from "node:fs";
 import { homedir } from "node:os";
 import { promisify } from "util";
@@ -90,10 +91,10 @@ export function asyncSpawn(
     });
     let stdout = "";
     let stderr = "";
-    proc.stdout?.on("data", (chunk) => {
+    proc.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
     });
-    proc.stderr?.on("data", (chunk) => {
+    proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
     });
     proc.on("error", reject);
