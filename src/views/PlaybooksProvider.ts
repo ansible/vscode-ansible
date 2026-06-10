@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { PlaybooksService, PlaybookInfo, PlaybookPlay } from '../services/PlaybooksService';
-import { log } from '../extension';
+import { PlaybooksService, PlaybookInfo, PlaybookPlay } from '@src/services/PlaybooksService';
+import { log } from '@src/extension';
 
 type TreeNode = WorkspaceFolderNode | FolderNode | PlaybookNode | PlayNode | LoadingNode;
 

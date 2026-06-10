@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { log } from '../extension';
-import { TerminalService } from '../services/TerminalService';
+import { log } from '@src/extension';
+import { TerminalService } from '@src/services/TerminalService';
 
 interface SchemaNode {
     name: string;

@@ -19,7 +19,7 @@ export {
     CreatorToolGenerator,
     McpToolHandler,
 } from '@ansible/mcp-server';
-export { registerMcpServerProvider, isMcpAvailable } from './vscodeProvider';
+export { registerMcpServerProvider, isMcpAvailable } from '@src/mcp/vscodeProvider';
 export {
     registerCursorMcpServer,
     configureCursorMcp,
@@ -28,4 +28,4 @@ export {
     McpStatus,
     detectIde,
     IdeType,
-} from './cursorConfig';
+} from '@src/mcp/cursorConfig';

@@ -5,7 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getCommandService } from '@ansible/core';
-import { getVaultConfig, parseVaultIdentities, findProjectRoot } from './ansibleCfg';
+import { getVaultConfig, parseVaultIdentities, findProjectRoot } from '@src/features/ansibleCfg';
 
 // ---------------------------------------------------------------------------
 // FIFO-based password passing — password never touches disk

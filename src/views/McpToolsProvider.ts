@@ -8,8 +8,8 @@
 import * as vscode from 'vscode';
 import { STATIC_TOOLS, type McpToolDefinition, CreatorToolGenerator } from '@ansible/mcp-server';
 import { CreatorService } from '@ansible/core';
-import { log } from '../extension';
-import { getMcpStatus, McpStatus } from '../mcp/cursorConfig';
+import { log } from '@src/extension';
+import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
 
 type ToolCategory = 'discovery' | 'generation' | 'execution' | 'devtools' | 'creator';
 

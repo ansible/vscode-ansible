@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { log } from '../extension';
+import { log } from '@src/extension';
 
 export interface PlaybookPlay {
     name: string;

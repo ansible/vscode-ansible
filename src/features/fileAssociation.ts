@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
-import { searchModelineLanguage, looksLikePlaybook, isYamlExtension } from './fileDetection';
+import {
+    searchModelineLanguage,
+    looksLikePlaybook,
+    isYamlExtension,
+} from '@src/features/fileDetection';
 
 const SUPPORTED_LANGUAGES = new Set(['ansible', 'yaml']);
 

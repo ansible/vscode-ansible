@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { CreatorService } from '@ansible/core';
 import type { SchemaNode } from '@ansible/core';
-import { log } from '../extension';
+import { log } from '@src/extension';
 
 type TreeNode = CategoryNode | CommandNode | MessageNode;
 

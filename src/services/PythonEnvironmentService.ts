@@ -23,7 +23,7 @@ import type {
     PackageManagementOptions,
     SetEnvironmentScope,
 } from '@ansible/core';
-import { log } from '../extension';
+import { log } from '@src/extension';
 
 const PYTHON_ENVS_EXTENSION_ID = 'ms-python.vscode-python-envs';
 const PYTHON_EXT_ID = 'ms-python.python';

@@ -7,29 +7,29 @@ import {
     ServerOptions,
     TransportKind,
 } from 'vscode-languageclient/node';
-import { PluginDocPanel } from './panels/PluginDocPanel';
-import { AnsibleDevToolsProvider } from './views/AnsibleDevToolsProvider';
-import { EnvironmentManagersProvider } from './views/EnvironmentManagersProvider';
-import { CollectionsProvider } from './views/CollectionsProvider';
-import { ExecutionEnvironmentsProvider } from './views/ExecutionEnvironmentsProvider';
-import { CreatorProvider } from './views/CreatorProvider';
-import { CreatorFormPanel } from './panels/CreatorFormPanel';
-import { PlaybooksProvider } from './views/PlaybooksProvider';
-import { PlaybookConfigPanel } from './panels/PlaybookConfigPanel';
-import { PlaybookProgressPanel } from './panels/PlaybookProgressPanel';
-import { PlaybooksService, PlaybookInfo, PlaybookPlay } from './services/PlaybooksService';
-import { TerminalService } from './services/TerminalService';
-import { PythonEnvironmentService } from './services/PythonEnvironmentService';
+import { PluginDocPanel } from '@src/panels/PluginDocPanel';
+import { AnsibleDevToolsProvider } from '@src/views/AnsibleDevToolsProvider';
+import { EnvironmentManagersProvider } from '@src/views/EnvironmentManagersProvider';
+import { CollectionsProvider } from '@src/views/CollectionsProvider';
+import { ExecutionEnvironmentsProvider } from '@src/views/ExecutionEnvironmentsProvider';
+import { CreatorProvider } from '@src/views/CreatorProvider';
+import { CreatorFormPanel } from '@src/panels/CreatorFormPanel';
+import { PlaybooksProvider } from '@src/views/PlaybooksProvider';
+import { PlaybookConfigPanel } from '@src/panels/PlaybookConfigPanel';
+import { PlaybookProgressPanel } from '@src/panels/PlaybookProgressPanel';
+import { PlaybooksService, PlaybookInfo, PlaybookPlay } from '@src/services/PlaybooksService';
+import { TerminalService } from '@src/services/TerminalService';
+import { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 import {
     McpToolsProvider,
     injectToolPromptIntoChat,
     type ToolInfo,
-} from './views/McpToolsProvider';
+} from '@src/views/McpToolsProvider';
 import {
     CollectionSourcesProvider,
     setCollectionSourcesLogFunction,
     type CollectionSourceInfo,
-} from './views/CollectionSourcesProvider';
+} from '@src/views/CollectionSourcesProvider';
 import {
     GalaxyCollectionCache,
     CollectionsService,
@@ -47,10 +47,10 @@ import {
     showCursorMcpStatus,
     getMcpStatus,
     detectIde,
-} from './mcp';
-import { getLlmService } from './services/LlmService';
-import { registerFileAssociation } from './features/fileAssociation';
-import { registerVaultCommand } from './features/vault';
+} from '@src/mcp';
+import { getLlmService } from '@src/services/LlmService';
+import { registerFileAssociation } from '@src/features/fileAssociation';
+import { registerVaultCommand } from '@src/features/vault';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible Environments');

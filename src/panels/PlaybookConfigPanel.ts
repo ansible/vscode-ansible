@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { PlaybooksService, PlaybookInfo, PlaybookConfig } from '../services/PlaybooksService';
-import { TerminalService } from '../services/TerminalService';
-import { log } from '../extension';
+import { PlaybooksService, PlaybookInfo, PlaybookConfig } from '@src/services/PlaybooksService';
+import { TerminalService } from '@src/services/TerminalService';
+import { log } from '@src/extension';
 
 interface PlaybookConfigMessage {
     command: string;
