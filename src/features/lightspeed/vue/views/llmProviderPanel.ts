@@ -48,7 +48,13 @@ export class LlmProviderPanel {
     this.messageHandlers = new LlmProviderMessageHandlers(deps);
 
     // Set up panel lifecycle
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
 
     // Set the HTML content
     this._panel.webview.html = this._getWebviewContent(context);

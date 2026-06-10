@@ -19,7 +19,9 @@ export class MainPanel {
       context,
       "create-devfile",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

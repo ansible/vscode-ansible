@@ -28,7 +28,9 @@ export class MainPanel {
       context,
       "explanation",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

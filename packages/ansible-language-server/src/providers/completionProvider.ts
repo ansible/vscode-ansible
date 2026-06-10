@@ -68,7 +68,7 @@ export function hasCompletionDocumentUri(
     data !== null &&
     typeof data === "object" &&
     "documentUri" in data &&
-    typeof (data as { documentUri: unknown }).documentUri === "string"
+    typeof data.documentUri === "string"
   );
 }
 

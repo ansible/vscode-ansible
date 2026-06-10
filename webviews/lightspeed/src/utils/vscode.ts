@@ -97,7 +97,9 @@ class WebviewApi<StateType = unknown> {
         return;
       }
       const opts = { ...this._options, ...options };
-      const post = () => this._postMessage(type, data, opts);
+      const post = () => {
+        this._postMessage(type, data, opts);
+      };
 
       const intervalId = setInterval(post, opts.interval);
       const timeoutId = setTimeout(() => {

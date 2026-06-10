@@ -79,9 +79,8 @@ async function runAnsibleLintWithoutFix(
       // ansible-lint can exit with a non-zero code if linting issues are found.
       // This is expected. A real error is when stderr has content and stdout is empty.
       if (stderrData && !stdoutData) {
-        return reject(
-          new Error(`ansible-lint failed with error:\n${stderrData}`),
-        );
+        reject(new Error(`ansible-lint failed with error:\n${stderrData}`));
+        return;
       }
 
       try {
@@ -161,11 +160,12 @@ async function runAnsibleLintOnFile(
       // For --fix, exit code 0 means success, non-zero might still be okay if some fixes were applied
       // For regular linting, non-zero usually means issues were found (which is expected)
       if (stderrData && !stdoutData) {
-        return reject(
+        reject(
           new Error(
             `ansible-lint failed with exit code ${code} and error:\n${stderrData}`,
           ),
         );
+        return;
       }
 
       try {

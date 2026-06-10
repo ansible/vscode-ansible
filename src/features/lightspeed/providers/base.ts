@@ -145,14 +145,14 @@ export abstract class BaseLLMProvider<
       prompt,
       metadata?.context || "",
       ansibleContext,
-    ) as string;
+    );
   }
 
   /**
    * Clean and validate Ansible output
    */
   protected cleanAnsibleOutput(output: string): string {
-    return AnsibleContextProcessor.cleanAnsibleOutput(output) as string;
+    return AnsibleContextProcessor.cleanAnsibleOutput(output);
   }
 
   /**

@@ -46,6 +46,8 @@ const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function getFetch(): typeof globalThis.fetch {
   try {
+    // Do not remove this as this is a special exception for testing and web versions
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const electron = require("electron") as
       | { net?: { fetch?: typeof globalThis.fetch } }
       | undefined;
@@ -145,7 +147,7 @@ export class LightSpeedAPI {
       const data = (await response.json()) as CompletionApiResponse;
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data as object);
+        throw new HTTPError(response, response.status, data);
       }
 
       if (
@@ -397,7 +399,7 @@ export class LightSpeedAPI {
       }
 
       if (!response.ok) {
-        throw new HTTPError(response, response.status, data as object);
+        throw new HTTPError(response, response.status, data);
       }
 
       return data;

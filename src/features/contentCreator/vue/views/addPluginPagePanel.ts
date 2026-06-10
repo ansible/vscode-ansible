@@ -40,7 +40,9 @@ export class MainPanel {
       context,
       "add-plugin",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

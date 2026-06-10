@@ -44,12 +44,12 @@ describe("@ee", () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox();
     mockContext.documentSettings.get.reset();
-    Object.values(mockConnection.console).forEach(
-      (fn) => fn.reset && fn.reset(),
-    );
-    Object.values(mockConnection.window).forEach(
-      (fn) => fn.reset && fn.reset(),
-    );
+    Object.values(mockConnection.console).forEach((fn) => {
+      fn.reset?.();
+    });
+    Object.values(mockConnection.window).forEach((fn) => {
+      fn.reset?.();
+    });
   });
 
   afterEach(() => {

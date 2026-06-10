@@ -171,7 +171,9 @@ export function start(port: number): Promise<void> {
       }
     }
 
-    server = app.listen(port, () => resolve());
+    server = app.listen(port, () => {
+      resolve();
+    });
     server.once("error", reject);
   });
 }
@@ -185,6 +187,12 @@ export function stop(): Promise<void> {
     }
     const toClose = server;
     server = null;
-    toClose.close((err) => (err ? reject(err) : resolve()));
+    toClose.close((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
 }

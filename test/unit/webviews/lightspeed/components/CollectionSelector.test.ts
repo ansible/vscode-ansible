@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises, type VueWrapper } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import CollectionSelector from "@webviews/lightspeed/src/components/CollectionSelector.vue";
 import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
@@ -134,7 +134,7 @@ describe("CollectionSelector", () => {
           void wrapper.setProps({ collectionName: value ?? "" });
         },
       },
-    }) as VueWrapper<InstanceType<typeof CollectionSelector>>;
+    });
 
     const onCalls = vi.mocked(vscodeApi.on).mock.calls;
     const collectionHandler = onCalls.find(

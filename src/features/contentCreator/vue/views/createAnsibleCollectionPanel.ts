@@ -40,7 +40,9 @@ export class MainPanel {
       context,
       "create-ansible-collection",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

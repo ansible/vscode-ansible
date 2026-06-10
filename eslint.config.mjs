@@ -7,10 +7,9 @@ import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "eslint/config";
+import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
-import { includeIgnoreFile } from "@eslint/compat";
 const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
@@ -74,10 +73,11 @@ export default defineConfig(
       eqeqeq: ["error", "smart"],
       // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-base-to-string": "error",
-      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-require-imports": "error",
       "local/node-DEP0190": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
