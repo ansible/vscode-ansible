@@ -178,6 +178,18 @@ vi.mock('@ansible/core', () => ({
     GitHubCollectionCache: {
         getInstance: vi.fn(() => hoisted.githubInstance),
     },
+    SkillRegistry: {
+        getInstance: vi.fn(() => ({
+            setSources: vi.fn(),
+            getSources: vi.fn(() => []),
+            ensureLoaded: vi.fn().mockResolvedValue(undefined),
+            getAllSkills: vi.fn(() => []),
+            getSkill: vi.fn(),
+            search: vi.fn(() => []),
+            loadSkillContent: vi.fn().mockResolvedValue(undefined),
+            isLoaded: vi.fn(() => true),
+        })),
+    },
 }));
 
 import { McpToolHandler } from '../src/handlers';

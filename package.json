@@ -269,6 +269,12 @@
           "name": "AI Tools",
           "type": "tree",
           "when": "config.ansibleEnvironments.enableAiFeatures"
+        },
+        {
+          "id": "ansibleSkills",
+          "name": "AI Skills",
+          "type": "tree",
+          "when": "config.ansibleEnvironments.enableAiFeatures"
         }
       ]
     },
@@ -415,6 +421,21 @@
         "command": "ansibleMcpTools.configure",
         "title": "Configure MCP",
         "icon": "$(gear)"
+      },
+      {
+        "command": "ansibleSkills.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ansibleSkills.useInChat",
+        "title": "Use in Chat",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "ansibleSkills.copyPrompt",
+        "title": "Copy Prompt",
+        "icon": "$(sparkle)"
       },
       {
         "command": "ansiblePlaybooks.refresh",
@@ -588,6 +609,11 @@
           "group": "navigation@1"
         },
         {
+          "command": "ansibleSkills.refresh",
+          "when": "view == ansibleSkills",
+          "group": "navigation@1"
+        },
+        {
           "command": "ansiblePlaybooks.editDefaults",
           "when": "view == ansiblePlaybooks",
           "group": "navigation@1"
@@ -685,6 +711,11 @@
           "group": "inline"
         },
         {
+          "command": "ansibleSkills.useInChat",
+          "when": "view == ansibleSkills && viewItem == skill",
+          "group": "inline"
+        },
+        {
           "command": "ansibleCollectionSources.installFromSource",
           "when": "view == ansibleCollectionSources && viewItem == collectionSource",
           "group": "inline@1"
@@ -713,6 +744,60 @@
           "type": "boolean",
           "default": true,
           "description": "Enable AI enhancements (AI Tools view, sparkle icons, AI prompt buttons)"
+        },
+        "ansibleEnvironments.skillSources": {
+          "type": "array",
+          "default": [
+            {
+              "id": "ai-forge",
+              "type": "github",
+              "url": "https://github.com/ansible-community/ai-forge",
+              "trust": "community"
+            }
+          ],
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "url",
+              "trust"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique source identifier"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "github",
+                  "registry",
+                  "local"
+                ],
+                "description": "Source transport type"
+              },
+              "url": {
+                "type": "string",
+                "description": "GitHub repo URL or local directory path"
+              },
+              "trust": {
+                "type": "string",
+                "enum": [
+                  "community",
+                  "certified",
+                  "partner",
+                  "private"
+                ],
+                "description": "Trust level for skills from this source"
+              },
+              "refreshInterval": {
+                "type": "number",
+                "description": "Hours between cache refreshes (default: 24)"
+              }
+            }
+          },
+          "description": "AI skill sources. Each source points to a GitHub repo or local directory containing SKILL.md files."
         },
         "ansibleEnvironments.pluginDocZoom": {
           "type": "number",

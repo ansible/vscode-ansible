@@ -37,8 +37,10 @@ import {
     DevToolsService,
     cacheSelectedEnvironment,
     getCommandService,
+    SkillRegistry,
 } from '@ansible/core';
-import type { PythonEnvironment, SchemaNode } from '@ansible/core';
+import type { PythonEnvironment, SchemaNode, SkillSource, SkillEntry } from '@ansible/core';
+import { SkillsProvider, openChatWithSkill, copySkillPrompt } from '@src/views/SkillsProvider';
 import {
     registerMcpServerProvider,
     isMcpAvailable,
@@ -423,6 +425,55 @@ export function activate(context: vscode.ExtensionContext) {
         showCollapseAll: false,
     });
     context.subscriptions.push(collectionSourcesView);
+
+    // Configure skill registry from settings and register Skills view
+    const skillSources =
+        vscode.workspace
+            .getConfiguration('ansibleEnvironments')
+            .get<SkillSource[]>('skillSources') ?? [];
+    const skillRegistry = SkillRegistry.getInstance();
+    skillRegistry.setSources(skillSources);
+
+    const skillsProvider = new SkillsProvider();
+    const skillsView = vscode.window.createTreeView('ansibleSkills', {
+        treeDataProvider: skillsProvider,
+        showCollapseAll: true,
+    });
+    context.subscriptions.push(skillsView);
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ansibleSkills.refresh', () => {
+            skillsProvider.refresh();
+        }),
+        vscode.commands.registerCommand(
+            'ansibleSkills.useInChat',
+            (arg: SkillEntry | { skill: SkillEntry }) => {
+                const skill = 'skill' in arg ? arg.skill : arg;
+                void openChatWithSkill(skill);
+            },
+        ),
+        vscode.commands.registerCommand(
+            'ansibleSkills.copyPrompt',
+            (arg: SkillEntry | { skill: SkillEntry }) => {
+                const skill = 'skill' in arg ? arg.skill : arg;
+                void copySkillPrompt(skill);
+            },
+        ),
+    );
+
+    // Reload skill sources when settings change
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration('ansibleEnvironments.skillSources')) {
+                const updated =
+                    vscode.workspace
+                        .getConfiguration('ansibleEnvironments')
+                        .get<SkillSource[]>('skillSources') ?? [];
+                skillRegistry.setSources(updated);
+                skillsProvider.refresh();
+            }
+        }),
+    );
 
     // Register sidebar commands
     const refreshCommand = vscode.commands.registerCommand(

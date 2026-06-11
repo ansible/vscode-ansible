@@ -70,9 +70,16 @@ function registerViaCursorApi(serverPath: string): boolean {
             server: {
                 command: 'node',
                 args: [serverPath],
-                env: {
-                    ...(workspaceFolder ? { ANSIBLE_ENV_WORKSPACE: workspaceFolder } : {}),
-                },
+                env: Object.assign(
+                    {},
+                    workspaceFolder ? { ANSIBLE_ENV_WORKSPACE: workspaceFolder } : {},
+                    (() => {
+                        const ss = vscode.workspace
+                            .getConfiguration('ansibleEnvironments')
+                            .get('skillSources');
+                        return ss ? { ANSIBLE_SKILL_SOURCES: JSON.stringify(ss) } : {};
+                    })(),
+                ) as Record<string, string>,
             },
         });
         log('MCP server registered via Cursor extension API');

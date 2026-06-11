@@ -41,6 +41,15 @@ export type { GalaxyCollection } from './services/GalaxyCollectionCache';
 export { GitHubCollectionCache } from './services/GitHubCollectionCache';
 export type { GitHubCollection } from './services/GitHubCollectionCache';
 
+export { SkillRegistry, _resetGitHubToken } from './services/SkillRegistry';
+export type {
+    SkillEntry,
+    SkillSource,
+    SkillCategory,
+    TrustLevel,
+    RepoFormat,
+} from './services/SkillRegistry';
+
 export { setLogFunction, log, getLogFunction } from './utils/logging';
 export { SimpleEventEmitter } from './utils/SimpleEventEmitter';
 export type { Disposable } from './utils/SimpleEventEmitter';
