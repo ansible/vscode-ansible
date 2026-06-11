@@ -12,6 +12,10 @@
         <array>
             <dict>
                 <key>include</key>
+                <string>#jinja-raw</string>
+            </dict>
+            <dict>
+                <key>include</key>
                 <string>#jinja-expression</string>
             </dict>
             <dict>
@@ -25,6 +29,31 @@
         </array>
         <key>repository</key>
         <dict>
+            <key>jinja-raw</key>
+            <dict>
+                <key>begin</key>
+                <string>\{%-?\s*raw\s*-?%\}</string>
+                <key>end</key>
+                <string>\{%-?\s*endraw\s*-?%\}</string>
+                <key>beginCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.section.embedded.begin.jinja</string>
+                    </dict>
+                </dict>
+                <key>endCaptures</key>
+                <dict>
+                    <key>0</key>
+                    <dict>
+                        <key>name</key>
+                        <string>punctuation.section.embedded.end.jinja</string>
+                    </dict>
+                </dict>
+                <key>contentName</key>
+                <string>comment.block.jinja.raw</string>
+            </dict>
             <key>jinja-expression</key>
             <dict>
                 <key>begin</key>

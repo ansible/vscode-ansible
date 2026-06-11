@@ -3,11 +3,27 @@
     injectionSelector = 'L:string -meta.embedded.inline.jinja';
     name = 'Grammar for Jinja2 expressions surrounded by double curly braces';
     patterns = (
+        { include = '#jinja-raw'; },
         { include = '#jinja-expression'; },
         { include = '#jinja-statement'; },
         { include = '#jinja-comment'; }
     );
     repository = {
+        jinja-raw = {
+            begin = '\{%-?\s*raw\s*-?%\}';
+            end = '\{%-?\s*endraw\s*-?%\}';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.section.embedded.begin.jinja';
+                };
+            };
+            endCaptures = {
+                0 = {
+                    name = 'punctuation.section.embedded.end.jinja';
+                };
+            };
+            contentName = 'comment.block.jinja.raw';
+        };
         jinja-expression = {
             begin = '\{\{-?';
             end = '-?\}\}';
