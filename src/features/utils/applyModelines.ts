@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as vscode from "vscode";
 
 export async function configureModelines(
@@ -95,17 +94,17 @@ export function searchModelines(textDoc: vscode.TextDocument) {
   const vscodeModelineRegex = /^.{0,8}code:(.*)/;
   const vscodeModelineOptsRegex = /(\w+)=([^\s]+)/g;
 
-  const parseOption = (name: string, value: string): any => {
-    const parsedVal = _parseGenericValue(value);
+  const parseOption = (name: string, value: string): Record<string, string> => {
+    const parsedVal: string | number | boolean = _parseGenericValue(value);
     switch (name.toLowerCase()) {
       case "language":
       case "lang":
-        return { language: parsedVal };
+        return { language: String(parsedVal) };
       default:
         return {};
     }
   };
-  let options = {};
+  let options: Record<string, string> = {};
 
   const searchLines = getLinesToSearch(textDoc);
   searchLines.forEach((line) => {
@@ -137,7 +136,7 @@ function getLinesToSearch(document: vscode.TextDocument): string[] {
     .filter((line) => line.length <= MAX_LINE_LENGTH);
 }
 
-function _parseGenericValue(value: string): any {
+function _parseGenericValue(value: string): string | number | boolean {
   if (typeof value != "string") return value;
   value = value.trim();
   if (/^(true|false)$/i.test(value)) {

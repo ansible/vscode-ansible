@@ -50,7 +50,7 @@ export async function sendTelemetry(
 
   await telemetryService.send({
     name: eventName,
-    properties: eventData,
+    properties: eventData as Record<string, string | number | boolean>,
   });
 }
 

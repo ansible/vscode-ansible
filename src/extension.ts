@@ -1468,7 +1468,7 @@ export function makeConfigurationMiddleware(
       }
 
       // Clone result array to avoid mutating the original
-      const result = [...originalResult];
+      const result = originalResult.slice();
 
       for (let i = 0; i < params.items.length; i++) {
         if (params.items[i].section !== "ansible") continue;

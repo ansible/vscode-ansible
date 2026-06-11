@@ -581,7 +581,8 @@ export class LightSpeedAuthenticationProvider
 
     this._logger.trace("[ansible-lightspeed-oauth] Account found");
 
-    const currentAccount: OAuthAccount = JSON.parse(account);
+    const parsedAccount: unknown = JSON.parse(account);
+    const currentAccount = parsedAccount as OAuthAccount;
     let tokenToBeReturned = currentAccount.accessToken;
 
     // check if token needs to be refreshed

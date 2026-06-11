@@ -121,7 +121,7 @@ export async function findPluginRouting(
     const runtimeContent = await fs.promises.readFile(file, {
       encoding: "utf8",
     });
-    const document = parseDocument(runtimeContent).toJSON();
+    const document: unknown = parseDocument(runtimeContent).toJSON();
     pluginRouting.set(collection, parseRawRouting(document));
   }
 

@@ -24,7 +24,8 @@ export function getObjectKeys(content: string): string[] {
     ) {
       return [];
     }
-    const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+    const lastObject: unknown =
+      parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
     if (typeof lastObject === "object") {
       return Object.keys(lastObject as object);
     }

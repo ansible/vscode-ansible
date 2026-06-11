@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { MarkdownString, workspace } from "vscode";
 import * as os from "os";
 import * as path from "path";
@@ -7,6 +6,19 @@ const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+
+function formatMetadataValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+}
 
 export interface FormattedAnsibleMetaData {
   metaData: Record<string, unknown>;
@@ -106,16 +118,17 @@ export function formatAnsibleMetaData(
         return;
       }
       mdString += `\n   - ${key}: `;
-      const value = valueObj[key] as any;
+      const value: unknown = valueObj[key];
       if (Array.isArray(value)) {
-        value.forEach((val: any, index: any) => {
+        value.forEach((val: unknown, index: number) => {
           if (val && val !== "None") {
+            const formattedVal = formatMetadataValue(val);
             if (key.includes("path")) {
               mdString += `\n       ${
                 index + 1
-              }. <a href='${val}'>${getTildePath(val as string)}</a>`;
+              }. <a href='${formattedVal}'>${getTildePath(formattedVal)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${getTildePath(val as string)}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(formattedVal)}`;
             }
           }
           if (index === value.length - 1) {
@@ -124,17 +137,18 @@ export function formatAnsibleMetaData(
         });
       } else {
         if (key.includes("path")) {
-          mdString += `<a href='${value}'>${getTildePath(value as string)}</a>`;
+          const pathValue = formatMetadataValue(value);
+          mdString += `<a href='${pathValue}'>${getTildePath(pathValue)}</a>`;
         } else if (key.includes("version")) {
-          const versionInfo = (value as string).split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
+          const versionInfo = formatMetadataValue(value).split(/\r?\n/);
           mdString += `\`${versionInfo[0]}\`\n`;
           if (versionInfo[1]) {
             mdString += `*<span style="color:${WARNING_COLOR};">${versionInfo[1]}*\n`;
           }
         } else if (key.includes("location")) {
-          mdString += `${getTildePath(value as string)}\n`;
+          mdString += `${getTildePath(formatMetadataValue(value))}\n`;
         } else {
-          mdString += `${value}\n`;
+          mdString += `${formatMetadataValue(value)}\n`;
         }
       }
     });

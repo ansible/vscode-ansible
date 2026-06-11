@@ -161,14 +161,15 @@ export class SettingsManager {
     }
     let result = this.documentSettings.get(uri);
     if (!result && this.connection) {
-      const clientSettings = await this.connection.workspace.getConfiguration({
-        scopeUri: uri,
-        section: "ansible",
-      });
+      const clientSettings: unknown =
+        await this.connection.workspace.getConfiguration({
+          scopeUri: uri,
+          section: "ansible",
+        });
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings = _.merge(
+      const mergedSettings: ExtensionSettings = _.merge(
         _.cloneDeep(this.globalSettings),
         clientSettings,
       );

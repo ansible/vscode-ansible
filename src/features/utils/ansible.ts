@@ -37,11 +37,12 @@ export function getAnsibleFileType(
   ) {
     return "other";
   }
-  const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+  const lastObject: unknown =
+    parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
   if (lastObject === null || typeof lastObject !== "object") {
     return "other";
   }
-  const objectKeys = Object.keys(lastObject as Record<string, unknown>);
+  const objectKeys = Object.keys(lastObject);
   for (const keyword of objectKeys) {
     if (PlaybookKeywords.includes(keyword)) {
       return "playbook";

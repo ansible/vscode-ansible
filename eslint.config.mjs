@@ -12,6 +12,7 @@ import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
 const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- local CJS plugin loaded via require
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -28,6 +29,7 @@ export default defineConfig(
     tseslint.configs.strict,
     // TODO: enable later
     // tseslint.configs.stylistic,
+    // tseslint.configs.strictTypeChecked,
   ],
   {
     /** Files that use type-aware linting (TS/JS in src, packages, test). */
@@ -73,6 +75,7 @@ export default defineConfig(
       eqeqeq: ["error", "smart"],
       // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
+      "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
@@ -111,6 +114,7 @@ export default defineConfig(
       // Mocks and dynamic fixtures routinely return `any`
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
     },
   },
   {
@@ -119,6 +123,7 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
     },
   },
   {

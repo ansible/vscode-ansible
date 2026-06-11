@@ -243,7 +243,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
@@ -294,7 +294,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
@@ -327,7 +327,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
@@ -360,7 +360,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
@@ -429,7 +429,7 @@ export class LightSpeedAPI {
         JSON.stringify(requestData),
       );
 
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data as object);
