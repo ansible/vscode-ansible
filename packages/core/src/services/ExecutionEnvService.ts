@@ -7,10 +7,16 @@ try {
     // Running standalone (not in VS Code)
 }
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
+import { EECache } from './EECache';
+import * as ContainerRuntime from './ContainerRuntime';
+import type { ContainerEngine, InspectedImage } from './ContainerRuntime';
 
 /**
- * Information about an execution environment container image
+ * Information about an execution environment container image.
  */
 export interface ExecutionEnvironment {
     created: string;
@@ -20,7 +26,7 @@ export interface ExecutionEnvironment {
 }
 
 /**
- * Detailed information about an execution environment
+ * Detailed information about an execution environment.
  */
 export interface EEDetails {
     ansible_collections?: {
@@ -54,23 +60,32 @@ export interface EEDetails {
 
 /**
  * Service for managing Ansible Execution Environments.
- * This service works both in VS Code and standalone (for MCP server).
+ *
+ * Uses ContainerRuntime (TypeScript) for host-side image discovery and
+ * a vendored Python script for in-container introspection. No Python
+ * or ansible-navigator needed on the host.
+ *
+ * Introspection results are cached on disk keyed by image SHA for
+ * instant subsequent lookups, even across process restarts.
  */
 export class ExecutionEnvService {
     private static _instance: ExecutionEnvService | undefined;
     private _executionEnvironments: ExecutionEnvironment[] = [];
-    private _detailsCache = new Map<string, EEDetails>();
+    private _inspectedImages = new Map<string, InspectedImage>();
+    private _memoryCache = new Map<string, EEDetails>();
+    private _fileCache: EECache;
+    private _engine: ContainerEngine | null = null;
+    private _scriptCacheDir: string | null = null;
     private _loading = false;
     private _loaded = false;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
 
-    /**
-     * Initializes change notifications using VS Code or a standalone event emitter.
-     */
+    /** Create the singleton service, initializing the file cache and event emitters. */
     private constructor() {
-        // Use VS Code EventEmitter if available, otherwise use simple implementation
+        this._fileCache = new EECache();
+
         if (vscode) {
             const emitter = new vscode.EventEmitter<void>();
             this._onDidChange = emitter;
@@ -83,9 +98,9 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Returns the shared ExecutionEnvService instance.
+     * Get the singleton instance.
      *
-     * @returns Singleton service for execution environment discovery.
+     * @returns The shared ExecutionEnvService instance.
      */
     public static getInstance(): ExecutionEnvService {
         ExecutionEnvService._instance ??= new ExecutionEnvService();
@@ -111,9 +126,7 @@ export class ExecutionEnvService {
     }
 
     /**
-     * Writes a prefixed diagnostic message through the configured log function.
-     *
-     * @param message - Log text without the ExecutionEnvService prefix.
+     * @param message - Diagnostic message to emit.
      */
     private _log(message: string): void {
         this._logFn(`ExecutionEnvService: ${message}`);
@@ -122,7 +135,7 @@ export class ExecutionEnvService {
     /**
      * Check if the service is currently loading data.
      *
-     * @returns True while ansible-navigator discovery is in progress.
+     * @returns True while container image discovery is in progress.
      */
     public isLoading(): boolean {
         return this._loading;
@@ -149,7 +162,7 @@ export class ExecutionEnvService {
     /**
      * Get a specific execution environment by name.
      *
-     * @param fullName - Full image name reported by ansible-navigator.
+     * @param fullName - Full image name (repository:tag).
      * @returns Matching environment metadata, or undefined when not loaded.
      */
     public getExecutionEnvironment(fullName: string): ExecutionEnvironment | undefined {
@@ -163,7 +176,7 @@ export class ExecutionEnvService {
      * @returns Cached inspection details, or undefined when not yet loaded.
      */
     public getCachedDetails(fullName: string): EEDetails | undefined {
-        return this._detailsCache.get(fullName);
+        return this._memoryCache.get(fullName);
     }
 
     /**
@@ -173,14 +186,74 @@ export class ExecutionEnvService {
      */
     public refresh(): Promise<void> {
         this._executionEnvironments = [];
-        this._detailsCache.clear();
+        this._inspectedImages.clear();
+        this._memoryCache.clear();
         this._loaded = false;
         (this._onDidChange as { fire: () => void }).fire();
         return Promise.resolve();
     }
 
     /**
-     * Load execution environments from ansible-navigator.
+     * Force refresh details for a specific image (or all).
+     * Clears both file and memory caches for the given image.
+     *
+     * @param fullName - Image to refresh, or omit for all.
+     */
+    public forceRefresh(fullName?: string): void {
+        if (fullName) {
+            this._memoryCache.delete(fullName);
+            const ee = this._executionEnvironments.find((e) => e.full_name === fullName);
+            if (ee) {
+                this._fileCache.remove(ee.image_id);
+            }
+        } else {
+            this._memoryCache.clear();
+            this._fileCache.clear();
+        }
+        this._executionEnvironments = [];
+        this._inspectedImages.clear();
+        this._loaded = false;
+        (this._onDidChange as { fire: () => void }).fire();
+    }
+
+    /**
+     * Ensure we have a container engine detected.
+     *
+     * @returns The detected container engine.
+     */
+    private async _ensureEngine(): Promise<ContainerEngine> {
+        this._engine ??= await ContainerRuntime.detectEngine();
+        if (!this._engine) {
+            throw new Error(
+                'No container engine found. Install podman or docker to use Execution Environments.',
+            );
+        }
+        return this._engine;
+    }
+
+    /**
+     * Ensure vendored scripts are deployed to the cache directory.
+     *
+     * @returns Path to the cache directory containing deployed scripts.
+     */
+    private _ensureScripts(): string {
+        if (!this._scriptCacheDir) {
+            // __dirname at runtime points to the compiled JS output directory.
+            // The data/ directory with vendored scripts is at the package root.
+            let dataDir = path.resolve(__dirname, '..', 'data');
+            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
+                dataDir = path.resolve(__dirname, '..', 'src', 'data');
+            }
+            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
+                throw new Error(`Vendored introspection scripts not found. Looked in: ${dataDir}`);
+            }
+            this._scriptCacheDir = ContainerRuntime.deployScripts(dataDir);
+        }
+        return this._scriptCacheDir;
+    }
+
+    /**
+     * Load execution environments by querying the local container engine.
      *
      * @returns Filtered list of images marked as execution environments.
      */
@@ -197,35 +270,32 @@ export class ExecutionEnvService {
         (this._onDidChange as { fire: () => void }).fire();
 
         try {
-            const { getCommandService } = await import('./CommandService');
-            const commandService = getCommandService();
+            const engine = await this._ensureEngine();
+            const images = await ContainerRuntime.listImages(engine);
 
-            // Run ansible-navigator images command using CommandService
-            const result = await commandService.runTool('ansible-navigator', [
-                'images',
-                '--mode',
-                'stdout',
-                '--pull-policy',
-                'never',
-                '--format',
-                'json',
-            ]);
+            const inspected = await Promise.all(
+                images.map((img) => ContainerRuntime.inspectImage(engine, img)),
+            );
 
-            const output = result.stdout || null;
-
-            if (!output) {
-                this._executionEnvironments = [];
-                this._loaded = true;
-                return [];
+            const ees: ExecutionEnvironment[] = [];
+            for (const img of inspected) {
+                this._inspectedImages.set(`${img.repository}:${img.tag}`, img);
+                if (img.executionEnvironment) {
+                    ees.push({
+                        created: img.created,
+                        execution_environment: true,
+                        full_name: `${img.repository}:${img.tag}`,
+                        image_id: img.id,
+                    });
+                }
             }
 
-            const ees = JSON.parse(output) as ExecutionEnvironment[];
-            // Filter to only execution environments
-            this._executionEnvironments = ees.filter((ee) => ee.execution_environment);
+            this._executionEnvironments = ees;
             this._loaded = true;
-            this._log(
-                `Loaded ${String(this._executionEnvironments.length)} execution environments`,
-            );
+            this._log(`Loaded ${String(ees.length)} execution environments`);
+
+            const currentShas = new Set(inspected.map((img) => img.id));
+            this._fileCache.prune(currentShas);
 
             return this._executionEnvironments;
         } catch (error) {
@@ -241,40 +311,69 @@ export class ExecutionEnvService {
 
     /**
      * Load detailed information for a specific execution environment.
+     * Checks: memory cache -> file cache (by SHA) -> live introspection.
      *
-     * @param fullName - Full image name to inspect with ansible-navigator.
-     * @returns Parsed inspection details, or null when the command yields no output.
+     * @param fullName - Full image name to inspect.
+     * @returns Parsed inspection details, or null when introspection yields no output.
      */
     public async loadDetails(fullName: string): Promise<EEDetails | null> {
-        // Check cache first
-        const cached = this._detailsCache.get(fullName);
-        if (cached) {
-            return cached;
+        const memCached = this._memoryCache.get(fullName);
+        if (memCached) {
+            return memCached;
+        }
+
+        // Ensure we have the EE list so we can resolve the image SHA for
+        // disk-cache lookup. Without this, direct callers (e.g. MCP handler)
+        // would bypass the file cache entirely.
+        if (!this._loaded) {
+            await this.loadExecutionEnvironments();
+        }
+
+        const ee = this._executionEnvironments.find((e) => e.full_name === fullName);
+        let sha = ee?.image_id;
+
+        // If the image isn't in the EE list (e.g. user passed an arbitrary
+        // name), try to resolve its SHA via a single inspect call.
+        if (!sha) {
+            try {
+                const engine = await this._ensureEngine();
+                const images = await ContainerRuntime.listImages(engine);
+                const match = images.find((img) => `${img.repository}:${img.tag}` === fullName);
+                if (match) {
+                    sha = match.id;
+                }
+            } catch {
+                this._log(`Could not resolve SHA for ${fullName}, skipping disk cache`);
+            }
+        }
+
+        if (sha) {
+            const fileCached = this._fileCache.get(sha);
+            if (fileCached) {
+                this._memoryCache.set(fullName, fileCached);
+                this._log(`Cache hit (file) for ${fullName} [${sha.substring(0, 12)}]`);
+                return fileCached;
+            }
         }
 
         try {
-            const { getCommandService } = await import('./CommandService');
-            const commandService = getCommandService();
+            const engine = await this._ensureEngine();
+            const cacheDir = this._ensureScripts();
+            const stdout = await ContainerRuntime.runInContainer(engine, fullName, cacheDir);
 
-            // Run ansible-navigator images with --details using CommandService
-            const result = await commandService.runTool('ansible-navigator', [
-                'images',
-                fullName,
-                '--mode',
-                'stdout',
-                '--pull-policy',
-                'never',
-                '--details',
-                '--format',
-                'json',
-            ]);
-
-            if (!result.stdout) {
+            if (!stdout) {
                 return null;
             }
 
-            const details = JSON.parse(result.stdout) as EEDetails;
-            this._detailsCache.set(fullName, details);
+            const rawDetails = JSON.parse(stdout) as Record<string, unknown>;
+            const details = this._normalizeIntrospectionOutput(rawDetails, fullName);
+
+            this._memoryCache.set(fullName, details);
+            if (sha) {
+                this._fileCache.set(sha, fullName, details);
+                this._log(`Cached introspection for ${fullName} [${sha.substring(0, 12)}]`);
+            }
+
             return details;
         } catch (error) {
             this._log(
@@ -282,6 +381,39 @@ export class ExecutionEnvService {
             );
             throw error;
         }
+    }
+
+    /**
+     * Normalize the raw introspection script output into the EEDetails shape
+     * expected by consumers (extension, MCP server, Studio).
+     *
+     * @param raw - Raw JSON output from the vendored introspection script.
+     * @param imageName - Full image name to attach to the result.
+     * @returns Normalized EEDetails with only the `details` payload per section.
+     */
+    private _normalizeIntrospectionOutput(
+        raw: Record<string, unknown>,
+        imageName: string,
+    ): EEDetails {
+        const details: EEDetails = { image_name: imageName };
+
+        const sections = [
+            'ansible_collections',
+            'ansible_version',
+            'os_release',
+            'redhat_release',
+            'python_packages',
+            'system_packages',
+        ];
+
+        for (const key of sections) {
+            const section = raw[key] as Record<string, unknown> | undefined;
+            if (section?.details !== undefined) {
+                (details as Record<string, unknown>)[key] = { details: section.details };
+            }
+        }
+
+        return details;
     }
 
     /**
@@ -339,8 +471,8 @@ export class ExecutionEnvService {
         }
 
         if (details.os_release?.details[0]) {
-            const os = details.os_release.details[0];
-            info.os = os['pretty-name'] ?? os.name ?? 'Unknown';
+            const osInfo = details.os_release.details[0];
+            info.os = osInfo['pretty-name'] ?? osInfo.name ?? 'Unknown';
         }
 
         if (details.image_name) {
@@ -349,31 +481,19 @@ export class ExecutionEnvService {
 
         return info;
     }
+}
 
-    /**
-     * Executes a raw shell command and returns stdout when available.
-     *
-     * @param command - Full shell command to run via CommandService.
-     * @returns Captured stdout, or null when the command fails.
-     */
-    private async _runCommand(command: string): Promise<string | null> {
-        try {
-            const { getCommandService } = await import('./CommandService');
-            const commandService = getCommandService();
-
-            this._log(`Running command: ${command}`);
-
-            const result = await commandService.runCommand(command);
-
-            // Exit code 1 is normal for ansible-navigator when returning JSON
-            if (result.exitCode !== 0 && result.exitCode !== 1) {
-                this._log(`Command error (exit ${String(result.exitCode)}): ${result.stderr}`);
-            }
-
-            return result.stdout || null;
-        } catch (error) {
-            this._log(`Command error: ${error instanceof Error ? error.message : String(error)}`);
-            return null;
-        }
+/**
+ * Check whether a filesystem path exists synchronously.
+ *
+ * @param p - Path to check.
+ * @returns True when the path is accessible.
+ */
+function existsSync(p: string): boolean {
+    try {
+        fs.accessSync(p);
+        return true;
+    } catch {
+        return false;
     }
 }

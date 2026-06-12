@@ -46,8 +46,44 @@ const execExport = vi.hoisted(() => {
     });
 });
 
+const execFileImpl = vi.hoisted(() =>
+    vi.fn(
+        (
+            file: string,
+            args: string[],
+            opts: Record<string, unknown>,
+            cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+        ) => {
+            cb(null, 'out\n', '');
+        },
+    ),
+);
+
+const execFileExport = vi.hoisted(() => {
+    const customPromisify = Symbol.for('nodejs.util.promisify.custom');
+    return Object.assign(execFileImpl, {
+        [customPromisify](file: string, args: string[], options?: Record<string, unknown>) {
+            return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+                execFileImpl(
+                    file,
+                    args,
+                    options ?? {},
+                    (err: Error | null, stdout?: string, stderr?: string) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve({ stdout: stdout ?? '', stderr: stderr ?? '' });
+                        }
+                    },
+                );
+            });
+        },
+    });
+});
+
 vi.mock('child_process', () => ({
     exec: execExport,
+    execFile: execFileExport,
 }));
 
 describe('CommandService', () => {

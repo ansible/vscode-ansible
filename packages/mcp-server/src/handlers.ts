@@ -925,7 +925,7 @@ export class McpToolHandler {
                     content: [
                         {
                             type: 'text',
-                            text: 'No execution environments found.\n\nMake sure ansible-navigator and a container runtime (Podman/Docker) are installed.',
+                            text: 'No execution environments found.\n\nMake sure a container runtime (Podman or Docker) is installed and EE images are pulled locally.',
                         },
                     ],
                 };
