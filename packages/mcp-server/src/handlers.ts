@@ -12,6 +12,7 @@ import { PluginSearchIndex } from './pluginSearch';
 import { TaskGenerator } from './taskGenerator';
 import { TaskBuilder } from './taskBuilder';
 import { CreatorToolGenerator } from './creatorTools';
+import { SkillToolGenerator } from './skillTools';
 import {
     CollectionsService,
     DevToolsService,
@@ -44,11 +45,13 @@ export class McpToolHandler {
     private _taskGenerator = new TaskGenerator();
     private _taskBuilder = new TaskBuilder();
     private _creatorTools = new CreatorToolGenerator();
+    private _skillTools = new SkillToolGenerator();
 
-    /** Warms the plugin search index and loads ansible-creator tool definitions. */
+    /** Warms the plugin search index, creator tools, and skill registry. */
     async initialize(): Promise<void> {
         await this._searchIndex.ensureBuilt();
         await this._creatorTools.initialize();
+        await this._skillTools.initialize();
     }
 
     /**
@@ -58,6 +61,15 @@ export class McpToolHandler {
      */
     getCreatorTools(): CreatorToolGenerator {
         return this._creatorTools;
+    }
+
+    /**
+     * Skill tool generator used when listing and invoking `skill_*` tools.
+     *
+     * @returns Shared SkillToolGenerator instance owned by this handler
+     */
+    getSkillTools(): SkillToolGenerator {
+        return this._skillTools;
     }
 
     /**
@@ -72,6 +84,11 @@ export class McpToolHandler {
             // Creator tools
             if (this._creatorTools.isCreatorTool(name)) {
                 return await this._creatorTools.handleTool(name, args);
+            }
+
+            // Skill tools
+            if (this._skillTools.isSkillTool(name)) {
+                return await this._skillTools.handleTool(name, args);
             }
 
             // Route to appropriate handler

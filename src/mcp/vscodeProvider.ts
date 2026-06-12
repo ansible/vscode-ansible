@@ -53,15 +53,25 @@ export function registerMcpServerProvider(context: vscode.ExtensionContext): voi
                     return [];
                 }
 
+                const env: Record<string, string> = {
+                    ANSIBLE_ENV_WORKSPACE: workspaceFolder,
+                    ANSIBLE_ENV_EXTENSION_PATH: context.extensionPath,
+                };
+
+                // Forward skill sources to the MCP server process
+                const skillSources = vscode.workspace
+                    .getConfiguration('ansibleEnvironments')
+                    .get('skillSources');
+                if (skillSources) {
+                    env.ANSIBLE_SKILL_SOURCES = JSON.stringify(skillSources);
+                }
+
                 return [
                     new (vscode as any).McpStdioServerDefinition(
                         'Ansible Environments',
                         'node',
                         [serverPath],
-                        {
-                            ANSIBLE_ENV_WORKSPACE: workspaceFolder,
-                            ANSIBLE_ENV_EXTENSION_PATH: context.extensionPath,
-                        },
+                        env,
                     ),
                 ];
             },

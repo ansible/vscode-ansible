@@ -39,6 +39,8 @@ import {
 
 import { STATIC_TOOLS, McpToolDefinition } from './tools';
 import { McpToolHandler } from './handlers';
+import { SkillRegistry } from '@ansible/core';
+import type { SkillSource } from '@ansible/core';
 
 // Initialize the server (low-level Server API; McpServer wrapper not used for custom handlers)
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- setRequestHandler requires the low-level Server API
@@ -121,9 +123,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     // Ensure handler is initialized
     await handler.initialize();
 
-    // Combine static tools with dynamic creator tools
+    // Combine static, creator, and skill tools
     const creatorTools = handler.getCreatorTools();
-    const allTools: McpToolDefinition[] = [...STATIC_TOOLS, ...creatorTools.getTools()];
+    const skillTools = handler.getSkillTools();
+    const allTools: McpToolDefinition[] = [
+        ...STATIC_TOOLS,
+        ...creatorTools.getTools(),
+        ...skillTools.getTools(),
+    ];
 
     return {
         tools: allTools.map((tool) => ({
@@ -203,7 +210,19 @@ async function main() {
     console.error('[MCP Server] Starting Ansible Environments MCP server...');
 
     try {
-        // Initialize handler (loads collections, creator schema, etc.)
+        // Configure skill sources from environment
+        const skillSourcesEnv = process.env.ANSIBLE_SKILL_SOURCES;
+        if (skillSourcesEnv) {
+            try {
+                const sources = JSON.parse(skillSourcesEnv) as SkillSource[];
+                SkillRegistry.getInstance().setSources(sources);
+                console.error(`[MCP Server] Configured ${String(sources.length)} skill source(s)`);
+            } catch (err) {
+                console.error('[MCP Server] Failed to parse ANSIBLE_SKILL_SOURCES:', err);
+            }
+        }
+
+        // Initialize handler (loads collections, creator schema, skills, etc.)
         await handler.initialize();
         console.error('[MCP Server] Handler initialized');
 
