@@ -43,13 +43,13 @@ export class EECache {
     }
 
     /**
-     * Shortened SHA used as cache file name (first 12 hex chars).
+     * Normalize SHA for use as a cache file name by stripping the algo prefix.
      *
-     * @param sha - Full image SHA.
-     * @returns First 12 hex characters with the `sha256:` prefix stripped.
+     * @param sha - Full image SHA (e.g. "sha256:abc123...").
+     * @returns Full hex digest with the `sha256:` prefix stripped.
      */
-    private _shortSha(sha: string): string {
-        return sha.replace(/^sha256:/, '').substring(0, 12);
+    private _normalizedSha(sha: string): string {
+        return sha.replace(/^sha256:/, '');
     }
 
     /**
@@ -64,7 +64,7 @@ export class EECache {
      * @returns Absolute path to the per-image detail JSON file.
      */
     private _detailPath(sha: string): string {
-        return path.join(this._cacheDir, `${this._shortSha(sha)}.json`);
+        return path.join(this._cacheDir, `${this._normalizedSha(sha)}.json`);
     }
 
     /** Create the cache directory if it does not exist. */
@@ -170,22 +170,32 @@ export class EECache {
     /**
      * Prune entries whose SHAs are no longer present in the given set
      * of current image IDs (i.e. the image was removed or replaced).
+     * Writes the index once at the end instead of per-entry.
      *
      * @param currentShas - Set of image SHAs currently present locally.
      * @returns Number of entries removed.
      */
     prune(currentShas: Set<string>): number {
-        let removed = 0;
-        for (const sha of Object.keys(this._index)) {
-            if (!currentShas.has(sha)) {
-                this.remove(sha);
-                removed++;
+        const stale = Object.keys(this._index).filter((sha) => !currentShas.has(sha));
+        if (stale.length === 0) {
+            return 0;
+        }
+
+        for (const sha of stale) {
+            try {
+                fs.unlinkSync(this._detailPath(sha));
+            } catch {
+                // already gone
             }
         }
-        if (removed > 0) {
-            log(`EECache: pruned ${String(removed)} stale entries`);
-        }
-        return removed;
+
+        this._index = Object.fromEntries(
+            Object.entries(this._index).filter(([key]) => currentShas.has(key)),
+        );
+        this._saveIndex();
+
+        log(`EECache: pruned ${String(stale.length)} stale entries`);
+        return stale.length;
     }
 
     /** Clear the entire cache. */

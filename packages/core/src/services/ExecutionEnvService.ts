@@ -322,8 +322,30 @@ export class ExecutionEnvService {
             return memCached;
         }
 
+        // Ensure we have the EE list so we can resolve the image SHA for
+        // disk-cache lookup. Without this, direct callers (e.g. MCP handler)
+        // would bypass the file cache entirely.
+        if (!this._loaded) {
+            await this.loadExecutionEnvironments();
+        }
+
         const ee = this._executionEnvironments.find((e) => e.full_name === fullName);
-        const sha = ee?.image_id;
+        let sha = ee?.image_id;
+
+        // If the image isn't in the EE list (e.g. user passed an arbitrary
+        // name), try to resolve its SHA via a single inspect call.
+        if (!sha) {
+            try {
+                const engine = await this._ensureEngine();
+                const images = await ContainerRuntime.listImages(engine);
+                const match = images.find((img) => `${img.repository}:${img.tag}` === fullName);
+                if (match) {
+                    sha = match.id;
+                }
+            } catch {
+                this._log(`Could not resolve SHA for ${fullName}, skipping disk cache`);
+            }
+        }
 
         if (sha) {
             const fileCached = this._fileCache.get(sha);

@@ -176,6 +176,8 @@ export function classifyEE(labels: Record<string, string>, workingDir: string): 
 
 /**
  * Run the vendored introspection script inside a container.
+ * Uses execFile (no shell) to prevent injection via imageName.
+ *
  * @param engine - Container engine to use.
  * @param imageName - Full image name (repository:tag).
  * @param cacheDir - Directory where the vendored scripts are deployed.
@@ -193,23 +195,21 @@ export async function runInContainer(
     const scriptPath = path.join(cacheDir, 'image_introspect.py');
     const pythonWrapper = path.join(cacheDir, 'python_latest.sh');
 
-    const containerArgs = [engine, 'run', '--rm', '-v', `${cacheDir}:${cacheDir}:Z`];
+    const args = ['run', '--rm', '--pull=never', '-v', `${cacheDir}:${cacheDir}:Z`];
 
-    // podman needs --user=root for introspection to access all packages
     if (engine === 'podman') {
-        containerArgs.push('--user=root');
+        args.push('--user=root');
     }
 
-    containerArgs.push(imageName, pythonWrapper, scriptPath);
+    args.push(imageName, pythonWrapper, scriptPath);
 
     if (sections?.length) {
-        containerArgs.push('--sections', ...sections);
+        args.push('--sections', ...sections);
     }
 
-    const command = containerArgs.map((a) => (a.includes(' ') ? `"${a}"` : a)).join(' ');
     log(`ContainerRuntime: introspecting ${imageName}`);
 
-    const result = await cmd.runCommand(command, { timeout: 120_000 });
+    const result = await cmd.runCommandArgs(engine, args, { timeout: 120_000 });
 
     if (result.exitCode !== 0) {
         log(`ContainerRuntime: introspection failed for ${imageName}: ${result.stderr}`);
