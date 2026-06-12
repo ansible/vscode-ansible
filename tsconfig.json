@@ -5,10 +5,10 @@
     "lib": ["ES2020"],
     "outDir": "out",
     "rootDir": "src",
-    "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": ["./src/*"]
     },
+    "types": ["node"],
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
@@ -21,6 +21,11 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", ".vscode-test", "packages"],
+  "ts-node": {
+    "compilerOptions": {
+      "types": ["node", "mocha"]
+    }
+  },
   "references": [
     { "path": "packages/core" },
     { "path": "packages/language-server" },
