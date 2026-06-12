@@ -7,12 +7,12 @@ import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "eslint/config";
+import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
-import { includeIgnoreFile } from "@eslint/compat";
 const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- local CJS plugin loaded via require
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -29,6 +29,7 @@ export default defineConfig(
     tseslint.configs.strict,
     // TODO: enable later
     // tseslint.configs.stylistic,
+    // tseslint.configs.strictTypeChecked,
   ],
   {
     /** Files that use type-aware linting (TS/JS in src, packages, test). */
@@ -74,10 +75,12 @@ export default defineConfig(
       eqeqeq: ["error", "smart"],
       // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-base-to-string": "error",
-      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-require-imports": "error",
       "local/node-DEP0190": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
@@ -85,12 +88,12 @@ export default defineConfig(
       "no-empty-function": "error",
       "no-prototype-builtins": "error",
       // "@typescript-eslint/require-await": "error",  // electron import
-      // "@typescript-eslint/await-thenable": "error", // ~58 errors
+      "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",
-      // "@typescript-eslint/no-unsafe-member-access": "error", // ~550 errors
-      // "@typescript-eslint/no-floating-promises": "error", // ~100 errors
-      // "@typescript-eslint/restrict-template-expressions": "error",
-      // "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/restrict-template-expressions": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-return": "error",
     },
     settings: {
@@ -110,12 +113,23 @@ export default defineConfig(
       "@typescript-eslint/no-base-to-string": "off",
       // Mocks and dynamic fixtures routinely return `any`
       "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
     },
   },
   {
     // WDIO tests use their own tsconfig with relative imports; path aliases aren't practical
     files: ["test/wdio/**/*.ts", "wdio.conf.ts"],
-    rules: { "no-restricted-imports": "off" },
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+    },
+  },
+  {
+    // Webview TypeScript uses dynamic message payloads; Vue SFCs are linted by biome
+    files: ["webviews/**/*.{js,ts,tsx}"],
+    rules: { "@typescript-eslint/no-unsafe-member-access": "off" },
   },
   {
     // Standalone scripts have no tsconfig; skip eslint entirely

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount, flushPromises, type VueWrapper } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import CollectionSelector from "@webviews/lightspeed/src/components/CollectionSelector.vue";
 import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
@@ -73,7 +73,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -94,7 +94,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -116,7 +116,7 @@ describe("CollectionSelector", () => {
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();
@@ -131,17 +131,17 @@ describe("CollectionSelector", () => {
       props: {
         collectionName: "",
         "onUpdate:collectionName": (value: string | undefined): void => {
-          wrapper.setProps({ collectionName: value ?? "" });
+          void wrapper.setProps({ collectionName: value ?? "" });
         },
       },
-    }) as VueWrapper<InstanceType<typeof CollectionSelector>>;
+    });
 
     const onCalls = vi.mocked(vscodeApi.on).mock.calls;
     const collectionHandler = onCalls.find(
       (call) => call[0] === "getCollectionList",
     )?.[1];
 
-    collectionHandler?.([
+    void collectionHandler?.([
       { fqcn: "my_namespace.my_collection", path: "/path/to/collection" },
     ]);
     await flushPromises();

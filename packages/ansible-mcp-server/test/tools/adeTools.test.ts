@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 
 // Mock child_process before importing the module
 vi.mock("node:child_process", () => ({
@@ -52,7 +52,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("command");
       expect(result.exitCode).toBe(0);
@@ -70,7 +70,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("command");
       expect(result.exitCode).toBe(0);
@@ -88,7 +88,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("command");
       expect(result.success).toBe(true);
@@ -114,8 +114,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("python", ["--version"]);
       expect(result.success).toBe(true);
@@ -139,8 +138,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("invalid-command");
       expect(result.success).toBe(false);
@@ -159,8 +157,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeCommand("bad-command");
       expect(result.success).toBe(false);
@@ -199,7 +196,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkPythonVersionAvailable("3.11");
       expect(result).toBe(true);
@@ -221,7 +218,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkPythonVersionAvailable("3.15");
       expect(result).toBe(false);
@@ -239,7 +236,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkPythonVersionAvailable();
       expect(result).toBe(true);
@@ -284,8 +281,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADEInstalled();
       expect(result).toBe(true);
@@ -302,8 +298,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADEInstalled();
       expect(result).toBe(false);
@@ -334,8 +329,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADTInstalled();
       expect(result).toBe(true);
@@ -352,8 +346,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADTInstalled();
       expect(result).toBe(false);
@@ -376,8 +369,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADTInstalled();
       expect(result).toBe(false);
@@ -408,8 +400,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkADTInstalled();
       expect(result).toBe(false);
@@ -437,8 +428,7 @@ describe("ADE Tools", () => {
         }),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.mocked(spawn).mockReturnValue(mockChild as any);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       await checkADTInstalled(workspaceRoot);
 
@@ -1635,7 +1625,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await createVirtualEnvironment("/test/workspace");
       expect(result.success).toBe(true);
@@ -1658,7 +1648,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await createVirtualEnvironment(
         "/test/workspace",
@@ -1684,7 +1674,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await createVirtualEnvironment(
         "/test/workspace",
@@ -1712,7 +1702,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await executeInVirtualEnvironment("/test/venv", "pip", [
         "install",
@@ -1739,7 +1729,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await installCollections("/test/workspace", [
         "ansible.posix",
@@ -1766,7 +1756,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await installRequirements(
         "/test/workspace",
@@ -1966,7 +1956,7 @@ describe("ADE Tools", () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
-      vi.mocked(spawn).mockReturnValue(mockChild);
+      vi.mocked(spawn).mockReturnValue(mockChild as unknown as ChildProcess);
 
       const result = await checkAnsibleLint();
       expect(result.success).toBe(true);

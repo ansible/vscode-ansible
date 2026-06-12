@@ -32,7 +32,7 @@ export class AnsibleToxController {
       "Ansible Tox",
       vscode.TestRunProfileKind.Run,
       (request, token) => {
-        this.runHandler(request, token);
+        void this.runHandler(request, token);
       },
     );
     this.controller.refreshHandler = async () => {
@@ -40,7 +40,7 @@ export class AnsibleToxController {
     };
     // Check all existing documents
     for (const document of vscode.workspace.textDocuments) {
-      this.parseTestsInAnsibleToxFile(document);
+      void this.parseTestsInAnsibleToxFile(document);
     }
 
     // Check for tox.ini files when a new document is opened or saved.
@@ -86,7 +86,9 @@ export class AnsibleToxController {
 
     const fileName = splittedPath.pop();
     if (fileName === undefined) {
-      throw new TypeError(`Expected filename as string from ${splittedPath}`);
+      throw new TypeError(
+        `Expected filename as string from ${splittedPath.join("/")}`,
+      );
     }
 
     const parentFolderName = splittedPath.pop();
@@ -211,7 +213,7 @@ export class AnsibleToxController {
         if (e instanceof Error) {
           msg = e.message;
         } else {
-          msg = `${e}`;
+          msg = e instanceof Error ? e.message : String(e);
         }
         run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
       }

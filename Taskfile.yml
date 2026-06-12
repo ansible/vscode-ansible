@@ -233,9 +233,9 @@ tasks:
       - "{src,test}/**/*"
       - wdio.conf.ts
     cmds:
-      - "npx pnpm pretest:wdio"
+      - "pnpm pretest:wdio"
       - "node tools/ensure-chromedriver.mts"
-      - "{{.XVFB}}npx pnpm test:wdio"
+      - "{{.XVFB}}pnpm test:wdio"
     interactive: true
   unit:
     desc: Run unit tests with coverage report
@@ -279,7 +279,7 @@ tasks:
       - cmd: task als:package
       - cmd: task mcp:package
       # we want to build both all the time:
-      - node ./tools/helper.mts --package
+      - npm run package
       - node packages/ansible-language-server/tools/can-release.mts
       - task: knip
       - defer: { task: finish }

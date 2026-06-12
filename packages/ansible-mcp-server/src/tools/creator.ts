@@ -22,21 +22,23 @@ async function runCreator(
 
     // Check if the process failed to spawn (command not found, etc.)
     if (creatorProcess.error) {
-      return reject(
+      reject(
         new Error(
           `Failed to run ansible-creator: ${creatorProcess.error.message}`,
         ),
       );
+      return;
     }
 
     // Check if the process exited with a non-zero status code
     if (creatorProcess.status !== 0) {
       const errorMessage = stderrData || stdoutData || "Unknown error";
-      return reject(
+      reject(
         new Error(
           `ansible-creator exited with code ${creatorProcess.status}:\n${errorMessage}`,
         ),
       );
+      return;
     }
 
     resolve({
@@ -115,7 +117,7 @@ export function createProjectsHandler(workspaceRoot: string) {
           content: [
             {
               type: "text" as const,
-              text: `Error: Invalid project type '${args.projectType}'. Must be either 'collection' or 'playbook'.\n`,
+              text: `Error: Invalid project type '${String(args.projectType)}'. Must be either 'collection' or 'playbook'.\n`,
             },
           ],
           isError: true,

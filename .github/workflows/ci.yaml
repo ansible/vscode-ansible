@@ -53,7 +53,7 @@ jobs:
 
       # needed by our prek system hooks like toml
       - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
@@ -155,8 +155,8 @@ jobs:
         run: |
           task build && task build --status
 
-      - name: task package
-        timeout-minutes: 2 # expected under 1 minutes
+      - name: task als:package
+        timeout-minutes: 4
         run: |
           task als:package && task als:package --status
 
@@ -164,18 +164,12 @@ jobs:
         if: >-
           steps.extract_context.outputs.context != '' &&
           !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
-        run: |
-          task ${{ steps.extract_context.outputs.context }}
+        run: task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
         timeout-minutes: 2
         run: |
           task docs && task docs --status
-
-      - name: task package
-        timeout-minutes: 2
-        run: |
-          task package -v && task package --status
 
       - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
         run: task dry
@@ -187,6 +181,12 @@ jobs:
         timeout-minutes: 3
         run: |
           task lint
+
+      - name: task package
+        timeout-minutes: 4
+        run: |
+          task als:package && task als:package --status
+          task package && task package --status
 
       - name: task finish
         run: task finish
@@ -523,7 +523,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -533,7 +533,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           directory: out/junit
           fail_ci_if_error: true
@@ -570,7 +570,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -677,7 +677,7 @@ jobs:
 
       # needed for pycobertura
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Download artifacts
         uses: actions/download-artifact@v8

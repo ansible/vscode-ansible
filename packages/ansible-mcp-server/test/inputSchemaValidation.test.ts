@@ -42,7 +42,7 @@ describe("MCP Tool InputSchema Validation", () => {
     }
 
     const toolsWithSchema: string[] = [];
-    for (const toolName of Object.keys(registeredTools)) {
+    for (const toolName of Object.keys(registeredTools as object)) {
       const tool = registeredTools[toolName];
       if (tool && tool.inputSchema) {
         toolsWithSchema.push(toolName);

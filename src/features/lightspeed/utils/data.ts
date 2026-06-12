@@ -281,24 +281,24 @@ export async function getRoleYamlFiles(
 ): Promise<GenerationListEntry[]> {
   const files = [] as GenerationListEntry[];
   const directories = ["defaults", "tasks"];
-  directories.forEach(async (dir) => {
+  for (const dir of directories) {
     const dirPath = `${rolePath}/${dir}`;
     if (fs.existsSync(dirPath)) {
-      const yamlFiles = await fs
-        .readdirSync(dirPath)
-        .filter((file) => /\.(yml|yaml)$/.test(file));
-      yamlFiles.forEach((file) => {
+      const yamlFiles = (await fs.promises.readdir(dirPath)).filter((file) =>
+        /\.(yml|yaml)$/.test(file),
+      );
+      for (const file of yamlFiles) {
         const fileContents = readVarFiles(`${dirPath}/${file}`);
         if (fileContents) {
           files.push({
             path: `${dir}/${file}`,
             file_type: dir.slice(0, -1) as RoleFileType,
             content: fileContents,
-          } as GenerationListEntry);
+          });
         }
-      });
+      }
     }
-  });
+  }
 
   return files;
 }

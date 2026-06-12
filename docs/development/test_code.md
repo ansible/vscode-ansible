@@ -44,7 +44,7 @@ Each type of test has its own script and can be run by `task <command>`:
 
     To run a single UI test spec, use the `--spec` flag:
 
-    `npx pnpm test:wdio -- --spec test/wdio/smoke.spec.ts`
+    `pnpm test:wdio -- --spec test/wdio/smoke.spec.ts`
 
 ### Language server test scripts
 

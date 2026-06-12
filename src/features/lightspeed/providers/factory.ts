@@ -1,12 +1,6 @@
 import { LLMProvider } from "@src/features/lightspeed/providers/base";
-import {
-  GoogleProvider,
-  GoogleConfig,
-} from "@src/features/lightspeed/providers/google";
-import {
-  RHCustomProvider,
-  RHCustomConfig,
-} from "@src/features/lightspeed/providers/rhcustom";
+import { GoogleProvider } from "@src/features/lightspeed/providers/google";
+import { RHCustomProvider } from "@src/features/lightspeed/providers/rhcustom";
 import type { LightSpeedServiceSettings } from "@src/interfaces/extensionSettings";
 import {
   GOOGLE_API_ENDPOINT,
@@ -54,14 +48,14 @@ export class LLMProviderFactory implements ProviderFactory {
           modelName: config.modelName || GOOGLE_DEFAULT_MODEL,
           timeout: config.timeout || 30000,
           baseUrl: customEndpoint,
-        } as GoogleConfig);
+        });
       }
 
       case "rhcustom":
         return this.createRHCustomProvider(config, apiKey);
 
       default:
-        throw new Error(`Unsupported provider type: ${type}`);
+        throw new Error(`Unsupported provider type: ${String(type)}`);
     }
   }
 
@@ -108,7 +102,7 @@ export class LLMProviderFactory implements ProviderFactory {
       baseURL,
       timeout: config.timeout || 30000,
       maxTokens,
-    } as RHCustomConfig);
+    });
   }
 
   getSupportedProviders(): ProviderInfo[] {

@@ -78,7 +78,9 @@ export class OpenAICompatibleClient {
 
     const controller = new AbortController();
     const requestTimeout = options?.timeout ?? this.timeout;
-    const timeoutId = setTimeout(() => controller.abort(), requestTimeout);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, requestTimeout);
 
     try {
       const response = await fetchFn(endpoint, {
@@ -105,14 +107,18 @@ export class OpenAICompatibleClient {
 
       clearTimeout(timeoutId);
 
-      const body = await response.json();
+      interface ErrorResponseBody {
+        error?: { message?: string };
+        message?: string;
+      }
+      const body = (await response.json()) as ErrorResponseBody;
 
       if (!response.ok) {
         const errorMessage =
-          body?.error?.message ||
-          body?.message ||
+          body.error?.message ||
+          body.message ||
           `HTTP ${response.status} error`;
-        throw new OpenAIClientError(errorMessage, response.status);
+        throw new OpenAIClientError(String(errorMessage), response.status);
       }
 
       return body as ChatCompletionResponse;

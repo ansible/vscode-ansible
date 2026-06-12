@@ -209,7 +209,9 @@ describe("AnsibleMcpServerProvider", function () {
       // After dispose, the provider should be cleaned up
       // We can't directly test the internal emitter, but we can verify
       // that dispose doesn't throw
-      expect(() => provider.dispose()).not.toThrow();
+      expect(() => {
+        provider.dispose();
+      }).not.toThrow();
     });
   });
 

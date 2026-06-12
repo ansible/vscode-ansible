@@ -162,17 +162,18 @@ export class LightspeedUser {
       );
 
       if (response.ok) {
-        const userInfo: LoggedInUserInfo = await response.json();
-        if (!userInfo) {
+        const userInfo: unknown = await response.json();
+        if (!userInfo || typeof userInfo !== "object") {
           throw new Error("Unexpected userinfo payload");
         }
-        this._getUserInfoCache.userInfo = userInfo;
+        const parsedUserInfo = userInfo as LoggedInUserInfo;
+        this._getUserInfoCache.userInfo = parsedUserInfo;
 
         this._getUserInfoCache.time = Date.now();
         this._getUserInfoCache.token = token;
         this._getUserInfoCache.locked = false;
 
-        return userInfo;
+        return parsedUserInfo;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
@@ -284,7 +285,7 @@ export class LightspeedUser {
         );
       const isSupportedClient = isSupportedCallback(redirectUri);
       this._logger.info(
-        `[ansible-lightspeed-user] Redirect URI ${redirectUri} is${isSupportedClient ? "" : " not"} supported by Lightspeed auth provider.`,
+        `[ansible-lightspeed-user] Redirect URI ${redirectUri.toString()} is${isSupportedClient ? "" : " not"} supported by Lightspeed auth provider.`,
       );
       if (!isSupportedClient) {
         return [AuthProviderType.rhsso, AuthProviderType.lightspeed];
@@ -393,7 +394,7 @@ export class LightspeedUser {
       return true;
     } catch (error) {
       this._logger.info(
-        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
+        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error instanceof Error ? error.message : String(error)}`,
       );
       if (error instanceof LightspeedAccessDenied) {
         // Auth provider has a dead session stored. We need to force it out.
@@ -404,7 +405,7 @@ export class LightspeedUser {
             { forceNewSession: true },
           );
         } else if (this._userType === AuthProviderType.lightspeed) {
-          this._lightspeedAuthenticationProvider.removeSession(session.id);
+          void this._lightspeedAuthenticationProvider.removeSession(session.id);
         }
       }
     }
@@ -539,7 +540,7 @@ export class LightspeedUser {
       return;
     }
     this._logger.debug(
-      `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes}"`,
+      `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes.join(", ")}"`,
     );
 
     if (this._userType === AuthProviderType.lightspeed) {

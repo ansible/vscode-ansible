@@ -1,15 +1,19 @@
+interface WindowLike {
+  document: Document;
+  getSelection(): Selection | null;
+}
+
 export class EditableList {
   doc: Document;
-  win: Window;
+  win: WindowLike;
   element: HTMLElement;
   observer: MutationObserver | undefined;
   savedValues: string[];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(id: string, win?: any) {
+  constructor(id: string, win?: WindowLike) {
     // win is an optional parameter for unit tests with JSDOM
     this.win = win ? win : window;
-    this.doc = win ? win?.document : document;
+    this.doc = win ? win.document : document;
     const element = this.doc.getElementById(id);
     if (!element) {
       throw new Error(`Element ${id} is not found`);

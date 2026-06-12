@@ -10,7 +10,7 @@
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
-    "@types/node": "^24.10.2",
+    "@types/node": "^24.13.1",
     "@types/shell-quote": "^1",
     "@vitest/ui": "^4.1.8",
     "rimraf": "^6.1.3",

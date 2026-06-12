@@ -1,68 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as Module from "module";
-import { RHCustomProvider } from "@src/features/lightspeed/providers/rhcustom.js";
-import type { CompletionRequestParams } from "@src/interfaces/lightspeed.js";
-import type {
-  ChatRequestParams,
-  GenerationRequestParams,
-} from "@src/features/lightspeed/providers/base.js";
-import {
-  TEST_API_KEYS,
-  MODEL_NAMES,
-  TEST_PROMPTS,
-  TEST_CONTENT,
-  RHCUSTOM_PROVIDER,
-  HTTP_STATUS_CODES,
-  API_ENDPOINTS,
-  DEFAULT_TIMEOUTS,
-} from "@test/unit/lightspeed/testConstants.js";
-import { OpenAIClientError } from "@src/features/lightspeed/clients/openaiCompatibleClient.js";
-import { getLightspeedLogger } from "@src/utils/logger.js";
-import {
-  generateOutlineFromPlaybook,
-  generateOutlineFromRole,
-} from "@src/features/lightspeed/utils/outlineGenerator.js";
 
-// Mock AnsibleContextProcessor
-const mockEnhancePromptForAnsible = vi.fn(
-  (prompt: string, context?: string) => {
-    return `enhanced: ${prompt} with context: ${context || "none"}`;
+const { mockEnhancePromptForAnsible, mockCleanAnsibleOutput } = vi.hoisted(
+  () => {
+    const mockEnhancePromptForAnsible = vi.fn(
+      (prompt: string, context?: string) => {
+        return `enhanced: ${prompt} with context: ${context || "none"}`;
+      },
+    );
+
+    const mockCleanAnsibleOutput = vi.fn((output: string) => {
+      return output
+        .trim()
+        .replace(/^```ya?ml\s*/i, "")
+        .replace(/```\s*$/, "");
+    });
+
+    return { mockEnhancePromptForAnsible, mockCleanAnsibleOutput };
   },
 );
 
-const mockCleanAnsibleOutput = vi.fn((output: string) => {
-  return output
-    .trim()
-    .replace(/^```ya?ml\s*/i, "")
-    .replace(/```\s*$/, "");
-});
-
-const mockAnsibleContextModule = {
+vi.mock("@src/features/lightspeed/ansibleContext", () => ({
   AnsibleContextProcessor: {
     enhancePromptForAnsible: mockEnhancePromptForAnsible,
     cleanAnsibleOutput: mockCleanAnsibleOutput,
   },
-};
-
-const originalRequire = Module.prototype.require.bind(Module.prototype);
-
-Module.prototype.require = function (
-  this: Module,
-  id: string,
-): ReturnType<typeof originalRequire> {
-  const normalizedId = id.replace(/\\/g, "/");
-  if (
-    id === "../ansibleContext" ||
-    normalizedId === "../ansibleContext" ||
-    normalizedId.endsWith("/ansibleContext") ||
-    normalizedId.endsWith("/ansibleContext.js") ||
-    normalizedId.includes("/ansibleContext") ||
-    normalizedId.includes("ansibleContext.js")
-  ) {
-    return mockAnsibleContextModule;
-  }
-  return originalRequire.call(this, id);
-};
+}));
 
 const { mockChatCompletion, MockOpenAICompatibleClient } = vi.hoisted(() => {
   const mockChatCompletion = vi.fn();
@@ -155,6 +117,29 @@ beforeEach(() => {
     },
   });
 });
+
+import { RHCustomProvider } from "@src/features/lightspeed/providers/rhcustom.js";
+import type { CompletionRequestParams } from "@src/interfaces/lightspeed.js";
+import type {
+  ChatRequestParams,
+  GenerationRequestParams,
+} from "@src/features/lightspeed/providers/base.js";
+import {
+  TEST_API_KEYS,
+  MODEL_NAMES,
+  TEST_PROMPTS,
+  TEST_CONTENT,
+  RHCUSTOM_PROVIDER,
+  HTTP_STATUS_CODES,
+  API_ENDPOINTS,
+  DEFAULT_TIMEOUTS,
+} from "@test/unit/lightspeed/testConstants.js";
+import { OpenAIClientError } from "@src/features/lightspeed/clients/openaiCompatibleClient.js";
+import { getLightspeedLogger } from "@src/utils/logger.js";
+import {
+  generateOutlineFromPlaybook,
+  generateOutlineFromRole,
+} from "@src/features/lightspeed/utils/outlineGenerator.js";
 
 const mockedGenerateOutlineFromPlaybook = vi.mocked(
   generateOutlineFromPlaybook,

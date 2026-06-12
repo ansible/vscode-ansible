@@ -148,7 +148,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       }
     } catch (error) {
       console.error(
-        `[Ansible] Failed to activate Python Environments extension: ${error}`,
+        `[Ansible] Failed to activate Python Environments extension: ${error instanceof Error ? error.message : String(error)}`,
       );
       await this._initFromPythonExtension();
     }
@@ -196,7 +196,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       );
     } catch (error) {
       console.error(
-        `[Ansible] Failed to initialize Python extension fallback: ${error}`,
+        `[Ansible] Failed to initialize Python extension fallback: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -323,7 +323,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return env;
       } catch (error) {
         console.error(
-          `[Ansible] Error getting environment (envs API): ${error}`,
+          `[Ansible] Error getting environment (envs API): ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -343,7 +343,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         }
       } catch (error) {
         console.error(
-          `[Ansible] Error getting environment (python ext): ${error}`,
+          `[Ansible] Error getting environment (python ext): ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -362,7 +362,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return await this._pythonEnvApi.getEnvironments(scope);
       } catch (error) {
         console.error(
-          `[Ansible] Error getting environments (envs API): ${error}`,
+          `[Ansible] Error getting environments (envs API): ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -383,7 +383,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return results;
       } catch (error) {
         console.error(
-          `[Ansible] Error getting environments (python ext): ${error}`,
+          `[Ansible] Error getting environments (python ext): ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -521,7 +521,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return;
       } catch (error) {
         console.error(
-          `[Ansible] Error opening Python environment picker: ${error}`,
+          `[Ansible] Error opening Python environment picker: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }

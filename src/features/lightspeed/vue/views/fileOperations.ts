@@ -99,7 +99,9 @@ export class FileOperations {
     const mainFileUrl = `${folderUrl}/roles/${roleName}/meta/main.yml`;
     console.log(`[ansible-creator] main.yml file url: ${mainFileUrl}`);
     const parsedUrl = Uri.parse(`vscode://file${mainFileUrl}`);
-    console.log(`[ansible-creator] Parsed main.yml file url: ${parsedUrl}`);
+    console.log(
+      `[ansible-creator] Parsed main.yml file url: ${parsedUrl.toString()}`,
+    );
     this.openFileInEditor(parsedUrl.toString());
   }
 

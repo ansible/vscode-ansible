@@ -66,7 +66,11 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleGeminiError(error: any, operation: string): Error {
     // Use the reusable HTTP error handler from base class
-    return this.handleHttpError(error, operation, "Google Gemini");
+    return this.handleHttpError(
+      error as { status?: number; message?: string },
+      operation,
+      "Google Gemini",
+    );
   }
 
   async validateConfig(): Promise<boolean> {

@@ -7,13 +7,15 @@ export function readVarFiles(varFile: string): string | undefined {
       return undefined;
     }
     const contents = fs.readFileSync(varFile, "utf8");
-    const parsedAnsibleVars = yaml.parse(contents, {
+    const parsedAnsibleVars: unknown = yaml.parse(contents, {
       keepSourceTokens: true,
     });
     const updatedFileContents = yaml.stringify(parsedAnsibleVars);
     return updatedFileContents;
   } catch (err) {
-    console.error(`Failed to read ${varFile} with error ${err}`);
+    console.error(
+      `Failed to read ${varFile} with error ${err instanceof Error ? err.message : String(err)}`,
+    );
     return undefined;
   }
 }

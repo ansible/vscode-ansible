@@ -2,6 +2,7 @@ import {
   CompletionRequestParams,
   CompletionResponseParams,
 } from "@src/interfaces/lightspeed";
+import { AnsibleContextProcessor } from "@src/features/lightspeed/ansibleContext";
 
 export interface ProviderMetadata {
   ansibleFileType?:
@@ -135,27 +136,23 @@ export abstract class BaseLLMProvider<
     prompt: string,
     metadata?: ProviderMetadata,
   ): string {
-    const { AnsibleContextProcessor } = require("../ansibleContext");
-
     const ansibleContext = {
       fileType: metadata?.ansibleFileType || "playbook",
       documentUri: metadata?.documentUri,
-      workspaceContext: metadata?.workspaceContext,
     };
 
     return AnsibleContextProcessor.enhancePromptForAnsible(
       prompt,
       metadata?.context || "",
       ansibleContext,
-    ) as string;
+    );
   }
 
   /**
    * Clean and validate Ansible output
    */
   protected cleanAnsibleOutput(output: string): string {
-    const { AnsibleContextProcessor } = require("../ansibleContext");
-    return AnsibleContextProcessor.cleanAnsibleOutput(output) as string;
+    return AnsibleContextProcessor.cleanAnsibleOutput(output);
   }
 
   /**
