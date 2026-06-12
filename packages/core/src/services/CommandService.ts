@@ -27,6 +27,7 @@ import { getCachedBinDir, getCachedToolPath, findExecutableWithCache } from './E
 import { log } from '../utils/logging';
 
 const execAsync = promisify(cp.exec);
+const execFileAsync = promisify(cp.execFile);
 
 export type BinDirResolver = (workspaceUri?: unknown) => Promise<string | null>;
 
@@ -213,6 +214,55 @@ export class CommandService {
                 maxBuffer,
                 timeout: options.timeout,
                 env: env,
+            });
+            return {
+                stdout: stdout.trim(),
+                stderr: stderr.trim(),
+                exitCode: 0,
+            };
+        } catch (error) {
+            const execError = error as cp.ExecException & { stdout?: string; stderr?: string };
+            return {
+                stdout: execError.stdout?.trim() ?? '',
+                stderr: execError.stderr?.trim() ?? execError.message,
+                exitCode: execError.code ?? 1,
+            };
+        }
+    }
+
+    /**
+     * Run a command with an explicit args array, bypassing the shell.
+     * Prevents shell injection when arguments come from user input.
+     *
+     * @param file - Executable path or name.
+     * @param args - Arguments passed directly to the process (no shell interpolation).
+     * @param options - Execution options such as cwd, env, and timeout.
+     * @returns Captured stdout, stderr, and exit code from the subprocess.
+     */
+    public async runCommandArgs(
+        file: string,
+        args: string[],
+        options: CommandOptions = {},
+    ): Promise<ExecResult> {
+        const cwd = options.cwd ?? this.getWorkspaceRoot() ?? process.cwd();
+        const maxBuffer = options.maxBuffer ?? 10 * 1024 * 1024;
+
+        const binDir = await this.getBinDir();
+        const processPath = process.env.PATH ?? '';
+        const envPath = binDir ? `${binDir}${path.delimiter}${processPath}` : processPath;
+
+        const env: Record<string, string | undefined> = {
+            ...process.env,
+            PATH: envPath,
+            ...options.env,
+        };
+
+        try {
+            const { stdout, stderr } = await execFileAsync(file, args, {
+                cwd,
+                maxBuffer,
+                timeout: options.timeout,
+                env,
             });
             return {
                 stdout: stdout.trim(),

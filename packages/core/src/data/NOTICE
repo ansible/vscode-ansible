@@ -1,0 +1,25 @@
+Vendored Scripts from ansible-navigator
+========================================
+
+The files image_introspect.py and python_latest.sh in this directory are
+vendored from the ansible-navigator project:
+
+  https://github.com/ansible/ansible-navigator
+
+Original location:
+  src/ansible_navigator/data/image_introspect.py
+  src/ansible_navigator/data/python_latest.sh
+
+Copyright Red Hat
+
+These files are licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+They are included here to allow @ansible/core to perform Execution
+Environment introspection without requiring a Python-based
+ansible-navigator installation on the host.
+
+These scripts run exclusively inside EE containers (which always have
+Python available) and are never executed on the host.
