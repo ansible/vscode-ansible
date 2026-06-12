@@ -1,79 +1,160 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
-const EE_LIST = [
-    {
-        created: '2024-01-01',
-        execution_environment: true,
-        full_name: 'quay.io/ansible/ee-supported:latest',
-        image_id: 'abc123',
-    },
-    {
-        created: '2024-01-01',
-        execution_environment: false,
-        full_name: 'python:3.11',
-        image_id: 'def456',
-    },
-    {
-        created: '2024-01-01',
-        execution_environment: true,
-        full_name: 'quay.io/ansible/ee-minimal:latest',
-        image_id: 'ghi789',
-    },
-];
+// ── Mock ContainerRuntime ───────────────────────────────────────────
 
-const EE_DETAILS = {
-    ansible_collections: {
-        details: { 'ansible.builtin': '2.15.0', 'community.general': '7.0.0' },
-    },
-    ansible_version: { details: 'ansible [core 2.15.0]' },
-    os_release: {
-        details: [
-            {
-                'pretty-name': 'Red Hat Enterprise Linux 9.2',
-                name: 'RHEL',
-                version: '9.2',
-            },
-        ],
-    },
-    python_packages: {
-        details: [
-            { name: 'ansible-core', version: '2.15.0' },
-            { name: 'jinja2', version: '3.1.2' },
-        ],
-    },
-    image_name: 'quay.io/ansible/ee-supported:latest',
-};
+const containerMocks = vi.hoisted(() => ({
+    detectEngine: vi.fn(),
+    listImages: vi.fn(),
+    inspectImage: vi.fn(),
+    runInContainer: vi.fn(),
+    deployScripts: vi.fn(),
+    getScriptCacheDir: vi.fn(),
+}));
 
-const mocks = vi.hoisted(() => {
-    const mockRunTool = vi.fn();
+vi.mock('../../src/services/ContainerRuntime', () => containerMocks);
+
+// ── Mock EECache (use real implementation with temp dir) ────────────
+
+let tmpCacheDir: string;
+
+vi.mock('../../src/services/EECache', async () => {
+    const actual = await vi.importActual<typeof import('../../src/services/EECache')>(
+        '../../src/services/EECache',
+    );
     return {
-        mockRunTool,
-        getCommandService: vi.fn(() => ({
-            runTool: mockRunTool,
-        })),
+        EECache: class extends actual.EECache {
+            /** Create a test cache in a temp directory. */
+            constructor() {
+                tmpCacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ee-svc-test-'));
+                super(tmpCacheDir);
+            }
+        },
     };
 });
 
-vi.mock('../../src/services/CommandService', () => ({
-    getCommandService: mocks.getCommandService,
-}));
-
 import { ExecutionEnvService } from '../../src/services/ExecutionEnvService';
+import type { ContainerImage, InspectedImage } from '../../src/services/ContainerRuntime';
 
-/** Clears the ExecutionEnvService singleton so each test starts with a fresh instance. */
-function resetExecutionEnvSingleton(): void {
+// ── Sample data ─────────────────────────────────────────────────────
+
+const IMG_SUPPORTED: ContainerImage = {
+    id: 'sha256:aaa111',
+    repository: 'quay.io/ansible/ee-supported',
+    tag: 'latest',
+    created: '2026-06-01',
+    size: '1.2 GB',
+    names: ['quay.io/ansible/ee-supported:latest'],
+};
+
+const IMG_MINIMAL: ContainerImage = {
+    id: 'sha256:bbb222',
+    repository: 'quay.io/ansible/ee-minimal',
+    tag: 'latest',
+    created: '2026-05-15',
+    size: '512 MB',
+    names: ['quay.io/ansible/ee-minimal:latest'],
+};
+
+const IMG_PYTHON: ContainerImage = {
+    id: 'sha256:ccc333',
+    repository: 'python',
+    tag: '3.11',
+    created: '2026-01-01',
+    size: '200 MB',
+    names: ['python:3.11'],
+};
+
+const INSPECTED_SUPPORTED: InspectedImage = {
+    ...IMG_SUPPORTED,
+    executionEnvironment: true,
+    inspect: {
+        config: { labels: { 'ansible-execution-environment': 'true' }, workingDir: '/runner' },
+        architecture: 'amd64',
+        os: 'linux',
+    },
+};
+
+const INSPECTED_MINIMAL: InspectedImage = {
+    ...IMG_MINIMAL,
+    executionEnvironment: true,
+    inspect: {
+        config: { labels: { 'ansible-execution-environment': 'true' }, workingDir: '/runner' },
+    },
+};
+
+const INSPECTED_PYTHON: InspectedImage = {
+    ...IMG_PYTHON,
+    executionEnvironment: false,
+    inspect: {
+        config: { labels: {}, workingDir: '/app' },
+    },
+};
+
+const INTROSPECTION_JSON = JSON.stringify({
+    errors: [],
+    python_version: { details: { version: '3.11.7' } },
+    environment_variables: { details: {} },
+    ansible_collections: {
+        details: { 'ansible.builtin': '2.19.0', 'community.general': '10.2.0' },
+        errors: [],
+    },
+    ansible_version: { details: 'ansible [core 2.19.0]', errors: [] },
+    os_release: {
+        details: [{ 'pretty-name': 'RHEL 9.4', name: 'RHEL', version: '9.4' }],
+        errors: [],
+    },
+    python_packages: {
+        details: [
+            { name: 'ansible-core', version: '2.19.0', summary: 'Ansible' },
+            { name: 'jinja2', version: '3.1.4' },
+        ],
+        errors: [],
+    },
+    system_packages: {
+        details: { bash: '5.2.26', openssl: '3.2.1' },
+        errors: [],
+    },
+    redhat_release: { details: 'Red Hat Enterprise Linux release 9.4', errors: [] },
+});
+
+// ── Helpers ─────────────────────────────────────────────────────────
+
+/** Clears the ExecutionEnvService singleton so each test starts fresh. */
+function resetSingleton(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (ExecutionEnvService as any)._instance = undefined;
 }
 
+/** Wire up ContainerRuntime mocks with standard test data. */
+function setupDefaultMocks(): void {
+    containerMocks.detectEngine.mockResolvedValue('podman');
+    containerMocks.listImages.mockResolvedValue([IMG_SUPPORTED, IMG_MINIMAL, IMG_PYTHON]);
+    containerMocks.inspectImage
+        .mockResolvedValueOnce(INSPECTED_SUPPORTED)
+        .mockResolvedValueOnce(INSPECTED_MINIMAL)
+        .mockResolvedValueOnce(INSPECTED_PYTHON);
+    containerMocks.deployScripts.mockReturnValue('/tmp/scripts');
+}
+
+// ── Tests ───────────────────────────────────────────────────────────
+
 describe('ExecutionEnvService', () => {
     beforeEach(() => {
-        resetExecutionEnvSingleton();
-        mocks.mockRunTool.mockReset();
-        mocks.getCommandService.mockClear();
-        mocks.getCommandService.mockImplementation(() => ({
-            runTool: mocks.mockRunTool,
-        }));
+        resetSingleton();
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        if (tmpCacheDir) {
+            try {
+                fs.rmSync(tmpCacheDir, { recursive: true, force: true });
+            } catch {
+                /* */
+            }
+        }
     });
 
     it('getInstance returns the same singleton', () => {
@@ -82,271 +163,224 @@ describe('ExecutionEnvService', () => {
         expect(a).toBe(b);
     });
 
-    it('loadExecutionEnvironments parses navigator JSON and filters EEs', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_LIST),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const list = await svc.loadExecutionEnvironments();
-        expect(mocks.mockRunTool).toHaveBeenCalledWith('ansible-navigator', [
-            'images',
-            '--mode',
-            'stdout',
-            '--pull-policy',
-            'never',
-            '--format',
-            'json',
-        ]);
-        expect(list).toHaveLength(2);
-        expect(list.map((e) => e.full_name).sort()).toEqual(
-            ['quay.io/ansible/ee-minimal:latest', 'quay.io/ansible/ee-supported:latest'].sort(),
-        );
-        expect(svc.isLoaded()).toBe(true);
-    });
-
-    it('loadExecutionEnvironments handles empty output', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: '',
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const list = await svc.loadExecutionEnvironments();
-        expect(list).toEqual([]);
-        expect(svc.getExecutionEnvironments()).toEqual([]);
-        expect(svc.isLoaded()).toBe(true);
-    });
-
-    it('loadExecutionEnvironments concurrent call protection', async () => {
-        let release!: () => void;
-        const gate = new Promise<void>((r) => {
-            release = r;
-        });
-        let notifyEntered!: () => void;
-        const enteredRunTool = new Promise<void>((r) => {
-            notifyEntered = r;
-        });
-        mocks.mockRunTool.mockImplementation(async () => {
-            notifyEntered();
-            await gate;
-            return { exitCode: 0, stdout: JSON.stringify(EE_LIST), stderr: '' };
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const p1 = svc.loadExecutionEnvironments();
-        await enteredRunTool;
-        const p2 = svc.loadExecutionEnvironments();
-        await p2;
-        expect(mocks.mockRunTool).toHaveBeenCalledTimes(1);
-        release();
-        await p1;
-        expect(svc.getExecutionEnvironments()).toHaveLength(2);
-        expect(mocks.mockRunTool).toHaveBeenCalledTimes(1);
-    });
-
-    it('loadDetails fetches and caches details', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const name = 'quay.io/ansible/ee-supported:latest';
-        const d = await svc.loadDetails(name);
-        expect(d).toEqual(EE_DETAILS);
-        expect(mocks.mockRunTool).toHaveBeenCalledWith('ansible-navigator', [
-            'images',
-            name,
-            '--mode',
-            'stdout',
-            '--pull-policy',
-            'never',
-            '--details',
-            '--format',
-            'json',
-        ]);
-        expect(svc.getCachedDetails(name)).toEqual(EE_DETAILS);
-    });
-
-    it('loadDetails returns cached details on second call', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const name = 'quay.io/ansible/ee-supported:latest';
-        await svc.loadDetails(name);
-        mocks.mockRunTool.mockClear();
-        const again = await svc.loadDetails(name);
-        expect(again).toEqual(EE_DETAILS);
-        expect(mocks.mockRunTool).not.toHaveBeenCalled();
-    });
-
-    it('getCollections extracts and sorts collections from details', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const cols = await svc.getCollections('quay.io/ansible/ee-supported:latest');
-        expect(cols).toEqual([
-            { name: 'ansible.builtin', version: '2.15.0' },
-            { name: 'community.general', version: '7.0.0' },
-        ]);
-    });
-
-    it('getPythonPackages extracts and sorts packages from details', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const pkgs = await svc.getPythonPackages('quay.io/ansible/ee-supported:latest');
-        expect(pkgs).toEqual([
-            { name: 'ansible-core', version: '2.15.0' },
-            { name: 'jinja2', version: '3.1.2' },
-        ]);
-    });
-
-    it('getInfo extracts ansible version, OS, and image name', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const info = await svc.getInfo('quay.io/ansible/ee-supported:latest');
-        expect(info.ansible).toBe('ansible [core 2.15.0]');
-        expect(info.os).toBe('Red Hat Enterprise Linux 9.2');
-        expect(info.image).toBe('quay.io/ansible/ee-supported:latest');
-    });
-
     it('isInVSCode is false in test environment', () => {
         expect(ExecutionEnvService.getInstance().isInVSCode()).toBe(false);
     });
 
-    it('setLogFunction receives load errors', async () => {
-        const log = vi.fn();
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: 'not-json-array',
-            stderr: '',
+    describe('loadExecutionEnvironments', () => {
+        it('discovers EEs via ContainerRuntime and filters non-EEs', async () => {
+            setupDefaultMocks();
+            const svc = ExecutionEnvService.getInstance();
+            const list = await svc.loadExecutionEnvironments();
+
+            expect(containerMocks.detectEngine).toHaveBeenCalled();
+            expect(containerMocks.listImages).toHaveBeenCalledWith('podman');
+            expect(containerMocks.inspectImage).toHaveBeenCalledTimes(3);
+
+            expect(list).toHaveLength(2);
+            expect(list.map((e) => e.full_name).sort()).toEqual([
+                'quay.io/ansible/ee-minimal:latest',
+                'quay.io/ansible/ee-supported:latest',
+            ]);
+            expect(svc.isLoaded()).toBe(true);
         });
-        const svc = ExecutionEnvService.getInstance();
-        svc.setLogFunction(log);
-        await expect(svc.loadExecutionEnvironments()).rejects.toThrow();
-        expect(log).toHaveBeenCalledWith(
-            expect.stringContaining('Error loading execution environments'),
-        );
+
+        it('handles empty image list', async () => {
+            containerMocks.detectEngine.mockResolvedValue('podman');
+            containerMocks.listImages.mockResolvedValue([]);
+
+            const svc = ExecutionEnvService.getInstance();
+            const list = await svc.loadExecutionEnvironments();
+            expect(list).toEqual([]);
+            expect(svc.isLoaded()).toBe(true);
+        });
+
+        it('throws when no container engine is found', async () => {
+            containerMocks.detectEngine.mockResolvedValue(null);
+
+            const svc = ExecutionEnvService.getInstance();
+            await expect(svc.loadExecutionEnvironments()).rejects.toThrow(
+                /No container engine found/,
+            );
+        });
+
+        it('concurrent call protection', async () => {
+            let release!: () => void;
+            const gate = new Promise<void>((r) => {
+                release = r;
+            });
+
+            containerMocks.detectEngine.mockResolvedValue('podman');
+            containerMocks.listImages.mockImplementation(async () => {
+                await gate;
+                return [IMG_SUPPORTED];
+            });
+            containerMocks.inspectImage.mockResolvedValue(INSPECTED_SUPPORTED);
+
+            const svc = ExecutionEnvService.getInstance();
+            const p1 = svc.loadExecutionEnvironments();
+            const p2 = svc.loadExecutionEnvironments();
+            release();
+
+            const [r1, r2] = await Promise.all([p1, p2]);
+            expect(containerMocks.listImages).toHaveBeenCalledTimes(1);
+            expect(r1).toHaveLength(1);
+            // p2 returned early (loading guard)
+            expect(r2).toEqual([]);
+        });
+
+        it('returns cached list when already loaded with data', async () => {
+            setupDefaultMocks();
+            const svc = ExecutionEnvService.getInstance();
+            const first = await svc.loadExecutionEnvironments();
+
+            vi.clearAllMocks();
+            const second = await svc.loadExecutionEnvironments();
+            expect(second).toEqual(first);
+            expect(containerMocks.listImages).not.toHaveBeenCalled();
+        });
     });
 
-    it('loadExecutionEnvironments returns cached list when already loaded with data', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_LIST),
-            stderr: '',
+    describe('loadDetails', () => {
+        it('runs introspection and caches result', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+
+            const details = await svc.loadDetails('quay.io/ansible/ee-supported:latest');
+
+            expect(details).toBeDefined();
+            expect(details?.ansible_version?.details).toBe('ansible [core 2.19.0]');
+            expect(details?.ansible_collections?.details['ansible.builtin']).toBe('2.19.0');
+            expect(details?.os_release?.details[0]['pretty-name']).toBe('RHEL 9.4');
+            expect(details?.python_packages?.details).toHaveLength(2);
+            expect(details?.system_packages?.details).toEqual({
+                bash: '5.2.26',
+                openssl: '3.2.1',
+            });
+            expect(details?.redhat_release?.details).toBe('Red Hat Enterprise Linux release 9.4');
+            expect(details?.image_name).toBe('quay.io/ansible/ee-supported:latest');
         });
-        const svc = ExecutionEnvService.getInstance();
-        const first = await svc.loadExecutionEnvironments();
-        mocks.mockRunTool.mockClear();
-        const second = await svc.loadExecutionEnvironments();
-        expect(second).toEqual(first);
-        expect(mocks.mockRunTool).not.toHaveBeenCalled();
+
+        it('returns memory-cached details on second call', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            await svc.loadDetails('quay.io/ansible/ee-supported:latest');
+
+            containerMocks.runInContainer.mockClear();
+            const again = await svc.loadDetails('quay.io/ansible/ee-supported:latest');
+            expect(again).toBeDefined();
+            expect(containerMocks.runInContainer).not.toHaveBeenCalled();
+        });
+
+        it('returns null when introspection returns empty stdout', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue('');
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const details = await svc.loadDetails('quay.io/ansible/ee-supported:latest');
+            expect(details).toBeNull();
+        });
     });
 
-    it('getExecutionEnvironment finds by full_name', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_LIST),
-            stderr: '',
+    describe('getCollections', () => {
+        it('extracts and sorts collections from details', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const cols = await svc.getCollections('quay.io/ansible/ee-supported:latest');
+            expect(cols).toEqual([
+                { name: 'ansible.builtin', version: '2.19.0' },
+                { name: 'community.general', version: '10.2.0' },
+            ]);
         });
-        const svc = ExecutionEnvService.getInstance();
-        await svc.loadExecutionEnvironments();
-        const ee = svc.getExecutionEnvironment('quay.io/ansible/ee-supported:latest');
-        expect(ee?.image_id).toBe('abc123');
+
+        it('returns empty when details lack ansible_collections', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({ errors: [], image_name: 'x' }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const cols = await svc.getCollections('quay.io/ansible/ee-supported:latest');
+            expect(cols).toEqual([]);
+        });
     });
 
-    it('loadDetails returns null when stdout is empty', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: '',
-            stderr: '',
+    describe('getPythonPackages', () => {
+        it('extracts and sorts packages from details', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const pkgs = await svc.getPythonPackages('quay.io/ansible/ee-supported:latest');
+            expect(pkgs).toEqual([
+                { name: 'ansible-core', version: '2.19.0', summary: 'Ansible' },
+                { name: 'jinja2', version: '3.1.4' },
+            ]);
         });
-        const svc = ExecutionEnvService.getInstance();
-        await expect(svc.loadDetails('some:img')).resolves.toBeNull();
     });
 
-    it('getCollections returns empty when details lack ansible_collections', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify({ image_name: 'x' }),
-            stderr: '',
+    describe('getInfo', () => {
+        it('extracts ansible version, OS, and image name', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const info = await svc.getInfo('quay.io/ansible/ee-supported:latest');
+            expect(info.ansible).toBe('ansible [core 2.19.0]');
+            expect(info.os).toBe('RHEL 9.4');
+            expect(info.image).toBe('quay.io/ansible/ee-supported:latest');
         });
-        const svc = ExecutionEnvService.getInstance();
-        const cols = await svc.getCollections('some:img');
-        expect(cols).toEqual([]);
+
+        it('returns only image name when details have no sections', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(JSON.stringify({ errors: [] }));
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const info = await svc.getInfo('quay.io/ansible/ee-supported:latest');
+            expect(info).toEqual({ image: 'quay.io/ansible/ee-supported:latest' });
+        });
     });
 
-    it('getPythonPackages returns empty when details lack python_packages', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify({ image_name: 'x' }),
-            stderr: '',
+    describe('getExecutionEnvironment', () => {
+        it('finds by full_name', async () => {
+            setupDefaultMocks();
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const ee = svc.getExecutionEnvironment('quay.io/ansible/ee-supported:latest');
+            expect(ee?.image_id).toBe('sha256:aaa111');
         });
-        const svc = ExecutionEnvService.getInstance();
-        const pkgs = await svc.getPythonPackages('some:img');
-        expect(pkgs).toEqual([]);
     });
 
-    it('getInfo returns empty object when details are missing', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify({}),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        await expect(svc.getInfo('nope:tag')).resolves.toEqual({});
-    });
+    describe('refresh', () => {
+        it('clears environments and caches', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
 
-    it('getInfo uses os name when pretty-name is absent', async () => {
-        const details = {
-            ansible_version: { details: 'ansible 1' },
-            os_release: { details: [{ name: 'Linux', version: '1' }] },
-            image_name: 'img',
-        };
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(details),
-            stderr: '',
-        });
-        const svc = ExecutionEnvService.getInstance();
-        const info = await svc.getInfo('img');
-        expect(info.os).toBe('Linux');
-    });
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            await svc.loadDetails('quay.io/ansible/ee-supported:latest');
 
-    it('refresh clears environments and details cache', async () => {
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_LIST),
-            stderr: '',
+            expect(svc.getExecutionEnvironments().length).toBeGreaterThan(0);
+            expect(svc.getCachedDetails('quay.io/ansible/ee-supported:latest')).toBeDefined();
+
+            await svc.refresh();
+            expect(svc.getExecutionEnvironments()).toEqual([]);
+            expect(svc.getCachedDetails('quay.io/ansible/ee-supported:latest')).toBeUndefined();
+            expect(svc.isLoaded()).toBe(false);
         });
-        const svc = ExecutionEnvService.getInstance();
-        await svc.loadExecutionEnvironments();
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: JSON.stringify(EE_DETAILS),
-            stderr: '',
-        });
-        await svc.loadDetails('quay.io/ansible/ee-supported:latest');
-        expect(svc.getExecutionEnvironments().length).toBeGreaterThan(0);
-        expect(svc.getCachedDetails('quay.io/ansible/ee-supported:latest')).toBeDefined();
-        await svc.refresh();
-        expect(svc.getExecutionEnvironments()).toEqual([]);
-        expect(svc.getCachedDetails('quay.io/ansible/ee-supported:latest')).toBeUndefined();
-        expect(svc.isLoaded()).toBe(false);
     });
 });

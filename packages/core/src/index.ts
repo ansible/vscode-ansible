@@ -35,6 +35,20 @@ export type { CachedEnvironment } from './services/EnvironmentCache';
 export { ExecutionEnvService } from './services/ExecutionEnvService';
 export type { ExecutionEnvironment, EEDetails } from './services/ExecutionEnvService';
 
+export { EECache } from './services/EECache';
+export type { CacheIndex, CacheIndexEntry } from './services/EECache';
+
+export {
+    detectEngine,
+    listImages,
+    inspectImage,
+    classifyEE,
+    runInContainer,
+    deployScripts,
+    getScriptCacheDir,
+} from './services/ContainerRuntime';
+export type { ContainerEngine, ContainerImage, InspectedImage } from './services/ContainerRuntime';
+
 export { GalaxyCollectionCache } from './services/GalaxyCollectionCache';
 export type { GalaxyCollection } from './services/GalaxyCollectionCache';
 
