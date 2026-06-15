@@ -9,6 +9,7 @@ try {
     // Running standalone (not in VS Code)
 }
 
+import { getPositionalKeys } from '../utils/creatorArgs';
 import { SimpleEventEmitter } from '../utils/SimpleEventEmitter';
 
 /**
@@ -448,7 +449,6 @@ export class CreatorService {
             return [];
         }
 
-        // Navigate to the command in the schema
         let node: SchemaNode | undefined = this._schema;
         for (const segment of path) {
             node = node.subcommands?.[segment];
@@ -457,17 +457,7 @@ export class CreatorService {
             }
         }
 
-        // Find parameters without aliases (these are positional)
-        const positionalArgs: string[] = [];
-        if (node.parameters?.properties) {
-            for (const [name, param] of Object.entries(node.parameters.properties)) {
-                if (!param.aliases || param.aliases.length === 0) {
-                    positionalArgs.push(name);
-                }
-            }
-        }
-
-        return positionalArgs;
+        return getPositionalKeys(node);
     }
 
     /**

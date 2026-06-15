@@ -13,7 +13,10 @@ import {
     PythonPackageDetailView,
     SystemPackageDetailView,
     PluginDocView,
+    CreatorFormView,
 } from '@ansible/ui';
+import type { SchemaNode } from '@ansible/ui';
+import { buildPreviewString } from '@ansible/core/utils/creatorArgs';
 import { VsCodeBridge } from './bridges/VsCodeBridge';
 // esbuild imports CSS as text via loader config; inject at runtime
 import tokensCss from '@ansible/ui/styles/tokens.css';
@@ -33,6 +36,10 @@ const props = JSON.parse(root.dataset.props ?? '{}') as Record<string, unknown>;
 
 if (typeof props.enableAiFeatures === 'boolean') {
     bridge.enableAiFeatures = props.enableAiFeatures;
+}
+
+if (typeof props.workspacePath === 'string') {
+    bridge.workspacePath = props.workspacePath;
 }
 
 function App() {
@@ -61,6 +68,19 @@ function App() {
                         pluginType={props.pluginType as string}
                     />
                 );
+            case 'creator-form': {
+                const cmdPath = props.commandPath as string[];
+                const schema = props.schema as SchemaNode;
+                const preview = (values: Record<string, unknown>) =>
+                    buildPreviewString(cmdPath, schema, values);
+                return (
+                    <CreatorFormView
+                        commandPath={cmdPath}
+                        schema={schema}
+                        buildPreview={preview}
+                    />
+                );
+            }
             default:
                 return <div>Unknown view: {viewName}</div>;
         }

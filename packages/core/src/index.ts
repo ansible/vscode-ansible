@@ -69,6 +69,16 @@ export type {
     RepoFormat,
 } from './services/SkillRegistry';
 
+export {
+    buildCommandArgs,
+    buildPreviewString,
+    getPositionalKeys,
+    quoteIfNeeded,
+    valueToString,
+    formatLabel,
+    CREATOR_FILTERED_KEYS,
+} from './utils/creatorArgs';
+
 export { setLogFunction, log, getLogFunction } from './utils/logging';
 export { SimpleEventEmitter } from './utils/SimpleEventEmitter';
 export type { Disposable } from './utils/SimpleEventEmitter';
