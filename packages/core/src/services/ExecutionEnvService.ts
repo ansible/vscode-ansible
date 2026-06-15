@@ -39,7 +39,7 @@ export interface EEDetails {
         details: string;
     };
     system_packages?: {
-        details: Record<string, string>;
+        details: Record<string, string>[];
     };
     python_packages?: {
         details: {
@@ -77,6 +77,7 @@ export class ExecutionEnvService {
     private _engine: ContainerEngine | null = null;
     private _scriptCacheDir: string | null = null;
     private _loading = false;
+    private _loadingPromise: Promise<ExecutionEnvironment[]> | null = null;
     private _loaded = false;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
@@ -282,8 +283,8 @@ export class ExecutionEnvService {
      * @returns Filtered list of images marked as execution environments.
      */
     public async loadExecutionEnvironments(): Promise<ExecutionEnvironment[]> {
-        if (this._loading) {
-            return this._executionEnvironments;
+        if (this._loadingPromise) {
+            return this._loadingPromise;
         }
 
         if (this._loaded && this._executionEnvironments.length > 0) {
@@ -293,6 +294,20 @@ export class ExecutionEnvService {
         this._loading = true;
         (this._onDidChange as { fire: () => void }).fire();
 
+        this._loadingPromise = this._doLoadExecutionEnvironments();
+        try {
+            return await this._loadingPromise;
+        } finally {
+            this._loadingPromise = null;
+        }
+    }
+
+    /**
+     * Internal implementation of EE loading.
+     *
+     * @returns Filtered list of images marked as execution environments.
+     */
+    private async _doLoadExecutionEnvironments(): Promise<ExecutionEnvironment[]> {
         try {
             const engine = await this._ensureEngine();
             const images = await ContainerRuntime.listImages(engine);
@@ -472,6 +487,31 @@ export class ExecutionEnvService {
         }
 
         return [...details.python_packages.details].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    /**
+     * Get system packages installed in an execution environment.
+     *
+     * @param fullName - Full image name to inspect.
+     * @returns Sorted system package name and version pairs from EE details.
+     */
+    public async getSystemPackages(fullName: string): Promise<{ name: string; version: string }[]> {
+        const details = await this.loadDetails(fullName);
+        if (!details?.system_packages?.details) {
+            return [];
+        }
+
+        return details.system_packages.details
+            .map((pkg) => ({
+                name: pkg.name,
+                version: pkg.version
+                    ? pkg.release
+                        ? `${pkg.version}-${pkg.release}`
+                        : pkg.version
+                    : '',
+            }))
+            .filter((pkg) => pkg.name !== '')
+            .sort((a, b) => a.name.localeCompare(b.name));
     }
 
     /**

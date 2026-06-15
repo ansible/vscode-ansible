@@ -1032,11 +1032,22 @@ export class McpToolHandler {
 
             // System packages if available
             if (details.system_packages?.details) {
-                const sysPkgs = Object.entries(details.system_packages.details).sort(([a], [b]) =>
-                    a.localeCompare(b),
-                );
+                const sysPkgs = [...details.system_packages.details]
+                    .filter((pkg) => pkg.name)
+                    .sort((a, b) => a.name.localeCompare(b.name));
                 sections.push(`## System Packages (${String(sysPkgs.length)})\n`);
-                sections.push(sysPkgs.map(([name, version]) => `• ${name}: ${version}`).join('\n'));
+                sections.push(
+                    sysPkgs
+                        .map((pkg) => {
+                            const ver = pkg.version
+                                ? pkg.release
+                                    ? `${pkg.version}-${pkg.release}`
+                                    : pkg.version
+                                : '';
+                            return `• ${pkg.name}: ${ver}`;
+                        })
+                        .join('\n'),
+                );
             }
 
             return {

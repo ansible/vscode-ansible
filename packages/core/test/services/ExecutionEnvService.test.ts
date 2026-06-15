@@ -114,7 +114,10 @@ const INTROSPECTION_JSON = JSON.stringify({
         errors: [],
     },
     system_packages: {
-        details: { bash: '5.2.26', openssl: '3.2.1' },
+        details: [
+            { name: 'bash', version: '5.2.26', release: '1.el9' },
+            { name: 'openssl', version: '3.2.1', release: '2.el9' },
+        ],
         errors: [],
     },
     redhat_release: { details: 'Red Hat Enterprise Linux release 9.4', errors: [] },
@@ -225,8 +228,8 @@ describe('ExecutionEnvService', () => {
             const [r1, r2] = await Promise.all([p1, p2]);
             expect(containerMocks.listImages).toHaveBeenCalledTimes(1);
             expect(r1).toHaveLength(1);
-            // p2 returned early (loading guard)
-            expect(r2).toEqual([]);
+            // p2 shares the same in-flight promise
+            expect(r2).toEqual(r1);
         });
 
         it('returns cached list when already loaded with data', async () => {
@@ -256,10 +259,10 @@ describe('ExecutionEnvService', () => {
             expect(details?.ansible_collections?.details['ansible.builtin']).toBe('2.19.0');
             expect(details?.os_release?.details[0]['pretty-name']).toBe('RHEL 9.4');
             expect(details?.python_packages?.details).toHaveLength(2);
-            expect(details?.system_packages?.details).toEqual({
-                bash: '5.2.26',
-                openssl: '3.2.1',
-            });
+            expect(details?.system_packages?.details).toEqual([
+                { name: 'bash', version: '5.2.26', release: '1.el9' },
+                { name: 'openssl', version: '3.2.1', release: '2.el9' },
+            ]);
             expect(details?.redhat_release?.details).toBe('Red Hat Enterprise Linux release 9.4');
             expect(details?.image_name).toBe('quay.io/ansible/ee-supported:latest');
         });
@@ -328,6 +331,70 @@ describe('ExecutionEnvService', () => {
                 { name: 'ansible-core', version: '2.19.0', summary: 'Ansible' },
                 { name: 'jinja2', version: '3.1.4' },
             ]);
+        });
+    });
+
+    describe('getSystemPackages', () => {
+        it('extracts and sorts packages with version-release', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const pkgs = await svc.getSystemPackages('quay.io/ansible/ee-supported:latest');
+            expect(pkgs).toEqual([
+                { name: 'bash', version: '5.2.26-1.el9' },
+                { name: 'openssl', version: '3.2.1-2.el9' },
+            ]);
+        });
+
+        it('returns version without release suffix when release is empty', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({
+                    errors: [],
+                    system_packages: {
+                        details: [{ name: 'zlib', version: '1.2.13', release: '' }],
+                    },
+                }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const pkgs = await svc.getSystemPackages('quay.io/ansible/ee-supported:latest');
+            expect(pkgs).toEqual([{ name: 'zlib', version: '1.2.13' }]);
+        });
+
+        it('filters out entries with empty name', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({
+                    errors: [],
+                    system_packages: {
+                        details: [
+                            { name: 'bash', version: '5.0', release: '1' },
+                            { name: '', version: '0.0', release: '' },
+                        ],
+                    },
+                }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const pkgs = await svc.getSystemPackages('quay.io/ansible/ee-supported:latest');
+            expect(pkgs).toEqual([{ name: 'bash', version: '5.0-1' }]);
+        });
+
+        it('returns empty when details lack system_packages', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({ errors: [], image_name: 'x' }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const pkgs = await svc.getSystemPackages('quay.io/ansible/ee-supported:latest');
+            expect(pkgs).toEqual([]);
         });
     });
 
