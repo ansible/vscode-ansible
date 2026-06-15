@@ -708,7 +708,10 @@ describe('McpToolHandler', () => {
                     ],
                 },
                 system_packages: {
-                    details: { bash: '5.2', curl: '8.0' },
+                    details: [
+                        { name: 'bash', version: '5.2', release: '1.fc40' },
+                        { name: 'curl', version: '8.0', release: '2.fc40' },
+                    ],
                 },
             });
 
