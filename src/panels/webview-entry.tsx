@@ -12,6 +12,7 @@ import {
     EEDetailView,
     PythonPackageDetailView,
     SystemPackageDetailView,
+    PluginDocView,
 } from '@ansible/ui';
 import { VsCodeBridge } from './bridges/VsCodeBridge';
 // esbuild imports CSS as text via loader config; inject at runtime
@@ -30,6 +31,10 @@ if (!root) throw new Error('Missing #root element');
 const viewName = root.dataset.view;
 const props = JSON.parse(root.dataset.props ?? '{}') as Record<string, unknown>;
 
+if (typeof props.enableAiFeatures === 'boolean') {
+    bridge.enableAiFeatures = props.enableAiFeatures;
+}
+
 function App() {
     const content = (() => {
         switch (viewName) {
@@ -47,6 +52,13 @@ function App() {
                     <SystemPackageDetailView
                         eeName={props.eeName as string}
                         packageName={props.packageName as string}
+                    />
+                );
+            case 'plugin-doc':
+                return (
+                    <PluginDocView
+                        fqcn={props.fqcn as string}
+                        pluginType={props.pluginType as string}
                     />
                 );
             default:

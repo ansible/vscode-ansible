@@ -6,6 +6,8 @@ import type {
     EEPackage,
     PythonPackageDetail,
     SystemPackageDetail,
+    PluginDocBridge,
+    PluginData,
 } from '@ansible/ui';
 
 type VsCodeApi = {
@@ -24,7 +26,8 @@ type VsCodeApi = {
 /** Timeout for RPC requests in milliseconds. */
 const RPC_TIMEOUT_MS = 30_000;
 
-export class VsCodeBridge implements EEBridge {
+export class VsCodeBridge implements EEBridge, PluginDocBridge {
+    enableAiFeatures = false;
     private _nextId = 1;
     private _pending = new Map<
         number,
@@ -116,5 +119,17 @@ export class VsCodeBridge implements EEBridge {
             method: 'openPackageDetail',
             params: { eeName, packageName, packageType },
         });
+    }
+
+    async getPluginDoc(fqcn: string, pluginType: string): Promise<PluginData | null> {
+        return this._request('getPluginDoc', { fqcn, pluginType });
+    }
+
+    async copyToClipboard(text: string): Promise<void> {
+        return this._request('copyToClipboard', { text });
+    }
+
+    async openChat(prompt?: string): Promise<void> {
+        this._vscode.postMessage({ method: 'openChat', params: { prompt } });
     }
 }

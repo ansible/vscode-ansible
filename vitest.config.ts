@@ -42,6 +42,14 @@ export default defineConfig({
             },
             {
                 test: {
+                    name: 'ui',
+                    root: 'packages/ui',
+                    include: ['test/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
                     name: 'ext',
                     include: ['test/unit/**/*.test.ts'],
                     environment: 'node',

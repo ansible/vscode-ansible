@@ -1250,16 +1250,16 @@ Please:
     // Register plugin documentation command
     const showPluginDocCommand = vscode.commands.registerCommand(
         'ansibleDevTools.showPluginDoc',
-        async (pluginFullName: string, pluginType: string) => {
-            await PluginDocPanel.show(context.extensionUri, pluginFullName, pluginType);
+        (pluginFullName: string, pluginType: string) => {
+            PluginDocPanel.show(context.extensionUri, pluginFullName, pluginType);
         },
     );
 
     // Register plugin documentation command for context menu
     const collectionsShowPluginDocCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.showPluginDoc',
-        async (node: { fullName: string; pluginType: string }) => {
-            await PluginDocPanel.show(context.extensionUri, node.fullName, node.pluginType);
+        (node: { fullName: string; pluginType: string }) => {
+            PluginDocPanel.show(context.extensionUri, node.fullName, node.pluginType);
         },
     );
 
