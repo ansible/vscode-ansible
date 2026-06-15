@@ -8,6 +8,9 @@ import type {
     SystemPackageDetail,
     PluginDocBridge,
     PluginData,
+    CreatorBridge,
+    ExecutionStartedEvent,
+    ExecutionFinishedEvent,
 } from '@ansible/ui';
 
 type VsCodeApi = {
@@ -26,17 +29,28 @@ type VsCodeApi = {
 /** Timeout for RPC requests in milliseconds. */
 const RPC_TIMEOUT_MS = 30_000;
 
-export class VsCodeBridge implements EEBridge, PluginDocBridge {
+export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge {
     enableAiFeatures = false;
+    workspacePath = '';
     private _nextId = 1;
     private _pending = new Map<
         number,
         { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }
     >();
+    private _executionStartedListeners = new Set<(e: ExecutionStartedEvent) => void>();
+    private _executionFinishedListeners = new Set<(e: ExecutionFinishedEvent) => void>();
 
     constructor(private _vscode: VsCodeApi) {
         window.addEventListener('message', (event: MessageEvent) => {
-            const msg = event.data as { id?: number; result?: unknown; error?: string };
+            const msg = event.data as {
+                id?: number;
+                result?: unknown;
+                error?: string;
+                method?: string;
+                params?: Record<string, unknown>;
+            };
+
+            // RPC responses
             if (msg.id !== undefined && this._pending.has(msg.id)) {
                 const handler = this._pending.get(msg.id)!;
                 clearTimeout(handler.timer);
@@ -46,6 +60,16 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge {
                 } else {
                     handler.resolve(msg.result);
                 }
+                return;
+            }
+
+            // Push notifications from extension
+            if (msg.method === 'executionStarted') {
+                const params = msg.params as unknown as ExecutionStartedEvent;
+                for (const cb of this._executionStartedListeners) cb(params);
+            } else if (msg.method === 'executionFinished') {
+                const params = msg.params as unknown as ExecutionFinishedEvent;
+                for (const cb of this._executionFinishedListeners) cb(params);
             }
         });
     }
@@ -131,5 +155,23 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge {
 
     async openChat(prompt?: string): Promise<void> {
         this._vscode.postMessage({ method: 'openChat', params: { prompt } });
+    }
+
+    async execute(commandPath: string[], values: Record<string, unknown>): Promise<void> {
+        return this._request('execute', { commandPath, values });
+    }
+
+    onExecutionStarted(cb: (event: ExecutionStartedEvent) => void): () => void {
+        this._executionStartedListeners.add(cb);
+        return () => { this._executionStartedListeners.delete(cb); };
+    }
+
+    onExecutionFinished(cb: (event: ExecutionFinishedEvent) => void): () => void {
+        this._executionFinishedListeners.add(cb);
+        return () => { this._executionFinishedListeners.delete(cb); };
+    }
+
+    cancel(): void {
+        this._vscode.postMessage({ method: 'cancel' });
     }
 }

@@ -32,3 +32,17 @@ export { ParameterTree } from './components/ParameterTree';
 export { SampleTaskView } from './components/SampleTaskView';
 export { ExamplesView } from './components/ExamplesView';
 export { ReturnValuesTable } from './components/ReturnValuesTable';
+
+export type {
+    CreatorBridge,
+    SchemaNode,
+    ParameterSchema,
+    ExecutionStartedEvent,
+    ExecutionFinishedEvent,
+} from './bridge/creator';
+export { FormTextField } from './components/form/FormTextField';
+export { FormSelect } from './components/form/FormSelect';
+export { FormCheckbox } from './components/form/FormCheckbox';
+export { FormSection } from './components/form/FormSection';
+export { SchemaForm } from './components/SchemaForm';
+export { CreatorFormView } from './views/CreatorFormView';

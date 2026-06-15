@@ -4,6 +4,11 @@
   "description": "Shared Ansible development tools services - vscode-independent domain logic",
   "main": "./out/index.js",
   "types": "./out/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "utils/creatorArgs": ["./out/utils/creatorArgs.d.ts"]
+    }
+  },
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
