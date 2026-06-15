@@ -495,9 +495,7 @@ export class ExecutionEnvService {
      * @param fullName - Full image name to inspect.
      * @returns Sorted system package name and version pairs from EE details.
      */
-    public async getSystemPackages(
-        fullName: string,
-    ): Promise<{ name: string; version: string }[]> {
+    public async getSystemPackages(fullName: string): Promise<{ name: string; version: string }[]> {
         const details = await this.loadDetails(fullName);
         if (!details?.system_packages?.details) {
             return [];
@@ -505,8 +503,8 @@ export class ExecutionEnvService {
 
         return details.system_packages.details
             .map((pkg) => ({
-                name: pkg.name ?? '',
-                version: pkg.version ? `${pkg.version}-${pkg.release ?? ''}` : '',
+                name: pkg.name,
+                version: pkg.version ? `${pkg.version}-${pkg.release}` : '',
             }))
             .filter((pkg) => pkg.name !== '')
             .sort((a, b) => a.name.localeCompare(b.name));

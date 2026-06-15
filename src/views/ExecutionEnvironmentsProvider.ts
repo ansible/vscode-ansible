@@ -311,22 +311,16 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
                 const systemItems: EEDetailItemNode[] = [];
                 const systemPkgs = [...details.system_packages.details]
                     .filter((pkg) => pkg.name)
-                    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+                    .sort((a, b) => a.name.localeCompare(b.name));
 
                 for (const pkg of systemPkgs) {
-                    const version = pkg.version
-                        ? `${pkg.version}-${pkg.release ?? ''}`
-                        : '';
+                    const version = pkg.version ? `${pkg.version}-${pkg.release}` : '';
                     systemItems.push(new EEDetailItemNode(pkg.name, version));
                 }
 
                 if (systemItems.length > 0) {
                     categories.push(
-                        new EEDetailCategoryNode(
-                            'System Packages',
-                            systemItems,
-                            ee.full_name,
-                        ),
+                        new EEDetailCategoryNode('System Packages', systemItems, ee.full_name),
                     );
                 }
             }
