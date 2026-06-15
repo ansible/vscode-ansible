@@ -307,22 +307,14 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
             }
 
             // System Packages category
-            if (details.system_packages?.details) {
-                const systemItems: EEDetailItemNode[] = [];
-                const systemPkgs = [...details.system_packages.details]
-                    .filter((pkg) => pkg.name)
-                    .sort((a, b) => a.name.localeCompare(b.name));
-
-                for (const pkg of systemPkgs) {
-                    const version = pkg.version ? `${pkg.version}-${pkg.release}` : '';
-                    systemItems.push(new EEDetailItemNode(pkg.name, version));
-                }
-
-                if (systemItems.length > 0) {
-                    categories.push(
-                        new EEDetailCategoryNode('System Packages', systemItems, ee.full_name),
-                    );
-                }
+            const systemPkgs = await this._service.getSystemPackages(ee.full_name);
+            if (systemPkgs.length > 0) {
+                const systemItems = systemPkgs.map(
+                    (pkg) => new EEDetailItemNode(pkg.name, pkg.version),
+                );
+                categories.push(
+                    new EEDetailCategoryNode('System Packages', systemItems, ee.full_name),
+                );
             }
 
             return categories;

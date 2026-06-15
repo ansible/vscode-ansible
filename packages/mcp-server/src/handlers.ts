@@ -1036,7 +1036,18 @@ export class McpToolHandler {
                     .filter((pkg) => pkg.name)
                     .sort((a, b) => a.name.localeCompare(b.name));
                 sections.push(`## System Packages (${String(sysPkgs.length)})\n`);
-                sections.push(sysPkgs.map((pkg) => `• ${pkg.name}: ${pkg.version}`).join('\n'));
+                sections.push(
+                    sysPkgs
+                        .map((pkg) => {
+                            const ver = pkg.version
+                                ? pkg.release
+                                    ? `${pkg.version}-${pkg.release}`
+                                    : pkg.version
+                                : '';
+                            return `• ${pkg.name}: ${ver}`;
+                        })
+                        .join('\n'),
+                );
             }
 
             return {

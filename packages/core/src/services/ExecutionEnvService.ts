@@ -504,7 +504,11 @@ export class ExecutionEnvService {
         return details.system_packages.details
             .map((pkg) => ({
                 name: pkg.name,
-                version: pkg.version ? `${pkg.version}-${pkg.release}` : '',
+                version: pkg.version
+                    ? pkg.release
+                        ? `${pkg.version}-${pkg.release}`
+                        : pkg.version
+                    : '',
             }))
             .filter((pkg) => pkg.name !== '')
             .sort((a, b) => a.name.localeCompare(b.name));
