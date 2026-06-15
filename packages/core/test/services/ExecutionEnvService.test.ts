@@ -225,8 +225,8 @@ describe('ExecutionEnvService', () => {
             const [r1, r2] = await Promise.all([p1, p2]);
             expect(containerMocks.listImages).toHaveBeenCalledTimes(1);
             expect(r1).toHaveLength(1);
-            // p2 returned early (loading guard)
-            expect(r2).toEqual([]);
+            // p2 shares the same in-flight promise
+            expect(r2).toEqual(r1);
         });
 
         it('returns cached list when already loaded with data', async () => {
