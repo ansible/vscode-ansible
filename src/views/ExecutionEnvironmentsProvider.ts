@@ -44,7 +44,7 @@ class MessageNode extends vscode.TreeItem {
 class EENode extends vscode.TreeItem {
     /**
      * Create a tree node for an execution environment summary.
-     * @param ee - Execution environment metadata returned by ansible-navigator
+     * @param ee - Execution environment metadata from the container runtime
      */
     constructor(public readonly ee: ExecutionEnvironment) {
         super(ee.full_name, vscode.TreeItemCollapsibleState.Collapsed);
@@ -83,6 +83,9 @@ class EEDetailCategoryNode extends vscode.TreeItem {
             case 'Python Packages':
                 this.iconPath = new vscode.ThemeIcon('symbol-package');
                 break;
+            case 'System Packages':
+                this.iconPath = new vscode.ThemeIcon('archive');
+                break;
             case 'Info':
                 this.iconPath = new vscode.ThemeIcon('info');
                 break;
@@ -120,7 +123,7 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
     private _service: ExecutionEnvService;
     private _serviceListener: vscode.Disposable | undefined;
 
-    /** Create the provider and load execution environments from ansible-navigator. */
+    /** Create the provider and begin loading execution environments. */
     constructor() {
         this._service = ExecutionEnvService.getInstance();
         this._service.setLogFunction(log);
@@ -299,6 +302,31 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
                 if (packageItems.length > 0) {
                     categories.push(
                         new EEDetailCategoryNode('Python Packages', packageItems, ee.full_name),
+                    );
+                }
+            }
+
+            // System Packages category
+            if (details.system_packages?.details) {
+                const systemItems: EEDetailItemNode[] = [];
+                const systemPkgs = [...details.system_packages.details]
+                    .filter((pkg) => pkg.name)
+                    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+
+                for (const pkg of systemPkgs) {
+                    const version = pkg.version
+                        ? `${pkg.version}-${pkg.release ?? ''}`
+                        : '';
+                    systemItems.push(new EEDetailItemNode(pkg.name, version));
+                }
+
+                if (systemItems.length > 0) {
+                    categories.push(
+                        new EEDetailCategoryNode(
+                            'System Packages',
+                            systemItems,
+                            ee.full_name,
+                        ),
                     );
                 }
             }
