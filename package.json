@@ -370,6 +370,10 @@
         "title": "Show Execution Environment Details"
       },
       {
+        "command": "ansibleExecutionEnvironments.showPackageDetail",
+        "title": "Show Package Details"
+      },
+      {
         "command": "ansibleExecutionEnvironments.aiSummary",
         "title": "AI Summary",
         "icon": "$(sparkle)"

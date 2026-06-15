@@ -108,15 +108,46 @@ const INTROSPECTION_JSON = JSON.stringify({
     },
     python_packages: {
         details: [
-            { name: 'ansible-core', version: '2.19.0', summary: 'Ansible' },
-            { name: 'jinja2', version: '3.1.4' },
+            {
+                name: 'ansible-core',
+                version: '2.19.0',
+                summary: 'Ansible',
+                license: 'GPL-3.0',
+                'home-page': 'https://ansible.com',
+                author: 'Ansible',
+                'author-email': 'info@ansible.com',
+                location: '/usr/lib/python3.11/site-packages',
+                requires: ['jinja2', 'PyYAML'],
+                'required-by': [],
+            },
+            {
+                name: 'jinja2',
+                version: '3.1.4',
+                summary: 'Template engine',
+                requires: ['MarkupSafe'],
+                'required-by': ['ansible-core'],
+            },
         ],
         errors: [],
     },
     system_packages: {
         details: [
-            { name: 'bash', version: '5.2.26', release: '1.el9' },
-            { name: 'openssl', version: '3.2.1', release: '2.el9' },
+            {
+                name: 'bash',
+                version: '5.2.26',
+                release: '1.el9',
+                architecture: 'x86_64',
+                description: 'GNU Bourne Again shell',
+                size: '7.5M',
+                license: 'GPLv3+',
+                url: 'https://www.gnu.org/software/bash',
+            },
+            {
+                name: 'openssl',
+                version: '3.2.1',
+                release: '2.el9',
+                architecture: 'x86_64',
+            },
         ],
         errors: [],
     },
@@ -259,7 +290,7 @@ describe('ExecutionEnvService', () => {
             expect(details?.ansible_collections?.details['ansible.builtin']).toBe('2.19.0');
             expect(details?.os_release?.details[0]['pretty-name']).toBe('RHEL 9.4');
             expect(details?.python_packages?.details).toHaveLength(2);
-            expect(details?.system_packages?.details).toEqual([
+            expect(details?.system_packages?.details).toMatchObject([
                 { name: 'bash', version: '5.2.26', release: '1.el9' },
                 { name: 'openssl', version: '3.2.1', release: '2.el9' },
             ]);
@@ -327,7 +358,7 @@ describe('ExecutionEnvService', () => {
             const svc = ExecutionEnvService.getInstance();
             await svc.loadExecutionEnvironments();
             const pkgs = await svc.getPythonPackages('quay.io/ansible/ee-supported:latest');
-            expect(pkgs).toEqual([
+            expect(pkgs).toMatchObject([
                 { name: 'ansible-core', version: '2.19.0', summary: 'Ansible' },
                 { name: 'jinja2', version: '3.1.4' },
             ]);
@@ -429,6 +460,153 @@ describe('ExecutionEnvService', () => {
             await svc.loadExecutionEnvironments();
             const ee = svc.getExecutionEnvironment('quay.io/ansible/ee-supported:latest');
             expect(ee?.image_id).toBe('sha256:aaa111');
+        });
+    });
+
+    describe('getPythonPackageDetail', () => {
+        it('returns full metadata for a known package (case-insensitive)', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getPythonPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'Ansible-Core',
+            );
+
+            expect(detail).toMatchObject({
+                name: 'ansible-core',
+                version: '2.19.0',
+                summary: 'Ansible',
+                license: 'GPL-3.0',
+                homepage: 'https://ansible.com',
+                author: 'Ansible',
+                requires: ['jinja2', 'PyYAML'],
+                requiredBy: [],
+                location: '/usr/lib/python3.11/site-packages',
+            });
+        });
+
+        it('returns undefined for an unknown package', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getPythonPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'nonexistent-pkg',
+            );
+            expect(detail).toBeUndefined();
+        });
+
+        it('returns undefined when python_packages section is missing', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({ errors: [], image_name: 'x' }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getPythonPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'ansible-core',
+            );
+            expect(detail).toBeUndefined();
+        });
+
+        it('defaults optional fields to empty strings/arrays', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getPythonPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'jinja2',
+            );
+
+            expect(detail).toMatchObject({
+                name: 'jinja2',
+                license: '',
+                homepage: '',
+                author: '',
+                location: '',
+            });
+        });
+    });
+
+    describe('getSystemPackageDetail', () => {
+        it('returns full metadata for a known package (case-insensitive)', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getSystemPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'BASH',
+            );
+
+            expect(detail).toMatchObject({
+                name: 'bash',
+                version: '5.2.26',
+                release: '1.el9',
+                arch: 'x86_64',
+                description: 'GNU Bourne Again shell',
+                size: '7.5M',
+                license: 'GPLv3+',
+                url: 'https://www.gnu.org/software/bash',
+            });
+        });
+
+        it('returns undefined for an unknown package', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getSystemPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'nonexistent-pkg',
+            );
+            expect(detail).toBeUndefined();
+        });
+
+        it('returns undefined when system_packages section is missing', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(
+                JSON.stringify({ errors: [], image_name: 'x' }),
+            );
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getSystemPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'bash',
+            );
+            expect(detail).toBeUndefined();
+        });
+
+        it('defaults optional fields to empty strings', async () => {
+            setupDefaultMocks();
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            const detail = await svc.getSystemPackageDetail(
+                'quay.io/ansible/ee-supported:latest',
+                'openssl',
+            );
+
+            expect(detail).toMatchObject({
+                name: 'openssl',
+                description: '',
+                size: '',
+                license: '',
+                url: '',
+            });
         });
     });
 

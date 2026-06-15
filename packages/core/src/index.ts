@@ -33,7 +33,12 @@ export {
 export type { CachedEnvironment } from './services/EnvironmentCache';
 
 export { ExecutionEnvService } from './services/ExecutionEnvService';
-export type { ExecutionEnvironment, EEDetails } from './services/ExecutionEnvService';
+export type {
+    ExecutionEnvironment,
+    EEDetails,
+    PythonPackageDetail,
+    SystemPackageDetail,
+} from './services/ExecutionEnvService';
 
 export { EECache } from './services/EECache';
 export type { CacheIndex, CacheIndexEntry } from './services/EECache';

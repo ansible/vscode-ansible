@@ -18,6 +18,7 @@ import { PlaybooksProvider } from '@src/views/PlaybooksProvider';
 import { PlaybookConfigPanel } from '@src/panels/PlaybookConfigPanel';
 import { PlaybookProgressPanel } from '@src/panels/PlaybookProgressPanel';
 import { EEDetailPanel } from '@src/panels/EEDetailPanel';
+import { PackageDetailPanel } from '@src/panels/PackageDetailPanel';
 import { PlaybooksService, PlaybookInfo, PlaybookPlay } from '@src/services/PlaybooksService';
 import { TerminalService } from '@src/services/TerminalService';
 import { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
@@ -700,6 +701,15 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
     context.subscriptions.push(eeDetailCommand);
+
+    // Open package detail panel
+    const packageDetailCommand = vscode.commands.registerCommand(
+        'ansibleExecutionEnvironments.showPackageDetail',
+        (eeName: string, packageName: string, packageType: 'python' | 'system') => {
+            PackageDetailPanel.show(context.extensionUri, eeName, packageName, packageType);
+        },
+    );
+    context.subscriptions.push(packageDetailCommand);
 
     // AI Summary Commands - Collections
     const collectionsAiSummaryCommand = vscode.commands.registerCommand(

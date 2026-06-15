@@ -1,4 +1,12 @@
-import type { EEBridge, EEInfo, EECollection, EEPythonPackage, EEPackage } from '@ansible/ui';
+import type {
+    EEBridge,
+    EEInfo,
+    EECollection,
+    EEPythonPackage,
+    EEPackage,
+    PythonPackageDetail,
+    SystemPackageDetail,
+} from '@ansible/ui';
 
 type VsCodeApi = {
     postMessage(message: unknown): void;
@@ -13,15 +21,22 @@ type VsCodeApi = {
  * The extension host panel class handles the other side of the
  * message channel.
  */
+/** Timeout for RPC requests in milliseconds. */
+const RPC_TIMEOUT_MS = 30_000;
+
 export class VsCodeBridge implements EEBridge {
     private _nextId = 1;
-    private _pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+    private _pending = new Map<
+        number,
+        { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }
+    >();
 
     constructor(private _vscode: VsCodeApi) {
         window.addEventListener('message', (event: MessageEvent) => {
             const msg = event.data as { id?: number; result?: unknown; error?: string };
             if (msg.id !== undefined && this._pending.has(msg.id)) {
                 const handler = this._pending.get(msg.id)!;
+                clearTimeout(handler.timer);
                 this._pending.delete(msg.id);
                 if (msg.error) {
                     handler.reject(new Error(msg.error));
@@ -35,9 +50,15 @@ export class VsCodeBridge implements EEBridge {
     private _request<T>(method: string, params?: Record<string, unknown>): Promise<T> {
         const id = this._nextId++;
         return new Promise<T>((resolve, reject) => {
+            const timer = setTimeout(() => {
+                this._pending.delete(id);
+                reject(new Error(`RPC timeout: ${method} (${String(RPC_TIMEOUT_MS)}ms)`));
+            }, RPC_TIMEOUT_MS);
+
             this._pending.set(id, {
                 resolve: resolve as (v: unknown) => void,
                 reject,
+                timer,
             });
             this._vscode.postMessage({ id, method, params });
         });
@@ -74,5 +95,26 @@ export class VsCodeBridge implements EEBridge {
 
     async getSystemPackages(eeName: string): Promise<EEPackage[]> {
         return this._request('getSystemPackages', { eeName });
+    }
+
+    async getPythonPackageDetail(
+        eeName: string,
+        packageName: string,
+    ): Promise<PythonPackageDetail | undefined> {
+        return this._request('getPythonPackageDetail', { eeName, packageName });
+    }
+
+    async getSystemPackageDetail(
+        eeName: string,
+        packageName: string,
+    ): Promise<SystemPackageDetail | undefined> {
+        return this._request('getSystemPackageDetail', { eeName, packageName });
+    }
+
+    openPackageDetail(eeName: string, packageName: string, packageType: 'python' | 'system'): void {
+        this._vscode.postMessage({
+            method: 'openPackageDetail',
+            params: { eeName, packageName, packageType },
+        });
     }
 }
