@@ -1,0 +1,47 @@
+/*
+ * Shared UI semantic tokens.
+ *
+ * Components reference --ui-* variables. Host environments provide
+ * values by mapping their own token namespace to --host-* variables
+ * (see vscode-host.css or navita-host.css).
+ */
+:root {
+    --ui-bg-primary: var(--host-bg-primary, #1e1e1e);
+    --ui-bg-surface: var(--host-bg-surface, #252526);
+    --ui-bg-hover: var(--host-bg-hover, #2a2d2e);
+    --ui-bg-active: var(--host-bg-active, #37373d);
+
+    --ui-text-primary: var(--host-text-primary, #cccccc);
+    --ui-text-secondary: var(--host-text-secondary, #969696);
+    --ui-text-muted: var(--host-text-muted, #6e6e6e);
+    --ui-text-link: var(--host-text-link, #4daafc);
+
+    --ui-border: var(--host-border, #3c3c3c);
+    --ui-border-active: var(--host-border-active, #007acc);
+
+    --ui-accent: var(--host-accent, #007acc);
+    --ui-accent-hover: var(--host-accent-hover, #1a8ad4);
+
+    --ui-success: var(--host-success, #4ec9b0);
+    --ui-warning: var(--host-warning, #cca700);
+    --ui-error: var(--host-error, #f44747);
+
+    --ui-font-family: var(--host-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+    --ui-font-size: var(--host-font-size, 13px);
+    --ui-font-mono: var(--host-font-mono, 'Cascadia Code', 'Fira Code', Consolas, monospace);
+}
+
+/* Base resets for shared components */
+.ansible-ui {
+    font-family: var(--ui-font-family);
+    font-size: var(--ui-font-size);
+    color: var(--ui-text-primary);
+    background: var(--ui-bg-primary);
+    line-height: 1.5;
+}
+
+.ansible-ui *,
+.ansible-ui *::before,
+.ansible-ui *::after {
+    box-sizing: border-box;
+}

@@ -55,6 +55,11 @@ class EENode extends vscode.TreeItem {
         this.tooltip.appendMarkdown(`- Created: ${ee.created}\n`);
         this.iconPath = new vscode.ThemeIcon('package');
         this.contextValue = 'executionEnvironment';
+        this.command = {
+            command: 'ansibleExecutionEnvironments.showDetail',
+            title: 'Show Details',
+            arguments: [ee.full_name],
+        };
     }
 }
 

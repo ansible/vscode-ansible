@@ -138,7 +138,7 @@ src/
 
 ### Neutral
 
-- The VS Code extension's UI code (panels, views) remains in `src/` rather than in a package. This is intentional — UI code is inherently VS Code-specific and has no standalone consumers.
+- Domain content rendering (EE details, plugin docs, creator forms) moves to `@ansible/ui` as shared React components ([ADR-010](ADR-010-shared-ui-component-layer.md)). VS Code-specific panel boilerplate (lifecycle, webview setup) remains in `src/panels/`.
 - Build tooling (`tsc -b` with project references) is standard TypeScript. No custom bundler is required for the packages.
 
 ## Implementation Notes

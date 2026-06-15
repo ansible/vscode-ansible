@@ -160,7 +160,13 @@ export default defineConfig(
         },
     },
     {
-        ignores: ['scripts/**'],
+        ignores: [
+            'scripts/**',
+            'src/panels/webview-entry.tsx',
+            'src/panels/bridges/**',
+            'src/panels/webview.d.ts',
+            'packages/ui/vite.config.ts',
+        ],
     },
     {
         files: ['**/*.{ts,tsx,mts}'],
