@@ -1712,7 +1712,7 @@ describe("ADE Tools", () => {
       const calls = vi.mocked(spawn).mock.calls;
       expect(calls.length).toBeGreaterThan(0);
       const cmd = calls[0][0];
-      expect(cmd.match("bash.*source /test/venv/bin/activate"));
+      expect(cmd).toMatch(/bash.*source \/test\/venv\/bin\/activate/);
     });
   });
 

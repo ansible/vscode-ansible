@@ -662,6 +662,106 @@ export async function checkAnsibleLint(): Promise<ADECommandResult> {
 }
 
 /**
+ * Install Ansible tools (ADT or fallback) in a virtual environment.
+ */
+async function installAnsibleToolsInVenv(
+  venvPath: string,
+  results: string[],
+): Promise<boolean> {
+  results.push("Installing ansible-dev-tools (ADT) in virtual environment...");
+  const installADT = await executeInVirtualEnvironment(venvPath, "pip", [
+    "install",
+    "ansible-dev-tools",
+  ]);
+
+  if (installADT.success) {
+    results.push(
+      "ansible-dev-tools installed (includes ansible-lint, ansible-core, ansible-navigator)",
+    );
+    return true;
+  }
+
+  results.push(
+    `ADT installation failed, installing individual tools: ${installADT.error}`,
+  );
+  results.push("Installing Ansible tools in virtual environment...");
+  const installAnsibleLint = await executeInVirtualEnvironment(
+    venvPath,
+    "pip",
+    ["install", "ansible-lint", "ansible-core"],
+  );
+
+  if (installAnsibleLint.success) {
+    results.push(
+      "ansible-lint and ansible-core installed in virtual environment",
+    );
+    return true;
+  }
+
+  results.push(`Failed to install Ansible tools: ${installAnsibleLint.error}`);
+  return false;
+}
+
+/**
+ * Install Ansible collections in a virtual environment.
+ */
+async function installCollectionsInVenv(
+  venvPath: string,
+  workspaceRoot: string,
+  collections: string[],
+  results: string[],
+): Promise<boolean> {
+  results.push(
+    "Installing collections using virtual environment's ansible-galaxy...",
+  );
+  const collectionsResult = await executeInVirtualEnvironment(
+    venvPath,
+    "ansible-galaxy",
+    ["collection", "install", ...collections],
+    workspaceRoot,
+  );
+
+  if (!collectionsResult.success) {
+    results.push(`Failed to install collections: ${collectionsResult.error}`);
+    return false;
+  }
+
+  /* v8 ignore next */
+  results.push("Collections installed successfully");
+  return true;
+}
+
+/**
+ * Append the setup header with configuration summary to results.
+ */
+function appendSetupHeader(
+  results: string[],
+  workspaceRoot: string,
+  options: {
+    systemInfo?: SystemInfo;
+    pythonVersion?: string;
+    collections?: string[];
+  },
+  packageManager: string,
+): void {
+  results.push("Starting Ansible development environment setup...");
+  results.push(`   Workspace: ${workspaceRoot}`);
+  if (options.systemInfo) {
+    results.push(
+      `   System: ${options.systemInfo.osType}${options.systemInfo.osDistro ? ` (${options.systemInfo.osDistro})` : ""}`,
+    );
+    results.push(`   Package Manager: ${packageManager}`);
+  }
+  if (options.pythonVersion) {
+    results.push(`   Python version: ${options.pythonVersion}`);
+  }
+  if (options.collections && options.collections.length > 0) {
+    results.push(`   Collections: ${options.collections.join(", ")}`);
+  }
+  results.push("");
+}
+
+/**
  * Setup a complete Ansible development environment including ADT installation, package conflict checks, virtual environment creation, and tool installation.
  *
  * @param workspaceRoot - The root directory of the workspace where the development environment will be set up.
@@ -685,30 +785,12 @@ export async function setupDevelopmentEnvironment(
   let success = true;
   const followUpTasks: FollowUpTask[] = [];
 
-  // Get package manager from provided system info (no auto-detection)
-  let packageManager = "apt"; // default if no system info
-  let installCmd = getInstallCommand(packageManager);
+  const packageManager = options.systemInfo
+    ? getPackageManagerForOS(options.systemInfo)
+    : "apt";
+  const installCmd = getInstallCommand(packageManager);
 
-  if (options.systemInfo) {
-    packageManager = getPackageManagerForOS(options.systemInfo);
-    installCmd = getInstallCommand(packageManager);
-  }
-
-  results.push("Starting Ansible development environment setup...");
-  results.push(`   Workspace: ${workspaceRoot}`);
-  if (options.systemInfo) {
-    results.push(
-      `   System: ${options.systemInfo.osType}${options.systemInfo.osDistro ? ` (${options.systemInfo.osDistro})` : ""}`,
-    );
-    results.push(`   Package Manager: ${packageManager}`);
-  }
-  if (options.pythonVersion) {
-    results.push(`   Python version: ${options.pythonVersion}`);
-  }
-  if (options.collections && options.collections.length > 0) {
-    results.push(`   Collections: ${options.collections.join(", ")}`);
-  }
-  results.push("");
+  appendSetupHeader(results, workspaceRoot, options, packageManager);
 
   results.push("Checking for conflicting packages...");
   const conflictCheckResult = await checkConflictingPackages();
@@ -778,54 +860,20 @@ export async function setupDevelopmentEnvironment(
   }
   results.push(`Virtual environment created at ${venvPath}`);
 
-  results.push("Installing ansible-dev-tools (ADT) in virtual environment...");
-  const installADT = await executeInVirtualEnvironment(venvPath, "pip", [
-    "install",
-    "ansible-dev-tools",
-  ]);
-  if (installADT.success) {
-    results.push(
-      "ansible-dev-tools installed (includes ansible-lint, ansible-core, ansible-navigator)",
-    );
-  } else {
-    results.push(
-      `ADT installation failed, installing individual tools: ${installADT.error}`,
-    );
-    results.push("Installing Ansible tools in virtual environment...");
-    const installAnsibleLint = await executeInVirtualEnvironment(
-      venvPath,
-      "pip",
-      ["install", "ansible-lint", "ansible-core"],
-    );
-    if (installAnsibleLint.success) {
-      results.push(
-        "ansible-lint and ansible-core installed in virtual environment",
-      );
-    } else {
-      success = false;
-      results.push(
-        `Failed to install Ansible tools: ${installAnsibleLint.error}`,
-      );
-    }
+  if (!(await installAnsibleToolsInVenv(venvPath, results))) {
+    success = false;
   }
 
   if (options.collections && options.collections.length > 0) {
-    results.push(
-      "Installing collections using virtual environment's ansible-galaxy...",
-    );
-    const collectionsResult = await executeInVirtualEnvironment(
-      venvPath,
-      "ansible-galaxy",
-      ["collection", "install", ...options.collections],
-      workspaceRoot,
-    );
-
-    if (!collectionsResult.success) {
+    if (
+      !(await installCollectionsInVenv(
+        venvPath,
+        workspaceRoot,
+        options.collections,
+        results,
+      ))
+    ) {
       success = false;
-      results.push(`Failed to install collections: ${collectionsResult.error}`);
-    } else {
-      /* v8 ignore next */
-      results.push("Collections installed successfully");
     }
   }
 
@@ -846,7 +894,6 @@ export async function setupDevelopmentEnvironment(
     }
   }
 
-  // Add activation instructions
   results.push("");
   results.push("To activate the virtual environment, run:");
   results.push(`   source ${venvPath}/bin/activate`);
@@ -854,7 +901,6 @@ export async function setupDevelopmentEnvironment(
   results.push("To deactivate the virtual environment, run:");
   results.push("   deactivate");
 
-  // Final verification - check ansible-lint in the virtual environment
   results.push("Performing final verification...");
   const finalLintCheck = await executeInVirtualEnvironment(
     venvPath,
@@ -873,7 +919,6 @@ export async function setupDevelopmentEnvironment(
     );
   }
 
-  // Generate follow-up tasks for system dependencies if system info is provided
   if (
     options.systemInfo &&
     options.collections &&
@@ -887,7 +932,6 @@ export async function setupDevelopmentEnvironment(
     results.push("If you encounter missing system dependencies, use:");
     results.push(`   ${installCmd} <package-name>`);
 
-    // Add a verification follow-up task
     followUpTasks.push({
       taskType: "verify_installation",
       description: "Verify all dependencies are installed",

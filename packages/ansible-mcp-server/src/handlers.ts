@@ -18,6 +18,70 @@ import {
 } from "@src/tools/executionEnv.js";
 import { getAgentsGuidelines } from "@src/resources/agents.js";
 
+/**
+ * Extract a playbook file path from a user message.
+ * Returns the resolved path or undefined if none found.
+ */
+function extractPlaybookPath(userMessage: string): string | undefined {
+  const explicitPathMatch = userMessage.match(
+    /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
+  );
+  if (explicitPathMatch) {
+    const matched = explicitPathMatch[0];
+    if (!matched.startsWith("playbooks/") && !matched.startsWith("/")) {
+      return `playbooks/${matched}`;
+    }
+    return matched;
+  }
+
+  const nameMatch = userMessage
+    .toLowerCase()
+    .match(/(?:run|execute|start|launch)\s+([\w-]+)/);
+  if (nameMatch) {
+    return `playbooks/${nameMatch[1]}.yml`;
+  }
+
+  return undefined;
+}
+
+/**
+ * Determine whether an error message indicates a container engine issue.
+ */
+function isContainerEngineErrorMessage(errorMessage: string): boolean {
+  const lower = errorMessage.toLowerCase();
+  return (
+    lower.includes("container engine") ||
+    lower.includes("podman") ||
+    lower.includes("docker") ||
+    lower.includes("execution environment") ||
+    lower.includes("cannot connect to podman") ||
+    lower.includes("connection refused") ||
+    lower.includes("podman pull") ||
+    lower.includes("podman machine") ||
+    lower.includes("ghcr.io/ansible")
+  );
+}
+
+/**
+ * Auto-detect collection names within a requirementsFile argument value.
+ * Returns detected collections or empty array if none found.
+ */
+function detectCollectionsFromRequirementsFile(
+  requirementsFile: string,
+): string[] {
+  const fileExtensions = /\.(txt|yml|yaml|json|cfg|ini|req|in)$/i;
+  const collectionPattern = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/i;
+
+  if (fileExtensions.test(requirementsFile)) {
+    return [];
+  }
+
+  return requirementsFile
+    .split(/[,\s]+/)
+    .filter((s) => s.trim())
+    .filter((name) => collectionPattern.test(name.trim()));
+}
+
 export function createZenOfAnsibleHandler() {
   return async () => {
     return {
@@ -232,34 +296,20 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
       };
 
       // Auto-detect: If requirementsFile looks like collection names, move them to collections
-      // Collection format: namespace.collection (e.g., amazon.aws, ansible.posix)
-      // NOT file extensions like .txt, .yml, .yaml, .json, .cfg
       if (safeArgs.requirementsFile) {
-        const fileExtensions = /\.(txt|yml|yaml|json|cfg|ini|req|in)$/i;
-        const collectionPattern = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/i;
+        const detectedCollections = detectCollectionsFromRequirementsFile(
+          safeArgs.requirementsFile,
+        );
 
-        // Skip if it looks like a file path
-        if (!fileExtensions.test(safeArgs.requirementsFile)) {
-          const potentialCollections = safeArgs.requirementsFile
-            .split(/[,\s]+/)
-            .filter((s) => s.trim());
-
-          const detectedCollections = potentialCollections.filter((name) =>
-            collectionPattern.test(name.trim()),
+        if (detectedCollections.length > 0) {
+          safeArgs.collections = [
+            ...(safeArgs.collections || []),
+            ...detectedCollections,
+          ];
+          notes.push(
+            `Auto-detected collections: ${detectedCollections.join(", ")}`,
           );
-
-          if (detectedCollections.length > 0) {
-            // Auto-correct: Move to collections parameter
-            safeArgs.collections = [
-              ...(safeArgs.collections || []),
-              ...detectedCollections,
-            ];
-            notes.push(
-              `Auto-detected collections: ${detectedCollections.join(", ")}`,
-            );
-            // Clear requirementsFile since we moved the collections
-            delete safeArgs.requirementsFile;
-          }
+          delete safeArgs.requirementsFile;
         }
       }
 
@@ -394,39 +444,7 @@ export function createAnsibleNavigatorHandler() {
 
     // Otherwise, parse user message to extract filename
     if (!targetFilePath && args.userMessage && workspaceRoot) {
-      // Extract potential filenames from user message
-      // Look for patterns like: play1, play1.yml, playbooks/play1.yml, deploy, site.yml, etc.
-      const message = args.userMessage.toLowerCase();
-
-      // Try to find explicit file paths first (with directory)
-      // SECURITY: ReDoS mitigation - simplified regex with limited backtracking
-      // Pattern: optional "playbooks/" + word chars/hyphens + ".yml" or ".yaml"
-      // Risk assessment: Low - [\w-]+ is greedy but bounded by user message length (~100 chars typical)
-      // Input validation: userMessage is from trusted LLM, not direct user input
-      // Worst case: O(n) for reasonable inputs, bounded by message size limit
-      const explicitPathMatch = args.userMessage.match(
-        /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
-      );
-      if (explicitPathMatch) {
-        targetFilePath = explicitPathMatch[0];
-        // If it doesn't start with playbooks/ and isn't an absolute path, prepend playbooks/
-        if (
-          !targetFilePath.startsWith("playbooks/") &&
-          !targetFilePath.startsWith("/")
-        ) {
-          targetFilePath = `playbooks/${targetFilePath}`;
-        }
-      } else {
-        // Look for playbook names (without extension)
-        // Common patterns: "run play1", "execute deploy", "start site", etc.
-        const nameMatch = message.match(
-          /(?:run|execute|start|launch)\s+([\w-]+)/,
-        );
-        if (nameMatch) {
-          const playbookName = nameMatch[1];
-          targetFilePath = `playbooks/${playbookName}.yml`;
-        }
-      }
+      targetFilePath = extractPlaybookPath(args.userMessage);
     }
 
     // If no file path found, ask user to be more specific
@@ -496,22 +514,11 @@ export function createAnsibleNavigatorHandler() {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
-      // Check if this is a container engine error and we haven't already disabled EE
-      // Use case-insensitive checks to catch all variations
-      const errorMessageLower = errorMessage.toLowerCase();
-      const isContainerEngineError =
-        errorMessageLower.includes("container engine") ||
-        errorMessageLower.includes("podman") ||
-        errorMessageLower.includes("docker") ||
-        errorMessageLower.includes("execution environment") ||
-        errorMessageLower.includes("cannot connect to podman") ||
-        errorMessageLower.includes("connection refused") ||
-        errorMessageLower.includes("podman pull") ||
-        errorMessageLower.includes("podman machine") ||
-        errorMessageLower.includes("ghcr.io/ansible");
-
       // If it's a container engine error and we haven't already disabled EE, automatically retry
-      if (isContainerEngineError && !disableExecutionEnvironment) {
+      if (
+        isContainerEngineErrorMessage(errorMessage) &&
+        !disableExecutionEnvironment
+      ) {
         // Inform the user we're automatically retrying
         const retryMessage = `Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
 

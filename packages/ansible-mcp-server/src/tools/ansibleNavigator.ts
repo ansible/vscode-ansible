@@ -4,6 +4,118 @@ import { resolve, isAbsolute, join } from "node:path";
 import { existsSync } from "node:fs";
 import { quote } from "shell-quote";
 
+const COMMON_VENV_NAMES = [
+  "ansible-dev",
+  "venv",
+  ".venv",
+  "virtualenv",
+  ".virtualenv",
+  "env",
+  ".env",
+];
+
+/**
+ * Check if ansible-navigator is in the system PATH.
+ */
+function checkSystemPath(): { available: boolean; path?: string } {
+  try {
+    // SECURITY: Safe - hardcoded command name with no user input
+    const result = execSync("command -v ansible-navigator", {
+      encoding: "utf-8",
+      stdio: "pipe",
+    });
+    return { available: true, path: result.trim() };
+  } catch {
+    return { available: false };
+  }
+}
+
+/**
+ * Search for ansible-navigator in a specific venv (absolute or relative).
+ */
+function findNavigatorInSpecificVenv(
+  specificVenv: string,
+  workspaceRoot: string,
+): string | undefined {
+  if (isAbsolute(specificVenv)) {
+    const navPath = join(specificVenv, "bin", "ansible-navigator");
+    return existsSync(navPath) ? navPath : undefined;
+  }
+
+  const workspaceNavPath = join(
+    workspaceRoot,
+    specificVenv,
+    "bin",
+    "ansible-navigator",
+  );
+  if (existsSync(workspaceNavPath)) {
+    return workspaceNavPath;
+  }
+
+  const parentDirs = workspaceRoot.split("/");
+  for (let i = parentDirs.length; i > 0; i--) {
+    const navPath = join(
+      parentDirs.slice(0, i).join("/"),
+      specificVenv,
+      "bin",
+      "ansible-navigator",
+    );
+    if (existsSync(navPath)) {
+      return navPath;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Search common venv locations for ansible-navigator.
+ */
+function findNavigatorInCommonVenvs(workspaceRoot: string): string | undefined {
+  for (const venvName of COMMON_VENV_NAMES) {
+    const venvPath = join(workspaceRoot, venvName);
+    const navPath = join(venvPath, "bin", "ansible-navigator");
+    if (existsSync(venvPath) && existsSync(navPath)) {
+      return navPath;
+    }
+  }
+
+  const parentDirs = workspaceRoot.split("/");
+  for (let i = parentDirs.length; i > 0; i--) {
+    const checkPath = parentDirs.slice(0, i).join("/");
+    for (const venvName of COMMON_VENV_NAMES) {
+      const navPath = join(checkPath, venvName, "bin", "ansible-navigator");
+      if (existsSync(navPath)) {
+        return navPath;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Search virtual environments for ansible-navigator.
+ */
+function checkVenv(
+  workspaceRoot?: string,
+  specificVenv?: string,
+): { available: boolean; path?: string } {
+  if (!workspaceRoot) {
+    return { available: false };
+  }
+
+  if (specificVenv) {
+    const found = findNavigatorInSpecificVenv(specificVenv, workspaceRoot);
+    if (found) {
+      return { available: true, path: found };
+    }
+  }
+
+  const found = findNavigatorInCommonVenvs(workspaceRoot);
+  return found ? { available: true, path: found } : { available: false };
+}
+
 /**
  * Check if ansible-navigator is available in PATH or virtual environments
  * @param workspaceRoot - The workspace root directory
@@ -17,146 +129,49 @@ function checkAnsibleNavigatorAvailable(
   path?: string;
   error?: string;
 } {
-  const commonVenvNames = [
-    "ansible-dev",
-    "venv",
-    ".venv",
-    "virtualenv",
-    ".virtualenv",
-    "env",
-    ".env",
-  ];
-
-  // Helper function to check PATH
-  const checkSystemPath = (): { available: boolean; path?: string } => {
-    try {
-      // SECURITY: Safe - hardcoded command name with no user input
-      // 'command -v' is a POSIX shell builtin that only checks if a command exists in PATH
-      // No variables, no user data, no string interpolation - purely static command
-      // PATH variable is managed by the operating system, not user-controllable in this context
-      const result = execSync("command -v ansible-navigator", {
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-      const path = result.trim();
-      return { available: true, path };
-    } catch {
-      return { available: false };
-    }
-  };
-
-  // Helper function to check virtual environments
-  const checkVenv = (
-    specificVenv?: string,
-  ): { available: boolean; path?: string } => {
-    if (!workspaceRoot) {
-      return { available: false };
-    }
-
-    // If specific venv is provided, check that first
-    if (specificVenv) {
-      // Check if it's an absolute path
-      if (isAbsolute(specificVenv)) {
-        const navPath = join(specificVenv, "bin", "ansible-navigator");
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-      } else {
-        // Check in workspace root
-        const venvPath = join(workspaceRoot, specificVenv);
-        const navPath = join(venvPath, "bin", "ansible-navigator");
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-
-        // Check in parent directories
-        const parentDirs = workspaceRoot.split("/");
-        for (let i = parentDirs.length; i > 0; i--) {
-          const checkPath = parentDirs.slice(0, i).join("/");
-          const venvPath = join(checkPath, specificVenv);
-          const navPath = join(venvPath, "bin", "ansible-navigator");
-          if (existsSync(navPath)) {
-            return { available: true, path: navPath };
-          }
-        }
-      }
-    }
-
-    // Check common venv names in workspace root
-    for (const venvName of commonVenvNames) {
-      const venvPath = join(workspaceRoot, venvName);
-      const navPath = join(venvPath, "bin", "ansible-navigator");
-
-      if (existsSync(venvPath) && existsSync(navPath)) {
-        return { available: true, path: navPath };
-      }
-    }
-
-    // Check in parent directories (like examples/ansible-dev)
-    const parentDirs = workspaceRoot.split("/");
-    for (let i = parentDirs.length; i > 0; i--) {
-      const checkPath = parentDirs.slice(0, i).join("/");
-      for (const venvName of commonVenvNames) {
-        const venvPath = join(checkPath, venvName);
-        const navPath = join(venvPath, "bin", "ansible-navigator");
-
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-      }
-    }
-
-    return { available: false };
-  };
-
-  // Handle different environment preferences
   if (environment === "system") {
-    // Only check PATH
     const result = checkSystemPath();
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: "ansible-navigator not found in PATH/system",
-    };
-  } else if (environment === "venv") {
-    // Only check virtual environments
-    const result = checkVenv();
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: "ansible-navigator not found in virtual environments",
-    };
-  } else if (environment && environment !== "auto") {
-    // Specific venv name/path provided
-    const result = checkVenv(environment);
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: `ansible-navigator not found in virtual environment: ${environment}`,
-    };
-  } else {
-    // "auto" - check PATH first, then venv
-    const systemResult = checkSystemPath();
-    if (systemResult.available) {
-      return { available: true, path: systemResult.path };
-    }
-
-    const venvResult = checkVenv();
-    if (venvResult.available) {
-      return { available: true, path: venvResult.path };
-    }
-
-    return {
-      available: false,
-      error: "ansible-navigator not found in PATH or virtual environments",
-    };
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: "ansible-navigator not found in PATH/system",
+        };
   }
+
+  if (environment === "venv") {
+    const result = checkVenv(workspaceRoot);
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: "ansible-navigator not found in virtual environments",
+        };
+  }
+
+  if (environment !== "auto") {
+    const result = checkVenv(workspaceRoot, environment);
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: `ansible-navigator not found in virtual environment: ${environment}`,
+        };
+  }
+
+  // "auto" - check PATH first, then venv
+  const systemResult = checkSystemPath();
+  if (systemResult.available) {
+    return { available: true, path: systemResult.path };
+  }
+
+  const venvResult = checkVenv(workspaceRoot);
+  return venvResult.available
+    ? { available: true, path: venvResult.path }
+    : {
+        available: false,
+        error: "ansible-navigator not found in PATH or virtual environments",
+      };
 }
 
 /**
