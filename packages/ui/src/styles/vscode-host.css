@@ -1,0 +1,31 @@
+/*
+ * VS Code webview host adapter.
+ *
+ * Maps VS Code's built-in CSS variables to the --host-* token layer
+ * that packages/ui components consume via --ui-* references.
+ */
+:root {
+    --host-bg-primary: var(--vscode-editor-background);
+    --host-bg-surface: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    --host-bg-hover: var(--vscode-list-hoverBackground);
+    --host-bg-active: var(--vscode-list-activeSelectionBackground);
+
+    --host-text-primary: var(--vscode-editor-foreground);
+    --host-text-secondary: var(--vscode-descriptionForeground);
+    --host-text-muted: var(--vscode-disabledForeground);
+    --host-text-link: var(--vscode-textLink-foreground);
+
+    --host-border: var(--vscode-panel-border, var(--vscode-widget-border));
+    --host-border-active: var(--vscode-focusBorder);
+
+    --host-accent: var(--vscode-button-background);
+    --host-accent-hover: var(--vscode-button-hoverBackground);
+
+    --host-success: var(--vscode-testing-iconPassed, #4ec9b0);
+    --host-warning: var(--vscode-editorWarning-foreground, #cca700);
+    --host-error: var(--vscode-editorError-foreground, #f44747);
+
+    --host-font-family: var(--vscode-font-family);
+    --host-font-size: var(--vscode-font-size);
+    --host-font-mono: var(--vscode-editor-font-family);
+}

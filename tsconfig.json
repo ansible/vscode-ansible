@@ -20,7 +20,7 @@
     "declarationMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", ".vscode-test", "packages"],
+  "exclude": ["node_modules", ".vscode-test", "packages", "src/panels/webview-entry.tsx", "src/panels/bridges", "src/panels/webview.d.ts"],
   "ts-node": {
     "compilerOptions": {
       "types": ["node", "mocha"]

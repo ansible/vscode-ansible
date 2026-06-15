@@ -97,6 +97,22 @@ logging, and a stable interface that insulates the extension from
 ansible-galaxy CLI changes. `CollectionsService.installCollection()`
 already enforces this.
 
+### 9. Domain content views live in `@ansible/ui` (ADR-010)
+
+All views that render domain content (EE details, plugin docs,
+playbook progress, creator forms) are React components in
+`packages/ui/`. Host environments (VS Code webviews, Navita,
+Backstage) provide a bridge implementation but do not contain domain
+rendering logic. New content views go in `@ansible/ui`, not in
+`src/panels/` or `packages/navita/`.
+
+### 10. Shared UI components never import host-specific modules (ADR-010)
+
+`@ansible/ui` components communicate with the host exclusively
+through the `HostBridge` interface hierarchy. An `import ... from
+'vscode'` or `window.navitaAPI` call in `packages/ui/` is a
+violation — the component must use `useBridge()` instead.
+
 ## Consequences
 
 ### Positive
@@ -129,6 +145,8 @@ already enforces this.
   (invariant 6)
 - [ADR-004](ADR-004-intentional-exclusions-from-main.md): Intentional
   exclusions (invariants 5, 7)
+- [ADR-010](ADR-010-shared-ui-component-layer.md): Shared UI component
+  layer (invariants 9, 10)
 
 ---
 
@@ -137,3 +155,4 @@ already enforces this.
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-05-26 | AI-assisted | Initial invariants (8 rules) |
+| 2026-06-10 | AI-assisted | Add invariants 9, 10 (shared UI) |

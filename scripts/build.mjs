@@ -23,6 +23,22 @@ const shared = {
     outdir: path.join(ROOT, 'dist'),
 };
 
+/** @type {esbuild.BuildOptions} */
+const webviewShared = {
+    bundle: true,
+    format: 'iife',
+    platform: 'browser',
+    target: 'es2020',
+    sourcemap: !production,
+    minify: production,
+    metafile: true,
+    logLevel: 'info',
+    outdir: path.join(ROOT, 'dist'),
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+    loader: { '.css': 'text' },
+};
+
 /** @type {esbuild.BuildOptions[]} */
 const targets = [
     {
@@ -51,6 +67,18 @@ const targets = [
         outdir: undefined,
         alias: {
             '@src': path.join(ROOT, 'packages', 'mcp-server', 'src'),
+            '@ansible/core/out': path.join(ROOT, 'packages', 'core', 'src'),
+            '@ansible/core': path.join(ROOT, 'packages', 'core', 'src'),
+        },
+    },
+    {
+        ...webviewShared,
+        entryPoints: [path.join(ROOT, 'src', 'panels', 'webview-entry.tsx')],
+        outfile: path.join(ROOT, 'dist', 'webview.js'),
+        outdir: undefined,
+        alias: {
+            '@src': path.join(ROOT, 'src'),
+            '@ansible/ui': path.join(ROOT, 'packages', 'ui', 'src'),
             '@ansible/core/out': path.join(ROOT, 'packages', 'core', 'src'),
             '@ansible/core': path.join(ROOT, 'packages', 'core', 'src'),
         },
