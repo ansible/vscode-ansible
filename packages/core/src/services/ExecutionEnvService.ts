@@ -238,14 +238,38 @@ export class ExecutionEnvService {
      */
     private _ensureScripts(): string {
         if (!this._scriptCacheDir) {
-            // __dirname at runtime points to the compiled JS output directory.
-            // The data/ directory with vendored scripts is at the package root.
-            let dataDir = path.resolve(__dirname, '..', 'data');
-            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
-                dataDir = path.resolve(__dirname, '..', 'src', 'data');
+            const target = 'image_introspect.py';
+
+            // Fast path: scripts already deployed to XDG cache from a prior run.
+            const cacheDir = ContainerRuntime.getScriptCacheDir();
+            if (cacheDir && existsSync(path.join(cacheDir, target))) {
+                this._scriptCacheDir = cacheDir;
+                return this._scriptCacheDir;
             }
-            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
-                throw new Error(`Vendored introspection scripts not found. Looked in: ${dataDir}`);
+
+            // __dirname varies by context: tsc output (packages/core/out/services),
+            // esbuild bundle (dist/), Electron asar, etc.  Try multiple candidate
+            // paths to locate the vendored source files for initial deployment.
+            const candidates = [
+                // tsc: __dirname = packages/core/out/services
+                path.resolve(__dirname, '..', 'data'),
+                path.resolve(__dirname, '..', 'src', 'data'),
+                // esbuild: __dirname = dist/  (one level below repo root)
+                path.resolve(__dirname, '..', 'packages', 'core', 'src', 'data'),
+                path.resolve(__dirname, '..', 'packages', 'core', 'data'),
+                // deeper nesting (Electron asar, etc.)
+                path.resolve(__dirname, '..', '..', 'packages', 'core', 'src', 'data'),
+                path.resolve(__dirname, '..', '..', 'packages', 'core', 'data'),
+                path.resolve(__dirname, '..', '..', 'data'),
+                path.resolve(__dirname, '..', '..', 'src', 'data'),
+            ];
+
+            const dataDir = candidates.find((dir) => existsSync(path.join(dir, target)));
+
+            if (!dataDir) {
+                throw new Error(
+                    `Vendored introspection scripts not found. Searched:\n${candidates.join('\n')}`,
+                );
             }
             this._scriptCacheDir = ContainerRuntime.deployScripts(dataDir);
         }

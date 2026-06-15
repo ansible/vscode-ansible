@@ -285,12 +285,16 @@ export function activate(context: vscode.ExtensionContext) {
     // Inject bin dir resolver into CommandService BEFORE any providers are
     // constructed so that early refresh() calls resolve the venv, not ~/.local/bin.
     const commandService = getCommandService();
+    let binDirLogged = false;
     commandService.setBinDirResolver(async (workspaceUri) => {
         await pythonEnvService.initialize();
         const env = await pythonEnvService.getEnvironment(workspaceUri as vscode.Uri | undefined);
         if (env?.execInfo.run.executable) {
             const binDir = path.dirname(env.execInfo.run.executable);
-            log(`binDirResolver: env=${env.displayName}, binDir=${binDir}`);
+            if (!binDirLogged) {
+                log(`binDirResolver: env=${env.displayName}, binDir=${binDir}`);
+                binDirLogged = true;
+            }
             return binDir;
         }
         log('binDirResolver: no environment or executable found');
