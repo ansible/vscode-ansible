@@ -1,28 +1,32 @@
 import * as vscode from 'vscode';
 import { ExecutionEnvService } from '@ansible/core';
 import { log } from '@src/extension';
-import { PackageDetailPanel } from '@src/panels/PackageDetailPanel';
+
+type PackageType = 'python' | 'system';
 
 /**
- * Webview panel that renders shared EE detail React components.
+ * Webview panel that renders Python or system package detail views.
  *
- * The panel provides a minimal HTML shell that loads the bundled
- * webview.js entry point. All rendering is handled by @ansible/ui
- * components; this class only handles panel lifecycle and bridges
- * postMessage RPC to @ansible/core services.
+ * Reuses the shared webview.js bundle, selecting the appropriate
+ * view via the data-view attribute. Each unique eeName+packageName
+ * combination gets its own panel.
  */
-export class EEDetailPanel {
-    private static _panels = new Map<string, EEDetailPanel>();
+export class PackageDetailPanel {
+    private static _panels = new Map<string, PackageDetailPanel>();
     private _disposables: vscode.Disposable[] = [];
 
     /**
      * @param _panel - The VS Code webview panel instance.
      * @param _eeName - Execution environment image name.
+     * @param _packageName - Package name for detail lookup.
+     * @param _packageType - Whether this is a python or system package.
      * @param _extensionUri - Extension root URI for opening child panels.
      */
     private constructor(
         private readonly _panel: vscode.WebviewPanel,
         private readonly _eeName: string,
+        private readonly _packageName: string,
+        private readonly _packageType: PackageType,
         private readonly _extensionUri: vscode.Uri,
     ) {
         this._panel.onDidDispose(
@@ -42,48 +46,80 @@ export class EEDetailPanel {
     }
 
     /**
-     * Show the EE detail panel for a given image name.
-     * Reuses an existing panel if one is already open for the same image.
+     * Show the package detail panel. Reuses an existing panel for the same package.
      * @param extensionUri - Extension root URI for webview resource resolution.
      * @param eeName - Full image name of the execution environment.
+     * @param packageName - Package name to display.
+     * @param packageType - Whether this is a python or system package.
      */
-    static show(extensionUri: vscode.Uri, eeName: string): void {
-        const existing = EEDetailPanel._panels.get(eeName);
+    static show(
+        extensionUri: vscode.Uri,
+        eeName: string,
+        packageName: string,
+        packageType: PackageType,
+    ): void {
+        const key = `${packageType}:${eeName}:${packageName}`;
+        const existing = PackageDetailPanel._panels.get(key);
         if (existing) {
             existing._panel.reveal();
             return;
         }
 
-        const panel = vscode.window.createWebviewPanel('eeDetail', eeName, vscode.ViewColumn.One, {
-            enableScripts: true,
-            localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'dist')],
-            retainContextWhenHidden: true,
-        });
+        const viewType =
+            packageType === 'python' ? 'python-package-detail' : 'system-package-detail';
+        const icon = packageType === 'python' ? 'symbol-package' : 'archive';
 
-        panel.iconPath = new vscode.ThemeIcon('package');
-        panel.webview.html = EEDetailPanel._getHtml(panel.webview, extensionUri, eeName);
+        const panel = vscode.window.createWebviewPanel(
+            viewType,
+            packageName,
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'dist')],
+                retainContextWhenHidden: true,
+            },
+        );
 
-        const instance = new EEDetailPanel(panel, eeName, extensionUri);
-        EEDetailPanel._panels.set(eeName, instance);
+        panel.iconPath = new vscode.ThemeIcon(icon);
+        panel.webview.html = PackageDetailPanel._getHtml(
+            panel.webview,
+            extensionUri,
+            eeName,
+            packageName,
+            viewType,
+        );
+
+        const instance = new PackageDetailPanel(
+            panel,
+            eeName,
+            packageName,
+            packageType,
+            extensionUri,
+        );
+        PackageDetailPanel._panels.set(key, instance);
     }
 
     /**
      * Generate the HTML content for the webview panel.
      * @param webview - Webview instance for URI resolution.
      * @param extensionUri - Extension root URI.
-     * @param eeName - EE image name passed as props to the React app.
+     * @param eeName - EE image name.
+     * @param packageName - Package name.
+     * @param viewType - View identifier for the React router.
      * @returns Complete HTML document string.
      */
     private static _getHtml(
         webview: vscode.Webview,
         extensionUri: vscode.Uri,
         eeName: string,
+        packageName: string,
+        viewType: string,
     ): string {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(extensionUri, 'dist', 'webview.js'),
         );
         const nonce = getNonce();
-        const props = JSON.stringify({ eeName });
+        const props = JSON.stringify({ eeName, packageName });
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -92,7 +128,7 @@ export class EEDetailPanel {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
-    <title>${escapeHtml(eeName)}</title>
+    <title>${escapeHtml(packageName)}</title>
     <style>
         :root {
             --host-bg-primary: var(--vscode-editor-background);
@@ -125,7 +161,7 @@ export class EEDetailPanel {
 </head>
 <body>
     <div id="root"
-         data-view="ee-detail"
+         data-view="${viewType}"
          data-props="${escapeAttr(props)}"></div>
     <script nonce="${nonce}" src="${String(scriptUri)}"></script>
 </body>
@@ -146,6 +182,16 @@ export class EEDetailPanel {
     }): Promise<void> {
         const { id, method, params } = msg;
 
+        if (method === 'showToast') {
+            const text = params?.message;
+            const safeText =
+                typeof text === 'string' ? text : text != null ? JSON.stringify(text) : '';
+            if (safeText) {
+                void vscode.window.showInformationMessage(safeText);
+            }
+            return;
+        }
+
         if (method === 'openPackageDetail') {
             const pkgName = typeof params?.packageName === 'string' ? params.packageName : '';
             const pkgType = params?.packageType === 'system' ? 'system' : 'python';
@@ -160,16 +206,6 @@ export class EEDetailPanel {
             return;
         }
 
-        if (method === 'showToast') {
-            const text = params?.message;
-            const safeText =
-                typeof text === 'string' ? text : text != null ? JSON.stringify(text) : '';
-            if (safeText) {
-                void vscode.window.showInformationMessage(safeText);
-            }
-            return;
-        }
-
         if (id === undefined) return;
 
         try {
@@ -177,7 +213,7 @@ export class EEDetailPanel {
             void this._panel.webview.postMessage({ id, result });
         } catch (err) {
             const errMessage = err instanceof Error ? err.message : String(err);
-            log(`EEDetailPanel: ${method} failed: ${errMessage}`);
+            log(`PackageDetailPanel: ${method} failed: ${errMessage}`);
             void this._panel.webview.postMessage({ id, error: errMessage });
         }
     }
@@ -191,16 +227,14 @@ export class EEDetailPanel {
     private async _dispatch(method: string, params: Record<string, unknown>): Promise<unknown> {
         const svc = ExecutionEnvService.getInstance();
         const eeName = typeof params.eeName === 'string' ? params.eeName : this._eeName;
+        const pkgName =
+            typeof params.packageName === 'string' ? params.packageName : this._packageName;
 
         switch (method) {
-            case 'getInfo':
-                return svc.getInfo(eeName);
-            case 'getCollections':
-                return svc.getCollections(eeName);
-            case 'getPythonPackages':
-                return svc.getPythonPackages(eeName);
-            case 'getSystemPackages':
-                return svc.getSystemPackages(eeName);
+            case 'getPythonPackageDetail':
+                return svc.getPythonPackageDetail(eeName, pkgName);
+            case 'getSystemPackageDetail':
+                return svc.getSystemPackageDetail(eeName, pkgName);
             case 'openFile': {
                 if (typeof params.path !== 'string') {
                     throw new Error('openFile requires a string path parameter');
@@ -219,7 +253,8 @@ export class EEDetailPanel {
      * Clean up panel resources when the webview is closed.
      */
     private _dispose(): void {
-        EEDetailPanel._panels.delete(this._eeName);
+        const key = `${this._packageType}:${this._eeName}:${this._packageName}`;
+        PackageDetailPanel._panels.delete(key);
         for (const d of this._disposables) d.dispose();
         this._disposables.length = 0;
     }

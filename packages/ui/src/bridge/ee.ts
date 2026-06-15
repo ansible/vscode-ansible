@@ -22,6 +22,30 @@ export interface EEInfo {
     image?: string;
 }
 
+export interface PythonPackageDetail {
+    name: string;
+    version: string;
+    summary: string;
+    license: string;
+    homepage: string;
+    author: string;
+    authorEmail: string;
+    location: string;
+    requires: string[];
+    requiredBy: string[];
+}
+
+export interface SystemPackageDetail {
+    name: string;
+    version: string;
+    release: string;
+    arch: string;
+    description: string;
+    size: string;
+    license: string;
+    url: string;
+}
+
 /**
  * Bridge contract for execution environment detail views.
  * Host implementations fetch data from @ansible/core services
@@ -32,4 +56,13 @@ export interface EEBridge extends HostBridgeCore {
     getCollections(eeName: string): Promise<EECollection[]>;
     getPythonPackages(eeName: string): Promise<EEPythonPackage[]>;
     getSystemPackages(eeName: string): Promise<EEPackage[]>;
+    getPythonPackageDetail(
+        eeName: string,
+        packageName: string,
+    ): Promise<PythonPackageDetail | undefined>;
+    getSystemPackageDetail(
+        eeName: string,
+        packageName: string,
+    ): Promise<SystemPackageDetail | undefined>;
+    openPackageDetail(eeName: string, packageName: string, packageType: 'python' | 'system'): void;
 }

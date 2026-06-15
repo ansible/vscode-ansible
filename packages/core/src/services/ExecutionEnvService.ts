@@ -39,13 +39,30 @@ export interface EEDetails {
         details: string;
     };
     system_packages?: {
-        details: Record<string, string>[];
+        details: {
+            name: string;
+            version: string;
+            release?: string;
+            architecture?: string;
+            description?: string;
+            size?: string;
+            license?: string;
+            url?: string;
+            [key: string]: string | undefined;
+        }[];
     };
     python_packages?: {
         details: {
             name: string;
             version: string;
             summary?: string;
+            'home-page'?: string;
+            author?: string;
+            'author-email'?: string;
+            license?: string;
+            location?: string;
+            requires?: string[];
+            'required-by'?: string[];
         }[];
     };
     os_release?: {
@@ -545,6 +562,102 @@ export class ExecutionEnvService {
 
         return info;
     }
+
+    /**
+     * Get detailed metadata for a single Python package in an EE.
+     *
+     * @param fullName - Full image name to inspect.
+     * @param packageName - Python package name (case-insensitive match).
+     * @returns Detailed package metadata or undefined if not found.
+     */
+    public async getPythonPackageDetail(
+        fullName: string,
+        packageName: string,
+    ): Promise<PythonPackageDetail | undefined> {
+        const details = await this.loadDetails(fullName);
+        if (!details?.python_packages?.details) {
+            return undefined;
+        }
+
+        const lower = packageName.toLowerCase();
+        const pkg = details.python_packages.details.find((p) => p.name.toLowerCase() === lower);
+        if (!pkg) return undefined;
+
+        return {
+            name: pkg.name,
+            version: pkg.version,
+            summary: pkg.summary ?? '',
+            license: pkg.license ?? '',
+            homepage: pkg['home-page'] ?? '',
+            author: pkg.author ?? '',
+            authorEmail: pkg['author-email'] ?? '',
+            location: pkg.location ?? '',
+            requires: pkg.requires ?? [],
+            requiredBy: pkg['required-by'] ?? [],
+        };
+    }
+
+    /**
+     * Get detailed metadata for a single system package in an EE.
+     *
+     * @param fullName - Full image name to inspect.
+     * @param packageName - System package name (case-insensitive match).
+     * @returns Detailed package metadata or undefined if not found.
+     */
+    public async getSystemPackageDetail(
+        fullName: string,
+        packageName: string,
+    ): Promise<SystemPackageDetail | undefined> {
+        const details = await this.loadDetails(fullName);
+        if (!details?.system_packages?.details) {
+            return undefined;
+        }
+
+        const lower = packageName.toLowerCase();
+        const pkg = details.system_packages.details.find((p) => p.name.toLowerCase() === lower);
+        if (!pkg) return undefined;
+
+        return {
+            name: pkg.name,
+            version: pkg.version,
+            release: pkg.release ?? '',
+            arch: pkg.architecture ?? '',
+            description: pkg.description ?? '',
+            size: pkg.size ?? '',
+            license: pkg.license ?? '',
+            url: pkg.url ?? '',
+        };
+    }
+}
+
+/**
+ * Detailed metadata for a single Python package inside an EE.
+ */
+export interface PythonPackageDetail {
+    name: string;
+    version: string;
+    summary: string;
+    license: string;
+    homepage: string;
+    author: string;
+    authorEmail: string;
+    location: string;
+    requires: string[];
+    requiredBy: string[];
+}
+
+/**
+ * Detailed metadata for a single system package inside an EE.
+ */
+export interface SystemPackageDetail {
+    name: string;
+    version: string;
+    release: string;
+    arch: string;
+    description: string;
+    size: string;
+    license: string;
+    url: string;
 }
 
 /**

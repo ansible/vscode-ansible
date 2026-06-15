@@ -10,8 +10,7 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./styles/tokens.css": "./dist/styles/tokens.css",
-    "./styles/vscode-host.css": "./dist/styles/vscode-host.css"
+    "./styles/*": "./src/styles/*"
   },
   "license": "MIT",
   "engines": {

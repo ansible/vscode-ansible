@@ -125,10 +125,22 @@ export function EEDetailView({ eeName }: EEDetailViewProps) {
                     <PackageList packages={data.collections} title="Ansible Collections" />
                 )}
                 {activeTab === 'python' && (
-                    <PackageList packages={data.pythonPackages} title="Python Packages" />
+                    <PackageList
+                        packages={data.pythonPackages}
+                        title="Python Packages"
+                        onSelect={(name) => {
+                            bridge.openPackageDetail(eeName, name, 'python');
+                        }}
+                    />
                 )}
                 {activeTab === 'system' && (
-                    <PackageList packages={data.systemPackages} title="System Packages" />
+                    <PackageList
+                        packages={data.systemPackages}
+                        title="System Packages"
+                        onSelect={(name) => {
+                            bridge.openPackageDetail(eeName, name, 'system');
+                        }}
+                    />
                 )}
             </TabBar>
         </div>

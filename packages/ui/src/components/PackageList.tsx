@@ -11,6 +11,7 @@ interface PackageListProps {
     packages: PackageItem[];
     title: string;
     icon?: string;
+    onSelect?: (packageName: string) => void;
 }
 
 const styles: Record<string, CSSProperties> = {
@@ -40,6 +41,9 @@ const styles: Record<string, CSSProperties> = {
         alignItems: 'baseline',
         padding: '4px 12px',
         borderBottom: '1px solid var(--ui-border)',
+    },
+    rowClickable: {
+        cursor: 'pointer',
     },
     rowAlt: {
         background: 'var(--ui-bg-surface)',
@@ -81,9 +85,10 @@ const styles: Record<string, CSSProperties> = {
  * @param root0 - Component props.
  * @param root0.packages - Array of package items to display.
  * @param root0.title - Heading label for the list (e.g. "System Packages").
+ * @param root0.onSelect - Optional callback when a package row is clicked.
  * @returns The rendered package list.
  */
-export function PackageList({ packages, title }: PackageListProps) {
+export function PackageList({ packages, title, onSelect }: PackageListProps) {
     const [filter, setFilter] = useState('');
 
     const filtered = useMemo(() => {
@@ -122,7 +127,30 @@ export function PackageList({ packages, title }: PackageListProps) {
                 filtered.map((pkg, i) => (
                     <div
                         key={pkg.name}
-                        style={{ ...styles.row, ...(i % 2 === 1 ? styles.rowAlt : {}) }}
+                        role={onSelect ? 'button' : undefined}
+                        tabIndex={onSelect ? 0 : undefined}
+                        style={{
+                            ...styles.row,
+                            ...(i % 2 === 1 ? styles.rowAlt : {}),
+                            ...(onSelect ? styles.rowClickable : {}),
+                        }}
+                        onClick={
+                            onSelect
+                                ? () => {
+                                      onSelect(pkg.name);
+                                  }
+                                : undefined
+                        }
+                        onKeyDown={
+                            onSelect
+                                ? (e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          onSelect(pkg.name);
+                                      }
+                                  }
+                                : undefined
+                        }
                     >
                         <div>
                             <span style={styles.name}>{pkg.name}</span>

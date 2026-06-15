@@ -105,16 +105,35 @@ class EEDetailItemNode extends vscode.TreeItem {
     /**
      * Create a detail item with optional description and tooltip text.
      * @param label - Primary label shown in the tree
-     * @param description - Optional secondary text shown inline
-     * @param tooltip - Optional hover text with additional detail
+     * @param options - Optional item configuration
+     * @param options.description - Secondary text shown inline
+     * @param options.tooltip - Hover text with additional detail
+     * @param options.eeName - EE image name for opening package detail
+     * @param options.packageType - Package category for opening detail views
      */
-    constructor(label: string, description?: string, tooltip?: string) {
+    constructor(
+        label: string,
+        options?: {
+            description?: string;
+            tooltip?: string;
+            eeName?: string;
+            packageType?: 'python' | 'system';
+        },
+    ) {
         super(label, vscode.TreeItemCollapsibleState.None);
-        this.description = description;
-        if (tooltip) {
-            this.tooltip = tooltip;
+        this.description = options?.description;
+        if (options?.tooltip) {
+            this.tooltip = options.tooltip;
         }
         this.contextValue = 'eeDetailItem';
+
+        if (options?.eeName && options.packageType) {
+            this.command = {
+                command: 'ansibleExecutionEnvironments.showPackageDetail',
+                title: 'Show Package Details',
+                arguments: [options.eeName, label, options.packageType],
+            };
+        }
     }
 }
 
@@ -254,16 +273,20 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
             // Info category
             const infoItems: EEDetailItemNode[] = [];
             if (details.ansible_version?.details) {
-                infoItems.push(new EEDetailItemNode('Ansible', details.ansible_version.details));
+                infoItems.push(
+                    new EEDetailItemNode('Ansible', {
+                        description: details.ansible_version.details,
+                    }),
+                );
             }
             const osDetails = details.os_release?.details;
             if (osDetails?.[0]) {
                 const os = osDetails[0];
                 const osName = os['pretty-name'] ?? os.name ?? 'Unknown';
-                infoItems.push(new EEDetailItemNode('OS', osName));
+                infoItems.push(new EEDetailItemNode('OS', { description: osName }));
             }
             if (details.image_name) {
-                infoItems.push(new EEDetailItemNode('Image', details.image_name));
+                infoItems.push(new EEDetailItemNode('Image', { description: details.image_name }));
             }
             if (infoItems.length > 0) {
                 categories.push(new EEDetailCategoryNode('Info', infoItems, ee.full_name));
@@ -277,7 +300,7 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
                 );
 
                 for (const [name, version] of collections) {
-                    collectionItems.push(new EEDetailItemNode(name, version));
+                    collectionItems.push(new EEDetailItemNode(name, { description: version }));
                 }
 
                 if (collectionItems.length > 0) {
@@ -300,7 +323,12 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
 
                 for (const pkg of packages) {
                     packageItems.push(
-                        new EEDetailItemNode(pkg.name, pkg.version, pkg.summary ?? undefined),
+                        new EEDetailItemNode(pkg.name, {
+                            description: pkg.version,
+                            tooltip: pkg.summary ?? undefined,
+                            eeName: ee.full_name,
+                            packageType: 'python',
+                        }),
                     );
                 }
 
@@ -315,7 +343,12 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
             const systemPkgs = await this._service.getSystemPackages(ee.full_name);
             if (systemPkgs.length > 0) {
                 const systemItems = systemPkgs.map(
-                    (pkg) => new EEDetailItemNode(pkg.name, pkg.version),
+                    (pkg) =>
+                        new EEDetailItemNode(pkg.name, {
+                            description: pkg.version,
+                            eeName: ee.full_name,
+                            packageType: 'system',
+                        }),
                 );
                 categories.push(
                     new EEDetailCategoryNode('System Packages', systemItems, ee.full_name),
@@ -327,7 +360,11 @@ export class ExecutionEnvironmentsProvider implements vscode.TreeDataProvider<Tr
             log(
                 `ExecutionEnvironmentsProvider: Failed to load EE details: ${error instanceof Error ? error.message : String(error)}`,
             );
-            return [new EEDetailItemNode('Error loading details', '', String(error))];
+            return [
+                new EEDetailItemNode('Error loading details', {
+                    tooltip: String(error),
+                }),
+            ];
         }
     }
 }
