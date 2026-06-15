@@ -238,14 +238,27 @@ export class ExecutionEnvService {
      */
     private _ensureScripts(): string {
         if (!this._scriptCacheDir) {
-            // __dirname at runtime points to the compiled JS output directory.
-            // The data/ directory with vendored scripts is at the package root.
-            let dataDir = path.resolve(__dirname, '..', 'data');
-            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
-                dataDir = path.resolve(__dirname, '..', 'src', 'data');
-            }
-            if (!existsSync(path.join(dataDir, 'image_introspect.py'))) {
-                throw new Error(`Vendored introspection scripts not found. Looked in: ${dataDir}`);
+            // __dirname varies by context: tsc output, esbuild bundle, Electron
+            // asar, etc. Try multiple candidate paths relative to __dirname and
+            // process.cwd() to cover all layouts.
+            const candidates = [
+                path.resolve(__dirname, '..', 'data'),
+                path.resolve(__dirname, '..', 'src', 'data'),
+                path.resolve(__dirname, '..', '..', 'data'),
+                path.resolve(__dirname, '..', '..', 'src', 'data'),
+                path.resolve(__dirname, '..', '..', 'packages', 'core', 'src', 'data'),
+                path.resolve(__dirname, '..', '..', 'packages', 'core', 'data'),
+                path.resolve(process.cwd(), 'packages', 'core', 'src', 'data'),
+                path.resolve(process.cwd(), 'packages', 'core', 'data'),
+            ];
+
+            const target = 'image_introspect.py';
+            const dataDir = candidates.find((dir) => existsSync(path.join(dir, target)));
+
+            if (!dataDir) {
+                throw new Error(
+                    `Vendored introspection scripts not found. Searched:\n${candidates.join('\n')}`,
+                );
             }
             this._scriptCacheDir = ContainerRuntime.deployScripts(dataDir);
         }

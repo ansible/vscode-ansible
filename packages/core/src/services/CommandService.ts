@@ -93,7 +93,6 @@ export class CommandService {
             try {
                 const binDir = await this._binDirResolver(workspaceUri);
                 if (binDir) {
-                    log(`CommandService: binDirResolver -> ${binDir}`);
                     return binDir;
                 }
                 log('CommandService: binDirResolver returned null');
@@ -102,13 +101,12 @@ export class CommandService {
                     `CommandService: binDirResolver failed: ${error instanceof Error ? error.message : String(error)}`,
                 );
             }
-        } else {
-            log('CommandService: no binDirResolver set');
         }
 
         const cached = getCachedBinDir();
-        log(`CommandService: falling back to cached binDir -> ${cached ?? 'null'}`);
-        return cached;
+        if (cached) return cached;
+        log('CommandService: no binDir available');
+        return null;
     }
 
     /**
