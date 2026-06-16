@@ -53,7 +53,7 @@ export function FormSelect({
             background:
                 'var(--ui-input-bg, var(--vscode-dropdown-background, var(--vscode-input-background)))',
             color: 'var(--ui-input-fg, var(--vscode-dropdown-foreground, var(--vscode-input-foreground)))',
-            border: '1px solid var(--ui-input-border, var(--vscode-dropdown-border, var(--vscode-input-border, transparent)))',
+            border: '1px solid var(--ui-input-border, var(--vscode-dropdown-border, var(--vscode-input-border, var(--ui-border, #444))))',
             borderRadius: 4,
             fontSize: 13,
             outline: 'none',

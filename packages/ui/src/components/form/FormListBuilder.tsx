@@ -81,7 +81,7 @@ export function FormListBuilder({
             padding: '6px 10px',
             background: 'var(--ui-input-bg, var(--vscode-input-background))',
             color: 'var(--ui-input-fg, var(--vscode-input-foreground))',
-            border: '1px solid var(--ui-input-border, var(--vscode-input-border, transparent))',
+            border: '1px solid var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))',
             borderRadius: 4,
             fontSize: 13,
             outline: 'none',
@@ -166,7 +166,7 @@ export function FormListBuilder({
                     }}
                     onBlur={(e) => {
                         e.target.style.borderColor =
-                            'var(--ui-input-border, var(--vscode-input-border, transparent))';
+                            'var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))';
                     }}
                 />
                 <button type="button" style={styles.addBtn} onClick={addItem}>
