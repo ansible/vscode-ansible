@@ -107,6 +107,8 @@ export {
 export { GalaxyCollectionCache } from './GalaxyCollectionCache';
 export { GitHubCollectionCache } from './GitHubCollectionCache';
 export { SkillRegistry, _resetGitHubToken } from './SkillRegistry';
+export { discoverPlaybooks } from './PlaybookDiscovery';
+export type { DiscoveredPlaybook } from './PlaybookDiscovery';
 
 // VS Code-specific type re-export
 export type * from './pythonEnvApi';
