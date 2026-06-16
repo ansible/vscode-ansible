@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { useBridge } from '../bridge/context';
 import type { PlaybookProgressBridge } from '../bridge/playbook';
@@ -67,6 +67,9 @@ export function PlaybookProgressView() {
 
     const currentPlayIdx = useRef(-1);
     const currentTaskIdx = useRef(-1);
+    const taskCountByPlay = useRef<number[]>([]);
+    const taskUuidMap = useRef(new Map<string, { playIdx: number; taskIdx: number }>());
+    const failedTasks = useRef(new Set<string>());
 
     const toggleExpand = useCallback((nodeId: string) => {
         setExpanded((prev) => {
@@ -119,26 +122,28 @@ export function PlaybookProgressView() {
                 setRunStatus('running');
                 currentPlayIdx.current = -1;
                 currentTaskIdx.current = -1;
+                taskCountByPlay.current = [];
+                taskUuidMap.current.clear();
+                failedTasks.current.clear();
                 setExpanded(new Set(['playbook']));
                 break;
 
             case 'play_start': {
-                setPlays((prev) => {
-                    const newPlays = [
-                        ...prev,
-                        {
-                            name: str('name') || 'Play',
-                            tasks: [],
-                            status: 'running' as NodeStatus,
-                        },
-                    ];
-                    currentPlayIdx.current = newPlays.length - 1;
-                    currentTaskIdx.current = -1;
-                    return newPlays;
-                });
+                const pIdx = taskCountByPlay.current.length;
+                currentPlayIdx.current = pIdx;
+                currentTaskIdx.current = -1;
+                taskCountByPlay.current.push(0);
+                setPlays((prev) => [
+                    ...prev,
+                    {
+                        name: str('name') || 'Play',
+                        tasks: [],
+                        status: 'running' satisfies NodeStatus,
+                    },
+                ]);
                 setExpanded((prev) => {
                     const next = new Set(prev);
-                    next.add(`play-${String(currentPlayIdx.current)}`);
+                    next.add(`play-${String(pIdx)}`);
                     return next;
                 });
                 break;
@@ -147,9 +152,18 @@ export function PlaybookProgressView() {
             case 'task_start': {
                 const pIdx = currentPlayIdx.current;
                 if (pIdx < 0) break;
+                const tIdx = taskCountByPlay.current[pIdx] ?? 0;
+                taskCountByPlay.current[pIdx] = tIdx + 1;
+                currentTaskIdx.current = tIdx;
+                const uuid = str('uuid');
+                if (uuid) {
+                    taskUuidMap.current.set(uuid, { playIdx: pIdx, taskIdx: tIdx });
+                }
                 setPlays((prev) => {
                     const newPlays = [...prev];
-                    const play = { ...newPlays[pIdx], tasks: [...newPlays[pIdx].tasks] };
+                    const existing = newPlays[pIdx] as PlayState | undefined;
+                    if (!existing) return prev;
+                    const play = { ...existing, tasks: [...existing.tasks] };
                     play.tasks.push({
                         name: str('name') || 'Task',
                         action: str('action') || undefined,
@@ -159,25 +173,30 @@ export function PlaybookProgressView() {
                         status: 'running',
                     });
                     newPlays[pIdx] = play;
-                    currentTaskIdx.current = play.tasks.length - 1;
                     return newPlays;
                 });
                 setExpanded((prev) => {
                     const next = new Set(prev);
-                    next.add(`task-${String(pIdx)}-${String(currentTaskIdx.current)}`);
+                    next.add(`task-${String(pIdx)}-${String(tIdx)}`);
                     return next;
                 });
+                collapseOldTasks(pIdx, tIdx);
                 break;
             }
 
             case 'host_task_start': {
-                const pIdx = currentPlayIdx.current;
-                const tIdx = currentTaskIdx.current;
+                const loc = taskUuidMap.current.get(str('task_uuid'));
+                const pIdx = loc?.playIdx ?? currentPlayIdx.current;
+                const tIdx = loc?.taskIdx ?? currentTaskIdx.current;
                 if (pIdx < 0 || tIdx < 0) break;
                 setPlays((prev) => {
                     const newPlays = [...prev];
-                    const play = { ...newPlays[pIdx], tasks: [...newPlays[pIdx].tasks] };
-                    const task = { ...play.tasks[tIdx], hosts: { ...play.tasks[tIdx].hosts } };
+                    const existingPlay = newPlays[pIdx] as PlayState | undefined;
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- runtime bounds guard
+                    const existingTask = existingPlay?.tasks[tIdx] as TaskState | undefined;
+                    if (!existingPlay || !existingTask) return prev;
+                    const play = { ...existingPlay, tasks: [...existingPlay.tasks] };
+                    const task = { ...existingTask, hosts: { ...existingTask.hosts } };
                     task.hosts[str('host')] = { status: 'running' };
                     play.tasks[tIdx] = task;
                     newPlays[pIdx] = play;
@@ -191,22 +210,31 @@ export function PlaybookProgressView() {
             case 'host_skipped':
             case 'host_unreachable':
             case 'host_retry': {
-                const pIdx = currentPlayIdx.current;
-                const tIdx = currentTaskIdx.current;
-                if (pIdx < 0 || tIdx < 0) break;
-
                 if (type === 'host_retry') {
                     break;
                 }
+
+                const loc = taskUuidMap.current.get(str('task_uuid'));
+                const pIdx = loc?.playIdx ?? currentPlayIdx.current;
+                const tIdx = loc?.taskIdx ?? currentTaskIdx.current;
+                if (pIdx < 0 || tIdx < 0) break;
 
                 const rawStatus = type.slice(5) as NodeStatus; // strip 'host_'
                 const finalStatus: NodeStatus =
                     rawStatus === 'ok' && bool('changed') ? 'changed' : rawStatus;
 
+                if (finalStatus === 'failed' || finalStatus === 'unreachable') {
+                    failedTasks.current.add(`task-${String(pIdx)}-${String(tIdx)}`);
+                }
+
                 setPlays((prev) => {
                     const newPlays = [...prev];
-                    const play = { ...newPlays[pIdx], tasks: [...newPlays[pIdx].tasks] };
-                    const task = { ...play.tasks[tIdx], hosts: { ...play.tasks[tIdx].hosts } };
+                    const existingPlay = newPlays[pIdx] as PlayState | undefined;
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- runtime bounds guard
+                    const existingTask = existingPlay?.tasks[tIdx] as TaskState | undefined;
+                    if (!existingPlay || !existingTask) return prev;
+                    const play = { ...existingPlay, tasks: [...existingPlay.tasks] };
+                    const task = { ...existingTask, hosts: { ...existingTask.hosts } };
                     task.hosts[str('host')] = {
                         status: finalStatus,
                         changed: bool('changed') || undefined,
@@ -234,8 +262,9 @@ export function PlaybookProgressView() {
             case 'item_ok':
             case 'item_failed':
             case 'item_skipped': {
-                const pIdx = currentPlayIdx.current;
-                const tIdx = currentTaskIdx.current;
+                const loc = taskUuidMap.current.get(str('task_uuid'));
+                const pIdx = loc?.playIdx ?? currentPlayIdx.current;
+                const tIdx = loc?.taskIdx ?? currentTaskIdx.current;
                 if (pIdx < 0 || tIdx < 0) break;
 
                 const itemStatus = type.slice(5) as NodeStatus; // strip 'item_'
@@ -244,13 +273,17 @@ export function PlaybookProgressView() {
 
                 setPlays((prev) => {
                     const newPlays = [...prev];
-                    const play = { ...newPlays[pIdx], tasks: [...newPlays[pIdx].tasks] };
-                    const task = { ...play.tasks[tIdx], hosts: { ...play.tasks[tIdx].hosts } };
+                    const existingPlay = newPlays[pIdx] as PlayState | undefined;
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- runtime bounds guard
+                    const existingTask = existingPlay?.tasks[tIdx] as TaskState | undefined;
+                    if (!existingPlay || !existingTask) return prev;
+                    const play = { ...existingPlay, tasks: [...existingPlay.tasks] };
+                    const task = { ...existingTask, hosts: { ...existingTask.hosts } };
                     const host = str('host');
-                    const existing = task.hosts[host];
+                    const hostEntry = task.hosts[host] as HostResult | undefined;
                     task.hosts[host] = {
-                        ...existing,
-                        status: itemFinalStatus === 'failed' ? 'failed' : existing.status,
+                        ...hostEntry,
+                        status: itemFinalStatus === 'failed' ? 'failed' : hostEntry?.status,
                         result: data.result != null ? obj('result') : undefined,
                     };
                     task.status = computeTaskStatus(task.hosts);
@@ -287,6 +320,38 @@ export function PlaybookProgressView() {
                 });
                 break;
         }
+    }
+
+    const KEEP_EXPANDED = 2;
+
+    /**
+     * Collapse task tree nodes older than the last N, keeping failed tasks open.
+     * Uses the synchronous taskCountByPlay ref to determine bounds, avoiding
+     * reading React state outside a setter.
+     * @param currentPlay - Index of the current play.
+     * @param currentTask - Index of the just-started task.
+     */
+    function collapseOldTasks(currentPlay: number, currentTask: number) {
+        if (currentTask < KEEP_EXPANDED) return;
+        const keysToRemove: string[] = [];
+        for (let pIdx = 0; pIdx <= currentPlay; pIdx++) {
+            const taskCount = taskCountByPlay.current[pIdx] ?? 0;
+            const limit = pIdx === currentPlay ? currentTask - KEEP_EXPANDED : taskCount;
+            for (let tIdx = 0; tIdx < limit; tIdx++) {
+                const key = `task-${String(pIdx)}-${String(tIdx)}`;
+                if (!failedTasks.current.has(key)) {
+                    keysToRemove.push(key);
+                }
+            }
+        }
+        if (keysToRemove.length === 0) return;
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            for (const key of keysToRemove) {
+                next.delete(key);
+            }
+            return next;
+        });
     }
 
     const getStatusIcon = (status: NodeStatus): string => {
@@ -364,7 +429,7 @@ export function PlaybookProgressView() {
         container: {
             display: 'flex',
             flexDirection: 'column',
-            height: '100vh',
+            height: '100%',
             overflow: 'hidden',
         },
         header: {
@@ -535,7 +600,7 @@ export function PlaybookProgressView() {
             return <div style={styles.detailEmpty}>Waiting for playbook execution&hellip;</div>;
         }
 
-        const nodes: JSX.Element[] = [];
+        const nodes: React.JSX.Element[] = [];
         const pbExpanded = expanded.has('playbook');
 
         nodes.push(
