@@ -17,7 +17,8 @@
     "sourceMap": true,
     "isolatedModules": true,
     "paths": {
-      "@ansible/core": ["../core/src/index.ts"]
+      "@ansible/core": ["../core/src/index.ts"],
+      "@ansible/core/prompts/plugin-doc": ["../core/src/prompts/plugin-doc.ts"]
     }
   },
   "include": ["src/**/*"],

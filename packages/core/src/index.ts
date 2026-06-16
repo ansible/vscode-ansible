@@ -101,5 +101,23 @@ export type {
     PlaybookRunOptions,
 } from './types/playbook';
 
-export { buildTaskAnalysisPrompt, buildPlaybookSummaryPrompt } from './prompts/playbook';
-export type { TaskAnalysisInput } from './prompts/playbook';
+// --- AI Prompt Builders ---
+export {
+    buildCollectionsSummaryPrompt,
+    buildCollectionSummaryPrompt,
+    buildPluginExplanationPrompt,
+    buildCollectionSourcesOverviewPrompt,
+    buildGalaxySourceSummaryPrompt,
+    buildGithubOrgSourceSummaryPrompt,
+    buildEESummaryPrompt,
+    buildEEDetailPrompt,
+    buildCreatorOverviewPrompt,
+    buildCreatorCommandWalkthroughPrompt,
+    buildTaskBuilderPrompt,
+    buildSkillLoadPrompt,
+    buildSkillClipboardPrompt,
+    buildMcpToolExamplePrompt,
+    buildTaskAnalysisPrompt,
+    buildPlaybookSummaryPrompt,
+} from './prompts';
+export type { CollectionSourcesInput, TaskAnalysisInput } from './prompts';

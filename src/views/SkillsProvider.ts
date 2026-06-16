@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { SkillRegistry } from '@ansible/core';
+import { SkillRegistry, buildSkillLoadPrompt, buildSkillClipboardPrompt } from '@ansible/core';
 import type { SkillEntry, SkillSource } from '@ansible/core';
 import { log } from '@src/extension';
 
@@ -247,9 +247,7 @@ export class SkillsProvider implements vscode.TreeDataProvider<TreeNode> {
  * @param skill - The skill entry to use.
  */
 export async function openChatWithSkill(skill: SkillEntry): Promise<void> {
-    const prompt =
-        `Use the skill_get tool to load the "${skill.name}" skill (ID: "${skill.id}"), ` +
-        `then follow its guidance to help me with: ${skill.description}`;
+    const prompt = buildSkillLoadPrompt(skill.name, skill.id, skill.description);
 
     try {
         await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
@@ -271,9 +269,7 @@ export async function openChatWithSkill(skill: SkillEntry): Promise<void> {
  * @param skill - The skill entry to copy the prompt for.
  */
 export async function copySkillPrompt(skill: SkillEntry): Promise<void> {
-    const prompt =
-        `Use the MCP tool skill_get({ skill_id: "${skill.id}" }) to load the ` +
-        `"${skill.name}" skill, then apply its guidance to help me with: ${skill.description}`;
+    const prompt = buildSkillClipboardPrompt(skill.name, skill.id, skill.description);
     await vscode.env.clipboard.writeText(prompt);
     void vscode.window.showInformationMessage(`Prompt for "${skill.name}" copied to clipboard.`);
 }
