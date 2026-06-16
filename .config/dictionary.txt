@@ -35,6 +35,7 @@ Rhcustom
 SSOT
 TMPZIP
 Towncrier
+Vitest
 WDIO
 WSLENV
 Wdio
