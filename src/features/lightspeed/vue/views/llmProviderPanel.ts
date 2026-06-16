@@ -100,7 +100,13 @@ export class LlmProviderPanel {
         deps,
       );
       // Send initial settings (async kickoff kept out of the constructor)
-      void LlmProviderPanel.currentPanel.messageHandlers.sendProviderSettings();
+      LlmProviderPanel.currentPanel.messageHandlers
+        .sendProviderSettings()
+        .catch((error) => {
+          console.error(
+            `[lightspeed] Initial provider settings sync failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
   }
 

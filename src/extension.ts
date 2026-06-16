@@ -230,7 +230,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initial async kickoffs, kept out of the (synchronous) constructors above
   // so construction stays side-effect-free (Sonar S7059).
-  void lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+  lightSpeedManager.statusBarProvider
+    .updateLightSpeedStatusbar()
+    .catch((error) => {
+      console.error(
+        `[lightspeed] Initial status bar update failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
+  // logAuthProviderDebugHints() self-handles its errors, so a bare void is safe.
   void lightSpeedManager.lightspeedAuthenticatedUser.logAuthProviderDebugHints();
 
   if (context.extensionMode !== vscode.ExtensionMode.Production) {

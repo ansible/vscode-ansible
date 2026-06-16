@@ -260,7 +260,11 @@ export class LLMProviderFactory implements ProviderFactory {
         continue;
       }
       const value = config[field.key as keyof LightSpeedServiceSettings];
-      if (!value || (typeof value === "string" && value.trim() === "")) {
+      if (
+        value === undefined ||
+        value === null ||
+        (typeof value === "string" && value.trim() === "")
+      ) {
         return false;
       }
     }
