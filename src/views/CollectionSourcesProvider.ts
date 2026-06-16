@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
-import { GalaxyCollectionCache, GitHubCollectionCache } from '@ansible/core';
+import {
+    GalaxyCollectionCache,
+    GitHubCollectionCache,
+    buildCollectionSourcesOverviewPrompt,
+    buildGalaxySourceSummaryPrompt,
+    buildGithubOrgSourceSummaryPrompt,
+} from '@ansible/core';
 
 // Logging function
 let extensionLog: (msg: string) => void = console.log;
@@ -550,30 +556,12 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
         const orgs = this._getConfiguredOrgs();
         const galaxyCount = this._galaxyCache.getCollections().length;
 
-        let githubTotal = 0;
-        const orgDetails: string[] = [];
-        for (const org of orgs) {
-            const count = this._githubCache.getCount(org);
-            githubTotal += count;
-            orgDetails.push(`  - ${org}: ${String(count)} collections`);
-        }
+        const githubOrgs = orgs.map((org) => ({
+            name: org,
+            count: this._githubCache.getCount(org),
+        }));
 
-        const prompt = `I have access to Ansible collections from multiple sources:
-
-**Ansible Galaxy**: ${galaxyCount.toLocaleString()} collections available
-
-**GitHub Organizations** (${String(githubTotal)} total collections):
-${orgDetails.join('\n')}
-
-Please help me understand:
-1. What types of collections are typically found on Galaxy vs GitHub organizations?
-2. How do I decide which source to use for a particular use case?
-3. Are there any notable collections in these GitHub organizations I should know about?
-
-Use the \`search_available_collections\` MCP tool to search for collections if needed.
-
-**IMPORTANT**: To install any collection, use the \`install_ansible_collection\` MCP tool.
-Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
+        const prompt = buildCollectionSourcesOverviewPrompt({ galaxyCount, githubOrgs });
 
         await openChatWithPrompt(prompt);
     }
@@ -583,40 +571,10 @@ Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
      * @param source - Collection source to summarize in chat
      */
     public async generateSourceAiSummary(source: CollectionSourceInfo): Promise<void> {
-        let prompt: string;
-
-        if (source.type === 'galaxy') {
-            prompt = `Generate a summary of Ansible Galaxy as a collection source.
-
-Galaxy has ${source.count.toLocaleString()} collections available.
-
-Please describe:
-1. What is Ansible Galaxy and what types of collections are typically found there?
-2. How do I search for and evaluate collections on Galaxy?
-3. What are some of the most popular/useful collections on Galaxy?
-
-Use the \`list_source_collections\` MCP tool with source: "galaxy" to see the most popular collections.
-Use the \`search_available_collections\` MCP tool to search for specific collections.
-
-**IMPORTANT**: To install any collection, use the \`install_ansible_collection\` MCP tool.
-Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
-        } else {
-            prompt = `Generate a summary of the "${source.id}" GitHub organization as an Ansible collection source.
-
-This organization has ${String(source.count)} collections.
-
-First, use the \`list_source_collections\` MCP tool with source: "${source.id}" to get the complete list of collections.
-
-Then describe:
-1. What is this organization and what types of collections do they provide?
-2. What are the main use cases for these collections?
-3. Which collections should I consider for my Ansible automation?
-
-Use the \`search_available_collections\` MCP tool to search for specific collections if needed.
-
-**IMPORTANT**: To install any collection, use the \`install_ansible_collection\` MCP tool.
-Do NOT suggest using \`ansible-galaxy collection install\` directly.`;
-        }
+        const prompt =
+            source.type === 'galaxy'
+                ? buildGalaxySourceSummaryPrompt(source.count)
+                : buildGithubOrgSourceSummaryPrompt(source.id, source.count);
 
         await openChatWithPrompt(prompt);
     }

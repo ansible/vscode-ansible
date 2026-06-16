@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { useBridge } from '../bridge/context';
 import type { PluginDocBridge, PluginData, PluginDoc } from '../bridge/plugin-doc';
+import { buildTaskBuilderPrompt } from '@ansible/core/prompts/plugin-doc';
 import { formatAnsibleMarkup, toArray } from '../utils/ansible-markup';
 import { TabBar } from '../components/TabBar';
 import type { Tab } from '../components/TabBar';
@@ -220,8 +221,7 @@ export function PluginDocView({ fqcn, pluginType }: PluginDocViewProps) {
     );
 
     const handleAiPrompt = useCallback(() => {
-        const prompt = `Help me create an Ansible task using the ${fqcn} ${pluginType}, guiding me through the required and optional parameters. Use the build_ansible_task MCP tool to accomplish this.`;
-        void bridge.openChat(prompt);
+        void bridge.openChat(buildTaskBuilderPrompt(fqcn, pluginType));
     }, [bridge, fqcn, pluginType]);
 
     if (loading) {

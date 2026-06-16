@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { STATIC_TOOLS, type McpToolDefinition, CreatorToolGenerator } from '@ansible/mcp-server';
-import { CreatorService } from '@ansible/core';
+import { CreatorService, buildMcpToolExamplePrompt } from '@ansible/core';
 import { log } from '@src/extension';
 import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
 
@@ -250,52 +250,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
      * @returns Example prompt suitable for injection into chat
      */
     private _generateExamplePrompt(tool: McpToolDefinition): string {
-        const name = tool.name;
-
-        // Format: "Do the specific task, use the TOOL_NAME MCP tool to accomplish this"
-        switch (name) {
-            case 'search_ansible_plugins':
-                return `Search for Ansible plugins that can copy files, use the ${name} MCP tool to accomplish this`;
-            case 'get_plugin_documentation':
-                return `Show me the documentation for ansible.builtin.copy, use the ${name} MCP tool to accomplish this`;
-            case 'list_ansible_collections':
-                return `List what Ansible collections are installed, use the ${name} MCP tool to accomplish this`;
-            case 'generate_ansible_task':
-                return `Generate an Ansible task to copy /etc/hosts to /tmp/hosts.backup, use the ${name} MCP tool to accomplish this`;
-            case 'build_ansible_task':
-                return `Help me build an Ansible task for the apt module step by step, use the ${name} MCP tool to accomplish this`;
-            case 'generate_ansible_playbook':
-                return `Create a playbook to install and configure nginx on webservers, use the ${name} MCP tool to accomplish this`;
-            case 'list_execution_environments':
-                return `List what execution environments are available, use the ${name} MCP tool to accomplish this`;
-            case 'get_ee_details':
-                return `Show me the details of the creator-ee execution environment, use the ${name} MCP tool to accomplish this`;
-            case 'list_ansible_dev_tools':
-                return `List what ansible-dev-tools packages are installed, use the ${name} MCP tool to accomplish this`;
-            case 'install_ansible_collection':
-                return `Install the community.general Ansible collection, use the ${name} MCP tool to accomplish this`;
-            case 'get_collection_plugins':
-                return `List all plugins in the cisco.nxos collection, use the ${name} MCP tool to accomplish this`;
-            case 'get_ansible_creator_schema':
-                return `Show me what content types ansible-creator can scaffold, use the ${name} MCP tool to accomplish this`;
-            default:
-                // For creator tools (ac_*), extract action from the description
-                if (name.startsWith('ac_')) {
-                    // Get the first line of the description (the main help text)
-                    const firstLine = tool.description.split('\n')[0].trim();
-                    // Remove trailing period if present
-                    const action = firstLine.endsWith('.') ? firstLine.slice(0, -1) : firstLine;
-                    return `${action}, use the ${name} MCP tool to accomplish this`;
-                }
-                {
-                    const desc = tool.description.split('\n')[0].trim();
-                    if (desc && desc.length > 10) {
-                        const action = desc.endsWith('.') ? desc.slice(0, -1) : desc;
-                        return `${action}, use the ${name} MCP tool to accomplish this`;
-                    }
-                    return `Run the ${name.replace(/_/g, ' ')} command, use the ${name} MCP tool to accomplish this`;
-                }
-        }
+        return buildMcpToolExamplePrompt(tool.name, tool.description);
     }
 
     /**

@@ -8,7 +8,8 @@
     "*": {
       "utils/creatorArgs": ["./out/utils/creatorArgs.d.ts"],
       "services/PlaybookConfigService": ["./out/services/PlaybookConfigService.d.ts"],
-      "types/playbook": ["./out/types/playbook.d.ts"]
+      "types/playbook": ["./out/types/playbook.d.ts"],
+      "prompts/plugin-doc": ["./out/prompts/plugin-doc.d.ts"]
     }
   },
   "license": "MIT",
