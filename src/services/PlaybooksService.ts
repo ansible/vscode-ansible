@@ -5,7 +5,7 @@ import { log } from '@src/extension';
 import {
     buildPlaybookCommand,
     buildPlaybookSummaryPrompt,
-    parsePlaybook,
+    discoverPlaybooks,
     DEFAULT_PLAYBOOK_CONFIG,
     type PlaybookConfig,
     type PlaybookPlay,
@@ -115,50 +115,22 @@ export class PlaybooksService {
 
         this._playbooks.clear();
 
-        // Exclude patterns for directories that don't contain standalone playbooks
-        const excludePattern =
-            '{**/.*/**,**/node_modules/**,**/venv/**,**/.venv/**,**/artifacts/**,**/roles/*/tasks/**,**/roles/*/handlers/**,**/roles/*/defaults/**,**/roles/*/vars/**,**/roles/*/meta/**,**/roles/*/templates/**,**/roles/*/files/**,**/collections/**,**/__pycache__/**}';
-
         for (const folder of workspaceFolders) {
-            const workspaceRoot = folder.uri.fsPath;
+            const discovered = await discoverPlaybooks(folder.uri.fsPath);
+            const isMultiRoot = workspaceFolders.length > 1;
 
-            const pattern = new vscode.RelativePattern(folder, '**/*.{yml,yaml}');
-            const files = await vscode.workspace.findFiles(pattern, excludePattern);
+            for (const pb of discovered) {
+                const displayPath = isMultiRoot
+                    ? `${folder.name}/${pb.relativePath}`
+                    : pb.relativePath;
 
-            for (const file of files) {
-                try {
-                    const relativePath = path.relative(workspaceRoot, file.fsPath);
-
-                    // Skip files deep inside role directories (catch-all for non-standard role layouts)
-                    if (
-                        /\broles\b.*[/\\](tasks|handlers|defaults|vars|meta)[/\\]/i.test(
-                            relativePath,
-                        )
-                    ) {
-                        continue;
-                    }
-
-                    const content = await fs.promises.readFile(file.fsPath, 'utf-8');
-                    const plays = parsePlaybook(content);
-
-                    if (plays.length > 0) {
-                        const displayPath =
-                            workspaceFolders.length > 1
-                                ? `${folder.name}/${relativePath}`
-                                : relativePath;
-                        const name = path.basename(file.fsPath, path.extname(file.fsPath));
-
-                        this._playbooks.set(displayPath, {
-                            name,
-                            path: file.fsPath,
-                            relativePath: displayPath,
-                            workspaceFolder: folder.uri,
-                            plays,
-                        });
-                    }
-                } catch {
-                    // Skip files that can't be read
-                }
+                this._playbooks.set(displayPath, {
+                    name: pb.name,
+                    path: pb.path,
+                    relativePath: displayPath,
+                    workspaceFolder: folder.uri,
+                    plays: pb.plays,
+                });
             }
         }
     }

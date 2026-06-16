@@ -53,7 +53,7 @@ export default defineConfig(
                         'test/eslint/eslint-plugin-local.cjs',
                         'wdio.conf.ts',
                         'wdio.conf.wsl.ts',
-                        'vitest.config.ts',
+                        'vitest.config.mts',
                     ],
                 },
                 tsconfigRootDir: __dirname,
