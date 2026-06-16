@@ -11,7 +11,11 @@ import type {
     CreatorBridge,
     ExecutionStartedEvent,
     ExecutionFinishedEvent,
+    PlaybookConfigBridge,
+    PlaybookProgressBridge,
 } from '@ansible/ui';
+import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/core/types/playbook';
+import { buildPlaybookCommand } from '@ansible/core/services/PlaybookConfigService';
 
 type VsCodeApi = {
     postMessage(message: unknown): void;
@@ -29,9 +33,12 @@ type VsCodeApi = {
 /** Timeout for RPC requests in milliseconds. */
 const RPC_TIMEOUT_MS = 30_000;
 
-export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge {
+export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, PlaybookConfigBridge, PlaybookProgressBridge {
     enableAiFeatures = false;
     workspacePath = '';
+    isGlobal = false;
+    playbookName = '';
+    playbookPath = '';
     private _nextId = 1;
     private _pending = new Map<
         number,
@@ -39,6 +46,8 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge {
     >();
     private _executionStartedListeners = new Set<(e: ExecutionStartedEvent) => void>();
     private _executionFinishedListeners = new Set<(e: ExecutionFinishedEvent) => void>();
+    private _progressEventListeners = new Set<(e: ProgressEvent) => void>();
+    private _stoppedListeners = new Set<() => void>();
 
     constructor(private _vscode: VsCodeApi) {
         window.addEventListener('message', (event: MessageEvent) => {
@@ -70,6 +79,11 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge {
             } else if (msg.method === 'executionFinished') {
                 const params = msg.params as unknown as ExecutionFinishedEvent;
                 for (const cb of this._executionFinishedListeners) cb(params);
+            } else if (msg.method === 'progressEvent') {
+                const params = msg.params as unknown as ProgressEvent;
+                for (const cb of this._progressEventListeners) cb(params);
+            } else if (msg.method === 'playbookStopped') {
+                for (const cb of this._stoppedListeners) cb();
             }
         });
     }
@@ -173,5 +187,57 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge {
 
     cancel(): void {
         this._vscode.postMessage({ method: 'cancel' });
+    }
+
+    // PlaybookConfigBridge
+    async loadConfig(): Promise<PlaybookConfig> {
+        return this._request('loadConfig');
+    }
+
+    async saveConfig(config: PlaybookConfig): Promise<void> {
+        return this._request('saveConfig', { config });
+    }
+
+    async runPlaybook(config: PlaybookConfig): Promise<void> {
+        return this._request('runPlaybook', { config });
+    }
+
+    async resetToDefaults(): Promise<PlaybookConfig> {
+        return this._request('resetToDefaults');
+    }
+
+    buildPreview(config: PlaybookConfig): string {
+        return buildPlaybookCommand(this.playbookPath || '<playbook>', config);
+    }
+
+    // PlaybookProgressBridge
+    onEvent(cb: (event: ProgressEvent) => void): () => void {
+        this._progressEventListeners.add(cb);
+        return () => { this._progressEventListeners.delete(cb); };
+    }
+
+    onStopped(cb: () => void): () => void {
+        this._stoppedListeners.add(cb);
+        return () => { this._stoppedListeners.delete(cb); };
+    }
+
+    toggleTerminal(): void {
+        this._vscode.postMessage({ method: 'toggleTerminal' });
+    }
+
+    stopPlaybook(): void {
+        this._vscode.postMessage({ method: 'stopPlaybook' });
+    }
+
+    rerun(): void {
+        this._vscode.postMessage({ method: 'rerun' });
+    }
+
+    editSource(path: string): void {
+        this._vscode.postMessage({ method: 'editSource', params: { path } });
+    }
+
+    analyzeWithAi(data: AiAnalyzeData): void {
+        this._vscode.postMessage({ method: 'analyzeWithAi', params: { data } });
     }
 }

@@ -46,3 +46,7 @@ export { FormCheckbox } from './components/form/FormCheckbox';
 export { FormSection } from './components/form/FormSection';
 export { SchemaForm } from './components/SchemaForm';
 export { CreatorFormView } from './views/CreatorFormView';
+
+export type { PlaybookConfigBridge, PlaybookProgressBridge } from './bridge/playbook';
+export { PlaybookConfigView } from './views/PlaybookConfigView';
+export { PlaybookProgressView } from './views/PlaybookProgressView';
