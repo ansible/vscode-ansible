@@ -96,6 +96,7 @@ import { MainPanel as createDevcontainerPanel } from "@src/features/contentCreat
 import { getRoleNameFromFilePath } from "@src/features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "@src/features/lightspeed/utils/data";
+import { resolveInterpreterPath as resolveConfiguredPath } from "@src/features/utils/interpreterPathResolver";
 
 let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -1527,6 +1528,33 @@ export function makeConfigurationMiddleware(
     return config;
   }
 
+  function resolveConfigPath(
+    scopeUri: string,
+    config: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const configSettings = config.config as Record<string, unknown> | undefined;
+    const rawConfigPath = configSettings?.path;
+
+    if (typeof rawConfigPath !== "string" || !rawConfigPath) {
+      return config;
+    }
+
+    const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+    const resolvedConfigPath = resolveConfiguredPath(rawConfigPath, scope);
+
+    if (!resolvedConfigPath || resolvedConfigPath === rawConfigPath) {
+      return config;
+    }
+
+    return {
+      ...config,
+      config: {
+        ...configSettings,
+        path: resolvedConfigPath,
+      },
+    };
+  }
+
   return (
     params: ConfigurationParams,
     token: CancellationToken,
@@ -1564,21 +1592,23 @@ export function makeConfigurationMiddleware(
           | undefined;
         const rawInterpreterPath = pythonConfig?.interpreterPath;
 
+        let updatedConfig: Record<string, unknown>;
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
-          result[i] = await resolveUserConfiguredPath(
+          updatedConfig = await resolveUserConfiguredPath(
             scopeUri,
             rawInterpreterPath,
             config,
             pythonConfig,
           );
-          continue;
+        } else {
+          updatedConfig = await resolveAutoDetectedPath(
+            scopeUri,
+            config,
+            pythonConfig,
+          );
         }
 
-        result[i] = await resolveAutoDetectedPath(
-          scopeUri,
-          config,
-          pythonConfig,
-        );
+        result[i] = resolveConfigPath(scopeUri, updatedConfig);
       }
       return result;
     })();
