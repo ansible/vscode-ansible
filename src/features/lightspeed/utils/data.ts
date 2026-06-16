@@ -94,17 +94,61 @@ const matchLine = (
   return false;
 };
 
-function shouldTriggerMultiTaskSuggestionForTaskFile(
+/**
+ * True if every line after `fromIndex` is blank or a comment.
+ */
+function hasOnlyCommentsAfter(
+  documentLines: string[],
+  fromIndex: number,
+): boolean {
+  for (
+    let commentIndex = fromIndex + 1;
+    commentIndex < documentLines.length;
+    commentIndex++
+  ) {
+    const trimmed = documentLines[commentIndex].trim();
+    if (trimmed === "") {
+      continue;
+    }
+    if (!trimmed.startsWith("#")) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Scan forward from `fromIndex` until the first list item line and record its
+ * indent into the per-line `validSuggestionTriggerIndents` map (via matchLine).
+ */
+function populateIndentsUntilFirstListItem(
+  documentLines: string[],
+  fromIndex: number,
+  validSuggestionTriggerIndents: number[],
+): void {
+  for (
+    let indentIndex = fromIndex + 1;
+    indentIndex < documentLines.length;
+    indentIndex++
+  ) {
+    if (matchLine(documentLines, indentIndex, validSuggestionTriggerIndents)) {
+      break;
+    }
+  }
+}
+
+/**
+ * Backward scan over a task file: locate task-file keywords, record the first
+ * keyword indent, mark keyword lines, and populate trigger indents. Returns an
+ * early decision for the "only comments after the keyword" case, else null.
+ */
+function scanTaskFileKeywordsBackward(
   documentLines: string[],
   spacesBeforePromptStart: number,
-  linePromptStart: number,
-): boolean {
+  validSuggestionTriggerIndents: number[],
+): { earlyResult: boolean | null; firstMatchKeywordIndent: number } {
   let firstMatchKeywordIndent = -1;
-  const validSuggestionTriggerIndents: number[] = [];
   let matchKeywordIndex = -1;
-  for (let lineIndex = 0; lineIndex < documentLines.length; lineIndex++) {
-    validSuggestionTriggerIndents.push(-1);
-  }
   for (let lineIndex = documentLines.length - 1; lineIndex >= 0; lineIndex--) {
     if (matchKeyword(tasksFileKeywords, documentLines[lineIndex])) {
       const match = documentLines[lineIndex].match(/^\s*/);
@@ -116,99 +160,153 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
       validSuggestionTriggerIndents[lineIndex] = 1;
     }
     if (matchKeywordIndex !== -1) {
-      let onlyCommentsAfterKeyword = true;
-      for (
-        let commentIndex = matchKeywordIndex + 1;
-        commentIndex < documentLines.length;
-        commentIndex++
-      ) {
-        if (documentLines[commentIndex].trim() === "") {
-          continue;
-        }
-        if (!documentLines[commentIndex].trim().startsWith("#")) {
-          onlyCommentsAfterKeyword = false;
-          break;
-        }
+      if (hasOnlyCommentsAfter(documentLines, matchKeywordIndex)) {
+        return {
+          earlyResult: spacesBeforePromptStart > firstMatchKeywordIndent,
+          firstMatchKeywordIndent,
+        };
       }
-      if (onlyCommentsAfterKeyword) {
-        if (spacesBeforePromptStart > firstMatchKeywordIndent) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        for (
-          let indentIndex = matchKeywordIndex + 1;
-          indentIndex < documentLines.length;
-          indentIndex++
-        ) {
-          if (
-            matchLine(documentLines, indentIndex, validSuggestionTriggerIndents)
-          ) {
-            break;
-          }
-        }
-      }
+      populateIndentsUntilFirstListItem(
+        documentLines,
+        matchKeywordIndex,
+        validSuggestionTriggerIndents,
+      );
       matchKeywordIndex = -1;
     }
   }
+  return { earlyResult: null, firstMatchKeywordIndent };
+}
 
+/**
+ * True if the document contains only comments (ignoring blanks and "---"),
+ * while populating trigger indents up to the first list item.
+ */
+function isCommentOnlyDocument(
+  documentLines: string[],
+  validSuggestionTriggerIndents: number[],
+): boolean {
   let commentOnly = true;
   for (let lineIndex = 0; lineIndex < documentLines.length; lineIndex++) {
-    if (
-      documentLines[lineIndex].trim() === "" ||
-      /^\s*---\s*$/.test(documentLines[lineIndex].trim())
-    ) {
+    const trimmed = documentLines[lineIndex].trim();
+    if (trimmed === "" || /^\s*---\s*$/.test(trimmed)) {
       continue;
     }
-    if (commentOnly && !documentLines[lineIndex].trim().startsWith("#")) {
+    if (commentOnly && !trimmed.startsWith("#")) {
       commentOnly = false;
     }
     if (matchLine(documentLines, lineIndex, validSuggestionTriggerIndents)) {
       break;
     }
   }
-  if (commentOnly) {
+  return commentOnly;
+}
+
+/**
+ * True if the prompt column lines up with the previous line's recorded indent
+ * (or an earlier line whose indent the prompt is at least as deep as).
+ */
+function matchesPreviousLineColumn(
+  validSuggestionTriggerIndents: number[],
+  spacesBeforePromptStart: number,
+  linePromptStart: number,
+): boolean {
+  const linePrompt = linePromptStart - 1;
+  const previousLinePrompt = linePrompt - 1;
+  if (
+    previousLinePrompt <= -1 ||
+    validSuggestionTriggerIndents[previousLinePrompt] !==
+      spacesBeforePromptStart
+  ) {
+    return false;
+  }
+  if (previousLinePrompt === 0) {
+    return true;
+  }
+  for (let i = previousLinePrompt - 1; i > -1; i--) {
+    const indent = validSuggestionTriggerIndents[i];
+    if (indent > -1 && spacesBeforePromptStart >= indent) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function shouldTriggerMultiTaskSuggestionForTaskFile(
+  documentLines: string[],
+  spacesBeforePromptStart: number,
+  linePromptStart: number,
+): boolean {
+  const validSuggestionTriggerIndents: number[] = Array.from(
+    { length: documentLines.length },
+    () => -1,
+  );
+
+  const { earlyResult, firstMatchKeywordIndent } = scanTaskFileKeywordsBackward(
+    documentLines,
+    spacesBeforePromptStart,
+    validSuggestionTriggerIndents,
+  );
+  if (earlyResult !== null) {
+    return earlyResult;
+  }
+
+  if (isCommentOnlyDocument(documentLines, validSuggestionTriggerIndents)) {
     return true;
   }
 
   // Check the inline position column is the same as the previous line one
-  const linePrompt = linePromptStart - 1;
-  const previousLinePrompt = linePrompt - 1;
-  const isValidPromptLine = previousLinePrompt > -1;
   if (
-    isValidPromptLine &&
-    validSuggestionTriggerIndents[previousLinePrompt] ===
-      spacesBeforePromptStart
+    matchesPreviousLineColumn(
+      validSuggestionTriggerIndents,
+      spacesBeforePromptStart,
+      linePromptStart,
+    )
   ) {
-    if (previousLinePrompt === 0) {
-      return true;
-    }
-    for (let i = previousLinePrompt - 1; i > -1; i--) {
-      const indent = validSuggestionTriggerIndents[i];
-      if (indent > -1) {
-        if (spacesBeforePromptStart >= indent) {
-          return true;
-        }
-      }
-    }
+    return true;
   }
 
-  if (
+  return !(
     firstMatchKeywordIndent === -1 ||
     spacesBeforePromptStart <= firstMatchKeywordIndent
-  ) {
-    return false;
-  }
-  return true;
+  );
 }
 
-function shouldTriggerMultiTaskSuggestionForPlaybook(
+/**
+ * Scan forward from `fromIndex` for the first list item and record its (unique)
+ * indent length into `validSuggestionTriggerIndents`.
+ */
+function collectFirstListItemIndent(
+  documentLines: string[],
+  fromIndex: number,
+  validSuggestionTriggerIndents: number[],
+): void {
+  for (
+    let indentIndex = fromIndex + 1;
+    indentIndex < documentLines.length;
+    indentIndex++
+  ) {
+    const matched = documentLines[indentIndex].match(/^\s*-\s*/);
+    if (matched) {
+      const indentLength = Math.max(matched[0].length - 2, 0);
+      if (!validSuggestionTriggerIndents.includes(indentLength)) {
+        validSuggestionTriggerIndents.push(indentLength);
+      }
+      break;
+    }
+  }
+}
+
+/**
+ * Backward scan over a playbook: locate in-playbook task keywords, record the
+ * first keyword indent, and collect trigger indents. Returns an early decision
+ * for the "only comments after the keyword" case, else null.
+ */
+function scanPlaybookKeywordsBackward(
   documentLines: string[],
   spacesBeforePromptStart: number,
-): boolean {
+  validSuggestionTriggerIndents: number[],
+): { earlyResult: boolean | null; firstMatchKeywordIndent: number } {
   let firstMatchKeywordIndent = -1;
-  const validSuggestionTriggerIndents: number[] = [];
   let matchKeywordIndex = -1;
   for (let lineIndex = documentLines.length - 1; lineIndex >= 0; lineIndex--) {
     if (matchKeyword(tasksInPlaybookKeywords, documentLines[lineIndex])) {
@@ -219,58 +317,44 @@ function shouldTriggerMultiTaskSuggestionForPlaybook(
       matchKeywordIndex = lineIndex;
     }
     if (matchKeywordIndex !== -1) {
-      let onlyCommentsAfterKeyword = true;
-      for (
-        let commentIndex = matchKeywordIndex + 1;
-        commentIndex < documentLines.length;
-        commentIndex++
-      ) {
-        if (documentLines[commentIndex].trim() === "") {
-          continue;
-        }
-        if (!documentLines[commentIndex].trim().startsWith("#")) {
-          onlyCommentsAfterKeyword = false;
-          break;
-        }
+      if (hasOnlyCommentsAfter(documentLines, matchKeywordIndex)) {
+        return {
+          earlyResult: spacesBeforePromptStart > firstMatchKeywordIndent,
+          firstMatchKeywordIndent,
+        };
       }
-      if (onlyCommentsAfterKeyword) {
-        if (spacesBeforePromptStart > firstMatchKeywordIndent) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        for (
-          let indentIndex = matchKeywordIndex + 1;
-          indentIndex < documentLines.length;
-          indentIndex++
-        ) {
-          const matched = documentLines[indentIndex].match(/^\s*-\s*/);
-          if (matched) {
-            const indentLength = Math.max(matched[0].length - 2, 0);
-            if (!validSuggestionTriggerIndents.includes(indentLength)) {
-              validSuggestionTriggerIndents.push(indentLength);
-            }
-            break;
-          }
-        }
-      }
+      collectFirstListItemIndent(
+        documentLines,
+        matchKeywordIndex,
+        validSuggestionTriggerIndents,
+      );
       matchKeywordIndex = -1;
     }
   }
-  if (validSuggestionTriggerIndents.length > 0) {
-    if (!validSuggestionTriggerIndents.includes(spacesBeforePromptStart)) {
-      return false;
-    }
-  } else {
-    if (
-      firstMatchKeywordIndent === -1 ||
-      spacesBeforePromptStart <= firstMatchKeywordIndent
-    ) {
-      return false;
-    }
+  return { earlyResult: null, firstMatchKeywordIndent };
+}
+
+function shouldTriggerMultiTaskSuggestionForPlaybook(
+  documentLines: string[],
+  spacesBeforePromptStart: number,
+): boolean {
+  const validSuggestionTriggerIndents: number[] = [];
+  const { earlyResult, firstMatchKeywordIndent } = scanPlaybookKeywordsBackward(
+    documentLines,
+    spacesBeforePromptStart,
+    validSuggestionTriggerIndents,
+  );
+  if (earlyResult !== null) {
+    return earlyResult;
   }
-  return true;
+
+  if (validSuggestionTriggerIndents.length > 0) {
+    return validSuggestionTriggerIndents.includes(spacesBeforePromptStart);
+  }
+  return (
+    firstMatchKeywordIndent !== -1 &&
+    spacesBeforePromptStart > firstMatchKeywordIndent
+  );
 }
 
 const matchKeyword = (keywordsRegex: RegExp[], line: string) =>
