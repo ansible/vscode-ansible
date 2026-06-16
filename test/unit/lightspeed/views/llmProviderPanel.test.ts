@@ -37,7 +37,8 @@ vi.mock("@src/features/lightspeed/vue/views/llmProviderMessageHandlers", () => {
     LlmProviderMessageHandlers: class MockMessageHandlers {
       setWebview = vi.fn();
       handleMessage = vi.fn();
-      sendProviderSettings = vi.fn();
+      // async in production; resolve a Promise so `.catch(...)` chaining works
+      sendProviderSettings = vi.fn().mockResolvedValue(undefined);
     },
   };
 });
