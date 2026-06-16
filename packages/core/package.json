@@ -6,7 +6,9 @@
   "types": "./out/index.d.ts",
   "typesVersions": {
     "*": {
-      "utils/creatorArgs": ["./out/utils/creatorArgs.d.ts"]
+      "utils/creatorArgs": ["./out/utils/creatorArgs.d.ts"],
+      "services/PlaybookConfigService": ["./out/services/PlaybookConfigService.d.ts"],
+      "types/playbook": ["./out/types/playbook.d.ts"]
     }
   },
   "license": "MIT",

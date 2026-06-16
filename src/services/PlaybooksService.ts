@@ -2,13 +2,16 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { log } from '@src/extension';
+import {
+    buildPlaybookCommand,
+    buildPlaybookSummaryPrompt,
+    parsePlaybook,
+    DEFAULT_PLAYBOOK_CONFIG,
+    type PlaybookConfig,
+    type PlaybookPlay,
+} from '@ansible/core';
 
-export interface PlaybookPlay {
-    name: string;
-    hosts: string;
-    lineNumber: number;
-}
-
+export type { PlaybookConfig, PlaybookPlay } from '@ansible/core';
 export interface PlaybookInfo {
     name: string;
     path: string;
@@ -16,56 +19,6 @@ export interface PlaybookInfo {
     workspaceFolder: vscode.Uri;
     plays: PlaybookPlay[];
 }
-
-export interface PlaybookConfig {
-    inventory?: string[];
-    limit?: string;
-    tags?: string[];
-    skipTags?: string[];
-    extraVars?: string;
-    check?: boolean;
-    diff?: boolean;
-    verbose?: number;
-    forks?: number;
-    connection?: string;
-    user?: string;
-    timeout?: number;
-    privateKey?: string;
-    become?: boolean;
-    becomeMethod?: string;
-    becomeUser?: string;
-    vaultPasswordFile?: string;
-    startAtTask?: string;
-    step?: boolean;
-    askPass?: boolean;
-    askBecomePass?: boolean;
-    askVaultPass?: boolean;
-}
-
-const DEFAULT_CONFIG: PlaybookConfig = {
-    inventory: [],
-    limit: '',
-    tags: [],
-    skipTags: [],
-    extraVars: '',
-    check: false,
-    diff: false,
-    verbose: 0,
-    forks: 5,
-    connection: 'ssh',
-    user: '',
-    timeout: undefined,
-    privateKey: '',
-    become: false,
-    becomeMethod: 'sudo',
-    becomeUser: 'root',
-    vaultPasswordFile: '',
-    startAtTask: '',
-    step: false,
-    askPass: false,
-    askBecomePass: false,
-    askVaultPass: false,
-};
 
 const CACHE_DIR = '.cache/ansible-environments';
 const GLOBAL_CONFIG_FILE = 'playbook-defaults.json';
@@ -162,22 +115,29 @@ export class PlaybooksService {
 
         this._playbooks.clear();
 
-        // Scan all workspace folders
+        // Exclude patterns for directories that don't contain standalone playbooks
+        const excludePattern =
+            '{**/.*/**,**/node_modules/**,**/venv/**,**/.venv/**,**/artifacts/**,**/roles/*/tasks/**,**/roles/*/handlers/**,**/roles/*/defaults/**,**/roles/*/vars/**,**/roles/*/meta/**,**/roles/*/templates/**,**/roles/*/files/**,**/collections/**,**/__pycache__/**}';
+
         for (const folder of workspaceFolders) {
             const workspaceRoot = folder.uri.fsPath;
 
-            // Find all yml/yaml files, excluding dot directories
             const pattern = new vscode.RelativePattern(folder, '**/*.{yml,yaml}');
-            const files = await vscode.workspace.findFiles(pattern, '**/.*/**');
+            const files = await vscode.workspace.findFiles(pattern, excludePattern);
 
             for (const file of files) {
                 try {
+                    const relativePath = path.relative(workspaceRoot, file.fsPath);
+
+                    // Skip files deep inside role directories (catch-all for non-standard role layouts)
+                    if (/\broles\b.*\/(tasks|handlers|defaults|vars|meta)\//i.test(relativePath)) {
+                        continue;
+                    }
+
                     const content = await fs.promises.readFile(file.fsPath, 'utf-8');
-                    const plays = this._parsePlaybook(content);
+                    const plays = parsePlaybook(content);
 
                     if (plays.length > 0) {
-                        const relativePath = path.relative(workspaceRoot, file.fsPath);
-                        // For multi-root, prefix with folder name to avoid collisions
                         const displayPath =
                             workspaceFolders.length > 1
                                 ? `${folder.name}/${relativePath}`
@@ -197,100 +157,6 @@ export class PlaybooksService {
                 }
             }
         }
-    }
-
-    /**
-     * Parse playbook YAML content into play summaries.
-     * @param content - Raw playbook file content
-     * @returns Parsed plays with names, hosts, and line numbers
-     */
-    private _parsePlaybook(content: string): PlaybookPlay[] {
-        const plays: PlaybookPlay[] = [];
-        const lines = content.split('\n');
-
-        let currentPlay: Partial<PlaybookPlay> | null = null;
-        let inPlay = false;
-        let playIndent = 0;
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-
-            // Skip comments and empty lines
-            if (trimmed.startsWith('#') || trimmed === '') {
-                continue;
-            }
-
-            // Check for list item start (play start)
-            const listMatch = /^(\s*)-\s*/.exec(line);
-            if (listMatch) {
-                // If we have a previous play with hosts, save it
-                if (currentPlay?.hosts) {
-                    plays.push({
-                        name: currentPlay.name ?? 'Unknown',
-                        hosts: currentPlay.hosts,
-                        lineNumber: currentPlay.lineNumber ?? 0,
-                    });
-                }
-
-                // Start new potential play
-                currentPlay = { lineNumber: i + 1 };
-                inPlay = true;
-                playIndent = listMatch[1].length;
-
-                // Check if hosts is on the same line
-                const restOfLine = line.substring(listMatch[0].length);
-                if (restOfLine.startsWith('hosts:')) {
-                    const hostsMatch = /^hosts:\s*(.+)/.exec(restOfLine);
-                    if (hostsMatch) {
-                        currentPlay.hosts = hostsMatch[1].trim();
-                    }
-                } else if (restOfLine.startsWith('name:')) {
-                    const nameMatch = /^name:\s*(.+)/.exec(restOfLine);
-                    if (nameMatch) {
-                        currentPlay.name = nameMatch[1].trim().replace(/^['"]|['"]$/g, '');
-                    }
-                }
-                continue;
-            }
-
-            // If we're in a play, look for hosts: and name:
-            if (inPlay && currentPlay) {
-                const indent = /^(\s*)/.exec(line)?.[1].length ?? 0;
-
-                // Check if we've exited the play (less or equal indent with content)
-                if (indent <= playIndent && trimmed !== '' && !trimmed.startsWith('#')) {
-                    // This line is at a level that suggests we're starting a new top-level item
-                    // But only if it's a list item
-                    if (!/^\s*-\s/.exec(line)) {
-                        // Not a list item, still in play content
-                    }
-                }
-
-                if (trimmed.startsWith('hosts:')) {
-                    const hostsMatch = /^hosts:\s*(.+)/.exec(trimmed);
-                    if (hostsMatch) {
-                        currentPlay.hosts = hostsMatch[1].trim();
-                    }
-                } else if (trimmed.startsWith('name:')) {
-                    const nameMatch = /^name:\s*(.+)/.exec(trimmed);
-                    if (nameMatch) {
-                        currentPlay.name = nameMatch[1].trim().replace(/^['"]|['"]$/g, '');
-                    }
-                }
-            }
-        }
-
-        // Don't forget the last play
-        if (currentPlay?.hosts) {
-            plays.push({
-                name: currentPlay.name ?? 'Unknown',
-                hosts: currentPlay.hosts,
-                lineNumber: currentPlay.lineNumber ?? 0,
-            });
-        }
-
-        return plays;
     }
 
     // Configuration management
@@ -326,7 +192,7 @@ export class PlaybooksService {
     public getGlobalConfig(): PlaybookConfig {
         const configDir = this._getConfigDir();
         if (!configDir) {
-            return { ...DEFAULT_CONFIG };
+            return { ...DEFAULT_PLAYBOOK_CONFIG };
         }
 
         const configPath = path.join(configDir, GLOBAL_CONFIG_FILE);
@@ -334,7 +200,7 @@ export class PlaybooksService {
             if (fs.existsSync(configPath)) {
                 const content = fs.readFileSync(configPath, 'utf-8');
                 return {
-                    ...DEFAULT_CONFIG,
+                    ...DEFAULT_PLAYBOOK_CONFIG,
                     ...(JSON.parse(content) as Partial<PlaybookConfig>),
                 };
             }
@@ -343,7 +209,7 @@ export class PlaybooksService {
                 `PlaybooksService: Error reading global config: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
-        return { ...DEFAULT_CONFIG };
+        return { ...DEFAULT_PLAYBOOK_CONFIG };
     }
 
     /**
@@ -442,139 +308,13 @@ export class PlaybooksService {
 
     /**
      * Build an ansible-playbook shell command from saved configuration.
+     * Delegates to @ansible/core buildPlaybookCommand.
      * @param playbookPath - Playbook file path passed to ansible-playbook
      * @param config - Effective playbook run settings
      * @returns Shell-ready ansible-playbook command string
      */
     public buildCommand(playbookPath: string, config: PlaybookConfig): string {
-        const args: string[] = ['ansible-playbook'];
-
-        // Inventory
-        if (config.inventory && config.inventory.length > 0) {
-            for (const inv of config.inventory) {
-                if (inv) {
-                    args.push('-i', inv);
-                }
-            }
-        }
-
-        // Limit
-        if (config.limit) {
-            args.push('-l', config.limit);
-        }
-
-        // Tags
-        if (config.tags && config.tags.length > 0) {
-            for (const tag of config.tags) {
-                if (tag) {
-                    args.push('-t', tag);
-                }
-            }
-        }
-
-        // Skip tags
-        if (config.skipTags && config.skipTags.length > 0) {
-            for (const tag of config.skipTags) {
-                if (tag) {
-                    args.push('--skip-tags', tag);
-                }
-            }
-        }
-
-        // Extra vars
-        if (config.extraVars) {
-            args.push('-e', config.extraVars);
-        }
-
-        // Check mode
-        if (config.check) {
-            args.push('--check');
-        }
-
-        // Diff mode
-        if (config.diff) {
-            args.push('--diff');
-        }
-
-        // Verbose
-        if (config.verbose && config.verbose > 0) {
-            args.push('-' + 'v'.repeat(Math.min(config.verbose, 6)));
-        }
-
-        // Forks
-        if (config.forks && config.forks !== 5) {
-            args.push('-f', String(config.forks));
-        }
-
-        // Connection
-        if (config.connection && config.connection !== 'ssh') {
-            args.push('-c', config.connection);
-        }
-
-        // User
-        if (config.user) {
-            args.push('-u', config.user);
-        }
-
-        // Timeout
-        if (config.timeout) {
-            args.push('-T', String(config.timeout));
-        }
-
-        // Private key
-        if (config.privateKey) {
-            args.push('--private-key', config.privateKey);
-        }
-
-        // Become
-        if (config.become) {
-            args.push('--become');
-        }
-
-        // Become method
-        if (config.becomeMethod && config.becomeMethod !== 'sudo') {
-            args.push('--become-method', config.becomeMethod);
-        }
-
-        // Become user
-        if (config.becomeUser && config.becomeUser !== 'root') {
-            args.push('--become-user', config.becomeUser);
-        }
-
-        // Vault password file
-        if (config.vaultPasswordFile) {
-            args.push('--vault-password-file', config.vaultPasswordFile);
-        }
-
-        // Start at task
-        if (config.startAtTask) {
-            args.push('--start-at-task', config.startAtTask);
-        }
-
-        // Step
-        if (config.step) {
-            args.push('--step');
-        }
-
-        // Ask pass
-        if (config.askPass) {
-            args.push('--ask-pass');
-        }
-
-        // Ask become pass
-        if (config.askBecomePass) {
-            args.push('--ask-become-pass');
-        }
-
-        // Ask vault pass
-        if (config.askVaultPass) {
-            args.push('--ask-vault-pass');
-        }
-
-        // Playbook path
-        args.push(playbookPath);
-
-        return args.join(' ');
+        return buildPlaybookCommand(playbookPath, config);
     }
 
     /**
@@ -583,47 +323,6 @@ export class PlaybooksService {
      * @returns Prompt text suitable for chat injection
      */
     public generateAiPrompt(playbook: PlaybookInfo): string {
-        return `Please analyze the Ansible playbook at "${playbook.relativePath}" and provide a comprehensive summary.
-
-## Instructions:
-1. Read the playbook file
-2. Follow all imports (import_playbook, include_playbook)
-3. Examine all roles used (check roles/ directory and requirements.yml)
-4. List all tasks in order of execution
-5. Identify any variables, handlers, and templates used
-6. **Catalog all collections and plugins used** - note every fully-qualified collection name (FQCN) referenced in the playbook (e.g., ansible.builtin.copy, community.general.ufw)
-
-## Required Output (in this order):
-
-### Executive Summary
-Provide a 1-2 paragraph summary explaining what this playbook accomplishes at a high level. Describe the purpose, the systems it targets, and the end result after successful execution. Write this for someone who needs to quickly understand what running this playbook will do.
-
-### Hierarchical Structure
-- Playbook: ${playbook.name}
-  - Play 1: [name] (hosts: [hosts])
-    - Pre-tasks: [list]
-    - Roles: [list with brief description]
-    - Tasks: [list with brief description]
-    - Handlers: [list]
-    - Post-tasks: [list]
-  - Play 2: ...
-
-### Collections Used
-List all collections referenced in the playbook with their FQCNs.
-
-### Other Dependencies
-Note any additional external dependencies (Galaxy roles, required variables, inventory requirements, etc.)
-
----
-
-## Final Step: Collection Audit (Do this LAST)
-**Important: Complete all sections above before this step.**
-
-1. Use the \`list_collections\` MCP tool to check which collections are currently installed
-2. Compare the installed collections against those required by the playbook
-3. Note any version requirements from collections/requirements.yml if present
-4. **End your response by asking the user** if they would like to install any missing collections using the \`install_collection\` MCP tool
-
-This prompt should be the final thing in your response so the user can easily respond with their choice.`;
+        return buildPlaybookSummaryPrompt(playbook.relativePath, playbook.name);
     }
 }

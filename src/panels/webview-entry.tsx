@@ -14,6 +14,8 @@ import {
     SystemPackageDetailView,
     PluginDocView,
     CreatorFormView,
+    PlaybookConfigView,
+    PlaybookProgressView,
 } from '@ansible/ui';
 import type { SchemaNode } from '@ansible/ui';
 import { buildPreviewString } from '@ansible/core/utils/creatorArgs';
@@ -40,6 +42,16 @@ if (typeof props.enableAiFeatures === 'boolean') {
 
 if (typeof props.workspacePath === 'string') {
     bridge.workspacePath = props.workspacePath;
+}
+
+if (typeof props.isGlobal === 'boolean') {
+    bridge.isGlobal = props.isGlobal;
+}
+if (typeof props.playbookName === 'string') {
+    bridge.playbookName = props.playbookName;
+}
+if (typeof props.playbookPath === 'string') {
+    bridge.playbookPath = props.playbookPath;
 }
 
 function App() {
@@ -81,6 +93,10 @@ function App() {
                     />
                 );
             }
+            case 'playbook-config':
+                return <PlaybookConfigView />;
+            case 'playbook-progress':
+                return <PlaybookProgressView />;
             default:
                 return <div>Unknown view: {viewName}</div>;
         }

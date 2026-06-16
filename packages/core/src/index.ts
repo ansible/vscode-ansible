@@ -84,3 +84,22 @@ export { SimpleEventEmitter } from './utils/SimpleEventEmitter';
 export type { Disposable } from './utils/SimpleEventEmitter';
 
 export type * from './types/pythonEnvApi';
+
+export {
+    buildPlaybookCommand,
+    parsePlaybook,
+    mergePlaybookConfig,
+    DEFAULT_PLAYBOOK_CONFIG,
+} from './services/PlaybookConfigService';
+
+export type {
+    PlaybookConfig,
+    PlaybookPlay,
+    ProgressEvent,
+    ProgressEventType,
+    AiAnalyzeData,
+    PlaybookRunOptions,
+} from './types/playbook';
+
+export { buildTaskAnalysisPrompt, buildPlaybookSummaryPrompt } from './prompts/playbook';
+export type { TaskAnalysisInput } from './prompts/playbook';
