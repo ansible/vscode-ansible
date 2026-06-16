@@ -127,7 +127,7 @@ export class PlaybookProgressPanel {
                 if (this._terminal && this._isRunning) {
                     this._terminal.sendText('\x03', false);
                     this._isRunning = false;
-                    this._panel.webview.postMessage({ method: 'playbookStopped' });
+                    void this._panel.webview.postMessage({ method: 'playbookStopped' });
                 }
                 break;
             case 'rerun':
@@ -137,7 +137,8 @@ export class PlaybookProgressPanel {
                 break;
             case 'editSource':
                 if (typeof params?.path === 'string') {
-                    const filePath = params.path.split(':')[0];
+                    const lastColon = params.path.lastIndexOf(':');
+                    const filePath = lastColon > 0 ? params.path.slice(0, lastColon) : params.path;
                     await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
                 }
                 break;
@@ -268,7 +269,7 @@ export class PlaybookProgressPanel {
             this._isRunning = false;
         }
 
-        this._panel.webview.postMessage({
+        void this._panel.webview.postMessage({
             method: 'progressEvent',
             params: event,
         });

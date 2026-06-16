@@ -103,10 +103,10 @@ export class PlaybookConfigPanel {
         if (id !== undefined) {
             try {
                 const result = await this._dispatch(method, params ?? {});
-                this._panel.webview.postMessage({ id, result });
+                void this._panel.webview.postMessage({ id, result });
             } catch (err) {
                 const message = err instanceof Error ? err.message : String(err);
-                this._panel.webview.postMessage({ id, error: message });
+                void this._panel.webview.postMessage({ id, error: message });
             }
         }
     }

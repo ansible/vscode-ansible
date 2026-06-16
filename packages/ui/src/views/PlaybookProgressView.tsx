@@ -138,7 +138,7 @@ export function PlaybookProgressView() {
                 });
                 setExpanded((prev) => {
                     const next = new Set(prev);
-                    next.add(`play-${String(currentPlayIdx.current + 1)}`);
+                    next.add(`play-${String(currentPlayIdx.current)}`);
                     return next;
                 });
                 break;
@@ -164,7 +164,7 @@ export function PlaybookProgressView() {
                 });
                 setExpanded((prev) => {
                     const next = new Set(prev);
-                    next.add(`task-${String(pIdx)}-${String(currentTaskIdx.current + 1)}`);
+                    next.add(`task-${String(pIdx)}-${String(currentTaskIdx.current)}`);
                     return next;
                 });
                 break;

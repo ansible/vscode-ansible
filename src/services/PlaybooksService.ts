@@ -130,7 +130,11 @@ export class PlaybooksService {
                     const relativePath = path.relative(workspaceRoot, file.fsPath);
 
                     // Skip files deep inside role directories (catch-all for non-standard role layouts)
-                    if (/\broles\b.*\/(tasks|handlers|defaults|vars|meta)\//i.test(relativePath)) {
+                    if (
+                        /\broles\b.*[/\\](tasks|handlers|defaults|vars|meta)[/\\]/i.test(
+                            relativePath,
+                        )
+                    ) {
                         continue;
                     }
 

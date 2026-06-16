@@ -43,12 +43,12 @@ export function buildTaskAnalysisPrompt(input: TaskAnalysisInput): string {
 **Status:** ${statusText}
 ${sourceInfo}
 ## Invocation (Task Arguments)
-\`\`\`yaml
+\`\`\`json
 ${JSON.stringify(args, null, 2)}
 \`\`\`
 
 ## Result
-\`\`\`yaml
+\`\`\`json
 ${JSON.stringify(cleanResult, null, 2)}
 \`\`\`
 

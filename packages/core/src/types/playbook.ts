@@ -68,7 +68,7 @@ export interface AiAnalyzeData {
     status: string;
     args: Record<string, unknown>;
     result: Record<string, unknown>;
-    path: string;
+    path?: string;
 }
 
 /** VS Code-free run options for launching a playbook. */
