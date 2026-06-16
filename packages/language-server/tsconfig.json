@@ -19,6 +19,6 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "out", "test"],
   "references": [
-    { "path": "../core" }
+    { "path": "../services" }
   ]
 }

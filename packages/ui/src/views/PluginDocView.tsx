@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { useBridge } from '../bridge/context';
 import type { PluginDocBridge, PluginData, PluginDoc } from '../bridge/plugin-doc';
-import { buildTaskBuilderPrompt } from '@ansible/core/prompts/plugin-doc';
+import { buildTaskBuilderPrompt } from '@ansible/common';
 import { formatAnsibleMarkup, toArray } from '../utils/ansible-markup';
 import { TabBar } from '../components/TabBar';
 import type { Tab } from '../components/TabBar';

@@ -4,7 +4,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ValidationManager } from '../services/validationManager';
 import type { WorkspaceFolderContext } from '../services/workspaceManager';
 import { isPlaybook, parseAllDocuments } from '../utils/yaml';
-import { getCommandService } from '@ansible/core/out/services/CommandService';
+import { getCommandService } from '@ansible/services';
 
 /**
  * Runs Ansible and YAML validation for a document and publishes diagnostics.

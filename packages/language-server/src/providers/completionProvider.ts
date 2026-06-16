@@ -36,7 +36,7 @@ import {
 } from '../utils/yaml';
 import { getVarsCompletion } from './completionProviderUtils';
 import type { HostType } from '../services/ansibleInventory';
-import { CollectionsService } from '@ansible/core/out/services/CollectionsService';
+import { CollectionsService } from '@ansible/services';
 
 interface CompletionItemData {
     documentUri: string;

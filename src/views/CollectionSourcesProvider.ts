@@ -5,7 +5,7 @@ import {
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
-} from '@ansible/core';
+} from '@ansible/services';
 
 // Logging function
 let extensionLog: (msg: string) => void = console.log;
@@ -531,7 +531,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<Collec
                 cancellable: false,
             },
             async () => {
-                const { getCommandService } = await import('@ansible/core');
+                const { getCommandService } = await import('@ansible/services');
                 const commandService = getCommandService();
 
                 const result = await commandService.runTool('ade', ['install', installUrl]);

@@ -39,8 +39,8 @@ import {
 
 import { STATIC_TOOLS, McpToolDefinition } from './tools';
 import { McpToolHandler } from './handlers';
-import { SkillRegistry } from '@ansible/core';
-import type { SkillSource } from '@ansible/core';
+import { SkillRegistry } from '@ansible/services';
+import type { SkillSource } from '@ansible/services';
 
 // Initialize the server (low-level Server API; McpServer wrapper not used for custom handlers)
 // eslint-disable-next-line @typescript-eslint/no-deprecated -- setRequestHandler requires the low-level Server API

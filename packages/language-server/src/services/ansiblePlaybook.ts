@@ -1,7 +1,7 @@
 import { URI } from 'vscode-uri';
 import { Connection, Diagnostic, DiagnosticSeverity, integer, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { getCommandService } from '@ansible/core/out/services/CommandService';
+import { getCommandService } from '@ansible/services';
 import type { WorkspaceFolderContext } from './workspaceManager';
 
 /**

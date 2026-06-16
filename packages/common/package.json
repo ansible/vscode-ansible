@@ -1,0 +1,17 @@
+{
+  "name": "@ansible/common",
+  "version": "0.0.1",
+  "description": "Browser-safe Ansible types, prompts, utilities, and parsers",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "rimraf out"
+  },
+  "dependencies": {}
+}

@@ -12,14 +12,17 @@ them — if you think one needs to change, write an ADR first (see the
 
 Full rationale for each invariant is in
 [ADR-005](.sdlc/adrs/ADR-005-architectural-invariants.md).
+Package architecture is in [ADR-011](.sdlc/adrs/ADR-011-package-architecture.md).
 
-1. **Domain logic lives in `@ansible/core`, not in the extension**
-   (ADR-001). If a service could be used by the MCP server or language
-   server, it belongs in `packages/core/`, not `src/`.
+1. **Browser-safe code lives in `@ansible/common`, Node.js services in
+   `@ansible/services`** (ADR-011). Types, prompts, pure parsers, and
+   utils go in `packages/common/`. Services that use `fs`, `path`,
+   `child_process`, or `https` go in `packages/services/`.
 
-2. **`@ansible/core` has zero hard dependencies on `vscode`**
-   (ADR-001). Use the conditional `try { vscode = require('vscode') }
-   catch {}` pattern. An unconditional `import` breaks MCP and LS.
+2. **`@ansible/common` has zero dependencies on Node.js builtins or
+   `vscode`** (ADR-011). It must be importable in any JS environment
+   (browser, webview, Node, Deno). `@ansible/services` uses the
+   conditional `try { vscode = require('vscode') } catch {}` pattern.
 
 3. **The plugin doc cache is the single source of truth** (ADR-002).
    Never spawn `ansible-doc --json` for one plugin when the cache is
@@ -72,9 +75,11 @@ Before committing:
 
 ```
 packages/
-  core/             → @ansible/core (VS Code-independent services)
+  common/           → @ansible/common (browser-safe types, prompts, utils, parsers)
+  services/         → @ansible/services (Node.js service implementations)
   language-server/  → @ansible/language-server (LSP server)
   mcp-server/       → @ansible/mcp-server (standalone MCP server)
+  ui/               → @ansible/ui (shared React components for webviews)
 src/
   extension.ts      → VS Code extension entry point
   panels/           → Webview panels

@@ -6,7 +6,11 @@ export default defineConfig({
             provider: 'v8',
             reporter: ['text', 'html', 'lcov'],
             reportsDirectory: 'coverage',
-            include: ['packages/core/src/**/*.ts', 'packages/mcp-server/src/**/*.ts'],
+            include: [
+                'packages/common/src/**/*.ts',
+                'packages/services/src/**/*.ts',
+                'packages/mcp-server/src/**/*.ts',
+            ],
             exclude: ['**/index.ts', '**/server.ts', '**/types/**'],
             thresholds: {
                 statements: 85,
@@ -18,8 +22,16 @@ export default defineConfig({
         projects: [
             {
                 test: {
-                    name: 'core',
-                    root: 'packages/core',
+                    name: 'common',
+                    root: 'packages/common',
+                    include: ['test/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
+                    name: 'services',
+                    root: 'packages/services',
                     include: ['test/**/*.test.ts'],
                     environment: 'node',
                 },

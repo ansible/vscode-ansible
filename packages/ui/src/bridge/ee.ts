@@ -48,8 +48,8 @@ export interface SystemPackageDetail {
 
 /**
  * Bridge contract for execution environment detail views.
- * Host implementations fetch data from @ansible/core services
- * (extension, Navita) or REST APIs (Backstage).
+ * Host implementations fetch data from @ansible/services
+ * (extension) or REST APIs (Backstage).
  */
 export interface EEBridge extends HostBridgeCore {
     getInfo(eeName: string): Promise<EEInfo>;

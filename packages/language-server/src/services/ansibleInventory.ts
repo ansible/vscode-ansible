@@ -1,6 +1,6 @@
 import { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { getCommandService } from '@ansible/core/out/services/CommandService';
+import { getCommandService } from '@ansible/services';
 import type { WorkspaceFolderContext } from './workspaceManager';
 
 export interface HostType {

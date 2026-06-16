@@ -936,7 +936,8 @@
     "wdio-vscode-service": "^6.1.4"
   },
   "dependencies": {
-    "@ansible/core": "*",
+    "@ansible/common": "*",
+    "@ansible/services": "*",
     "@ansible/mcp-server": "*",
     "@ansible/ui": "*",
     "@modelcontextprotocol/sdk": "^1.25.2",

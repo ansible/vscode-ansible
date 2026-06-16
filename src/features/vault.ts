@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getCommandService } from '@ansible/core';
+import { getCommandService } from '@ansible/services';
 import { getVaultConfig, parseVaultIdentities, findProjectRoot } from '@src/features/ansibleCfg';
 
 // ---------------------------------------------------------------------------

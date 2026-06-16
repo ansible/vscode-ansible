@@ -5,7 +5,7 @@
  * Automatically rebuilds when CollectionsService data changes.
  */
 
-import { CollectionsService } from '@ansible/core';
+import { CollectionsService } from '@ansible/services';
 
 export interface PluginSearchResult {
     fullName: string;

@@ -1,5 +1,5 @@
 import type { HostBridgeCore } from './core';
-import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/core';
+import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/common';
 
 /**
  * Bridge contract for the playbook configuration form view.

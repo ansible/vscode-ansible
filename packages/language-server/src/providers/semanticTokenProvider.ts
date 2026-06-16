@@ -6,8 +6,8 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { isMap, isNode, isPair, isScalar, isSeq, Node, Scalar, YAMLMap } from 'yaml';
-import type { PluginOption } from '@ansible/core/out/services/CollectionsService';
-import { CollectionsService } from '@ansible/core/out/services/CollectionsService';
+import type { PluginOption } from '@ansible/services';
+import { CollectionsService } from '@ansible/services';
 import { blockKeywords, isTaskKeyword, playKeywords, roleKeywords } from '../utils/ansible';
 import {
     findProvidedModule,

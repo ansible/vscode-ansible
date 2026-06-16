@@ -20,7 +20,7 @@ const hoisted = vi.hoisted(() => {
     return { collectionsInstance, refresh, isLoaded, getCollections };
 });
 
-vi.mock('@ansible/core', () => ({
+vi.mock('@ansible/services', () => ({
     CollectionsService: {
         getInstance: vi.fn(() => hoisted.collectionsInstance),
     },

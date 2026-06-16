@@ -6,8 +6,8 @@
  */
 
 import * as vscode from 'vscode';
-import { SkillRegistry, buildSkillLoadPrompt, buildSkillClipboardPrompt } from '@ansible/core';
-import type { SkillEntry, SkillSource } from '@ansible/core';
+import { SkillRegistry, buildSkillLoadPrompt, buildSkillClipboardPrompt } from '@ansible/services';
+import type { SkillEntry, SkillSource } from '@ansible/services';
 import { log } from '@src/extension';
 
 type TreeNode = SourceNode | ModuleNode | SkillNode | MessageNode;
