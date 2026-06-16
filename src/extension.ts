@@ -228,6 +228,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     llmProviderSettings,
   );
 
+  // Initial async kickoffs, kept out of the (synchronous) constructors above
+  // so construction stays side-effect-free (Sonar S7059).
+  void lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+  void lightSpeedManager.lightspeedAuthenticatedUser.logAuthProviderDebugHints();
+
   if (context.extensionMode !== vscode.ExtensionMode.Production) {
     context.subscriptions.push(
       vscode.commands.registerCommand(
