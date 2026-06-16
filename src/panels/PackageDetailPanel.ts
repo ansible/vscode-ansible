@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExecutionEnvService } from '@ansible/core';
+import { ExecutionEnvService } from '@ansible/services';
 import { log } from '@src/extension';
 
 type PackageType = 'python' | 'system';

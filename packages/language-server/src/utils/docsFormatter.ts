@@ -1,7 +1,7 @@
 import { format } from 'util';
 import { MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { parse, toMD } from 'antsibull-docs';
-import type { PluginDoc, PluginOption } from '@ansible/core/out/services/CollectionsService';
+import type { PluginDoc, PluginOption } from '@ansible/services';
 
 /**
  * Formats Ansible module documentation as LSP markdown hover content.

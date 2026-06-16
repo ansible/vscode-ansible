@@ -14,7 +14,7 @@
     "clean": "rimraf out"
   },
   "dependencies": {
-    "@ansible/core": "*",
+    "@ansible/services": "0.0.1",
     "@flatten-js/interval-tree": "^2.0.3",
     "antsibull-docs": "^1.1.4",
     "glob": "^13.0.6",

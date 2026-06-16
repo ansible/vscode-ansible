@@ -18,7 +18,7 @@ import {
     PlaybookProgressView,
 } from '@ansible/ui';
 import type { SchemaNode } from '@ansible/ui';
-import { buildPreviewString } from '@ansible/core/utils/creatorArgs';
+import { buildPreviewString } from '@ansible/common';
 import { VsCodeBridge } from './bridges/VsCodeBridge';
 // esbuild imports CSS as text via loader config; inject at runtime
 import tokensCss from '@ansible/ui/styles/tokens.css';

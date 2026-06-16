@@ -47,7 +47,11 @@ const targets = [
         outfile: path.join(ROOT, 'dist', 'extension.js'),
         outdir: undefined,
         external: ['vscode'],
-        alias: { '@src': path.join(ROOT, 'src') },
+        alias: {
+            '@src': path.join(ROOT, 'src'),
+            '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
+            '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
+        },
     },
     {
         ...shared,
@@ -56,8 +60,8 @@ const targets = [
         outdir: undefined,
         alias: {
             '@src': path.join(ROOT, 'packages', 'language-server', 'src'),
-            '@ansible/core/out': path.join(ROOT, 'packages', 'core', 'src'),
-            '@ansible/core': path.join(ROOT, 'packages', 'core', 'src'),
+            '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
+            '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
         },
     },
     {
@@ -67,8 +71,8 @@ const targets = [
         outdir: undefined,
         alias: {
             '@src': path.join(ROOT, 'packages', 'mcp-server', 'src'),
-            '@ansible/core/out': path.join(ROOT, 'packages', 'core', 'src'),
-            '@ansible/core': path.join(ROOT, 'packages', 'core', 'src'),
+            '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
+            '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
         },
     },
     {
@@ -79,8 +83,7 @@ const targets = [
         alias: {
             '@src': path.join(ROOT, 'src'),
             '@ansible/ui': path.join(ROOT, 'packages', 'ui', 'src'),
-            '@ansible/core/out': path.join(ROOT, 'packages', 'core', 'src'),
-            '@ansible/core': path.join(ROOT, 'packages', 'core', 'src'),
+            '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
         },
     },
 ];

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ExecutionEnvService } from '@ansible/core';
+import { ExecutionEnvService } from '@ansible/services';
 import { log } from '@src/extension';
 import { PackageDetailPanel } from '@src/panels/PackageDetailPanel';
 
@@ -9,7 +9,7 @@ import { PackageDetailPanel } from '@src/panels/PackageDetailPanel';
  * The panel provides a minimal HTML shell that loads the bundled
  * webview.js entry point. All rendering is handled by @ansible/ui
  * components; this class only handles panel lifecycle and bridges
- * postMessage RPC to @ansible/core services.
+ * postMessage RPC to @ansible/services services.
  */
 export class EEDetailPanel {
     private static _panels = new Map<string, EEDetailPanel>();

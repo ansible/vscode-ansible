@@ -7,11 +7,11 @@
  * - Commands (for user actions)
  * - MCP tools (for AI/automation integration)
  *
- * Shared domain logic lives in `@ansible/core`; this barrel re-exports it plus
+ * Shared domain logic lives in `@ansible/services`; this barrel re-exports it plus
  * extension-local services (Playbooks, Terminal).
  */
 
-export * from '@ansible/core';
+export * from '@ansible/services';
 
 export { TerminalService } from '@src/services/TerminalService';
 export type {

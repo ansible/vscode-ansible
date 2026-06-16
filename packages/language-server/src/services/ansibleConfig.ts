@@ -3,7 +3,7 @@ import * as path from 'path';
 import _ from 'lodash';
 import { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { getCommandService } from '@ansible/core/out/services/CommandService';
+import { getCommandService } from '@ansible/services';
 import type { WorkspaceFolderContext } from './workspaceManager';
 
 export type AnsibleMetaData = Record<string, string | undefined>;

@@ -1,0 +1,20 @@
+{
+  "name": "@ansible/services",
+  "version": "0.0.1",
+  "description": "Node.js Ansible service implementations - command execution, caching, discovery",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "rimraf out"
+  },
+  "dependencies": {
+    "@ansible/common": "0.0.1",
+    "js-yaml": "^4.1.1"
+  }
+}

@@ -20,8 +20,8 @@ import {
     CreatorService,
     GalaxyCollectionCache,
     GitHubCollectionCache,
-} from '@ansible/core';
-import type { PluginOption, SchemaNode } from '@ansible/core';
+} from '@ansible/services';
+import type { PluginOption, SchemaNode } from '@ansible/services';
 
 /**
  * Normalizes ansible-doc fields that may be a single string or string array.

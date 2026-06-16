@@ -4,8 +4,8 @@
  * Dynamically generates MCP tools from ansible-creator schema.
  */
 
-import { CreatorService } from '@ansible/core';
-import type { SchemaNode } from '@ansible/core';
+import { CreatorService } from '@ansible/services';
+import type { SchemaNode } from '@ansible/services';
 import { McpToolDefinition, McpToolResult } from './tools';
 
 /** Generates and dispatches MCP tools from the ansible-creator command schema. */

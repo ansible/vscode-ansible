@@ -14,8 +14,8 @@ import type {
     PlaybookConfigBridge,
     PlaybookProgressBridge,
 } from '@ansible/ui';
-import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/core/types/playbook';
-import { buildPlaybookCommand } from '@ansible/core/services/PlaybookConfigService';
+import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/common';
+import { buildPlaybookCommand } from '@ansible/common';
 
 type VsCodeApi = {
     postMessage(message: unknown): void;

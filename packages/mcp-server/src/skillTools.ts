@@ -5,8 +5,8 @@
  * as MCP tools backed by the SkillRegistry service.
  */
 
-import { SkillRegistry } from '@ansible/core';
-import type { SkillSource, SkillCategory } from '@ansible/core';
+import { SkillRegistry } from '@ansible/services';
+import type { SkillSource, SkillCategory } from '@ansible/services';
 import { McpToolDefinition, McpToolResult } from './tools';
 
 /** MCP tool names handled by this generator. */

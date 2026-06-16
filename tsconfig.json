@@ -27,7 +27,8 @@
     }
   },
   "references": [
-    { "path": "packages/core" },
+    { "path": "packages/common" },
+    { "path": "packages/services" },
     { "path": "packages/language-server" },
     { "path": "packages/mcp-server" }
   ]

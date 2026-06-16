@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { useBridge } from '../bridge/context';
 import type { PlaybookProgressBridge } from '../bridge/playbook';
-import type { ProgressEvent } from '@ansible/core';
+import type { ProgressEvent } from '@ansible/common';
 import { YamlBlock } from '../components/YamlBlock';
 import * as yaml from 'js-yaml';
 

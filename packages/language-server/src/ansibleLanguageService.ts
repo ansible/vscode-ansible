@@ -15,7 +15,7 @@ import { doValidate } from './providers/validationProvider';
 import { ValidationManager } from './services/validationManager';
 import { WorkspaceManager } from './services/workspaceManager';
 import { getAnsibleMetaData } from './utils/getAnsibleMetaData';
-import { CollectionsService } from '@ansible/core/out/services/CollectionsService';
+import { CollectionsService } from '@ansible/services';
 
 /**
  * Wires LSP lifecycle events to Ansible language features for a workspace.

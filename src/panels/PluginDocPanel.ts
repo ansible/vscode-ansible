@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CollectionsService } from '@ansible/core';
+import { CollectionsService } from '@ansible/services';
 
 /**
  * Thin webview host for plugin documentation.

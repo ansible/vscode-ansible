@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { useBridge } from '../bridge/context';
 import type { PlaybookConfigBridge } from '../bridge/playbook';
-import type { PlaybookConfig } from '@ansible/core';
+import type { PlaybookConfig } from '@ansible/common';
 import { FormTextField } from '../components/form/FormTextField';
 import { FormSelect } from '../components/form/FormSelect';
 import { FormCheckbox } from '../components/form/FormCheckbox';

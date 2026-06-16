@@ -1,5 +1,5 @@
 import { Connection } from 'vscode-languageserver';
-import { getCommandService } from '@ansible/core/out/services/CommandService';
+import { getCommandService } from '@ansible/services';
 import type { WorkspaceFolderContext } from '../services/workspaceManager';
 
 export interface AnsibleMetaDataEntry {
