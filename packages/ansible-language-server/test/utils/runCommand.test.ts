@@ -60,10 +60,27 @@ describe("commandRunner", function () {
       pythonInterpreterPath: "path-before-python/bin/python",
       activationScript: `${process.env.VIRTUAL_ENV}/bin/activate`,
     },
+    {
+      args: ["printenv", "ANSIBLE_CONFIG"],
+      rc: 0,
+      stdout: "/tmp/ansible.cfg",
+      stderr: "",
+      pythonInterpreterPath: "",
+      activationScript: "",
+      ansibleConfigPath: "/tmp/ansible.cfg",
+    },
   ];
 
   tests.forEach(
-    ({ args, rc, stdout, stderr, pythonInterpreterPath, activationScript }) => {
+    ({
+      args,
+      rc,
+      stdout,
+      stderr,
+      pythonInterpreterPath,
+      activationScript,
+      ansibleConfigPath,
+    }) => {
       it(`call ${args.join(" ")}`, { timeout: 10000 }, async () => {
         // try to enforce ansible to output ANSI in order to check if we are
         // still able to disable it at runtime in order to keep output parsable.
@@ -81,6 +98,9 @@ describe("commandRunner", function () {
           }
           if (activationScript) {
             settings.python.activationScript = activationScript;
+          }
+          if (ansibleConfigPath) {
+            settings.config.path = ansibleConfigPath;
           }
 
           const commandRunner = new CommandRunner(

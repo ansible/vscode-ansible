@@ -41,6 +41,13 @@ export class SettingsManager {
           "Toggle usage of fully qualified collection names (FQCN) when inserting module names",
       },
     },
+    config: {
+      path: {
+        default: "",
+        description:
+          "Path to the ansible.cfg file used by the language server for Ansible commands and diagnostics. Supports relative paths and ${workspaceFolder}",
+      },
+    },
     python: {
       interpreterPath: {
         default: "",

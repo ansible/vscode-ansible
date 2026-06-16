@@ -249,6 +249,7 @@ export class ExecutionEnvironment {
   public wrapContainerArgs(
     command: string,
     mountPaths?: Set<string>,
+    envOverrides: NodeJS.ProcessEnv = {},
   ): string[] | undefined {
     /* v8 ignore next 10 */
     if (
@@ -297,8 +298,11 @@ export class ExecutionEnvironment {
     }
 
     // handle Ansible environment variables
-    for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
-      if (envVarKey.startsWith("ANSIBLE_")) {
+    for (const [envVarKey, envVarValue] of Object.entries({
+      ...process.env,
+      ...envOverrides,
+    })) {
+      if (envVarKey.startsWith("ANSIBLE_") && envVarValue !== undefined) {
         containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
       }
     }
