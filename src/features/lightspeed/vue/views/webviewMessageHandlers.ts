@@ -916,11 +916,15 @@ export class WebviewMessageHandlers {
 
         if (pullNewer && templateFile.startsWith("podman/")) {
           try {
-            const config = JSON.parse(templateContent);
-            if (!Array.isArray(config.runArgs)) {
-              config.runArgs = [];
-            }
-            config.runArgs.push("--pull=newer");
+            const config = JSON.parse(templateContent) as Record<
+              string,
+              unknown
+            >;
+            const runArgs = Array.isArray(config.runArgs)
+              ? (config.runArgs as string[])
+              : [];
+            runArgs.push("--pull=newer");
+            config.runArgs = runArgs;
             templateContent = JSON.stringify(config, null, 2) + "\n";
           } catch {
             // Template is not valid JSON after substitution; skip injection
