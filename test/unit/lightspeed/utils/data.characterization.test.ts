@@ -35,10 +35,26 @@ const DOCUMENTS: Record<string, string> = {
   nestedBlocks:
     "- hosts: all\n  tasks:\n    - block:\n        - name: x\n      rescue:\n        - name: y",
   trailingBlankLines: "- name: a\n  ansible.builtin.debug:\n\n",
+  // blank line(s) between a keyword and trailing comments -> exercises the
+  // "skip blank line" branch of hasOnlyCommentsAfter.
+  blockBlankThenComments: "block:\n\n# trailing comment\n",
+  // keyword followed by a real (non-comment, non-blank) line -> the
+  // "not only comments after keyword" branch.
+  blockThenTasks: "block:\n  - name: a\n  - name: b\n  - name: c",
+  // multiple keyword sections with list items at several indents -> populates
+  // the per-line trigger-indent map across columns.
+  multiKeywordIndents:
+    "rescue:\n  - name: r\nalways:\n    - name: a\nblock:\n      - name: b",
+  // deeply indented playbook task block.
+  deepPlaybookTasks:
+    "- hosts: all\n  tasks:\n      - name: deep\n        ansible.builtin.debug:",
+  // a leading comment (index 0 stays unset) before the keyword, so the
+  // "previous line matches but no earlier line does" fall-through is reached.
+  commentThenBlock: "# lead\nblock:\n  - name: a\n  - name: b",
 };
 
-const SPACES = [0, 2, 4, 6, 8];
-const PROMPT_LINES = [0, 1, 3, 99];
+const SPACES = [0, 1, 2, 3, 4, 6, 8, 10];
+const PROMPT_LINES = [0, 1, 2, 3, 4, 99];
 const FILE_TYPES: IAnsibleFileType[] = [
   "playbook" as IAnsibleFileType,
   "tasks" as IAnsibleFileType,
