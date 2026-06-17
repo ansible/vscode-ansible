@@ -115,9 +115,11 @@ function normalizeDoc(raw: Record<string, unknown> | undefined): PluginDoc | und
     if (!raw) return undefined;
     const doc = { ...raw } as Record<string, unknown>;
     if (doc.options) {
-        doc.options = normalizeOptions(doc.options as GalaxyOptionEntry[] | Record<string, unknown>);
+        doc.options = normalizeOptions(
+            doc.options as GalaxyOptionEntry[] | Record<string, unknown>,
+        );
     }
-    return doc as PluginDoc;
+    return doc;
 }
 
 interface DocsBlobResponse {
@@ -196,7 +198,13 @@ export class GalaxyDocsCache {
         return `${namespace}.${name}-${version}`;
     }
 
-    /** Resolves the file path for a cached docs-blob entry. */
+    /**
+     * Resolves the file path for a cached docs-blob entry.
+     * @param namespace - Collection namespace.
+     * @param name - Collection name.
+     * @param version - Collection version.
+     * @returns Absolute file path, or undefined if no cache dir.
+     */
     private _cacheFilePath(namespace: string, name: string, version: string): string | undefined {
         const dir = this._cacheDir;
         if (!dir) return undefined;
@@ -254,7 +262,13 @@ export class GalaxyDocsCache {
         return filePath != null && fs.existsSync(filePath);
     }
 
-    /** Retrieves from memory, disk, or fetches from the Galaxy API. */
+    /**
+     * Retrieves from memory, disk, or fetches from the Galaxy API.
+     * @param namespace - Collection namespace.
+     * @param name - Collection name.
+     * @param version - Collection version.
+     * @returns Cached docs-blob, or null on failure.
+     */
     private async _getOrFetch(
         namespace: string,
         name: string,
@@ -283,12 +297,14 @@ export class GalaxyDocsCache {
         }
     }
 
-    /** Attempts to load a cached docs-blob from disk. */
-    private _loadFromDisk(
-        namespace: string,
-        name: string,
-        version: string,
-    ): CachedDocsBlob | null {
+    /**
+     * Attempts to load a cached docs-blob from disk.
+     * @param namespace - Collection namespace.
+     * @param name - Collection name.
+     * @param version - Collection version.
+     * @returns Cached blob if valid, or null.
+     */
+    private _loadFromDisk(namespace: string, name: string, version: string): CachedDocsBlob | null {
         const filePath = this._cacheFilePath(namespace, name, version);
         if (!filePath || !fs.existsSync(filePath)) return null;
 
@@ -314,6 +330,9 @@ export class GalaxyDocsCache {
 
     /**
      * Fetches docs-blob from the Galaxy API and caches the result.
+     * @param namespace - Collection namespace.
+     * @param name - Collection name.
+     * @param version - Collection version.
      * @returns The cached blob, or null on failure.
      */
     private async _fetchAndCache(
@@ -329,7 +348,7 @@ export class GalaxyDocsCache {
             const response = JSON.parse(raw) as DocsBlobResponse;
             const blob = response.docs_blob;
 
-            if (!blob.contents) {
+            if (blob.contents.length === 0) {
                 log(`GalaxyDocsCache: No contents in docs-blob for ${namespace}.${name}`);
                 return null;
             }

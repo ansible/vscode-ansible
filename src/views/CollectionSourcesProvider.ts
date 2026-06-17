@@ -240,7 +240,10 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
         }
     }
 
-    /** Returns the configured GitHub org list from workspace settings. */
+    /**
+     * Returns the configured GitHub org list from workspace settings.
+     * @returns Array of GitHub organization names.
+     */
     private _getConfiguredOrgs(): string[] {
         const config = vscode.workspace.getConfiguration('ansibleEnvironments');
         return (

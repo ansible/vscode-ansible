@@ -40,7 +40,10 @@ function installMock404(): void {
     );
 }
 
-/** Configures the mocked HTTPS client to return a successful JSON response. */
+/**
+ * Configures the mocked HTTPS client to return a successful JSON response.
+ * @param body - JSON response body string.
+ */
 function installMockSuccess(body: string): void {
     httpsGetMock.mockImplementation(
         (_url: unknown, _options: unknown, cb: (res: EventEmitter) => void) => {
@@ -192,11 +195,7 @@ describe('GalaxyDocsCache', () => {
             },
         };
 
-        fs.writeFileSync(
-            path.join(cacheDir, 'ns.col-2.0.0.json'),
-            JSON.stringify(cached),
-            'utf-8',
-        );
+        fs.writeFileSync(path.join(cacheDir, 'ns.col-2.0.0.json'), JSON.stringify(cached), 'utf-8');
 
         const svc = GalaxyDocsCache.getInstance();
         svc.setExtensionContext({ globalStorageUri: { fsPath: tmpDir } });
@@ -225,9 +224,7 @@ describe('GalaxyDocsCache', () => {
             pluginDocs: {},
         };
 
-        fs.writeFileSync(
-            path.join(cacheDir, 'ns.col-1.0.0.json'), JSON.stringify(cached), 'utf-8',
-        );
+        fs.writeFileSync(path.join(cacheDir, 'ns.col-1.0.0.json'), JSON.stringify(cached), 'utf-8');
 
         const svc = GalaxyDocsCache.getInstance();
         svc.setExtensionContext({ globalStorageUri: { fsPath: tmpDir } });
@@ -337,13 +334,22 @@ describe('GalaxyDocsCache', () => {
                             doc: {
                                 short_description: 'A module',
                                 options: [
-                                    { name: 'host', type: 'str', description: 'Target host', required: true },
+                                    {
+                                        name: 'host',
+                                        type: 'str',
+                                        description: 'Target host',
+                                        required: true,
+                                    },
                                     {
                                         name: 'config',
                                         type: 'dict',
                                         description: 'Nested config',
                                         suboptions: [
-                                            { name: 'port', type: 'int', description: 'Port number' },
+                                            {
+                                                name: 'port',
+                                                type: 'int',
+                                                description: 'Port number',
+                                            },
                                             { name: 'tls', type: 'bool', description: 'Use TLS' },
                                         ],
                                     },
@@ -373,11 +379,11 @@ describe('GalaxyDocsCache', () => {
         expect(optionKeys).toContain('config');
         expect(optionKeys.every((k) => isNaN(Number(k)))).toBe(true);
 
-        const hostOpt = doc?.doc?.options?.['host'];
+        const hostOpt = doc?.doc?.options?.host;
         expect(hostOpt?.required).toBe(true);
         expect(hostOpt?.type).toBe('str');
 
-        const configOpt = doc?.doc?.options?.['config'];
+        const configOpt = doc?.doc?.options?.config;
         expect(configOpt?.suboptions).toBeDefined();
         const subKeys = Object.keys(configOpt?.suboptions ?? {});
         expect(subKeys).toContain('port');
@@ -434,13 +440,13 @@ describe('GalaxyDocsCache', () => {
         expect(types?.module[0].fullName).toBe('fetch.col.alpha');
         expect(types?.lookup).toHaveLength(1);
         expect(types?.lookup[0].name).toBe('beta');
-        expect(types?.['module_utils']).toBeUndefined();
+        expect(types?.module_utils).toBeUndefined();
 
         const doc = await svc.getPluginDoc('fetch', 'col', '2.0.0', 'fetch.col.alpha', 'module');
         expect(doc).not.toBeNull();
         expect(doc?.doc?.short_description).toBe('Alpha module');
         expect(doc?.examples).toContain('mode: fast');
-        expect(doc?.return?.['status']).toBeDefined();
+        expect(doc?.return?.status).toBeDefined();
 
         const cacheFile = path.join(tmpDir, 'galaxy-docs', 'fetch.col-2.0.0.json');
         expect(fs.existsSync(cacheFile)).toBe(true);
