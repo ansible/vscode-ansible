@@ -993,8 +993,16 @@ describe('McpToolHandler', () => {
                     description: ['Configure access control lists on IOS devices.'],
                     author: ['Cisco Systems'],
                     options: {
-                        config: { type: 'list', description: 'ACL config entries', required: true },
-                        state: { type: 'str', description: 'Desired state', choices: ['merged', 'replaced'] },
+                        config: {
+                            type: 'list',
+                            description: 'ACL config entries',
+                            required: true,
+                        },
+                        state: {
+                            type: 'str',
+                            description: 'Desired state',
+                            choices: ['merged', 'replaced'],
+                        },
                     },
                 },
                 examples: '- cisco.ios.ios_acls:\n    config: []\n    state: merged',

@@ -68,7 +68,7 @@ function normalizeOptions(
             if (!name) continue;
             const opt: PluginOption = { ...rest };
             if (suboptions) {
-                opt.suboptions = normalizeOptions(suboptions as GalaxyOptionEntry[]);
+                opt.suboptions = normalizeOptions(suboptions);
             }
             result[name] = opt;
         }
@@ -115,9 +115,9 @@ function normalizeDoc(raw: Record<string, unknown> | undefined): PluginDoc | und
     if (!raw) return undefined;
     const doc = { ...raw } as Record<string, unknown>;
     if (doc.options) {
-        doc.options = normalizeOptions(doc.options as GalaxyOptionEntry[]);
+        doc.options = normalizeOptions(doc.options as GalaxyOptionEntry[] | Record<string, unknown>);
     }
-    return doc as unknown as PluginDoc;
+    return doc as PluginDoc;
 }
 
 interface DocsBlobResponse {
@@ -153,7 +153,10 @@ export class GalaxyDocsCache {
     private _memoryCache = new Map<string, CachedDocsBlob>();
     private _pendingFetches = new Map<string, Promise<CachedDocsBlob | null>>();
 
-    /** Returns the singleton instance. */
+    /**
+     * Returns the singleton instance.
+     * @returns The shared GalaxyDocsCache instance.
+     */
     public static getInstance(): GalaxyDocsCache {
         GalaxyDocsCache._instance ??= new GalaxyDocsCache();
         return GalaxyDocsCache._instance;
@@ -167,7 +170,10 @@ export class GalaxyDocsCache {
         this._extensionContext = context;
     }
 
-    /** Resolves the on-disk cache directory, creating it if needed. */
+    /**
+     * Resolves the on-disk cache directory, creating it if needed.
+     * @returns Absolute path to the cache directory, or undefined.
+     */
     private get _cacheDir(): string | undefined {
         if (this._extensionContext) {
             return path.join(this._extensionContext.globalStorageUri.fsPath, CACHE_DIR_NAME);
@@ -179,7 +185,13 @@ export class GalaxyDocsCache {
         return fallback;
     }
 
-    /** Builds a cache key from namespace, name, and version. */
+    /**
+     * Builds a cache key from namespace, name, and version.
+     * @param namespace - Collection namespace.
+     * @param name - Collection name.
+     * @param version - Collection version.
+     * @returns Cache key string.
+     */
     private _cacheKey(namespace: string, name: string, version: string): string {
         return `${namespace}.${name}-${version}`;
     }

@@ -254,7 +254,8 @@ Examples:
             },
             plugin: {
                 type: 'string',
-                description: 'Plugin short name (e.g., "ios_acls"). Omit to list available plugin types.',
+                description:
+                    'Plugin short name (e.g., "ios_acls"). Omit to list available plugin types.',
             },
             plugin_type: {
                 type: 'string',
