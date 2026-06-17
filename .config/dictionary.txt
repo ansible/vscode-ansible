@@ -125,6 +125,7 @@ tsup
 typedarrays
 unrs
 unsubed
+userns
 uuidv
 vite
 vitest
