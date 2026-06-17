@@ -651,6 +651,16 @@ export class GalaxyCollectionCache {
     }
 
     /**
+     * Returns the top N collections by download count.
+     *
+     * @param n - Maximum number of collections to return (default 50).
+     * @returns Slice of the top collections sorted by popularity.
+     */
+    public getTopCollections(n = 50): GalaxyCollection[] {
+        return this._collections.slice(0, n);
+    }
+
+    /**
      * Searches cached collections by namespace, name, or FQCN.
      *
      * @param query - Case-insensitive search string; empty returns top 100 by popularity.

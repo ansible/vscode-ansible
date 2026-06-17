@@ -34,6 +34,7 @@ import {
 } from '@src/views/CollectionSourcesProvider';
 import {
     GalaxyCollectionCache,
+    GalaxyDocsCache,
     CollectionsService,
     setLogFunction as setCollectionsLogFunction,
     DevToolsService,
@@ -43,6 +44,7 @@ import {
     buildCollectionsSummaryPrompt,
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
+    buildGalaxyPluginExplanationPrompt,
     buildEESummaryPrompt,
     buildEEDetailPrompt,
     buildCreatorOverviewPrompt,
@@ -435,7 +437,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionSourcesProvider = new CollectionSourcesProvider();
     const collectionSourcesView = vscode.window.createTreeView('ansibleCollectionSources', {
         treeDataProvider: collectionSourcesProvider,
-        showCollapseAll: false,
+        showCollapseAll: true,
     });
     context.subscriptions.push(collectionSourcesView);
 
@@ -608,6 +610,10 @@ export function activate(context: vscode.ExtensionContext) {
     const galaxyCache = GalaxyCollectionCache.getInstance();
     galaxyCache.setExtensionContext(context);
     galaxyCache.startBackgroundLoad();
+
+    // Initialize Galaxy docs-blob cache
+    const galaxyDocsCache = GalaxyDocsCache.getInstance();
+    galaxyDocsCache.setExtensionContext(context);
 
     // Register Collections commands
     const collectionsRefreshCommand = vscode.commands.registerCommand(
@@ -1052,6 +1058,65 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    const filterGalaxyCollectionsCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.filterGalaxyCollections',
+        async () => {
+            await collectionSourcesProvider.filterGalaxyCollections();
+        },
+    );
+
+    const clearGalaxyFilterCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.clearGalaxyFilter',
+        () => {
+            collectionSourcesProvider.clearGalaxyFilter();
+        },
+    );
+
+    const installGalaxyCollectionCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.installGalaxyCollection',
+        async (node?: { collection: { namespace: string; name: string } }) => {
+            if (!node) {
+                vscode.window.showWarningMessage('Select a Galaxy collection from the tree view.');
+                return;
+            }
+            await collectionSourcesProvider.installGalaxyCollection(
+                node as Parameters<typeof collectionSourcesProvider.installGalaxyCollection>[0],
+            );
+        },
+    );
+
+    const showGalaxyPluginDocCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.showGalaxyPluginDoc',
+        async (node?: Parameters<typeof collectionSourcesProvider.showGalaxyPluginDoc>[0]) => {
+            if (!node) {
+                vscode.window.showWarningMessage('Select a Galaxy plugin from the tree view.');
+                return;
+            }
+            await collectionSourcesProvider.showGalaxyPluginDoc(node, context.extensionUri);
+        },
+    );
+
+    const galaxyPluginAiSummaryCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.galaxyPluginAiSummary',
+        async (node?: {
+            plugin: { name: string; fullName: string };
+            pluginType: string;
+            collection: { namespace: string; name: string };
+        }) => {
+            if (!node) {
+                vscode.window.showWarningMessage('Select a Galaxy plugin from the tree view.');
+                return;
+            }
+            const collectionFqcn = `${node.collection.namespace}.${node.collection.name}`;
+            const prompt = buildGalaxyPluginExplanationPrompt(
+                collectionFqcn,
+                node.plugin.name,
+                node.pluginType,
+            );
+            await openChatWithPrompt(prompt);
+        },
+    );
+
     // Register Galaxy cache refresh command
     const galaxyCacheRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refreshGalaxyCache',
@@ -1265,6 +1330,11 @@ export function activate(context: vscode.ExtensionContext) {
         collectionSourcesInstallFromSourceCommand,
         collectionSourcesAiSummaryCommand,
         collectionSourcesAiSourceSummaryCommand,
+        filterGalaxyCollectionsCommand,
+        clearGalaxyFilterCommand,
+        installGalaxyCollectionCommand,
+        showGalaxyPluginDocCommand,
+        galaxyPluginAiSummaryCommand,
         selectLlmModelCommand,
         showLlmStatusCommand,
     );

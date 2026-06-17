@@ -3,6 +3,7 @@ import {
     buildCollectionsSummaryPrompt,
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
+    buildGalaxyPluginExplanationPrompt,
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
@@ -37,6 +38,16 @@ describe('collections prompts', () => {
             expect(result).toContain('ansible.builtin.copy');
             expect(result).toContain('module');
             expect(result).toContain('get_plugin_documentation');
+        });
+    });
+
+    describe('buildGalaxyPluginExplanationPrompt', () => {
+        it('includes collection, plugin name, and Galaxy tool reference', () => {
+            const result = buildGalaxyPluginExplanationPrompt('cisco.ios', 'ios_acls', 'module');
+            expect(result).toContain('cisco.ios');
+            expect(result).toContain('ios_acls');
+            expect(result).toContain('module');
+            expect(result).toContain('get_galaxy_plugin_doc');
         });
     });
 

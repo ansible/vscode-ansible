@@ -232,6 +232,41 @@ Examples:
     },
 };
 
+export const GET_GALAXY_PLUGIN_DOC_TOOL: McpToolDefinition = {
+    name: 'get_galaxy_plugin_doc',
+    description: `Get documentation for a plugin from an uninstalled Galaxy collection.
+
+Fetches the docs-blob from Ansible Galaxy and returns full plugin documentation
+including synopsis, parameters, examples, and return values.
+
+Use search_available_collections first to find the collection, then this tool
+to read its plugin docs without installing it.
+
+Examples:
+- get_galaxy_plugin_doc({ collection: "cisco.ios", plugin: "ios_acls", plugin_type: "module" })
+- get_galaxy_plugin_doc({ collection: "community.docker" }) → lists all plugin types and counts`,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            collection: {
+                type: 'string',
+                description:
+                    'Collection FQCN (e.g., "cisco.ios", "community.general")',
+            },
+            plugin: {
+                type: 'string',
+                description:
+                    'Plugin short name (e.g., "ios_acls"). Omit to list available plugin types.',
+            },
+            plugin_type: {
+                type: 'string',
+                description: 'Plugin type (default: module)',
+            },
+        },
+        required: ['collection'],
+    },
+};
+
 // === Task Generation Tools ===
 
 export const GENERATE_TASK_TOOL: McpToolDefinition = {
@@ -555,6 +590,7 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     SEARCH_AVAILABLE_COLLECTIONS_TOOL,
     LIST_SOURCE_COLLECTIONS_TOOL,
     GET_COLLECTION_PLUGINS_TOOL,
+    GET_GALAXY_PLUGIN_DOC_TOOL,
 
     // Task generation
     GENERATE_TASK_TOOL,

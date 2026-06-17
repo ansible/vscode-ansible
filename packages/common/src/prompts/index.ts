@@ -11,6 +11,7 @@ export {
     buildCollectionsSummaryPrompt,
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
+    buildGalaxyPluginExplanationPrompt,
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
