@@ -97,7 +97,7 @@ const matchLine = (
 /**
  * True if every line after `fromIndex` is blank or a comment.
  */
-function hasOnlyCommentsAfter(
+export function hasOnlyCommentsAfter(
   documentLines: string[],
   fromIndex: number,
 ): boolean {
@@ -121,7 +121,7 @@ function hasOnlyCommentsAfter(
  * Scan forward from `fromIndex` until the first list item line and record its
  * indent into the per-line `validSuggestionTriggerIndents` map (via matchLine).
  */
-function populateIndentsUntilFirstListItem(
+export function populateIndentsUntilFirstListItem(
   documentLines: string[],
   fromIndex: number,
   validSuggestionTriggerIndents: number[],
@@ -142,7 +142,7 @@ function populateIndentsUntilFirstListItem(
  * keyword indent, mark keyword lines, and populate trigger indents. Returns an
  * early decision for the "only comments after the keyword" case, else null.
  */
-function scanTaskFileKeywordsBackward(
+export function scanTaskFileKeywordsBackward(
   documentLines: string[],
   spacesBeforePromptStart: number,
   validSuggestionTriggerIndents: number[],
@@ -181,7 +181,7 @@ function scanTaskFileKeywordsBackward(
  * True if the document contains only comments (ignoring blanks and "---"),
  * while populating trigger indents up to the first list item.
  */
-function isCommentOnlyDocument(
+export function isCommentOnlyDocument(
   documentLines: string[],
   validSuggestionTriggerIndents: number[],
 ): boolean {
@@ -205,7 +205,7 @@ function isCommentOnlyDocument(
  * True if the prompt column lines up with the previous line's recorded indent
  * (or an earlier line whose indent the prompt is at least as deep as).
  */
-function matchesPreviousLineColumn(
+export function matchesPreviousLineColumn(
   validSuggestionTriggerIndents: number[],
   spacesBeforePromptStart: number,
   linePromptStart: number,
@@ -275,7 +275,7 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
  * Scan forward from `fromIndex` for the first list item and record its (unique)
  * indent length into `validSuggestionTriggerIndents`.
  */
-function collectFirstListItemIndent(
+export function collectFirstListItemIndent(
   documentLines: string[],
   fromIndex: number,
   validSuggestionTriggerIndents: number[],
@@ -301,7 +301,7 @@ function collectFirstListItemIndent(
  * first keyword indent, and collect trigger indents. Returns an early decision
  * for the "only comments after the keyword" case, else null.
  */
-function scanPlaybookKeywordsBackward(
+export function scanPlaybookKeywordsBackward(
   documentLines: string[],
   spacesBeforePromptStart: number,
   validSuggestionTriggerIndents: number[],

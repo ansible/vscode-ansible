@@ -56,8 +56,10 @@ const DOCUMENTS: Record<string, string> = {
 const SPACES = [0, 1, 2, 3, 4, 6, 8, 10];
 const PROMPT_LINES = [0, 1, 2, 3, 4, 99];
 const FILE_TYPES: IAnsibleFileType[] = [
-  "playbook" as IAnsibleFileType,
-  "tasks" as IAnsibleFileType,
+  "playbook",
+  "tasks",
+  "tasks_in_role",
+  "other",
 ];
 
 describe("shouldTriggerMultiTaskSuggestion (characterization)", () => {
