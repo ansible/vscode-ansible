@@ -759,9 +759,7 @@ export class McpToolHandler {
      * @param args - Tool args: `collection` (required), optional `plugin` and `plugin_type`
      * @returns Plugin documentation or a list of available plugin types
      */
-    private async _handleGetGalaxyPluginDoc(
-        args: Record<string, unknown>,
-    ): Promise<McpToolResult> {
+    private async _handleGetGalaxyPluginDoc(args: Record<string, unknown>): Promise<McpToolResult> {
         const collectionFqcn = args.collection as string;
         if (!collectionFqcn) {
             return {
@@ -806,11 +804,7 @@ export class McpToolHandler {
         const pluginName = args.plugin as string | undefined;
 
         if (!pluginName) {
-            const pluginTypes = await docsCache.getPluginTypes(
-                namespace,
-                name,
-                match.version,
-            );
+            const pluginTypes = await docsCache.getPluginTypes(namespace, name, match.version);
 
             if (!pluginTypes) {
                 return {
@@ -846,13 +840,7 @@ export class McpToolHandler {
 
         const pluginType = (args.plugin_type as string) || 'module';
         const fqcn = `${collectionFqcn}.${pluginName}`;
-        const doc = await docsCache.getPluginDoc(
-            namespace,
-            name,
-            match.version,
-            fqcn,
-            pluginType,
-        );
+        const doc = await docsCache.getPluginDoc(namespace, name, match.version, fqcn, pluginType);
 
         if (!doc) {
             return {
@@ -871,7 +859,7 @@ export class McpToolHandler {
 
         if (doc.doc) {
             const d = doc.doc;
-            if (d.short_description) sections.push(`*${String(d.short_description)}*\n`);
+            if (d.short_description) sections.push(`*${d.short_description}*\n`);
             if (d.description) {
                 sections.push('## Description\n');
                 sections.push(toArray(d.description).join('\n') + '\n');
@@ -949,9 +937,7 @@ export class McpToolHandler {
                 opt.choices && opt.choices.length > 0
                     ? ` [choices: ${opt.choices.join(', ')}]`
                     : '';
-            lines.push(
-                `${indent}• **${optName}**${type}${required}${desc}${defaultVal}${choices}`,
-            );
+            lines.push(`${indent}• **${optName}**${type}${required}${desc}${defaultVal}${choices}`);
             if (opt.suboptions) {
                 this._formatOptions(opt.suboptions, lines, depth + 1);
             }

@@ -935,15 +935,33 @@ describe('McpToolHandler', () => {
 
         it('lists plugin types when no plugin specified', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
-                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+                {
+                    namespace: 'cisco',
+                    name: 'ios',
+                    version: '11.0.0',
+                    deprecated: false,
+                    downloadCount: 100,
+                },
             ]);
             hoisted.galaxyDocsInstance.getPluginTypes.mockResolvedValue({
                 module: [
-                    { name: 'ios_acls', fullName: 'cisco.ios.ios_acls', shortDescription: 'ACL config' },
-                    { name: 'ios_bgp', fullName: 'cisco.ios.ios_bgp', shortDescription: 'BGP config' },
+                    {
+                        name: 'ios_acls',
+                        fullName: 'cisco.ios.ios_acls',
+                        shortDescription: 'ACL config',
+                    },
+                    {
+                        name: 'ios_bgp',
+                        fullName: 'cisco.ios.ios_bgp',
+                        shortDescription: 'BGP config',
+                    },
                 ],
                 lookup: [
-                    { name: 'ios_lookup', fullName: 'cisco.ios.ios_lookup', shortDescription: 'Lookup' },
+                    {
+                        name: 'ios_lookup',
+                        fullName: 'cisco.ios.ios_lookup',
+                        shortDescription: 'Lookup',
+                    },
                 ],
             });
 
@@ -961,7 +979,13 @@ describe('McpToolHandler', () => {
 
         it('returns full plugin documentation when plugin specified', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
-                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+                {
+                    namespace: 'cisco',
+                    name: 'ios',
+                    version: '11.0.0',
+                    deprecated: false,
+                    downloadCount: 100,
+                },
             ]);
             hoisted.galaxyDocsInstance.getPluginDoc.mockResolvedValue({
                 doc: {
@@ -998,7 +1022,13 @@ describe('McpToolHandler', () => {
 
         it('returns error when specific plugin not found', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
-                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+                {
+                    namespace: 'cisco',
+                    name: 'ios',
+                    version: '11.0.0',
+                    deprecated: false,
+                    downloadCount: 100,
+                },
             ]);
             hoisted.galaxyDocsInstance.getPluginDoc.mockResolvedValue(null);
 
@@ -1013,7 +1043,13 @@ describe('McpToolHandler', () => {
 
         it('returns error when docs-blob fetch fails', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
-                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+                {
+                    namespace: 'cisco',
+                    name: 'ios',
+                    version: '11.0.0',
+                    deprecated: false,
+                    downloadCount: 100,
+                },
             ]);
             hoisted.galaxyDocsInstance.getPluginTypes.mockResolvedValue(null);
 
@@ -1027,7 +1063,13 @@ describe('McpToolHandler', () => {
 
         it('formats recursive suboptions in plugin documentation', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
-                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+                {
+                    namespace: 'cisco',
+                    name: 'ios',
+                    version: '11.0.0',
+                    deprecated: false,
+                    downloadCount: 100,
+                },
             ]);
             hoisted.galaxyDocsInstance.getPluginDoc.mockResolvedValue({
                 doc: {

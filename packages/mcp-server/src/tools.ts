@@ -250,13 +250,11 @@ Examples:
         properties: {
             collection: {
                 type: 'string',
-                description:
-                    'Collection FQCN (e.g., "cisco.ios", "community.general")',
+                description: 'Collection FQCN (e.g., "cisco.ios", "community.general")',
             },
             plugin: {
                 type: 'string',
-                description:
-                    'Plugin short name (e.g., "ios_acls"). Omit to list available plugin types.',
+                description: 'Plugin short name (e.g., "ios_acls"). Omit to list available plugin types.',
             },
             plugin_type: {
                 type: 'string',
