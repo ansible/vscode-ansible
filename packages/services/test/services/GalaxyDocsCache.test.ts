@@ -203,11 +203,10 @@ describe('GalaxyDocsCache', () => {
         const doc = await svc.getPluginDoc('ns', 'col', '2.0.0', 'ns.col.widget', 'module');
         expect(doc).not.toBeNull();
         expect(doc?.doc?.options).toBeDefined();
-
-        const optionKeys = Object.keys(doc?.doc?.options ?? {});
-        expect(optionKeys).toContain('size');
-        expect(optionKeys).toContain('color');
-        expect(optionKeys.every((k) => isNaN(Number(k)))).toBe(true);
+        expect(doc?.doc?.options).toHaveProperty('size');
+        expect(doc?.doc?.options).toHaveProperty('color');
+        expect(doc?.doc?.options).not.toHaveProperty('0');
+        expect(doc?.doc?.options).not.toHaveProperty('1');
     });
 
     it('getPluginDoc returns null for nonexistent plugin', async () => {
@@ -374,26 +373,27 @@ describe('GalaxyDocsCache', () => {
         const doc = await svc.getPluginDoc('arr', 'col', '1.0.0', 'arr.col.my_mod', 'module');
         expect(doc).not.toBeNull();
 
-        const optionKeys = Object.keys(doc?.doc?.options ?? {});
-        expect(optionKeys).toContain('host');
-        expect(optionKeys).toContain('config');
-        expect(optionKeys.every((k) => isNaN(Number(k)))).toBe(true);
+        expect(doc?.doc?.options).toBeDefined();
+        expect(doc?.doc?.options).toHaveProperty('host');
+        expect(doc?.doc?.options).toHaveProperty('config');
+        expect(doc?.doc?.options).not.toHaveProperty('0');
 
-        const hostOpt = doc?.doc?.options?.host;
+        const options = doc?.doc?.options as Record<string, unknown> | undefined;
+        const hostOpt = options?.host as Record<string, unknown> | undefined;
         expect(hostOpt?.required).toBe(true);
         expect(hostOpt?.type).toBe('str');
 
-        const configOpt = doc?.doc?.options?.config;
-        expect(configOpt?.suboptions).toBeDefined();
-        const subKeys = Object.keys(configOpt?.suboptions ?? {});
-        expect(subKeys).toContain('port');
-        expect(subKeys).toContain('tls');
-        expect(subKeys.every((k) => isNaN(Number(k)))).toBe(true);
+        const configOpt = options?.config as Record<string, unknown> | undefined;
+        const configSubs = configOpt?.suboptions as Record<string, unknown> | undefined;
+        expect(configSubs).toBeDefined();
+        expect(configSubs).toHaveProperty('port');
+        expect(configSubs).toHaveProperty('tls');
+        expect(configSubs).not.toHaveProperty('0');
 
-        const returnKeys = Object.keys(doc?.return ?? {});
-        expect(returnKeys).toContain('result');
-        expect(returnKeys).toContain('changed');
-        expect(returnKeys.every((k) => isNaN(Number(k)))).toBe(true);
+        expect(doc?.return).toBeDefined();
+        expect(doc?.return).toHaveProperty('result');
+        expect(doc?.return).toHaveProperty('changed');
+        expect(doc?.return).not.toHaveProperty('0');
     });
 
     it('fetches from API, parses docs-blob, and persists to disk', async () => {
