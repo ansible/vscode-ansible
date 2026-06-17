@@ -1024,5 +1024,46 @@ describe('McpToolHandler', () => {
             expect(result.isError).toBe(true);
             expect(result.content[0].text).toContain('Failed to fetch');
         });
+
+        it('formats recursive suboptions in plugin documentation', async () => {
+            hoisted.galaxyInstance.getCollections.mockReturnValue([
+                { namespace: 'cisco', name: 'ios', version: '11.0.0', deprecated: false, downloadCount: 100 },
+            ]);
+            hoisted.galaxyDocsInstance.getPluginDoc.mockResolvedValue({
+                doc: {
+                    short_description: 'Nested opts test',
+                    options: {
+                        network: {
+                            type: 'dict',
+                            description: 'Network config',
+                            required: true,
+                            suboptions: {
+                                address: { type: 'str', description: 'IP address', required: true },
+                                dns: {
+                                    type: 'dict',
+                                    description: 'DNS settings',
+                                    suboptions: {
+                                        servers: { type: 'list', description: 'DNS servers' },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            const result = await handler.handleTool('get_galaxy_plugin_doc', {
+                collection: 'cisco.ios',
+                plugin: 'nested_mod',
+                plugin_type: 'module',
+            });
+
+            expect(result.isError).toBeUndefined();
+            const text = result.content[0].text;
+            expect(text).toContain('**network**');
+            expect(text).toContain('**address**');
+            expect(text).toContain('**dns**');
+            expect(text).toContain('**servers**');
+        });
     });
 });

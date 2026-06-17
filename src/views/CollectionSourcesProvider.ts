@@ -415,7 +415,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
     /**
      * Expands a Galaxy collection into plugin-type groupings.
      * @param collection - The collection to expand.
-     * @returns Array of plugin-type tree nodes.
+     * @returns Array of plugin-type tree nodes, or an error placeholder on failure.
      */
     private async _getCollectionChildren(collection: GalaxyCollection): Promise<TreeNode[]> {
         const pluginTypes = await this._galaxyDocsCache.getPluginTypes(
@@ -425,7 +425,13 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
         );
 
         if (!pluginTypes) {
-            return [];
+            const errorNode = new vscode.TreeItem(
+                'Failed to load plugin documentation',
+                vscode.TreeItemCollapsibleState.None,
+            );
+            errorNode.iconPath = new vscode.ThemeIcon('warning');
+            errorNode.tooltip = `Could not fetch docs-blob for ${collection.namespace}.${collection.name} v${collection.version}. Click the collection to retry.`;
+            return [errorNode as TreeNode];
         }
 
         return Object.entries(pluginTypes)

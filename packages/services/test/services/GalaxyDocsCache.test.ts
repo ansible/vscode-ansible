@@ -25,13 +25,37 @@ function installMock404(): void {
             const res = new EventEmitter() as EventEmitter & {
                 statusCode: number;
                 statusMessage: string;
+                resume: () => void;
             };
             res.statusCode = 404;
             res.statusMessage = 'Not Found';
+            res.resume = vi.fn();
             const req = new EventEmitter() as EventEmitter & { destroy: () => void };
             req.destroy = vi.fn();
             queueMicrotask(() => {
                 cb(res);
+            });
+            return req as ReturnType<typeof import('https').get>;
+        },
+    );
+}
+
+/** Configures the mocked HTTPS client to return a successful JSON response. */
+function installMockSuccess(body: string): void {
+    httpsGetMock.mockImplementation(
+        (_url: unknown, _options: unknown, cb: (res: EventEmitter) => void) => {
+            const res = new EventEmitter() as EventEmitter & {
+                statusCode: number;
+                headers: Record<string, string>;
+            };
+            res.statusCode = 200;
+            res.headers = { 'content-type': 'application/json' };
+            const req = new EventEmitter() as EventEmitter & { destroy: () => void };
+            req.destroy = vi.fn();
+            queueMicrotask(() => {
+                cb(res);
+                res.emit('data', Buffer.from(body));
+                res.emit('end');
             });
             return req as ReturnType<typeof import('https').get>;
         },
@@ -300,5 +324,129 @@ describe('GalaxyDocsCache', () => {
         const types = await svc.getPluginTypes('bad', 'json', '1.0.0');
         expect(types).toBeNull();
         expect(httpsGetMock).toHaveBeenCalled();
+    });
+
+    it('normalizes array-shaped options into keyed records during fetch', async () => {
+        const docsBlob = {
+            docs_blob: {
+                contents: [
+                    {
+                        content_name: 'my_mod',
+                        content_type: 'module',
+                        doc_strings: {
+                            doc: {
+                                short_description: 'A module',
+                                options: [
+                                    { name: 'host', type: 'str', description: 'Target host', required: true },
+                                    {
+                                        name: 'config',
+                                        type: 'dict',
+                                        description: 'Nested config',
+                                        suboptions: [
+                                            { name: 'port', type: 'int', description: 'Port number' },
+                                            { name: 'tls', type: 'bool', description: 'Use TLS' },
+                                        ],
+                                    },
+                                ],
+                            },
+                            examples: '- arr.col.my_mod:\n    host: example.com',
+                            return: [
+                                { name: 'result', type: 'dict', description: 'The result' },
+                                { name: 'changed', type: 'bool', description: 'Whether changed' },
+                            ],
+                        },
+                    },
+                ],
+            },
+        };
+
+        installMockSuccess(JSON.stringify(docsBlob));
+
+        const svc = GalaxyDocsCache.getInstance();
+        svc.setExtensionContext({ globalStorageUri: { fsPath: tmpDir } });
+
+        const doc = await svc.getPluginDoc('arr', 'col', '1.0.0', 'arr.col.my_mod', 'module');
+        expect(doc).not.toBeNull();
+
+        const optionKeys = Object.keys(doc?.doc?.options ?? {});
+        expect(optionKeys).toContain('host');
+        expect(optionKeys).toContain('config');
+        expect(optionKeys.every((k) => isNaN(Number(k)))).toBe(true);
+
+        const hostOpt = doc?.doc?.options?.['host'];
+        expect(hostOpt?.required).toBe(true);
+        expect(hostOpt?.type).toBe('str');
+
+        const configOpt = doc?.doc?.options?.['config'];
+        expect(configOpt?.suboptions).toBeDefined();
+        const subKeys = Object.keys(configOpt?.suboptions ?? {});
+        expect(subKeys).toContain('port');
+        expect(subKeys).toContain('tls');
+        expect(subKeys.every((k) => isNaN(Number(k)))).toBe(true);
+
+        const returnKeys = Object.keys(doc?.return ?? {});
+        expect(returnKeys).toContain('result');
+        expect(returnKeys).toContain('changed');
+        expect(returnKeys.every((k) => isNaN(Number(k)))).toBe(true);
+    });
+
+    it('fetches from API, parses docs-blob, and persists to disk', async () => {
+        const docsBlob = {
+            docs_blob: {
+                contents: [
+                    {
+                        content_name: 'alpha',
+                        content_type: 'module',
+                        doc_strings: {
+                            doc: {
+                                short_description: 'Alpha module',
+                                options: { mode: { type: 'str', description: 'Mode' } },
+                            },
+                            examples: '- fetch.col.alpha:\n    mode: fast',
+                            return: { status: { type: 'str', description: 'Status' } },
+                        },
+                    },
+                    {
+                        content_name: 'beta',
+                        content_type: 'lookup',
+                        doc_strings: {
+                            doc: { short_description: 'Beta lookup' },
+                        },
+                    },
+                    {
+                        content_name: 'internal_util',
+                        content_type: 'module_utils',
+                        doc_strings: null,
+                    },
+                ],
+            },
+        };
+
+        installMockSuccess(JSON.stringify(docsBlob));
+
+        const svc = GalaxyDocsCache.getInstance();
+        svc.setExtensionContext({ globalStorageUri: { fsPath: tmpDir } });
+
+        const types = await svc.getPluginTypes('fetch', 'col', '2.0.0');
+        expect(types).not.toBeNull();
+        expect(types?.module).toHaveLength(1);
+        expect(types?.module[0].name).toBe('alpha');
+        expect(types?.module[0].fullName).toBe('fetch.col.alpha');
+        expect(types?.lookup).toHaveLength(1);
+        expect(types?.lookup[0].name).toBe('beta');
+        expect(types?.['module_utils']).toBeUndefined();
+
+        const doc = await svc.getPluginDoc('fetch', 'col', '2.0.0', 'fetch.col.alpha', 'module');
+        expect(doc).not.toBeNull();
+        expect(doc?.doc?.short_description).toBe('Alpha module');
+        expect(doc?.examples).toContain('mode: fast');
+        expect(doc?.return?.['status']).toBeDefined();
+
+        const cacheFile = path.join(tmpDir, 'galaxy-docs', 'fetch.col-2.0.0.json');
+        expect(fs.existsSync(cacheFile)).toBe(true);
+        const persisted = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+        expect(persisted.formatVersion).toBe(2);
+        expect(persisted.namespace).toBe('fetch');
+        expect(persisted.name).toBe('col');
     });
 });

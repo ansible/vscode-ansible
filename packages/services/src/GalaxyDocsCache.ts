@@ -411,13 +411,28 @@ export class GalaxyDocsCache {
         }
     }
 
+    private static readonly ALLOWED_REDIRECT_HOSTS = new Set([
+        'galaxy.ansible.com',
+        'old-galaxy.ansible.com',
+        'console.redhat.com',
+    ]);
+
+    private static readonly MAX_REDIRECTS = 5;
+
     /**
      * Performs an HTTPS GET request with retry logic and redirect following.
+     * Validates redirect targets against an allowlist to prevent SSRF.
+     * Uses exponential backoff with jitter between retries.
      * @param url - The URL to fetch.
      * @param retries - Number of retry attempts remaining.
+     * @param redirectsLeft - Remaining redirect hops before aborting.
      * @returns The response body as a string.
      */
-    private _httpsGet(url: string, retries = 3): Promise<string> {
+    private _httpsGet(
+        url: string,
+        retries = 3,
+        redirectsLeft = GalaxyDocsCache.MAX_REDIRECTS,
+    ): Promise<string> {
         return new Promise((resolve, reject) => {
             const attempt = (left: number) => {
                 const req = https.get(
@@ -436,17 +451,46 @@ export class GalaxyDocsCache {
                                 res.statusCode === 302 ||
                                 res.statusCode === 307)
                         ) {
+                            res.resume();
+                            if (redirectsLeft <= 0) {
+                                reject(new Error('Too many redirects'));
+                                return;
+                            }
                             let loc = res.headers.location;
-                            if (loc?.startsWith('/')) loc = `https://galaxy.ansible.com${loc}`;
+                            if (loc?.startsWith('/')) {
+                                loc = `https://galaxy.ansible.com${loc}`;
+                            }
                             if (loc) {
-                                this._httpsGet(loc, left).then(resolve).catch(reject);
+                                try {
+                                    const target = new URL(loc);
+                                    if (
+                                        !GalaxyDocsCache.ALLOWED_REDIRECT_HOSTS.has(target.hostname)
+                                    ) {
+                                        reject(
+                                            new Error(
+                                                `Redirect to disallowed host: ${target.hostname}`,
+                                            ),
+                                        );
+                                        return;
+                                    }
+                                } catch {
+                                    reject(new Error(`Invalid redirect URL: ${loc}`));
+                                    return;
+                                }
+                                this._httpsGet(loc, left, redirectsLeft - 1)
+                                    .then(resolve)
+                                    .catch(reject);
                                 return;
                             }
                         }
 
                         if (res.statusCode && res.statusCode >= 400) {
+                            res.resume();
                             if (left > 1) {
-                                setTimeout(() => attempt(left - 1), 1000);
+                                const delay = GalaxyDocsCache._retryDelay(retries - left);
+                                setTimeout(() => {
+                                    attempt(left - 1);
+                                }, delay);
                                 return;
                             }
                             reject(new Error(`HTTP ${String(res.statusCode)}`));
@@ -461,22 +505,52 @@ export class GalaxyDocsCache {
                             resolve(Buffer.concat(chunks).toString('utf-8'));
                         });
                         res.on('error', (e) => {
-                            if (left > 1) setTimeout(() => attempt(left - 1), 1000);
-                            else reject(e);
+                            if (left > 1) {
+                                const delay = GalaxyDocsCache._retryDelay(retries - left);
+                                setTimeout(() => {
+                                    attempt(left - 1);
+                                }, delay);
+                            } else {
+                                reject(e);
+                            }
                         });
                     },
                 );
                 req.on('error', (e) => {
-                    if (left > 1) setTimeout(() => attempt(left - 1), 1000);
-                    else reject(e);
+                    if (left > 1) {
+                        const delay = GalaxyDocsCache._retryDelay(retries - left);
+                        setTimeout(() => {
+                            attempt(left - 1);
+                        }, delay);
+                    } else {
+                        reject(e);
+                    }
                 });
                 req.on('timeout', () => {
                     req.destroy();
-                    if (left > 1) setTimeout(() => attempt(left - 1), 1000);
-                    else reject(new Error('Timeout'));
+                    if (left > 1) {
+                        const delay = GalaxyDocsCache._retryDelay(retries - left);
+                        setTimeout(() => {
+                            attempt(left - 1);
+                        }, delay);
+                    } else {
+                        reject(new Error('Timeout'));
+                    }
                 });
             };
             attempt(retries);
         });
+    }
+
+    /**
+     * Exponential backoff with jitter: base * 2^attempt + random jitter.
+     * @param attempt - Zero-based retry attempt index.
+     * @returns Delay in milliseconds before the next retry.
+     */
+    private static _retryDelay(attempt: number): number {
+        const base = 1000;
+        const exp = base * Math.pow(2, attempt);
+        const jitter = Math.random() * base;
+        return exp + jitter;
     }
 }

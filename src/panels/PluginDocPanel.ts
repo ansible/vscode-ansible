@@ -57,6 +57,7 @@ export class PluginDocPanel {
 
         const existing = PluginDocPanel._panels.get(pluginKey);
         if (existing) {
+            existing._preloadedDoc = undefined;
             existing._panel.reveal();
             return;
         }
