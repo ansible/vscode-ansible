@@ -81,7 +81,7 @@ describe("withInterpreter", function () {
 
           expectedKeys.forEach((key) => {
             expect(actualCommand.env).to.haveOwnProperty(key);
-            expect(typeof actualCommand.env === "object");
+            expect(typeof actualCommand.env).toBe("object");
             if (!actualCommand.env || typeof expectedEnv === "string") {
               expect(false).toBe(true);
             } else {
