@@ -35,7 +35,7 @@ describe("get()", function () {
       });
 
       it("should return default value for all settings", function () {
-        expect(typeof context !== "undefined");
+        expect(context).toBeDefined();
         if (typeof context !== "undefined") {
           expect(mergedSettings).toEqual(
             context.documentSettings.globalSettings,
