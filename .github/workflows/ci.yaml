@@ -504,9 +504,8 @@ jobs:
           rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
-        # git-leaks not support on Windows
         if: ${{ !cancelled() && runner.os != 'Windows'}}
-        uses: ansible/actions/upload-artifact@main
+        uses: actions/upload-artifact@v7
         with:
           name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
           path: |
