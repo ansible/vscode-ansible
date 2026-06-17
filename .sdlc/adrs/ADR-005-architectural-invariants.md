@@ -113,6 +113,18 @@ through the `HostBridge` interface hierarchy. An `import ... from
 'vscode'` or `window.navitaAPI` call in `packages/ui/` is a
 violation — the component must use `useBridge()` instead.
 
+### 11. Every extension capability has an MCP tool equivalent (ADR-012)
+
+Any user-facing feature (tree view, command, webview panel) must have
+a corresponding MCP tool in `@ansible/mcp-server`, and vice versa.
+This keeps the discovery → documentation → generation loop complete
+for both human users and AI agents. A PR that adds a tree view node
+or command without an MCP tool (or adds a tool without a UI surface)
+violates this invariant.
+
+**Test**: If a human can perform an action via the extension UI, an
+agent must be able to perform the same action via an MCP tool.
+
 ## Consequences
 
 ### Positive
@@ -147,6 +159,8 @@ violation — the component must use `useBridge()` instead.
   exclusions (invariants 5, 7)
 - [ADR-010](ADR-010-shared-ui-component-layer.md): Shared UI component
   layer (invariants 9, 10)
+- [ADR-012](ADR-012-mcp-tool-parity.md): MCP tool parity
+  (invariant 11)
 
 ---
 
@@ -156,3 +170,4 @@ violation — the component must use `useBridge()` instead.
 |------|--------|--------|
 | 2026-05-26 | AI-assisted | Initial invariants (8 rules) |
 | 2026-06-10 | AI-assisted | Add invariants 9, 10 (shared UI) |
+| 2026-06-17 | AI-assisted | Add invariant 11 (MCP tool parity) |

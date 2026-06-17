@@ -47,6 +47,12 @@ Package architecture is in [ADR-011](.sdlc/adrs/ADR-011-package-architecture.md)
    All install, discovery, and management goes through `ade`. Do not
    invoke `ansible-galaxy` directly.
 
+9. **Every extension capability has an MCP tool equivalent**
+   (ADR-012). Any user-facing feature (tree view, command, panel) must
+   have a corresponding MCP tool in `@ansible/mcp-server`, and vice
+   versa. PRs adding UI without a tool (or a tool without UI) violate
+   this invariant.
+
 ## Branching Strategy
 
 See the `branching-strategy` skill for full details.
