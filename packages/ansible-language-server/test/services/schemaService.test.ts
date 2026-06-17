@@ -71,14 +71,28 @@ describe("SchemaCache", () => {
     expect(result).toBeUndefined();
   });
 
-  it("invalidates specific URL", () => {
+  it("invalidates specific URL", async () => {
+    const mockSchema = { type: "object", properties: {} };
+    fetchStub.resolves({ ok: true, json: async () => mockSchema });
+    await cache.getSchema("http://test.com/schema.json");
+
     cache.invalidate("http://test.com/schema.json");
-    // No error should be thrown
+
+    fetchStub.resolves({ ok: true, json: async () => mockSchema });
+    await cache.getSchema("http://test.com/schema.json");
+    expect(fetchStub.calledTwice).toBe(true);
   });
 
-  it("invalidates all cache", () => {
+  it("invalidates all cache", async () => {
+    const mockSchema = { type: "object", properties: {} };
+    fetchStub.resolves({ ok: true, json: async () => mockSchema });
+    await cache.getSchema("http://test.com/schema.json");
+
     cache.invalidate();
-    // No error should be thrown
+
+    fetchStub.resolves({ ok: true, json: async () => mockSchema });
+    await cache.getSchema("http://test.com/schema.json");
+    expect(fetchStub.calledTwice).toBe(true);
   });
 });
 
