@@ -182,6 +182,37 @@ describe('GalaxyCollectionCache', () => {
         expect(svc.getCollections().some((c) => c.name === 'fresh')).toBe(true);
     });
 
+    it('getTopCollections returns top N collections by download count', async () => {
+        const storage = path.join(tmpDir, 'globalStorage-topn');
+        fs.mkdirSync(storage, { recursive: true });
+
+        const collections = Array.from({ length: 20 }, (_, i) => ({
+            namespace: 'ns',
+            name: `coll${String(i)}`,
+            version: '1.0.0',
+            deprecated: false,
+            downloadCount: 200 - i,
+        }));
+
+        fs.writeFileSync(
+            path.join(storage, 'galaxy-collections-cache.json'),
+            JSON.stringify({ timestamp: Date.now(), collections }),
+            'utf8',
+        );
+
+        const svc = GalaxyCollectionCache.getInstance();
+        svc.setExtensionContext({ globalStorageUri: { fsPath: storage } });
+        await svc.ensureLoaded();
+
+        const top5 = svc.getTopCollections(5);
+        expect(top5).toHaveLength(5);
+        expect(top5[0].downloadCount).toBe(200);
+        expect(top5[4].downloadCount).toBe(196);
+
+        const defaultTop = svc.getTopCollections();
+        expect(defaultTop).toHaveLength(20);
+    });
+
     it('search filters by name, namespace, and fqcn; empty query returns top 100', async () => {
         const storage = path.join(tmpDir, 'globalStorage3');
         fs.mkdirSync(storage, { recursive: true });

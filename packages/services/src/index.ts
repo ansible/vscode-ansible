@@ -23,6 +23,7 @@ export {
     buildCollectionsSummaryPrompt,
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
+    buildGalaxyPluginExplanationPrompt,
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
@@ -105,6 +106,7 @@ export {
     getScriptCacheDir,
 } from './ContainerRuntime';
 export { GalaxyCollectionCache } from './GalaxyCollectionCache';
+export { GalaxyDocsCache } from './GalaxyDocsCache';
 export { GitHubCollectionCache } from './GitHubCollectionCache';
 export { SkillRegistry, _resetGitHubToken } from './SkillRegistry';
 export { discoverPlaybooks } from './PlaybookDiscovery';

@@ -55,6 +55,28 @@ Use the \`get_plugin_documentation\` MCP tool with plugin_name="${fullName}" and
 4. Any gotchas or best practices`;
 }
 
+/**
+ * Build an AI prompt to describe a Galaxy plugin (not installed).
+ *
+ * @param collectionFqcn - Collection namespace.name (e.g. "cisco.ios").
+ * @param pluginName - Short plugin name (e.g. "ios_acls").
+ * @param pluginType - Plugin type (module, lookup, filter, etc.).
+ * @returns Prompt instructing the AI to fetch and explain the Galaxy plugin.
+ */
+export function buildGalaxyPluginExplanationPrompt(
+    collectionFqcn: string,
+    pluginName: string,
+    pluginType: string,
+): string {
+    return `Explain the Ansible ${pluginType} plugin "${collectionFqcn}.${pluginName}" from the Galaxy collection "${collectionFqcn}".
+
+Use the \`get_galaxy_plugin_doc\` MCP tool with collection="${collectionFqcn}", plugin="${pluginName}", and plugin_type="${pluginType}" to get the full documentation, then provide:
+1. What this plugin does in plain language
+2. The most important parameters and when to use them
+3. A practical example task showing common usage
+4. Any gotchas or best practices`;
+}
+
 /** Input for building a collection sources overview prompt. */
 export interface CollectionSourcesInput {
     galaxyCount: number;

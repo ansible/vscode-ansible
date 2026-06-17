@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { CollectionsService } from '@ansible/services';
+import type { PluginData } from '@ansible/services';
 
 /**
  * Thin webview host for plugin documentation.
@@ -12,19 +13,23 @@ export class PluginDocPanel {
     private static _panels = new Map<string, PluginDocPanel>();
     public static readonly viewType = 'pluginDocPanel';
     private _disposables: vscode.Disposable[] = [];
+    private _preloadedDoc: PluginData | undefined;
 
     /**
      * @param _panel - The VS Code webview panel instance.
      * @param _pluginKey - Deduplication key (fqcn:type).
      * @param _fqcn - Fully qualified plugin name.
      * @param _pluginType - Plugin type such as module or lookup.
+     * @param preloadedDoc - Pre-fetched plugin data (e.g. from Galaxy docs-blob).
      */
     private constructor(
         private readonly _panel: vscode.WebviewPanel,
         private readonly _pluginKey: string,
         private readonly _fqcn: string,
         private readonly _pluginType: string,
+        preloadedDoc?: PluginData,
     ) {
+        this._preloadedDoc = preloadedDoc;
         this._panel.onDidDispose(
             () => {
                 this._dispose();
@@ -52,6 +57,7 @@ export class PluginDocPanel {
 
         const existing = PluginDocPanel._panels.get(pluginKey);
         if (existing) {
+            existing._preloadedDoc = undefined;
             existing._panel.reveal();
             return;
         }
@@ -80,6 +86,56 @@ export class PluginDocPanel {
         );
 
         const instance = new PluginDocPanel(panel, pluginKey, pluginFullName, pluginType);
+        PluginDocPanel._panels.set(pluginKey, instance);
+    }
+
+    /**
+     * Show plugin documentation with pre-fetched data (e.g. from Galaxy docs-blob).
+     * The webview's getPluginDoc RPC will return this data instead of querying CollectionsService.
+     * @param extensionUri - Extension root used for webview resources.
+     * @param pluginFullName - Fully qualified plugin name.
+     * @param pluginType - Plugin type such as module or lookup.
+     * @param data - Pre-fetched plugin documentation data.
+     */
+    public static showWithData(
+        extensionUri: vscode.Uri,
+        pluginFullName: string,
+        pluginType: string,
+        data: PluginData,
+    ): void {
+        const pluginKey = `${pluginFullName}:${pluginType}`;
+
+        const existing = PluginDocPanel._panels.get(pluginKey);
+        if (existing) {
+            existing._preloadedDoc = data;
+            existing._panel.reveal();
+            return;
+        }
+
+        const panel = vscode.window.createWebviewPanel(
+            PluginDocPanel.viewType,
+            pluginFullName,
+            vscode.ViewColumn.Active,
+            {
+                enableScripts: true,
+                localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'dist')],
+                retainContextWhenHidden: true,
+            },
+        );
+
+        const config = vscode.workspace.getConfiguration('ansibleEnvironments');
+        const enableAi = config.get<boolean>('enableAiFeatures', true);
+
+        panel.iconPath = new vscode.ThemeIcon('book');
+        panel.webview.html = PluginDocPanel._getHtml(
+            panel.webview,
+            extensionUri,
+            pluginFullName,
+            pluginType,
+            enableAi,
+        );
+
+        const instance = new PluginDocPanel(panel, pluginKey, pluginFullName, pluginType, data);
         PluginDocPanel._panels.set(pluginKey, instance);
     }
 
@@ -202,6 +258,7 @@ export class PluginDocPanel {
     private async _dispatch(method: string, params: Record<string, unknown>): Promise<unknown> {
         switch (method) {
             case 'getPluginDoc': {
+                if (this._preloadedDoc) return this._preloadedDoc;
                 const fqcn = typeof params.fqcn === 'string' ? params.fqcn : this._fqcn;
                 const pType =
                     typeof params.pluginType === 'string' ? params.pluginType : this._pluginType;
