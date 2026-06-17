@@ -49,6 +49,7 @@ export type DevcontainerFormInterface = {
   destinationPath: string;
   image: string;
   isOverwritten: boolean;
+  pullNewer: boolean;
 };
 
 export type PluginFormInterface = {

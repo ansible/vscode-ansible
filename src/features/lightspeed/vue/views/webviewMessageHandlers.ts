@@ -665,7 +665,7 @@ export class WebviewMessageHandlers {
     webView: vscode.Webview,
     extensionUri: vscode.Uri,
   ) {
-    const { destinationPath, image, isOverwritten } = payload;
+    const { destinationPath, image, isOverwritten, pullNewer } = payload;
     let commandResult: string;
     let message: string;
     let commandOutput = "";
@@ -691,6 +691,7 @@ export class WebviewMessageHandlers {
         recommendedExtensions,
         imageURL,
         extensionUri,
+        pullNewer,
       );
       if (commandResult === "failed") {
         message =
@@ -731,6 +732,7 @@ export class WebviewMessageHandlers {
     recommendedExtensions: string[],
     devcontainerImage: string,
     extensionUri: vscode.Uri,
+    pullNewer: boolean = false,
   ): Promise<string> {
     try {
       const expandedPath = expandPath(destinationUrl);
@@ -750,6 +752,7 @@ export class WebviewMessageHandlers {
         devcontainerDir,
         devcontainerImage,
         recommendedExtensions,
+        pullNewer,
       );
 
       return "passed";
@@ -769,6 +772,7 @@ export class WebviewMessageHandlers {
     destinationPath: string,
     devcontainerImage: string,
     recommendedExtensions: string[],
+    pullNewer: boolean = false,
   ): Promise<void> {
     const templateFiles = [
       "devcontainer.json.j2", // Root devcontainer.json
@@ -799,6 +803,19 @@ export class WebviewMessageHandlers {
           "{{ recommended_extensions | json }}",
           JSON.stringify(recommendedExtensions),
         );
+
+        if (pullNewer && templateFile.startsWith("podman/")) {
+          try {
+            const config = JSON.parse(templateContent);
+            if (!Array.isArray(config.runArgs)) {
+              config.runArgs = [];
+            }
+            config.runArgs.push("--pull=newer");
+            templateContent = JSON.stringify(config, null, 2) + "\n";
+          } catch {
+            // Template is not valid JSON after substitution; skip injection
+          }
+        }
 
         fs.writeFileSync(destinationFilePath, templateContent, "utf8");
       }

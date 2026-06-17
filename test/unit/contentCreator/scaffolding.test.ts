@@ -286,6 +286,110 @@ describe("Content Creator Scaffolding", () => {
       expect(parsed.customizations.vscode.extensions).toEqual([]);
     });
 
+    it("should add --pull=newer to podman runArgs when pullNewer is true", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--cap-add=SYS_ADMIN", "--userns=host"]
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        true,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).toContain("--pull=newer");
+      expect(parsed.runArgs).toContain("--cap-add=SYS_ADMIN");
+      expect(parsed.runArgs).toContain("--userns=host");
+    });
+
+    it("should not add --pull=newer to podman runArgs when pullNewer is false", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--cap-add=SYS_ADMIN"]
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        false,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).not.toContain("--pull=newer");
+    });
+
+    it("should not add --pull=newer to non-podman variants", async () => {
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        ["redhat.ansible"],
+        true,
+      );
+
+      const rootConfig = await fs.promises.readFile(
+        path.join(tempDir, "devcontainer.json"),
+        "utf8",
+      );
+      expect(rootConfig).not.toContain("--pull=newer");
+
+      const dockerConfig = await fs.promises.readFile(
+        path.join(tempDir, "docker", "devcontainer.json"),
+        "utf8",
+      );
+      expect(dockerConfig).not.toContain("--pull=newer");
+    });
+
+    it("should create runArgs array when pullNewer is true and podman template has no runArgs", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}"
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        true,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).toEqual(["--pull=newer"]);
+    });
+
     it("should not create files for missing templates", async () => {
       await fs.promises.rm(path.join(templateDir, "podman"), {
         recursive: true,
