@@ -28,6 +28,7 @@ import {
   ChatMessage,
   OpenAIClientError,
 } from "@src/features/lightspeed/clients/openaiCompatibleClient";
+import * as yaml from "js-yaml";
 
 export interface RHCustomConfig {
   apiKey: string;
@@ -52,7 +53,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
     // Validate required fields
     if (!config.apiKey || config.apiKey.trim() === "") {
       throw new Error(
-        "API Key is required for Red Hat AI provider. Please set 'ansible.lightspeed.apiKey' in your settings.",
+        "API Key is required for Red Hat AI provider. Please configure it in the LLM Provider Settings panel.",
       );
     }
     if (!config.modelName || config.modelName.trim() === "") {
@@ -179,12 +180,15 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
    */
   private fixWindowsPathEscapes(yamlContent: string): string {
     // Find all double-quoted strings and fix unescaped backslashes
-    return yamlContent.replace(/"([^"]*)"/g, (match, content) => {
-      // Escape backslashes that aren't already escaped or part of valid escape sequences
-      // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
-      const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
-      return `"${fixed}"`;
-    });
+    return yamlContent.replace(
+      /"([^"]*)"/g,
+      (_match: string, content: string) => {
+        // Escape backslashes that aren't already escaped or part of valid escape sequences
+        // Valid escape sequences: \\, \", \/, \b, \f, \n, \r, \t
+        const fixed = content.replace(/\\(?!["\\/bfnrt])/g, "\\\\");
+        return `"${fixed}"`;
+      },
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,7 +242,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       this.logger.error(`[RHCustom Provider] ${formattedError.message}`);
       this.logger.error(
-        `[RHCustom Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
+        `[RHCustom Provider] Validation error details: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       return false;
     }
@@ -311,7 +315,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[RHCustom Provider] Chat request failed: ${error}`);
+      this.logger.error(
+        `[RHCustom Provider] Chat request failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleRHCustomError(error, "chat generation");
     }
   }
@@ -416,7 +422,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
       };
     } catch (error) {
       this.logger.error(
-        `[RHCustom Provider] Playbook generation failed: ${error}`,
+        `[RHCustom Provider] Playbook generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       throw this.handleRHCustomError(error, "playbook generation");
     }
@@ -503,8 +509,7 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
         // Try to parse and validate the structure before generating outline
         try {
-          const yaml = require("js-yaml");
-          const parsed = yaml.load(cleanedContent);
+          const parsed: unknown = yaml.load(cleanedContent);
           console.log(
             "[RHCustom Provider] Parsed YAML type:",
             Array.isArray(parsed) ? "array" : typeof parsed,
@@ -549,7 +554,9 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[RHCustom Provider] Role generation failed: ${error}`);
+      this.logger.error(
+        `[RHCustom Provider] Role generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleRHCustomError(error, "role generation");
     }
   }

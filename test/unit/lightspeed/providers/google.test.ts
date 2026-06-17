@@ -1,48 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import * as Module from "module";
 
-// Mock AnsibleContextProcessor
-const mockEnhancePromptForAnsible = vi.fn(
-  (prompt: string, context?: string) => {
-    return `enhanced: ${prompt} with context: ${context || "none"}`;
+const { mockEnhancePromptForAnsible, mockCleanAnsibleOutput } = vi.hoisted(
+  () => {
+    const mockEnhancePromptForAnsible = vi.fn(
+      (prompt: string, context?: string) => {
+        return `enhanced: ${prompt} with context: ${context || "none"}`;
+      },
+    );
+
+    const mockCleanAnsibleOutput = vi.fn((output: string) => {
+      return output
+        .trim()
+        .replace(/^```ya?ml\s*/i, "")
+        .replace(/```\s*$/, "");
+    });
+
+    return { mockEnhancePromptForAnsible, mockCleanAnsibleOutput };
   },
 );
 
-const mockCleanAnsibleOutput = vi.fn((output: string) => {
-  return output
-    .trim()
-    .replace(/^```ya?ml\s*/i, "")
-    .replace(/```\s*$/, "");
-});
-
-const mockAnsibleContextModule = {
+vi.mock("@src/features/lightspeed/ansibleContext", () => ({
   AnsibleContextProcessor: {
     enhancePromptForAnsible: mockEnhancePromptForAnsible,
     cleanAnsibleOutput: mockCleanAnsibleOutput,
   },
-};
-
-// Store original require
-const originalRequire = Module.prototype.require.bind(Module.prototype);
-
-// Patch require() to intercept module imports - must happen before imports
-Module.prototype.require = function (
-  this: Module,
-  id: string,
-): ReturnType<typeof originalRequire> {
-  const normalizedId = id.replace(/\\/g, "/");
-  if (
-    id === "../ansibleContext" ||
-    normalizedId === "../ansibleContext" ||
-    normalizedId.endsWith("/ansibleContext") ||
-    normalizedId.endsWith("/ansibleContext.js") ||
-    normalizedId.includes("/ansibleContext") ||
-    normalizedId.includes("ansibleContext.js")
-  ) {
-    return mockAnsibleContextModule;
-  }
-  return originalRequire.call(this, id);
-};
+}));
 
 vi.mock("@google/genai", () => {
   // Create a proper constructor class that can be instantiated with 'new'

@@ -1,4 +1,4 @@
-# cspell:ignore oidc mxschmitt userns cgroupfs dorny
+# cspell:ignore oidc mxschmitt userns cgroupfs dorny xlarge
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -46,28 +46,28 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
       # needed by our prek system hooks like toml
       - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v8.1.0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          cache: true
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile]
+        uses: astral-sh/setup-uv@v8.2.0
 
       # needed by our prek systems hooks like biome
       - name: Install node (cache)
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
+
+      - name: Install pnpm # needs node 24
+        uses: pnpm/action-setup@v6
+        with:
+          cache: true
+          run_install: |
+            - recursive: true
+              args: [--frozen-lockfile]
 
       - name: Debug
         run: |
@@ -99,7 +99,7 @@ jobs:
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -109,6 +109,7 @@ jobs:
           chown -R $(id -u):$(id -g) $PWD
 
       - name: task setup
+        if: runner.os != 'Windows'
         timeout-minutes: 7 # expected under 10s for container builds
         run: |
           set -ex
@@ -154,8 +155,8 @@ jobs:
         run: |
           task build && task build --status
 
-      - name: task package
-        timeout-minutes: 2 # expected under 1 minutes
+      - name: task als:package
+        timeout-minutes: 4
         run: |
           task als:package && task als:package --status
 
@@ -163,18 +164,12 @@ jobs:
         if: >-
           steps.extract_context.outputs.context != '' &&
           !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
-        run: |
-          task ${{ steps.extract_context.outputs.context }}
+        run: task ${{ steps.extract_context.outputs.context }}
 
       - name: task docs
-        timeout-minutes: 1
-        run: |
-          task docs && task docs --status
-
-      - name: task package
         timeout-minutes: 2
         run: |
-          task package && task package --status
+          task docs && task docs --status
 
       - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
         run: task dry
@@ -186,6 +181,12 @@ jobs:
         timeout-minutes: 3
         run: |
           task lint
+
+      - name: task package
+        timeout-minutes: 4
+        run: |
+          task als:package && task als:package --status
+          task package && task package --status
 
       - name: task finish
         run: task finish
@@ -227,7 +228,9 @@ jobs:
     needs:
       - lint
 
-    environment: ci
+    environment:
+      name: ci
+      deployment: false
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
@@ -262,10 +265,15 @@ jobs:
         id:
           - test-linux
         include:
+          - name: build (windows)
+            task-name: package # at the moment only build+package works on windows
+            os: windows-latest
+            id: package-windows # rename to test-windows once tests are passing to include tests
+
           - name: test (macos)
             id: test-macos
             task-name: test
-            os: macos-15-large
+            os: macos-26 # or macos-15-xlarge for arm64 https://docs.github.com/en/actions/reference/runners/larger-runners
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -305,9 +313,10 @@ jobs:
               || echo "::warning::Could not remove $target — checkout may fail"
           fi
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
+          fetch-tags: true # needed for dynamic versioning
           show-progress: false
           clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
 
@@ -383,10 +392,14 @@ jobs:
           fi
           echo "HOME=$HOME" >> $GITHUB_ENV
 
-      - name: Ensure .env file is automatically loaded (mise)
+      - name: Check mise
         run: |
           mise reshim
           mise doctor
+
+      - name: Check python virtual environment
+        if: runner.os != 'Windows'
+        run: |
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
             echo "VIRTUAL_ENV mismatch"
             exit 99
@@ -422,10 +435,10 @@ jobs:
           podman info
 
       - name: task package
-        if: ${{ matrix.task-name != 'wdio' }}
+        if: ${{ matrix.task-name != 'wdio' && runner.os != 'Windows' }}
         id: package
         run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
+          task package -v ${{ matrix.env.TASKFILE_ARGS }} && task package -v ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: save ready_to_test=true
         id: ready_to_test
@@ -491,7 +504,8 @@ jobs:
           rm -rf out/e2e/tmp/home/.cache || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
-        if: ${{ !cancelled() }}
+        # git-leaks not support on Windows
+        if: ${{ !cancelled() && runner.os != 'Windows'}}
         uses: ansible/actions/upload-artifact@main
         with:
           name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
@@ -509,7 +523,7 @@ jobs:
 
       - name: Upload test coverage data to codecov.io
         if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           name: ${{ matrix.name }}
           files: ./out/coverage/**/*coverage.xml
@@ -519,7 +533,7 @@ jobs:
 
       - name: Upload junit test results to codecov.io
         if: ${{ !cancelled() && hashFiles('out/junit/**/*.xml') != '' && github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           directory: out/junit
           fail_ci_if_error: true
@@ -556,7 +570,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v4
@@ -578,7 +592,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           show-progress: false
 
@@ -613,7 +627,7 @@ jobs:
             type=sha
 
       - name: Build MCP server container
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: packages/ansible-mcp-server
           file: packages/ansible-mcp-server/Containerfile
@@ -657,13 +671,13 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
       # needed for pycobertura
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -740,7 +754,7 @@ jobs:
       checks: read
     steps:
       - name: Checkout Source
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
 
@@ -765,12 +779,12 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install --frozen-lockfile
+          pnpm install -y --frozen-lockfile
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces
         run: |
-          ./tools/helper --publish
+          node ./tools/helper.mts --publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
@@ -795,7 +809,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Source
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Download the artifact
         uses: actions/download-artifact@v8

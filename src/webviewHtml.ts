@@ -122,7 +122,10 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
   html = html.replace(/<script /g, `<script nonce="${nonce}" `);
 
   // Rewrite absolute /assets/ paths to webview URIs
-  html = html.replace(/(href|src)="\/assets\//g, `$1="${baseUri}/assets/`);
+  html = html.replace(
+    /(href|src)="\/assets\//g,
+    `$1="${baseUri.toString()}/assets/`,
+  );
 
   return html;
 }

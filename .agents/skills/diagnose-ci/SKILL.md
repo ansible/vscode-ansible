@@ -116,7 +116,7 @@ Check what exists in the repo root:
 
 ```text
 if Taskfile.yml exists AND package.json exists -> TypeScript project
-   lint command:  task lint / npx prek run --all-files
+   lint command:  task lint / prek run --all-files
    build command: task build
    test command:  task test
    package command: task package (runs knip, builds artifacts)
@@ -159,8 +159,8 @@ ordered by frequency within each toolchain.
 | 4 | **Knip dead code** | `Failed to run task "knip"`, `Extension in project not registered` | Update `knip.ts` config — remove unregistered extensions, suppress pre-existing unused types |
 | 5 | **Build artifact missing** | `ENOENT` referencing `dist/` or `.bin/` | Run build first, workspace dep may need rebuild |
 | 6 | **Test failure** | `AssertionError`, `expect(` failure | Read the failing test, update to match new dep API |
-| 7 | **prek/formatter** | `Files were modified by following hooks`, `prek exited with code 1` | Run `npx prek run --all-files` locally, commit the formatted files |
-| 8 | **Biome formatting** | `biome check` diff output | Run `npx biome check --write --unsafe`, commit changes |
+| 7 | **prek/formatter** | `Files were modified by following hooks`, `prek exited with code 1` | Run `prek run --all-files` locally, commit the formatted files |
+| 8 | **Biome formatting** | `biome check` diff output | Run `npm exec -- biome check --write --unsafe`, commit changes |
 
 ### Python/tox failures
 
@@ -210,7 +210,7 @@ gh pr diff PR_NUMBER --repo OWNER/REPO
 ```
 
 Understand what the bot changed. This constrains what files should be
-touched by a fix — best practice: avoid modifying anything
+touched by a fix — per Shatakshi's guidance: avoid modifying anything
 beyond the files already touched by the bot unless absolutely necessary.
 
 Note in the diagnosis which files the bot changed.
@@ -258,7 +258,6 @@ gh pr view PR_NUMBER --repo OWNER/REPO \
 - The fix is one of these safe categories ONLY: lockfile regeneration, formatter/linter auto-fix, removing unused imports, or adding a type annotation on a single line
 
 **NEEDS HUMAN REVIEW** — ANY of these:
-
 1. Multiple major version bumps in one PR
 2. Any major version bump that requires source code changes (not just
    lockfile/config)

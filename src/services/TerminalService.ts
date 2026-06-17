@@ -108,7 +108,7 @@ export class TerminalService implements vscode.Disposable {
           );
         } catch (error) {
           console.warn(
-            `[Ansible] Terminal Service: Failed to create Python-activated terminal: ${error}`,
+            `[Ansible] Terminal Service: Failed to create Python-activated terminal: ${error instanceof Error ? error.message : String(error)}`,
           );
           terminal = vscode.window.createTerminal({
             name: options.name,
@@ -238,18 +238,31 @@ export class TerminalService implements vscode.Disposable {
   ): Promise<CommandResult> {
     terminal.sendText(command);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const shellIntegration = (terminal as any).shellIntegration;
+    interface ShellIntegrationCommandEndEvent {
+      exitCode?: number;
+    }
 
-    if (shellIntegration?.onDidEndCommandExecution) {
+    interface TerminalShellIntegrationLike {
+      onDidEndCommandExecution?: (
+        callback: (event: ShellIntegrationCommandEndEvent) => void,
+      ) => vscode.Disposable;
+    }
+
+    const shellIntegration = (
+      terminal as vscode.Terminal & {
+        shellIntegration?: TerminalShellIntegrationLike;
+      }
+    ).shellIntegration;
+    const onDidEndCommandExecution = shellIntegration?.onDidEndCommandExecution;
+
+    if (onDidEndCommandExecution) {
       return new Promise((resolve) => {
         const timeoutId = setTimeout(() => {
           listener.dispose();
           resolve({ output: "", exitCode: undefined, success: false });
         }, timeout);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const listener = shellIntegration.onDidEndCommandExecution((e: any) => {
+        const listener = onDidEndCommandExecution((e) => {
           clearTimeout(timeoutId);
           listener.dispose();
           resolve({
@@ -276,7 +289,7 @@ export class TerminalService implements vscode.Disposable {
       env: options?.env,
     });
 
-    managed.sendCommand(command, { waitForCompletion: false });
+    void managed.sendCommand(command, { waitForCompletion: false });
     return managed.terminal;
   }
 

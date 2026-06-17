@@ -2,6 +2,7 @@ import {
   CompletionRequestParams,
   CompletionResponseParams,
 } from "@src/interfaces/lightspeed";
+import { AnsibleContextProcessor } from "@src/features/lightspeed/ansibleContext";
 
 export interface ProviderMetadata {
   ansibleFileType?:
@@ -135,27 +136,23 @@ export abstract class BaseLLMProvider<
     prompt: string,
     metadata?: ProviderMetadata,
   ): string {
-    const { AnsibleContextProcessor } = require("../ansibleContext");
-
     const ansibleContext = {
       fileType: metadata?.ansibleFileType || "playbook",
       documentUri: metadata?.documentUri,
-      workspaceContext: metadata?.workspaceContext,
     };
 
     return AnsibleContextProcessor.enhancePromptForAnsible(
       prompt,
       metadata?.context || "",
       ansibleContext,
-    ) as string;
+    );
   }
 
   /**
    * Clean and validate Ansible output
    */
   protected cleanAnsibleOutput(output: string): string {
-    const { AnsibleContextProcessor } = require("../ansibleContext");
-    return AnsibleContextProcessor.cleanAnsibleOutput(output) as string;
+    return AnsibleContextProcessor.cleanAnsibleOutput(output);
   }
 
   /**
@@ -191,6 +188,38 @@ export abstract class BaseLLMProvider<
         connected: false,
         error: error instanceof Error ? error.message : "Unknown error",
       };
+    }
+  }
+
+  /**
+   * Strip secrets (API keys, bearer tokens, authorization headers) from an
+   * error before it is written to a log channel.  Returns a safe string.
+   */
+  protected static sanitizeErrorForLogging(error: unknown): string {
+    const redact = (text: string): string =>
+      text
+        .replaceAll(
+          /(Authorization["']?\s*[:=]\s*["']?Bearer\s+)[^"'\s,}]+/gi,
+          "$1[REDACTED]",
+        )
+        .replaceAll(/(apiKey["']?\s*[:=]\s*["']?)[^"'\s,}]+/gi, "$1[REDACTED]")
+        .replaceAll(
+          /key["']?\s*[:=]\s*["'][A-Za-z0-9_-]{20,}["']/gi,
+          "key: [REDACTED]",
+        )
+        .replaceAll(
+          /(x-goog-api-key["']?\s*[:=]\s*["']?)[^"'\s,}&]+/gi,
+          "$1[REDACTED]",
+        )
+        .replaceAll(/([?&]x-goog-api-key=)[^&\s]+/gi, "$1[REDACTED]");
+
+    if (error instanceof Error) {
+      return redact(error.stack ?? error.message);
+    }
+    try {
+      return redact(JSON.stringify(error));
+    } catch {
+      return redact(String(error));
     }
   }
 

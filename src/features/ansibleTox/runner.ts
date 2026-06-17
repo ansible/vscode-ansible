@@ -15,6 +15,15 @@ import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService
 
 const exec = util.promisify(child_process.exec);
 
+interface ExecProcessError extends Error {
+  stderr?: string;
+  stdout?: string;
+}
+
+function isExecProcessError(err: unknown): err is ExecProcessError {
+  return err instanceof Error;
+}
+
 export async function getToxEnvs(
   projDir: string,
   command: string = ANSIBLE_TOX_LIST_ENV_COMMAND,
@@ -47,12 +56,23 @@ export async function getToxEnvs(
       channel.show(true);
     }
     return stdout.trim().split(os.EOL);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
+  } catch (err: unknown) {
     const channel = getOutputChannel();
-    channel.appendLine(err.stderr || "");
-    channel.appendLine(err.stdout || "");
-    if (err.stderr.includes("unrecognized arguments: --ansible")) {
+    const stderr: string =
+      isExecProcessError(err) && typeof err.stderr === "string"
+        ? err.stderr
+        : isExecProcessError(err) && err.stderr != null
+          ? String(err.stderr)
+          : "";
+    const stdout: string =
+      isExecProcessError(err) && typeof err.stdout === "string"
+        ? err.stdout
+        : isExecProcessError(err) && err.stdout != null
+          ? String(err.stdout)
+          : "";
+    channel.appendLine(stderr);
+    channel.appendLine(stdout);
+    if (stderr.includes("unrecognized arguments: --ansible")) {
       channel.appendLine(
         "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'.",
       );

@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { validatePathWithinWorkspace } from "@src/utils/pathValidation.js";
 
 /**
  * Runs ansible-creator with the specified command and arguments.
@@ -21,21 +22,23 @@ async function runCreator(
 
     // Check if the process failed to spawn (command not found, etc.)
     if (creatorProcess.error) {
-      return reject(
+      reject(
         new Error(
           `Failed to run ansible-creator: ${creatorProcess.error.message}`,
         ),
       );
+      return;
     }
 
     // Check if the process exited with a non-zero status code
     if (creatorProcess.status !== 0) {
       const errorMessage = stderrData || stdoutData || "Unknown error";
-      return reject(
+      reject(
         new Error(
           `ansible-creator exited with code ${creatorProcess.status}:\n${errorMessage}`,
         ),
       );
+      return;
     }
 
     resolve({
@@ -114,7 +117,7 @@ export function createProjectsHandler(workspaceRoot: string) {
           content: [
             {
               type: "text" as const,
-              text: `Error: Invalid project type '${args.projectType}'. Must be either 'collection' or 'playbook'.\n`,
+              text: `Error: Invalid project type '${String(args.projectType)}'. Must be either 'collection' or 'playbook'.\n`,
             },
           ],
           isError: true,
@@ -243,12 +246,38 @@ export function createProjectsHandler(workspaceRoot: string) {
       let projectPath: string;
 
       if (args.path) {
-        // If full path is provided, use it directly
-        projectPath = args.path;
+        try {
+          projectPath = validatePathWithinWorkspace(args.path, workspaceRoot);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Error: ${errorMessage}\n`,
+              },
+            ],
+            isError: true,
+          };
+        }
       } else if (args.projectDirectory) {
-        // Create project directory in the workspace
-        // We know projectDirectory is defined here because we checked earlier
-        projectPath = join(workspaceRoot, args.projectDirectory);
+        const rawPath = join(workspaceRoot, args.projectDirectory);
+        try {
+          projectPath = validatePathWithinWorkspace(rawPath, workspaceRoot);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Error: ${errorMessage}\n`,
+              },
+            ],
+            isError: true,
+          };
+        }
         try {
           mkdirSync(projectPath, { recursive: true });
         } catch (error) {

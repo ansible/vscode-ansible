@@ -2,16 +2,58 @@ import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { isScalar, Node, YAMLMap, YAMLSeq, parseDocument } from "yaml";
 import { AncestryBuilder, isPlayParam } from "@src/utils/yaml.js";
+import { hasOwnProperty, isObject } from "@src/utils/misc.js";
 import * as pathUri from "path";
 import { existsSync, readFileSync } from "fs";
 
 type varType = { variable: string; priority: number };
 
-type varsPromptType = {
+const getEnumerableKeys = (value: unknown): string[] =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? Object.keys(value)
+    : [];
+
+type VarsPromptEntry = {
   name: string;
   prompt: string;
   private?: boolean;
 };
+
+function collectVarsKeys(
+  varsValue: unknown,
+  varPriority: number,
+  varsCompletion: varType[],
+): void {
+  if (Array.isArray(varsValue)) {
+    varsValue.forEach((element) => {
+      getEnumerableKeys(element).forEach((key) => {
+        varsCompletion.push({ variable: key, priority: varPriority });
+      });
+    });
+  } else {
+    getEnumerableKeys(varsValue).forEach((key) => {
+      varsCompletion.push({ variable: key, priority: varPriority });
+    });
+  }
+}
+
+function isVarsPromptEntry(value: unknown): value is VarsPromptEntry {
+  return (
+    isObject(value) &&
+    hasOwnProperty(value, "name") &&
+    typeof value.name === "string"
+  );
+}
+
+function isVarsPromptArray(value: unknown): value is VarsPromptEntry[] {
+  return Array.isArray(value) && value.every(isVarsPromptEntry);
+}
+
+function isVarsFilesArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((entry) => typeof entry === "string")
+  );
+}
 
 /**
  * A function that computes the possible variable auto-completions scope-wise for a given position
@@ -43,21 +85,11 @@ export function getVarsCompletion(
         typeof parentKeyNode["value"] === "string"
       ) {
         path = parentKeyPath;
-        const scopedNode = path[path.length - 3].toJSON();
-        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
-          const varsObject = scopedNode["vars"];
-
-          if (Array.isArray(varsObject)) {
-            varsObject.forEach((element) => {
-              Object.keys(element).forEach((key) => {
-                varsCompletion.push({ variable: key, priority: varPriority });
-              });
-            });
-          } else {
-            Object.keys(varsObject).forEach((key) => {
-              varsCompletion.push({ variable: key, priority: varPriority });
-            });
-          }
+        const scopedNode: Record<string, unknown> = path[
+          path.length - 3
+        ].toJSON() as Record<string, unknown>;
+        if (hasOwnProperty(scopedNode, "vars")) {
+          collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
         }
 
         continue;
@@ -77,21 +109,11 @@ export function getVarsCompletion(
         typeof parentKeyNode["value"] === "string"
       ) {
         path = parentKeyPath;
-        const scopedNode = path[path.length - 3].toJSON();
-        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
-          const varsObject = scopedNode["vars"];
-
-          if (Array.isArray(varsObject)) {
-            varsObject.forEach((element) => {
-              Object.keys(element).forEach((key) => {
-                varsCompletion.push({ variable: key, priority: varPriority });
-              });
-            });
-          } else {
-            Object.keys(varsObject).forEach((key) => {
-              varsCompletion.push({ variable: key, priority: varPriority });
-            });
-          }
+        const scopedNode: Record<string, unknown> = path[
+          path.length - 3
+        ].toJSON() as Record<string, unknown>;
+        if (hasOwnProperty(scopedNode, "vars")) {
+          collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
         }
 
         continue;
@@ -106,54 +128,61 @@ export function getVarsCompletion(
 
   // handling vars_prompt
   varPriority = varPriority + 1;
-  const playNode = path[path.length - 3].toJSON();
-  if (Object.prototype.hasOwnProperty.call(playNode, "vars_prompt")) {
-    const varsPromptObject: varsPromptType[] = playNode["vars_prompt"];
-
-    varsPromptObject.forEach((element) => {
-      varsCompletion.push({ variable: element["name"], priority: varPriority });
-    });
+  const playNode: Record<string, unknown> = path[
+    path.length - 3
+  ].toJSON() as Record<string, unknown>;
+  if (hasOwnProperty(playNode, "vars_prompt")) {
+    const varsPromptObject = playNode.vars_prompt;
+    if (isVarsPromptArray(varsPromptObject)) {
+      varsPromptObject.forEach((element) => {
+        varsCompletion.push({ variable: element.name, priority: varPriority });
+      });
+    }
   }
 
   // handling vars_files
   varPriority = varPriority + 1;
-  if (Object.prototype.hasOwnProperty.call(playNode, "vars_files")) {
-    const varsPromptObject: string[] = playNode["vars_files"];
+  if (hasOwnProperty(playNode, "vars_files")) {
+    const varsFiles = playNode.vars_files;
+    if (isVarsFilesArray(varsFiles)) {
+      const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);
+      varsFiles.forEach((element) => {
+        let varFilePath;
+        if (pathUri.isAbsolute(element)) {
+          varFilePath = element;
+        } else {
+          varFilePath = URI.parse(
+            pathUri.resolve(currentDirectory, element),
+          ).path;
+        }
 
-    const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);
-    varsPromptObject.forEach((element) => {
-      let varFilePath;
-      if (pathUri.isAbsolute(element)) {
-        varFilePath = element;
-      } else {
-        varFilePath = URI.parse(
-          pathUri.resolve(currentDirectory, element),
-        ).path;
-      }
+        // read the vars_file and get the variables declared inside it
+        if (existsSync(varFilePath)) {
+          const file = readFileSync(varFilePath, {
+            encoding: "utf8",
+          });
 
-      // read the vars_file and get the variables declared inside it
-      if (existsSync(varFilePath)) {
-        const file = readFileSync(varFilePath, {
-          encoding: "utf8",
-        });
+          const contents = parseDocument(file).contents;
+          if (contents !== null) {
+            const yamlDocContent: unknown = contents.toJSON();
 
-        const contents = parseDocument(file).contents;
-        if (contents !== null) {
-          const yamlDocContent = contents.toJSON();
-
-          // variables declared in the file should be in list format only
-          if (Array.isArray(yamlDocContent)) {
-            yamlDocContent.forEach((element) => {
-              if (typeof element === "object") {
-                Object.keys(element).forEach((key) => {
-                  varsCompletion.push({ variable: key, priority: varPriority });
-                });
-              }
-            });
+            // variables declared in the file should be in list format only
+            if (Array.isArray(yamlDocContent)) {
+              yamlDocContent.forEach((yamlElement) => {
+                if (typeof yamlElement === "object") {
+                  getEnumerableKeys(yamlElement).forEach((key) => {
+                    varsCompletion.push({
+                      variable: key,
+                      priority: varPriority,
+                    });
+                  });
+                }
+              });
+            }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   // return the completions as completion items

@@ -1,15 +1,25 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
-
 import { getBinDetail } from "@src/features/contentCreator/utils";
 import * as ini from "ini";
 
+interface SystemInfo {
+  "ansible version"?: string;
+  "ansible location"?: string;
+  "python version"?: string;
+  "python location"?: string;
+  "ansible-creator version"?: string;
+  "ansible-dev-environment version"?: string;
+}
+
 export async function getSystemDetails() {
-  const systemInfo: any = {};
+  const systemInfo: SystemInfo = {};
 
   // get ansible version and path
   const ansibleVersion = await getBinDetail("ansible", "--version");
   if (ansibleVersion !== "failed") {
-    const versionInfo = ini.parse(ansibleVersion.toString());
+    const versionInfo = ini.parse(ansibleVersion.toString()) as Record<
+      string,
+      string
+    >;
 
     const versionInfoObjKeys = Object.keys(versionInfo);
 
@@ -69,5 +79,5 @@ export async function getSystemDetails() {
       .toString()
       .trim();
   }
-  return systemInfo as Record<string, string | undefined>;
+  return systemInfo;
 }

@@ -6,7 +6,7 @@ import { getSystemDetails } from "@src/features/utils/getSystemDetails";
 
 interface WebviewMessage {
   type: string;
-  payload: {
+  payload?: {
     id?: string;
     command?: string;
     url?: string;
@@ -20,6 +20,12 @@ interface Walkthrough {
   icon?: string;
 }
 
+interface ExtensionPackageManifest {
+  contributes?: {
+    walkthroughs?: Walkthrough[];
+  };
+}
+
 export class WelcomePagePanel {
   public static currentPanel: WelcomePagePanel | undefined;
   private readonly _panel: WebviewPanel;
@@ -30,12 +36,18 @@ export class WelcomePagePanel {
     this._panel = panel;
     this.context = context;
 
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
 
     this._panel.webview.html = this.getWebviewHtml(context);
 
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async (message: WebviewMessage) => {
         await this.handleMessage(message);
       },
       undefined,
@@ -76,20 +88,25 @@ export class WelcomePagePanel {
   }
 
   private async handleMessage(message: WebviewMessage) {
+    const payload =
+      message.payload && typeof message.payload === "object"
+        ? message.payload
+        : undefined;
+
     switch (message.type) {
       case "walkthrough-click":
-        if (message.payload.id) {
-          await this.handleWalkthroughClick(message.payload.id);
+        if (typeof payload?.id === "string") {
+          await this.handleWalkthroughClick(payload.id);
         }
         break;
       case "command-click":
-        if (message.payload.command) {
-          await this.handleCommandClick(message.payload.command);
+        if (typeof payload?.command === "string") {
+          await this.handleCommandClick(payload.command);
         }
         break;
       case "external-link":
-        if (message.payload.url) {
-          await this.handleExternalLink(message.payload.url);
+        if (typeof payload?.url === "string") {
+          await this.handleExternalLink(payload.url);
         }
         break;
       case "check-system-status":
@@ -181,10 +198,12 @@ export class WelcomePagePanel {
   private getWalkthroughs() {
     try {
       const extension = vscode.extensions.getExtension("redhat.ansible");
-      const walkthroughs =
-        extension?.packageJSON?.contributes?.walkthroughs || [];
+      const manifest = extension?.packageJSON as
+        | ExtensionPackageManifest
+        | undefined;
+      const walkthroughs = manifest?.contributes?.walkthroughs || [];
 
-      return walkthroughs.map((walkthrough: Walkthrough) => ({
+      return walkthroughs.map((walkthrough) => ({
         id: walkthrough.id,
         title: walkthrough.title,
         description: walkthrough.description,

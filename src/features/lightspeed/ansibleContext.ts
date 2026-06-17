@@ -267,15 +267,16 @@ Generate Ansible inventory content with:
       if (Array.isArray(parsed)) {
         // Task list or playbook
         for (const item of parsed) {
-          if (typeof item !== "object") {
+          if (!item || typeof item !== "object") {
             errors.push("Invalid task or play structure");
             continue;
           }
+          const taskOrPlay = item as Record<string, unknown>;
 
           // Check for required fields in tasks
           if (
-            "name" in item ||
-            Object.keys(item).some(
+            "name" in taskOrPlay ||
+            Object.keys(taskOrPlay).some(
               (key) => key !== "name" && !key.startsWith("_"),
             )
           ) {
@@ -292,7 +293,9 @@ Generate Ansible inventory content with:
         }
       }
     } catch (yamlError) {
-      errors.push(`YAML syntax error: ${yamlError}`);
+      errors.push(
+        `YAML syntax error: ${yamlError instanceof Error ? yamlError.message : String(yamlError)}`,
+      );
     }
 
     return { valid: errors.length === 0, errors };

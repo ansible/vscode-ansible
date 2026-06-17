@@ -87,13 +87,11 @@ Use frozen/locked install to match CI:
 **TypeScript:**
 
 If `pnpm-lock.yaml` was modified (e.g., lockfile regen fix), use:
-
 ```bash
 pnpm install
 ```
 
 Otherwise:
-
 ```bash
 pnpm install --frozen-lockfile
 ```
@@ -102,13 +100,11 @@ The frozen check is CI's job. Verify-local's job is "will build/lint/pkg
 pass," not "is the lockfile in sync."
 
 **Python/tox:**
-
 ```bash
 uv sync --no-progress -q
 ```
 
 **Python/uv:**
-
 ```bash
 uv sync --no-progress -q
 ```
@@ -138,7 +134,7 @@ Do NOT pipe the command through other commands when capturing exit codes
 |---|-------|---------|------|-----------------|
 | 1 | build | `task build` | ~30s | TypeScript errors, missing exports, tsup bundling |
 | 2 | package | `task package` | ~45s | Knip dead code, npm packaging, vitest list |
-| 3 | lint | `npx prek run --all-files` | ~30s | ESLint, biome, ruff, codespell, cspell, yamllint, shellcheck |
+| 3 | lint | `prek run --all-files` | ~30s | ESLint, biome, ruff, codespell, cspell, yamllint, shellcheck |
 
 `task package` is the critical one — it runs knip which catches most
 lockfile-related breakage.

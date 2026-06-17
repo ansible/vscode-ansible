@@ -45,7 +45,7 @@ describe("Ansible commands", () => {
           const ext = vscode.extensions.getExtension("redhat.ansible");
           return ext?.isActive === true;
         });
-        return active === true;
+        return active;
       },
       {
         timeout: 60_000,

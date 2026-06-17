@@ -66,7 +66,11 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleGeminiError(error: any, operation: string): Error {
     // Use the reusable HTTP error handler from base class
-    return this.handleHttpError(error, operation, "Google Gemini");
+    return this.handleHttpError(
+      error as { status?: number; message?: string },
+      operation,
+      "Google Gemini",
+    );
   }
 
   async validateConfig(): Promise<boolean> {
@@ -84,7 +88,7 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
 
       this.logger.error(`[Google Provider] ${formattedError.message}`);
       this.logger.error(
-        `[Google Provider] Validation error details: ${error instanceof Error ? error.stack : JSON.stringify(error)}`,
+        `[Google Provider] Validation error details: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       return false;
     }
@@ -135,16 +139,12 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
 
       return result_data;
     } catch (error) {
-      this.logger.error(
-        `[Google Provider] Completion request failed: ${error}`,
-      );
-      this.logger.error(
-        `[Google Provider] Error stack: ${error instanceof Error ? error.stack : "No stack trace"}`,
-      );
-      throw new Error(
-        `Google completion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { cause: error },
-      );
+      const safeError = BaseLLMProvider.sanitizeErrorForLogging(error);
+      this.logger.error("[Google Provider] Completion request failed");
+      this.logger.error(`[Google Provider] Error details: ${safeError}`);
+      throw new Error(`Google completion failed: ${safeError}`, {
+        cause: error,
+      });
     }
   }
 
@@ -189,7 +189,9 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[Google Provider] Chat request failed: ${error}`);
+      this.logger.error(
+        `[Google Provider] Chat request failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleGeminiError(error, "chat generation");
     }
   }
@@ -253,7 +255,7 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       };
     } catch (error) {
       this.logger.error(
-        `[Google Provider] Playbook generation failed: ${error}`,
+        `[Google Provider] Playbook generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
       );
       throw this.handleGeminiError(error, "playbook generation");
     }
@@ -307,7 +309,9 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[Google Provider] Role generation failed: ${error}`);
+      this.logger.error(
+        `[Google Provider] Role generation failed: ${BaseLLMProvider.sanitizeErrorForLogging(error)}`,
+      );
       throw this.handleGeminiError(error, "role generation");
     }
   }

@@ -8,7 +8,6 @@ import {
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
 } from "@test/helper.js";
-import { Position } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
 import { fileExists } from "@src/utils/misc.js";
@@ -21,7 +20,7 @@ function testModuleNamesForDefinition(
   const tests = [
     {
       word: "definition for builtin modules (ansible.builtin.debug)",
-      position: { line: 5, character: 8 } as Position,
+      position: { line: 5, character: 8 },
       selectionRange: {
         start: { line: 5, character: 6 },
         end: { line: 5, character: 27 },
@@ -30,7 +29,7 @@ function testModuleNamesForDefinition(
     },
     {
       word: "no definition for invalid module names",
-      position: { line: 13, character: 8 } as Position,
+      position: { line: 13, character: 8 },
       selectionRange: {
         start: { line: 13, character: 6 },
         end: { line: 13, character: 15 },
@@ -39,7 +38,7 @@ function testModuleNamesForDefinition(
     },
     {
       word: "definition for collection modules (org_1.coll_3.module_3)",
-      position: { line: 18, character: 8 } as Position,
+      position: { line: 18, character: 8 },
       selectionRange: {
         start: { line: 18, character: 6 },
         end: { line: 18, character: 27 },

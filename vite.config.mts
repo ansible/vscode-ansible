@@ -1,7 +1,38 @@
 import fs from "node:fs";
 import path from "node:path";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig, type Plugin } from "vite";
+import { createLogger, defineConfig, type Plugin } from "vite";
+
+// biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI escape codes
+const ANSI_RE = /\x1b\[[0-9;]*m/g; // eslint-disable-line no-control-regex
+
+/** Rolldown reporter table lines: `dist/...  12.34 kB` (optional `│ gzip: ...`). */
+const BUILD_OUTPUT_LINE_RE = /dist\/\S+\s+[\d.]+\s+kB/;
+
+function stripAnsi(msg: string): string {
+  return msg.replace(ANSI_RE, "");
+}
+
+function isBuildOutputTable(msg: string): boolean {
+  const lines = stripAnsi(msg).trim().split("\n").filter(Boolean);
+  return (
+    lines.length > 0 &&
+    lines.every((line) => BUILD_OUTPUT_LINE_RE.test(line.trim()))
+  );
+}
+
+const baseLogger = createLogger("info");
+const logger = createLogger("info", {
+  customLogger: {
+    ...baseLogger,
+    info(msg, options) {
+      if (isBuildOutputTable(msg)) {
+        return;
+      }
+      baseLogger.info(msg, options);
+    },
+  },
+});
 
 /**
  * Writes the dev server URL to a marker file so the extension host can
@@ -51,6 +82,7 @@ export default defineConfig({
     emptyOutDir: true,
     minify: false,
     outDir: "dist", // keep default
+    reportCompressedSize: false,
     rollupOptions: {
       // https://cn.vitejs.dev/guide/build.html#multi-page-app
       input: {
@@ -99,6 +131,7 @@ export default defineConfig({
       },
     },
   },
+  customLogger: logger,
   experimental: {
     renderBuiltUrl(filename: string) {
       if (filename.startsWith("assets/codicon")) {

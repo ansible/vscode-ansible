@@ -14,6 +14,9 @@ reviews:
   in_progress_fortune: false
   request_changes_workflow: true
   review_status: false
+  pre_merge_checks:
+    docstrings:
+      mode: "off"  # not particularly useful, we will enable an eslint plugin for this
   tools:
     github-checks:
       enabled: true

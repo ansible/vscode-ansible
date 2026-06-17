@@ -154,21 +154,17 @@ on the PR by `diagnose-ci`. There is nothing left to do.
 ### 4b. Apply by category
 
 **Lockfile regeneration:**
-
 ```bash
 pnpm install          # TypeScript
 uv lock               # Python
 ```
-
 Commit the regenerated lockfile.
 
 **Formatter/linter auto-fix:**
-
 ```bash
-npx prek run --all-files    # TypeScript
+prek run --all-files    # TypeScript
 tox -e lint                 # Python (some linters auto-fix)
 ```
-
 Commit any auto-formatted files.
 
 **Removing unused imports:**

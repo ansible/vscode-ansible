@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { readFile, access } from "node:fs/promises";
 import { resolve } from "node:path";
 import { quote } from "shell-quote";
+import { validatePathWithinWorkspace } from "@src/utils/pathValidation.js";
 
 /**
  * Lints Ansible playbook file using the ansible-lint CLI.
@@ -14,6 +15,7 @@ import { quote } from "shell-quote";
 export async function runAnsibleLint(
   filePath: string,
   fix: boolean = false,
+  workspaceRoot?: string,
 ): Promise<{ result: unknown; fixedContent?: string }> {
   if (!filePath) {
     throw new Error("No file path was provided for linting.");
@@ -21,6 +23,10 @@ export async function runAnsibleLint(
 
   // Resolve the file path to absolute path
   const absolutePath = resolve(filePath);
+
+  if (workspaceRoot) {
+    validatePathWithinWorkspace(absolutePath, workspaceRoot);
+  }
 
   // Check if file exists
   try {
@@ -50,12 +56,12 @@ async function runAnsibleLintWithoutFix(
     let stderrData = "";
 
     // Capture standard output
-    lintProcess.stdout.on("data", (data) => {
+    lintProcess.stdout.on("data", (data: Buffer | string) => {
       stdoutData += data.toString();
     });
 
     // Capture standard error
-    lintProcess.stderr.on("data", (data) => {
+    lintProcess.stderr.on("data", (data: Buffer | string) => {
       stderrData += data.toString();
     });
 
@@ -73,14 +79,13 @@ async function runAnsibleLintWithoutFix(
       // ansible-lint can exit with a non-zero code if linting issues are found.
       // This is expected. A real error is when stderr has content and stdout is empty.
       if (stderrData && !stdoutData) {
-        return reject(
-          new Error(`ansible-lint failed with error:\n${stderrData}`),
-        );
+        reject(new Error(`ansible-lint failed with error:\n${stderrData}`));
+        return;
       }
 
       try {
         // Even with linting errors, valid JSON is printed to stdout.
-        const result = JSON.parse(stdoutData);
+        const result: unknown = JSON.parse(stdoutData);
         resolve({ result });
       } catch {
         reject(
@@ -132,12 +137,12 @@ async function runAnsibleLintOnFile(
     let stderrData = "";
 
     // Capture standard output
-    lintProcess.stdout.on("data", (data) => {
+    lintProcess.stdout.on("data", (data: Buffer | string) => {
       stdoutData += data.toString();
     });
 
     // Capture standard error
-    lintProcess.stderr.on("data", (data) => {
+    lintProcess.stderr.on("data", (data: Buffer | string) => {
       stderrData += data.toString();
     });
 
@@ -155,17 +160,18 @@ async function runAnsibleLintOnFile(
       // For --fix, exit code 0 means success, non-zero might still be okay if some fixes were applied
       // For regular linting, non-zero usually means issues were found (which is expected)
       if (stderrData && !stdoutData) {
-        return reject(
+        reject(
           new Error(
             `ansible-lint failed with exit code ${code} and error:\n${stderrData}`,
           ),
         );
+        return;
       }
 
       try {
         // Try to parse JSON output
         if (stdoutData.trim()) {
-          const result = JSON.parse(stdoutData);
+          const result: unknown = JSON.parse(stdoutData);
           resolve(result);
         } else {
           // If no JSON output, return empty array (no issues found)

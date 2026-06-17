@@ -80,7 +80,9 @@ export class AnsibleMcpServerProvider {
         `Registered MCP server: ${AnsibleMcpServerProvider.MCP_SERVER_NAME}`,
       );
     } catch (error) {
-      console.error(`Failed to provide MCP server definitions: ${error}`);
+      console.error(
+        `Failed to provide MCP server definitions: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     return servers;
@@ -113,7 +115,7 @@ export class AnsibleMcpServerProvider {
 
       return server;
     } catch (error) {
-      const errorMessage = `Failed to resolve MCP server definition: ${error}`;
+      const errorMessage = `Failed to resolve MCP server definition: ${error instanceof Error ? error.message : String(error)}`;
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
       return undefined;
@@ -131,7 +133,9 @@ export class AnsibleMcpServerProvider {
       }
       return true;
     } catch (error) {
-      console.error(`Failed to check MCP server availability: ${error}`);
+      console.error(
+        `Failed to check MCP server availability: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }

@@ -45,6 +45,64 @@ import {
 import { getVarsCompletion } from "@src/providers/completionProviderUtils.js";
 import { HostType } from "@src/services/ansibleInventory.js";
 
+interface ModuleCompletionResolveData {
+  documentUri: string;
+  moduleFqcn: string;
+  inlineCollections: string[];
+  atEndOfLine: boolean;
+  firstElementOfList: boolean;
+}
+
+interface OptionCompletionResolveData {
+  documentUri: string;
+  type: string;
+  range?: Range;
+  atEndOfLine: boolean;
+  firstElementOfList?: boolean;
+}
+
+export function hasCompletionDocumentUri(
+  data: unknown,
+): data is { documentUri: string } {
+  return (
+    data !== null &&
+    typeof data === "object" &&
+    "documentUri" in data &&
+    typeof data.documentUri === "string"
+  );
+}
+
+function isModuleCompletionResolveData(
+  data: unknown,
+): data is ModuleCompletionResolveData {
+  if (!hasCompletionDocumentUri(data)) {
+    return false;
+  }
+  const record = data as Record<string, unknown>;
+  return (
+    typeof record.moduleFqcn === "string" &&
+    Array.isArray(record.inlineCollections) &&
+    record.inlineCollections.every((c) => typeof c === "string") &&
+    typeof record.atEndOfLine === "boolean" &&
+    typeof record.firstElementOfList === "boolean"
+  );
+}
+
+function isOptionCompletionResolveData(
+  data: unknown,
+): data is OptionCompletionResolveData {
+  if (!hasCompletionDocumentUri(data)) {
+    return false;
+  }
+  const record = data as Record<string, unknown>;
+  return (
+    typeof record.type === "string" &&
+    typeof record.atEndOfLine === "boolean" &&
+    (record.firstElementOfList === undefined ||
+      typeof record.firstElementOfList === "boolean")
+  );
+}
+
 const priorityMap = {
   nameKeyword: 1,
   moduleName: 2,
@@ -543,32 +601,26 @@ export async function doCompletionResolve(
   completionItem: CompletionItem,
   context: WorkspaceFolderContext,
 ): Promise<CompletionItem> {
-  if (completionItem.data?.moduleFqcn && completionItem.data?.documentUri) {
+  if (isModuleCompletionResolveData(completionItem.data)) {
+    const data = completionItem.data;
     // resolve completion for a module
 
     const docsLibrary = await context.docsLibrary;
-    const [module] = await docsLibrary.findModule(
-      completionItem.data.moduleFqcn,
-    );
+    const [module] = await docsLibrary.findModule(data.moduleFqcn);
 
     if (module && module.documentation) {
-      const [namespace, collection, name] =
-        completionItem.data.moduleFqcn.split(".");
+      const [namespace, collection, name] = data.moduleFqcn.split(".");
 
-      let useFqcn = (
-        await context.documentSettings.get(completionItem.data.documentUri)
-      ).ansible.useFullyQualifiedCollectionNames;
+      let useFqcn = (await context.documentSettings.get(data.documentUri))
+        .ansible.useFullyQualifiedCollectionNames;
 
       if (!useFqcn) {
         // determine if the short name can really be used
 
-        const declaredCollections: Array<string> =
-          completionItem.data?.inlineCollections || [];
+        const declaredCollections: Array<string> = [...data.inlineCollections];
         declaredCollections.push("ansible.builtin");
 
-        const metadata = await context.documentMetadata.get(
-          completionItem.data.documentUri,
-        );
+        const metadata = await context.documentMetadata.get(data.documentUri);
         if (metadata) {
           declaredCollections.push(...metadata.collections);
         }
@@ -583,11 +635,11 @@ export async function doCompletionResolve(
         }
       }
 
-      const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
-      const insertText = completionItem.data.atEndOfLine
+      const insertName = useFqcn ? data.moduleFqcn : name;
+      const insertText = data.atEndOfLine
         ? `${insertName}:${resolveSuffix(
             "dict", // since a module is always a dictionary
-            completionItem.data.firstElementOfList,
+            data.firstElementOfList,
             isAnsiblePlaybook,
           )}`
         : insertName;
@@ -602,18 +654,19 @@ export async function doCompletionResolve(
 
       completionItem.documentation = formatModule(
         module.documentation,
-        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn),
+        docsLibrary.getModuleRoute(data.moduleFqcn),
       );
     }
   }
 
-  if (completionItem.data?.type) {
+  if (isOptionCompletionResolveData(completionItem.data)) {
+    const data = completionItem.data;
     // resolve completion for a module option or sub-option
 
-    const insertText = completionItem.data.atEndOfLine
+    const insertText = data.atEndOfLine
       ? `${completionItem.label}:${resolveSuffix(
-          completionItem.data.type,
-          completionItem.data.firstElementOfList,
+          data.type,
+          data.firstElementOfList ?? false,
           isAnsiblePlaybook,
         )}`
       : completionItem.label;

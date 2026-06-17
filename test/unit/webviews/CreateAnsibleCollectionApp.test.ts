@@ -37,6 +37,12 @@ vi.mock(
   },
 );
 
+interface CreateAnsibleCollectionAppVm {
+  namespace: string;
+  collectionName: string;
+  initPath: string;
+}
+
 describe("CreateAnsibleCollectionApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,8 +50,8 @@ describe("CreateAnsibleCollectionApp", () => {
 
   it("trims whitespace from text fields in payload", async () => {
     const wrapper = mount(CreateAnsibleCollectionApp);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vm = wrapper.vm as any;
+
+    const vm = wrapper.vm as unknown as CreateAnsibleCollectionAppVm;
 
     vm.namespace = "  mynamespace  ";
     vm.collectionName = "  mycollection  ";
@@ -67,8 +73,8 @@ describe("CreateAnsibleCollectionApp", () => {
 
   it("disables create button when namespace or collection is 2 chars or less", () => {
     const wrapper = mount(CreateAnsibleCollectionApp);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const vm = wrapper.vm as any;
+
+    const vm = wrapper.vm as unknown as CreateAnsibleCollectionAppVm;
 
     vm.namespace = "ss";
     vm.collectionName = "ss";

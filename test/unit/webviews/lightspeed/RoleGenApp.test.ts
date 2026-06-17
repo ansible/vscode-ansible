@@ -87,7 +87,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "errorMessage",
       )?.[1];
 
-      errorHandler?.("Generation failed");
+      void errorHandler?.("Generation failed");
       await flushPromises();
 
       expect(wrapper.findComponent({ name: "ErrorBox" }).exists()).toBe(true);
@@ -103,7 +103,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "generateRole",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -121,7 +121,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "generateRole",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -145,7 +145,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "generateRole",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -166,7 +166,7 @@ describe("RoleGenApp", () => {
       )?.[1];
 
       // Go to page 2
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [
           { path: "tasks/main.yml", content: "- debug: msg=hello" },
@@ -201,7 +201,7 @@ describe("RoleGenApp", () => {
       )?.[1];
 
       // Go to page 2
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -227,7 +227,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "generateRole",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -253,7 +253,7 @@ describe("RoleGenApp", () => {
       )?.[1];
 
       // Go to page 2
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",
@@ -287,7 +287,7 @@ describe("RoleGenApp", () => {
         (call) => call[0] === "generateRole",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         name: "my_role",
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         outline: "1. Debug message",

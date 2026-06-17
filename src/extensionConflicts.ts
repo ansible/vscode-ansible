@@ -17,32 +17,44 @@ const conflictingIDs = [
 // A set of VSCode extension ID's that are currently uninstalling
 const uninstallingIDs = new Set();
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isExtensionPresent(obj: any): obj is Extension<any> {
-  return typeof obj !== "undefined" && !uninstallingIDs.has(obj.id);
+interface ExtensionPackageJson {
+  displayName?: string;
+}
+
+function extensionDisplayName(ext: Extension<unknown>): string {
+  const packageJson = ext.packageJSON as ExtensionPackageJson;
+  return typeof packageJson.displayName === "string"
+    ? packageJson.displayName
+    : ext.id;
+}
+
+function isExtensionPresent(obj: unknown): obj is Extension<unknown> {
+  return (
+    typeof obj !== "undefined" &&
+    typeof obj === "object" &&
+    obj !== null &&
+    "id" in obj &&
+    typeof (obj as Extension<unknown>).id === "string" &&
+    !uninstallingIDs.has((obj as Extension<unknown>).id)
+  );
 }
 
 /**
  * Get all of the installed extensions that currently conflict with us
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getConflictingExtensions(): Extension<any>[] {
-  return (
-    conflictingIDs
-      .map((x) => extensions.getExtension(x))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter<Extension<any>>((ext): ext is Extension<any> =>
-        isExtensionPresent(ext),
-      )
-  );
+export function getConflictingExtensions(): Extension<unknown>[] {
+  return conflictingIDs
+    .map((x) => extensions.getExtension(x))
+    .filter<
+      Extension<unknown>
+    >((ext): ext is Extension<unknown> => isExtensionPresent(ext));
 }
 
 /**
  * Display the uninstall conflicting extension notification if there are any conflicting extensions currently installed
  */
 export async function showUninstallConflictsNotification(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  conflictingExts: Extension<any>[],
+  conflictingExts: Extension<unknown>[],
 ): Promise<void> {
   // Add all available conflicting extensions to the uninstalling IDs map
   for (const ext of conflictingExts) {
@@ -57,10 +69,10 @@ export async function showUninstallConflictsNotification(
   // Gather all the conflicting display names
   let conflictMsg: string;
   if (conflictingExts.length === 1) {
-    conflictMsg = `${conflictingExts[0].packageJSON.displayName} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
+    conflictMsg = `${extensionDisplayName(conflictingExts[0])} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
   } else {
     const extNames: string = conflictingExts
-      .map((ext) => `${ext.packageJSON.displayName} (${ext.id})`)
+      .map((ext) => `${extensionDisplayName(ext)} (${ext.id})`)
       .join(", ");
     conflictMsg = `The ${extNames} extensions are incompatible with redhat.ansible. Please uninstall them.`;
   }

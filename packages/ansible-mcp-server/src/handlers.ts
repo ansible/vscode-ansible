@@ -59,7 +59,7 @@ export function createAgentsGuidelinesHandler() {
   };
 }
 
-export function createAnsibleLintHandler() {
+export function createAnsibleLintHandler(workspaceRoot: string) {
   return async (args: { filePath: string; fix?: boolean }) => {
     try {
       // Check if fix parameter is explicitly provided
@@ -98,6 +98,7 @@ export function createAnsibleLintHandler() {
       const { result: lintingResult, fixedContent } = await runAnsibleLint(
         args.filePath,
         fix,
+        workspaceRoot,
       );
 
       // Ensure the result is an array before formatting

@@ -37,17 +37,12 @@ export class SettingsManager {
           provider: "wca",
           apiEndpoint: "https://c.ai.ansible.redhat.com",
           modelName: undefined,
-          apiKey: "",
           maxTokens: undefined,
         };
 
     this.settings = {
-      activationScript: (await ansibleSettings.get(
-        "python.activationScript",
-      )) as string,
-      interpreterPath: (await ansibleSettings.get(
-        "python.interpreterPath",
-      )) as string,
+      activationScript: await ansibleSettings.get("python.activationScript"),
+      interpreterPath: await ansibleSettings.get("python.interpreterPath"),
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
@@ -67,7 +62,6 @@ export class SettingsManager {
         provider: llmSettings.provider,
         apiEndpoint: llmSettings.apiEndpoint,
         modelName: llmSettings.modelName,
-        apiKey: llmSettings.apiKey,
         maxTokens: llmSettings.maxTokens
           ? Number.parseInt(llmSettings.maxTokens, 10)
           : undefined,

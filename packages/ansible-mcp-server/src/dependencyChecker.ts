@@ -31,8 +31,12 @@ async function commandExists(command: string): Promise<boolean> {
       env: process.env,
     });
 
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
+    child.on("error", () => {
+      resolve(false);
+    });
+    child.on("close", (code) => {
+      resolve(code === 0);
+    });
   });
 }
 
@@ -50,8 +54,8 @@ async function getCommandVersion(
     });
     let output = "";
 
-    child.stdout?.on("data", (d) => (output += d.toString()));
-    child.stderr?.on("data", (d) => (output += d.toString()));
+    child.stdout?.on("data", (d: Buffer | string) => (output += d.toString()));
+    child.stderr?.on("data", (d: Buffer | string) => (output += d.toString()));
 
     child.on("close", (code) => {
       if (code !== 0) {
@@ -68,7 +72,9 @@ async function getCommandVersion(
       }
     });
 
-    child.on("error", () => resolve(null));
+    child.on("error", () => {
+      resolve(null);
+    });
   });
 }
 

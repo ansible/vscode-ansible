@@ -44,9 +44,9 @@ class WebviewApi<StateType = unknown> {
 
     this.webviewApi = acquireVsCodeApi<StateType>();
     window.addEventListener("message", (event: MessageEvent) => {
-      const message = event.data || {};
+      const message = (event.data ?? {}) as Record<string, unknown>;
       this._runListener(
-        message[this._options.typeKey],
+        message[this._options.typeKey] as string | number | undefined,
         message[this._options.dataKey],
       );
     });
@@ -74,10 +74,10 @@ class WebviewApi<StateType = unknown> {
     const listeners = this.listeners.get(type);
     if (listeners) {
       if (result !== undefined && result !== null) {
-        listeners[0]?.(result);
+        void listeners[0]?.(result);
       }
       if (error !== undefined && error !== null) {
-        listeners[1]?.(error);
+        void listeners[1]?.(error);
       }
     }
   }
@@ -97,7 +97,9 @@ class WebviewApi<StateType = unknown> {
         return;
       }
       const opts = { ...this._options, ...options };
-      const post = () => this._postMessage(type, data, opts);
+      const post = () => {
+        this._postMessage(type, data, opts);
+      };
 
       const intervalId = setInterval(post, opts.interval);
       const timeoutId = setTimeout(() => {

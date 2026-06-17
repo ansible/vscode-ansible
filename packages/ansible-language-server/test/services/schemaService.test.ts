@@ -35,7 +35,7 @@ describe("SchemaCache", () => {
     fetchStub.resolves({
       ok: true,
       json: async () => mockSchema,
-    } as Response);
+    });
 
     const result = await cache.getSchema("http://test.com/schema.json");
     expect(result).toEqual(mockSchema);
@@ -46,7 +46,7 @@ describe("SchemaCache", () => {
     fetchStub.resolves({
       ok: true,
       json: async () => mockSchema,
-    } as Response);
+    });
 
     await cache.getSchema("http://test.com/schema.json");
     const result = await cache.getSchema("http://test.com/schema.json");
@@ -65,7 +65,7 @@ describe("SchemaCache", () => {
     fetchStub.resolves({
       ok: false,
       status: 404,
-    } as Response);
+    });
 
     const result = await cache.getSchema("http://test.com/schema.json");
     expect(result).toBeUndefined();
