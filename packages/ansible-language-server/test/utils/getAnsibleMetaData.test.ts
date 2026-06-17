@@ -243,7 +243,7 @@ describe("getAnsibleMetaData()", function () {
 
     describe("Verify ansible-lint details", function () {
       it("should contain all the keys for ansible-lint information", function () {
-        expect(actualAnsibleMetaData["ansible-lint information"]);
+        expect(actualAnsibleMetaData["ansible-lint information"]).toBeDefined();
         if (actualAnsibleMetaData["ansible-lint information"]) {
           const expectedKeys = Object.keys(ansibleLintInfoForTest);
           const actualKeys = Object.keys(
