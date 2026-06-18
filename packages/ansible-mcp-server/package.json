@@ -51,7 +51,7 @@
   "scripts": {
     "build": "pnpm run clean && pnpm run compile",
     "clean": "rimraf dist lib",
-    "compile": "tsc -p . && tsup --silent",
+    "compile": "tsc -p . --noEmit && tsdown --log-level error",
     "dev:stdio": "pnpm exec -- tsx src/cli.ts --stdio",
     "prepack": "pnpm run compile",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",
