@@ -7,27 +7,27 @@
 /** Known MCP tool names with curated example prompts. */
 const TOOL_EXAMPLES: Record<string, string> = {
     search_ansible_plugins:
-        'Search for Ansible plugins that can copy files, use the search_ansible_plugins MCP tool to accomplish this',
+        'Ask me what kind of Ansible plugin I need, then use the search_ansible_plugins MCP tool to find matching plugins',
     get_plugin_documentation:
-        'Show me the documentation for ansible.builtin.copy, use the get_plugin_documentation MCP tool to accomplish this',
+        'Ask me which Ansible plugin I want to learn about, then use the get_plugin_documentation MCP tool to retrieve and explain its documentation',
     list_ansible_collections:
         'List what Ansible collections are installed, use the list_ansible_collections MCP tool to accomplish this',
     generate_ansible_task:
-        'Generate an Ansible task to copy /etc/hosts to /tmp/hosts.backup, use the generate_ansible_task MCP tool to accomplish this',
+        'Ask me what I want an Ansible task to do, then use the generate_ansible_task MCP tool to create it',
     build_ansible_task:
-        'Help me build an Ansible task for the apt module step by step, use the build_ansible_task MCP tool to accomplish this',
+        'Ask me which Ansible module I want to use, then help me build a task step by step using the build_ansible_task MCP tool',
     generate_ansible_playbook:
-        'Create a playbook to install and configure nginx on webservers, use the generate_ansible_playbook MCP tool to accomplish this',
+        'Ask me what I want a playbook to accomplish, then use the generate_ansible_playbook MCP tool to create it',
     list_execution_environments:
         'List what execution environments are available, use the list_execution_environments MCP tool to accomplish this',
     get_ee_details:
-        'Show me the details of the creator-ee execution environment, use the get_ee_details MCP tool to accomplish this',
+        'Ask me which execution environment I want to inspect, then use the get_ee_details MCP tool to show its details',
     list_ansible_dev_tools:
         'List what ansible-dev-tools packages are installed, use the list_ansible_dev_tools MCP tool to accomplish this',
     install_ansible_collection:
-        'Install the community.general Ansible collection, use the install_ansible_collection MCP tool to accomplish this',
+        'Ask me which Ansible collection I want to install, then use the install_ansible_collection MCP tool to install it',
     get_collection_plugins:
-        'List all plugins in the cisco.nxos collection, use the get_collection_plugins MCP tool to accomplish this',
+        'Ask me which Ansible collection I want to explore, then use the get_collection_plugins MCP tool to list its plugins',
     get_ansible_creator_schema:
         'Show me what content types ansible-creator can scaffold, use the get_ansible_creator_schema MCP tool to accomplish this',
 };

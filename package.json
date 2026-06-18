@@ -976,7 +976,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run build",
-    "compile": "tsc -b",
+    "compile": "node scripts/generate-skill-content.mjs && tsc -b",
+    "prebuild": "node scripts/generate-skill-content.mjs",
     "build": "node scripts/build.mjs",
     "build:production": "node scripts/build.mjs --production",
     "watch": "tsc -b -w",

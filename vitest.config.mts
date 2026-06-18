@@ -1,4 +1,35 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, type UserProjectConfigExport } from 'vitest/config';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const ROOT = dirname(fileURLToPath(import.meta.url));
+
+const sharedResolve = {
+    alias: {
+        '@ansible/common': resolve(ROOT, 'packages/common/src'),
+        '@ansible/services': resolve(ROOT, 'packages/services/src'),
+    },
+};
+
+/**
+ * Build a project config with shared resolve aliases.
+ *
+ * @param name - Project name for vitest output.
+ * @param root - Package root directory relative to workspace.
+ * @param include - Glob patterns for test file discovery.
+ * @returns Vitest project config with package aliases.
+ */
+function project(name: string, root: string, include: string[]): UserProjectConfigExport {
+    return {
+        resolve: sharedResolve,
+        test: {
+            name,
+            root,
+            include,
+            environment: 'node',
+        },
+    };
+}
 
 export default defineConfig({
     test: {
@@ -20,47 +51,13 @@ export default defineConfig({
             },
         },
         projects: [
+            project('common', 'packages/common', ['test/**/*.test.ts']),
+            project('services', 'packages/services', ['test/**/*.test.ts']),
+            project('mcp', 'packages/mcp-server', ['test/**/*.test.ts']),
+            project('ls', 'packages/language-server', ['test/**/*.test.ts']),
+            project('ui', 'packages/ui', ['test/**/*.test.ts']),
             {
-                test: {
-                    name: 'common',
-                    root: 'packages/common',
-                    include: ['test/**/*.test.ts'],
-                    environment: 'node',
-                },
-            },
-            {
-                test: {
-                    name: 'services',
-                    root: 'packages/services',
-                    include: ['test/**/*.test.ts'],
-                    environment: 'node',
-                },
-            },
-            {
-                test: {
-                    name: 'mcp',
-                    root: 'packages/mcp-server',
-                    include: ['test/**/*.test.ts'],
-                    environment: 'node',
-                },
-            },
-            {
-                test: {
-                    name: 'ls',
-                    root: 'packages/language-server',
-                    include: ['test/**/*.test.ts'],
-                    environment: 'node',
-                },
-            },
-            {
-                test: {
-                    name: 'ui',
-                    root: 'packages/ui',
-                    include: ['test/**/*.test.ts'],
-                    environment: 'node',
-                },
-            },
-            {
+                resolve: sharedResolve,
                 test: {
                     name: 'ext',
                     include: ['test/unit/**/*.test.ts'],

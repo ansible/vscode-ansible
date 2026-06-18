@@ -57,6 +57,8 @@ export {
 export { setLogFunction, log, getLogFunction } from './utils/logging';
 export { SimpleEventEmitter } from './utils/SimpleEventEmitter';
 export type { Disposable } from './utils/SimpleEventEmitter';
+export { stripFrontmatter } from './utils/skillHelpers';
+export { BUILTIN_SKILLS } from './skills';
 
 // --- Parsers ---
 export {

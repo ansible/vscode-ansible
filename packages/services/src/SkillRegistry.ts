@@ -26,7 +26,7 @@ import * as os from 'os';
 import * as childProcess from 'child_process';
 import * as yaml from 'js-yaml';
 
-import { log, SimpleEventEmitter } from '@ansible/common';
+import { log, SimpleEventEmitter, BUILTIN_SKILLS } from '@ansible/common';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,8 +45,8 @@ export type RepoFormat = 'lola' | 'vercel' | 'generic';
 export interface SkillSource {
     /** Unique identifier for this source. */
     id: string;
-    /** Transport type: github, registry (future), or local disk. */
-    type: 'github' | 'registry' | 'local';
+    /** Transport type: github, registry (future), local disk, or builtin. */
+    type: 'github' | 'registry' | 'local' | 'builtin';
     /** URL or path for the source. */
     url: string;
     /** Trust level applied to all skills from this source. */
@@ -84,6 +84,14 @@ export interface SkillEntry {
     /** Paths to supplementary files (reference.md, templates, etc.). */
     references?: string[];
 }
+
+/** Synthetic source for bundled internal skills (ADR-014). */
+const BUILTIN_SOURCE: SkillSource = {
+    id: 'builtin',
+    type: 'builtin',
+    url: 'bundled',
+    trust: 'certified',
+};
 
 // ---------------------------------------------------------------------------
 // Internal interfaces
@@ -253,12 +261,12 @@ export class SkillRegistry {
     }
 
     /**
-     * Returns a shallow copy of the configured sources.
+     * Returns configured sources plus the synthetic builtin source.
      *
-     * @returns Array of skill sources.
+     * @returns Array of skill sources (builtin first).
      */
     getSources(): SkillSource[] {
-        return [...this._sources];
+        return [BUILTIN_SOURCE, ...this._sources];
     }
 
     // -- Loading ------------------------------------------------------------
@@ -432,7 +440,7 @@ export class SkillRegistry {
 
     // -- Private: loading ---------------------------------------------------
 
-    /** Iterates all configured sources, loading skills from each. */
+    /** Iterates all configured sources (builtin first), loading skills from each. */
     private async _loadAll(): Promise<void> {
         if (this._loading) {
             return;
@@ -440,6 +448,8 @@ export class SkillRegistry {
         this._loading = true;
 
         try {
+            this._loadBuiltinSource();
+
             for (const source of this._sources) {
                 try {
                     await this._loadSource(source);
@@ -491,6 +501,8 @@ export class SkillRegistry {
                 break;
             case 'registry':
                 skills = this._loadRegistrySource();
+                break;
+            case 'builtin':
                 break;
         }
 
@@ -1091,6 +1103,38 @@ export class SkillRegistry {
     private _loadRegistrySource(): SkillEntry[] {
         log('SkillRegistry: registry source type not yet implemented');
         return [];
+    }
+
+    // -- Private: builtin source (bundled internal skills) ------------------
+
+    /**
+     * Loads skills from the bundled internal skills manifest.
+     * Always runs before user-configured sources. Not cached to disk.
+     */
+    private _loadBuiltinSource(): void {
+        let count = 0;
+        for (const [slug, raw] of Object.entries(BUILTIN_SKILLS)) {
+            const { frontmatter, body } = this._parseSkillMd(raw);
+            const id = `builtin/${slug}`;
+            this._skills.set(id, {
+                id,
+                source: 'builtin',
+                module: 'builtin',
+                name: frontmatter.name ?? slug,
+                description: frontmatter.description ?? '',
+                triggers: this._normalizeTriggers(frontmatter.triggers),
+                category:
+                    (frontmatter.category as SkillCategory | undefined) ??
+                    this._inferCategoryFromFrontmatter(frontmatter) ??
+                    'other',
+                domain: frontmatter.domain,
+                tags: frontmatter.tags ?? [],
+                trust: 'certified',
+                content: body,
+            });
+            count++;
+        }
+        log(`SkillRegistry: loaded ${String(count)} builtin skills`);
     }
 
     // -- Private: fetch skill content on demand -----------------------------

@@ -15,8 +15,8 @@ export type RepoFormat = 'lola' | 'vercel' | 'generic';
 export interface SkillSource {
     /** Unique identifier for this source. */
     id: string;
-    /** Transport type: github, registry (future), or local disk. */
-    type: 'github' | 'registry' | 'local';
+    /** Transport type: github, registry (future), local disk, or builtin. */
+    type: 'github' | 'registry' | 'local' | 'builtin';
     /** URL or path for the source. */
     url: string;
     /** Trust level applied to all skills from this source. */
