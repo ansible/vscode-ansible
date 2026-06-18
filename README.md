@@ -8,12 +8,15 @@ The extension uses a multi-package architecture with npm workspaces:
 
 ```
 packages/
-  core/           # @ansible/core — VS Code-independent service layer
-  mcp-server/     # @ansible/mcp-server — standalone MCP server
-src/              # Extension host (views, panels, commands)
+  common/           # @ansible/common — browser-safe types, prompts, utils, parsers
+  services/         # @ansible/services — Node.js service implementations
+  language-server/  # @ansible/language-server — LSP server
+  mcp-server/       # @ansible/mcp-server — standalone MCP server
+  ui/               # @ansible/ui — shared React webview components
+src/                # Extension host (views, panels, commands)
 ```
 
-`@ansible/core` contains all domain logic (collections, commands, creator, EE, caching) with no VS Code dependency. The MCP server and extension host both consume it, so the same code runs in VS Code and as a standalone CLI tool.
+`@ansible/common` contains browser-safe types, prompts, and utilities with no Node.js or VS Code dependency. `@ansible/services` contains Node.js service implementations. The MCP server and extension host both consume these packages, so the same logic runs in VS Code and as a standalone CLI tool.
 
 ## Features
 
@@ -173,10 +176,12 @@ node packages/mcp-server/out/server.js
 ### Setup
 
 ```bash
-npm install       # Install dependencies (workspaces resolve automatically)
-npm run compile   # Build all packages (tsc -b with project references)
-npm run watch     # Watch mode for development
+npm ci            # Install dependencies (reproducible lockfile resolution)
+npm run compile   # Skill codegen + tsc -b (all packages)
+npm run build     # esbuild bundling
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full onboarding guide.
 
 ### Running
 
@@ -187,17 +192,19 @@ Press `F5` to launch a VS Code Extension Development Host with the extension loa
 ```bash
 npm test              # Run unit tests (Vitest)
 npm run test:coverage # Run with coverage (thresholds enforced)
-npm run test:e2e      # Run e2e tests (WebDriverIO + VS Code)
+npm run test:ui       # Run e2e tests (WebDriverIO + VS Code)
+npm run ci            # Full CI mirror: compile + lint + test:coverage + build
 ```
 
 The test suite uses:
-- **Vitest** for unit tests across `core` and `mcp-server` packages
+- **Vitest** for unit tests across all packages
 - **WebDriverIO** with `wdio-vscode-service` for e2e tests against a real VS Code instance
 
 ### Building
 
 ```bash
-npm exec vsce -- package   # Package the extension as a VSIX
+npm run package             # Package the extension as a VSIX
+npm run package:install     # Package and install into VS Code for testing
 ```
 
 ### Alpha releases (VSIX on GitHub)

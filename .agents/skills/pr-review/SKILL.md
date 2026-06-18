@@ -81,6 +81,65 @@ Copilot often flags unused imports. With ESLint `no-unused-vars` enabled,
 these fail CI. Remove unused imports or prefix intentionally unused parameters
 with `_`. Prefer trimming the import list over disabling the rule.
 
+### JSDoc completeness
+
+ESLint enforces `jsdoc/require-param` and `jsdoc/require-returns`. Every
+exported function needs `@param` for each parameter and `@returns` for
+non-void return types. Add JSDoc proactively — Copilot flags missing
+annotations on nearly every PR.
+
+### Prettier formatting
+
+The project enforces single quotes (unless the string contains an
+apostrophe, in which case double quotes avoid `\'`), trailing commas,
+and consistent parenthesization. Run `npm exec eslint -- . --fix` before
+manual review. Generated files (`.content.ts`) must also pass prettier.
+
+### Import alias violations
+
+Use `@src/*` aliases for cross-boundary imports, not relative `../`
+paths that reach outside the current package. `no-restricted-imports`
+enforces this. Copilot flags violations that ESLint may also catch.
+
+### Command handler null guards
+
+VS Code commands invoked from the Command Palette may receive
+`undefined` arguments even if the `when` clause restricts menu
+visibility. Always guard `node` parameters in tree-view command
+handlers:
+
+```typescript
+if (!node) return;
+```
+
+### `appendText` vs `appendMarkdown`
+
+Use `appendText` for dynamic or external content in `MarkdownString`
+tooltips. `appendMarkdown` with user-controlled data risks formatting
+injection (e.g., unescaped `[`, `]`, backticks). Reserve
+`appendMarkdown` for static template text.
+
+### Runtime config guards
+
+If a feature is gated by a configuration setting in `package.json`
+`when` clauses, also guard the command handler at runtime. The
+Command Palette bypasses menu visibility — a user (or agent) can
+invoke the command even when the menu item is hidden.
+
+### Documentation and comment drift
+
+When renaming, refactoring, or changing behavior, update ALL comments,
+docstrings, and documentation in the same commit. Copilot flags
+stale comments on nearly every PR. This includes: JSDoc descriptions,
+inline comments, AGENTS.md, README.md, and ADRs.
+
+### Generated file hygiene
+
+After running codegen (`node scripts/generate-skill-content.mjs`), run
+`npm exec eslint -- .` on the full project. Prettier and
+typescript-eslint rules apply to generated `.content.ts` files. Quote
+style, line length, and formatting must match project conventions.
+
 ## Workflow
 
 1. **Ensure the PR branch is up to date with `next`.** Before reviewing or
@@ -118,12 +177,14 @@ gh run view RUN_ID --log-failed 2>&1 | tail -80
 
 Common CI failures and how to fix them:
 
-- **lint (eslint)**: Run `npm exec eslint -- . --fix` locally. Common issues:
-  unused imports, missing type annotations, inconsistent formatting.
-- **compile (tsc)**: Run `npm exec tsc -- -b` to check for type errors across all
-  packages. Fix type mismatches, missing imports, and `any` type leaks.
-- **unit tests (vitest)**: Run `npm exec vitest -- run` to reproduce. Update tests
-  when behavior changes.
+- **Any of lint / compile / test / build**: Run `npm run ci` locally to
+  reproduce the full CI pipeline. This is the fastest path to a fix.
+- **lint (eslint)**: Run `npm exec eslint -- . --fix` to auto-fix.
+  Common issues: unused imports, missing JSDoc, prettier formatting.
+- **compile (tsc)**: Run `npm run compile` (includes skill codegen).
+  Fix type mismatches, missing imports, and `any` type leaks.
+- **unit tests (vitest)**: Run `npm run test:coverage` to match CI
+  thresholds. Update tests when behavior changes.
 - **e2e tests (wdio)**: Run `npm run test:ui` to reproduce. These tests
   launch a real VS Code instance — check for timing issues and flaky
   selectors.

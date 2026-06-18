@@ -3,6 +3,26 @@
 Read this file before touching code. It defines the architectural
 invariants and operational rules for the `next` branch.
 
+## New Developer Detection
+
+On your **first interaction** in this workspace, check whether the
+developer is new to the codebase:
+
+```bash
+git log --author="$(git config user.name)" --oneline next -- | head -1
+```
+
+If this returns empty (no commits on `next`), offer the `onboard`
+skill:
+
+> "It looks like this may be your first time working in this codebase.
+> Would you like me to walk you through the architecture, ADRs, and
+> development workflows? (Just say `/onboard` or skip to your task.)"
+
+Also offer onboarding if the developer asks orientation questions like
+"how does this work", "where is X", "what's the structure", or "I'm
+new here".
+
 ## Architectural Invariants
 
 These are non-negotiable. Violating any of them will break the system
@@ -67,10 +87,24 @@ See the `branching-strategy` skill for full details.
 
 Before committing:
 
-1. `npm exec tsc -- -b` — type check all packages
-2. `npm exec vitest -- run` — unit tests pass
-3. `npm exec eslint -- .` — no lint violations (when eslint config is available)
-4. Verify no architectural invariants (above) were violated
+1. `npm run ci` — **required before every commit/push**. Runs skill
+   codegen, TypeScript compilation, ESLint on the full project, Vitest
+   with coverage thresholds (85/75/85/85), and esbuild bundling. This
+   mirrors what CI runs. Do not push if it fails. Do not claim quality
+   gates passed without running this command.
+2. Verify no architectural invariants (above) were violated.
+
+For iterative development, `npm run check` (compile + lint + test
+without coverage thresholds or build) is acceptable. Switch to
+`npm run ci` before committing.
+
+### Rebuild after changes
+
+After **any** code change, run `npm run compile && npm run build`.
+The extension, MCP server, and language server all load from `dist/`
+(esbuild bundles) — stale bundles mask bugs. `npm run ci` includes
+both steps, but if you are testing interactively (e.g., reloading the
+extension window), rebuild explicitly.
 
 ## Commit Format
 
@@ -154,6 +188,7 @@ the closing `---` is the instruction text. Prompt builders call
 
 | Skill | When to use |
 |-------|-------------|
+| `onboard` | First-time developer orientation |
 | `submit-pr` | Creating a pull request |
 | `pr-review` | Responding to review comments |
 | `write-adr` | Architectural decisions (not bug fixes) |

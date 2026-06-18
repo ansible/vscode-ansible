@@ -986,7 +986,11 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "check": "npm run compile && npm run lint && npm run test",
+    "ci": "npm run compile && npm run lint && npm run test:coverage && npm run build",
     "test:watch": "vitest",
+    "package": "vsce package --no-dependencies",
+    "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "pretest:ui": "node scripts/install-test-extensions.mjs",
     "test:ui": "wdio run wdio.conf.ts"
