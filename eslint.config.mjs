@@ -133,7 +133,7 @@ export default defineConfig(
   },
   {
     // Standalone scripts have no tsconfig; skip eslint entirely
-    ignores: ["scripts/**"],
+    ignores: ["scripts/**", "**/tsdown.config.ts"],
   },
   {
     // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root
