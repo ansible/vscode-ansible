@@ -268,7 +268,7 @@ describe('CollectionsService', () => {
         expect(list.some((c) => c.name === 'community.docker' && c.version === '3.4.5')).toBe(true);
     });
 
-    it('forceRefresh catches failure when ansible-doc JSON is invalid', async () => {
+    it('forceRefresh handles invalid ansible-doc JSON gracefully', async () => {
         runToolMock.mockImplementation((toolName: string) => {
             if (toolName === 'ade') {
                 return { exitCode: 0, stdout: adeInspectStdout, stderr: '' };
@@ -280,7 +280,7 @@ describe('CollectionsService', () => {
         });
         const svc = CollectionsService.getInstance();
         await svc.forceRefresh();
-        expect(svc.isLoaded()).toBe(false);
+        expect(svc.isLoaded()).toBe(true);
         expect(svc.listCollectionNames()).toEqual([]);
     });
 

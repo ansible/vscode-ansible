@@ -555,6 +555,16 @@
         "icon": "$(sparkle)"
       },
       {
+        "command": "ansibleCollectionSources.showGitHubPluginDoc",
+        "title": "Show Plugin Documentation",
+        "icon": "$(book)"
+      },
+      {
+        "command": "ansibleCollectionSources.refreshGitHubCollection",
+        "title": "Refresh Plugin Docs",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "ansibleEnvironments.selectLlmModel",
         "title": "Select LLM Provider & Model",
         "category": "Ansible Environments",
@@ -780,27 +790,32 @@
         },
         {
           "command": "ansibleCollectionSources.installFromSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSource",
+          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
           "group": "inline@1"
         },
         {
           "command": "ansibleCollectionSources.searchSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSource",
+          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
           "group": "inline@2"
         },
         {
           "command": "ansibleCollectionSources.refreshSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSource",
+          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
           "group": "inline@3"
         },
         {
           "command": "ansibleCollectionSources.aiSourceSummary",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSource && config.ansibleEnvironments.enableAiFeatures",
+          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub && config.ansibleEnvironments.enableAiFeatures",
           "group": "inline@4"
         },
         {
           "command": "ansibleCollectionSources.installGalaxyCollection",
           "when": "view == ansibleCollectionSources && viewItem == galaxyCollection",
+          "group": "inline@1"
+        },
+        {
+          "command": "ansibleCollectionSources.refreshGitHubCollection",
+          "when": "view == ansibleCollectionSources && viewItem == githubCollection",
           "group": "inline@1"
         },
         {

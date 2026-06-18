@@ -142,11 +142,17 @@ const hoisted = vi.hoisted(() => {
         getPluginDoc: vi.fn().mockResolvedValue(null),
     };
 
+    const scmDocsInstance = {
+        getPluginTypes: vi.fn().mockResolvedValue(null as Record<string, unknown[]> | null),
+        getPluginDoc: vi.fn().mockResolvedValue(null),
+    };
+
     return {
         getPluginDocumentation,
         collectionsInstance,
         galaxyInstance,
         galaxyDocsInstance,
+        scmDocsInstance,
         githubInstance,
         eeInstance,
         devToolsInstance,
@@ -186,6 +192,9 @@ vi.mock('@ansible/services', () => ({
     },
     GitHubCollectionCache: {
         getInstance: vi.fn(() => hoisted.githubInstance),
+    },
+    SCMDocsCache: {
+        getInstance: vi.fn(() => hoisted.scmDocsInstance),
     },
     SkillRegistry: {
         getInstance: vi.fn(() => ({
@@ -507,6 +516,7 @@ describe('McpToolHandler', () => {
                     name: 'd',
                     version: '2.0.0',
                     description: 'From GitHub',
+                    repository: 'myorg/c.d',
                 },
             ]);
 
@@ -1114,6 +1124,115 @@ describe('McpToolHandler', () => {
             expect(text).toContain('**address**');
             expect(text).toContain('**dns**');
             expect(text).toContain('**servers**');
+        });
+    });
+
+    describe('get_scm_plugin_doc', () => {
+        it('returns error for missing parameters', async () => {
+            const result = await handler.handleTool('get_scm_plugin_doc', {});
+            expect(result.isError).toBe(true);
+            expect(result.content[0].text).toContain('Missing required parameters');
+        });
+
+        it('returns error for invalid collection format', async () => {
+            const result = await handler.handleTool('get_scm_plugin_doc', {
+                org: 'test-org',
+                repo: 'test-repo',
+                collection: 'invalid',
+            });
+            expect(result.isError).toBe(true);
+            expect(result.content[0].text).toContain('namespace.name format');
+        });
+
+        it('lists plugin types when no plugin specified', async () => {
+            hoisted.scmDocsInstance.getPluginTypes.mockResolvedValue({
+                module: [
+                    {
+                        name: 'my_module',
+                        fullName: 'test.col.my_module',
+                        shortDescription: 'A module',
+                    },
+                ],
+                lookup: [
+                    {
+                        name: 'my_lookup',
+                        fullName: 'test.col.my_lookup',
+                        shortDescription: 'A lookup',
+                    },
+                ],
+            });
+
+            const result = await handler.handleTool('get_scm_plugin_doc', {
+                org: 'test-org',
+                repo: 'test-repo',
+                collection: 'test.col',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('test.col');
+            expect(result.content[0].text).toContain('module (1)');
+            expect(result.content[0].text).toContain('lookup (1)');
+            expect(result.content[0].text).toContain('my_module');
+        });
+
+        it('returns full plugin documentation', async () => {
+            hoisted.scmDocsInstance.getPluginDoc.mockResolvedValue({
+                doc: {
+                    short_description: 'Manage resources',
+                    description: ['Configure resources on devices.'],
+                    author: ['Test Author'],
+                    options: {
+                        config: { type: 'list', description: 'Config entries' },
+                    },
+                },
+                examples: '- name: Example\n  test.col.my_module:',
+                return: {
+                    result: { type: 'str', description: 'The result' },
+                },
+            });
+
+            const result = await handler.handleTool('get_scm_plugin_doc', {
+                org: 'test-org',
+                repo: 'test-repo',
+                collection: 'test.col',
+                plugin: 'my_module',
+                plugin_type: 'module',
+            });
+
+            expect(result.isError).toBeUndefined();
+            const text = result.content[0].text;
+            expect(text).toContain('test.col.my_module');
+            expect(text).toContain('Manage resources');
+            expect(text).toContain('config');
+            expect(text).toContain('Examples');
+            expect(text).toContain('Return Values');
+        });
+
+        it('returns error when plugin not found', async () => {
+            hoisted.scmDocsInstance.getPluginDoc.mockResolvedValue(null);
+
+            const result = await handler.handleTool('get_scm_plugin_doc', {
+                org: 'test-org',
+                repo: 'test-repo',
+                collection: 'test.col',
+                plugin: 'nonexistent',
+            });
+
+            expect(result.isError).toBe(true);
+            expect(result.content[0].text).toContain('not found');
+        });
+
+        it('returns error when indexing fails', async () => {
+            hoisted.scmDocsInstance.getPluginTypes.mockResolvedValue(null);
+
+            const result = await handler.handleTool('get_scm_plugin_doc', {
+                org: 'test-org',
+                repo: 'test-repo',
+                collection: 'test.col',
+            });
+
+            expect(result.isError).toBe(true);
+            expect(result.content[0].text).toContain('Failed to index');
         });
     });
 });
