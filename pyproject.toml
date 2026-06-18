@@ -35,6 +35,7 @@ check-filenames = true
 check-hidden = true
 ignore-words-list = [
   "als",
+  "falsy",
   "ro",
   "stdio",
   "isPlay",
