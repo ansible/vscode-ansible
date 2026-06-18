@@ -36,11 +36,12 @@ Decisions under consideration — not yet accepted or implemented.
 | ADR | Title | Date |
 |-----|-------|------|
 | [ADR-003](ADR-003-ee-via-devcontainers.md) | Execution Environment Support via Dev Containers | 2026-05-26 |
+| [ADR-015](ADR-015-lightspeed-standalone-package.md) | Lightspeed as a Standalone Opt-In Package | 2026-06-18 |
 
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-014)
+2. Use the next available number (currently ADR-016)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date
