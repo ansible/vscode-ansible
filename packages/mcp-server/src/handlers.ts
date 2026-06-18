@@ -21,8 +21,9 @@ import {
     GalaxyCollectionCache,
     GalaxyDocsCache,
     GitHubCollectionCache,
+    SCMDocsCache,
 } from '@ansible/services';
-import type { PluginOption, SchemaNode } from '@ansible/services';
+import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/services';
 
 /**
  * Normalizes ansible-doc fields that may be a single string or string array.
@@ -111,6 +112,8 @@ export class McpToolHandler {
                     return await this._handleGetCollectionPlugins(args);
                 case 'get_galaxy_plugin_doc':
                     return await this._handleGetGalaxyPluginDoc(args);
+                case 'get_scm_plugin_doc':
+                    return await this._handleGetScmPluginDoc(args);
 
                 // Task generation
                 case 'generate_ansible_task':
@@ -576,6 +579,7 @@ export class McpToolHandler {
                 fqcn: string;
                 version: string;
                 description: string;
+                repo?: string;
             }
 
             const collections: CollectionInfo[] = [];
@@ -605,6 +609,7 @@ export class McpToolHandler {
                         fqcn: `${col.namespace}.${col.name}`,
                         version: col.version,
                         description: col.description || 'No description',
+                        repo: col.repository.split('/').pop() ?? col.repository,
                     });
                 }
             }
@@ -623,7 +628,8 @@ export class McpToolHandler {
             const lines = [`Collections in "${source}" (${String(collections.length)}):`, ''];
 
             for (const col of collections) {
-                lines.push(`• ${col.fqcn} (v${col.version}): ${col.description}`);
+                const repoSuffix = col.repo ? ` [repo: ${col.repo}]` : '';
+                lines.push(`• ${col.fqcn} (v${col.version})${repoSuffix}: ${col.description}`);
             }
 
             lines.push('');
@@ -818,24 +824,12 @@ export class McpToolHandler {
                 };
             }
 
-            const lines: string[] = [`# ${collectionFqcn} v${match.version}\n`];
-            let total = 0;
-            for (const [type, plugins] of Object.entries(pluginTypes).sort(([a], [b]) =>
-                a.localeCompare(b),
-            )) {
-                total += plugins.length;
-                lines.push(`## ${type} (${String(plugins.length)})\n`);
-                for (const p of plugins) {
-                    const desc = p.shortDescription ? ` - ${p.shortDescription}` : '';
-                    lines.push(`• **${p.name}**${desc}`);
-                }
-                lines.push('');
-            }
-            lines.push(
-                `---\n${String(total)} plugins total. Use \`get_galaxy_plugin_doc\` with a \`plugin\` name for full docs.`,
+            const text = this._formatPluginTypeList(
+                `${collectionFqcn} v${match.version}`,
+                pluginTypes,
+                'get_galaxy_plugin_doc',
             );
-
-            return { content: [{ type: 'text', text: lines.join('\n') }] };
+            return { content: [{ type: 'text', text }] };
         }
 
         const pluginType = (args.plugin_type as string) || 'module';
@@ -854,6 +848,82 @@ export class McpToolHandler {
             };
         }
 
+        return { content: [{ type: 'text', text: this._formatPluginDoc(fqcn, pluginType, doc) }] };
+    }
+
+    /**
+     * Recursively format plugin options into Markdown.
+     *
+     * @param options - Plugin option definitions
+     * @param lines - Accumulator for output lines
+     * @param depth - Nesting depth for indentation
+     */
+    private _formatOptions(
+        options: Record<string, PluginOption>,
+        lines: string[],
+        depth: number,
+    ): void {
+        const indent = '  '.repeat(depth);
+        for (const [optName, opt] of Object.entries(options)) {
+            const required = opt.required ? ' **REQUIRED**' : '';
+            const type = opt.type ? ` (${opt.type})` : '';
+            const desc = opt.description
+                ? ` - ${toArray(opt.description).join(' ').substring(0, 200)}`
+                : '';
+            const defaultVal =
+                opt.default !== undefined ? ` [default: ${JSON.stringify(opt.default)}]` : '';
+            const choices =
+                opt.choices && opt.choices.length > 0
+                    ? ` [choices: ${opt.choices.join(', ')}]`
+                    : '';
+            lines.push(`${indent}• **${optName}**${type}${required}${desc}${defaultVal}${choices}`);
+            if (opt.suboptions) {
+                this._formatOptions(opt.suboptions, lines, depth + 1);
+            }
+        }
+    }
+
+    /**
+     * Formats a plugin-type listing into Markdown sections with plugin counts.
+     *
+     * @param title - Header line for the listing (e.g., "collection v1.0")
+     * @param pluginTypes - Map of plugin type names to plugin info arrays
+     * @param hintTool - MCP tool name to mention in the footer hint
+     * @returns Formatted Markdown string
+     */
+    private _formatPluginTypeList(
+        title: string,
+        pluginTypes: Record<string, PluginInfo[]>,
+        hintTool: string,
+    ): string {
+        const lines: string[] = [`# ${title}\n`];
+        let total = 0;
+        for (const [type, plugins] of Object.entries(pluginTypes).sort(([a], [b]) =>
+            a.localeCompare(b),
+        )) {
+            total += plugins.length;
+            lines.push(`## ${type} (${String(plugins.length)})\n`);
+            for (const p of plugins) {
+                const desc = p.shortDescription ? ` - ${p.shortDescription}` : '';
+                lines.push(`• **${p.name}**${desc}`);
+            }
+            lines.push('');
+        }
+        lines.push(
+            `---\n${String(total)} plugins total. Use \`${hintTool}\` with a \`plugin\` name for full docs.`,
+        );
+        return lines.join('\n');
+    }
+
+    /**
+     * Formats full plugin documentation into Markdown sections.
+     *
+     * @param fqcn - Fully qualified plugin name
+     * @param pluginType - Plugin type (module, lookup, etc.)
+     * @param doc - Plugin documentation data
+     * @returns Formatted Markdown string
+     */
+    private _formatPluginDoc(fqcn: string, pluginType: string, doc: PluginData): string {
         const sections: string[] = [];
         sections.push(`# ${fqcn} (${pluginType})\n`);
 
@@ -909,39 +979,94 @@ export class McpToolHandler {
             sections.push('');
         }
 
-        return { content: [{ type: 'text', text: sections.join('\n') }] };
+        return sections.join('\n');
     }
 
     /**
-     * Recursively format plugin options into Markdown.
+     * Handles `get_scm_plugin_doc` — fetches docs via shallow clone + ansible-doc.
      *
-     * @param options - Plugin option definitions
-     * @param lines - Accumulator for output lines
-     * @param depth - Nesting depth for indentation
+     * @param args - Tool args: `org`, `repo`, `collection` (required), optional `plugin` and `plugin_type`
+     * @returns Plugin documentation or a list of available plugin types
      */
-    private _formatOptions(
-        options: Record<string, PluginOption>,
-        lines: string[],
-        depth: number,
-    ): void {
-        const indent = '  '.repeat(depth);
-        for (const [optName, opt] of Object.entries(options)) {
-            const required = opt.required ? ' **REQUIRED**' : '';
-            const type = opt.type ? ` (${opt.type})` : '';
-            const desc = opt.description
-                ? ` - ${toArray(opt.description).join(' ').substring(0, 200)}`
-                : '';
-            const defaultVal =
-                opt.default !== undefined ? ` [default: ${JSON.stringify(opt.default)}]` : '';
-            const choices =
-                opt.choices && opt.choices.length > 0
-                    ? ` [choices: ${opt.choices.join(', ')}]`
-                    : '';
-            lines.push(`${indent}• **${optName}**${type}${required}${desc}${defaultVal}${choices}`);
-            if (opt.suboptions) {
-                this._formatOptions(opt.suboptions, lines, depth + 1);
-            }
+    private async _handleGetScmPluginDoc(args: Record<string, unknown>): Promise<McpToolResult> {
+        const org = args.org as string;
+        const repo = args.repo as string;
+        const collectionFqcn = args.collection as string;
+
+        if (!org || !repo || !collectionFqcn) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: 'Missing required parameters: org, repo, and collection are all required.',
+                    },
+                ],
+                isError: true,
+            };
         }
+
+        const parts = collectionFqcn.split('.');
+        if (parts.length !== 2) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `Invalid collection name "${collectionFqcn}". Use namespace.name format (e.g., "infra.aap_configuration").`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+        const [namespace, name] = parts;
+
+        const scmCache = SCMDocsCache.getInstance();
+        const pluginName = args.plugin as string | undefined;
+        const forceRefresh = args.force_refresh as boolean | undefined;
+
+        if (forceRefresh) {
+            scmCache.invalidate(org, repo);
+        }
+
+        if (!pluginName) {
+            const pluginTypes = await scmCache.getPluginTypes(org, repo, namespace, name);
+
+            if (!pluginTypes) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: `Failed to index ${collectionFqcn} from ${org}/${repo}. Ensure git and ansible-doc are available.`,
+                        },
+                    ],
+                    isError: true,
+                };
+            }
+
+            const text = this._formatPluginTypeList(
+                `${collectionFqcn} (${org}/${repo})`,
+                pluginTypes,
+                'get_scm_plugin_doc',
+            );
+            return { content: [{ type: 'text', text }] };
+        }
+
+        const pluginType = (args.plugin_type as string) || 'module';
+        const fqcn = `${collectionFqcn}.${pluginName}`;
+        const doc = await scmCache.getPluginDoc(org, repo, namespace, name, fqcn, pluginType);
+
+        if (!doc) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `Plugin "${pluginName}" (${pluginType}) not found in ${collectionFqcn}. Use get_scm_plugin_doc without a plugin name to list available plugins.`,
+                    },
+                ],
+                isError: true,
+            };
+        }
+
+        return { content: [{ type: 'text', text: this._formatPluginDoc(fqcn, pluginType, doc) }] };
     }
 
     // === Task Generation Handlers ===

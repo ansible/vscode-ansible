@@ -26,6 +26,7 @@ Decisions that have been accepted but are not yet fully implemented.
 | [ADR-006](ADR-006-esbuild-bundler.md) | esbuild Bundler for Extension and Packages | 2026-06-10 |
 | [ADR-011](ADR-011-package-architecture.md) | Package Architecture — @ansible/common and @ansible/services | 2026-06-16 |
 | [ADR-012](ADR-012-mcp-tool-parity.md) | MCP Tool Parity for Extension Capabilities | 2026-06-17 |
+| [ADR-013](ADR-013-scm-plugin-docs-via-shallow-clone.md) | SCM Collection Plugin Documentation via Shallow Clone | 2026-06-17 |
 
 ## Proposed
 
@@ -38,7 +39,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-013)
+2. Use the next available number (currently ADR-014)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date

@@ -3,11 +3,12 @@ import {
     GalaxyCollectionCache,
     GalaxyDocsCache,
     GitHubCollectionCache,
+    SCMDocsCache,
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
 } from '@ansible/services';
-import type { GalaxyCollection, PluginInfo } from '@ansible/services';
+import type { GalaxyCollection, GitHubCollection, PluginInfo } from '@ansible/services';
 
 let extensionLog: (msg: string) => void = console.log;
 
@@ -64,7 +65,10 @@ type TreeNode =
     | CollectionSourceNode
     | GalaxyCollectionNode
     | GalaxyPluginTypeNode
-    | GalaxyPluginNode;
+    | GalaxyPluginNode
+    | GitHubCollectionNode
+    | GitHubPluginTypeNode
+    | GitHubPluginNode;
 
 /** Root-level node representing a collection source (Galaxy or GitHub org). */
 class CollectionSourceNode extends vscode.TreeItem {
@@ -81,12 +85,7 @@ class CollectionSourceNode extends vscode.TreeItem {
         public readonly galaxyFilterResultCount?: number,
     ) {
         const isGalaxy = source.type === 'galaxy';
-        super(
-            source.name,
-            isGalaxy
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.None,
-        );
+        super(source.name, vscode.TreeItemCollapsibleState.Collapsed);
 
         this.iconPath = new vscode.ThemeIcon(isGalaxy ? 'globe' : 'github');
 
@@ -114,7 +113,7 @@ class CollectionSourceNode extends vscode.TreeItem {
                 ? 'collectionSourceGalaxyFiltered'
                 : 'collectionSourceGalaxy';
         } else {
-            this.contextValue = 'collectionSource';
+            this.contextValue = 'collectionSourceGitHub';
         }
     }
 }
@@ -190,6 +189,86 @@ class GalaxyPluginNode extends vscode.TreeItem {
     }
 }
 
+/** Tree node representing a single GitHub collection (expandable to plugin types). */
+class GitHubCollectionNode extends vscode.TreeItem {
+    public readonly nodeType = 'githubCollection' as const;
+
+    /** @param collection - GitHub collection metadata. */
+    constructor(public readonly collection: GitHubCollection) {
+        super(
+            `${collection.namespace}.${collection.name}`,
+            vscode.TreeItemCollapsibleState.Collapsed,
+        );
+        this.description = collection.version ? `v${collection.version}` : '';
+        this.iconPath = new vscode.ThemeIcon('library');
+        this.contextValue = 'githubCollection';
+
+        const tooltip = new vscode.MarkdownString();
+        tooltip.appendMarkdown(`**${collection.namespace}.${collection.name}**\n\n`);
+        if (collection.version) tooltip.appendMarkdown(`Version: ${collection.version}\n\n`);
+        tooltip.appendMarkdown(`Org: ${collection.org}\n\n`);
+        if (collection.description) tooltip.appendMarkdown(collection.description);
+        this.tooltip = tooltip;
+    }
+}
+
+/** Tree node grouping plugins by type within a GitHub collection. */
+class GitHubPluginTypeNode extends vscode.TreeItem {
+    public readonly nodeType = 'githubPluginType' as const;
+
+    /**
+     * @param pluginType - Plugin type name.
+     * @param plugins - Plugins of this type.
+     * @param collection - Parent GitHub collection.
+     */
+    constructor(
+        public readonly pluginType: string,
+        public readonly plugins: PluginInfo[],
+        public readonly collection: GitHubCollection,
+    ) {
+        super(pluginType, vscode.TreeItemCollapsibleState.Collapsed);
+        this.description = `(${String(plugins.length)})`;
+        this.iconPath = new vscode.ThemeIcon('symbol-folder');
+        this.contextValue = 'githubPluginType';
+    }
+}
+
+/** Leaf tree node representing a single GitHub-sourced plugin. */
+class GitHubPluginNode extends vscode.TreeItem {
+    public readonly nodeType = 'githubPlugin' as const;
+
+    /**
+     * @param plugin - Plugin info.
+     * @param pluginType - Plugin type name.
+     * @param collection - Parent GitHub collection.
+     */
+    constructor(
+        public readonly plugin: PluginInfo,
+        public readonly pluginType: string,
+        public readonly collection: GitHubCollection,
+    ) {
+        super(plugin.name, vscode.TreeItemCollapsibleState.None);
+        this.description = plugin.shortDescription;
+        this.iconPath = new vscode.ThemeIcon('sparkle');
+        this.contextValue = 'githubPlugin';
+
+        this.command = {
+            command: 'ansibleCollectionSources.showGitHubPluginDoc',
+            title: 'Show Plugin Documentation',
+            arguments: [this],
+        };
+    }
+}
+
+/**
+ * Extracts the repository name from a full GitHub repository URL or path.
+ * @param repository - Repository URL or path (e.g., "org/repo-name").
+ * @returns The repository name portion.
+ */
+function repoNameFrom(repository: string): string {
+    return repository.split('/').pop() ?? repository;
+}
+
 // ---------------------------------------------------------------------------
 // Provider
 // ---------------------------------------------------------------------------
@@ -202,6 +281,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
     private _galaxyCache: GalaxyCollectionCache;
     private _galaxyDocsCache: GalaxyDocsCache;
     private _githubCache: GitHubCollectionCache;
+    private _scmDocsCache: SCMDocsCache;
     private _disposables: vscode.Disposable[] = [];
     private _galaxyFilter: string | undefined;
 
@@ -210,6 +290,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
         this._galaxyCache = GalaxyCollectionCache.getInstance();
         this._galaxyDocsCache = GalaxyDocsCache.getInstance();
         this._githubCache = GitHubCollectionCache.getInstance();
+        this._scmDocsCache = SCMDocsCache.getInstance();
         this._githubCache.setLogFunction(extensionLog);
 
         this._disposables.push(
@@ -342,8 +423,11 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
             return Promise.resolve(this._getRootNodes());
         }
 
-        if (element instanceof CollectionSourceNode && element.source.type === 'galaxy') {
-            return Promise.resolve(this._getGalaxyChildren());
+        if (element instanceof CollectionSourceNode) {
+            if (element.source.type === 'galaxy') {
+                return Promise.resolve(this._getGalaxyChildren());
+            }
+            return Promise.resolve(this._getGitHubChildren(element.source.id));
         }
 
         if (element instanceof GalaxyCollectionNode) {
@@ -354,6 +438,18 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
             return Promise.resolve(
                 element.plugins.map(
                     (p) => new GalaxyPluginNode(p, element.pluginType, element.collection),
+                ),
+            );
+        }
+
+        if (element instanceof GitHubCollectionNode) {
+            return this._getGitHubCollectionChildren(element.collection);
+        }
+
+        if (element instanceof GitHubPluginTypeNode) {
+            return Promise.resolve(
+                element.plugins.map(
+                    (p) => new GitHubPluginNode(p, element.pluginType, element.collection),
                 ),
             );
         }
@@ -440,6 +536,49 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
         return Object.entries(pluginTypes)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([type, plugins]) => new GalaxyPluginTypeNode(type, plugins, collection));
+    }
+
+    /**
+     * Returns GitHub collection nodes for an org.
+     * @param org - GitHub organization name.
+     * @returns Array of GitHub collection tree nodes.
+     */
+    private _getGitHubChildren(org: string): TreeNode[] {
+        return this._githubCache
+            .getCollections(org)
+            .slice()
+            .sort((a, b) => `${a.namespace}.${a.name}`.localeCompare(`${b.namespace}.${b.name}`))
+            .map((c) => new GitHubCollectionNode(c));
+    }
+
+    /**
+     * Expands a GitHub collection into plugin-type groupings via SCMDocsCache.
+     * @param collection - The GitHub collection to expand.
+     * @returns Array of plugin-type tree nodes, or an error placeholder on failure.
+     */
+    private async _getGitHubCollectionChildren(collection: GitHubCollection): Promise<TreeNode[]> {
+        const pluginTypes = await this._scmDocsCache.getPluginTypes(
+            collection.org,
+            repoNameFrom(collection.repository),
+            collection.namespace,
+            collection.name,
+        );
+
+        if (!pluginTypes) {
+            const errorNode = new vscode.TreeItem(
+                'Failed to load plugin documentation',
+                vscode.TreeItemCollapsibleState.None,
+            );
+            errorNode.iconPath = new vscode.ThemeIcon('warning');
+            errorNode.tooltip =
+                `Could not index ${collection.namespace}.${collection.name}. ` +
+                'Requires git and ansible-doc on PATH. Click to retry.';
+            return [errorNode as TreeNode];
+        }
+
+        return Object.entries(pluginTypes)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([type, plugins]) => new GitHubPluginTypeNode(type, plugins, collection));
     }
 
     // -------------------------------------------------------------------
@@ -656,6 +795,58 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
                 const { PluginDocPanel } = await import('@src/panels/PluginDocPanel');
                 PluginDocPanel.showWithData(extensionUri, plugin.fullName, pluginType, data);
             },
+        );
+    }
+
+    /**
+     * Fetches GitHub collection plugin docs via SCMDocsCache and opens the PluginDoc webview.
+     * @param node - The GitHub plugin tree node.
+     * @param extensionUri - Extension URI for webview resource loading.
+     */
+    public async showGitHubPluginDoc(
+        node: GitHubPluginNode,
+        extensionUri: vscode.Uri,
+    ): Promise<void> {
+        const { collection, plugin, pluginType } = node;
+
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Window,
+                title: `Loading ${plugin.fullName}...`,
+            },
+            async () => {
+                const data = await this._scmDocsCache.getPluginDoc(
+                    collection.org,
+                    repoNameFrom(collection.repository),
+                    collection.namespace,
+                    collection.name,
+                    plugin.fullName,
+                    pluginType,
+                );
+
+                if (!data) {
+                    vscode.window.showWarningMessage(
+                        `Could not load documentation for ${plugin.fullName}`,
+                    );
+                    return;
+                }
+
+                const { PluginDocPanel } = await import('@src/panels/PluginDocPanel');
+                PluginDocPanel.showWithData(extensionUri, plugin.fullName, pluginType, data);
+            },
+        );
+    }
+
+    /**
+     * Invalidates and refreshes the SCM docs cache for a GitHub collection.
+     * @param node - The GitHub collection tree node.
+     */
+    public refreshGitHubCollection(node: GitHubCollectionNode): void {
+        const { collection } = node;
+        this._scmDocsCache.invalidate(collection.org, repoNameFrom(collection.repository));
+        this.refresh();
+        vscode.window.showInformationMessage(
+            `Refreshing plugin docs for ${collection.namespace}.${collection.name}...`,
         );
     }
 

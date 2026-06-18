@@ -65,6 +65,12 @@ export {
     mergePlaybookConfig,
     DEFAULT_PLAYBOOK_CONFIG,
 } from './parsers/playbookParser';
+export { extractMetadataJson, parseMetadataDump } from './parsers/metadataDumpParser';
+export type {
+    MetadataDump,
+    ParsedCollection,
+    MetadataDumpResult,
+} from './parsers/metadataDumpParser';
 
 // --- AI Prompt Builders ---
 export {

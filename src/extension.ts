@@ -35,6 +35,7 @@ import {
 import {
     GalaxyCollectionCache,
     GalaxyDocsCache,
+    SCMDocsCache,
     CollectionsService,
     setLogFunction as setCollectionsLogFunction,
     DevToolsService,
@@ -615,6 +616,10 @@ export function activate(context: vscode.ExtensionContext) {
     const galaxyDocsCache = GalaxyDocsCache.getInstance();
     galaxyDocsCache.setExtensionContext(context);
 
+    // Initialize SCM docs cache for GitHub collection plugin browsing
+    const scmDocsCache = SCMDocsCache.getInstance();
+    scmDocsCache.setLogFunction(log);
+
     // Register Collections commands
     const collectionsRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refresh',
@@ -1117,6 +1122,28 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    const showGitHubPluginDocCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.showGitHubPluginDoc',
+        async (node?: Parameters<typeof collectionSourcesProvider.showGitHubPluginDoc>[0]) => {
+            if (!node) {
+                vscode.window.showWarningMessage('Select a GitHub plugin from the tree view.');
+                return;
+            }
+            await collectionSourcesProvider.showGitHubPluginDoc(node, context.extensionUri);
+        },
+    );
+
+    const refreshGitHubCollectionCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.refreshGitHubCollection',
+        (node?: Parameters<typeof collectionSourcesProvider.refreshGitHubCollection>[0]) => {
+            if (!node) {
+                vscode.window.showWarningMessage('Select a GitHub collection from the tree view.');
+                return;
+            }
+            collectionSourcesProvider.refreshGitHubCollection(node);
+        },
+    );
+
     // Register Galaxy cache refresh command
     const galaxyCacheRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refreshGalaxyCache',
@@ -1335,6 +1362,8 @@ export function activate(context: vscode.ExtensionContext) {
         installGalaxyCollectionCommand,
         showGalaxyPluginDocCommand,
         galaxyPluginAiSummaryCommand,
+        showGitHubPluginDocCommand,
+        refreshGitHubCollectionCommand,
         selectLlmModelCommand,
         showLlmStatusCommand,
     );

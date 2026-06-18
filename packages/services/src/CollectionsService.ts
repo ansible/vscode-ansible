@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { log, SimpleEventEmitter } from '@ansible/common';
+import { log, SimpleEventEmitter, extractMetadataJson, parseMetadataDump } from '@ansible/common';
 
 // Conditional vscode import - only used when available
 let vscode: typeof import('vscode') | undefined;
@@ -112,20 +112,6 @@ export interface PluginData {
     examples?: string;
     return?: PluginReturn;
     metadata?: unknown;
-}
-
-// Internal types for parsing -- these match the full ansible-doc --metadata-dump output
-interface MetadataEntry {
-    doc?: PluginDoc;
-    examples?: string;
-    return?: PluginReturn;
-    metadata?: unknown;
-}
-
-type MetadataPluginTypes = Record<string, Record<string, MetadataEntry>>;
-
-interface MetadataDump {
-    all?: MetadataPluginTypes;
 }
 
 interface AdeCollectionInfo {
@@ -941,98 +927,20 @@ export class CollectionsService {
                 }
             }
 
-            // Find the start of JSON (ansible-doc might output warnings before the JSON)
-            const jsonStart = result.indexOf('{');
-            if (jsonStart === -1) {
+            const metadata = extractMetadataJson(result);
+            if (!metadata) {
                 console.error('CollectionsService: No JSON found in ansible-doc output');
                 console.error('Output starts with:', result.substring(0, 100));
                 return;
             }
 
-            const jsonStr = result.substring(jsonStart);
+            const parsed = parseMetadataDump(metadata, collectionInfoMap);
 
-            // Parse the JSON output
-            let metadata: MetadataDump;
-            try {
-                metadata = JSON.parse(jsonStr) as MetadataDump;
-            } catch (parseError) {
-                console.error('CollectionsService: Failed to parse ansible-doc JSON');
-                console.error('JSON starts with:', jsonStr.substring(0, 200));
-                throw parseError;
+            for (const [name, coll] of parsed.collections) {
+                collections.set(name, coll);
             }
-
-            if (!metadata.all) {
-                return;
-            }
-
-            // Use a Set to track unique plugins globally
-            const seenPlugins = new Set<string>();
-
-            // Process each plugin type
-            for (const [pluginType, plugins] of Object.entries(metadata.all)) {
-                for (const [fullName, pluginData] of Object.entries(plugins)) {
-                    const doc = pluginData.doc;
-                    if (!doc) {
-                        continue;
-                    }
-
-                    const collectionName = doc.collection ?? 'unknown';
-                    const pluginName =
-                        doc.plugin_name?.split('.').pop() ?? fullName.split('.').pop() ?? fullName;
-                    const shortDescription = doc.short_description ?? '';
-
-                    // Create unique key to prevent duplicates
-                    const uniqueKey = `${collectionName}:${pluginType}:${fullName}`;
-                    if (seenPlugins.has(uniqueKey)) {
-                        continue;
-                    }
-                    seenPlugins.add(uniqueKey);
-
-                    // Store full plugin documentation from the metadata dump
-                    const docKey = `${fullName}:${pluginType}`;
-                    pluginDocs.set(docKey, {
-                        doc: pluginData.doc,
-                        examples: pluginData.examples,
-                        return: pluginData.return,
-                        metadata: pluginData.metadata,
-                    });
-
-                    // Get or create collection
-                    let collection = collections.get(collectionName);
-                    if (!collection) {
-                        const info = collectionInfoMap.get(collectionName) ?? {
-                            name: collectionName,
-                            version: '',
-                            authors: [],
-                            description: '',
-                        };
-                        collection = {
-                            info,
-                            pluginTypes: new Map(),
-                        };
-                        collections.set(collectionName, collection);
-                    }
-
-                    // Get or create plugin type
-                    let plugins = collection.pluginTypes.get(pluginType);
-                    if (!plugins) {
-                        plugins = [];
-                        collection.pluginTypes.set(pluginType, plugins);
-                    }
-
-                    plugins.push({
-                        name: pluginName,
-                        fullName: fullName,
-                        shortDescription: shortDescription,
-                    });
-                }
-            }
-
-            // Sort plugins within each type
-            for (const collection of collections.values()) {
-                for (const plugins of collection.pluginTypes.values()) {
-                    plugins.sort((a, b) => a.name.localeCompare(b.name));
-                }
+            for (const [key, doc] of parsed.pluginDocs) {
+                pluginDocs.set(key, doc);
             }
         } catch (error) {
             console.error('CollectionsService: Failed to load collections:', error);

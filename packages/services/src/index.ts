@@ -37,6 +37,8 @@ export {
     buildMcpToolExamplePrompt,
     buildTaskAnalysisPrompt,
     buildPlaybookSummaryPrompt,
+    extractMetadataJson,
+    parseMetadataDump,
 } from '@ansible/common';
 export type {
     ParameterSchema,
@@ -79,6 +81,9 @@ export type {
     Disposable,
     CollectionSourcesInput,
     TaskAnalysisInput,
+    MetadataDump,
+    ParsedCollection,
+    MetadataDumpResult,
 } from '@ansible/common';
 
 // --- Services ---
@@ -108,6 +113,7 @@ export {
 export { GalaxyCollectionCache } from './GalaxyCollectionCache';
 export { GalaxyDocsCache } from './GalaxyDocsCache';
 export { GitHubCollectionCache } from './GitHubCollectionCache';
+export { SCMDocsCache } from './SCMDocsCache';
 export { SkillRegistry, _resetGitHubToken } from './SkillRegistry';
 export { discoverPlaybooks } from './PlaybookDiscovery';
 export type { DiscoveredPlaybook } from './PlaybookDiscovery';
