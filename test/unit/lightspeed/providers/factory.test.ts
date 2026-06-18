@@ -592,10 +592,11 @@ describe("LLMProviderFactory", () => {
         expect(isValid).toBe(true);
       });
 
-      it("should accept boolean false as a valid required field value", () => {
+      it("should not reject falsy non-null values for non-string fields", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = {
           ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          enabled: false as unknown as boolean,
         };
 
         const isValid = factory.validateProviderConfig(
