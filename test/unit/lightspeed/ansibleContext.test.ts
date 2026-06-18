@@ -548,7 +548,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should accept task with non-underscore key but no name", () => {
-      const content = "---\n- ansible.builtin.copy:\n    src: /tmp/a\n    dest: /tmp/b";
+      const content =
+        "---\n- ansible.builtin.copy:\n    src: /tmp/a\n    dest: /tmp/b";
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(true);
@@ -556,7 +557,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should validate single object with hosts key as valid playbook", () => {
-      const content = "---\nhosts: webservers\ntasks:\n  - name: Ping\n    ansible.builtin.ping:";
+      const content =
+        "---\nhosts: webservers\ntasks:\n  - name: Ping\n    ansible.builtin.ping:";
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(true);

@@ -13,7 +13,7 @@ describe("CollectionFinder", () => {
   );
 
   beforeEach(() => {
-    vi.spyOn(console, "debug").mockImplementation(() => {});
+    vi.spyOn(console, "debug").mockImplementation(() => undefined);
   });
 
   describe("refreshCache", () => {
@@ -29,8 +29,8 @@ describe("CollectionFinder", () => {
       const finder = new CollectionFinder([SAMPLES_PATH]);
       await finder.refreshCache();
 
-      const fqcns = finder.cache.map((c) => c.fqcn);
-      expect(fqcns).toEqual([...fqcns].sort());
+      const names = finder.cache.map((c) => c.fqcn);
+      expect(names).toEqual([...names].sort());
     });
   });
 
@@ -103,8 +103,7 @@ describe("CollectionFinder", () => {
     it("should handle path mismatch between meta and directory", async () => {
       const mismatchedPath = "/some/wrong/path";
       const finder = new CollectionFinder([SAMPLES_PATH]);
-      const result =
-        await finder.readCollectionMetaInformation(mismatchedPath);
+      const result = await finder.readCollectionMetaInformation(mismatchedPath);
 
       expect(result).toBeNull();
     });
