@@ -112,9 +112,11 @@ describe("CollectionFinder", () => {
   describe("readCollectionsInNamespace (private method)", () => {
     // Access private method via casting
     interface PrivateCollectionFinder {
-      readCollectionsInNamespace(
-        namespaceEntry: { name: string; parentPath: string; isDirectory: () => boolean },
-      ): Promise<Array<Promise<AnsibleCollection | null>>>;
+      readCollectionsInNamespace(namespaceEntry: {
+        name: string;
+        parentPath: string;
+        isDirectory: () => boolean;
+      }): Promise<Array<Promise<AnsibleCollection | null>>>;
     }
     const priv = (finder: CollectionFinder) =>
       finder as unknown as PrivateCollectionFinder;
@@ -127,9 +129,8 @@ describe("CollectionFinder", () => {
         isDirectory: () => true,
       };
 
-      const collectionPromises = await priv(finder).readCollectionsInNamespace(
-        namespaceEntry,
-      );
+      const collectionPromises =
+        await priv(finder).readCollectionsInNamespace(namespaceEntry);
       const collections = (await Promise.all(collectionPromises)).filter(
         (c): c is AnsibleCollection => c !== null,
       );
@@ -146,14 +147,15 @@ describe("CollectionFinder", () => {
         isDirectory: () => true,
       };
 
-      const collectionPromises = await priv(finder).readCollectionsInNamespace(
-        namespaceEntry,
-      );
+      const collectionPromises =
+        await priv(finder).readCollectionsInNamespace(namespaceEntry);
       const collections = await Promise.all(collectionPromises);
 
       // All returned items should be from directories only
       // (files in the namespace directory should be filtered out)
-      expect(collections.every((c) => c === null || c instanceof AnsibleCollection)).toBe(true);
+      expect(
+        collections.every((c) => c === null || c instanceof AnsibleCollection),
+      ).toBe(true);
     });
 
     it("should call readCollectionMetaInformation for each collection directory", async () => {
@@ -165,7 +167,9 @@ describe("CollectionFinder", () => {
         isDirectory: () => true,
       };
 
-      await priv(finder).readCollectionsInNamespace(namespaceEntry);
+      const collectionPromises =
+        await priv(finder).readCollectionsInNamespace(namespaceEntry);
+      await Promise.all(collectionPromises);
 
       expect(readMetaSpy).toHaveBeenCalled();
     });
@@ -175,13 +179,16 @@ describe("CollectionFinder", () => {
       // Create a test with the "empty" directory which should have no valid collections
       const namespaceEntry = {
         name: "empty",
-        parentPath: path.join(SAMPLES_PATH, "collections/ansible_collections/community"),
+        parentPath: path.join(
+          SAMPLES_PATH,
+          "collections/ansible_collections/community",
+        ),
         isDirectory: () => true,
       };
 
-      const collectionPromises = await priv(finder).readCollectionsInNamespace(
-        namespaceEntry,
-      ).catch(() => [] as Array<Promise<AnsibleCollection | null>>);
+      const collectionPromises = await priv(finder)
+        .readCollectionsInNamespace(namespaceEntry)
+        .catch(() => [] as Array<Promise<AnsibleCollection | null>>);
       const collections = await Promise.all(collectionPromises);
 
       // Should return empty array or array of nulls when directory doesn't exist

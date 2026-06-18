@@ -850,9 +850,7 @@ describe("LlmProviderSettings", () => {
 
     it("should store password field in secrets", async () => {
       const providerInfo = {
-        configSchema: [
-          { key: "apiKey", type: "password", required: true },
-        ],
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -871,9 +869,7 @@ describe("LlmProviderSettings", () => {
 
     it("should store non-password field in globalState", async () => {
       const providerInfo = {
-        configSchema: [
-          { key: "apiEndpoint", type: "string", required: true },
-        ],
+        configSchema: [{ key: "apiEndpoint", type: "string", required: true }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -892,9 +888,7 @@ describe("LlmProviderSettings", () => {
 
     it("should trim whitespace from non-password field values", async () => {
       const providerInfo = {
-        configSchema: [
-          { key: "modelName", type: "string", required: false },
-        ],
+        configSchema: [{ key: "modelName", type: "string", required: false }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -913,9 +907,7 @@ describe("LlmProviderSettings", () => {
     it("should not store password if secret already exists", async () => {
       secretsStore.set("lightspeed.secret.google.apiKey", "existing-secret");
       const providerInfo = {
-        configSchema: [
-          { key: "apiKey", type: "password", required: true },
-        ],
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -929,11 +921,12 @@ describe("LlmProviderSettings", () => {
     });
 
     it("should not store non-password field if globalState already has value", async () => {
-      globalStateStore.set("lightspeed.setting.google.apiEndpoint", "https://existing.com");
+      globalStateStore.set(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://existing.com",
+      );
       const providerInfo = {
-        configSchema: [
-          { key: "apiEndpoint", type: "string", required: true },
-        ],
+        configSchema: [{ key: "apiEndpoint", type: "string", required: true }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -948,9 +941,7 @@ describe("LlmProviderSettings", () => {
 
     it("should do nothing when field is not in providerInfo schema", async () => {
       const providerInfo = {
-        configSchema: [
-          { key: "apiKey", type: "password", required: true },
-        ],
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
       };
 
       await priv(llmProviderSettings).importLegacyField(
@@ -978,9 +969,7 @@ describe("LlmProviderSettings", () => {
 
     it("should handle numeric field types", async () => {
       const providerInfo = {
-        configSchema: [
-          { key: "maxTokens", type: "number", required: false },
-        ],
+        configSchema: [{ key: "maxTokens", type: "number", required: false }],
       };
 
       await priv(llmProviderSettings).importLegacyField(

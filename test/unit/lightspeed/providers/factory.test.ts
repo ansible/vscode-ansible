@@ -858,9 +858,7 @@ describe("LLMProviderFactory", () => {
     });
 
     it("should return false when required password field has empty apiKey", () => {
-      const schema = [
-        { key: "apiKey", type: "password", required: true },
-      ];
+      const schema = [{ key: "apiKey", type: "password", required: true }];
       const config = {};
 
       const result = priv(factory).areRequiredFieldsSatisfied(
@@ -873,9 +871,7 @@ describe("LLMProviderFactory", () => {
     });
 
     it("should return false when required password field has undefined apiKey", () => {
-      const schema = [
-        { key: "apiKey", type: "password", required: true },
-      ];
+      const schema = [{ key: "apiKey", type: "password", required: true }];
       const config = {};
 
       const result = priv(factory).areRequiredFieldsSatisfied(
@@ -888,9 +884,7 @@ describe("LLMProviderFactory", () => {
     });
 
     it("should return false when required password field has whitespace-only apiKey", () => {
-      const schema = [
-        { key: "apiKey", type: "password", required: true },
-      ];
+      const schema = [{ key: "apiKey", type: "password", required: true }];
       const config = {};
 
       const result = priv(factory).areRequiredFieldsSatisfied(
@@ -903,97 +897,67 @@ describe("LLMProviderFactory", () => {
     });
 
     it("should return false when required non-password field is undefined", () => {
-      const schema = [
-        { key: "apiEndpoint", type: "string", required: true },
-      ];
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
       const config = {
         apiEndpoint: undefined,
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(false);
     });
 
     it("should return false when required non-password field is null", () => {
-      const schema = [
-        { key: "apiEndpoint", type: "string", required: true },
-      ];
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
       const config = {
         apiEndpoint: null,
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(false);
     });
 
     it("should return false when required non-password field is empty string", () => {
-      const schema = [
-        { key: "apiEndpoint", type: "string", required: true },
-      ];
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
       const config = {
         apiEndpoint: "",
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(false);
     });
 
     it("should return false when required non-password field has whitespace only", () => {
-      const schema = [
-        { key: "apiEndpoint", type: "string", required: true },
-      ];
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
       const config = {
         apiEndpoint: "   ",
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(false);
     });
 
     it("should return true when required non-password field is numeric zero", () => {
-      const schema = [
-        { key: "maxTokens", type: "number", required: true },
-      ];
+      const schema = [{ key: "maxTokens", type: "number", required: true }];
       const config = {
         maxTokens: 0,
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(true);
     });
 
     it("should return true when required non-password field is boolean false", () => {
-      const schema = [
-        { key: "enabled", type: "boolean", required: true },
-      ];
+      const schema = [{ key: "enabled", type: "boolean", required: true }];
       const config = {
         enabled: false,
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(true);
     });
@@ -1008,10 +972,7 @@ describe("LLMProviderFactory", () => {
         // modelName is missing but optional
       };
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(true);
     });
@@ -1059,13 +1020,11 @@ describe("LLMProviderFactory", () => {
     });
 
     it("should return true for empty schema", () => {
-      const schema: Array<{ key: string; type: string; required: boolean }> = [];
+      const schema: Array<{ key: string; type: string; required: boolean }> =
+        [];
       const config = {};
 
-      const result = priv(factory).areRequiredFieldsSatisfied(
-        schema,
-        config,
-      );
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
 
       expect(result).toBe(true);
     });
