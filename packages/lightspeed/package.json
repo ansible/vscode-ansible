@@ -1,0 +1,27 @@
+{
+  "name": "@ansible/lightspeed",
+  "version": "0.0.1",
+  "description": "Ansible Lightspeed (WCA) integration — temporary opt-in package",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "clean": "rimraf out"
+  },
+  "dependencies": {
+    "@ansible/services": "0.0.1"
+  },
+  "peerDependencies": {
+    "vscode": "*"
+  },
+  "peerDependenciesMeta": {
+    "vscode": {
+      "optional": true
+    }
+  }
+}

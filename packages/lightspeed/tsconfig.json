@@ -5,9 +5,6 @@
     "lib": ["ES2020"],
     "outDir": "out",
     "rootDir": "src",
-    "paths": {
-      "@src/*": ["./src/*"]
-    },
     "types": ["node"],
     "sourceMap": true,
     "strict": true,
@@ -20,17 +17,8 @@
     "declarationMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", ".vscode-test", "packages", "src/panels/webview-entry.tsx", "src/panels/bridges", "src/panels/webview.d.ts"],
-  "ts-node": {
-    "compilerOptions": {
-      "types": ["node", "mocha"]
-    }
-  },
+  "exclude": ["node_modules", "out", "test"],
   "references": [
-    { "path": "packages/common" },
-    { "path": "packages/services" },
-    { "path": "packages/language-server" },
-    { "path": "packages/mcp-server" },
-    { "path": "packages/lightspeed" }
+    { "path": "../services" }
   ]
 }

@@ -37,108 +37,113 @@ comments block merge.
 - After pushing fixes, update the PR description to reflect the expanded scope
   (per the submit-pr skill).
 
-## Copilot review patterns
+## Copilot reviews as agent learning opportunities
 
-Copilot automated reviews surface recurring categories. Address these
-proactively before pushing to avoid review round-trips:
+Every Copilot comment on an agent-authored PR is a defect in our own
+review process. Copilot applies the same principles every time — if it
+found something, the agent's pre-submit self-review (see the
+`submit-pr` skill) should have found it first. Without tightening that
+loop, we will never ship a PR without comments.
 
-### Supply-chain security
+After fixing each Copilot finding, ask: *which principle from the
+submit-pr self-review should have caught this?* If one exists but
+didn't trigger, the principle needs to be clearer or the agent didn't
+apply it. If no principle covers it, add one — but frame it as a
+general evaluation criterion, not a specific instance. Adding "don't
+do X" only prevents X; strengthening a principle prevents the entire
+class of issues X belongs to.
 
-Pin GitHub Actions to commit SHAs instead of mutable tags (`@v1`). Mutable
-tags allow upstream changes to affect CI without review. Use a comment to
-note the original tag:
+## How Copilot evaluates code
 
-```yaml
-- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-```
+Copilot reviews succeed because they apply a small number of universal
+evaluation criteria to every line of the diff. Understanding these
+criteria lets the agent anticipate findings rather than react to them.
 
-### Inaccurate documentation
+**Semantic truthfulness.** Every declaration is read as a contract.
+Copilot checks whether types, return values, error codes, version
+ranges, log levels, comments, and docstrings accurately describe what
+the code actually does. Any gap — a comment that says "all" when the
+code means "some", a return type that promises `T` but can produce
+`{}`, an error code that is empty — gets flagged.
 
-Documentation MUST accurately describe the actual behavior. If a workflow
-triggers on `pull_request` targeting `main`, don't document it as running
-on "every pull request". Be specific about triggers, branches, and conditions.
+**Information exposure.** Copilot asks "should this data be visible
+here?" for every piece of information that escapes internal scope:
+logged data, error messages, API responses, documentation examples.
+User content in info-level logs, credentials on CLI examples, internal
+paths in error messages — all get flagged because the reviewer assumes
+the minimum-exposure principle.
 
-### Markdown table formatting
+**Caller safety.** Copilot reads every public interface from the
+caller's perspective and asks "could this surprise me?" Nullable
+returns not reflected in the type, missing null guards on
+platform-provided arguments, unsafe casts, optional fields typed as
+required, hidden side effects (logging, I/O, global state) that the
+name or signature doesn't advertise — all get flagged because the
+reviewer assumes callers trust the type signature and expect no
+undisclosed behavior.
 
-Tables must use a single leading `|` on each line. Double leading `||` renders
-as an extra empty column. Validate table rendering before committing.
+**Drift between prose and code.** Any time a comment, docstring, ADR,
+README, or inline annotation co-exists with the code it describes,
+Copilot checks whether the prose is still true after the diff. Renamed
+functions with old docstrings, changed triggers with old workflow
+descriptions, removed features with lingering references — all flagged.
 
-### Inaccurate comments
+**Supply-chain mutability.** References to external resources (action
+tags, dependency versions, engine ranges) that can change without
+review get flagged. The reviewer assumes that anything not pinned to
+a specific immutable identifier is a vector for silent behavior change.
 
-Code comments and docstrings MUST accurately describe what the code does. If
-you rename a function, change behavior, or remove functionality, update all
-associated comments in the same commit.
+**Internal consistency.** Every module's exports, code paths, and
+naming conventions are checked against each other. If nine code paths
+use a registry lookup but the tenth hardcodes a value, or if one
+export capitalizes differently from its siblings, the reviewer flags
+the deviation because inconsistency signals copy-paste drift or an
+unfinished refactor.
 
-### Secrets in documentation
+**Adversarial input tracing.** Copilot constructs edge-case scenarios
+for public functions: what happens with an empty-but-not-falsy value,
+a field combination after partial deletion, a response that satisfies
+the HTTP status check but lacks expected fields? If the traced path
+fails silently, sends a vacuous request, or produces a return value
+that violates the declared type, the reviewer flags it. This catches
+bugs that defensive checks miss — code can look correct line-by-line
+and still break under a specific constructed input.
 
-Never show API keys, tokens, or credentials on command lines in docs or
-examples. Demonstrate env var usage instead. Shell history and process lists
-expose command-line arguments.
+**Inherited contract completeness.** When the diff extends a class or
+implements an interface, Copilot checks that the subclass honors the
+full runtime contract — not just compiler-required members but expected
+behaviors. An Error subclass without `name` or `message`, a Disposable
+without cleanup, a stream without backpressure handling — all get
+flagged because TypeScript enforces structure but runtime contracts
+include semantics the compiler cannot check.
 
-### Unused variables / imports (ESLint)
+**Dead weight.** Unused imports, unreachable branches, written-but-never-
+read variables, parameters accepted but ignored — anything the code
+pays for but doesn't use. The reviewer assumes dead code obscures intent
+and may mask bugs.
 
-Copilot often flags unused imports. With ESLint `no-unused-vars` enabled,
-these fail CI. Remove unused imports or prefix intentionally unused parameters
-with `_`. Prefer trimming the import list over disabling the rule.
+## Project-specific patterns
 
-### JSDoc completeness
+These are known project-specific applications of the principles above.
+They serve as a quick reference, not an exhaustive list — the principles
+above should catch novel issues these don't cover.
 
-ESLint enforces `jsdoc/require-param` and `jsdoc/require-returns`. Every
-exported function needs `@param` for each parameter and `@returns` for
-non-void return types. Add JSDoc proactively — Copilot flags missing
-annotations on nearly every PR.
-
-### Prettier formatting
-
-The project enforces single quotes (unless the string contains an
-apostrophe, in which case double quotes avoid `\'`), trailing commas,
-and consistent parenthesization. Run `npm exec eslint -- . --fix` before
-manual review. Generated files (`.content.ts`) must also pass prettier.
-
-### Import alias violations
-
-Use `@src/*` aliases for cross-boundary imports, not relative `../`
-paths that reach outside the current package. `no-restricted-imports`
-enforces this. Copilot flags violations that ESLint may also catch.
-
-### Command handler null guards
-
-VS Code commands invoked from the Command Palette may receive
-`undefined` arguments even if the `when` clause restricts menu
-visibility. Always guard `node` parameters in tree-view command
-handlers:
-
-```typescript
-if (!node) return;
-```
-
-### `appendText` vs `appendMarkdown`
-
-Use `appendText` for dynamic or external content in `MarkdownString`
-tooltips. `appendMarkdown` with user-controlled data risks formatting
-injection (e.g., unescaped `[`, `]`, backticks). Reserve
-`appendMarkdown` for static template text.
-
-### Runtime config guards
-
-If a feature is gated by a configuration setting in `package.json`
-`when` clauses, also guard the command handler at runtime. The
-Command Palette bypasses menu visibility — a user (or agent) can
-invoke the command even when the menu item is hidden.
-
-### Documentation and comment drift
-
-When renaming, refactoring, or changing behavior, update ALL comments,
-docstrings, and documentation in the same commit. Copilot flags
-stale comments on nearly every PR. This includes: JSDoc descriptions,
-inline comments, AGENTS.md, README.md, and ADRs.
-
-### Generated file hygiene
-
-After running codegen (`node scripts/generate-skill-content.mjs`), run
-`npm exec eslint -- .` on the full project. Prettier and
-typescript-eslint rules apply to generated `.content.ts` files. Quote
-style, line length, and formatting must match project conventions.
+- **GitHub Actions**: pin to commit SHAs with a tag comment
+  (`actions/checkout@SHA # v4`)
+- **JSDoc**: ESLint enforces `jsdoc/require-param` (with description)
+  and `jsdoc/require-returns` on exported functions
+- **Prettier**: single quotes, trailing commas; run
+  `npm exec eslint -- . --fix` before review
+- **Imports**: use `@src/*` aliases for cross-package imports, not
+  relative `../` paths; remove unused imports
+- **VS Code commands**: guard `node` parameters — Command Palette can
+  invoke commands with `undefined` args even when `when` hides the menu
+- **MarkdownString**: use `appendText` for dynamic content,
+  `appendMarkdown` for static template text only
+- **Runtime config guards**: if a feature is `when`-gated in
+  `package.json`, also guard the handler at runtime
+- **Generated files**: after codegen, lint the full project — generated
+  `.content.ts` files must pass prettier and typescript-eslint
 
 ## Workflow
 

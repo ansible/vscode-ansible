@@ -948,7 +948,7 @@
         },
         "ansibleEnvironments.llm.configure": {
           "type": "null",
-          "markdownDescription": "[Select Provider & Model...](command:ansibleEnvironments.selectLlmModel) · [Show Status](command:ansibleEnvironments.showLlmStatus)",
+          "markdownDescription": "[Select Provider & Model...](command:ansibleEnvironments.selectLlmModel) \u00b7 [Show Status](command:ansibleEnvironments.showLlmStatus)",
           "order": 2
         },
         "ansibleEnvironments.llm.provider": {
@@ -1032,6 +1032,7 @@
   },
   "dependencies": {
     "@ansible/common": "*",
+    "@ansible/lightspeed": "*",
     "@ansible/services": "*",
     "@ansible/mcp-server": "*",
     "@ansible/ui": "*",
