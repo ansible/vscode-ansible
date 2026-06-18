@@ -54,9 +54,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
    * Initialize the service. Tries the Environments extension first; if PET
    * is missing falls back to the main Python extension's environments API.
    */
-  public async initialize(
-    context?: vscode.ExtensionContext,
-  ): Promise<boolean> {
+  public async initialize(context?: vscode.ExtensionContext): Promise<boolean> {
     if (this._initialized) {
       return (
         this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined
