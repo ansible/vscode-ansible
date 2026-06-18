@@ -1134,7 +1134,7 @@
     "rimraf": "^6.1.3",
     "sinon": "^22.0.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.21.7",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",

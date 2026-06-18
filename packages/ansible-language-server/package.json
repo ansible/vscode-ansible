@@ -108,13 +108,13 @@
   "scripts": {
     "//prepare": "Prepare is needed for installation from source",
     "clean": "rimraf dist lib",
-    "compile": "tsup --silent",
-    "build:dist": "tsup --env.NODE_ENV=production --silent",
+    "compile": "tsdown --log-level error",
+    "build:dist": "tsdown --log-level error --env.NODE_ENV=production",
     "prepack": "pnpm run compile && pnpm run build:dist",
     "test": "vitest run --project=als",
     "test-with-ee": "vitest run --project=als -t @ee",
     "test-without-ee": "SKIP_PODMAN=1 SKIP_DOCKER=1 vitest run --project=als",
-    "watch": "tsup --watch"
+    "watch": "tsdown --watch"
   },
   "type": "module",
   "sideEffects": [
