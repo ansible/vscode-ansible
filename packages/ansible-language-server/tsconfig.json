@@ -12,7 +12,7 @@
     "target": "ES2022",
     "types": ["node"]
   },
-  "exclude": ["node_modules", "out", "coverage"],
+  "exclude": ["node_modules", "out", "coverage", "tsdown.config.ts"],
   "extends": "../../tsconfig.base.json",
   "include": ["src/**/*.ts", "test/**/*.ts", "tools/**/*.mts", "*.ts"]
 }

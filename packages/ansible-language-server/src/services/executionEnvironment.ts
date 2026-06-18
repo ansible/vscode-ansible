@@ -375,8 +375,27 @@ export class ExecutionEnvironment {
     return result.status === 0;
   }
 
+  private validateManualEngine(engine: string): boolean {
+    /* v8 ignore next 14 */
+    try {
+      validateContainerEngineSetting(engine);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.connection.window.showErrorMessage(error.message);
+      }
+      return false;
+    }
+    if (!this.isExecutableAvailable(engine)) {
+      this.connection.window.showErrorMessage(
+        `Container engine '${engine}' not found.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
   private setContainerEngine(): boolean {
-    /* v8 ignore next 41 */
+    /* v8 ignore next 24 */
     if (!this._container_engine) {
       this.connection.window.showErrorMessage(
         "Unable to setContainerEngine with incompletely initialized settings.",
@@ -394,21 +413,8 @@ export class ExecutionEnvironment {
         this.connection.console.log(`Container engine set to: '${ce}'`);
         break;
       }
-    } else {
-      try {
-        validateContainerEngineSetting(this._container_engine);
-      } catch (error) {
-        if (error instanceof Error) {
-          this.connection.window.showErrorMessage(error.message);
-        }
-        return false;
-      }
-      if (!this.isExecutableAvailable(this._container_engine)) {
-        this.connection.window.showErrorMessage(
-          `Container engine '${this._container_engine}' not found.`,
-        );
-        return false;
-      }
+    } else if (!this.validateManualEngine(this._container_engine)) {
+      return false;
     }
     if (!["podman", "docker"].includes(this._container_engine)) {
       this.connection.window.showErrorMessage(
@@ -419,81 +425,73 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  private getContainerIds(engine: string, args: string[]): string[] {
+    /* v8 ignore next 10 */
+    try {
+      const result = child_process.spawnSync(engine, args, {
+        encoding: "utf-8",
+        shell: false,
+      });
+      return result.stdout
+        .trim()
+        .split("\n")
+        .filter((id) => id.trim() !== "");
+    } catch {
+      return [];
+    }
+  }
+
+  private runContainerCommand(
+    engine: string,
+    action: string,
+    ids: string[],
+    containerName: string,
+    cwd: string,
+  ): void {
+    /* v8 ignore next 8 */
+    try {
+      child_process.spawnSync(engine, [action, ...ids], {
+        cwd,
+        shell: false,
+      });
+    } catch (error) {
+      console.error(
+        `Error detected while trying to ${action} the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   private cleanUpContainer(containerName: string): void {
-    /* v8 ignore next 75 */
+    /* v8 ignore next 18 */
     if (!this._container_engine) {
       return;
     }
-
     if (!this.doesContainerNameExist(containerName)) {
       return;
     }
 
+    const engine = this._container_engine;
     const cwd = URI.parse(this.context.workspaceFolder.uri).path;
 
-    let runningContainers: string;
-    try {
-      const result = child_process.spawnSync(
-        this._container_engine,
-        ["ps", "-q", "--filter", `name=${containerName}`],
-        { encoding: "utf-8", shell: false },
-      );
-      runningContainers = result.stdout.trim();
-    } catch {
-      runningContainers = "";
+    const running = this.getContainerIds(engine, [
+      "ps",
+      "-q",
+      "--filter",
+      `name=${containerName}`,
+    ]);
+    if (running.length > 0) {
+      this.runContainerCommand(engine, "stop", running, containerName, cwd);
     }
 
-    // Stop running containers if any exist
-    if (runningContainers) {
-      try {
-        const containerIds = runningContainers
-          .split("\n")
-          .filter((id) => id.trim() !== "");
-        if (containerIds.length > 0) {
-          child_process.spawnSync(
-            this._container_engine,
-            ["stop", ...containerIds],
-            { cwd, shell: false },
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Error detected while trying to stop the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-
-    // Get all containers (including stopped ones) with the specified name
-    let allContainers: string;
-    try {
-      const result = child_process.spawnSync(
-        this._container_engine,
-        ["container", "ls", "-aq", "-f", `name=${containerName}`],
-        { encoding: "utf-8", shell: false },
-      );
-      allContainers = result.stdout.trim();
-    } catch {
-      allContainers = "";
-    }
-
-    // Remove containers if any exist
-    if (allContainers) {
-      try {
-        const containerIds = allContainers
-          .split("\n")
-          .filter((id) => id.trim() !== "");
-        if (containerIds.length > 0) {
-          child_process.spawnSync(
-            this._container_engine,
-            ["rm", ...containerIds],
-            { cwd, shell: false },
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Error detected while trying to remove the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
+    const all = this.getContainerIds(engine, [
+      "container",
+      "ls",
+      "-aq",
+      "-f",
+      `name=${containerName}`,
+    ]);
+    if (all.length > 0) {
+      this.runContainerCommand(engine, "rm", all, containerName, cwd);
     }
   }
 
