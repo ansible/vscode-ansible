@@ -834,4 +834,166 @@ describe("LlmProviderSettings", () => {
       );
     });
   });
+
+  describe("importLegacyField (private method)", () => {
+    // Access private method via casting
+    interface PrivateLlmProviderSettings {
+      importLegacyField(
+        targetProvider: string,
+        providerInfo: unknown,
+        key: string,
+        legacy: string,
+      ): Promise<void>;
+    }
+    const priv = (settings: LlmProviderSettings) =>
+      settings as unknown as PrivateLlmProviderSettings;
+
+    it("should store password field in secrets", async () => {
+      const providerInfo = {
+        configSchema: [
+          { key: "apiKey", type: "password", required: true },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiKey",
+        "secret-abc-123",
+      );
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "secret-abc-123",
+      );
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should store non-password field in globalState", async () => {
+      const providerInfo = {
+        configSchema: [
+          { key: "apiEndpoint", type: "string", required: true },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiEndpoint",
+        "https://api.example.com",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://api.example.com",
+      );
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+    });
+
+    it("should trim whitespace from non-password field values", async () => {
+      const providerInfo = {
+        configSchema: [
+          { key: "modelName", type: "string", required: false },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "modelName",
+        "  gemini-pro  ",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.modelName",
+        "gemini-pro",
+      );
+    });
+
+    it("should not store password if secret already exists", async () => {
+      secretsStore.set("lightspeed.secret.google.apiKey", "existing-secret");
+      const providerInfo = {
+        configSchema: [
+          { key: "apiKey", type: "password", required: true },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiKey",
+        "new-secret",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+    });
+
+    it("should not store non-password field if globalState already has value", async () => {
+      globalStateStore.set("lightspeed.setting.google.apiEndpoint", "https://existing.com");
+      const providerInfo = {
+        configSchema: [
+          { key: "apiEndpoint", type: "string", required: true },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiEndpoint",
+        "https://new.com",
+      );
+
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when field is not in providerInfo schema", async () => {
+      const providerInfo = {
+        configSchema: [
+          { key: "apiKey", type: "password", required: true },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "unknownField",
+        "some-value",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when providerInfo is undefined", async () => {
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        undefined,
+        "apiKey",
+        "some-value",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should handle numeric field types", async () => {
+      const providerInfo = {
+        configSchema: [
+          { key: "maxTokens", type: "number", required: false },
+        ],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "rhcustom",
+        providerInfo,
+        "maxTokens",
+        "1600",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.rhcustom.maxTokens",
+        "1600",
+      );
+    });
+  });
 });

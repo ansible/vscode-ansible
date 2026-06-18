@@ -823,4 +823,251 @@ describe("LLMProviderFactory", () => {
       });
     });
   });
+
+  describe("areRequiredFieldsSatisfied (private method)", () => {
+    // Access private method via casting
+    interface PrivateFactory {
+      areRequiredFieldsSatisfied(
+        configSchema: Array<{ key: string; type: string; required: boolean }>,
+        config: Record<string, unknown>,
+        apiKey?: string,
+      ): boolean;
+    }
+    const priv = (factory: LLMProviderFactory) =>
+      factory as unknown as PrivateFactory;
+    const factory = LLMProviderFactory.getInstance();
+
+    it("should return true when all required fields are satisfied", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        modelName: "my-model",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "valid-api-key",
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false when required password field has empty apiKey", () => {
+      const schema = [
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required password field has undefined apiKey", () => {
+      const schema = [
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        undefined,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required password field has whitespace-only apiKey", () => {
+      const schema = [
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "   ",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is undefined", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+      ];
+      const config = {
+        apiEndpoint: undefined,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is null", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+      ];
+      const config = {
+        apiEndpoint: null,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is empty string", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+      ];
+      const config = {
+        apiEndpoint: "",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field has whitespace only", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+      ];
+      const config = {
+        apiEndpoint: "   ",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true when required non-password field is numeric zero", () => {
+      const schema = [
+        { key: "maxTokens", type: "number", required: true },
+      ];
+      const config = {
+        maxTokens: 0,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should return true when required non-password field is boolean false", () => {
+      const schema = [
+        { key: "enabled", type: "boolean", required: true },
+      ];
+      const config = {
+        enabled: false,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should skip validation for optional fields", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: false },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // modelName is missing but optional
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should handle mixed required and optional fields correctly", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+        { key: "modelName", type: "string", required: false },
+        { key: "timeout", type: "number", required: false },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // apiKey provided separately
+        // modelName and timeout are optional and missing
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "my-api-key",
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false when any one required field is missing", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // modelName is missing
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "valid-api-key",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true for empty schema", () => {
+      const schema: Array<{ key: string; type: string; required: boolean }> = [];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+      );
+
+      expect(result).toBe(true);
+    });
+  });
 });
