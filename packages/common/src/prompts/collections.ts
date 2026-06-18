@@ -77,6 +77,32 @@ Use the \`get_galaxy_plugin_doc\` MCP tool with collection="${collectionFqcn}", 
 4. Any gotchas or best practices`;
 }
 
+/**
+ * Build an AI prompt to describe an SCM-sourced plugin (GitHub).
+ *
+ * @param org - GitHub organization (e.g. "redhat-cop").
+ * @param repo - Repository name (e.g. "infra.aap_configuration").
+ * @param collectionFqcn - Collection namespace.name (e.g. "infra.aap_configuration").
+ * @param pluginName - Short plugin name (e.g. "credential_type").
+ * @param pluginType - Plugin type (module, lookup, filter, etc.).
+ * @returns Prompt instructing the AI to fetch and explain the SCM plugin.
+ */
+export function buildScmPluginExplanationPrompt(
+    org: string,
+    repo: string,
+    collectionFqcn: string,
+    pluginName: string,
+    pluginType: string,
+): string {
+    return `Explain the Ansible ${pluginType} plugin "${collectionFqcn}.${pluginName}" from the GitHub collection "${collectionFqcn}" (${org}/${repo}).
+
+Use the \`get_scm_plugin_doc\` MCP tool with org="${org}", repo="${repo}", collection="${collectionFqcn}", plugin="${pluginName}", and plugin_type="${pluginType}" to get the full documentation, then provide:
+1. What this plugin does in plain language
+2. The most important parameters and when to use them
+3. A practical example task showing common usage
+4. Any gotchas or best practices`;
+}
+
 /** Input for building a collection sources overview prompt. */
 export interface CollectionSourcesInput {
     galaxyCount: number;

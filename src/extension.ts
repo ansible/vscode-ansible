@@ -46,6 +46,7 @@ import {
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
     buildGalaxyPluginExplanationPrompt,
+    buildScmPluginExplanationPrompt,
     buildEESummaryPrompt,
     buildEEDetailPrompt,
     buildCreatorOverviewPrompt,
@@ -1108,12 +1109,50 @@ export function activate(context: vscode.ExtensionContext) {
             pluginType: string;
             collection: { namespace: string; name: string };
         }) => {
+            if (
+                !vscode.workspace
+                    .getConfiguration('ansibleEnvironments')
+                    .get<boolean>('enableAiFeatures', true)
+            ) {
+                return;
+            }
             if (!node) {
                 vscode.window.showWarningMessage('Select a Galaxy plugin from the tree view.');
                 return;
             }
             const collectionFqcn = `${node.collection.namespace}.${node.collection.name}`;
             const prompt = buildGalaxyPluginExplanationPrompt(
+                collectionFqcn,
+                node.plugin.name,
+                node.pluginType,
+            );
+            await openChatWithPrompt(prompt);
+        },
+    );
+
+    const githubPluginAiSummaryCommand = vscode.commands.registerCommand(
+        'ansibleCollectionSources.githubPluginAiSummary',
+        async (node?: {
+            plugin: { name: string; fullName: string };
+            pluginType: string;
+            collection: { namespace: string; name: string; org: string; repository: string };
+        }) => {
+            if (
+                !vscode.workspace
+                    .getConfiguration('ansibleEnvironments')
+                    .get<boolean>('enableAiFeatures', true)
+            ) {
+                return;
+            }
+            if (!node) {
+                vscode.window.showWarningMessage('Select a GitHub plugin from the tree view.');
+                return;
+            }
+            const collectionFqcn = `${node.collection.namespace}.${node.collection.name}`;
+            const repo = node.collection.repository.split('/').pop() ?? node.collection.repository;
+            const prompt = buildScmPluginExplanationPrompt(
+                node.collection.org,
+                repo,
                 collectionFqcn,
                 node.plugin.name,
                 node.pluginType,
@@ -1362,6 +1401,7 @@ export function activate(context: vscode.ExtensionContext) {
         installGalaxyCollectionCommand,
         showGalaxyPluginDocCommand,
         galaxyPluginAiSummaryCommand,
+        githubPluginAiSummaryCommand,
         showGitHubPluginDocCommand,
         refreshGitHubCollectionCommand,
         selectLlmModelCommand,

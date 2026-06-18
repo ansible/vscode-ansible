@@ -181,6 +181,18 @@ class GalaxyPluginNode extends vscode.TreeItem {
         this.iconPath = new vscode.ThemeIcon('symbol-method');
         this.contextValue = 'galaxyPlugin';
 
+        const tooltip = new vscode.MarkdownString();
+        tooltip.appendMarkdown(`**`);
+        tooltip.appendText(plugin.fullName);
+        tooltip.appendMarkdown(`** *(${pluginType})*\n\n`);
+        if (plugin.shortDescription) {
+            tooltip.appendText(plugin.shortDescription);
+            tooltip.appendMarkdown('\n\n');
+        }
+        tooltip.appendMarkdown('Collection: ');
+        tooltip.appendText(`${collection.namespace}.${collection.name} v${collection.version}`);
+        this.tooltip = tooltip;
+
         this.command = {
             command: 'ansibleCollectionSources.showGalaxyPluginDoc',
             title: 'Show Plugin Documentation',
@@ -249,8 +261,22 @@ class GitHubPluginNode extends vscode.TreeItem {
     ) {
         super(plugin.name, vscode.TreeItemCollapsibleState.None);
         this.description = plugin.shortDescription;
-        this.iconPath = new vscode.ThemeIcon('sparkle');
+        this.iconPath = new vscode.ThemeIcon('symbol-method');
         this.contextValue = 'githubPlugin';
+
+        const tooltip = new vscode.MarkdownString();
+        tooltip.appendMarkdown(`**`);
+        tooltip.appendText(plugin.fullName);
+        tooltip.appendMarkdown(`** *(${pluginType})*\n\n`);
+        if (plugin.shortDescription) {
+            tooltip.appendText(plugin.shortDescription);
+            tooltip.appendMarkdown('\n\n');
+        }
+        tooltip.appendMarkdown('Collection: ');
+        tooltip.appendText(`${collection.namespace}.${collection.name} v${collection.version}`);
+        tooltip.appendMarkdown('\n\nSource: ');
+        tooltip.appendText(`${collection.org}/${repoNameFrom(collection.repository)}`);
+        this.tooltip = tooltip;
 
         this.command = {
             command: 'ansibleCollectionSources.showGitHubPluginDoc',

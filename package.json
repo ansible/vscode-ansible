@@ -555,6 +555,11 @@
         "icon": "$(sparkle)"
       },
       {
+        "command": "ansibleCollectionSources.githubPluginAiSummary",
+        "title": "Describe with AI",
+        "icon": "$(sparkle)"
+      },
+      {
         "command": "ansibleCollectionSources.showGitHubPluginDoc",
         "title": "Show Plugin Documentation",
         "icon": "$(book)"
@@ -821,6 +826,11 @@
         {
           "command": "ansibleCollectionSources.galaxyPluginAiSummary",
           "when": "view == ansibleCollectionSources && viewItem == galaxyPlugin && config.ansibleEnvironments.enableAiFeatures",
+          "group": "inline@1"
+        },
+        {
+          "command": "ansibleCollectionSources.githubPluginAiSummary",
+          "when": "view == ansibleCollectionSources && viewItem == githubPlugin && config.ansibleEnvironments.enableAiFeatures",
           "group": "inline@1"
         }
       ]
