@@ -13,6 +13,8 @@ function generateConfig(env: "production" | "development"): Options {
     dts: {
       compilerOptions: {
         composite: false,
+        // tsup injects baseUrl for path mapping; TS 6 treats that as deprecated (egoist/tsup#1388)
+        ignoreDeprecations: "6.0",
       },
     },
     entryPoints: ["src/cli.ts", "src/server.ts"],
