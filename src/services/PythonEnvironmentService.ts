@@ -33,6 +33,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   private _pythonExtApi: PythonExtension | undefined;
   private _initialized: boolean = false;
   private _petWarningShown: boolean = false;
+  private _context: vscode.ExtensionContext | undefined;
   private _disposables: vscode.Disposable[] = [];
 
   private _onDidChangeEnvironment =
@@ -53,11 +54,17 @@ export class PythonEnvironmentService implements vscode.Disposable {
    * Initialize the service. Tries the Environments extension first; if PET
    * is missing falls back to the main Python extension's environments API.
    */
-  public async initialize(): Promise<boolean> {
+  public async initialize(
+    context?: vscode.ExtensionContext,
+  ): Promise<boolean> {
     if (this._initialized) {
       return (
         this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined
       );
+    }
+
+    if (context) {
+      this._context = context;
     }
 
     console.log(
@@ -238,9 +245,15 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // ---------------------------------------------------------------------------
 
   private _showPetWarning(): void {
-    if (this._petWarningShown) {
+    const alreadyShown = this._context
+      ? this._context.globalState.get<boolean>("ansible.petWarningShown") ===
+        true
+      : this._petWarningShown;
+
+    if (alreadyShown) {
       return;
     }
+
     this._petWarningShown = true;
 
     const useEnvsSetting = vscode.workspace
@@ -255,10 +268,16 @@ export class PythonEnvironmentService implements vscode.Disposable {
             ? " Disabling the Environments extension delegation may resolve hanging discovery."
             : ""),
         ...(useEnvsSetting ? ["Disable Environments Extension"] : []),
+        "Don't show again",
         "Learn More",
       )
       .then(async (selection) => {
-        if (selection === "Disable Environments Extension") {
+        if (selection === "Don't show again") {
+          await this._context?.globalState.update(
+            "ansible.petWarningShown",
+            true,
+          );
+        } else if (selection === "Disable Environments Extension") {
           await vscode.workspace
             .getConfiguration("python")
             .update(
