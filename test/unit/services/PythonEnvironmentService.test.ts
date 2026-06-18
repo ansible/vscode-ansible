@@ -315,7 +315,7 @@ describe("PythonEnvironmentService", function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(
-        (ctx.globalState.update as ReturnType<typeof vi.fn>),
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
       ).toHaveBeenCalledWith("ansible.petWarningShown", true);
     });
 
@@ -331,7 +331,7 @@ describe("PythonEnvironmentService", function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(
-        (ctx.globalState.update as ReturnType<typeof vi.fn>),
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
       ).not.toHaveBeenCalled();
     });
 
