@@ -534,6 +534,48 @@ describe("AnsibleContextProcessor", () => {
       expect(result.valid).toBe(false);
       expect(result.errors).toContain("Task missing name or module");
     });
+
+    it("should validate mixed valid and invalid items collecting all errors", () => {
+      const content =
+        "---\n- 42\n- null\n- _meta: only\n- name: Valid\n- false";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      const invalidStructureCount = result.errors.filter(
+        (e) => e === "Invalid task or play structure",
+      ).length;
+      expect(invalidStructureCount).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should accept task with non-underscore key but no name", () => {
+      const content = "---\n- ansible.builtin.copy:\n    src: /tmp/a\n    dest: /tmp/b";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should validate single object with hosts key as valid playbook", () => {
+      const content = "---\nhosts: webservers\ntasks:\n  - name: Ping\n    ansible.builtin.ping:";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it("should validate single object with tasks key as valid structure", () => {
+      const content = "---\ntasks:\n  - name: Do something";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+    });
+
+    it("should reject boolean items in array as invalid structure", () => {
+      const content = "---\n- true\n- false";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid task or play structure");
+    });
   });
 
   describe("getAnsibleStopSequences", () => {

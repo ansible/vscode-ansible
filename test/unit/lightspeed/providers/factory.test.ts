@@ -699,6 +699,86 @@ describe("LLMProviderFactory", () => {
       });
     });
 
+    describe("Google provider areRequiredFieldsSatisfied paths", () => {
+      it("should validate Google config exercising password and non-required branches", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
+
+        // Google schema: apiEndpoint (not required), apiKey (required, password), modelName (not required)
+        // This exercises: skip non-required → check password → skip non-required
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should fail Google validation when password field is whitespace", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          "   ",
+        );
+
+        expect(isValid).toBe(false);
+      });
+    });
+
+    describe("RHCustom provider full iteration", () => {
+      it("should validate RHCustom by iterating all schema fields", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        // RHCustom schema: apiEndpoint (required, string), apiKey (required, password),
+        // modelName (required, string), maxTokens (not required)
+        // This exercises: check string value → check password → check string value → skip non-required
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should fail when first required string field is null", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: null as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should fail when a middle required string field is undefined", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: undefined as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+    });
+
     describe("WCA-specific apiEndpoint validation", () => {
       it("should return false when WCA apiEndpoint is empty", () => {
         const factory = LLMProviderFactory.getInstance();

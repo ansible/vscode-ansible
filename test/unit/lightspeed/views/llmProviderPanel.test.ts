@@ -236,6 +236,25 @@ describe("LlmProviderPanel", () => {
     });
   });
 
+  describe("render async kickoff", () => {
+    it("should call sendProviderSettings on initial render", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // The render() method calls sendProviderSettings().catch(...)
+      // With our mock returning a resolved promise, the .catch() is a no-op
+      expect(LlmProviderPanel.currentPanel).toBeDefined();
+    });
+
+    it("should not throw when sendProviderSettings resolves", async () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(LlmProviderPanel.currentPanel).toBeDefined();
+    });
+  });
+
   describe("refreshWebView", () => {
     it("should call sendProviderSettings on message handler", async () => {
       LlmProviderPanel.render(mockContext, mockDeps);

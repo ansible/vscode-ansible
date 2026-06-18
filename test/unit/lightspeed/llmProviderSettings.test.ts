@@ -753,5 +753,85 @@ describe("LlmProviderSettings", () => {
         expect.anything(),
       );
     });
+
+    it("should handle undefined providerInfo gracefully in importLegacyField", async () => {
+      // When provider is set to an unknown type, providerInfo will be undefined
+      // importLegacyField should return early when field is not found
+      mockInspectValues["provider"] = {
+        globalValue: "unknown-provider",
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://test.example.com",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      // Should not store anything since providerInfo is undefined
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalledWith(
+        expect.stringContaining("unknown-provider.apiEndpoint"),
+        expect.anything(),
+      );
+    });
+
+    it("should import password field only when secret store is empty", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "new-key-from-settings",
+      };
+
+      // Verify the secret is stored when empty
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "new-key-from-settings",
+      );
+    });
+
+    it("should import non-password field with trimming when globalState is empty", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "  https://spaced.example.com  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://spaced.example.com",
+      );
+    });
+
+    it("should handle all three legacy keys in sequence", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://custom.api.com",
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: "gemini-pro-custom",
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "secret-key-123",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      const endpoint = await llmProviderSettings.get("google", "apiEndpoint");
+      expect(endpoint).toBe("https://custom.api.com");
+
+      const model = await llmProviderSettings.get("google", "modelName");
+      expect(model).toBe("gemini-pro-custom");
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "secret-key-123",
+      );
+    });
   });
 });
