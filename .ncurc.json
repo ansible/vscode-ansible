@@ -1,6 +1,0 @@
-{
-  "cooldown": 0,
-  "peer": true,
-  "reject": ["@types/node", "@types/vscode", "vscode-languageclient"],
-  "upgrade": true
-}
