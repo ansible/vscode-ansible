@@ -12,6 +12,7 @@ export {
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
     buildGalaxyPluginExplanationPrompt,
+    buildScmPluginExplanationPrompt,
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
