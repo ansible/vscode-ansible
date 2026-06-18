@@ -32,13 +32,15 @@ vi.mock("@src/features/lightspeed/vue/views/panelUtils", () => ({
   disposePanelResources: vi.fn(),
 }));
 
+const mockSendProviderSettings = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("@src/features/lightspeed/vue/views/llmProviderMessageHandlers", () => {
   return {
     LlmProviderMessageHandlers: class MockMessageHandlers {
       setWebview = vi.fn();
       handleMessage = vi.fn();
       // async in production; resolve a Promise so `.catch(...)` chaining works
-      sendProviderSettings = vi.fn().mockResolvedValue(undefined);
+      sendProviderSettings = mockSendProviderSettings;
     },
   };
 });
@@ -252,6 +254,38 @@ describe("LlmProviderPanel", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(LlmProviderPanel.currentPanel).toBeDefined();
+    });
+
+    it("should log error when sendProviderSettings rejects with Error", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      mockSendProviderSettings.mockRejectedValueOnce(new Error("sync failed"));
+
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain("sync failed");
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("should log error when sendProviderSettings rejects with non-Error", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      mockSendProviderSettings.mockRejectedValueOnce("string error");
+
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain("string error");
+      consoleErrorSpy.mockRestore();
     });
   });
 
