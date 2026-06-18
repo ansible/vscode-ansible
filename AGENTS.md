@@ -100,6 +100,56 @@ src/
   skills/           → Agent skills for common workflows
 ```
 
+## Internal Skills (ADR-014)
+
+AI prompt text lives in markdown files under `packages/common/src/skills/`.
+Each `.md` file is the **single source of truth** for one AI instruction —
+consumed both by the extension (via prompt builders) and by external agents
+(via MCP `skill_list` / `skill_get` tools).
+
+### File format
+
+```markdown
+---
+name: Explain Ansible Plugin
+description: Explain a plugin with practical examples
+tags: [collections, plugins]
+category: domain
+triggers: [explain plugin, plugin docs]
+---
+# Explain Ansible Plugin
+
+Instructions go here...
+
+---
+Context is appended below the second separator at runtime.
+```
+
+YAML frontmatter provides metadata for MCP discovery. The body after
+the closing `---` is the instruction text. Prompt builders call
+`stripFrontmatter()` and append dynamic context (plugin name, FQCN, etc.).
+
+### Rules
+
+- **Never hardcode prompt text in TypeScript.** Write a `.md` skill and
+  import its generated `.content` sidecar.
+- **Run `node scripts/generate-skill-content.mjs`** after adding or
+  editing a `.md` skill file. This regenerates the `.content.ts`
+  sidecars. Commit both the `.md` and `.content.ts` together.
+- **Export every new skill from `packages/common/src/skills/index.ts`**
+  so the `SkillRegistry` `builtin` source picks it up.
+- **Skills must be browser-safe.** They live in `@ansible/common` and
+  must not reference Node.js APIs.
+- **Test prompt builders** in `packages/common/test/prompts/` by
+  asserting on key fragments the skill must contain.
+
+### Dual consumption paths
+
+| Consumer | How it reads skills |
+|----------|---------------------|
+| Extension prompt builders | `import skill from '../skills/foo.content'` + `stripFrontmatter()` |
+| MCP agents (`skill_list` / `skill_get`) | `SkillRegistry` loads `BUILTIN_SKILLS` with `source: 'builtin'`, `trust: 'certified'` |
+
 ## Key Skills
 
 | Skill | When to use |

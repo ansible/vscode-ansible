@@ -2,6 +2,17 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { SkillEntry } from '@ansible/common';
+
+/**
+ * Filter out builtin skills for assertions about user-configured sources.
+ *
+ * @param skills - Full skill list from getAllSkills().
+ * @returns Skills excluding builtin source entries.
+ */
+function nonBuiltin(skills: SkillEntry[]): SkillEntry[] {
+    return skills.filter((s) => s.source !== 'builtin');
+}
 
 const httpResponses = vi.hoisted(() => {
     const map = new Map<string, string | undefined>();
@@ -114,7 +125,7 @@ This is the body of the skill.`,
         await reg.ensureLoaded();
 
         expect(reg.isLoaded()).toBe(true);
-        const skills = reg.getAllSkills();
+        const skills = nonBuiltin(reg.getAllSkills());
         expect(skills).toHaveLength(1);
         expect(skills[0].name).toBe('Test Skill');
         expect(skills[0].description).toBe('A test skill for unit testing');
@@ -140,7 +151,7 @@ This is the body of the skill.`,
         reg.setSources([source]);
         await reg.ensureLoaded();
 
-        const skills = reg.getAllSkills();
+        const skills = nonBuiltin(reg.getAllSkills());
         expect(skills).toHaveLength(1);
         expect(skills[0].name).toBe('bare-skill');
         expect(skills[0].category).toBe('other');
@@ -165,14 +176,14 @@ This is the body of the skill.`,
         const reg1 = SkillRegistry.getInstance();
         reg1.setSources([source]);
         await reg1.ensureLoaded();
-        expect(reg1.getAllSkills()).toHaveLength(1);
+        expect(nonBuiltin(reg1.getAllSkills())).toHaveLength(1);
 
         // New instance, same cache dir
         SkillRegistry.resetInstance();
         const reg2 = SkillRegistry.getInstance();
         reg2.setSources([source]);
         await reg2.ensureLoaded();
-        expect(reg2.getAllSkills()).toHaveLength(1);
+        expect(nonBuiltin(reg2.getAllSkills())).toHaveLength(1);
         expect(reg2.getSkill('cache-test/my-skill')?.name).toBe('Cached Skill');
     });
 
@@ -494,7 +505,7 @@ This is the body of the skill.`,
                 },
             ]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(0);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
         });
 
         it('skips non-directory entries', async () => {
@@ -508,8 +519,8 @@ This is the body of the skill.`,
             const reg = SkillRegistry.getInstance();
             reg.setSources([{ id: 'mix', type: 'local', url: base, trust: 'community' }]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(1);
-            expect(reg.getAllSkills()[0].name).toBe('Real');
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(1);
+            expect(nonBuiltin(reg.getAllSkills())[0].name).toBe('Real');
         });
 
         it('skips directories without SKILL.md', async () => {
@@ -524,7 +535,7 @@ This is the body of the skill.`,
             const reg = SkillRegistry.getInstance();
             reg.setSources([{ id: 'no', type: 'local', url: base, trust: 'community' }]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(1);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(1);
         });
     });
 
@@ -540,7 +551,7 @@ This is the body of the skill.`,
                 },
             ]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(0);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
         });
     });
 
@@ -587,7 +598,7 @@ modules:
             ]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             expect(skills.length).toBeGreaterThan(0);
             expect(skills[0].name).toBe('commit');
             expect(skills[0].category).toBe('sdlc');
@@ -616,7 +627,7 @@ modules:
             ]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             expect(skills.length).toBeGreaterThan(0);
             expect(skills[0].name).toBe('review-code');
             expect(skills[0].trust).toBe('partner');
@@ -646,7 +657,7 @@ modules:
             ]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             expect(skills.length).toBeGreaterThan(0);
             expect(skills[0].name).toBe('my-tool');
         });
@@ -662,7 +673,7 @@ modules:
                 },
             ]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(0);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
         });
 
         it('detects lola from marketplace/ directory', async () => {
@@ -699,7 +710,7 @@ modules:
             ]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             expect(skills.length).toBeGreaterThan(0);
         });
 
@@ -756,7 +767,7 @@ modules:
             ]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             const names = skills.map((s) => s.name);
             expect(names).toContain('listed-skill');
             expect(names).toContain('unlisted-skill');
@@ -803,7 +814,7 @@ modules:
             reg.setSources([{ id: 'inf', type: 'local', url: base, trust: 'community' }]);
             await reg.ensureLoaded();
 
-            const skills = reg.getAllSkills();
+            const skills = nonBuiltin(reg.getAllSkills());
             const sdlcSkill = skills.find((s) => s.name === 'sdlc-helper');
             expect(sdlcSkill).toBeDefined();
         });
@@ -819,11 +830,11 @@ modules:
             const reg = SkillRegistry.getInstance();
             reg.setSources([{ id: 'idem', type: 'local', url: base, trust: 'community' }]);
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(1);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(1);
 
             // Second call should be a no-op
             await reg.ensureLoaded();
-            expect(reg.getAllSkills()).toHaveLength(1);
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(1);
         });
     });
 });

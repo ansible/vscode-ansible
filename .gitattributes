@@ -1,0 +1,3 @@
+# Force LF for skill files so codegen produces identical output on all platforms
+packages/common/src/skills/*.md text eol=lf
+packages/common/src/skills/*.content.ts text eol=lf

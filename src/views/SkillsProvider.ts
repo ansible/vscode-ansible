@@ -216,6 +216,7 @@ export class SkillsProvider implements vscode.TreeDataProvider<TreeNode> {
         const allSkills = this._registry.getAllSkills();
 
         for (const source of sources) {
+            if (source.type === 'builtin') continue;
             const count = allSkills.filter((s) => s.source === source.id).length;
             if (count === 0) {
                 const isGitHub = source.url.includes('github.com');

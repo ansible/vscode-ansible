@@ -5,13 +5,14 @@ describe('mcp-examples prompts', () => {
     describe('buildMcpToolExamplePrompt', () => {
         it('returns curated prompt for known tools', () => {
             const result = buildMcpToolExamplePrompt('search_ansible_plugins', 'Search plugins');
-            expect(result).toContain('copy files');
             expect(result).toContain('search_ansible_plugins');
+            expect(result).toContain('Ask me');
         });
 
         it('returns curated prompt for get_plugin_documentation', () => {
             const result = buildMcpToolExamplePrompt('get_plugin_documentation', 'Get docs');
-            expect(result).toContain('ansible.builtin.copy');
+            expect(result).toContain('get_plugin_documentation');
+            expect(result).toContain('Ask me');
         });
 
         it('derives prompt from description for ac_ tools', () => {

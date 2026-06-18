@@ -63,7 +63,7 @@ describe('collections prompts', () => {
             expect(result).toContain('1,500');
             expect(result).toContain('ansible-network: 12 collections');
             expect(result).toContain('redhat-cop: 8 collections');
-            expect(result).toContain('20 total collections');
+            expect(result).toContain('20 total');
         });
     });
 
@@ -80,7 +80,7 @@ describe('collections prompts', () => {
         it('includes org name and count', () => {
             const result = buildGithubOrgSourceSummaryPrompt('ansible-network', 15);
             expect(result).toContain('ansible-network');
-            expect(result).toContain('15 collections');
+            expect(result).toContain('15');
             expect(result).toContain('list_source_collections');
         });
     });

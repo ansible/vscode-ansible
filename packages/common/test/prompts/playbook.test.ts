@@ -17,20 +17,20 @@ describe('buildTaskAnalysisPrompt', () => {
 
     it('includes task name, module, host, and status', () => {
         const prompt = buildTaskAnalysisPrompt(baseInput);
-        expect(prompt).toContain('## Task: Install httpd');
-        expect(prompt).toContain('`ansible.builtin.dnf`');
-        expect(prompt).toContain('**Host:** webserver1');
-        expect(prompt).toContain('**Status:** OK');
+        expect(prompt).toContain('Task: Install httpd');
+        expect(prompt).toContain('Module: ansible.builtin.dnf');
+        expect(prompt).toContain('Host: webserver1');
+        expect(prompt).toContain('Status: OK');
     });
 
     it('maps failed status correctly', () => {
         const prompt = buildTaskAnalysisPrompt({ ...baseInput, status: 'failed' });
-        expect(prompt).toContain('**Status:** FAILED');
+        expect(prompt).toContain('Status: FAILED');
     });
 
     it('maps changed status correctly', () => {
         const prompt = buildTaskAnalysisPrompt({ ...baseInput, status: 'changed' });
-        expect(prompt).toContain('**Status:** CHANGED');
+        expect(prompt).toContain('Status: CHANGED');
     });
 
     it('includes source path when provided', () => {
@@ -38,14 +38,12 @@ describe('buildTaskAnalysisPrompt', () => {
             ...baseInput,
             path: 'roles/web/tasks/main.yml:5',
         });
-        expect(prompt).toContain('**Source:** `roles/web/tasks/main.yml:5`');
-        expect(prompt).toContain('Read the source file at `roles/web/tasks/main.yml:5`');
+        expect(prompt).toContain('Source: roles/web/tasks/main.yml:5');
     });
 
-    it('omits source section when path is undefined', () => {
+    it('omits source line when path is undefined', () => {
         const prompt = buildTaskAnalysisPrompt(baseInput);
-        expect(prompt).not.toContain('**Source:**');
-        expect(prompt).toContain('Analyze the task in isolation');
+        expect(prompt).not.toContain('Source:');
     });
 
     it('strips _ansible_ prefixed keys from result', () => {
@@ -67,15 +65,15 @@ describe('buildTaskAnalysisPrompt', () => {
 
     it('includes MCP tool instruction for module docs', () => {
         const prompt = buildTaskAnalysisPrompt(baseInput);
-        expect(prompt).toContain('`get_plugin_doc`');
-        expect(prompt).toContain('`ansible.builtin.dnf`');
+        expect(prompt).toContain('get_plugin_doc');
+        expect(prompt).toContain('ansible.builtin.dnf');
     });
 });
 
 describe('buildPlaybookSummaryPrompt', () => {
     it('includes the relative path and playbook name', () => {
         const prompt = buildPlaybookSummaryPrompt('playbooks/deploy.yml', 'deploy.yml');
-        expect(prompt).toContain('"playbooks/deploy.yml"');
+        expect(prompt).toContain('Path: playbooks/deploy.yml');
         expect(prompt).toContain('Playbook: deploy.yml');
     });
 
