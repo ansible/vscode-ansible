@@ -33,22 +33,33 @@ Use a descriptive branch name (e.g., `feat/add-vault-commands`,
 If changes already exist on the current branch (e.g., from an in-progress
 session), cherry-pick or rebase them onto the new branch.
 
-### Step 2: Run lint and type checks
+### Step 2: Run the full CI check locally
 
 ```bash
-npm exec eslint -- .
-npm exec tsc -- -b
-npm exec vitest -- run
+npm run ci
 ```
+
+This single command runs skill codegen, TypeScript compilation, ESLint
+on the **entire project**, Vitest with coverage thresholds, and the
+esbuild production bundle. It mirrors what CI runs.
 
 **All checks must pass cleanly on all files** — not just the files you
 changed. If the branch has pre-existing violations (e.g., from an old base),
 rebase onto `upstream/next` first.
 
+**CRITICAL:** Run `npm run ci` as the **last step before committing**.
+Do not push if it fails. Do not claim quality gates passed without
+running this command. Partial lint (on changed files only) or skipping
+the build step has caused repeated CI failures.
+
 If violations are found:
 1. Run `npm exec eslint -- . --fix` to auto-fix what it can
 2. Manually fix remaining violations (type errors, test failures)
-3. Re-run until clean
+3. Re-run `npm run ci` until clean — do not shortcut with partial runs
+
+**Rebuild reminder:** After any code change, `npm run ci` handles
+compilation and bundling. If testing interactively (e.g., reloading the
+extension), also run `npm run compile && npm run build` explicitly.
 
 ### Step 3: Commit with conventional commits
 
@@ -118,9 +129,7 @@ gh pr create --base next --label "<type>" --title "conventional commit style tit
 - List each AI-generated artifact and its purpose
 
 ## Test plan
-- [ ] `npm exec eslint -- .` passes
-- [ ] `npm exec tsc -- -b` compiles cleanly
-- [ ] `npm exec vitest -- run` passes
+- [ ] `npm run ci` passes (compile + lint + test:coverage + build)
 - [ ] `npm run test:ui` passes (if e2e-relevant changes)
 
 related: #<issue_number>
