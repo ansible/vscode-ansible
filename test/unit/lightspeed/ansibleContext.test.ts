@@ -477,6 +477,63 @@ describe("AnsibleContextProcessor", () => {
       expect(result.valid).toBe(false);
       expect(result.errors).toContain("Invalid playbook or role structure");
     });
+
+    it("should validate task with name field only", () => {
+      const content = "---\n- name: Simple task";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should validate task with module key (no name)", () => {
+      const content = "---\n- ansible.builtin.debug:\n    msg: 'hello'";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it("should reject null items in task list", () => {
+      const content = "---\n- null\n- name: Valid task";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid task or play structure");
+    });
+
+    it("should reject numeric items in task list", () => {
+      const content = "---\n- 42\n- name: Valid task";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid task or play structure");
+    });
+
+    it("should reject task with only underscore-prefixed keys", () => {
+      const content = "---\n- _internal: data\n  _meta: info";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Task missing name or module");
+    });
+
+    it("should collect multiple errors from mixed invalid items", () => {
+      const content = "---\n- null\n- _only: underscore\n- name: Valid";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Invalid task or play structure");
+      expect(result.errors).toContain("Task missing name or module");
+    });
+
+    it("should validate empty object in task list as missing name/module", () => {
+      const content = "---\n- {}";
+      const result = AnsibleContextProcessor.validateAnsibleContent(content);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toContain("Task missing name or module");
+    });
   });
 
   describe("getAnsibleStopSequences", () => {

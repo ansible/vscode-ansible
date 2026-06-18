@@ -670,5 +670,88 @@ describe("LlmProviderSettings", () => {
         TEST_API_KEYS.RHCUSTOM,
       );
     });
+
+    it("should not overwrite existing secret when importing password field", async () => {
+      secretsStore.set("lightspeed.secret.rhcustom.apiKey", "existing-key");
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "legacy-key-should-not-overwrite",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(secretsStore.get("lightspeed.secret.rhcustom.apiKey")).toBe(
+        "existing-key",
+      );
+    });
+
+    it("should not overwrite existing globalState when importing non-password field", async () => {
+      globalStateStore.set(
+        "lightspeed.setting.rhcustom.apiEndpoint",
+        "https://existing.example.com",
+      );
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://legacy.example.com",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(
+        globalStateStore.get("lightspeed.setting.rhcustom.apiEndpoint"),
+      ).toBe("https://existing.example.com");
+    });
+
+    it("should trim whitespace from non-password legacy values during import", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "  https://trimmed.example.com  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.rhcustom.apiEndpoint",
+        "https://trimmed.example.com",
+      );
+    });
+
+    it("should not trim password values during import", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "  key-with-spaces  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.rhcustom.apiKey",
+        "  key-with-spaces  ",
+      );
+    });
+
+    it("should skip field when configSchema has no matching key", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.WCA,
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: "some-model",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalledWith(
+        expect.stringContaining("wca.modelName"),
+        expect.anything(),
+      );
+    });
   });
 });

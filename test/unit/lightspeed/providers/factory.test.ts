@@ -574,5 +574,172 @@ describe("LLMProviderFactory", () => {
         expect(isValid).toBe(false);
       });
     });
+
+    describe("areRequiredFieldsSatisfied edge cases", () => {
+      it("should accept numeric 0 as a valid required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: 0,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should accept boolean false as a valid required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should reject null as a required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: null as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject undefined as a required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: undefined as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject whitespace-only string for required field", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: "   ",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject empty string for required password field (apiKey)", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          "",
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject whitespace-only apiKey for password field", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          "   ",
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should skip non-required fields in validation", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: undefined as unknown as number,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+    });
+
+    describe("WCA-specific apiEndpoint validation", () => {
+      it("should return false when WCA apiEndpoint is empty", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.WCA,
+          apiEndpoint: "",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return false when WCA apiEndpoint is whitespace only", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.WCA,
+          apiEndpoint: "   ",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return true when WCA apiEndpoint is valid", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(true);
+      });
+    });
   });
 });
