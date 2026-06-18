@@ -61,6 +61,121 @@ export class Vault {
     );
   }
 
+  private async resolveVaultId(
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<string | undefined> {
+    if (!useVaultIDs) return undefined;
+    const vaultId = await askForVaultId(ansibleConfig);
+    if (!vaultId) {
+      displayInvalidConfigError();
+    }
+    return vaultId;
+  }
+
+  private async toggleInlineText(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<void> {
+    const type = this.getInlineTextType(text);
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const tabSize = Number(editor.options.tabSize);
+
+    if (type === "plaintext") {
+      console.log("Encrypt selected text");
+      const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
+      if (useVaultIDs && !vaultId) return;
+
+      let encryptedText: string;
+      try {
+        encryptedText = await this.encryptInline(
+          text,
+          rootPath,
+          vaultId,
+          indentationLevel,
+          tabSize,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return;
+      }
+      const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
+      editor.edit((editBuilder) => {
+        editBuilder.replace(
+          selection,
+          encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
+        );
+      });
+    } else if (type === "encrypted") {
+      console.log("Decrypt selected text");
+      let decryptedText: string;
+      try {
+        decryptedText = await this.decryptInline(
+          text,
+          rootPath,
+          indentationLevel,
+          tabSize,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return;
+      }
+      editor.edit((editBuilder) => {
+        editBuilder.replace(selection, decryptedText);
+      });
+    }
+  }
+
+  private async toggleFileEncryption(
+    doc: vscode.TextDocument,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<void> {
+    const document = await vscode.workspace.openTextDocument(doc.fileName);
+    const type = this.getTextType(document.getText());
+
+    if (type === "plaintext") {
+      console.log("Encrypt entire file");
+      const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
+      if (useVaultIDs && !vaultId) return;
+
+      vscode.window.activeTextEditor?.document.save();
+      try {
+        await this.encryptFile(doc.fileName, rootPath, vaultId);
+        vscode.window.showInformationMessage(
+          `File encrypted: '${doc.fileName}'`,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Encryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    } else if (type === "encrypted") {
+      console.log("Decrypt entire file");
+      vscode.window.activeTextEditor?.document.save();
+      try {
+        await this.decryptFile(doc.fileName, rootPath);
+        vscode.window.showInformationMessage(
+          `File decrypted: '${doc.fileName}'`,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Decryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+    vscode.commands.executeCommand("workbench.action.files.revert");
+  }
+
   async toggleEncrypt(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -72,9 +187,6 @@ export class Vault {
       return;
     }
 
-    const doc = editor.document;
-
-    // Read `ansible.cfg` or environment variable
     const rootPath: string | undefined = getRootPath(editor.document.uri);
     const ansibleConfig = await getAnsibleCfg(rootPath);
 
@@ -83,114 +195,30 @@ export class Vault {
       return;
     }
 
-    // Extract `ansible-vault` password
-
     console.log(`Getting vault keyfile from ${ansibleConfig.path}`);
     vscode.window.showInformationMessage(
       `Getting vault keyfile from ${ansibleConfig.path}`,
     );
 
     const text = editor.document.getText(selection);
-
     const useVaultIDs = !!ansibleConfig.defaults.vault_identity_list;
 
-    // Go encrypt / decrypt
     if (text) {
-      const type = this.getInlineTextType(text);
-      const indentationLevel = getIndentationLevel(editor, selection);
-      const tabSize = Number(editor.options.tabSize);
-      if (type === "plaintext") {
-        console.log("Encrypt selected text");
-
-        const vaultId: string | undefined = useVaultIDs
-          ? await askForVaultId(ansibleConfig)
-          : undefined;
-        if (useVaultIDs && !vaultId) {
-          displayInvalidConfigError();
-          return;
-        }
-
-        let encryptedText: string;
-        try {
-          encryptedText = await this.encryptInline(
-            text,
-            rootPath,
-            vaultId,
-            indentationLevel,
-            tabSize,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          return;
-        }
-        const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
-        editor.edit((editBuilder) => {
-          editBuilder.replace(
-            selection,
-            encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
-          );
-        });
-      } else if (type === "encrypted") {
-        console.log("Decrypt selected text");
-        let decryptedText: string;
-        try {
-          decryptedText = await this.decryptInline(
-            text,
-            rootPath,
-            indentationLevel,
-            tabSize, // tabSize is always defined
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          return;
-        }
-        editor.edit((editBuilder) => {
-          editBuilder.replace(selection, decryptedText);
-        });
-      }
+      await this.toggleInlineText(
+        editor,
+        selection,
+        text,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+      );
     } else {
-      const document = await vscode.workspace.openTextDocument(doc.fileName);
-      const type = this.getTextType(document.getText());
-
-      if (type === "plaintext") {
-        console.log("Encrypt entire file");
-        const vaultId: string | undefined = useVaultIDs
-          ? await askForVaultId(ansibleConfig)
-          : undefined;
-        if (useVaultIDs && !vaultId) {
-          displayInvalidConfigError();
-          return;
-        }
-        vscode.window.activeTextEditor?.document.save();
-        try {
-          await this.encryptFile(doc.fileName, rootPath, vaultId);
-          vscode.window.showInformationMessage(
-            `File encrypted: '${doc.fileName}'`,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Encryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-        }
-      } else if (type === "encrypted") {
-        console.log("Decrypt entire file");
-        vscode.window.activeTextEditor?.document.save();
-        try {
-          await this.decryptFile(doc.fileName, rootPath);
-          vscode.window.showInformationMessage(
-            `File decrypted: '${doc.fileName}'`,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Decryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-        }
-      }
-      vscode.commands.executeCommand("workbench.action.files.revert");
+      await this.toggleFileEncryption(
+        editor.document,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+      );
     }
   }
 

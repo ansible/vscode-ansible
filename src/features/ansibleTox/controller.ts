@@ -120,37 +120,13 @@ export class AnsibleToxController {
     const toxTests = await getToxEnvs(path.dirname(file.uri.path));
 
     if (toxTests) {
-      for (let lineNo = 0; lineNo < lines.length; lineNo++) {
-        const line = lines[lineNo];
-        const regexResult = testRegex.exec(line);
-        if (!regexResult) {
-          continue;
-        }
-
-        const envName = regexResult[2];
-        if (envName.includes("{")) {
-          continue;
-        }
-
-        for (let testNo = 0; testNo < toxTests.length; testNo++) {
-          const toxTest = toxTests[testNo];
-
-          if (toxTest === envName) {
-            const newTestItem = this.controller.createTestItem(
-              envName,
-              envName,
-              file.uri,
-            );
-            newTestItem.range = new vscode.Range(
-              new vscode.Position(lineNo, 0),
-              new vscode.Position(lineNo, regexResult[0].length),
-            );
-            listOfChildren.push(newTestItem);
-            toxTests.splice(testNo, 1);
-            break;
-          }
-        }
-      }
+      this.matchToxEnvsToLines(
+        lines,
+        testRegex,
+        toxTests,
+        file.uri,
+        listOfChildren,
+      );
 
       for (const toxTest of toxTests) {
         const newTestItem = this.controller.createTestItem(
@@ -167,6 +143,42 @@ export class AnsibleToxController {
     }
 
     return listOfChildren;
+  }
+
+  private matchToxEnvsToLines(
+    lines: string[],
+    testRegex: RegExp,
+    toxTests: string[],
+    uri: vscode.Uri,
+    listOfChildren: vscode.TestItem[],
+  ): void {
+    for (let lineNo = 0; lineNo < lines.length; lineNo++) {
+      const line = lines[lineNo];
+      const regexResult = testRegex.exec(line);
+      if (!regexResult) {
+        continue;
+      }
+
+      const envName = regexResult[2];
+      if (envName.includes("{")) {
+        continue;
+      }
+
+      const testIndex = toxTests.indexOf(envName);
+      if (testIndex !== -1) {
+        const newTestItem = this.controller.createTestItem(
+          envName,
+          envName,
+          uri,
+        );
+        newTestItem.range = new vscode.Range(
+          new vscode.Position(lineNo, 0),
+          new vscode.Position(lineNo, regexResult[0].length),
+        );
+        listOfChildren.push(newTestItem);
+        toxTests.splice(testIndex, 1);
+      }
+    }
   }
 
   parseTestsInAnsibleToxFile = async (
