@@ -12,11 +12,11 @@
   "devDependencies": {
     "@types/node": "^24.13.2",
     "@types/shell-quote": "^1",
-    "@vitest/ui": "^4.1.8",
+    "@vitest/ui": "^4.1.9",
     "rimraf": "^6.1.3",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "engines": {
     "node": ">=24.0"
@@ -51,7 +51,7 @@
   "scripts": {
     "build": "pnpm run clean && pnpm run compile",
     "clean": "rimraf dist lib",
-    "compile": "tsc -p . && tsup --silent",
+    "compile": "tsc -p . --noEmit && tsdown --log-level error",
     "dev:stdio": "pnpm exec -- tsx src/cli.ts --stdio",
     "prepack": "pnpm run compile",
     "test": "vitest run --project=mcp --coverage.reportsDirectory=../../out/coverage/mcp",

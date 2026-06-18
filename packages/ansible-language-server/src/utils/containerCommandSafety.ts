@@ -28,6 +28,48 @@ function assertNoShellMetacharacters(
 /**
  * Split a container-options string into argv tokens (supports simple quoting).
  */
+interface TokenizerState {
+  tokens: string[];
+  current: string;
+  inSingle: boolean;
+  inDouble: boolean;
+}
+
+function processQuotedChar(char: string, state: TokenizerState): boolean {
+  if (state.inSingle) {
+    if (char === "'") {
+      state.inSingle = false;
+    } else {
+      state.current += char;
+    }
+    return true;
+  }
+  if (state.inDouble) {
+    if (char === '"') {
+      state.inDouble = false;
+    } else {
+      state.current += char;
+    }
+    return true;
+  }
+  return false;
+}
+
+function processUnquotedChar(char: string, state: TokenizerState): void {
+  if (char === "'") {
+    state.inSingle = true;
+  } else if (char === '"') {
+    state.inDouble = true;
+  } else if (/\s/.test(char)) {
+    if (state.current !== "") {
+      state.tokens.push(state.current);
+      state.current = "";
+    }
+  } else {
+    state.current += char;
+  }
+}
+
 export function parseContainerOptions(options: string): string[] {
   const trimmed = options.trim();
   if (trimmed === "") {
@@ -38,56 +80,28 @@ export function parseContainerOptions(options: string): string[] {
     "ansible.executionEnvironment.containerOptions",
   );
 
-  const tokens: string[] = [];
-  let current = "";
-  let inSingle = false;
-  let inDouble = false;
+  const state: TokenizerState = {
+    tokens: [],
+    current: "",
+    inSingle: false,
+    inDouble: false,
+  };
 
-  for (let i = 0; i < trimmed.length; i++) {
-    const char = trimmed[i];
-    if (inSingle) {
-      if (char === "'") {
-        inSingle = false;
-      } else {
-        current += char;
-      }
-      continue;
+  for (const char of trimmed) {
+    if (!processQuotedChar(char, state)) {
+      processUnquotedChar(char, state);
     }
-    if (inDouble) {
-      if (char === '"') {
-        inDouble = false;
-      } else {
-        current += char;
-      }
-      continue;
-    }
-    if (char === "'") {
-      inSingle = true;
-      continue;
-    }
-    if (char === '"') {
-      inDouble = true;
-      continue;
-    }
-    if (/\s/.test(char)) {
-      if (current !== "") {
-        tokens.push(current);
-        current = "";
-      }
-      continue;
-    }
-    current += char;
   }
 
-  if (inSingle || inDouble) {
+  if (state.inSingle || state.inDouble) {
     throw new UnsafeContainerSettingError(
       "ansible.executionEnvironment.containerOptions",
     );
   }
-  if (current !== "") {
-    tokens.push(current);
+  if (state.current !== "") {
+    state.tokens.push(state.current);
   }
-  return tokens;
+  return state.tokens;
 }
 
 export function formatVolumeMountSpec(mount: IVolumeMounts): string {

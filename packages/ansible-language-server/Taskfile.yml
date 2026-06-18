@@ -41,7 +41,7 @@ tasks:
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
       - ../../tsconfig*.json
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
@@ -99,7 +99,7 @@ tasks:
       - README.md
       - package*.json
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
     generates:
       - dist/**/*
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
