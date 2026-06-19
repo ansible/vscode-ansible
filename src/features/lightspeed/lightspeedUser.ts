@@ -85,23 +85,29 @@ export class LightspeedUser {
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
     this._getUserInfoCache = { time: 0, token: "", locked: false };
-    // Log debug hints asynchronously (don't block constructor)
-    this.logAuthProviderDebugHints().catch((error) => {
-      this._logger.error(
-        `[ansible-lightspeed-user] Failed to log auth provider debug hints: ${error}`,
-      );
-    });
   }
 
-  private async logAuthProviderDebugHints(): Promise<void> {
+  /**
+   * Log diagnostic hints about the configured auth provider. Self-handles
+   * errors so callers can invoke it fire-and-forget (kept out of the
+   * constructor — Sonar S7059); call once after construction.
+   */
+  public async logAuthProviderDebugHints(): Promise<void> {
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
       return;
     }
-    const provider = this._settingsManager.settings.lightSpeedService.provider;
-    const lightspeedUri = await getBaseUri(this._settingsManager);
-    this._logger.info(
-      `[ansible-lightspeed-user] Initializing LightspeedUser with provider: ${provider}, URI: ${lightspeedUri || "(none)"}, extension host: ${this._extensionHost}`,
-    );
+    try {
+      const provider =
+        this._settingsManager.settings.lightSpeedService.provider;
+      const lightspeedUri = await getBaseUri(this._settingsManager);
+      this._logger.info(
+        `[ansible-lightspeed-user] Initializing LightspeedUser with provider: ${provider}, URI: ${lightspeedUri || "(none)"}, extension host: ${this._extensionHost}`,
+      );
+    } catch (error) {
+      this._logger.error(
+        `[ansible-lightspeed-user] Failed to log auth provider debug hints: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   public static isLightspeedUserAuthProviderType(providerId: string) {
@@ -302,7 +308,7 @@ export class LightspeedUser {
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
       return undefined;
     }
-    let session = undefined;
+    let session: vscode.AuthenticationSession | undefined;
     // If user specified the provider type to sign in with, use only that provider type
     if (useProviderType) {
       session = await vscode.authentication.getSession(
@@ -314,31 +320,7 @@ export class LightspeedUser {
         this._userType = useProviderType;
       }
     } else {
-      const authProviders = await this.getAuthProviderOrder();
-
-      // Try to get the session silently first to avoid adding a bunch of "sign in" menu options
-      for (const authProvider of authProviders) {
-        session = await vscode.authentication.getSession(
-          authProvider,
-          this.getScopesForAuthProviderType(authProvider),
-          { silent: true },
-        );
-        if (session) {
-          this._userType = authProvider;
-          break;
-        }
-      }
-      // If no session found, try the preferred auth provider with the supplied createIfNone, either forcing the login or adding the badge
-      if (!session) {
-        session = await vscode.authentication.getSession(
-          authProviders[0],
-          this.getScopesForAuthProviderType(authProviders[0]),
-          { createIfNone },
-        );
-        if (session) {
-          this._userType = authProviders[0];
-        }
-      }
+      session = await this.acquireSessionByProviderOrder(createIfNone);
     }
 
     if (session) {
@@ -351,6 +333,41 @@ export class LightspeedUser {
     this._userDetails = undefined;
     this._markdownUserDetails = undefined;
     this._userType = undefined;
+  }
+
+  /**
+   * Resolve an auth session using the preferred provider order: try each
+   * provider silently first, then fall back to the preferred provider with
+   * the supplied `createIfNone`. Sets `_userType` on success.
+   */
+  private async acquireSessionByProviderOrder(
+    createIfNone: boolean,
+  ): Promise<vscode.AuthenticationSession | undefined> {
+    const authProviders = await this.getAuthProviderOrder();
+
+    // Try to get the session silently first to avoid adding a bunch of "sign in" menu options
+    for (const authProvider of authProviders) {
+      const session = await vscode.authentication.getSession(
+        authProvider,
+        this.getScopesForAuthProviderType(authProvider),
+        { silent: true },
+      );
+      if (session) {
+        this._userType = authProvider;
+        return session;
+      }
+    }
+
+    // If no session found, try the preferred auth provider with the supplied createIfNone, either forcing the login or adding the badge
+    const session = await vscode.authentication.getSession(
+      authProviders[0],
+      this.getScopesForAuthProviderType(authProviders[0]),
+      { createIfNone },
+    );
+    if (session) {
+      this._userType = authProviders[0];
+    }
+    return session;
   }
 
   public async updateUserInformation(): Promise<void> {
