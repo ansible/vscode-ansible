@@ -44,7 +44,7 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   lint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -89,7 +89,7 @@ jobs:
           prek-version: ">=0.3.8"
 
   preflight:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/ansible/ext-builder:latest
       env:
@@ -241,7 +241,7 @@ jobs:
       run:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-26.04' }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     permissions:
@@ -257,7 +257,7 @@ jobs:
         continue-on-error:
           - false
         os:
-          - ubuntu-24.04
+          - ubuntu-26.04
         task-name:
           - test
         name:
@@ -284,7 +284,7 @@ jobs:
           - name: test (linux-wdio)
             id: test-linux-wdio
             task-name: wdio
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -345,7 +345,7 @@ jobs:
         if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
         uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
-          distribution: Ubuntu-24.04
+          distribution: Ubuntu-26.04
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
@@ -558,7 +558,7 @@ jobs:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   builder-image:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [preflight, lint]
     permissions:
       contents: read
@@ -585,7 +585,7 @@ jobs:
         run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
 
   mcp-server-image:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [preflight, lint]
     permissions:
       contents: read
@@ -667,7 +667,7 @@ jobs:
       id-token: write # codecov
       pull-requests: read # slack report
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout Source # needed by codecov uploader
