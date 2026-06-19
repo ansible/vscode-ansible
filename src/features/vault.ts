@@ -80,12 +80,14 @@ export class Vault {
     rootPath: string | undefined,
     useVaultIDs: boolean,
     ansibleConfig: AnsibleVaultConfig,
-    indentationLevel: number,
-    tabSize: number,
   ): Promise<void> {
     console.log("Encrypt selected text");
     const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
     if (useVaultIDs && !vaultId) return;
+
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const rawTabSize = Number(editor.options.tabSize);
+    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
 
     let encryptedText: string;
     try {
@@ -116,10 +118,12 @@ export class Vault {
     selection: vscode.Selection,
     text: string,
     rootPath: string | undefined,
-    indentationLevel: number,
-    tabSize: number,
   ): Promise<void> {
     console.log("Decrypt selected text");
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const rawTabSize = Number(editor.options.tabSize);
+    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
+
     let decryptedText: string;
     try {
       decryptedText = await this.decryptInline(
@@ -148,9 +152,6 @@ export class Vault {
     ansibleConfig: AnsibleVaultConfig,
   ): Promise<void> {
     const type = this.getInlineTextType(text);
-    const indentationLevel = getIndentationLevel(editor, selection);
-    const rawTabSize = Number(editor.options.tabSize);
-    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
 
     if (type === "plaintext") {
       await this.encryptInlineSelection(
@@ -160,18 +161,9 @@ export class Vault {
         rootPath,
         useVaultIDs,
         ansibleConfig,
-        indentationLevel,
-        tabSize,
       );
     } else if (type === "encrypted") {
-      await this.decryptInlineSelection(
-        editor,
-        selection,
-        text,
-        rootPath,
-        indentationLevel,
-        tabSize,
-      );
+      await this.decryptInlineSelection(editor, selection, text, rootPath);
     }
   }
 
