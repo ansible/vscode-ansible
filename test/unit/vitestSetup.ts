@@ -121,6 +121,10 @@ vi.mock("vscode", () => {
       Development: 2,
       Test: 3,
     },
+    ExtensionKind: {
+      UI: 1,
+      Workspace: 2,
+    },
     Uri: {
       file: vi.fn((path: string) => ({ fsPath: path, path })),
       parse: vi.fn(),

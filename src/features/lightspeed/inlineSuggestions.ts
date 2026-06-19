@@ -360,9 +360,8 @@ async function isDocumentChangedImmediately(): Promise<boolean> {
     setDocumentChanged(false);
     await new Promise((resolve) => setTimeout(resolve, delay));
     return _documentChanged;
-  } else {
-    return Promise.resolve(false);
   }
+  return false;
 }
 
 const onDoSingleTasksSuggestion: CallbackEntry = async function (

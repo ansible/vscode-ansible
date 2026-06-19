@@ -34,8 +34,6 @@ Please visit
 for any instructions about installation, configuration and usage, including on
 how to contribute to it.
 
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
-
 ## Features
 
 - Ansible language server support with: [syntax highlighting], [validation],
