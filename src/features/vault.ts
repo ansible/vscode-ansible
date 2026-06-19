@@ -73,6 +73,72 @@ export class Vault {
     return vaultId;
   }
 
+  private async encryptInlineSelection(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+    indentationLevel: number,
+    tabSize: number,
+  ): Promise<void> {
+    console.log("Encrypt selected text");
+    const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
+    if (useVaultIDs && !vaultId) return;
+
+    let encryptedText: string;
+    try {
+      encryptedText = await this.encryptInline(
+        text,
+        rootPath,
+        vaultId,
+        indentationLevel,
+        tabSize,
+      );
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      return;
+    }
+    const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
+    editor.edit((editBuilder) => {
+      editBuilder.replace(
+        selection,
+        encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
+      );
+    });
+  }
+
+  private async decryptInlineSelection(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+    indentationLevel: number,
+    tabSize: number,
+  ): Promise<void> {
+    console.log("Decrypt selected text");
+    let decryptedText: string;
+    try {
+      decryptedText = await this.decryptInline(
+        text,
+        rootPath,
+        indentationLevel,
+        tabSize,
+      );
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      return;
+    }
+    editor.edit((editBuilder) => {
+      editBuilder.replace(selection, decryptedText);
+    });
+  }
+
   private async toggleInlineText(
     editor: vscode.TextEditor,
     selection: vscode.Selection,
@@ -87,51 +153,25 @@ export class Vault {
     const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
 
     if (type === "plaintext") {
-      console.log("Encrypt selected text");
-      const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
-      if (useVaultIDs && !vaultId) return;
-
-      let encryptedText: string;
-      try {
-        encryptedText = await this.encryptInline(
-          text,
-          rootPath,
-          vaultId,
-          indentationLevel,
-          tabSize,
-        );
-      } catch (e) {
-        vscode.window.showErrorMessage(
-          `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
-        );
-        return;
-      }
-      const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
-      editor.edit((editBuilder) => {
-        editBuilder.replace(
-          selection,
-          encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
-        );
-      });
+      await this.encryptInlineSelection(
+        editor,
+        selection,
+        text,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+        indentationLevel,
+        tabSize,
+      );
     } else if (type === "encrypted") {
-      console.log("Decrypt selected text");
-      let decryptedText: string;
-      try {
-        decryptedText = await this.decryptInline(
-          text,
-          rootPath,
-          indentationLevel,
-          tabSize,
-        );
-      } catch (e) {
-        vscode.window.showErrorMessage(
-          `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
-        );
-        return;
-      }
-      editor.edit((editBuilder) => {
-        editBuilder.replace(selection, decryptedText);
-      });
+      await this.decryptInlineSelection(
+        editor,
+        selection,
+        text,
+        rootPath,
+        indentationLevel,
+        tabSize,
+      );
     }
   }
 
