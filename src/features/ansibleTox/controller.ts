@@ -198,6 +198,25 @@ export class AnsibleToxController {
     }
   };
 
+  private async executeTest(
+    test: vscode.TestItem,
+    run: vscode.TestRun,
+  ): Promise<void> {
+    const start = Date.now();
+    try {
+      const uri = test.uri;
+      const cwd = uri
+        ? vscode.workspace.getWorkspaceFolder(uri)?.uri.path
+        : undefined;
+      const terminal = await getTerminal(cwd, getRootParentLabelDesc(test));
+      await runTox([test.label.split("->")[0].trim()], "", terminal);
+      run.passed(test, Date.now() - start);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
+    }
+  }
+
   async runHandler(
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
@@ -207,29 +226,10 @@ export class AnsibleToxController {
 
     while (queue.length > 0 && !token.isCancellationRequested) {
       const test = queue.pop();
-      if (test === undefined || test.uri === undefined) {
+      if (!test?.uri || request.exclude?.includes(test)) {
         continue;
       }
-
-      if (request.exclude?.includes(test)) {
-        continue;
-      }
-
-      const start = Date.now();
-      try {
-        const cwd = vscode.workspace.getWorkspaceFolder(test.uri)?.uri.path;
-        const terminal = await getTerminal(cwd, getRootParentLabelDesc(test));
-        await runTox([test.label.split("->")[0].trim()], "", terminal);
-        run.passed(test, Date.now() - start);
-      } catch (e: unknown) {
-        let msg;
-        if (e instanceof Error) {
-          msg = e.message;
-        } else {
-          msg = e instanceof Error ? e.message : String(e);
-        }
-        run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
-      }
+      await this.executeTest(test, run);
     }
 
     run.end();

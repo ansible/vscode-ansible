@@ -355,12 +355,31 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return this.getEnvironmentFromPythonExt(resolvedScope);
   }
 
+  private async getEnvironmentsFromPythonExt(): Promise<PythonEnvironment[]> {
+    if (!this._pythonExtApi) return [];
+    try {
+      const results: PythonEnvironment[] = [];
+      for (const env of this._pythonExtApi.environments.known) {
+        const resolved =
+          await this._pythonExtApi.environments.resolveEnvironment(env);
+        if (resolved) {
+          results.push(this._adaptResolvedEnvironment(resolved));
+        }
+      }
+      return results;
+    } catch (error) {
+      console.error(
+        `[Ansible] Error getting environments (python ext): ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    return [];
+  }
+
   public async getEnvironments(
     scope: vscode.Uri | "all" | "global" = "all",
   ): Promise<PythonEnvironment[]> {
     await this.initialize();
 
-    // Primary: Environments extension
     if (this._pythonEnvApi) {
       try {
         return await this._pythonEnvApi.getEnvironments(scope);
@@ -371,28 +390,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       }
     }
 
-    // Fallback: Python extension — resolve each known environment sequentially.
-    // May be slow for users with many Python installations; consider caching
-    // or lazy resolution if this becomes a bottleneck.
-    if (this._pythonExtApi) {
-      try {
-        const results: PythonEnvironment[] = [];
-        for (const env of this._pythonExtApi.environments.known) {
-          const resolved =
-            await this._pythonExtApi.environments.resolveEnvironment(env);
-          if (resolved) {
-            results.push(this._adaptResolvedEnvironment(resolved));
-          }
-        }
-        return results;
-      } catch (error) {
-        console.error(
-          `[Ansible] Error getting environments (python ext): ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-
-    return [];
+    return this.getEnvironmentsFromPythonExt();
   }
 
   public async getExecutablePath(
