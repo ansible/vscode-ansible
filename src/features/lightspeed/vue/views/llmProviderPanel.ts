@@ -68,9 +68,6 @@ export class LlmProviderPanel {
       undefined,
       this._disposables,
     );
-
-    // Send initial settings
-    void this.messageHandlers.sendProviderSettings();
   }
 
   // Renders the LLM Provider panel or reveals it if already open.
@@ -102,6 +99,14 @@ export class LlmProviderPanel {
         context,
         deps,
       );
+      // Send initial settings (async kickoff kept out of the constructor)
+      LlmProviderPanel.currentPanel.messageHandlers
+        .sendProviderSettings()
+        .catch((error) => {
+          console.error(
+            `[lightspeed] Initial provider settings sync failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
   }
 
