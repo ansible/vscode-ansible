@@ -76,6 +76,23 @@ export class CollectionFinder {
     return j;
   }
 
+  private async readCollectionsInNamespace(namespaceEntry: Dirent) {
+    const namespaceDirectory = path.join(
+      namespaceEntry.parentPath,
+      namespaceEntry.name,
+    );
+    const collectionDirectories = await readdir(namespaceDirectory, {
+      withFileTypes: true,
+    });
+    return collectionDirectories
+      .filter((entry) => entry.isDirectory())
+      .map((entry) =>
+        this.readCollectionMetaInformation(
+          path.join(entry.parentPath, entry.name),
+        ),
+      );
+  }
+
   async searchNestedCollections() {
     const collectionsPath = path.join(
       this.workspacePaths[0],
@@ -85,24 +102,9 @@ export class CollectionFinder {
       .then((namespaceDirectories: Dirent[]) => {
         return namespaceDirectories
           .filter((namespaceEntry) => namespaceEntry.isDirectory())
-          .map((namespaceEntry) => {
-            const namespaceName = namespaceEntry.name;
-            const namespaceDirectory = path.join(
-              namespaceEntry.parentPath,
-              namespaceName,
-            );
-            return readdir(namespaceDirectory, { withFileTypes: true }).then(
-              (collectionDirectories: Dirent[]) => {
-                return collectionDirectories
-                  .filter((entry) => entry.isDirectory())
-                  .map((entry) =>
-                    this.readCollectionMetaInformation(
-                      path.join(entry.parentPath, entry.name),
-                    ),
-                  );
-              },
-            );
-          });
+          .map((namespaceEntry) =>
+            this.readCollectionsInNamespace(namespaceEntry),
+          );
       })
       .catch((e) => {
         console.debug(`Cannot open directory ${collectionsPath}: ${e}`);

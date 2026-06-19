@@ -32,8 +32,6 @@ Before you begin, make sure your system has:
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
 
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
-
 Note:
 
 - For Ansible files open in an editor window ensure the language mode is set to

@@ -1016,7 +1016,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
     "content": [
       {
         "type": "text",
-        "text": "**Please generate the execution-environment.yml file using the following prompt:**\n\n```\nYou are generating an Ansible Execution Environment (EE) definition file.\n\nRULES AND GUIDELINES:\n[ee-rules.md content]\n\nSAMPLE EE FILE STRUCTURE:\n[execution-environment-sample.yml content]\n\nUSER REQUIREMENTS:\n- Base Image: quay.io/fedora/fedora-minimal:41\n- Tag: my-ee:latest\n- Collections: amazon.aws\n- System Packages: git\n\nGenerate a valid execution-environment.yml file following ALL rules...\n```\n\n**After generating the YAML, call this tool again with the 'generatedYaml' parameter containing the generated YAML content.**"
+        "text": "**Please generate the execution-environment.yml file using the following prompt:**\n\n```\nYou are generating an Ansible Execution Environment (EE) definition file.\n\nRULES AND GUIDELINES:\nee-rules.md content\n\nSAMPLE EE FILE STRUCTURE:\nexecution-environment-sample.yml content\n\nUSER REQUIREMENTS:\n- Base Image: quay.io/fedora/fedora-minimal:41\n- Tag: my-ee:latest\n- Collections: amazon.aws\n- System Packages: git\n\nGenerate a valid execution-environment.yml file following ALL rules...\n```\n\n**After generating the YAML, call this tool again with the 'generatedYaml' parameter containing the generated YAML content.**"
       }
     ]
   }

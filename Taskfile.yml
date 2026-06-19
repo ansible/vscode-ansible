@@ -141,15 +141,15 @@ tasks:
     sources:
       - docs/**/*
       - media/**/*
-      - mkdocs.yml
+      - zensical.toml
       - pyproject.toml
     generates:
-      - out/html/**/*
+      - site/**/*
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags || git fetch --tags --force
-      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
+      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && zensical build --strict'
       - defer: { task: finish }
   lint:
     desc: Lint the project

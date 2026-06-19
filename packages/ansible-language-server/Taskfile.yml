@@ -95,7 +95,6 @@ tasks:
       - build
     dir: "{{ .TASKFILE_DIR }}"
     sources:
-      - ../../docs/als/changelog.md
       - README.md
       - package*.json
       - tsconfig.json
