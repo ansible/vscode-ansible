@@ -19,7 +19,7 @@ $ task -l
 
 The diagram below shows the dependencies between the command task commands.
 
-```mermaid
+``` mermaid
 flowchart TD
     build --> setup
     docs --> setup
