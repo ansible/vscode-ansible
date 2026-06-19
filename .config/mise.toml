@@ -28,7 +28,7 @@ http_retries = 5
 
 [tools]
 github-cli = "latest"
-node = "24.16"
+node = "24.17"
 python = { version = "3.13", os = ["linux", "macos"] }
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
