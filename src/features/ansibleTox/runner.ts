@@ -57,28 +57,7 @@ export async function getToxEnvs(
     }
     return stdout.trim().split(os.EOL);
   } catch (err: unknown) {
-    const channel = getOutputChannel();
-    const stderr: string =
-      isExecProcessError(err) && typeof err.stderr === "string"
-        ? err.stderr
-        : isExecProcessError(err) && err.stderr != null
-          ? String(err.stderr)
-          : "";
-    const stdout: string =
-      isExecProcessError(err) && typeof err.stdout === "string"
-        ? err.stdout
-        : isExecProcessError(err) && err.stdout != null
-          ? String(err.stdout)
-          : "";
-    channel.appendLine(stderr);
-    channel.appendLine(stdout);
-    if (stderr.includes("unrecognized arguments: --ansible")) {
-      channel.appendLine(
-        "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'.",
-      );
-    }
-    channel.appendLine("Failed to detect Ansible tox environment.");
-    channel.show(true);
+    logToxError(err);
   }
 
   return undefined;
@@ -95,6 +74,39 @@ export async function runTox(
   targetTerminal.show(true);
   const terminalCommand = `${command} ${envArg} ${toxArguments} --ansible --conf ${ANSIBLE_TOX_FILE_NAME}`;
   targetTerminal.sendText(terminalCommand);
+}
+
+function extractProcessOutput(err: unknown): {
+  stderr: string;
+  stdout: string;
+} {
+  const stderr =
+    isExecProcessError(err) && typeof err.stderr === "string"
+      ? err.stderr
+      : isExecProcessError(err) && err.stderr != null
+        ? String(err.stderr)
+        : "";
+  const stdout =
+    isExecProcessError(err) && typeof err.stdout === "string"
+      ? err.stdout
+      : isExecProcessError(err) && err.stdout != null
+        ? String(err.stdout)
+        : "";
+  return { stderr, stdout };
+}
+
+function logToxError(err: unknown): void {
+  const channel = getOutputChannel();
+  const { stderr, stdout } = extractProcessOutput(err);
+  channel.appendLine(stderr);
+  channel.appendLine(stdout);
+  if (stderr.includes("unrecognized arguments: --ansible")) {
+    channel.appendLine(
+      "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'.",
+    );
+  }
+  channel.appendLine("Failed to detect Ansible tox environment.");
+  channel.show(true);
 }
 
 let _channel: vscode.OutputChannel;
