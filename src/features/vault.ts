@@ -83,7 +83,8 @@ export class Vault {
   ): Promise<void> {
     const type = this.getInlineTextType(text);
     const indentationLevel = getIndentationLevel(editor, selection);
-    const tabSize = Number(editor.options.tabSize);
+    const rawTabSize = Number(editor.options.tabSize);
+    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
 
     if (type === "plaintext") {
       console.log("Encrypt selected text");

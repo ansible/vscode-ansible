@@ -1,67 +1,47 @@
 import { expect } from "vitest";
 
+const MCP_MESSAGES = {
+  enabled:
+    "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.",
+  alreadyEnabled: "Ansible Development Tools MCP Server is already enabled.",
+  disabled: "Ansible Development Tools MCP Server has been disabled.",
+  alreadyDisabled: "Ansible Development Tools MCP Server is already disabled.",
+};
+
 describe("MCP Server Setting Tests", function () {
-  describe("Default Setting", function () {
-    it("should have MCP server disabled by default", function () {
-      const defaultValue = false;
-      expect(defaultValue).toBe(false);
-    });
-
-    it("should use correct configuration section name", function () {
-      const configSection = "ansible.mcpServer";
-      const expectedSetting = "enabled";
-
-      expect(configSection).toBe("ansible.mcpServer");
-      expect(expectedSetting).toBe("enabled");
-    });
-  });
-
   describe("Enable Message", function () {
-    it("should have correct enable message", function () {
-      const enableMessage =
-        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.";
-
-      expect(enableMessage).toContain("enabled successfully");
-      expect(enableMessage).toContain("available for AI assistants");
+    it("should contain key phrases in enable message", function () {
+      expect(MCP_MESSAGES.enabled).toContain("enabled successfully");
+      expect(MCP_MESSAGES.enabled).toContain("available for AI assistants");
     });
 
-    it("should have correct already-enabled message", function () {
-      const alreadyEnabledMessage =
-        "Ansible Development Tools MCP Server is already enabled.";
-
-      expect(alreadyEnabledMessage).toContain("already enabled");
+    it("should contain key phrase in already-enabled message", function () {
+      expect(MCP_MESSAGES.alreadyEnabled).toContain("already enabled");
     });
   });
 
   describe("Disable Message", function () {
-    it("should have correct disable message", function () {
-      const disableMessage =
-        "Ansible Development Tools MCP Server has been disabled.";
-
-      expect(disableMessage).toContain("has been disabled");
+    it("should contain key phrase in disable message", function () {
+      expect(MCP_MESSAGES.disabled).toContain("has been disabled");
     });
 
-    it("should have correct already-disabled message", function () {
-      const alreadyDisabledMessage =
-        "Ansible Development Tools MCP Server is already disabled.";
-
-      expect(alreadyDisabledMessage).toContain("already disabled");
+    it("should contain key phrase in already-disabled message", function () {
+      expect(MCP_MESSAGES.alreadyDisabled).toContain("already disabled");
     });
   });
 
-  describe("Configuration Change Messages", function () {
-    it("should have correct enable config change message", function () {
-      const configChangeEnabledMessage =
-        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.";
-
-      expect(configChangeEnabledMessage).toContain("enabled successfully");
+  describe("Message consistency", function () {
+    it("should have distinct enable and disable messages", function () {
+      expect(MCP_MESSAGES.enabled).not.toBe(MCP_MESSAGES.disabled);
+      expect(MCP_MESSAGES.alreadyEnabled).not.toBe(
+        MCP_MESSAGES.alreadyDisabled,
+      );
     });
 
-    it("should have correct disable config change message", function () {
-      const configChangeDisabledMessage =
-        "Ansible Development Tools MCP Server has been disabled.";
-
-      expect(configChangeDisabledMessage).toContain("has been disabled");
+    it("should all reference Ansible Development Tools MCP Server", function () {
+      for (const msg of Object.values(MCP_MESSAGES)) {
+        expect(msg).toContain("Ansible Development Tools MCP Server");
+      }
     });
   });
 });

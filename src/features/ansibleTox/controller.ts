@@ -154,6 +154,7 @@ export class AnsibleToxController {
   ): void {
     for (let lineNo = 0; lineNo < lines.length; lineNo++) {
       const line = lines[lineNo];
+      testRegex.lastIndex = 0;
       const regexResult = testRegex.exec(line);
       if (!regexResult) {
         continue;
