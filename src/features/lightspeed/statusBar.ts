@@ -64,7 +64,6 @@ export class LightspeedStatusBar {
     this.settingsManager = settingsManager;
     // create a new project lightspeed status bar item that we can manage
     this.statusBar = this.initialiseStatusBar();
-    void this.updateLightSpeedStatusbar();
   }
 
   private initialiseStatusBar(): vscode.StatusBarItem {
