@@ -3,7 +3,8 @@ import { expect } from "vitest";
 const MCP_MESSAGES = {
   enabled:
     "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.",
-  alreadyEnabled: "Ansible Development Tools MCP Server is already enabled.",
+  alreadyEnabled:
+    "Ansible Development Tools MCP Server is already enabled and available.",
   disabled: "Ansible Development Tools MCP Server has been disabled.",
   alreadyDisabled: "Ansible Development Tools MCP Server is already disabled.",
 };
