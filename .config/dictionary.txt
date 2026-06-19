@@ -121,7 +121,7 @@ tomaciazek
 tombi
 tomlsort
 towerhost
-tsup
+tsdown
 typedarrays
 unrs
 unsubed
