@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { LightspeedAPI } from '../api';
-import { isError } from '../errors';
+import { isError, type IError } from '../errors';
 import type { TelemetryReporter } from '../telemetry';
 import { LightspeedEvents } from '../telemetry';
 import { getWebviewHtml } from './panelUtils';
@@ -132,9 +132,10 @@ export class PlaybookGenPanel {
                         'error',
                         `[playbookGen] API error: code=${result.code}, message=${result.message ?? 'none'}`,
                     );
+                    const userMessage = this._getUserErrorMessage(result);
                     void this._panel.webview.postMessage({
                         type: 'errorMessage',
-                        data: result.message ?? result.code,
+                        data: userMessage,
                     });
                 } else {
                     this.log(
@@ -216,7 +217,41 @@ export class PlaybookGenPanel {
     }
 
     /**
-     *
+     * Maps an API error to a user-friendly message with actionable guidance.
+     * @param error - The structured error from the API client.
+     * @returns A user-facing error string.
+     */
+    private _getUserErrorMessage(error: IError): string {
+        const code = error.code;
+        if (
+            code === 'fallback__unauthorized' ||
+            code === 'permission_denied__user_not_authenticated' ||
+            error.message?.includes('authentication failed') ||
+            error.message?.includes('Token refresh failed')
+        ) {
+            void vscode.window
+                .showWarningMessage('Your Ansible Lightspeed session has expired.', 'Sign In')
+                .then((selection) => {
+                    if (selection === 'Sign In') {
+                        void vscode.commands.executeCommand('ansible.lightspeed.oauth');
+                    }
+                });
+            return 'Session expired. Please sign in again using the "Ansible Lightspeed: Sign In" command.';
+        }
+        if (code === 'fallback__bad_request') {
+            return `Request failed: ${error.message ?? 'Bad request. Please check your input and try again.'}`;
+        }
+        if (code === 'fallback__too_many_requests') {
+            return 'Too many requests. Please wait a moment and try again.';
+        }
+        return (
+            error.message ??
+            'An unexpected error occurred. Check the Ansible Lightspeed output channel for details.'
+        );
+    }
+
+    /**
+     * Clean up panel resources.
      */
     private dispose() {
         PlaybookGenPanel.currentPanel = undefined;
