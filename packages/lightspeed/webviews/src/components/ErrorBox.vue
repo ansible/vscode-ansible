@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import ErrorBoxEntry from "./ErrorBoxEntry.vue";
-import { vscodeApi } from "../utils";
 
 const errorMessages = defineModel<string[]>("errorMessages", {
   required: true,
-});
-
-vscodeApi.on("errorMessage", (data: any) => {
-  errorMessages.value.push(data);
 });
 
 function dismiss() {

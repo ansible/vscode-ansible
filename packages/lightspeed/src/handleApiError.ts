@@ -58,5 +58,15 @@ export function mapError(err: Error): IError {
         return mapHttpError(err);
     }
 
-    return ERRORS_UNKNOWN;
+    if (
+        err.message.includes('authentication failed') ||
+        err.message.includes('Token refresh failed')
+    ) {
+        return {
+            code: 'permission_denied__user_not_authenticated',
+            message: 'Your session has expired. Please sign in again.',
+        };
+    }
+
+    return ERRORS_UNKNOWN.withDetail(err.message);
 }
