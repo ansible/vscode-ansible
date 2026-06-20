@@ -128,7 +128,13 @@ export default defineConfig(
         },
     },
     {
-        files: ['test/ui/**/*.ts', 'packages/lightspeed/test/wdio/**/*.ts', 'wdio.conf.ts', 'wdio.conf.wsl.ts', 'wdio.lightspeed.conf.ts'],
+        files: [
+            'test/ui/**/*.ts',
+            'packages/lightspeed/test/wdio/**/*.ts',
+            'wdio.conf.ts',
+            'wdio.conf.wsl.ts',
+            'wdio.lightspeed.conf.ts',
+        ],
         rules: {
             '@typescript-eslint/no-unsafe-member-access': 'off',
         },
@@ -165,12 +171,15 @@ export default defineConfig(
     {
         ignores: [
             'scripts/**',
+            'tools/**',
             'src/panels/webview-entry.tsx',
             'src/panels/bridges/**',
             'src/panels/webview.d.ts',
             'packages/ui/vite.config.ts',
             'packages/lightspeed/webviews/**',
             'packages/lightspeed/vite.config.mts',
+            'packages/lightspeed/vitest.config.mts',
+            'packages/lightspeed/test/**',
         ],
     },
     {
