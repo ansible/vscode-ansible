@@ -494,24 +494,54 @@ Launch A + B in parallel worktrees. Merge both. Then Phase 6. Then Phase 7.
 
 When Lightspeed is deprecated:
 
-1. `rm -rf packages/lightspeed/`
-2. Remove `"@ansible/lightspeed": "*"` from root `package.json` deps
-3. Remove `{ "path": "packages/lightspeed" }` from root `tsconfig.json`
-4. Remove `"test:lightspeed"` and `"build:lightspeed"` script aliases
-   from root `package.json`
-5. Remove `@ansible/lightspeed` alias from `scripts/build.mjs`
-6. Delete `src/features/lightspeed/` shim
-7. Remove `registerLightspeed()` call from `src/extension.ts`
-8. Remove Lightspeed contributes from `package.json` (commands,
-   settings, auth, menus, keybindings)
-9. Remove lightspeed entries from `.vsignore` / `files` field
-10. Remove lightspeed media files
-11. Remove lightspeed CI steps from `.github/workflows/ci.yaml`
-12. Remove this plan document
-13. Update ADR-015 status to `Deprecated`
-14. `npm install && npm run compile && npm run build`
+**Package removal (bulk delete):**
+1. `rm -rf packages/lightspeed/` — all source, tests, webviews, Vue
+   deps, Vite config, fixtures, mock server go with it
 
-No changes needed to root `vitest.config.mts` or root WDIO config.
+**Root `package.json` (6 changes):**
+2. Remove `"@ansible/lightspeed": "*"` from `dependencies`
+3. Remove scripts: `"test:lightspeed"`, `"test:lightspeed:ui"`,
+   `"build:lightspeed:webviews"`
+4. Remove `contributes.commands` — 6 entries starting with
+   `ansible.lightspeed.*`
+5. Remove `contributes.menus.commandPalette` — 6 entries for
+   lightspeed commands
+6. Remove `contributes.menus.editor/context` — 2 entries for
+   explain playbook/role
+7. Remove `contributes.configuration.properties` — 3 settings:
+   `ansible.lightspeed.enabled`, `ansible.lightspeed.URL`,
+   `ansible.lightspeed.suggestions.enabled`
+8. Remove `contributes.authentication` — `auth-lightspeed` entry
+9. Remove `contributes.views` — `ansibleLightspeed` entry
+
+**Root config files (5 changes):**
+10. Remove `@ansible/lightspeed` alias from `scripts/build.mjs`
+11. Remove `{ "path": "packages/lightspeed" }` from `tsconfig.json`
+12. Remove `project('lightspeed', ...)` from `vitest.config.mts`
+13. Remove `!packages/lightspeed/out/**` and
+    `!packages/lightspeed/dist/**` from `.vscodeignore`
+14. Delete `wdio.lightspeed.conf.ts`
+
+**Extension source (2 changes):**
+15. Delete `src/features/lightspeed/register.ts`
+16. Remove `registerLightspeed()` call and import from
+    `src/extension.ts`
+
+**CI (2 changes):**
+17. Remove "Build Lightspeed webviews" and "Run Lightspeed UI tests"
+    steps from `.github/workflows/ci.yml`
+18. Remove "Apply wdio-vscode-service patch" step if no other
+    consumer remains
+
+**SDLC docs:**
+19. Update ADR-015 status to `Deprecated`
+20. Remove this plan document
+
+**Verify:**
+21. `npm install && npm run compile && npm run build`
+22. `npx vitest run` — all non-lightspeed tests pass
+23. `npm run test:ui` — smoke + LS WDIO tests pass
+
 No refactoring of core extension code required.
 
 ## Key risks

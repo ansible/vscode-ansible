@@ -158,29 +158,66 @@ Keep Lightspeed on `main` only and let users who need it stay on
 The implementation plan is tracked in
 [`.sdlc/plans/lightspeed-standalone-package.md`](../plans/lightspeed-standalone-package.md).
 
-Key files and patterns:
+### Implemented file structure
 
-- **Package skeleton:** mirrors `packages/mcp-server/` (composite
-  `tsconfig.json`, `tsc -b` compilation, npm workspace `"*"` version).
-- **Root wiring:** add to `tsconfig.json` references and
-  `package.json` dependencies.
-- **Registration shim:** single `registerLightspeed(context)` call in
-  `src/extension.ts`, delegating to `@ansible/lightspeed`.
+```
+packages/lightspeed/           — all lightspeed code, removed as a unit
+├── src/
+│   ├── index.ts               — barrel exports
+│   ├── activate.ts            — activation entry point + mockSession
+│   ├── api.ts                 — WCA API client (7 endpoints)
+│   ├── definitions.ts         — commands, constants, regex patterns
+│   ├── interfaces.ts          — request/response types
+│   ├── errors.ts              — error classes, registry, isError()
+│   ├── handleApiError.ts      — HTTP error mapping
+│   ├── telemetry.ts           — TelemetryReporter interface + noopReporter
+│   ├── oauth/provider.ts      — OAuth PKCE flow, token refresh
+│   ├── commands/
+│   │   ├── generation.ts      — playbook/role generation commands
+│   │   ├── explanation.ts     — playbook/role explanation commands
+│   │   └── inlineSuggestions.ts — inline completion provider
+│   ├── panels/
+│   │   ├── panelUtils.ts      — webview HTML loading, CSP, nonce
+│   │   ├── playbookGenPanel.ts — playbook generation webview panel
+│   │   ├── roleGenPanel.ts    — role generation webview panel
+│   │   └── explanationPanel.ts — explanation webview panel
+│   ├── utils/
+│   │   ├── webUtils.ts        — OAuth helpers, URI handler
+│   │   └── promiseHandlers.ts — promise-from-event utility
+│   └── views/lightspeedView.ts — sidebar tree data provider
+├── webviews/                  — Vue 3 frontend (Vite build)
+│   ├── src/
+│   │   ├── PlaybookGenApp.vue, RoleGenApp.vue, ExplanationApp.vue
+│   │   ├── components/ (17 Vue components)
+│   │   ├── utils/ (vscodeApi wrapper, outline line numbers)
+│   │   ├── types.ts, lightspeed.css
+│   │   └── playbook-generation.ts, role-generation.ts, explanation.ts
+│   └── *.html (3 entry points)
+├── test/
+│   ├── unit/ (9 test files, 125 tests)
+│   ├── helpers/mockContext.ts
+│   └── wdio/ (E2E: lightspeed.spec.ts, mock-server.ts, fixtures/)
+├── package.json               — Vue/Vite/PrimeVue deps scoped here
+├── vite.config.mts            — webview build config
+├── vitest.config.mts          — unit test config
+└── tsconfig.json
+
+Root files referencing lightspeed (touched during removal):
+├── src/features/lightspeed/register.ts   — shim (delete)
+├── wdio.lightspeed.conf.ts               — E2E config (delete)
+├── src/extension.ts                      — registerLightspeed() call
+├── scripts/build.mjs                     — esbuild alias
+├── tsconfig.json                         — project reference
+├── vitest.config.mts                     — vitest project entry
+├── .vscodeignore                         — out/dist exceptions
+├── .github/workflows/ci.yml             — build + test steps
+└── package.json                          — contributes, scripts, dep
+```
 
 ### Removal checklist
 
-1. `rm -rf packages/lightspeed/`
-2. Remove `"@ansible/lightspeed"` from root `package.json` deps.
-3. Remove tsconfig reference.
-4. Remove optional root script aliases.
-5. Delete `src/features/lightspeed/` shim.
-6. Remove `registerLightspeed()` call from `extension.ts`.
-7. Remove `package.json` contributes entries (commands, settings, auth,
-   menus, keybindings).
-8. Remove lightspeed media files.
-9. Remove `.sdlc/plans/lightspeed-standalone-package.md`.
-10. Update ADR-015 status to `Deprecated`.
-11. `npm install && npm run compile && npm run build`.
+See the detailed 23-step removal checklist in
+[`.sdlc/plans/lightspeed-standalone-package.md`](../plans/lightspeed-standalone-package.md#removal-checklist).
 
 ## Related Decisions
 
