@@ -201,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerFileAssociation(context);
     registerVaultCommand(context);
-    registerLightspeed(context).catch((e) => {
+    registerLightspeed(context).catch((e: unknown) => {
         console.error('[lightspeed] Registration failed:', e);
     });
 

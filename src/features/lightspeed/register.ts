@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
 import { activate, noopReporter } from '@ansible/lightspeed';
 
+/**
+ * Conditionally activates the Lightspeed package when the
+ * `ansible.lightspeed.enabled` setting is true.
+ *
+ * @param context - The VS Code extension context.
+ * @returns A disposable for cleanup, or undefined if disabled.
+ */
 export async function registerLightspeed(
     context: vscode.ExtensionContext,
 ): Promise<vscode.Disposable | undefined> {
@@ -12,7 +19,7 @@ export async function registerLightspeed(
 
     try {
         return await activate(context, noopReporter);
-    } catch (e) {
+    } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         vscode.window.showErrorMessage(`Lightspeed activation failed: ${msg}`);
         console.error('[lightspeed] Activation failed:', e);

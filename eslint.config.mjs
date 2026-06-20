@@ -48,12 +48,15 @@ export default defineConfig(
                     allowDefaultProject: [
                         '*.mjs',
                         '*.ts',
+                        '*.mts',
                         '.vscode-test.mjs',
                         'eslint.config.mjs',
                         'test/eslint/eslint-plugin-local.cjs',
                         'wdio.conf.ts',
                         'wdio.conf.wsl.ts',
+                        'wdio.lightspeed.conf.ts',
                         'vitest.config.mts',
+                        'tools/ensure-chromedriver.mts',
                     ],
                 },
                 tsconfigRootDir: __dirname,
@@ -125,7 +128,7 @@ export default defineConfig(
         },
     },
     {
-        files: ['test/ui/**/*.ts', 'wdio.conf.ts', 'wdio.conf.wsl.ts'],
+        files: ['test/ui/**/*.ts', 'packages/lightspeed/test/wdio/**/*.ts', 'wdio.conf.ts', 'wdio.conf.wsl.ts', 'wdio.lightspeed.conf.ts'],
         rules: {
             '@typescript-eslint/no-unsafe-member-access': 'off',
         },
@@ -166,6 +169,8 @@ export default defineConfig(
             'src/panels/bridges/**',
             'src/panels/webview.d.ts',
             'packages/ui/vite.config.ts',
+            'packages/lightspeed/webviews/**',
+            'packages/lightspeed/vite.config.mts',
         ],
     },
     {
