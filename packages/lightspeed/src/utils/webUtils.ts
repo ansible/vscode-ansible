@@ -1,6 +1,11 @@
 import { EventEmitter, Uri, UriHandler } from 'vscode';
 import crypto from 'crypto';
-import type { LightspeedUserDetails, LightspeedSessionInfo, LightspeedSessionUserInfo, LightspeedSessionModelInfo } from '../interfaces';
+import type {
+    LightspeedUserDetails,
+    LightspeedSessionInfo,
+    LightspeedSessionUserInfo,
+    LightspeedSessionModelInfo,
+} from '../interfaces';
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = 'auth-lightspeed';
 export const ANSIBLE_LIGHTSPEED_AUTH_NAME = 'Ansible Lightspeed';
@@ -15,7 +20,14 @@ export interface OAuthAccount {
     expiresAtTimestampInSeconds: number;
 }
 
+/**
+ * Handles OAuth callback URIs from the authentication flow.
+ */
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
+    /**
+     * Fires the URI event when an authentication callback is received.
+     * @param uri - The callback URI to handle
+     */
     public handleUri(uri: Uri) {
         this.fire(uri);
     }
@@ -29,6 +41,12 @@ export const generateCodeVerifier = (): string => {
 
 const DEFAULT_TOKEN_EXPIRES_IN_SECONDS = 3600;
 
+/**
+ * Coerces an expiry value to a valid positive number of seconds.
+ * @param expiresIn - The raw expiry value to coerce
+ * @param defaultSeconds - Fallback value when expiresIn is not a valid positive number
+ * @returns The coerced expiry time in seconds
+ */
 export function coerceExpiresIn(
     expiresIn: unknown,
     defaultSeconds = DEFAULT_TOKEN_EXPIRES_IN_SECONDS,
@@ -37,6 +55,11 @@ export function coerceExpiresIn(
     return Number.isFinite(num) && num > 0 ? num : defaultSeconds;
 }
 
+/**
+ * Calculates the absolute token expiry timestamp from a relative duration.
+ * @param expiresIn - Duration in seconds until the token expires
+ * @returns The expiry time as a Unix timestamp in seconds
+ */
 export function calculateTokenExpiryTime(expiresIn: number) {
     const now = Math.floor(new Date().getTime() / 1000);
     return now + expiresIn;
@@ -44,6 +67,11 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 
 export type LIGHTSPEED_USER_TYPE = 'Licensed' | 'Unlicensed' | 'Not logged in';
 
+/**
+ * Returns the user type label based on the organization subscription status.
+ * @param rhOrgHasSubscription - Whether the Red Hat organization has an active subscription
+ * @returns The user type classification
+ */
 export function getUserTypeLabel(rhOrgHasSubscription?: boolean): LIGHTSPEED_USER_TYPE {
     if (rhOrgHasSubscription === undefined) {
         return 'Not logged in';
@@ -51,6 +79,11 @@ export function getUserTypeLabel(rhOrgHasSubscription?: boolean): LIGHTSPEED_USE
     return rhOrgHasSubscription ? 'Licensed' : 'Unlicensed';
 }
 
+/**
+ * Extracts user and model information from a Lightspeed session.
+ * @param sessionData - The authenticated user's session details
+ * @returns An object containing user info and model info for the session
+ */
 export function getLoggedInUserDetails(sessionData?: LightspeedUserDetails): LightspeedSessionInfo {
     const userInfo: LightspeedSessionUserInfo = {};
     const modelInfo: LightspeedSessionModelInfo = {};
@@ -67,17 +100,33 @@ export function getLoggedInUserDetails(sessionData?: LightspeedUserDetails): Lig
     };
 }
 
+/**
+ * Returns the base URI for an API endpoint with trailing slash removed.
+ * @param apiEndpoint - The API endpoint URL to normalize
+ * @returns The normalized base URI
+ */
 export function getBaseUri(apiEndpoint: string): string {
     const trimmed = apiEndpoint.endsWith('/') ? apiEndpoint.slice(0, -1) : apiEndpoint;
     return trimmed;
 }
 
-const VALID_DESKTOP_CALLBACK_SCHEMES = ['vscode', 'vscodium', 'vscode-insiders', 'checode', 'cursor'];
+const VALID_DESKTOP_CALLBACK_SCHEMES = [
+    'vscode',
+    'vscodium',
+    'vscode-insiders',
+    'checode',
+    'cursor',
+];
 
+/**
+ * Checks whether a URI uses a supported desktop callback scheme.
+ * @param uri - The URI to validate
+ * @returns True if the URI scheme or authority is supported for OAuth callbacks
+ */
 export function isSupportedCallback(uri: Uri) {
     return (
         VALID_DESKTOP_CALLBACK_SCHEMES.includes(uri.scheme) ||
-        /\.openshiftapps\.com$/.test(uri.authority) ||
-        /\.github\.dev$/.test(uri.authority)
+        uri.authority.endsWith('.openshiftapps.com') ||
+        uri.authority.endsWith('.github.dev')
     );
 }

@@ -3,16 +3,33 @@ import * as fs from 'fs';
 import * as path from 'path';
 import crypto from 'crypto';
 
+/**
+ * Generates a cryptographically random nonce string for use in CSP directives.
+ * @returns A 32-character hex string suitable for use as a CSP nonce.
+ */
 export function getNonce(): string {
     return crypto.randomBytes(16).toString('hex');
 }
 
+/**
+ * Builds the full HTML content for a Lightspeed webview panel, including CSP headers and asset URIs.
+ * @param extensionUri - Root URI of the extension for resolving resource paths.
+ * @param webview - The VS Code webview instance to generate HTML for.
+ * @param entryPoint - The name of the HTML entry point file (without extension).
+ * @returns The fully processed HTML string ready for the webview, or a fallback error page.
+ */
 export function getWebviewHtml(
     extensionUri: vscode.Uri,
     webview: vscode.Webview,
     entryPoint: string,
 ): string {
-    const distBase = vscode.Uri.joinPath(extensionUri, 'packages', 'lightspeed', 'dist', 'webviews');
+    const distBase = vscode.Uri.joinPath(
+        extensionUri,
+        'packages',
+        'lightspeed',
+        'dist',
+        'webviews',
+    );
     const htmlFile = findHtmlFile(distBase.fsPath, `${entryPoint}.html`);
 
     if (!htmlFile) {
@@ -49,6 +66,12 @@ export function getWebviewHtml(
     return html;
 }
 
+/**
+ * Recursively searches for an HTML file by name within a directory tree.
+ * @param dir - The directory path to search in.
+ * @param name - The HTML file name to find.
+ * @returns The full path to the found HTML file, or undefined if not found.
+ */
 function findHtmlFile(dir: string, name: string): string | undefined {
     if (!fs.existsSync(dir)) return undefined;
 

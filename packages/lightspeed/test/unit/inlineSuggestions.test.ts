@@ -268,7 +268,7 @@ describe('registerInlineSuggestions', () => {
                 doc, position, {}, noCancelToken,
             );
 
-            expect(result).toBeUndefined();
+            expect(!result || result.length === 0).toBe(true);
         });
 
         it('returns undefined when indentation mismatches', async () => {

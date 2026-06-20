@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { LightspeedAPI } from '../api';
-import type { IError } from '../errors';
 import type { TelemetryReporter } from '../telemetry';
 import {
     SINGLE_TASK_REGEX_EP,
@@ -10,17 +9,23 @@ import {
 import type { IAnsibleFileType } from '../interfaces';
 import crypto from 'crypto';
 
+/**
+ * Adjusts indentation of an inline suggestion to align with the current cursor position.
+ * @param suggestion - The raw suggestion text to adjust
+ * @param position - The cursor position used to determine indentation
+ * @returns The suggestion text with corrected indentation
+ */
 function adjustInlineSuggestionIndent(suggestion: string, position: vscode.Position): string {
     const lines = suggestion.split('\n');
     const editor = vscode.window.activeTextEditor;
     const cursorLine = editor?.document.lineAt(position);
     const spacesBeforeCursor =
-        cursorLine?.text.slice(0, position.character).match(/^ +/)?.[0].length || 0;
+        cursorLine?.text.slice(0, position.character).match(/^ +/)?.[0].length ?? 0;
 
     if (spacesBeforeCursor > 0 && lines.length > 0) {
         return lines
             .map((line, index) => {
-                if (line[position.character - 1]?.match(/\w/)) {
+                if (/\w/.exec(line[position.character - 1])) {
                     return '';
                 }
                 const newLine = line.substring(position.character);
@@ -45,6 +50,12 @@ interface SuggestionMatchInfo {
     currentLineIsEmpty: boolean;
 }
 
+/**
+ * Determines whether the current cursor position matches a single-task or multi-task suggestion pattern.
+ * @param document - The active text document to analyze
+ * @param position - The cursor position used to find the prompt line
+ * @returns Match information including the pattern type, indentation details, and prompt line
+ */
 function getSuggestionMatchType(
     document: vscode.TextDocument,
     position: vscode.Position,
@@ -52,13 +63,12 @@ function getSuggestionMatchType(
     let suggestionMatchType: 'SINGLE-TASK' | 'MULTI-TASK' | undefined = undefined;
 
     const lineToExtractPrompt = document.lineAt(position.line - 1);
-    const spacesBeforePromptStart =
-        lineToExtractPrompt.text.match(/^ +/)?.[0].length || 0;
+    const spacesBeforePromptStart = /^ +/.exec(lineToExtractPrompt.text)?.[0].length ?? 0;
 
     const taskMatchedPattern = lineToExtractPrompt.text.match(SINGLE_TASK_REGEX_EP);
     const currentLineText = document.lineAt(position);
     const spacesBeforeCursor =
-        currentLineText.text.slice(0, position.character).match(/^ +/)?.[0].length || 0;
+        /^ +/.exec(currentLineText.text.slice(0, position.character))?.[0].length ?? 0;
 
     if (taskMatchedPattern) {
         suggestionMatchType = 'SINGLE-TASK';
@@ -81,14 +91,20 @@ function getSuggestionMatchType(
 
 type LogFn = (level: 'info' | 'debug' | 'error', message: string) => void;
 
+/**
+ * Registers an inline completion provider that supplies Lightspeed AI suggestions for Ansible files.
+ * @param context - The VS Code extension context for managing subscriptions
+ * @param api - The Lightspeed API client used to fetch completion suggestions
+ * @param telemetry - The telemetry reporter for tracking suggestion events
+ * @param log - Optional logging function for diagnostic output
+ * @returns void
+ */
 export function registerInlineSuggestions(
     context: vscode.ExtensionContext,
     api: LightspeedAPI,
     telemetry: TelemetryReporter,
     log?: LogFn,
 ) {
-    let previousTriggerPosition: vscode.Position | undefined;
-
     const provider: vscode.InlineCompletionItemProvider = {
         async provideInlineCompletionItems(
             document: vscode.TextDocument,
@@ -109,7 +125,10 @@ export function registerInlineSuggestions(
             const matchInfo = getSuggestionMatchType(document, position);
 
             if (!matchInfo.suggestionMatchType) {
-                log?.('debug', `[inline] No task/comment pattern on line ${position.line - 1}, skipping`);
+                log?.(
+                    'debug',
+                    `[inline] No task/comment pattern on line ${String(position.line - 1)}, skipping`,
+                );
                 return undefined;
             }
             if (!matchInfo.currentLineIsEmpty) {
@@ -117,21 +136,34 @@ export function registerInlineSuggestions(
                 return undefined;
             }
             if (matchInfo.spacesBeforePromptStart !== matchInfo.spacesBeforeCursor) {
-                log?.('debug', `[inline] Indentation mismatch: prompt=${matchInfo.spacesBeforePromptStart}, cursor=${matchInfo.spacesBeforeCursor}`);
+                log?.(
+                    'debug',
+                    `[inline] Indentation mismatch: prompt=${String(matchInfo.spacesBeforePromptStart)}, cursor=${String(matchInfo.spacesBeforeCursor)}`,
+                );
                 return undefined;
             }
 
-            log?.('info', `[inline] Triggered ${matchInfo.suggestionMatchType} suggestion at line ${position.line}`);
-            log?.('info', `[inline] Prompt line (line ${position.line - 1}): "${matchInfo.lineToExtractPrompt.text}"`);
+            log?.(
+                'info',
+                `[inline] Triggered ${matchInfo.suggestionMatchType} suggestion at line ${String(position.line)}`,
+            );
+            log?.(
+                'info',
+                `[inline] Prompt line (line ${String(position.line - 1)}): "${matchInfo.lineToExtractPrompt.text}"`,
+            );
             if (matchInfo.taskMatchedPattern) {
-                log?.('info', `[inline] Matched task description: "${matchInfo.taskMatchedPattern.groups?.description ?? ''}"`);
+                log?.(
+                    'info',
+                    `[inline] Matched task description: "${matchInfo.taskMatchedPattern.groups?.description ?? ''}"`,
+                );
             }
-            previousTriggerPosition = position;
-
             const range = new vscode.Range(new vscode.Position(0, 0), position);
             const documentContent = range.isEmpty ? '' : document.getText(range).trimEnd();
 
-            log?.('info', `[inline] Prompt length: ${documentContent.length} chars, last 200 chars: "${documentContent.slice(-200).replace(/\n/g, '\\n')}"`);
+            log?.(
+                'info',
+                `[inline] Prompt length: ${String(documentContent.length)} chars, last 200 chars: "${documentContent.slice(-200).replace(/\n/g, '\\n')}"`,
+            );
 
             const suggestionId = crypto.randomUUID();
             const activityId = crypto.randomUUID();
@@ -147,19 +179,14 @@ export function registerInlineSuggestions(
                 },
             });
 
-            if (token.isCancellationRequested) {
-                log?.('debug', '[inline] Request cancelled');
-                return undefined;
-            }
             if ('code' in result) {
-                log?.('error', `[inline] API error: ${(result as IError).code} - ${(result as IError).message ?? ''}`);
+                log?.('error', `[inline] API error: ${result.code} - ${result.message ?? ''}`);
                 return undefined;
             }
-            if (!result.predictions || result.predictions.length === 0) {
-                log?.('info', '[inline] No predictions returned');
-                return undefined;
-            }
-            log?.('info', `[inline] Received ${result.predictions.length} prediction(s) for suggestionId=${result.suggestionId}`);
+            log?.(
+                'info',
+                `[inline] Received ${String(result.predictions.length)} prediction(s) for suggestionId=${result.suggestionId}`,
+            );
 
             const items: vscode.InlineCompletionItem[] = [];
 
@@ -173,7 +200,10 @@ export function registerInlineSuggestions(
                 insertText = adjustInlineSuggestionIndent(insertText, position);
                 insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, '');
 
-                log?.('debug', `[inline] pos.char=${position.character}, leadingWS=${leadingWhitespaceCount}, preview: "${insertText.substring(0, 80).replace(/\n/g, '\\n')}"`);
+                log?.(
+                    'debug',
+                    `[inline] pos.char=${String(position.character)}, leadingWS=${String(leadingWhitespaceCount)}, preview: "${insertText.substring(0, 80).replace(/\n/g, '\\n')}"`,
+                );
                 items.push(new vscode.InlineCompletionItem(insertText));
             }
 

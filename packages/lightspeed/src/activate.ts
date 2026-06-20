@@ -1,23 +1,40 @@
 import * as vscode from 'vscode';
 import { LightspeedAPI, type LightspeedApiConfig } from './api';
 import { LightSpeedAuthenticationProvider, type OAuthProviderConfig } from './oauth/provider';
-import { LightspeedCommands, WCA_API_ENDPOINT_DEFAULT, LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from './definitions';
+import {
+    LightspeedCommands,
+    WCA_API_ENDPOINT_DEFAULT,
+    LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
+} from './definitions';
 import { getUserTypeLabel, ANSIBLE_LIGHTSPEED_AUTH_ID } from './utils/webUtils';
 import type { TelemetryReporter } from './telemetry';
-import { isError } from './errors';
 import { LightspeedViewProvider } from './views/lightspeedView';
 import { registerGenerationCommands } from './commands/generation';
 import { registerExplanationCommands } from './commands/explanation';
 import { registerInlineSuggestions } from './commands/inlineSuggestions';
 
+/**
+ * Retrieves the Ansible Lightspeed workspace configuration.
+ * @returns The workspace configuration for ansible.lightspeed
+ */
 function getConfig(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration('ansible.lightspeed');
 }
 
+/**
+ * Retrieves the configured Lightspeed API endpoint URL.
+ * @returns The API endpoint URL string, falling back to the default
+ */
 function getApiEndpoint(): string {
     return getConfig().get<string>('URL', WCA_API_ENDPOINT_DEFAULT);
 }
 
+/**
+ * Activates the Ansible Lightspeed extension and registers all commands and providers.
+ * @param context The VS Code extension context
+ * @param telemetry The telemetry service for tracking events
+ * @returns A disposable that cleans up Lightspeed resources
+ */
 export async function activate(
     context: vscode.ExtensionContext,
     telemetry: TelemetryReporter,
@@ -40,6 +57,10 @@ export async function activate(
 
     let currentSession: vscode.AuthenticationSession | undefined;
 
+    /**
+     * Retrieves the current access token for Lightspeed API authentication.
+     * @returns The access token string, or undefined if not authenticated
+     */
     async function getAccessToken(): Promise<string | undefined> {
         if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
             return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
@@ -52,8 +73,8 @@ export async function activate(
 
     const apiConfig: LightspeedApiConfig = {
         getAccessToken,
-        isAuthenticated: async () => !!currentSession,
-        orgOptOutTelemetry: async () => false,
+        isAuthenticated: () => Promise.resolve(!!currentSession),
+        orgOptOutTelemetry: () => Promise.resolve(false),
         getApiEndpoint,
         getExtensionVersion: () =>
             (context.extension.packageJSON as { version?: string }).version ?? '0.0.0',
@@ -74,7 +95,10 @@ export async function activate(
     statusBar.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     context.subscriptions.push(statusBar);
 
-    async function updateStatusBar() {
+    /**
+     * Updates the status bar item based on the current session and editor state.
+     */
+    function updateStatusBar() {
         if (
             vscode.window.activeTextEditor?.document.languageId !== 'ansible' ||
             !getConfig().get<boolean>('enabled', false)
@@ -99,9 +123,9 @@ export async function activate(
                     [],
                     { createIfNone: true },
                 );
-                log('info', `Sign-in ${currentSession ? 'successful' : 'failed'}: ${currentSession?.account.label ?? 'no session'}`);
+                log('info', `Sign-in successful: ${currentSession.account.label}`);
                 viewProvider.refresh(!!currentSession);
-                await updateStatusBar();
+                updateStatusBar();
             } catch (e) {
                 vscode.window.showErrorMessage(
                     `Lightspeed sign-in failed: ${e instanceof Error ? e.message : String(e)}`,
@@ -115,9 +139,9 @@ export async function activate(
     registerInlineSuggestions(context, api, telemetry, log);
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(LightspeedCommands.LIGHTSPEED_STATUS_BAR_CLICK, async () => {
+        vscode.commands.registerCommand(LightspeedCommands.LIGHTSPEED_STATUS_BAR_CLICK, () => {
             if (!currentSession) {
-                vscode.commands.executeCommand(LightspeedCommands.LIGHTSPEED_AUTH_REQUEST);
+                void vscode.commands.executeCommand(LightspeedCommands.LIGHTSPEED_AUTH_REQUEST);
             }
         }),
     );
@@ -132,18 +156,21 @@ export async function activate(
 
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(() => {
-            void updateStatusBar();
+            updateStatusBar();
         }),
     );
 
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration('ansible.lightspeed')) {
-                void updateStatusBar();
+                updateStatusBar();
             }
         }),
     );
 
+    /**
+     *
+     */
     async function refreshSession() {
         try {
             currentSession = await vscode.authentication.getSession(
@@ -151,20 +178,23 @@ export async function activate(
                 [],
                 { createIfNone: false },
             );
-            log('debug', `Session refresh: ${currentSession ? 'authenticated as ' + currentSession.account.label : 'not authenticated'}`);
+            log(
+                'debug',
+                `Session refresh: ${currentSession ? 'authenticated as ' + currentSession.account.label : 'not authenticated'}`,
+            );
         } catch {
             currentSession = undefined;
             log('debug', 'Session refresh: no session found');
         }
         viewProvider.refresh(!!currentSession);
-        await updateStatusBar();
+        updateStatusBar();
     }
 
     if (context.extensionMode !== vscode.ExtensionMode.Production) {
         context.subscriptions.push(
             vscode.commands.registerCommand(
                 'ansible.lightspeed.mockSession',
-                async (session: { accessToken: string; accountId: string; accountLabel: string }) => {
+                (session: { accessToken: string; accountId: string; accountLabel: string }) => {
                     log('info', `[mock] Injecting mock session: ${session.accountLabel}`);
                     currentSession = {
                         id: session.accountId,
@@ -173,7 +203,7 @@ export async function activate(
                         scopes: [],
                     };
                     viewProvider.refresh(true);
-                    await updateStatusBar();
+                    updateStatusBar();
                 },
             ),
         );

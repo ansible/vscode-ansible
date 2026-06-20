@@ -8,11 +8,22 @@ import crypto from 'crypto';
 
 type LogFn = (level: 'info' | 'debug' | 'error', message: string) => void;
 
+/**
+ *
+ */
 export class PlaybookGenPanel {
     public static currentPanel: PlaybookGenPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
     private readonly _disposables: vscode.Disposable[] = [];
 
+    /**
+     * Create a new PlaybookGenPanel instance.
+     * @param panel - The webview panel to wrap.
+     * @param api - Lightspeed API client for generation requests.
+     * @param telemetry - Telemetry reporter for event tracking.
+     * @param log - Logging function for diagnostic output.
+     * @param extensionUri - Root URI of the extension for resolving webview resources.
+     */
     private constructor(
         panel: vscode.WebviewPanel,
         private readonly api: LightspeedAPI,
@@ -21,16 +32,33 @@ export class PlaybookGenPanel {
         extensionUri: vscode.Uri,
     ) {
         this._panel = panel;
-        this._panel.webview.html = getWebviewHtml(extensionUri, this._panel.webview, 'playbook-generation');
+        this._panel.webview.html = getWebviewHtml(
+            extensionUri,
+            this._panel.webview,
+            'playbook-generation',
+        );
 
-        this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+        this._panel.onDidDispose(
+            () => {
+                this.dispose();
+            },
+            null,
+            this._disposables,
+        );
         this._panel.webview.onDidReceiveMessage(
-            (msg) => this._handleMessage(msg),
+            (msg: unknown) => this._handleMessage(msg as { type?: string; data?: unknown }),
             null,
             this._disposables,
         );
     }
 
+    /**
+     * Show an existing panel or create a new one.
+     * @param extensionUri - Root URI of the extension for resolving webview resources.
+     * @param api - Lightspeed API client for generation requests.
+     * @param telemetry - Telemetry reporter for event tracking.
+     * @param log - Logging function for diagnostic output.
+     */
     public static createOrShow(
         extensionUri: vscode.Uri,
         api: LightspeedAPI,
@@ -56,12 +84,24 @@ export class PlaybookGenPanel {
             },
         );
 
-        PlaybookGenPanel.currentPanel = new PlaybookGenPanel(panel, api, telemetry, log, extensionUri);
+        PlaybookGenPanel.currentPanel = new PlaybookGenPanel(
+            panel,
+            api,
+            telemetry,
+            log,
+            extensionUri,
+        );
     }
 
-    private async _handleMessage(message: { type?: string; data?: any }) {
-        const type = message.type as string | undefined;
-        const data = message.data;
+    /**
+     * Handle incoming webview messages and dispatch by type.
+     * @param message - The message object received from the webview.
+     * @param message.type - The message type identifier.
+     * @param message.data - The message payload.
+     */
+    private async _handleMessage(message: { type?: string; data?: unknown }) {
+        const type = message.type;
+        const data = message.data as Record<string, unknown> | undefined;
         this.log('debug', `[playbookGen] Received message: type=${type ?? 'undefined'}`);
 
         switch (type) {
@@ -74,7 +114,10 @@ export class PlaybookGenPanel {
                 }
                 const generationId = crypto.randomUUID();
                 const createOutline = !outline;
-                this.log('info', `[playbookGen] Generating playbook: text="${text.substring(0, 100)}", createOutline=${String(createOutline)}, hasOutline=${!!outline}, generationId=${generationId}`);
+                this.log(
+                    'info',
+                    `[playbookGen] Generating playbook: text="${text.substring(0, 100)}", createOutline=${String(createOutline)}, hasOutline=${String(!!outline)}, generationId=${generationId}`,
+                );
                 this.telemetry.sendEvent(LightspeedEvents.GENERATION_OPEN);
 
                 const result = await this.api.playbookGenerationRequest({
@@ -85,13 +128,19 @@ export class PlaybookGenPanel {
                 });
 
                 if (isError(result)) {
-                    this.log('error', `[playbookGen] API error: code=${result.code}, message=${result.message ?? 'none'}`);
+                    this.log(
+                        'error',
+                        `[playbookGen] API error: code=${result.code}, message=${result.message ?? 'none'}`,
+                    );
                     void this._panel.webview.postMessage({
                         type: 'errorMessage',
                         data: result.message ?? result.code,
                     });
                 } else {
-                    this.log('info', `[playbookGen] API success: playbook length=${result.playbook?.length ?? 0}, outline length=${result.outline?.length ?? 0}`);
+                    this.log(
+                        'info',
+                        `[playbookGen] API success: playbook length=${String(result.playbook.length)}, outline length=${String(result.outline?.length ?? 0)}`,
+                    );
                     void this._panel.webview.postMessage({
                         type: 'generatePlaybook',
                         data: { ...result, generationId },
@@ -102,8 +151,14 @@ export class PlaybookGenPanel {
             case 'openEditor': {
                 const content = data?.content as string;
                 if (!content) break;
-                this.log('info', `[playbookGen] Opening editor with ${content.length} chars`);
-                const doc = await vscode.workspace.openTextDocument({ content, language: 'ansible' });
+                this.log(
+                    'info',
+                    `[playbookGen] Opening editor with ${String(content.length)} chars`,
+                );
+                const doc = await vscode.workspace.openTextDocument({
+                    content,
+                    language: 'ansible',
+                });
                 await vscode.window.showTextDocument(doc, { preview: false });
                 break;
             }
@@ -111,12 +166,12 @@ export class PlaybookGenPanel {
                 const request = data?.request as Record<string, unknown> | undefined;
                 this.log('info', `[playbookGen] Feedback: ${JSON.stringify(request)}`);
                 if (request) {
-                    const feedbackResult = await this.api.feedbackRequest(
-                        request as any,
-                        true,
-                    );
+                    const feedbackResult = await this.api.feedbackRequest(request, true);
                     if (isError(feedbackResult)) {
-                        this.log('error', `[playbookGen] Feedback API error: code=${feedbackResult.code}, message=${feedbackResult.message ?? 'none'}`);
+                        this.log(
+                            'error',
+                            `[playbookGen] Feedback API error: code=${feedbackResult.code}, message=${feedbackResult.message ?? 'none'}`,
+                        );
                     } else {
                         this.log('info', '[playbookGen] Feedback API success');
                     }
@@ -127,8 +182,14 @@ export class PlaybookGenPanel {
                 const suggestions = data?.suggestions as string[] | undefined;
                 const suggestionId = data?.suggestionId as string | undefined;
                 if (suggestions && suggestionId) {
-                    this.log('info', `[playbookGen] Content match request: ${suggestions.length} suggestions`);
-                    const matchResult = await this.api.contentMatchesRequest({ suggestions, suggestionId });
+                    this.log(
+                        'info',
+                        `[playbookGen] Content match request: ${String(suggestions.length)} suggestions`,
+                    );
+                    const matchResult = await this.api.contentMatchesRequest({
+                        suggestions,
+                        suggestionId,
+                    });
                     if (!isError(matchResult)) {
                         void this._panel.webview.postMessage({
                             type: 'contentMatchesResponse',
@@ -146,11 +207,17 @@ export class PlaybookGenPanel {
                 break;
             }
             default: {
-                this.log('debug', `[playbookGen] Unhandled message: type=${type ?? 'undefined'}, keys=${Object.keys(message).join(',')}`);
+                this.log(
+                    'debug',
+                    `[playbookGen] Unhandled message: type=${type ?? 'undefined'}, keys=${Object.keys(message).join(',')}`,
+                );
             }
         }
     }
 
+    /**
+     *
+     */
     private dispose() {
         PlaybookGenPanel.currentPanel = undefined;
         this._panel.dispose();

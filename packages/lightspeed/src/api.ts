@@ -461,10 +461,7 @@ export class LightspeedAPI {
                 'info',
                 `[ansible-lightspeed] Role generation request: generationId=${requestData.generationId}, body=${requestBody.substring(0, 500)}`,
             );
-            const response = await this.lightspeedPost(
-                LIGHTSPEED_ROLE_GENERATION_URL,
-                requestBody,
-            );
+            const response = await this.lightspeedPost(LIGHTSPEED_ROLE_GENERATION_URL, requestBody);
 
             const responseText = await response.text();
             this.config.log(

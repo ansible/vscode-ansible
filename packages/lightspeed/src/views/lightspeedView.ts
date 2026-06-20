@@ -1,34 +1,54 @@
 import * as vscode from 'vscode';
 import { LightspeedCommands } from '../definitions';
-import { ANSIBLE_LIGHTSPEED_AUTH_ID } from '../utils/webUtils';
 
+/**
+ * A tree item representing a single entry in the Lightspeed sidebar view.
+ */
 class LightspeedTreeItem extends vscode.TreeItem {
-    constructor(
-        label: string,
-        command?: vscode.Command,
-        icon?: vscode.ThemeIcon,
-    ) {
+    /**
+     * Creates a new Lightspeed tree item.
+     * @param label - The display text for the tree item
+     * @param command - The command to execute when the item is clicked
+     * @param icon - The icon to display beside the label
+     */
+    constructor(label: string, command?: vscode.Command, icon?: vscode.ThemeIcon) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.command = command;
         this.iconPath = icon;
     }
 }
 
+/**
+ * Provides tree data for the Lightspeed sidebar view.
+ */
 export class LightspeedViewProvider implements vscode.TreeDataProvider<LightspeedTreeItem> {
     private _onDidChangeTreeData = new vscode.EventEmitter<LightspeedTreeItem | undefined>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     private _isAuthenticated = false;
 
+    /**
+     * Refreshes the tree view based on the current authentication state.
+     * @param isAuthenticated - Whether the user is currently authenticated
+     */
     refresh(isAuthenticated: boolean) {
         this._isAuthenticated = isAuthenticated;
         this._onDidChangeTreeData.fire(undefined);
     }
 
+    /**
+     * Returns the tree item representation for the given element.
+     * @param element - The tree item to return
+     * @returns The tree item itself
+     */
     getTreeItem(element: LightspeedTreeItem): LightspeedTreeItem {
         return element;
     }
 
+    /**
+     * Returns the child tree items based on the authentication state.
+     * @returns An array of tree items for the Lightspeed sidebar
+     */
     getChildren(): LightspeedTreeItem[] {
         if (!this._isAuthenticated) {
             return [

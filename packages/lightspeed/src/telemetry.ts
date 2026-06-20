@@ -3,7 +3,9 @@ export interface TelemetryReporter {
 }
 
 export const noopReporter: TelemetryReporter = {
-    sendEvent() {},
+    sendEvent() {
+        // no-op
+    },
 };
 
 export const LightspeedEvents = {

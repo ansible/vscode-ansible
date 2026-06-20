@@ -39,10 +39,18 @@ import { getFetch } from '../api';
 
 let _codeVerifier: string | undefined;
 
+/**
+ * Returns the current code verifier, generating one if it doesn't exist.
+ * @returns The PKCE code verifier string
+ */
 function getCodeVerifier(): string {
     return (_codeVerifier ??= generateCodeVerifier());
 }
 
+/**
+ * Computes a base64url-encoded SHA-256 hash of the code verifier for PKCE.
+ * @returns The PKCE code challenge string
+ */
 function getCodeChallenge(): string {
     const verifier = getCodeVerifier();
     return crypto
@@ -61,6 +69,9 @@ export interface OAuthProviderConfig {
     log(level: 'info' | 'debug' | 'error', message: string): void;
 }
 
+/**
+ *
+ */
 export class LightSpeedAuthenticationProvider implements AuthenticationProvider, Disposable {
     private _sessionChangeEmitter =
         new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
@@ -69,6 +80,11 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
     private _config: OAuthProviderConfig;
     private _externalRedirectUri = '';
 
+    /**
+     * Creates a new LightSpeedAuthenticationProvider instance.
+     * @param context - The VS Code extension context for managing secrets and state
+     * @param config - Configuration providing API endpoint and logging capabilities
+     */
     constructor(
         private readonly context: ExtensionContext,
         config: OAuthProviderConfig,
@@ -76,9 +92,15 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         this._config = config;
     }
 
+    /**
+     * Registers the authentication provider and URI handler with VS Code.
+     */
     public initialize() {
         if (this._disposable) {
-            this._config.log('debug', '[ansible-lightspeed-oauth] Auth provider already registered');
+            this._config.log(
+                'debug',
+                '[ansible-lightspeed-oauth] Auth provider already registered',
+            );
             return;
         }
         this._disposable = Disposable.from(
@@ -92,10 +114,18 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         );
     }
 
+    /**
+     * Event that fires when authentication sessions change.
+     * @returns The session change event emitter
+     */
     get onDidChangeSessions() {
         return this._sessionChangeEmitter.event;
     }
 
+    /**
+     * Retrieves all stored Lightspeed authentication sessions.
+     * @returns The array of persisted authentication sessions
+     */
     public async getSessions(): Promise<LightspeedAuthSession[]> {
         const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
         if (allSessions) {
@@ -104,16 +134,19 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         return [];
     }
 
+    /**
+     * Creates a new Lightspeed authentication session via OAuth login.
+     * @param scopes - The OAuth scopes to request during authorization
+     * @returns The newly created authentication session
+     */
     public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
+        void scopes;
         try {
-            const account = await this.login(scopes);
-            if (!account) {
-                throw new Error('Ansible Lightspeed login failure');
-            }
+            const account = await this.login();
 
             const userinfo = await this.fetchUserInfo(account.accessToken);
             const identifier = crypto.randomUUID();
-            const userName = userinfo.external_username || userinfo.username || '';
+            const userName = userinfo.external_username || (userinfo.username ?? '');
             const rhOrgHasSubscription = userinfo.rh_org_has_subscription ?? false;
             const userTypeLabel = getUserTypeLabel(rhOrgHasSubscription).toLowerCase();
             const label = `${userName} (${userTypeLabel})`;
@@ -139,6 +172,10 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         }
     }
 
+    /**
+     * Removes a stored session by its identifier and fires a session change event.
+     * @param sessionId - The unique identifier of the session to remove
+     */
     public async removeSession(sessionId: string): Promise<void> {
         const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
         if (allSessions) {
@@ -147,12 +184,13 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
             const session = sessions[sessionIdx];
             sessions.splice(sessionIdx, 1);
             await this.context.secrets.store(SESSIONS_SECRET_KEY, JSON.stringify(sessions));
-            if (session) {
-                this._sessionChangeEmitter.fire({ added: [], removed: [session], changed: [] });
-            }
+            this._sessionChangeEmitter.fire({ added: [], removed: [session], changed: [] });
         }
     }
 
+    /**
+     * Disposes the authentication provider and cleans up registered handlers.
+     */
     public async dispose() {
         if (this._disposable) {
             this._config.log('debug', '[ansible-lightspeed-oauth] Disposing auth provider');
@@ -161,12 +199,14 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         }
     }
 
-    private async login(_scopes: string[] = []) {
+    /**
+     * Initiates the OAuth login flow by opening the authorization URL in the browser.
+     * @returns The authenticated OAuth account, or undefined if cancelled
+     */
+    private async login() {
         this._config.log('debug', '[ansible-lightspeed-oauth] Logging in...');
 
-        const callbackUri = await env.asExternalUri(
-            Uri.parse(this.getRedirectUri()),
-        );
+        const callbackUri = await env.asExternalUri(Uri.parse(this.getRedirectUri()));
         this._externalRedirectUri = callbackUri.toString(true);
 
         const searchParams = new URLSearchParams([
@@ -218,6 +258,10 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         return account;
     }
 
+    /**
+     * Constructs the OAuth redirect URI from the extension's publisher and name.
+     * @returns The redirect URI string for the OAuth callback
+     */
     private getRedirectUri() {
         const manifest = this.context.extension.packageJSON as {
             publisher?: string;
@@ -244,6 +288,11 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
             resolve(account);
         };
 
+    /**
+     * Exchanges an authorization code for an OAuth access token and account.
+     * @param code - The authorization code received from the OAuth redirect
+     * @returns The OAuth account with tokens, or undefined on failure
+     */
     private async requestOAuthAccountFromCode(code: string): Promise<OAuthAccount | undefined> {
         this._config.log('debug', '[ansible-lightspeed-oauth] Requesting access token...');
         try {
@@ -278,7 +327,7 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
                 this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
                 return account;
             } else {
-                throw new Error(`Token request failed with status: ${response.status}`);
+                throw new Error(`Token request failed with status: ${String(response.status)}`);
             }
         } catch (error) {
             const err = error as Error;
@@ -287,6 +336,11 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         }
     }
 
+    /**
+     * Refreshes an expired OAuth token using the stored refresh token.
+     * @param currentAccount - The current OAuth account containing the refresh token
+     * @returns The updated OAuth account with a new access token, or undefined on failure
+     */
     private async requestTokenAfterExpiry(
         currentAccount: OAuthAccount,
     ): Promise<OAuthAccount | undefined> {
@@ -327,7 +381,9 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
                         this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
                         return account;
                     } else {
-                        throw new Error(`Token refresh failed with status: ${response.status}`);
+                        throw new Error(
+                            `Token refresh failed with status: ${String(response.status)}`,
+                        );
                     }
                 } catch (error) {
                     const err = error as Error;
@@ -338,6 +394,11 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         );
     }
 
+    /**
+     * Refreshes the access token for a session if it has expired or is about to expire.
+     * @param session - The authentication session whose token should be refreshed
+     * @returns The current or refreshed access token, or undefined if re-login is needed
+     */
     public async refreshAccessToken(session: AuthenticationSession) {
         const sessionId = session.id;
         const account = await this.context.secrets.get(ACCOUNT_SECRET_KEY);
@@ -379,16 +440,23 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
                 };
                 sessions.splice(sessionIdx, 1, freshSession);
                 await this.context.secrets.store(SESSIONS_SECRET_KEY, JSON.stringify(sessions));
-                this._sessionChangeEmitter.fire({ added: [], removed: [], changed: [existingSession] });
+                this._sessionChangeEmitter.fire({
+                    added: [],
+                    removed: [],
+                    changed: [existingSession],
+                });
             }
         }
 
         return tokenToBeReturned;
     }
 
-    private async fetchUserInfo(
-        token: string,
-    ): Promise<{
+    /**
+     * Fetches the authenticated user's profile information from the Lightspeed API.
+     * @param token - The OAuth access token for authenticating the request
+     * @returns The user profile including username, subscription, and admin status
+     */
+    private async fetchUserInfo(token: string): Promise<{
         username?: string;
         external_username: string;
         rh_org_has_subscription?: boolean;
@@ -402,7 +470,7 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
             headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) {
-            throw new Error(`User info request failed: ${response.status}`);
+            throw new Error(`User info request failed: ${String(response.status)}`);
         }
         return (await response.json()) as {
             username?: string;

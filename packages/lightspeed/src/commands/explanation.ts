@@ -5,6 +5,13 @@ import { ExplanationPanel } from '../panels/explanationPanel';
 
 type LogFn = (level: 'info' | 'debug' | 'error', message: string) => void;
 
+/**
+ * Registers Ansible Lightspeed explanation commands for playbooks and roles.
+ * @param context The VS Code extension context
+ * @param api The Lightspeed API client instance
+ * @param telemetry The telemetry service for tracking events
+ * @param log The logger instance for debug output
+ */
 export function registerExplanationCommands(
     context: vscode.ExtensionContext,
     api: LightspeedAPI,
