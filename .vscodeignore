@@ -25,6 +25,7 @@ vitest.config.ts
 vitest.config.mts
 wdio.conf.ts
 wdio.conf.wsl.ts
+wdio.lightspeed.conf.ts
 tsconfig.json
 tsconfig.*.json
 .gitignore

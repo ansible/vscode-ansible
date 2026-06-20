@@ -1098,7 +1098,7 @@
     "pretest:ui": "node scripts/install-test-extensions.mjs",
     "test:ui": "wdio run wdio.conf.ts",
     "test:lightspeed": "npm run test -w packages/lightspeed",
-    "test:lightspeed:ui": "wdio run wdio.conf.ts --spec test/ui/lightspeed.spec.ts",
+    "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
     "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",
     "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs"
   },
