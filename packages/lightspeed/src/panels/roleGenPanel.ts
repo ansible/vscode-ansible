@@ -169,7 +169,7 @@ export class RoleGenPanel {
                 if (!roleBaseDirUri) {
                     void this._panel.webview.postMessage({
                         type: 'errorMessage',
-                        data: `Collection "${collectionName}" not found in workspace.`,
+                        data: 'No workspace folder is open. Please open a folder to save the role.',
                     });
                     void this._panel.webview.postMessage({
                         type: 'writeRoleInWorkspace',
@@ -252,9 +252,11 @@ export class RoleGenPanel {
 
     /**
      * Resolve the workspace URI for a role's base directory within a collection.
+     * If the collection exists in the workspace, uses its path. Otherwise creates
+     * the standard Ansible collection directory structure under the workspace root.
      * @param collectionName - Fully qualified collection name (e.g. "namespace.name").
      * @param roleName - Name of the role to locate.
-     * @returns The URI of the role base directory, or undefined if the collection is not found.
+     * @returns The URI of the role base directory, or undefined if no workspace is open.
      */
     private async _getRoleBaseDir(
         collectionName: string,
@@ -262,65 +264,65 @@ export class RoleGenPanel {
     ): Promise<vscode.Uri | undefined> {
         const collections = await this._getCollections();
         const match = collections.find((c) => c.fqcn === collectionName);
-        if (!match) return undefined;
-        return vscode.Uri.file(`${match.path}/roles/${roleName}`);
+        if (match) {
+            return vscode.Uri.file(`${match.path}/roles/${roleName}`);
+        }
+
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders?.length) return undefined;
+
+        const parts = collectionName.split('.');
+        if (parts.length !== 2) return undefined;
+
+        const [namespace, name] = parts;
+        return vscode.Uri.joinPath(
+            workspaceFolders[0].uri,
+            'collections',
+            'ansible_collections',
+            namespace,
+            name,
+            'roles',
+            roleName,
+        );
     }
 
     /**
-     * Discover Ansible collections available in the workspace and installed locally.
+     * Discover writable Ansible collections in the workspace by scanning for galaxy.yml.
+     * Only workspace collections are returned — installed system collections are read-only.
      * @returns A sorted list of collection entries with fully qualified names and paths.
      */
     private async _getCollections(): Promise<{ fqcn: string; path: string }[]> {
         const seen = new Set<string>();
         const collections: { fqcn: string; path: string }[] = [];
 
-        // 1. Scan workspace for galaxy.yml (collection projects being developed)
         const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders?.length) {
-            for (const folder of workspaceFolders) {
-                const galaxyFiles = await vscode.workspace.findFiles(
-                    new vscode.RelativePattern(folder, '**/galaxy.yml'),
-                    '**/node_modules/**',
-                    20,
-                );
-                for (const uri of galaxyFiles) {
-                    try {
-                        const content = new TextDecoder().decode(
-                            await vscode.workspace.fs.readFile(uri),
-                        );
-                        const nsMatch = /^namespace:\s*(\S+)/m.exec(content);
-                        const nameMatch = /^name:\s*(\S+)/m.exec(content);
-                        if (nsMatch && nameMatch) {
-                            const fqcn = `${nsMatch[1]}.${nameMatch[1]}`;
-                            if (!seen.has(fqcn)) {
-                                seen.add(fqcn);
-                                const collPath = vscode.Uri.joinPath(uri, '..').fsPath;
-                                collections.push({ fqcn, path: collPath });
-                            }
-                        }
-                    } catch {
-                        // skip unreadable files
-                    }
-                }
-            }
-        }
+        if (!workspaceFolders?.length) return [];
 
-        // 2. List installed collections via CollectionsService
-        try {
-            const { CollectionsService } = await import('@ansible/services');
-            const svc = CollectionsService.getInstance();
-            const installed = await svc.listInstalledCollections();
-            for (const col of installed) {
-                if (!seen.has(col.name)) {
-                    seen.add(col.name);
-                    collections.push({ fqcn: col.name, path: col.path ?? '' });
+        for (const folder of workspaceFolders) {
+            const galaxyFiles = await vscode.workspace.findFiles(
+                new vscode.RelativePattern(folder, '**/galaxy.yml'),
+                '**/node_modules/**',
+                20,
+            );
+            for (const uri of galaxyFiles) {
+                try {
+                    const content = new TextDecoder().decode(
+                        await vscode.workspace.fs.readFile(uri),
+                    );
+                    const nsMatch = /^namespace:\s*(\S+)/m.exec(content);
+                    const nameMatch = /^name:\s*(\S+)/m.exec(content);
+                    if (nsMatch && nameMatch) {
+                        const fqcn = `${nsMatch[1]}.${nameMatch[1]}`;
+                        if (!seen.has(fqcn)) {
+                            seen.add(fqcn);
+                            const collPath = vscode.Uri.joinPath(uri, '..').fsPath;
+                            collections.push({ fqcn, path: collPath });
+                        }
+                    }
+                } catch {
+                    // skip unreadable files
                 }
             }
-        } catch (e) {
-            this.log(
-                'debug',
-                `[roleGen] CollectionsService.listInstalledCollections failed: ${e instanceof Error ? e.message : String(e)}`,
-            );
         }
 
         collections.sort((a, b) => a.fqcn.localeCompare(b.fqcn));

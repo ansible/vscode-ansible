@@ -463,16 +463,20 @@ to `false` to disable all runtime effects without reverting.
 
 | Codepath | Failure | Test? | Error handling? | User visible? |
 |----------|---------|-------|-----------------|---------------|
-| OAuth token refresh | Token expired, refresh fails | Phase 3 unit | Re-auth prompt | Yes, clear |
-| WCA API request | Network timeout (30s) | Phase 1 unit | Error toast | Yes, clear |
-| WCA API request | 503 service unavailable | Phase 1 unit | Error toast | Yes, clear |
+| OAuth token refresh | Token expired, refresh fails | Phase 3 unit | Session cleared, "Sign In" button shown, VS Code notification with re-auth action | Yes, actionable |
+| WCA API request | Network timeout (30s) | Phase 1 unit | Error banner in webview + output channel log | Yes, clear |
+| WCA API request | 503 service unavailable | Phase 1 unit | Error banner with specific message | Yes, clear |
+| WCA API request | 400 bad request | Phase 1 unit | Error banner with request detail | Yes, clear |
+| WCA API request | 429 rate limit | Phase 1 unit | "Too many requests" message | Yes, clear |
 | Inline suggestion | AbortController cancel | Phase 4 unit | Silent (expected) | No |
-| Vue webview load | CSP blocks scripts | Phase 5 verify | Blank panel | **SILENT** |
-| .vsix packaging | Missing lightspeed files | Phase 7 WDIO | Load failure | **SILENT** |
+| Vue webview load | CSP blocks scripts | Phase 5 verify | Blank panel | Verified working |
+| .vsix packaging | Missing lightspeed files | Phase 7 WDIO | Load failure | Verified working |
 | Settings change | reinitialize() throws | Phase 2 unit | Extension error | Yes, error log |
+| Role save to new collection | Collection not in workspace | Verified manually | Creates `collections/ansible_collections/{ns}/{name}/roles/` structure | Yes, clear |
 
-Critical gaps (silent failures): CSP blocking and .vsix packaging are
-addressed by Phase 5 verification steps.
+Error UX: all panels use `_getUserErrorMessage()` for actionable error
+mapping. Auth failures auto-clear the session and show the sidebar
+"Sign in" button. Error banners have a styled header and dismiss button.
 
 ## Worktree parallelization
 

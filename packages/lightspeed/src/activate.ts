@@ -59,7 +59,8 @@ export async function activate(
 
     /**
      * Retrieves the current access token for Lightspeed API authentication.
-     * @returns The access token string, or undefined if not authenticated
+     * Clears the session and updates the sidebar if the token refresh fails.
+     * @returns The access token string, or undefined if not authenticated.
      */
     async function getAccessToken(): Promise<string | undefined> {
         if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
@@ -68,7 +69,18 @@ export async function activate(
         if (!currentSession) {
             return undefined;
         }
-        return authProvider.refreshAccessToken(currentSession);
+        try {
+            return await authProvider.refreshAccessToken(currentSession);
+        } catch (e: unknown) {
+            log('error', `Session expired: ${e instanceof Error ? e.message : String(e)}`);
+            const expiredSessionId = currentSession.id;
+            currentSession = undefined;
+            viewProvider.refresh(false);
+            updateStatusBar();
+            await authProvider.removeSession(expiredSessionId);
+            log('info', 'Expired session removed from storage');
+            return undefined;
+        }
     }
 
     const apiConfig: LightspeedApiConfig = {
