@@ -67,9 +67,11 @@ jobs:
         run: npm run build
 
       - name: Apply wdio-vscode-service patch
-        run: npx patch -p1 --forward --directory=node_modules/wdio-vscode-service < patches/wdio-vscode-service@6.1.4.patch || true
+        shell: bash
+        run: patch -p1 --forward --directory=node_modules/wdio-vscode-service < patches/wdio-vscode-service@6.1.4.patch || true
 
       - name: Pre-install Chromedriver
+        shell: bash
         run: npx tsx tools/ensure-chromedriver.mts
 
       - name: Install test dependency extensions
