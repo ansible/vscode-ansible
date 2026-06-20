@@ -22,6 +22,7 @@ packages/lightspeed/ (@ansible/lightspeed)
 │   ├── api.ts              # WCA HTTP API client
 │   ├── errors.ts           # Error classes and registry
 │   ├── handleApiError.ts   # Error mapping
+│   ├── telemetry.ts        # TelemetryReporter interface + event types
 │   ├── oauth/              # OAuth provider + user session
 │   ├── inline/             # Inline suggestion engine
 │   ├── generation/         # Playbook + role generation
@@ -31,7 +32,9 @@ packages/lightspeed/ (@ansible/lightspeed)
 │   └── utils/              # Shared utilities
 ├── webviews/               # Vue webviews (ported as-is)
 ├── test/
-│   ├── unit/               # Vitest unit tests
+│   ├── unit/               # Vitest unit tests (per-phase)
+│   ├── helpers/            # Shared test utilities
+│   │   └── mockContext.ts  # VS Code ExtensionContext mock factory
 │   ├── wdio/               # WDIO E2E tests + mock server
 │   └── fixtures/           # Test fixtures
 ├── package.json
@@ -40,6 +43,39 @@ packages/lightspeed/ (@ansible/lightspeed)
 ├── vite.config.mts         # Webview build config
 └── wdio.conf.ts            # Package-local WDIO config
 ```
+
+### Package boundary
+
+`packages/lightspeed/` takes `vscode` as an optional peer dependency
+throughout all phases. Note: this is the first workspace package to use
+`vscode` as a peer dep (`@ansible/language-server` depends on
+`vscode-languageserver`, which is a different library).
+
+The `activate(context: vscode.ExtensionContext, telemetry: TelemetryReporter)`
+entry point receives the VS Code extension context. The package pushes its
+own disposables onto `context.subscriptions` for clean lifecycle management.
+
+### esbuild integration
+
+The extension uses esbuild for bundling. `@ansible/lightspeed` is integrated
+via the esbuild `alias` map in `scripts/build.mjs`, the same pattern used
+for `@ansible/services` and `@ansible/common`:
+
+```javascript
+alias: {
+    '@ansible/lightspeed': path.join(ROOT, 'packages', 'lightspeed', 'src'),
+    '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
+    '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
+},
+```
+
+This means lightspeed code is always bundled into the extension output.
+The shim's `if (!enabled) return` prevents execution, not loading.
+"Zero activation cost" means zero runtime cost (no JS execution, no event
+listeners), not zero bytes in the bundle. This is acceptable for a temporary
+feature.
+
+The shim uses a normal `import`, not `require()`.
 
 ### Boundary rules
 
@@ -51,21 +87,29 @@ packages/lightspeed/ (@ansible/lightspeed)
 - Vue webview panels with a package-local Vite config
 - Own test suites (vitest + WDIO) with fixtures and mock servers
 - Settings schema constants
+- `TelemetryReporter` interface and event type definitions
+- Shared `test/helpers/mockContext.ts` for VS Code ExtensionContext mocking
 
-**Inside `src/features/lightspeed/` (thin shim, <200 LOC):**
+**Inside `src/features/lightspeed/` (thin shim, ~200 LOC TS + ~150 lines JSON in contributes):**
 
 - `register.ts` — single entry point called from `extension.ts`
   - Checks `ansible.lightspeed.enabled` (default: `false`)
-  - If disabled, returns early (zero activation cost)
-  - If enabled, imports `@ansible/lightspeed` and calls `activate()`
+  - If disabled, returns early (zero runtime cost)
+  - If enabled, imports `@ansible/lightspeed` and calls
+    `activate(context, telemetryReporter)`
   - Returns a `Disposable` for clean deactivation
 - No business logic, no state, no direct API calls
+
+**Note:** Static `package.json` contributions (command declarations,
+settings schema, auth provider registration) are parsed by VS Code at
+install time regardless of the `enabled` setting. This is standard
+VS Code behavior and does not represent runtime cost.
 
 **Root `package.json` contributes:**
 
 - Lightspeed commands, settings, auth provider, activation events,
   keybindings, menus
-- Grouped for easy identification and bulk removal
+- Grouped with comment markers for easy identification and bulk removal
 
 ### Package dependencies
 
@@ -82,15 +126,56 @@ External deps Lightspeed brings:
 - `uuid` — OAuth session IDs
 - `marked` + `highlight.js` — explanation rendering
 
+All Vue/Vite dependencies are scoped to `packages/lightspeed/package.json`
+only. They do not appear in the root `package.json`.
+
+### Telemetry strategy
+
+The `next` branch currently has no telemetry infrastructure (pending TODO
+at `.sdlc/todos/pending/add-telemetry.md`). The Lightspeed package defines
+a `TelemetryReporter` interface and accepts a reporter via `activate()`.
+
+Until extension-level telemetry lands, the shim passes a no-op reporter.
+This decouples the Lightspeed port from the telemetry decision.
+
+```typescript
+// packages/lightspeed/src/telemetry.ts
+export interface TelemetryReporter {
+  sendEvent(name: string, properties?: Record<string, string>): void;
+}
+
+export const noopReporter: TelemetryReporter = {
+  sendEvent() {},
+};
+```
+
+Telemetry event types to define (ported from `main`):
+- `lightspeed.suggestion.accepted` / `rejected` / `ignored`
+- `lightspeed.generation.open` / `close` / `transition` / `accept`
+- `lightspeed.explanation.requested`
+- `lightspeed.feedback.thumbsUp` / `thumbsDown`
+- `lightspeed.contentMatches.fetched`
+
 ### Settings namespace
 
 Keep `ansible.lightspeed.*` for backward compatibility. The `enabled`
 setting defaults to `false` on `next` (opt-in).
 
-### Test isolation
+Users configure lightspeed settings via VS Code's standard settings UI
+(JSON editor or Settings GUI). The `llmProviderPanel.ts` settings webview
+from `main` is not ported (it was for multi-provider configuration).
+
+### Test strategy
+
+Unit tests ship with each phase (shifted left). E2E/WDIO tests ship
+in Phase 7. Each phase's PR includes code + tests.
 
 - **Unit tests:** own `vitest.config.mts` inside the package, not in
   root config. `npm test` at root never touches Lightspeed.
+- **Shared mock factory:** `test/helpers/mockContext.ts` provides
+  `createMockExtensionContext()` with mocked `subscriptions`,
+  `secrets`, `globalState`, and `workspaceState`. Created in Phase 2,
+  reused by all subsequent phases.
 - **WDIO tests:** own `wdio.conf.ts` and mock server. Root WDIO runs
   are unaware of Lightspeed specs.
 - **Dedicated runners:**
@@ -119,37 +204,133 @@ Rewriting ~25 Vue components in React for a temporary feature is not
 justified. Two UI frameworks coexist temporarily — both disappear when
 the package is deleted.
 
+## What already exists
+
+- **Phase 1 API client** (`packages/lightspeed/src/api.ts`): shipped,
+  7 WCA endpoint methods, framework-agnostic via `LightspeedApiConfig` DI
+- **Phase 1 types** (`interfaces.ts`, `definitions.ts`): all WCA
+  request/response types, commands, constants
+- **Phase 1 error handling** (`errors.ts`, `handleApiError.ts`):
+  40+ error scenarios, `ErrorRegistry`, `mapError()`
+- **Root build graph**: tsconfig references and package.json workspace
+  wiring already include `@ansible/lightspeed`
+- **`@ansible/services`**: shared CLI discovery, caching — reused by
+  lightspeed, not rebuilt
+- **ADR-015**: architectural decision documented and approved
+
+## NOT in scope
+
+- Multi-LLM provider system (Google, RH Custom, OpenAI-compatible) —
+  WCA-only scoping eliminates this
+- Vue-to-React rewrite of webview components — temporary feature,
+  not justified
+- Content creator cross-dependency — coupling from `main` not recreated
+- Settings webview panel — users use VS Code's native settings UI
+- Explorer sidebar view — not used in `next` architecture
+- One-click trial flow — multi-provider onboarding, not applicable
+- Performance optimization beyond matching `main` behavior — temporary
+  feature
+
 ## Implementation phases
 
-### Phase 0: ADR
+### Phase 0: ADR ✅
 
 Write ADR-015 documenting the decision.
 
-### Phase 1: Package skeleton + types + WCA API client
+### Phase 1: Package skeleton + types + WCA API client ✅
 
-- Create `packages/lightspeed/` following mcp-server pattern
-- Port types/interfaces from `src/interfaces/lightspeed.ts` and
+- Created `packages/lightspeed/` following mcp-server pattern
+- Ported types/interfaces from `src/interfaces/lightspeed.ts` and
   `src/definitions/lightspeed.ts`
-- Port WCA API client (`api.ts`, `handleApiError.ts`, `errors.ts`)
-- Wire into root build graph (tsconfig, workspace)
-- Commit this plan and ADR-015
+- Ported WCA API client (`api.ts`, `handleApiError.ts`, `errors.ts`)
+- Wired into root build graph (tsconfig, workspace)
+- Committed this plan and ADR-015
+
+**Follow-up (before Phase 2):**
+- Standardize API return types: all methods should return `T | IError`
+  (not `T | undefined`). Update `completionRequest()` and
+  `feedbackRequest()` to return `IError` on error instead of `undefined`.
+- Add unit tests for Phase 1: API client methods, error registry,
+  mapError(), getFetch(). Create `test/unit/api.test.ts`,
+  `test/unit/errors.test.ts`.
+- Create `vitest.config.mts` for the package.
 
 ### Phase 2: WCA provider (simplified)
 
 - Port WCA-specific logic only — direct API client, no routing layer
 - Drop all BYOLLM code
+- Define `TelemetryReporter` interface in `src/telemetry.ts`
+- Create shared `test/helpers/mockContext.ts` for ExtensionContext mocking
+- Write unit tests for LightSpeedManager
+
+**Simplified LightSpeedManager API (post-stripping):**
+
+```typescript
+interface LightSpeedManager {
+  constructor(context: ExtensionContext, telemetry: TelemetryReporter);
+  readonly api: LightSpeedAPI;
+  readonly user: LightspeedUser;
+  readonly statusBar: LightspeedStatusBar;
+  initialize(): Promise<void>;
+  reinitialize(): Promise<void>;
+  dispose(): void;
+}
+```
+
+No `providerManager`, no `getProvider()`, no provider factory calls.
+The manager talks to `LightSpeedAPI` directly for all WCA requests.
+
+**Key files to port:**
+
+- `base.ts` (LightSpeedManager) — stripped of provider routing
+- `statusBar.ts` — status bar integration
+
+**Files to drop entirely:**
+
+- `providerManager.ts` (multi-provider routing, replaced by direct WCA calls)
+- `providers/*` (Google Gemini, RH Custom, base interface, factory)
+- `clients/*` (OpenAI-compatible HTTP client)
+- `commands/providerCommands.ts` (provider switching/testing commands)
+- `llmProviderSettings.ts` (secret storage for API keys, not needed for OAuth-only)
+
+**Tests:** `test/unit/manager.test.ts`, `test/unit/statusBar.test.ts`
+
+**Rollback:** Revert the Phase 2 PR. No runtime impact on the extension
+since the shim is not wired until Phase 6.
 
 ### Phase 3: OAuth + user session
 
 - Port `lightSpeedOAuthProvider.ts` and `lightspeedUser.ts`
-- Accept `vscode` as a peer dependency
 - Export `createAuthProvider()` factory
+- Write unit tests using shared mockContext
+
+**Tests:** `test/unit/oauth.test.ts`, `test/unit/user.test.ts`
+
+**Rollback:** Revert the Phase 3 PR. OAuth provider is not registered
+until Phase 6.
 
 ### Phase 4: Inline suggestions
 
 - Port `inlineSuggestions.ts` and `ansibleContext.ts`
 - Port suggestion utilities
 - Export `InlineSuggestionsFeature` for the shim
+- Write unit tests
+
+**Key files to port:**
+
+- `inlineSuggestions.ts` (VS Code inline completion provider)
+- `ansibleContext.ts` (Ansible-specific context for prompts)
+- `inlineSuggestion/suggestionDisplayed.ts` (tracking)
+- `utils/data.ts` (suggestion eligibility)
+- `utils/multiLinePromptForMultiTasks.ts`
+- `utils/promiseHandlers.ts`
+- `utils/scanner.ts`
+
+**Tests:** `test/unit/inlineSuggestions.test.ts`,
+`test/unit/ansibleContext.test.ts`
+
+**Rollback:** Revert the Phase 4 PR. No inline provider registered
+until Phase 6.
 
 ### Phase 5: Vue webviews + Vite build
 
@@ -158,21 +339,156 @@ Write ADR-015 documenting the decision.
   (playbook generation, role generation, explanation, training matches)
 - Port `webviewMessageHandlers.ts` and status bar logic
 - Drop LLM provider settings and explorer webviews
+- **Verify CSP compatibility** between `next`'s webview panels and
+  Vue/PrimeVue requirements (compare CSP headers, nonce generation)
+- Write unit tests for message handlers
+
+**Key files to port:**
+
+- `vue/views/playbookGenPanel.ts` — playbook generation wizard
+- `vue/views/roleGenPanel.ts` — role generation wizard
+- `vue/views/explanationPanel.ts` — playbook/role explanation
+- `contentMatchesWebview.ts` — training data matches
+- `vue/views/webviewMessageHandlers.ts` — message routing
+- `vue/views/fileOperations.ts` — file creation/writing
+- Supporting utils (`explanationUtils.ts`, `outlineGenerator.ts`,
+  `parsePlays.ts`, `readVarFiles.ts`, `getRoleNameFromFilePath.ts`,
+  `getRoleNamePathFromFilePath.ts`, `updateRolesContext.ts`,
+  `watchers.ts`, `webUtils.ts`)
+
+**Files to DROP (not ported):**
+
+- `vue/views/llmProviderPanel.ts` (multi-provider settings UI, not
+  applicable to WCA-only)
+- `vue/views/llmProviderMessageHandlers.ts` (message handlers for
+  dropped provider panel)
+- `vue/views/helloWorld.ts` (onboarding panel for multi-provider setup,
+  not needed)
+- `explorerWebviewViewProvider.ts` (explorer sidebar view, not used on
+  `next` architecture)
+- `utils/oneClickTrial.ts` (trial signup flow for multi-provider
+  onboarding, not applicable to WCA-only OAuth)
+
+**Build integration:**
+
+The package-local `vite.config.mts` builds Vue webviews independently
+of the root esbuild pipeline. Add a `build:lightspeed` script to the
+root `package.json` that runs `pnpm run build -w packages/lightspeed`.
+The root `task build` command chains this after the existing esbuild
+step. No changes to the React/esbuild toolchain are needed — Vite is
+self-contained within the Lightspeed package.
+
+**Webview asset path resolution:**
+
+Vite outputs webview bundles to `packages/lightspeed/dist/webviews/`.
+The webview panels construct `webview.html` using
+`vscode.Uri.joinPath(extensionUri, 'packages', 'lightspeed', 'dist', 'webviews', ...)`.
+Verify this path resolves correctly in both development and packaged
+(.vsix) modes.
+
+**.vsix packaging:**
+
+Update `.vsignore` (or `package.json` `files` field) to include:
+- `packages/lightspeed/out/` (compiled TypeScript)
+- `packages/lightspeed/dist/webviews/` (Vite-built Vue bundles)
+
+Without this, the extension installs from marketplace with missing
+lightspeed files. Add this step to the removal checklist.
+
+**Tests:** `test/unit/messageHandlers.test.ts`,
+`test/unit/fileOperations.test.ts`
+
+**Rollback:** Revert the Phase 5 PR. Vue dependencies are scoped to
+the package and don't affect the root build.
 
 ### Phase 6: Extension shim + integration
 
-- Write `src/features/lightspeed/register.ts`
+- Write `src/features/lightspeed/register.ts` (~200 LOC TypeScript)
 - Wire into `extension.ts` with `registerLightspeed(context)`
-- Add `package.json` contributes entries
+- Add `package.json` contributes entries (~150 lines JSON)
+- Add `@ansible/lightspeed` to esbuild alias in `scripts/build.mjs`
 - Default `ansible.lightspeed.enabled` to `false`
 
-### Phase 7: Tests as dedicated suite
+**Shim implementation:**
 
-- Port unit tests into `packages/lightspeed/test/unit/`
+```typescript
+// src/features/lightspeed/register.ts
+import { activate } from "@ansible/lightspeed";
+import { noopReporter } from "@ansible/lightspeed";
+
+export async function registerLightspeed(
+  context: vscode.ExtensionContext,
+): Promise<vscode.Disposable | undefined> {
+  const config = vscode.workspace.getConfiguration("ansible.lightspeed");
+  if (!config.get<boolean>("enabled", false)) {
+    return undefined; // Zero runtime cost
+  }
+
+  return activate(context, noopReporter);
+}
+```
+
+**Rollback:** Revert the Phase 6 PR, or set `ansible.lightspeed.enabled`
+to `false` to disable all runtime effects without reverting.
+
+### Phase 7: E2E tests + CI integration
+
 - Port WDIO tests + mock server into `packages/lightspeed/test/wdio/`
 - Port test fixtures
-- Create package-local vitest and WDIO configs
+- Create package-local WDIO config
 - Validate isolation: root test runs unaffected
+- **Update `.github/workflows/ci.yaml`** to include lightspeed:
+  - Build step: run `build:lightspeed` script
+  - Test step: run lightspeed unit tests (linux-only is acceptable
+    for the temporary period)
+  - Optional: run lightspeed WDIO tests
+
+## Open questions
+
+1. **Telemetry library.** Which telemetry approach will `next` adopt
+   (Red Hat telemetry library vs. VS Code native `vscode.env.telemetryLogger`)?
+   The `TelemetryReporter` interface decouples Lightspeed from this decision,
+   but the shim needs to know which adapter to inject once telemetry lands.
+
+2. **Settings migration.** Users on `main` with existing
+   `ansible.lightspeed.*` settings — will those carry over? VS Code
+   persists settings per-workspace, so existing settings should work if
+   the namespace is identical. Needs verification.
+
+3. **Bundle size.** Adding Vue + PrimeVue + Vite output to the `.vsix`
+   increases the package size. Measure the delta after Phase 5. The
+   removal date limits exposure.
+
+## Failure modes
+
+| Codepath | Failure | Test? | Error handling? | User visible? |
+|----------|---------|-------|-----------------|---------------|
+| OAuth token refresh | Token expired, refresh fails | Phase 3 unit | Re-auth prompt | Yes, clear |
+| WCA API request | Network timeout (30s) | Phase 1 unit | Error toast | Yes, clear |
+| WCA API request | 503 service unavailable | Phase 1 unit | Error toast | Yes, clear |
+| Inline suggestion | AbortController cancel | Phase 4 unit | Silent (expected) | No |
+| Vue webview load | CSP blocks scripts | Phase 5 verify | Blank panel | **SILENT** |
+| .vsix packaging | Missing lightspeed files | Phase 7 WDIO | Load failure | **SILENT** |
+| Settings change | reinitialize() throws | Phase 2 unit | Extension error | Yes, error log |
+
+Critical gaps (silent failures): CSP blocking and .vsix packaging are
+addressed by Phase 5 verification steps.
+
+## Worktree parallelization
+
+| Step | Modules touched | Depends on |
+|------|----------------|------------|
+| Phase 2: Manager | packages/lightspeed/src/ | Phase 1 |
+| Phase 3: OAuth | packages/lightspeed/src/oauth/ | Phase 2 |
+| Phase 4: Inline | packages/lightspeed/src/inline/ | Phase 3 |
+| Phase 5: Webviews | packages/lightspeed/webviews/ | Phase 1 |
+| Phase 6: Shim | src/features/lightspeed/ | Phase 2-5 |
+| Phase 7: E2E + CI | test/, .github/ | Phase 6 |
+
+**Lane A:** Phase 2 → Phase 3 → Phase 4 (sequential, shared manager)
+**Lane B:** Phase 5 (independent, webviews only need Phase 1 API types)
+
+Launch A + B in parallel worktrees. Merge both. Then Phase 6. Then Phase 7.
 
 ## Removal checklist
 
@@ -181,15 +497,19 @@ When Lightspeed is deprecated:
 1. `rm -rf packages/lightspeed/`
 2. Remove `"@ansible/lightspeed": "*"` from root `package.json` deps
 3. Remove `{ "path": "packages/lightspeed" }` from root `tsconfig.json`
-4. Remove `"test:lightspeed"` script alias from root `package.json`
-5. Delete `src/features/lightspeed/` shim
-6. Remove `registerLightspeed()` call from `src/extension.ts`
-7. Remove Lightspeed contributes from `package.json` (commands,
+4. Remove `"test:lightspeed"` and `"build:lightspeed"` script aliases
+   from root `package.json`
+5. Remove `@ansible/lightspeed` alias from `scripts/build.mjs`
+6. Delete `src/features/lightspeed/` shim
+7. Remove `registerLightspeed()` call from `src/extension.ts`
+8. Remove Lightspeed contributes from `package.json` (commands,
    settings, auth, menus, keybindings)
-8. Remove lightspeed media files
-9. Remove this plan document
-10. Update ADR-015 status to `Deprecated`
-11. `npm install && npm run compile && npm run build`
+9. Remove lightspeed entries from `.vsignore` / `files` field
+10. Remove lightspeed media files
+11. Remove lightspeed CI steps from `.github/workflows/ci.yaml`
+12. Remove this plan document
+13. Update ADR-015 status to `Deprecated`
+14. `npm install && npm run compile && npm run build`
 
 No changes needed to root `vitest.config.mts` or root WDIO config.
 No refactoring of core extension code required.
@@ -199,9 +519,61 @@ No refactoring of core extension code required.
 - **Two UI frameworks.** Vue + React coexist temporarily. Acceptable
   for a feature with a planned removal date.
 - **OAuth coupling to VS Code API.** Package accepts `vscode` as a
-  peer dep, same pattern as `@ansible/language-server`.
+  peer dep. This is the first workspace package to do so (language-server
+  uses `vscode-languageserver`, a different library). Pattern is sound
+  but unprecedented in this workspace.
 - **Content creator cross-dependency.** On `main`, content creator
   reuses Lightspeed's `WebviewMessageHandlers`. Must not recreate this
   coupling on `next`.
 - **Telemetry integration.** Package should export telemetry hooks the
-  extension subscribes to, not call telemetry directly.
+  extension subscribes to, not call telemetry directly. The no-op
+  reporter pattern handles the gap until `next` adopts telemetry.
+
+## Implementation tasks
+
+Synthesized from the /plan-eng-review findings. Each task derives from
+a specific finding above. Run with Claude Code; checkbox as you ship.
+
+- [x] **T1 (P1, human: ~1h / CC: ~10min)** — api.ts — Standardize return types to `T | IError`
+  - Surfaced by: Code Quality — API return type inconsistency (D3)
+  - Files: `packages/lightspeed/src/api.ts`, `packages/lightspeed/src/interfaces.ts`
+  - Verify: `pnpm run compile -w packages/lightspeed`
+- [x] **T2 (P1, human: ~1h / CC: ~15min)** — test/ — Add Phase 1 unit tests + vitest config
+  - Surfaced by: Test Review — 0/28 paths tested (D4)
+  - Files: `packages/lightspeed/test/unit/api.test.ts`, `packages/lightspeed/test/unit/errors.test.ts`, `packages/lightspeed/vitest.config.mts`
+  - Verify: `pnpm run test -w packages/lightspeed`
+- [x] **T3 (P2, human: ~30min / CC: ~10min)** — test/helpers/ — Create shared ExtensionContext mock
+  - Surfaced by: Outside voice — ExtensionContext mocking needed (D7)
+  - Files: `packages/lightspeed/test/helpers/mockContext.ts`
+  - Verify: import in Phase 2 unit tests
+- [x] **T4 (P2, human: ~30min / CC: ~5min)** — scripts/build.mjs — Add esbuild alias
+  - Surfaced by: Step 0 — esbuild bundling strategy (D1)
+  - Files: `scripts/build.mjs`
+  - Verify: `task build` succeeds
+- [x] **T5 (P2, human: ~1h / CC: ~10min)** — Phase 5 — Verify CSP + asset paths + .vsix packaging
+  - Surfaced by: Architecture + Outside voice — CSP (D2), packaging (D5)
+  - Files: `.vsignore`, webview panel constructors
+  - Verify: `task package` includes lightspeed output
+- [x] **T6 (P2, human: ~1h / CC: ~15min)** — .github/ — Add CI integration for lightspeed
+  - Surfaced by: Outside voice — CI integration missing (D6)
+  - Files: `.github/workflows/ci.yaml`
+  - Verify: CI runs lightspeed build + tests on PR
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR (PLAN) | 4 issues, 0 critical gaps |
+| Outside Voice | Claude subagent | Independent 2nd opinion | 1 | issues_found | 13 findings, 3 tensions resolved |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+
+**CROSS-MODEL:** Both reviewers agree on esbuild alias approach, per-phase
+testing, and .vsix packaging requirement. Outside voice caught 3 gaps the
+review missed: .vsix packaging, CI integration, ExtensionContext mocking.
+All 3 accepted by user.
+
+**VERDICT:** ENG CLEARED — 4 issues found, all resolved. 6 implementation
+tasks generated. Ready to implement.
+
+NO UNRESOLVED DECISIONS

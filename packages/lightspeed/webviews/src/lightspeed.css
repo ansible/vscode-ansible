@@ -1,0 +1,125 @@
+/* Shared styles for Lightspeed webview panels */
+body {
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    padding: 16px 24px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.header-row {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+h2#main-header {
+    font-size: 1.4em;
+    font-weight: 600;
+    margin: 0;
+    color: var(--vscode-foreground);
+}
+
+.header-link {
+    font-size: 0.8em;
+    color: var(--vscode-textLink-foreground);
+    white-space: nowrap;
+}
+
+.pageNumber {
+    font-size: 0.85em;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 16px;
+}
+
+/* Button groups */
+.button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+}
+
+/* Links */
+a {
+    color: var(--vscode-textLink-foreground);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--vscode-textLink-activeForeground);
+    text-decoration: underline;
+}
+
+/* Section spacing */
+.section {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+/* Form field labels */
+.field-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+    color: var(--vscode-foreground);
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.field-row label {
+    font-weight: 600;
+    min-width: 80px;
+    font-size: 0.9em;
+}
+
+/* Info text */
+.info-text {
+    font-size: 0.9em;
+    color: var(--vscode-descriptionForeground);
+    margin: 8px 0;
+}
+
+/* Help link */
+.help-link {
+    font-size: 0.85em;
+    margin-bottom: 12px;
+    display: inline-block;
+}
+
+/* Review section header */
+.review-instructions {
+    font-size: 0.9em;
+    color: var(--vscode-descriptionForeground);
+    margin: 8px 0 12px 0;
+}
+
+/* Explanation view */
+.explanation {
+    line-height: 1.7;
+}
+.explanation h1, .explanation h2, .explanation h3 {
+    margin-top: 20px;
+    margin-bottom: 8px;
+}
+.explanation p {
+    margin: 8px 0;
+}
+.explanation pre {
+    background: var(--vscode-textBlockQuote-background);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+.explanation code {
+    font-family: var(--vscode-editor-font-family);
+    font-size: var(--vscode-editor-font-size);
+}

@@ -56,6 +56,7 @@ export default defineConfig({
             project('mcp', 'packages/mcp-server', ['test/**/*.test.ts']),
             project('ls', 'packages/language-server', ['test/**/*.test.ts']),
             project('ui', 'packages/ui', ['test/**/*.test.ts']),
+            project('lightspeed', 'packages/lightspeed', ['test/**/*.test.ts']),
             {
                 resolve: sharedResolve,
                 test: {

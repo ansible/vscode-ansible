@@ -1,5 +1,8 @@
 import type {
+    CompletionResponseParams,
+    ContentMatchesResponseParams,
     ExplanationResponseParams,
+    FeedbackResponseParams,
     PlaybookGenerationResponseParams,
     RoleGenerationResponseParams,
 } from './interfaces';
@@ -43,6 +46,9 @@ export function isError(
         | ExplanationResponseParams
         | PlaybookGenerationResponseParams
         | RoleGenerationResponseParams
+        | CompletionResponseParams
+        | ContentMatchesResponseParams
+        | FeedbackResponseParams
         | IError,
 ): response is IError {
     return 'code' in response;

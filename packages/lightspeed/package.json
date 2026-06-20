@@ -11,10 +11,29 @@
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "clean": "rimraf out"
+    "clean": "rimraf out dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build:webviews": "vite build",
+    "dev:webviews": "vite"
   },
   "dependencies": {
-    "@ansible/services": "0.0.1"
+    "@ansible/services": "0.0.1",
+    "vue": "^3.5.31",
+    "primevue": "4.5.5",
+    "@primeuix/themes": "^2.0.3",
+    "@vscode-elements/elements": "^2.5.1",
+    "highlight.js": "^11.11.1",
+    "@highlightjs/vue-plugin": "2.1.0",
+    "marked": "^18.0.0"
+  },
+  "devDependencies": {
+    "vite": "^8.0.5",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vscode/codicons": "^0.0.45",
+    "express": "^5.1.0",
+    "@types/express": "^5.0.0"
   },
   "peerDependencies": {
     "vscode": "*"
