@@ -14,6 +14,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-007](ADR-007-npm-exec-over-npx.md) | Use `npm exec` Instead of `npx` | 2026-06-10 |
 | [ADR-008](ADR-008-strict-eslint-configuration.md) | Strict ESLint Configuration with Type-Checked Presets | 2026-06-10 |
 | [ADR-009](ADR-009-jsdoc-enforcement.md) | Mandatory JSDoc on All Functions and Methods | 2026-06-10 |
+| [ADR-015](ADR-015-lightspeed-standalone-package.md) | Lightspeed as a Standalone Opt-In Package | 2026-06-18 |
 
 ## Accepted
 
@@ -36,7 +37,6 @@ Decisions under consideration — not yet accepted or implemented.
 | ADR | Title | Date |
 |-----|-------|------|
 | [ADR-003](ADR-003-ee-via-devcontainers.md) | Execution Environment Support via Dev Containers | 2026-05-26 |
-| [ADR-015](ADR-015-lightspeed-standalone-package.md) | Lightspeed as a Standalone Opt-In Package | 2026-06-18 |
 
 ## Creating New ADRs
 

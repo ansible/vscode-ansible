@@ -66,6 +66,7 @@ import {
 import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerVaultCommand } from '@src/features/vault';
+import { registerLightspeed } from '@src/features/lightspeed/register';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible Environments');
@@ -200,6 +201,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerFileAssociation(context);
     registerVaultCommand(context);
+    registerLightspeed(context)
+        .then((disposable) => {
+            if (disposable) context.subscriptions.push(disposable);
+        })
+        .catch((e: unknown) => {
+            console.error('[lightspeed] Registration failed:', e);
+        });
 
     // Inject log function into services
     setCollectionsLogFunction(log);

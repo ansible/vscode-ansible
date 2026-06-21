@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-const EXTENSION_ID = 'cidrblock.ansible-environments';
+const EXTENSION_ID = 'redhat.ansible';
 
 interface ExtensionManifest {
     contributes?: {

@@ -1,12 +1,12 @@
 {
-  "name": "ansible-environments",
+  "name": "ansible",
   "displayName": "Ansible Environments",
   "description": "A VS Code extension for managing Ansible development environments using the Microsoft Python Environments extension API",
   "version": "0.0.1",
-  "publisher": "cidrblock",
+  "publisher": "redhat",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cidrblock/ansible-environments.git"
+    "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "icon": "resources/ansible-icon.png",
   "engines": {
@@ -275,6 +275,12 @@
           "name": "AI Skills",
           "type": "tree",
           "when": "config.ansibleEnvironments.enableAiFeatures"
+        },
+        {
+          "id": "ansibleLightspeed",
+          "name": "Lightspeed",
+          "type": "tree",
+          "when": "config.ansible.lightspeed.enabled"
         }
       ]
     },
@@ -580,6 +586,46 @@
         "title": "Show LLM Status",
         "category": "Ansible Environments",
         "icon": "$(info)"
+      },
+      {
+        "command": "ansible.lightspeed.oauth",
+        "title": "Sign In",
+        "category": "Ansible Lightspeed",
+        "icon": "$(sign-in)",
+        "enablement": "config.ansible.lightspeed.enabled"
+      },
+      {
+        "command": "ansible.lightspeed.playbookGeneration",
+        "title": "Generate Playbook",
+        "category": "Ansible Lightspeed",
+        "icon": "$(wand)",
+        "enablement": "config.ansible.lightspeed.enabled"
+      },
+      {
+        "command": "ansible.lightspeed.roleGeneration",
+        "title": "Generate Role",
+        "category": "Ansible Lightspeed",
+        "icon": "$(wand)",
+        "enablement": "config.ansible.lightspeed.enabled"
+      },
+      {
+        "command": "ansible.lightspeed.playbookExplanation",
+        "title": "Explain Playbook",
+        "category": "Ansible Lightspeed",
+        "icon": "$(book)",
+        "enablement": "config.ansible.lightspeed.enabled"
+      },
+      {
+        "command": "ansible.lightspeed.roleExplanation",
+        "title": "Explain Role",
+        "category": "Ansible Lightspeed",
+        "icon": "$(book)",
+        "enablement": "config.ansible.lightspeed.enabled"
+      },
+      {
+        "command": "ansible.lightspeed.statusBar.click",
+        "title": "Lightspeed Status",
+        "category": "Ansible Lightspeed"
       }
     ],
     "menus": {
@@ -588,6 +634,42 @@
           "command": "ansibleEnvironments.vault",
           "when": "editorLangId == ansible",
           "group": "1_ansible"
+        },
+        {
+          "command": "ansible.lightspeed.playbookExplanation",
+          "when": "config.ansible.lightspeed.enabled && editorLangId == ansible",
+          "group": "1_ansible@10"
+        },
+        {
+          "command": "ansible.lightspeed.roleExplanation",
+          "when": "config.ansible.lightspeed.enabled && editorLangId == ansible",
+          "group": "1_ansible@11"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ansible.lightspeed.oauth",
+          "when": "config.ansible.lightspeed.enabled"
+        },
+        {
+          "command": "ansible.lightspeed.playbookGeneration",
+          "when": "config.ansible.lightspeed.enabled"
+        },
+        {
+          "command": "ansible.lightspeed.roleGeneration",
+          "when": "config.ansible.lightspeed.enabled"
+        },
+        {
+          "command": "ansible.lightspeed.playbookExplanation",
+          "when": "config.ansible.lightspeed.enabled && editorLangId == ansible"
+        },
+        {
+          "command": "ansible.lightspeed.roleExplanation",
+          "when": "config.ansible.lightspeed.enabled && editorLangId == ansible"
+        },
+        {
+          "command": "ansible.lightspeed.statusBar.click",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -948,7 +1030,7 @@
         },
         "ansibleEnvironments.llm.configure": {
           "type": "null",
-          "markdownDescription": "[Select Provider & Model...](command:ansibleEnvironments.selectLlmModel) \u00b7 [Show Status](command:ansibleEnvironments.showLlmStatus)",
+          "markdownDescription": "[Select Provider & Model...](command:ansibleEnvironments.selectLlmModel) · [Show Status](command:ansibleEnvironments.showLlmStatus)",
           "order": 2
         },
         "ansibleEnvironments.llm.provider": {
@@ -970,9 +1052,30 @@
           "default": "",
           "description": "DEPRECATED: Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead.",
           "deprecationMessage": "Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead."
+        },
+        "ansible.lightspeed.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable Ansible Lightspeed (IBM watsonx Code Assistant) integration"
+        },
+        "ansible.lightspeed.URL": {
+          "type": "string",
+          "default": "https://c.ai.ansible.redhat.com",
+          "description": "Ansible Lightspeed API endpoint URL"
+        },
+        "ansible.lightspeed.suggestions.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code suggestions from Ansible Lightspeed"
         }
       }
-    }
+    },
+    "authentication": [
+      {
+        "id": "auth-lightspeed",
+        "label": "Ansible Lightspeed"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run build",
@@ -993,7 +1096,11 @@
     "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "pretest:ui": "node scripts/install-test-extensions.mjs",
-    "test:ui": "wdio run wdio.conf.ts"
+    "test:ui": "wdio run wdio.conf.ts",
+    "test:lightspeed": "npm run test -w packages/lightspeed",
+    "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
+    "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",
+    "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs"
   },
   "devDependencies": {
     "@eslint/compat": "^2.1.0",
@@ -1033,8 +1140,8 @@
   "dependencies": {
     "@ansible/common": "*",
     "@ansible/lightspeed": "*",
-    "@ansible/services": "*",
     "@ansible/mcp-server": "*",
+    "@ansible/services": "*",
     "@ansible/ui": "*",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@types/js-yaml": "^4.0.9",

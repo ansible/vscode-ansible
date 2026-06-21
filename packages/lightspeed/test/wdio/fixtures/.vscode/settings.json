@@ -1,0 +1,4 @@
+{
+    "ansible.lightspeed.enabled": true,
+    "ansible.lightspeed.URL": "http://localhost:3001"
+}

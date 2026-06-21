@@ -1,0 +1,7 @@
+---
+- name: Test playbook for WDIO
+  hosts: all
+  tasks:
+    - name: Print hello
+      ansible.builtin.debug:
+        msg: Hello from WDIO test fixture

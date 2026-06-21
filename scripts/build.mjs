@@ -49,6 +49,7 @@ const targets = [
         external: ['vscode'],
         alias: {
             '@src': path.join(ROOT, 'src'),
+            '@ansible/lightspeed': path.join(ROOT, 'packages', 'lightspeed', 'src'),
             '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
             '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
         },

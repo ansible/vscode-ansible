@@ -130,11 +130,11 @@ export class LightspeedAPI {
     /**
      * Requests an inline code completion from WCA.
      * @param inputData - Completion prompt and metadata.
-     * @returns The completion response, or undefined on failure.
+     * @returns The completion response or an error descriptor.
      */
     public async completionRequest(
         inputData: CompletionRequestParams,
-    ): Promise<CompletionResponseParams | undefined> {
+    ): Promise<CompletionResponseParams | IError> {
         this.config.log(
             'debug',
             `[ansible-lightspeed] Completion request sent for suggestionId=${String(inputData.suggestionId)}`,
@@ -147,32 +147,49 @@ export class LightspeedAPI {
                     ansibleExtensionVersion: this.config.getExtensionVersion(),
                 },
             };
+            const requestBody = JSON.stringify(requestData);
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Request body (last 300 chars): ${requestBody.slice(-300)}`,
+            );
             const response = await this.lightspeedPost(
                 LIGHTSPEED_SUGGESTION_COMPLETION_URL,
-                JSON.stringify(requestData),
+                requestBody,
+            );
+
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Response status: ${String(response.status)} ${response.statusText}`,
             );
 
             if (response.status === 204) {
-                this.config.showInfo(
-                    `Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id ${String(requestData.suggestionId)} for assistance.`,
-                );
-                return undefined;
+                const noSuggestionMsg = `Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id ${String(requestData.suggestionId)} for assistance.`;
+                this.config.showInfo(noSuggestionMsg);
+                return { code: 'NO_SUGGESTION', message: noSuggestionMsg };
             }
 
             interface CompletionApiResponse {
                 predictions?: unknown[];
             }
-            const data = (await response.json()) as CompletionApiResponse;
+            const responseText = await response.text();
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Raw response body (first 500 chars): ${responseText.substring(0, 500)}`,
+            );
+            const data = JSON.parse(responseText) as CompletionApiResponse;
 
             if (!response.ok) {
                 throw new HTTPError(response, response.status, data);
             }
 
             if (!data.predictions || data.predictions.length === 0 || !data.predictions[0]) {
-                this.config.showInfo(
-                    `Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id ${String(requestData.suggestionId)} for assistance.`,
+                this.config.log(
+                    'info',
+                    `[ansible-lightspeed] Empty/missing predictions. Full response: ${responseText.substring(0, 1000)}`,
                 );
-                return undefined;
+                const emptyMsg = `Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id ${String(requestData.suggestionId)} for assistance.`;
+                this.config.showInfo(emptyMsg);
+                return { code: 'NO_SUGGESTION', message: emptyMsg };
             }
 
             const suggestionId =
@@ -184,6 +201,13 @@ export class LightspeedAPI {
                 'debug',
                 `[ansible-lightspeed] Completion response for suggestionId=${suggestionId}, predictions=${String(data.predictions.length)}`,
             );
+            for (let i = 0; i < data.predictions.length; i++) {
+                const pred = String(data.predictions[i]);
+                this.config.log(
+                    'info',
+                    `[ansible-lightspeed] Prediction[${String(i)}] (first 300 chars): ${pred.substring(0, 300).replace(/\n/g, '\\n')}`,
+                );
+            }
             return {
                 predictions: data.predictions as string[],
                 suggestionId,
@@ -192,11 +216,18 @@ export class LightspeedAPI {
                     : {}),
             };
         } catch (error) {
+            this.config.log(
+                'error',
+                `[ansible-lightspeed] Completion request failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            if (error instanceof Error && error.stack) {
+                this.config.log('debug', `[ansible-lightspeed] Stack: ${error.stack}`);
+            }
             const mappedError: IError = mapError(error as Error);
             this.config.showError(
                 `${mappedError.message ?? UNKNOWN_ERROR} ${formatErrorDetail(mappedError.detail)}`,
             );
-            return undefined;
+            return mappedError;
         }
     }
 
@@ -205,15 +236,15 @@ export class LightspeedAPI {
      * @param inputData - The feedback payload.
      * @param showAuthErrorMessage - Whether to surface auth errors to the user.
      * @param showInfoMessage - Whether to show a success/error toast.
-     * @returns The feedback response, or undefined on failure/skip.
+     * @returns The feedback response or an error descriptor.
      */
     public async feedbackRequest(
         inputData: FeedbackRequestParams,
         showAuthErrorMessage = false,
         showInfoMessage = false,
-    ): Promise<FeedbackResponseParams | undefined> {
+    ): Promise<FeedbackResponseParams | IError> {
         if (!(await this.config.isAuthenticated()) && !showAuthErrorMessage) {
-            return undefined;
+            return ERRORS_UNAUTHORIZED;
         }
 
         const orgOptOutTelemetry = await this.config.orgOptOutTelemetry();
@@ -225,7 +256,7 @@ export class LightspeedAPI {
 
         const hasEventData = Object.keys(sanitized).some((k) => k !== 'model');
         if (!hasEventData) {
-            return undefined;
+            return { code: 'NO_EVENT_DATA', message: 'No feedback event data to send' };
         }
         const requestData = {
             ...sanitized,
@@ -233,17 +264,24 @@ export class LightspeedAPI {
                 ansibleExtensionVersion: this.config.getExtensionVersion(),
             },
         };
+        const requestBody = JSON.stringify(requestData);
         this.config.log(
-            'debug',
-            `[ansible-lightspeed] Feedback request sent with ${String(Object.keys(requestData).length)} event types`,
+            'info',
+            `[ansible-lightspeed] Feedback request: keys=${Object.keys(requestData).join(',')}, body=${requestBody.substring(0, 500)}`,
         );
         try {
             const response = await this.lightspeedPost(
                 LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
-                JSON.stringify(requestData),
+                requestBody,
             );
 
-            const data: unknown = await response.json();
+            const responseText = await response.text();
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Feedback response: status=${String(response.status)}, body=${responseText.substring(0, 500)}`,
+            );
+
+            const data: unknown = responseText ? JSON.parse(responseText) : {};
 
             if (!response.ok) {
                 throw new HTTPError(response, response.status, data as object);
@@ -255,12 +293,16 @@ export class LightspeedAPI {
 
             return data as FeedbackResponseParams;
         } catch (error) {
+            this.config.log(
+                'error',
+                `[ansible-lightspeed] Feedback request failed: ${error instanceof Error ? error.message : String(error)}`,
+            );
             const mappedError: IError = mapError(error as Error);
             const errorMessage = `${mappedError.message ?? UNKNOWN_ERROR} ${formatErrorDetail(mappedError.detail)}`;
             if (showInfoMessage) {
                 this.config.showError(errorMessage);
             }
-            return undefined;
+            return mappedError;
         }
     }
 
@@ -363,17 +405,27 @@ export class LightspeedAPI {
                 },
             };
 
+            if (!requestData.outline) {
+                delete (requestData as Record<string, unknown>).outline;
+            }
+            const requestBody = JSON.stringify(requestData);
             this.config.log(
-                'debug',
-                `[ansible-lightspeed] Playbook generation request sent for generationId=${requestData.generationId}`,
+                'info',
+                `[ansible-lightspeed] Playbook generation request: generationId=${requestData.generationId}, body=${requestBody.substring(0, 500)}`,
             );
 
             const response = await this.lightspeedPost(
                 LIGHTSPEED_PLAYBOOK_GENERATION_URL,
-                JSON.stringify(requestData),
+                requestBody,
             );
 
-            const data: unknown = await response.json();
+            const responseText = await response.text();
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Playbook generation response: status=${String(response.status)}, body=${responseText.substring(0, 500)}`,
+            );
+
+            const data: unknown = responseText ? JSON.parse(responseText) : {};
 
             if (!response.ok) {
                 throw new HTTPError(response, response.status, data as object);
@@ -401,16 +453,23 @@ export class LightspeedAPI {
                     ansibleExtensionVersion: this.config.getExtensionVersion(),
                 },
             };
+            if (!requestData.outline) {
+                delete (requestData as Record<string, unknown>).outline;
+            }
+            const requestBody = JSON.stringify(requestData);
             this.config.log(
-                'debug',
-                `[ansible-lightspeed] Role Generation request sent for generationId=${requestData.generationId}`,
+                'info',
+                `[ansible-lightspeed] Role generation request: generationId=${requestData.generationId}, body=${requestBody.substring(0, 500)}`,
             );
-            const response = await this.lightspeedPost(
-                LIGHTSPEED_ROLE_GENERATION_URL,
-                JSON.stringify(requestData),
+            const response = await this.lightspeedPost(LIGHTSPEED_ROLE_GENERATION_URL, requestBody);
+
+            const responseText = await response.text();
+            this.config.log(
+                'info',
+                `[ansible-lightspeed] Role generation response: status=${String(response.status)}, body=${responseText.substring(0, 500)}`,
             );
 
-            const data: unknown = await response.json();
+            const data: unknown = responseText ? JSON.parse(responseText) : {};
 
             if (!response.ok) {
                 throw new HTTPError(response, response.status, data as object);
