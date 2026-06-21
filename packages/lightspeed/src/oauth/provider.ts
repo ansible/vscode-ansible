@@ -38,6 +38,7 @@ import type { LightspeedAuthSession } from '../interfaces';
 import { getFetch } from '../api';
 
 let _codeVerifier: string | undefined;
+let _oauthState: string | undefined;
 
 /**
  * Returns the current code verifier, generating one if it doesn't exist.
@@ -181,6 +182,7 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
         if (allSessions) {
             const sessions = JSON.parse(allSessions) as LightspeedAuthSession[];
             const sessionIdx = sessions.findIndex((s) => s.id === sessionId);
+            if (sessionIdx < 0) return;
             const session = sessions[sessionIdx];
             sessions.splice(sessionIdx, 1);
             await this.context.secrets.store(SESSIONS_SECRET_KEY, JSON.stringify(sessions));
@@ -206,6 +208,12 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
     private async login() {
         this._config.log('debug', '[ansible-lightspeed-oauth] Logging in...');
 
+        // Reset PKCE verifier so each login gets a fresh one
+        _codeVerifier = undefined;
+
+        // Generate a unique state parameter to prevent CSRF attacks
+        _oauthState = crypto.randomUUID();
+
         const callbackUri = await env.asExternalUri(Uri.parse(this.getRedirectUri()));
         this._externalRedirectUri = callbackUri.toString(true);
 
@@ -215,6 +223,7 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
             ['code_challenge_method', 'S256'],
             ['client_id', LIGHTSPEED_CLIENT_ID],
             ['redirect_uri', this._externalRedirectUri],
+            ['state', _oauthState],
         ]);
 
         const baseUri = getBaseUri(this._config.getApiEndpoint() || WCA_API_ENDPOINT_DEFAULT);
@@ -275,6 +284,14 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
     private handleUriForCode: () => PromiseAdapter<Uri, OAuthAccount> =
         () => async (uri, resolve, reject) => {
             const query = new URLSearchParams(uri.query);
+
+            // Validate the OAuth state parameter to prevent CSRF attacks
+            const returnedState = query.get('state');
+            if (!returnedState || returnedState !== _oauthState) {
+                reject(new Error('OAuth state mismatch — possible CSRF attack'));
+                return;
+            }
+
             const code = query.get('code');
             if (!code) {
                 reject(new Error('No code received from the OAuth Server'));
@@ -325,6 +342,11 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
                     ),
                 };
                 this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
+
+                // Clear PKCE verifier and OAuth state after successful exchange
+                _codeVerifier = undefined;
+                _oauthState = undefined;
+
                 return account;
             } else {
                 throw new Error(`Token request failed with status: ${String(response.status)}`);
@@ -433,6 +455,7 @@ export class LightSpeedAuthenticationProvider implements AuthenticationProvider,
             if (allSessions) {
                 const sessions = JSON.parse(allSessions) as LightspeedAuthSession[];
                 const sessionIdx = sessions.findIndex((s) => s.id === sessionId);
+                if (sessionIdx < 0) return tokenToBeReturned;
                 const existingSession = sessions[sessionIdx];
                 const freshSession: LightspeedAuthSession = {
                     ...existingSession,
