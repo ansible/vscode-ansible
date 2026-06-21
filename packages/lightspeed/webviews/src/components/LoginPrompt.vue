@@ -13,7 +13,7 @@ const handleConnect = () => {
     <p>
       Experience smarter automation using Ansible Lightspeed with watsonx Code
       Assistant solutions for your playbook.
-      <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank"
+      <a href="https://www.redhat.com/en/engage/project-wisdom" target="_blank" rel="noopener noreferrer"
         >Learn more</a
       >
     </p>

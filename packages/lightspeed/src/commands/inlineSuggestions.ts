@@ -149,21 +149,19 @@ export function registerInlineSuggestions(
             );
             log?.(
                 'info',
-                `[inline] Prompt line (line ${String(position.line - 1)}): "${matchInfo.lineToExtractPrompt.text}"`,
+                `[inline] Prompt line (line ${String(position.line - 1)}): "${matchInfo.lineToExtractPrompt.text.substring(0, 50)}${matchInfo.lineToExtractPrompt.text.length > 50 ? '...' : ''}"`,
             );
             if (matchInfo.taskMatchedPattern) {
+                const desc = matchInfo.taskMatchedPattern.groups?.description ?? '';
                 log?.(
                     'info',
-                    `[inline] Matched task description: "${matchInfo.taskMatchedPattern.groups?.description ?? ''}"`,
+                    `[inline] Matched task description (${String(desc.length)} chars): "${desc.substring(0, 50)}${desc.length > 50 ? '...' : ''}"`,
                 );
             }
             const range = new vscode.Range(new vscode.Position(0, 0), position);
             const documentContent = range.isEmpty ? '' : document.getText(range).trimEnd();
 
-            log?.(
-                'info',
-                `[inline] Prompt length: ${String(documentContent.length)} chars, last 200 chars: "${documentContent.slice(-200).replace(/\n/g, '\\n')}"`,
-            );
+            log?.('info', `[inline] Prompt length: ${String(documentContent.length)} chars`);
 
             const suggestionId = crypto.randomUUID();
             const activityId = crypto.randomUUID();

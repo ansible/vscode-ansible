@@ -6,7 +6,7 @@ VS Code extension for Ansible — provides language server (LSP), linting, auto-
 
 ## Repository Structure
 
-Monorepo using pnpm workspaces (`packages/*`):
+Monorepo using npm workspaces (`packages/*`):
 
 - **Root (`src/`)** — VS Code extension (TypeScript + ESBuild)
 - **`packages/ansible-language-server/`** — Ansible Language Server (LSP), published to npm as `@ansible/ansible-language-server`
@@ -18,7 +18,7 @@ Monorepo using pnpm workspaces (`packages/*`):
 ## Prerequisites
 
 - **Node.js** >= 24.13.1
-- **pnpm** >= 10.28.2 (do NOT use npm — enforced by engines field)
+- **npm** (bundled with Node.js; the repo uses npm workspaces)
 - **Python** 3.11–3.14 with `uv` for dependency management
 - **Task** (taskfile.dev) — primary build orchestrator
 
@@ -30,7 +30,7 @@ Monorepo using pnpm workspaces (`packages/*`):
 task setup          # Initial setup (install deps, build)
 task build          # Full build (extension + packages)
 task watch          # Watch mode for development
-pnpm run compile    # Compile TypeScript
+npm run compile     # Compile TypeScript
 task code           # Install .vsix into VS Code
 ```
 
@@ -44,8 +44,8 @@ task wdio           # WebDriverIO UI tests
 
 # ALS tests specifically
 cd packages/ansible-language-server
-pnpm run test                   # All ALS tests (vitest --project=als)
-SKIP_PODMAN=1 SKIP_DOCKER=1 pnpm run test-without-ee  # Skip container tests
+npm run test                    # All ALS tests (vitest --project=als)
+SKIP_PODMAN=1 SKIP_DOCKER=1 npm run test-without-ee  # Skip container tests
 
 # Run a specific test file
 npx vitest run --project=als -- test/services/schemaService.test.ts
@@ -114,9 +114,9 @@ GitHub Actions (`.github/workflows/ci.yaml`):
 
 ## Key Conventions
 
-- Use `pnpm`, never `npm`
+- Use `npm` (the repo uses npm workspaces with package-lock.json)
 - Conventional commits: `fix(als):`, `feat:`, `test(ui):`, `chore(deps):`
 - TypeScript strict mode; ES2022 target
 - Import aliases: `@src`, `@webviews`, `@root` (ESBuild paths)
 - ALS builds to both ESM (`dist/cli.js`) and CJS (`dist/cli.cjs`) — the `bin` field uses CJS
-- The `NODE_ENV=production pnpm run compile` command in ALS produces the production bundle
+- The `NODE_ENV=production npm run compile` command in ALS produces the production bundle

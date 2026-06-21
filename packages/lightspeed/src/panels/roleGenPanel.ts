@@ -126,7 +126,7 @@ export class RoleGenPanel {
                 const createOutline = !outline;
                 this.log(
                     'info',
-                    `[roleGen] Generating role: text="${text.substring(0, 100)}", name=${name ?? 'none'}, createOutline=${String(createOutline)}, generationId=${generationId}`,
+                    `[roleGen] Generating role: textLength=${String(text.length)}, name=${name ?? 'none'}, createOutline=${String(createOutline)}, generationId=${generationId}`,
                 );
                 this.telemetry.sendEvent(LightspeedEvents.GENERATION_OPEN);
 

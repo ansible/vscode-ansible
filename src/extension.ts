@@ -201,9 +201,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerFileAssociation(context);
     registerVaultCommand(context);
-    registerLightspeed(context).catch((e: unknown) => {
-        console.error('[lightspeed] Registration failed:', e);
-    });
+    registerLightspeed(context)
+        .then((disposable) => {
+            if (disposable) context.subscriptions.push(disposable);
+        })
+        .catch((e: unknown) => {
+            console.error('[lightspeed] Registration failed:', e);
+        });
 
     // Inject log function into services
     setCollectionsLogFunction(log);

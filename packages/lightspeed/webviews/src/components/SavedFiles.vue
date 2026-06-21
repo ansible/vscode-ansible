@@ -33,7 +33,12 @@ async function writeRoleInWorkspace() {
 }
 
 onMounted(async () => {
-  savedFiles.value = await writeRoleInWorkspace();
+  try {
+    savedFiles.value = await writeRoleInWorkspace();
+  } catch (error) {
+    console.error("Failed to write role in workspace:", error);
+    savedFiles.value = [];
+  }
 });
 </script>
 

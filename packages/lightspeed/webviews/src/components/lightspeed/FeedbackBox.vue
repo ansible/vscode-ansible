@@ -53,6 +53,7 @@ function handleThumbsDown() {
         :class="{ iconButtonSelected: selectedFeedback === 'thumbsUp' }"
         appearance="icon"
         id="thumbsup-button"
+        aria-label="Thumbs up"
         @click="handleThumbsUp"
         :disabled="isDisabled"
       >
@@ -63,6 +64,7 @@ function handleThumbsDown() {
         :class="{ iconButtonSelected: selectedFeedback === 'thumbsDown' }"
         appearance="icon"
         id="thumbsdown-button"
+        aria-label="Thumbs down"
         @click="handleThumbsDown"
         :disabled="isDisabled"
       >

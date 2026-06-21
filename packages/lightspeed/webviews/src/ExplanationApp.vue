@@ -151,6 +151,7 @@ watch(
       loadingExplanation.value = true;
       noTasksInPlaybook.value = false;
       explanationHtml.value = null;
+      errorMessage.value = null;
       fetchRoleExplanation();
     }
   },
@@ -164,6 +165,7 @@ watch(
       loadingExplanation.value = true;
       noTasksInPlaybook.value = false;
       explanationHtml.value = null;
+      errorMessage.value = null;
       fetchPlaybookExplanation();
     }
   },

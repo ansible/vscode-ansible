@@ -26,6 +26,14 @@ export function registerExplanationCommands(
                 return;
             }
 
+            const { languageId } = editor.document;
+            if (languageId !== 'ansible' && languageId !== 'yaml') {
+                vscode.window.showWarningMessage(
+                    'Playbook explanation is only available for Ansible or YAML files.',
+                );
+                return;
+            }
+
             const content = editor.document.getText();
             if (!content.trim()) {
                 vscode.window.showWarningMessage('The active editor is empty.');
@@ -45,6 +53,14 @@ export function registerExplanationCommands(
             const editor = vscode.window.activeTextEditor;
             if (!editor) {
                 vscode.window.showWarningMessage('Open an Ansible role file to explain.');
+                return;
+            }
+
+            const { languageId } = editor.document;
+            if (languageId !== 'ansible' && languageId !== 'yaml') {
+                vscode.window.showWarningMessage(
+                    'Role explanation is only available for Ansible or YAML files.',
+                );
                 return;
             }
 

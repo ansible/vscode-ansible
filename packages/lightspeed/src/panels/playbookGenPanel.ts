@@ -116,7 +116,7 @@ export class PlaybookGenPanel {
                 const createOutline = !outline;
                 this.log(
                     'info',
-                    `[playbookGen] Generating playbook: text="${text.substring(0, 100)}", createOutline=${String(createOutline)}, hasOutline=${String(!!outline)}, generationId=${generationId}`,
+                    `[playbookGen] Generating playbook: textLength=${String(text.length)}, createOutline=${String(createOutline)}, hasOutline=${String(!!outline)}, generationId=${generationId}`,
                 );
                 this.telemetry.sendEvent(LightspeedEvents.GENERATION_OPEN);
 
