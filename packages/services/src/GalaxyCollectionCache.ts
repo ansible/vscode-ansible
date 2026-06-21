@@ -124,20 +124,20 @@ export class GalaxyCollectionCache {
             return path.join(this._extensionContext.globalStorageUri.fsPath, CACHE_FILE_NAME);
         }
 
-        // In standalone mode, use ~/.vscode/extensions/cidrblock.ansible-environments/ or fallback
+        // In standalone mode, use ~/.vscode/extensions/redhat.ansible/ or fallback
         if (this._standaloneMode) {
             // Try to find the extension's global storage in standard locations
             const vscodeDir = path.join(
                 os.homedir(),
                 '.vscode',
                 'extensions',
-                'cidrblock.ansible-environments-0.0.1',
+                'redhat.ansible-0.0.1',
             );
             const cursorDir = path.join(
                 os.homedir(),
                 '.cursor',
                 'extensions',
-                'cidrblock.ansible-environments-0.0.1',
+                'redhat.ansible-0.0.1',
             );
 
             // Check which exists

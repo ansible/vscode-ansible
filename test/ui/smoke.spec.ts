@@ -21,7 +21,7 @@ describe('VS Code UI smoke test', () => {
         }
 
         const contributed: boolean = await browser.executeWorkbench((vscode: typeof VsCode) => {
-            const ext = vscode.extensions.getExtension('cidrblock.ansible-environments');
+            const ext = vscode.extensions.getExtension('redhat.ansible');
             if (!ext) return false;
             const pkg = ext.packageJSON as {
                 contributes?: {

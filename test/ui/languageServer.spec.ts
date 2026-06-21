@@ -45,7 +45,7 @@ describe('Ansible Language Server e2e', () => {
         } else {
             // Verify the language server client is registered by checking active extensions
             const isActive: boolean = await browser.executeWorkbench((vscode: typeof VsCode) => {
-                const ext = vscode.extensions.getExtension('cidrblock.ansible-environments');
+                const ext = vscode.extensions.getExtension('redhat.ansible');
                 return ext?.isActive ?? false;
             });
             await expect(isActive).toBe(true);
