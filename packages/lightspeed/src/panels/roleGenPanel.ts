@@ -9,6 +9,21 @@ import crypto from 'crypto';
 type LogFn = (level: 'info' | 'debug' | 'error', message: string) => void;
 
 /**
+ * Validates that a path segment is safe — no traversal or absolute paths.
+ * @param segment - The path segment to validate.
+ * @returns True if the segment is safe to use in file paths.
+ */
+function isSafePathSegment(segment: string): boolean {
+    return (
+        segment.length > 0 &&
+        !segment.includes('..') &&
+        !segment.includes('/') &&
+        !segment.includes('\\') &&
+        !segment.startsWith('.')
+    );
+}
+
+/**
  *
  */
 export class RoleGenPanel {
@@ -165,6 +180,31 @@ export class RoleGenPanel {
                     break;
                 }
 
+                if (!isSafePathSegment(roleName)) {
+                    void this._panel.webview.postMessage({
+                        type: 'errorMessage',
+                        data: `Invalid role name: "${roleName}". Names must not contain path separators or ".."`,
+                    });
+                    void this._panel.webview.postMessage({
+                        type: 'writeRoleInWorkspace',
+                        data: [],
+                    });
+                    break;
+                }
+
+                const collParts = collectionName.split('.');
+                if (collParts.length !== 2 || !collParts.every(isSafePathSegment)) {
+                    void this._panel.webview.postMessage({
+                        type: 'errorMessage',
+                        data: `Invalid collection name: "${collectionName}". Use the format "namespace.name".`,
+                    });
+                    void this._panel.webview.postMessage({
+                        type: 'writeRoleInWorkspace',
+                        data: [],
+                    });
+                    break;
+                }
+
                 const roleBaseDirUri = await this._getRoleBaseDir(collectionName, roleName);
                 if (!roleBaseDirUri) {
                     void this._panel.webview.postMessage({
@@ -186,6 +226,10 @@ export class RoleGenPanel {
                     [];
 
                 for (const [, content, fileType] of rawFiles) {
+                    if (!isSafePathSegment(fileType)) {
+                        this.log('error', `[roleGen] Invalid fileType: ${fileType}`);
+                        continue;
+                    }
                     const dirUri = vscode.Uri.joinPath(roleBaseDirUri, `${fileType}s`);
                     const fileUri = vscode.Uri.joinPath(roleBaseDirUri, `${fileType}s`, 'main.yml');
 
