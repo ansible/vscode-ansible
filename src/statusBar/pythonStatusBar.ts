@@ -61,7 +61,8 @@ export class PythonStatusBar implements vscode.Disposable {
         }
 
         try {
-            const env = await this._envService.getEnvironment();
+            const activeUri = vscode.window.activeTextEditor?.document.uri;
+            const env = await this._envService.getEnvironment(activeUri);
             if (env) {
                 this._cachedDisplayName = env.displayName || env.name;
                 this._cachedVersion = env.version;

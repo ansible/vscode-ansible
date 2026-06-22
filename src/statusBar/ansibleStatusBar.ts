@@ -73,17 +73,18 @@ export class AnsibleStatusBar implements vscode.Disposable {
             }),
         );
 
-        this._registerNotificationHandler();
+        this._disposables.push(this._registerNotificationHandler());
         context.subscriptions.push(...this._disposables);
         this.update();
     }
 
     /**
      * Register the handler for metadata notifications from the language
-     * server. Fires each time the LS responds with updated metadata.
+     * server. Returns a disposable for cleanup.
+     * @returns Disposable that unregisters the notification handler.
      */
-    private _registerNotificationHandler(): void {
-        this._client.onNotification(
+    private _registerNotificationHandler(): vscode.Disposable {
+        return this._client.onNotification(
             new NotificationType<AnsibleMetadata[]>(METADATA_NOTIFICATION),
             (dataList: AnsibleMetadata[]) => {
                 if (dataList.length > 0) {
@@ -108,6 +109,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
 
         const activeUri = vscode.window.activeTextEditor?.document.uri.toString();
         if (activeUri && activeUri !== this._lastRequestedUri) {
+            this._metadata = undefined;
             this._lastRequestedUri = activeUri;
             void this._requestMetadata(activeUri);
         }
@@ -169,7 +171,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
 
     /**
      * Fetch the ADT tool inventory by running `adt --version`.
-     * Caches the result; only runs once per env change cycle.
+     * Caches successful results; re-checks when ADT was not found.
      * @returns Array of tool entries, or undefined if adt is not available.
      */
     private async _fetchAdtTools(): Promise<AdtToolEntry[] | undefined> {
@@ -192,6 +194,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
                 }
             }
             this._adtTools = tools.length > 0 ? tools : undefined;
+            this._adtFetched = true;
             return this._adtTools;
         } catch {
             return undefined;

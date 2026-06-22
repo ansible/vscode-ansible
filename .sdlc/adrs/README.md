@@ -44,7 +44,6 @@ Decisions under consideration — not yet accepted or implemented.
 
 1. Copy the template from `../templates/adr.md`
 2. Use the next available number (currently ADR-018)
-2. Use the next available number (currently ADR-018)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date
