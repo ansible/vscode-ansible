@@ -5,7 +5,7 @@ import {
   formatNavigatorResult,
 } from "@src/tools/ansibleNavigator.js";
 import { join } from "node:path";
-import { writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
 describe("Ansible Navigator Handler", () => {
@@ -317,12 +317,10 @@ describe("runAnsibleNavigator - input validation", () => {
   });
 
   it("should reject sibling directory with common prefix", async () => {
-    const workspace = join(tmpdir(), "ws");
-    const siblingWs = join(tmpdir(), "ws-sibling");
+    const workspace = mkdtempSync(join(tmpdir(), "ws-"));
+    const siblingWs = mkdtempSync(join(tmpdir(), "ws-sibling-"));
     const target = join(siblingWs, "secret.yml");
 
-    mkdirSync(workspace, { recursive: true });
-    mkdirSync(siblingWs, { recursive: true });
     writeFileSync(target, "---\n- name: Sibling\n  hosts: localhost\n");
 
     try {
