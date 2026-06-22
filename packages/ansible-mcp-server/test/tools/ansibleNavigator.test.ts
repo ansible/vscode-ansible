@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAnsibleNavigatorHandler } from "@src/handlers.js";
+import {
+  runAnsibleNavigator,
+  formatNavigatorResult,
+} from "@src/tools/ansibleNavigator.js";
 import { join } from "node:path";
-import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
 describe("Ansible Navigator Handler", () => {
@@ -258,5 +262,129 @@ describe("Ansible Navigator Handler", () => {
       expect(result.content[0].text).toContain("Local Ansible");
       expect(result.content[0].text).toContain("--ee false");
     });
+  });
+});
+
+describe("runAnsibleNavigator - input validation", () => {
+  let workspaceDir: string;
+  let siblingDir: string;
+  let playbookPath: string;
+  let siblingFile: string;
+
+  beforeAll(() => {
+    workspaceDir = mkdtempSync(join(tmpdir(), "vitest-nav-workspace-"));
+    siblingDir = mkdtempSync(join(tmpdir(), "vitest-nav-sibling-"));
+    playbookPath = join(workspaceDir, "play.yml");
+    siblingFile = join(siblingDir, "evil.yml");
+
+    writeFileSync(
+      playbookPath,
+      "---\n- name: Test\n  hosts: localhost\n  tasks: []\n",
+    );
+    writeFileSync(
+      siblingFile,
+      "---\n- name: Evil\n  hosts: localhost\n  tasks: []\n",
+    );
+  });
+
+  afterAll(() => {
+    rmSync(workspaceDir, { recursive: true, force: true });
+    rmSync(siblingDir, { recursive: true, force: true });
+  });
+
+  it("should reject empty file path", async () => {
+    await expect(runAnsibleNavigator("")).rejects.toThrow(
+      "No file path was provided",
+    );
+  });
+
+  it("should reject whitespace-only file path", async () => {
+    await expect(runAnsibleNavigator("   ")).rejects.toThrow(
+      "No file path was provided",
+    );
+  });
+
+  it("should reject invalid mode", async () => {
+    await expect(
+      runAnsibleNavigator(playbookPath, "invalid_mode"),
+    ).rejects.toThrow("Invalid mode");
+  });
+
+  it("should reject file outside workspace boundary", async () => {
+    await expect(
+      runAnsibleNavigator(siblingFile, "stdout", workspaceDir),
+    ).rejects.toThrow("File path must be within the workspace");
+  });
+
+  it("should reject sibling directory with common prefix", async () => {
+    const workspace = join(tmpdir(), "ws");
+    const siblingWs = join(tmpdir(), "ws-sibling");
+    const target = join(siblingWs, "secret.yml");
+
+    mkdirSync(workspace, { recursive: true });
+    mkdirSync(siblingWs, { recursive: true });
+    writeFileSync(target, "---\n- name: Sibling\n  hosts: localhost\n");
+
+    try {
+      await expect(
+        runAnsibleNavigator(target, "stdout", workspace),
+      ).rejects.toThrow("File path must be within the workspace");
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+      rmSync(siblingWs, { recursive: true, force: true });
+    }
+  });
+
+  it("should reject directory path as file", async () => {
+    await expect(
+      runAnsibleNavigator(workspaceDir, "stdout", workspaceDir),
+    ).rejects.toThrow("Path is a directory");
+  });
+});
+
+describe("formatNavigatorResult", () => {
+  it("should include file path in output", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+    );
+    expect(result).toContain("for file: /workspace/play.yml");
+  });
+
+  it("should detect venv path and disable EE", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      undefined,
+      false,
+      "/workspace/.venv/bin/ansible-navigator",
+    );
+    expect(result).toContain("venv (auto-detected)");
+    expect(result).toContain("disabled (using local Ansible)");
+  });
+
+  it("should show EE enabled when not using venv and not disabled", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      undefined,
+      false,
+      "/snap/ansible-navigator",
+    );
+    expect(result).toContain("system (auto-detected)");
+    expect(result).toContain("enabled (using Podman/Docker)");
+  });
+
+  it("should include debug output when present", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      "some debug info",
+      "/workspace/play.yml",
+    );
+    expect(result).toContain("Debug information:");
+    expect(result).toContain("some debug info");
   });
 });

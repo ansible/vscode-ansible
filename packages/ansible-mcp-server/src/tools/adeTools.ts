@@ -929,6 +929,24 @@ interface SetupOptions {
   systemInfo?: SystemInfo;
 }
 
+// Allows namespace.name with optional :version_specifier
+// e.g. "community.general", "amazon.aws:>=2.0.0,<3.0.0"
+const VALID_COLLECTION_RE = /^\w+(\.\w+)*(:[a-zA-Z0-9_.>=<!, *-]+)?$/;
+
+/**
+ * Validate that collection names conform to the expected format to prevent
+ * shell injection via executeInVirtualEnvironment.
+ */
+function validateCollectionNames(collections: string[]): void {
+  for (const name of collections) {
+    if (!VALID_COLLECTION_RE.test(name)) {
+      throw new Error(
+        `Invalid collection name '${name}'. Expected format: namespace.name or namespace.name:version_spec`,
+      );
+    }
+  }
+}
+
 /**
  * Install tools, collections, and requirements into the venv and verify.
  * Returns false if any step failed.
@@ -947,6 +965,7 @@ async function installAndVerifyVenv(
 
   const collections = options.collections ?? [];
   if (collections.length > 0) {
+    validateCollectionNames(collections);
     const ok = await installCollectionsInVenv(
       venvPath,
       workspaceRoot,
@@ -1046,12 +1065,13 @@ export async function setupDevelopmentEnvironment(
   }
 
   const resolvedVenvPath = venvPath as string;
-  const success = await installAndVerifyVenv(
+  const installSuccess = await installAndVerifyVenv(
     resolvedVenvPath,
     workspaceRoot,
     options,
     results,
   );
+  const success = conflictCheckResult.success && installSuccess;
 
   if (
     options.systemInfo &&

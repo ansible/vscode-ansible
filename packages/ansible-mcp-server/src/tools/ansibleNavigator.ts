@@ -1,6 +1,6 @@
 import { spawn, execSync } from "node:child_process";
 import { access, stat } from "node:fs/promises";
-import { resolve, isAbsolute, join } from "node:path";
+import { resolve, relative, isAbsolute, join } from "node:path";
 import { existsSync } from "node:fs";
 import { quote } from "shell-quote";
 
@@ -317,10 +317,13 @@ async function resolveAndValidateFilePath(
     absolutePath = resolve(filePath);
   }
 
-  if (workspaceRoot && !absolutePath.startsWith(resolve(workspaceRoot))) {
-    throw new Error(
-      `File path must be within the workspace. Attempted to access: ${absolutePath}`,
-    );
+  if (workspaceRoot) {
+    const rel = relative(resolve(workspaceRoot), absolutePath);
+    if (rel.startsWith("..") || isAbsolute(rel)) {
+      throw new Error(
+        `File path must be within the workspace. Attempted to access: ${absolutePath}`,
+      );
+    }
   }
 
   try {
@@ -374,7 +377,7 @@ function resolveNavigatorPath(
     errorMsg += `PATH: ${pathEnv}\n\n`;
     if (workspaceRoot) {
       errorMsg += `Checked virtual environments in: ${workspaceRoot}\n`;
-      errorMsg += `Common venv names checked: ansible-dev, venv, .venv, virtualenv, .virtualenv, env, .env\n\n`;
+      errorMsg += `Common venv names checked: ${COMMON_VENV_NAMES.join(", ")}\n\n`;
     }
     errorMsg += `Please install ansible-navigator:\n`;
     errorMsg += `  pip install ansible-navigator\n\n`;
