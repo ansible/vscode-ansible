@@ -121,7 +121,7 @@ describe("interpretProcessExit via runAnsibleNavigator", () => {
     );
 
     await expect(runAnsibleNavigator("/workspace/play.yml")).rejects.toThrow(
-      /[Cc]ontainer/,
+      /container/i,
     );
   });
 
@@ -135,7 +135,7 @@ describe("interpretProcessExit via runAnsibleNavigator", () => {
     );
 
     await expect(runAnsibleNavigator("/workspace/play.yml")).rejects.toThrow(
-      /[Cc]ontainer/,
+      /container/i,
     );
   });
 });
