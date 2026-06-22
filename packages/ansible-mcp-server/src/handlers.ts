@@ -22,20 +22,29 @@ import { getAgentsGuidelines } from "@src/resources/agents.js";
  * Extract a playbook file path from a user message.
  * Returns the resolved path or undefined if none found.
  */
-function extractPlaybookPath(userMessage: string): string | undefined {
-  const explicitPathMatch = /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/.exec(
-    userMessage,
-  );
-  if (explicitPathMatch) {
-    const matched = explicitPathMatch[0];
-    if (!matched.startsWith("playbooks/") && !matched.startsWith("/")) {
-      return `playbooks/${matched}`;
+export function extractPlaybookPath(userMessage: string): string | undefined {
+  const fileMatch = /[\w-]+\.(?:yml|yaml)/.exec(userMessage);
+  if (fileMatch) {
+    const fileName = fileMatch[0];
+    const startIdx = fileMatch.index;
+
+    let pathStart = startIdx;
+    while (pathStart > 0 && /[\w./-]/.test(userMessage[pathStart - 1])) {
+      pathStart--;
     }
-    return matched;
+
+    const fullMatch = userMessage.substring(
+      pathStart,
+      startIdx + fileName.length,
+    );
+    if (!fullMatch.startsWith("playbooks/") && !fullMatch.startsWith("/")) {
+      return `playbooks/${fullMatch}`;
+    }
+    return fullMatch;
   }
 
-  const nameMatch = /(?:run|execute|start|launch)\s+([\w-]+)/.exec(
-    userMessage.toLowerCase(),
+  const nameMatch = /(?:run|execute|start|launch)\s+([\w-]+)/i.exec(
+    userMessage,
   );
   if (nameMatch) {
     return `playbooks/${nameMatch[1]}.yml`;
@@ -80,6 +89,61 @@ function detectCollectionsFromRequirementsFile(
     .split(/[,\s]+/)
     .filter((s) => s.trim())
     .filter((name) => collectionPattern.test(name.trim()));
+}
+
+interface McpTextResult {
+  [key: string]: unknown;
+  content: { type: "text"; text: string }[];
+  isError?: boolean;
+}
+
+async function retryNavigatorWithoutEE(
+  filePath: string,
+  mode: string,
+  workspaceRoot: string | undefined,
+  environment: string,
+  originalErrorMessage: string,
+): Promise<McpTextResult> {
+  const retryMessage = `Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
+
+  try {
+    const { output, debugOutput, navigatorPath, executionEnvironmentDisabled } =
+      await runAnsibleNavigator(
+        filePath,
+        mode,
+        workspaceRoot,
+        true,
+        environment,
+      );
+
+    const formattedResult = formatNavigatorResult(
+      output,
+      debugOutput,
+      filePath,
+      mode,
+      executionEnvironmentDisabled ?? true,
+      navigatorPath,
+      environment,
+    );
+
+    return {
+      content: [
+        { type: "text" as const, text: retryMessage + formattedResult },
+      ],
+    };
+  } catch (retryError) {
+    const retryErrorMessage =
+      retryError instanceof Error ? retryError.message : String(retryError);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `${retryMessage}Original error: ${originalErrorMessage}\n\nRetry error: ${retryErrorMessage}\n\nPlease check your ansible-navigator installation and configuration.`,
+        },
+      ],
+      isError: true,
+    };
+  }
 }
 
 export function createZenOfAnsibleHandler() {
@@ -477,7 +541,6 @@ export function createAnsibleNavigatorHandler() {
     const disableExecutionEnvironment =
       args.disableExecutionEnvironment || false;
 
-    // Normalize filePath (trim whitespace)
     const normalizedFilePath = targetFilePath;
 
     // Use environment from args, defaulting to "auto" if not provided
@@ -514,66 +577,19 @@ export function createAnsibleNavigatorHandler() {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
-      // If it's a container engine error and we haven't already disabled EE, automatically retry
       if (
         isContainerEngineErrorMessage(errorMessage) &&
         !disableExecutionEnvironment
       ) {
-        // Inform the user we're automatically retrying
-        const retryMessage = `Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
-
-        try {
-          // Retry with execution environment disabled
-          const {
-            output,
-            debugOutput,
-            navigatorPath,
-            executionEnvironmentDisabled,
-          } = await runAnsibleNavigator(
-            normalizedFilePath,
-            mode,
-            workspaceRoot,
-            true, // Force disable execution environment
-            environment,
-          );
-
-          const formattedResult = formatNavigatorResult(
-            output,
-            debugOutput,
-            normalizedFilePath,
-            mode,
-            executionEnvironmentDisabled ?? true,
-            navigatorPath,
-            environment,
-          );
-
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: retryMessage + formattedResult,
-              },
-            ],
-          };
-        } catch (retryError) {
-          // If retry also fails, return both errors
-          const retryErrorMessage =
-            retryError instanceof Error
-              ? retryError.message
-              : String(retryError);
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `${retryMessage}Original error: ${errorMessage}\n\nRetry error: ${retryErrorMessage}\n\nPlease check your ansible-navigator installation and configuration.`,
-              },
-            ],
-            isError: true,
-          };
-        }
+        return retryNavigatorWithoutEE(
+          normalizedFilePath,
+          mode,
+          workspaceRoot,
+          environment,
+          errorMessage,
+        );
       }
 
-      // For non-container-engine errors, or if we already disabled EE, return the error
       return {
         content: [
           {

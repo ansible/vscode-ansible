@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   checkDependencies,
+  checkDependencyVersion,
   formatDependencyError,
   COMMON_DEPENDENCIES,
   type Dependency,
@@ -100,6 +101,202 @@ describe("Dependency Checker", () => {
       expect(error).toContain("ansible-lint");
       expect(error).toContain("pip install ansible");
       expect(error).toContain("pip install ansible-lint");
+    });
+
+    it("should format error with version mismatches only", () => {
+      const versionMismatches = [
+        {
+          dependency: {
+            name: "ansible",
+            command: "ansible",
+            installCommand: "pip install ansible",
+            description: "Ansible automation platform",
+          },
+          currentVersion: "2.8.0",
+          requiredVersion: "2.9.0",
+        },
+      ];
+
+      const error = formatDependencyError("lint_tool", [], versionMismatches);
+
+      expect(error).toContain("Cannot use tool 'lint_tool'");
+      expect(error).toContain("because version requirements are not met");
+      expect(error).toContain("ansible (Ansible automation platform)");
+      expect(error).toContain("Current version: 2.8.0");
+      expect(error).toContain("Required version: 2.9.0 or higher");
+      expect(error).toContain("Update: pip install ansible");
+    });
+
+    it("should format error with both missing deps and version mismatches", () => {
+      const missing: Dependency[] = [
+        {
+          name: "ansible-lint",
+          command: "ansible-lint",
+          installCommand: "pip install ansible-lint",
+        },
+      ];
+      const versionMismatches = [
+        {
+          dependency: {
+            name: "ansible",
+            command: "ansible",
+            installCommand: "pip install ansible",
+          },
+          currentVersion: "2.8.0",
+          requiredVersion: "2.9.0",
+        },
+      ];
+
+      const error = formatDependencyError(
+        "lint_tool",
+        missing,
+        versionMismatches,
+      );
+
+      expect(error).toContain("required dependencies are missing");
+      expect(error).toContain("ansible-lint");
+      expect(error).toContain("Additionally, version requirements are not met");
+      expect(error).toContain("Current version: 2.8.0");
+    });
+
+    it("should format version mismatches without description", () => {
+      const versionMismatches = [
+        {
+          dependency: {
+            name: "tool",
+            command: "tool",
+            installCommand: "pip install tool",
+          },
+          currentVersion: "1.0.0",
+          requiredVersion: "2.0.0",
+        },
+      ];
+
+      const error = formatDependencyError("my_tool", [], versionMismatches);
+      expect(error).toContain("  - tool\n");
+      expect(error).not.toContain("(");
+    });
+
+    it("should handle empty version mismatches array", () => {
+      const missing: Dependency[] = [
+        {
+          name: "tool",
+          command: "tool",
+          installCommand: "pip install tool",
+        },
+      ];
+
+      const error = formatDependencyError("my_tool", missing, []);
+      expect(error).toContain("required dependencies are missing");
+      expect(error).not.toContain("version requirements");
+    });
+
+    it("should format deps without description", () => {
+      const missing: Dependency[] = [
+        {
+          name: "tool",
+          command: "tool",
+          installCommand: "pip install tool",
+        },
+      ];
+
+      const error = formatDependencyError("my_tool", missing);
+      expect(error).toContain("  - tool\n    Install: pip install tool");
+    });
+  });
+
+  describe("checkDependencyVersion", () => {
+    it("should return null when dep has no minVersion", async () => {
+      const dep: Dependency = {
+        name: "test-tool",
+        command: "test-tool",
+        installCommand: "pip install test-tool",
+      };
+      expect(await checkDependencyVersion(dep)).toBeNull();
+    });
+
+    it("should return null when dep has no versionCommand", async () => {
+      const dep: Dependency = {
+        name: "test-tool",
+        command: "test-tool",
+        installCommand: "pip install test-tool",
+        minVersion: "1.0.0",
+      };
+      expect(await checkDependencyVersion(dep)).toBeNull();
+    });
+
+    it("should return version mismatch when command fails", async () => {
+      const dep: Dependency = {
+        name: "nonexistent-tool",
+        command: "nonexistent-tool-xyz-does-not-exist",
+        installCommand: "pip install nonexistent-tool",
+        description: "Missing tool",
+        minVersion: "1.0.0",
+        versionCommand: "nonexistent-tool-xyz-does-not-exist --version",
+      };
+      const result = await checkDependencyVersion(dep);
+      expect(result).not.toBeNull();
+      expect(result?.currentVersion).toBe("unknown (command failed)");
+      expect(result?.requiredVersion).toBe("1.0.0");
+    });
+
+    it("should return null when version meets requirement", async () => {
+      const versionRegex = /v?(\d+\.\d+\.\d+)/;
+      const dep: Dependency = {
+        name: "node",
+        command: "node",
+        installCommand: "Install from nodejs.org",
+        description: "Node.js",
+        minVersion: "1.0.0",
+        versionCommand: "node --version",
+        versionParser: (output: string) => {
+          const match = versionRegex.exec(output);
+          return match ? match[1] : null;
+        },
+      };
+      const result = await checkDependencyVersion(dep);
+      expect(result).toBeNull();
+    });
+
+    it("should return mismatch when version is too low", async () => {
+      const versionRegex = /v?(\d+\.\d+\.\d+)/;
+      const dep: Dependency = {
+        name: "node",
+        command: "node",
+        installCommand: "Install from nodejs.org",
+        description: "Node.js",
+        minVersion: "999.0.0",
+        versionCommand: "node --version",
+        versionParser: (output: string) => {
+          const match = versionRegex.exec(output);
+          return match ? match[1] : null;
+        },
+      };
+      const result = await checkDependencyVersion(dep);
+      expect(result).not.toBeNull();
+      expect(result?.requiredVersion).toBe("999.0.0");
+      expect(result?.dependency.name).toBe("node");
+    });
+  });
+
+  describe("checkDependencies with version mismatches", () => {
+    it("should report version mismatch for existing command with low version", async () => {
+      const versionRegex = /v?(\d+\.\d+\.\d+)/;
+      const dep: Dependency = {
+        name: "node",
+        command: "node",
+        installCommand: "Install from nodejs.org",
+        minVersion: "999.0.0",
+        versionCommand: "node --version",
+        versionParser: (output: string) => {
+          const match = versionRegex.exec(output);
+          return match ? match[1] : null;
+        },
+      };
+      const result = await checkDependencies([dep]);
+      expect(result.satisfied).toBe(false);
+      expect(result.versionMismatches).toHaveLength(1);
+      expect(result.versionMismatches[0].requiredVersion).toBe("999.0.0");
     });
   });
 

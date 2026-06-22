@@ -357,14 +357,12 @@ export async function checkPythonVersionAvailable(
  */
 export function reportMissingPython(pythonVersion: string): ADECommandResult {
   const results: string[] = [];
-  results.push(`Python ${pythonVersion} is not available on this system.`);
-  results.push("");
-  results.push("Requirements:");
   results.push(
+    `Python ${pythonVersion} is not available on this system.`,
+    "",
+    "Requirements:",
     `  - Python ${pythonVersion} must be installed and available in PATH`,
-  );
-  results.push("");
-  results.push(
+    "",
     "Please install the required Python version and run this tool again.",
   );
 
@@ -559,33 +557,33 @@ export async function checkConflictingPackages(): Promise<ADECommandResult> {
         hasConflict = true;
         results.push(
           `Found conflicting ansible package (${oldAnsible.version})`,
-        );
-        results.push("");
-        results.push(
+          "",
           "The 'ansible' package (v2.x) conflicts with 'ansible-core'.",
-        );
-        results.push("To resolve this issue, you can:");
-        results.push("");
-        results.push("  Option 1 (pip):");
-        results.push("    pip uninstall ansible");
-        results.push("");
-        results.push("  Option 2 (if using a virtual environment):");
-        results.push(
+          "To resolve this issue, you can:",
+          "",
+          "  Option 1 (pip):",
+          "    pip uninstall ansible",
+          "",
+          "  Option 2 (if using a virtual environment):",
           "    Create a fresh virtual environment and install only ansible-core",
+          "",
+          "  Option 3 (if managing packages via requirements.txt):",
+          "    Remove 'ansible' from your requirements file",
         );
-        results.push("");
-        results.push("  Option 3 (if managing packages via requirements.txt):");
-        results.push("    Remove 'ansible' from your requirements file");
       } else {
         results.push("No conflicting packages detected");
       }
     } catch {
-      results.push("Could not parse pip list output");
-      results.push("Unable to check for conflicting packages");
+      results.push(
+        "Could not parse pip list output",
+        "Unable to check for conflicting packages",
+      );
     }
   } else {
-    results.push("Could not check for conflicting packages");
-    results.push("Please ensure 'pip' is available and try again");
+    results.push(
+      "Could not check for conflicting packages",
+      "Please ensure 'pip' is available and try again",
+    );
   }
 
   return {
@@ -613,44 +611,40 @@ export async function checkAnsibleLint(): Promise<ADECommandResult> {
   } else {
     // Diagnose the issue and provide suggestions
     const results: string[] = [];
-    results.push("ansible-lint is not working properly");
-    results.push("");
-    results.push(`Error: ${result.error || "ansible-lint command failed"}`);
-    results.push("");
-    results.push("Possible causes and solutions:");
-    results.push("");
-    results.push("1. ansible-lint is not installed:");
-    results.push("   Solution: pip install ansible-lint");
-    results.push("   Or use pipx: pipx install ansible-lint");
-    results.push("");
-    results.push("2. Version compatibility issues with ansible-core:");
-    results.push("   Check your ansible-core version:");
-    results.push("     ansible --version");
-    results.push("   Solution options:");
     results.push(
+      "ansible-lint is not working properly",
+      "",
+      `Error: ${result.error || "ansible-lint command failed"}`,
+      "",
+      "Possible causes and solutions:",
+      "",
+      "1. ansible-lint is not installed:",
+      "   Solution: pip install ansible-lint",
+      "   Or use pipx: pipx install ansible-lint",
+      "",
+      "2. Version compatibility issues with ansible-core:",
+      "   Check your ansible-core version:",
+      "     ansible --version",
+      "   Solution options:",
       "     - Upgrade ansible-core: pip install --upgrade ansible-core",
-    );
-    results.push(
       "     - Reinstall ansible-lint: pip install --force-reinstall ansible-lint",
-    );
-    results.push("");
-    results.push("3. PATH issues:");
-    results.push(
+      "",
+      "3. PATH issues:",
       "   Ensure ansible-lint is in your PATH or activate your virtual environment",
+      "",
+      "4. Virtual environment issues:",
+      "   If using a virtual environment, ensure it's activated",
+      "   and ansible-lint is installed within it",
     );
-    results.push("");
-    results.push("4. Virtual environment issues:");
-    results.push("   If using a virtual environment, ensure it's activated");
-    results.push("   and ansible-lint is installed within it");
 
     // Check if ansible-core is available to provide more specific guidance
     const ansibleCheck = await executeCommand("ansible", ["--version"]);
     if (!ansibleCheck.success) {
-      results.push("");
       results.push(
+        "",
         "Note: ansible-core also appears to be missing or not working",
+        "   Consider installing: pip install ansible-core",
       );
-      results.push("   Consider installing: pip install ansible-core");
     }
 
     return {
@@ -683,8 +677,8 @@ async function installAnsibleToolsInVenv(
 
   results.push(
     `ADT installation failed, installing individual tools: ${installADT.error}`,
+    "Installing Ansible tools in virtual environment...",
   );
-  results.push("Installing Ansible tools in virtual environment...");
   const installAnsibleLint = await executeInVirtualEnvironment(
     venvPath,
     "pip",
@@ -744,13 +738,18 @@ function appendSetupHeader(
   },
   packageManager: string,
 ): void {
-  results.push("Starting Ansible development environment setup...");
-  results.push(`   Workspace: ${workspaceRoot}`);
+  results.push(
+    "Starting Ansible development environment setup...",
+    `   Workspace: ${workspaceRoot}`,
+  );
   if (options.systemInfo) {
+    const distroSuffix = options.systemInfo.osDistro
+      ? ` (${options.systemInfo.osDistro})`
+      : "";
     results.push(
-      `   System: ${options.systemInfo.osType}${options.systemInfo.osDistro ? ` (${options.systemInfo.osDistro})` : ""}`,
+      `   System: ${options.systemInfo.osType}${distroSuffix}`,
+      `   Package Manager: ${packageManager}`,
     );
-    results.push(`   Package Manager: ${packageManager}`);
   }
   if (options.pythonVersion) {
     results.push(`   Python version: ${options.pythonVersion}`);
@@ -828,12 +827,14 @@ async function createAndValidateVenv(
   if (venvResult.error) {
     results.push(`   Error: ${venvResult.error}`);
   }
-  results.push("");
-  results.push("Requirements:");
-  results.push("   - Python must be properly installed and available in PATH");
-  results.push("   - The 'venv' module must be available");
-  results.push("");
-  results.push("Please resolve the issue and run this tool again.");
+  results.push(
+    "",
+    "Requirements:",
+    "   - Python must be properly installed and available in PATH",
+    "   - The 'venv' module must be available",
+    "",
+    "Please resolve the issue and run this tool again.",
+  );
   return {
     earlyReturn: {
       success: false,
@@ -902,13 +903,15 @@ function appendSystemDepsInfo(
   packageManager: string,
   installCmd: string,
 ): void {
-  results.push("");
-  results.push("--- System Dependencies Info ---");
-  results.push(`Package Manager: ${packageManager}`);
-  results.push(`Install Command: ${installCmd} <package>`);
-  results.push("");
-  results.push("If you encounter missing system dependencies, use:");
-  results.push(`   ${installCmd} <package-name>`);
+  results.push(
+    "",
+    "--- System Dependencies Info ---",
+    `Package Manager: ${packageManager}`,
+    `Install Command: ${installCmd} <package>`,
+    "",
+    "If you encounter missing system dependencies, use:",
+    `   ${installCmd} <package-name>`,
+  );
 
   followUpTasks.push({
     taskType: "verify_installation",
@@ -988,12 +991,14 @@ async function installAndVerifyVenv(
     }
   }
 
-  results.push("");
-  results.push("To activate the virtual environment, run:");
-  results.push(`   source ${venvPath}/bin/activate`);
-  results.push("");
-  results.push("To deactivate the virtual environment, run:");
-  results.push("   deactivate");
+  results.push(
+    "",
+    "To activate the virtual environment, run:",
+    `   source ${venvPath}/bin/activate`,
+    "",
+    "To deactivate the virtual environment, run:",
+    "   deactivate",
+  );
 
   if (!(await verifyAnsibleLint(venvPath, results))) {
     success = false;
@@ -1046,8 +1051,8 @@ export async function setupDevelopmentEnvironment(
   const conflictCheckResult = await checkConflictingPackages();
   results.push(conflictCheckResult.output);
   if (!conflictCheckResult.success) {
-    results.push("");
     results.push(
+      "",
       "Please resolve package conflicts before proceeding with setup",
     );
   }

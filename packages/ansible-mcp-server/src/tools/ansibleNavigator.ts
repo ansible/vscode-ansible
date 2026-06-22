@@ -33,7 +33,7 @@ function checkSystemPath(): { available: boolean; path?: string } {
 /**
  * Search for ansible-navigator in a specific venv (absolute or relative).
  */
-function findNavigatorInSpecificVenv(
+export function findNavigatorInSpecificVenv(
   specificVenv: string,
   workspaceRoot: string,
 ): string | undefined {
@@ -71,7 +71,9 @@ function findNavigatorInSpecificVenv(
 /**
  * Search common venv locations for ansible-navigator.
  */
-function findNavigatorInCommonVenvs(workspaceRoot: string): string | undefined {
+export function findNavigatorInCommonVenvs(
+  workspaceRoot: string,
+): string | undefined {
   for (const venvName of COMMON_VENV_NAMES) {
     const venvPath = join(workspaceRoot, venvName);
     const navPath = join(venvPath, "bin", "ansible-navigator");
@@ -97,7 +99,7 @@ function findNavigatorInCommonVenvs(workspaceRoot: string): string | undefined {
 /**
  * Search virtual environments for ansible-navigator.
  */
-function checkVenv(
+export function checkVenv(
   workspaceRoot?: string,
   specificVenv?: string,
 ): { available: boolean; path?: string } {
@@ -121,7 +123,7 @@ function checkVenv(
  * @param workspaceRoot - The workspace root directory
  * @param environment - Environment preference: 'auto' (check PATH then venv), 'system' (only PATH), 'venv' (only venv), or a specific venv name/path
  */
-function checkAnsibleNavigatorAvailable(
+export function checkAnsibleNavigatorAvailable(
   workspaceRoot?: string,
   environment: string = "auto",
 ): {
@@ -366,7 +368,7 @@ async function validateFileType(absolutePath: string): Promise<void> {
  * Locate ansible-navigator (PATH / venv) and return its resolved path.
  * Throws when not found.
  */
-function resolveNavigatorPath(
+export function resolveNavigatorPath(
   workspaceRoot?: string,
   environment: string = "auto",
 ): { navigatorPath: string; shouldDisableEE: boolean } {

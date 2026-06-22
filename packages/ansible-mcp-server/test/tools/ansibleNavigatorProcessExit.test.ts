@@ -114,4 +114,28 @@ describe("interpretProcessExit via runAnsibleNavigator", () => {
     expect(result.output).toContain("ok: [localhost]");
     expect(result.debugOutput).toBe("Warning: some deprecation notice");
   });
+
+  it("should detect container engine error from stderr", async () => {
+    vi.mocked(spawn).mockReturnValue(
+      createMockProcess(1, "", "Error: Cannot connect to Podman"),
+    );
+
+    await expect(runAnsibleNavigator("/workspace/play.yml")).rejects.toThrow(
+      /[Cc]ontainer/,
+    );
+  });
+
+  it("should detect container engine error with stdout present", async () => {
+    vi.mocked(spawn).mockReturnValue(
+      createMockProcess(
+        1,
+        "PLAY [all] ***",
+        "Error: container engine not available",
+      ),
+    );
+
+    await expect(runAnsibleNavigator("/workspace/play.yml")).rejects.toThrow(
+      /[Cc]ontainer/,
+    );
+  });
 });

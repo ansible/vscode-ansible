@@ -385,4 +385,77 @@ describe("formatNavigatorResult", () => {
     expect(result).toContain("Debug information:");
     expect(result).toContain("some debug info");
   });
+
+  it("should show explicit environment name when not auto", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      undefined,
+      false,
+      "/usr/bin/ansible-navigator",
+      "my-custom-venv",
+    );
+    expect(result).toContain("my-custom-venv");
+    expect(result).not.toContain("auto-detected");
+  });
+
+  it("should show non-default mode without default suffix", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      "interactive",
+    );
+    expect(result).toContain("interactive");
+    expect(result).not.toContain("default - shows full output");
+  });
+
+  it("should show EE disabled explanation when explicitly disabled (not venv)", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      undefined,
+      true,
+      "/snap/ansible-navigator",
+    );
+    expect(result).toContain("disabled (using local Ansible)");
+    expect(result).toContain(
+      "Execution environment is disabled, using your local Ansible installation",
+    );
+  });
+
+  it("should show EE enabled explanation when not disabled", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      "/workspace/play.yml",
+      undefined,
+      false,
+      "/snap/ansible-navigator",
+    );
+    expect(result).toContain("enabled (using Podman/Docker)");
+    expect(result).toContain(
+      "ansible-navigator runs in an execution environment",
+    );
+  });
+
+  it("should handle missing filePath", () => {
+    const result = formatNavigatorResult("task output");
+    expect(result).toContain("ansible-navigator run completed:");
+    expect(result).not.toContain("for file:");
+  });
+
+  it("should show venv path in environment line", () => {
+    const result = formatNavigatorResult(
+      "task output",
+      undefined,
+      undefined,
+      undefined,
+      false,
+      "/workspace/.venv/bin/ansible-navigator",
+    );
+    expect(result).toContain("→ /workspace/.venv");
+  });
 });
