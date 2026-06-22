@@ -22,7 +22,7 @@ import { getAgentsGuidelines } from "@src/resources/agents.js";
  * Extract a playbook file path from a user message.
  * Returns the resolved path or undefined if none found.
  */
-export function extractPlaybookPath(userMessage: string): string | undefined {
+function extractPlaybookPath(userMessage: string): string | undefined {
   const fileMatch = /[\w-]+\.(?:yml|yaml)/.exec(userMessage);
   if (fileMatch) {
     const fileName = fileMatch[0];
@@ -755,3 +755,10 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
     }
   };
 }
+
+/** @internal Exposed only for unit tests; not part of the public API. */
+export const _testing = {
+  extractPlaybookPath,
+  isContainerEngineErrorMessage,
+  detectCollectionsFromRequirementsFile,
+};

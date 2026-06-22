@@ -103,7 +103,7 @@ function compareVersions(current: string, required: string): boolean {
 /**
  * Verify a single dependency's version meets the minimum requirement.
  */
-export async function checkDependencyVersion(dep: Dependency): Promise<{
+async function checkDependencyVersion(dep: Dependency): Promise<{
   dependency: Dependency;
   currentVersion: string;
   requiredVersion: string;
@@ -307,3 +307,6 @@ export const COMMON_DEPENDENCIES = {
     },
   },
 };
+
+/** @internal Exposed only for unit tests; not part of the public API. */
+export const _testing = { checkDependencyVersion };

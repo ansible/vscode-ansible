@@ -12,13 +12,15 @@ vi.mock("node:child_process", async (importOriginal) => {
   return { ...actual, execSync: vi.fn() };
 });
 
-import {
+import { _testing } from "@src/tools/ansibleNavigator.js";
+
+const {
   findNavigatorInSpecificVenv,
   findNavigatorInCommonVenvs,
   checkVenv,
   checkAnsibleNavigatorAvailable,
   resolveNavigatorPath,
-} from "@src/tools/ansibleNavigator.js";
+} = _testing;
 
 describe("Navigator discovery functions", () => {
   beforeEach(() => {

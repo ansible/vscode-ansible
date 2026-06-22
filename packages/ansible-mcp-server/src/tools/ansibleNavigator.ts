@@ -33,7 +33,7 @@ function checkSystemPath(): { available: boolean; path?: string } {
 /**
  * Search for ansible-navigator in a specific venv (absolute or relative).
  */
-export function findNavigatorInSpecificVenv(
+function findNavigatorInSpecificVenv(
   specificVenv: string,
   workspaceRoot: string,
 ): string | undefined {
@@ -71,9 +71,7 @@ export function findNavigatorInSpecificVenv(
 /**
  * Search common venv locations for ansible-navigator.
  */
-export function findNavigatorInCommonVenvs(
-  workspaceRoot: string,
-): string | undefined {
+function findNavigatorInCommonVenvs(workspaceRoot: string): string | undefined {
   for (const venvName of COMMON_VENV_NAMES) {
     const venvPath = join(workspaceRoot, venvName);
     const navPath = join(venvPath, "bin", "ansible-navigator");
@@ -99,7 +97,7 @@ export function findNavigatorInCommonVenvs(
 /**
  * Search virtual environments for ansible-navigator.
  */
-export function checkVenv(
+function checkVenv(
   workspaceRoot?: string,
   specificVenv?: string,
 ): { available: boolean; path?: string } {
@@ -123,7 +121,7 @@ export function checkVenv(
  * @param workspaceRoot - The workspace root directory
  * @param environment - Environment preference: 'auto' (check PATH then venv), 'system' (only PATH), 'venv' (only venv), or a specific venv name/path
  */
-export function checkAnsibleNavigatorAvailable(
+function checkAnsibleNavigatorAvailable(
   workspaceRoot?: string,
   environment: string = "auto",
 ): {
@@ -368,7 +366,7 @@ async function validateFileType(absolutePath: string): Promise<void> {
  * Locate ansible-navigator (PATH / venv) and return its resolved path.
  * Throws when not found.
  */
-export function resolveNavigatorPath(
+function resolveNavigatorPath(
   workspaceRoot?: string,
   environment: string = "auto",
 ): { navigatorPath: string; shouldDisableEE: boolean } {
@@ -694,3 +692,12 @@ export function formatNavigatorResult(
 
   return formattedOutput;
 }
+
+/** @internal Exposed only for unit tests; not part of the public API. */
+export const _testing = {
+  findNavigatorInSpecificVenv,
+  findNavigatorInCommonVenvs,
+  checkVenv,
+  checkAnsibleNavigatorAvailable,
+  resolveNavigatorPath,
+};

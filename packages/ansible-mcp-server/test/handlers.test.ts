@@ -5,8 +5,10 @@ import {
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
   createAgentsGuidelinesHandler,
-  extractPlaybookPath,
+  _testing,
 } from "@src/handlers.js";
+
+const { extractPlaybookPath } = _testing;
 import { ZEN_OF_ANSIBLE } from "@src/constants.js";
 
 // Mock the adeTools module

@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   checkDependencies,
-  checkDependencyVersion,
   formatDependencyError,
   COMMON_DEPENDENCIES,
+  _testing,
   type Dependency,
 } from "@src/dependencyChecker.js";
+
+const { checkDependencyVersion } = _testing;
 
 describe("Dependency Checker", () => {
   describe("checkDependencies", () => {
