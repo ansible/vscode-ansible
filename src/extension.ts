@@ -1456,6 +1456,73 @@ export function makeConfigurationMiddleware(
   const lastLoggedUserByScope = new Map<string, string>(); // scopeUri -> user-configured path
   const lastLoggedResolvedByScope = new Map<string, string>(); // scopeUri -> auto-resolved path or "" for none
 
+  async function resolveUserConfiguredPath(
+    scopeUri: string,
+    rawInterpreterPath: string,
+    config: Record<string, unknown>,
+    pythonConfig: Record<string, unknown> | undefined,
+  ): Promise<Record<string, unknown>> {
+    const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+    const resolvedUserPath = await pythonEnvService.resolveInterpreterPath(
+      rawInterpreterPath,
+      scope,
+    );
+
+    if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
+      outputChannel.appendLine(
+        `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedUserPath !== rawInterpreterPath ? ` (resolved: ${resolvedUserPath})` : ""}`,
+      );
+      lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
+    }
+
+    if (resolvedUserPath && resolvedUserPath !== rawInterpreterPath) {
+      return {
+        ...config,
+        python: { ...pythonConfig, interpreterPath: resolvedUserPath },
+      };
+    }
+    return config;
+  }
+
+  async function resolveAutoDetectedPath(
+    scopeUri: string,
+    config: Record<string, unknown>,
+    pythonConfig: Record<string, unknown> | undefined,
+  ): Promise<Record<string, unknown>> {
+    const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+    let resolvedPath: string | undefined;
+    try {
+      resolvedPath = await pythonEnvService.getExecutablePath(scope);
+    } catch (error) {
+      if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+        outputChannel.appendLine(
+          `[Ansible] Failed to resolve Python environment: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        lastLoggedResolvedByScope.set(scopeUri, "");
+      }
+      return config;
+    }
+
+    if (resolvedPath) {
+      if (lastLoggedResolvedByScope.get(scopeUri) !== resolvedPath) {
+        outputChannel.appendLine(
+          `[Ansible] Python environment changed: ${resolvedPath}`,
+        );
+        lastLoggedResolvedByScope.set(scopeUri, resolvedPath);
+      }
+      return {
+        ...config,
+        python: { ...pythonConfig, interpreterPath: resolvedPath },
+      };
+    }
+
+    if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+      outputChannel.appendLine("[Ansible] No Python environment available");
+      lastLoggedResolvedByScope.set(scopeUri, "");
+    }
+    return config;
+  }
+
   return (
     params: ConfigurationParams,
     token: CancellationToken,
@@ -1479,7 +1546,6 @@ export function makeConfigurationMiddleware(
         return originalResult as unknown as LSPAny[];
       }
 
-      // Clone result array to avoid mutating the original
       const result = originalResult.slice();
 
       for (let i = 0; i < params.items.length; i++) {
@@ -1495,75 +1561,20 @@ export function makeConfigurationMiddleware(
         const rawInterpreterPath = pythonConfig?.interpreterPath;
 
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
-          // User has explicit config - use centralized resolver to expand ~ and ${workspaceFolder}
-          const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
-          const resolvedUserPath =
-            await pythonEnvService.resolveInterpreterPath(
-              rawInterpreterPath,
-              scope,
-            );
-
-          // Log only on change (compare raw path for deduplication)
-          if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
-            outputChannel.appendLine(
-              `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedUserPath !== rawInterpreterPath ? ` (resolved: ${resolvedUserPath})` : ""}`,
-            );
-            lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
-          }
-
-          // Inject the expanded path if expansion succeeded
-          if (resolvedUserPath && resolvedUserPath !== rawInterpreterPath) {
-            result[i] = {
-              ...config,
-              python: {
-                ...pythonConfig,
-                interpreterPath: resolvedUserPath,
-              },
-            };
-          }
+          result[i] = await resolveUserConfiguredPath(
+            scopeUri,
+            rawInterpreterPath,
+            config,
+            pythonConfig,
+          );
           continue;
         }
 
-        const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
-        let resolvedPath: string | undefined;
-        try {
-          resolvedPath = await pythonEnvService.getExecutablePath(scope);
-        } catch (error) {
-          // Treat resolution failure as "no path" - log once and leave config unchanged
-          if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
-            outputChannel.appendLine(
-              `[Ansible] Failed to resolve Python environment: ${error instanceof Error ? error.message : String(error)}`,
-            );
-            lastLoggedResolvedByScope.set(scopeUri, "");
-          }
-          continue;
-        }
-
-        if (resolvedPath) {
-          // Log only when path actually changes
-          if (lastLoggedResolvedByScope.get(scopeUri) !== resolvedPath) {
-            outputChannel.appendLine(
-              `[Ansible] Python environment changed: ${resolvedPath}`,
-            );
-            lastLoggedResolvedByScope.set(scopeUri, resolvedPath);
-          }
-          // Create new config object to avoid mutating the original
-          result[i] = {
-            ...config,
-            python: {
-              ...pythonConfig,
-              interpreterPath: resolvedPath,
-            },
-          };
-        } else {
-          // Log only when transitioning to "no path"
-          if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
-            outputChannel.appendLine(
-              "[Ansible] No Python environment available",
-            );
-            lastLoggedResolvedByScope.set(scopeUri, "");
-          }
-        }
+        result[i] = await resolveAutoDetectedPath(
+          scopeUri,
+          config,
+          pythonConfig,
+        );
       }
       return result;
     })();
