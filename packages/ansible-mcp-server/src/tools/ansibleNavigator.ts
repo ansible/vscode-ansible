@@ -283,7 +283,7 @@ interface NavigatorResult {
 }
 
 /**
- * Validate the mode string and return the normalised value.
+ * Validate the mode string and return the normalized value.
  * Throws on invalid modes.
  */
 function validateMode(mode?: string): string | undefined {
