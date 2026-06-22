@@ -76,6 +76,27 @@ Read every changed line against these questions. For each question,
 name at least one specific file and line you verified. If you cannot,
 you haven't actually reviewed the diff.
 
+**Artifact-type sweep.** Before answering the questions below, list
+every distinct artifact type in the diff (e.g., TypeScript, YAML
+workflow, shell script, Dockerfile, JSON config). For each question,
+you must cite at least one file of *each* artifact type — not just
+TypeScript. If a question feels inapplicable to an artifact type,
+translate it:
+
+- "caller" in YAML means any action, job, or step that consumes
+  a declaration (e.g., `actions/checkout` consumes `permissions:`,
+  a downstream job consumes an output)
+- "type signature" in YAML means a key's implicit contract
+  (e.g., `permissions:` replaces defaults, not extends them;
+  `if:` expressions evaluate to boolean)
+- "constructed scenario" for shell means: what happens when
+  the command runs on a different shell (bash vs powershell),
+  a different OS (encoding, path separators), or with missing
+  input (empty files, failed prior steps)?
+- "dependencies pinned to intent" for actions means: does the
+  action tag, permissions scope, or `if:` condition express
+  exactly what you mean — not broader, not narrower?
+
 1. **Does every statement mean what it says?** Check every type
    signature, return value, error code, version range, log level,
    comment, and docstring. If the code declares it, the runtime must
