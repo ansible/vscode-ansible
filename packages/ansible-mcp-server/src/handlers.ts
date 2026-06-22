@@ -23,8 +23,8 @@ import { getAgentsGuidelines } from "@src/resources/agents.js";
  * Returns the resolved path or undefined if none found.
  */
 function extractPlaybookPath(userMessage: string): string | undefined {
-  const explicitPathMatch = userMessage.match(
-    /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
+  const explicitPathMatch = /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/.exec(
+    userMessage,
   );
   if (explicitPathMatch) {
     const matched = explicitPathMatch[0];
@@ -34,9 +34,9 @@ function extractPlaybookPath(userMessage: string): string | undefined {
     return matched;
   }
 
-  const nameMatch = userMessage
-    .toLowerCase()
-    .match(/(?:run|execute|start|launch)\s+([\w-]+)/);
+  const nameMatch = /(?:run|execute|start|launch)\s+([\w-]+)/.exec(
+    userMessage.toLowerCase(),
+  );
   if (nameMatch) {
     return `playbooks/${nameMatch[1]}.yml`;
   }
