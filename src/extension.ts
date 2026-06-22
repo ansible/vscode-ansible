@@ -1463,10 +1463,18 @@ export function makeConfigurationMiddleware(
     pythonConfig: Record<string, unknown> | undefined,
   ): Promise<Record<string, unknown>> {
     const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
-    const resolvedUserPath = await pythonEnvService.resolveInterpreterPath(
-      rawInterpreterPath,
-      scope,
-    );
+    let resolvedUserPath: string | undefined;
+    try {
+      resolvedUserPath = await pythonEnvService.resolveInterpreterPath(
+        rawInterpreterPath,
+        scope,
+      );
+    } catch (error) {
+      outputChannel.appendLine(
+        `[Ansible] Failed to resolve user-configured interpreterPath: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return config;
+    }
 
     if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
       outputChannel.appendLine(
