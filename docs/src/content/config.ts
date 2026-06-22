@@ -1,6 +1,7 @@
-import { defineCollection } from "astro:content";
-import { docsSchema } from "@astrojs/starlight/schema";
+import { defineCollection } from 'astro:content';
+import { docsSchema } from '@astrojs/starlight/schema';
 
 export const collections = {
-  docs: defineCollection({ schema: docsSchema() }),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    docs: defineCollection({ schema: docsSchema() }),
 };
