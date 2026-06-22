@@ -14,7 +14,8 @@
     "node": ">=20.0.0"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs"
   ],
   "categories": [
     "Other"
@@ -1097,6 +1098,9 @@
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "pretest:ui": "node scripts/install-test-extensions.mjs",
     "test:ui": "wdio run wdio.conf.ts",
+    "docs:dev": "npm run dev -w docs",
+    "docs:build": "npm run build -w docs",
+    "docs:preview": "npm run preview -w docs",
     "test:lightspeed": "npm run test -w packages/lightspeed",
     "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
     "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",

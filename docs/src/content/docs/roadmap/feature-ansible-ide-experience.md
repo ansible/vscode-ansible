@@ -1,3 +1,8 @@
+---
+title: "Feature: Ansible IDE Experience"
+description: Product requirements document for the integrated Ansible IDE experience.
+---
+
 # Feature: Ansible IDE Experience
 
 **Status:** Draft

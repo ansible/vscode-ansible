@@ -15,6 +15,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-008](ADR-008-strict-eslint-configuration.md) | Strict ESLint Configuration with Type-Checked Presets | 2026-06-10 |
 | [ADR-009](ADR-009-jsdoc-enforcement.md) | Mandatory JSDoc on All Functions and Methods | 2026-06-10 |
 | [ADR-015](ADR-015-lightspeed-standalone-package.md) | Lightspeed as a Standalone Opt-In Package | 2026-06-18 |
+| [ADR-016](ADR-016-docs-as-ecosystem-hub.md) | Documentation Site as Ecosystem Hub | 2026-06-22 |
 
 ## Accepted
 
@@ -41,7 +42,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-016)
+2. Use the next available number (currently ADR-017)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date
