@@ -16,6 +16,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-009](ADR-009-jsdoc-enforcement.md) | Mandatory JSDoc on All Functions and Methods | 2026-06-10 |
 | [ADR-015](ADR-015-lightspeed-standalone-package.md) | Lightspeed as a Standalone Opt-In Package | 2026-06-18 |
 | [ADR-016](ADR-016-docs-as-ecosystem-hub.md) | Documentation Site as Ecosystem Hub | 2026-06-22 |
+| [ADR-017](ADR-017-status-bar-click-to-quickpick.md) | Status Bar Click-to-QuickPick Interaction | 2026-06-22 |
 
 ## Accepted
 
@@ -42,7 +43,8 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-017)
+2. Use the next available number (currently ADR-018)
+2. Use the next available number (currently ADR-018)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date
