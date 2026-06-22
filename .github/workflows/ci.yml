@@ -13,6 +13,9 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       matrix:
         node-version: [20, 22]
@@ -34,6 +37,16 @@ jobs:
 
       - name: Run tests with coverage
         run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ always() && hashFiles('coverage/cobertura-coverage.xml') != '' }}
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage/cobertura-coverage.xml
+          flags: unit-node${{ matrix.node-version }}
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
   lint:
     runs-on: ubuntu-latest

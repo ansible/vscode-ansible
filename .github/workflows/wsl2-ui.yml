@@ -187,6 +187,9 @@ jobs:
     runs-on: windows-2022
     continue-on-error: true
     timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v5
@@ -259,6 +262,22 @@ jobs:
         shell: powershell
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run test:coverage"
+
+      - name: Copy coverage out of WSL
+        if: ${{ always() }}
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "if [ -f ${{ env.WSL_CHECKOUT }}/coverage/cobertura-coverage.xml ]; then mkdir -p /mnt/d/a/vscode-ansible/vscode-ansible/coverage && cp ${{ env.WSL_CHECKOUT }}/coverage/cobertura-coverage.xml /mnt/d/a/vscode-ansible/vscode-ansible/coverage/; fi"
+
+      - name: Upload coverage to Codecov
+        if: ${{ always() && hashFiles('coverage/cobertura-coverage.xml') != '' }}
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage/cobertura-coverage.xml
+          flags: wsl-fedora
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Integration tests
         shell: powershell
