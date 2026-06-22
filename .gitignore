@@ -11,3 +11,5 @@ node_modules
 coverage/
 lib/
 .ansible/
+docs/.astro/
+docs/dist/

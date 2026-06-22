@@ -1,0 +1,66 @@
+/*
+ * Ansible VS Code Extension -- next-gen docs theme
+ *
+ * Deep teal accent on slate grays, Red Hat type system.
+ * Dark-mode-first; light mode is the alternate.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Dark mode (Starlight default)                                       */
+/* ------------------------------------------------------------------ */
+:root {
+  --sl-font: "Red Hat Text", sans-serif;
+  --sl-font-mono: "Red Hat Mono", monospace;
+
+  --sl-color-accent-low: #042f2e;
+  --sl-color-accent: #14b8a6;
+  --sl-color-accent-high: #99f6e4;
+
+  --sl-color-white: #f8fafc;
+  --sl-color-gray-1: #e2e8f0;
+  --sl-color-gray-2: #94a3b8;
+  --sl-color-gray-3: #64748b;
+  --sl-color-gray-4: #475569;
+  --sl-color-gray-5: #1e293b;
+  --sl-color-gray-6: #0f172a;
+  --sl-color-black: #020617;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light mode                                                          */
+/* ------------------------------------------------------------------ */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #ccfbf1;
+  --sl-color-accent: #0d9488;
+  --sl-color-accent-high: #134e4a;
+
+  --sl-color-white: #0f172a;
+  --sl-color-gray-1: #1e293b;
+  --sl-color-gray-2: #475569;
+  --sl-color-gray-3: #64748b;
+  --sl-color-gray-4: #94a3b8;
+  --sl-color-gray-5: #e2e8f0;
+  --sl-color-gray-6: #f1f5f9;
+  --sl-color-gray-7: #f8fafc;
+  --sl-color-black: #ffffff;
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography: Red Hat Display for headings                            */
+/* ------------------------------------------------------------------ */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  font-family: "Red Hat Display", sans-serif;
+  font-weight: 700;
+}
+
+.sl-markdown-content h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Keep the hero title on one line */
+.hero h1 {
+  white-space: nowrap;
+}

@@ -1,0 +1,36 @@
+---
+title: Ansible Developer Tools
+description: The complete ecosystem for developing Ansible content -- Python CLI tools, editor integration, language intelligence, and AI agent support.
+template: splash
+hero:
+  tagline: Everything you need to develop Ansible content. Python tools, editor integration, and AI agent support -- all working together.
+  actions:
+    - text: Get Started
+      link: /vscode-ansible/getting-started/overview/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/ansible/vscode-ansible
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+  <Card title="Python Tools" icon="seti:python">
+    The CLI foundation: ansible-dev-tools, ansible-lint, ansible-creator,
+    ansible-navigator, and the Ansible Development Environment (ADE).
+  </Card>
+  <Card title="Editor Integration" icon="laptop">
+    A VS Code extension and standalone Language Server providing completions,
+    diagnostics, hover docs, go-to-definition, and environment management.
+  </Card>
+  <Card title="AI & Agents" icon="puzzle">
+    A Model Context Protocol (MCP) server exposing collection discovery,
+    scaffolding, and playbook generation to any compatible AI agent.
+  </Card>
+  <Card title="Best Practices Built In" icon="open-book">
+    Ansible-lint rules, schema-driven validation, and opinionated defaults
+    that encode community best practices into your workflow.
+  </Card>
+</CardGrid>
