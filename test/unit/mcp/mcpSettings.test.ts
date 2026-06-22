@@ -1,124 +1,48 @@
-import { assert } from "vitest";
+import { expect } from "vitest";
+
+const MCP_MESSAGES = {
+  enabled:
+    "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.",
+  alreadyEnabled:
+    "Ansible Development Tools MCP Server is already enabled and available.",
+  disabled: "Ansible Development Tools MCP Server has been disabled.",
+  alreadyDisabled: "Ansible Development Tools MCP Server is already disabled.",
+};
 
 describe("MCP Server Setting Tests", function () {
-  describe("Default Setting", function () {
-    it("should have MCP server disabled by default", function () {
-      // Test the default value that would be used in settings
-      const defaultValue = false;
-      assert.isFalse(defaultValue);
-    });
-
-    it("should use correct configuration section name", function () {
-      // Test that we use the correct configuration section
-      const configSection = "ansible.mcpServer";
-      const expectedSetting = "enabled";
-
-      assert.equal(configSection, "ansible.mcpServer");
-      assert.equal(expectedSetting, "enabled");
-    });
-  });
-
   describe("Enable Message", function () {
-    it("should show success message when MCP server is enabled", function () {
-      // Test the message that should be shown when MCP is enabled
-      const enableMessage =
-        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.";
-
-      // Simulate what happens when we enable MCP
-      const isEnabled = true;
-      let messageShown = "";
-
-      if (isEnabled) {
-        messageShown = enableMessage;
-      }
-
-      assert.equal(messageShown, enableMessage);
+    it("should contain key phrases in enable message", function () {
+      expect(MCP_MESSAGES.enabled).toContain("enabled successfully");
+      expect(MCP_MESSAGES.enabled).toContain("available for AI assistants");
     });
 
-    it("should show message when MCP server is already enabled", function () {
-      // Test the message for when it's already enabled
-      const alreadyEnabledMessage =
-        "Ansible Development Tools MCP Server is already enabled.";
-
-      // Simulate checking if already enabled
-      const currentlyEnabled = true;
-      let messageShown = "";
-
-      if (currentlyEnabled) {
-        messageShown = alreadyEnabledMessage;
-      }
-
-      assert.equal(messageShown, alreadyEnabledMessage);
+    it("should contain key phrase in already-enabled message", function () {
+      expect(MCP_MESSAGES.alreadyEnabled).toContain("already enabled");
     });
   });
 
   describe("Disable Message", function () {
-    it("should show success message when MCP server is disabled", function () {
-      // Test the message that should be shown when MCP is disabled
-      const disableMessage =
-        "Ansible Development Tools MCP Server has been disabled.";
-
-      // Simulate what happens when we disable MCP
-      const isDisabled = true;
-      let messageShown = "";
-
-      if (isDisabled) {
-        messageShown = disableMessage;
-      }
-
-      assert.equal(messageShown, disableMessage);
+    it("should contain key phrase in disable message", function () {
+      expect(MCP_MESSAGES.disabled).toContain("has been disabled");
     });
 
-    it("should show message when MCP server is already disabled", function () {
-      // Test the message for when it's already disabled
-      const alreadyDisabledMessage =
-        "Ansible Development Tools MCP Server is already disabled.";
-
-      // Simulate checking if already disabled
-      const currentlyDisabled = true;
-      let messageShown = "";
-
-      if (currentlyDisabled) {
-        messageShown = alreadyDisabledMessage;
-      }
-
-      assert.equal(messageShown, alreadyDisabledMessage);
+    it("should contain key phrase in already-disabled message", function () {
+      expect(MCP_MESSAGES.alreadyDisabled).toContain("already disabled");
     });
   });
 
-  describe("Configuration Change Messages", function () {
-    it("should show appropriate message when configuration changes to enabled", function () {
-      // Test configuration change handling
-      const configChangeEnabledMessage =
-        "Ansible Development Tools MCP Server has been enabled successfully and is now available for AI assistants.";
-
-      // Simulate configuration change event
-      const configurationChanged = true;
-      const newSettingValue = true;
-      let messageShown = "";
-
-      if (configurationChanged && newSettingValue) {
-        messageShown = configChangeEnabledMessage;
-      }
-
-      assert.equal(messageShown, configChangeEnabledMessage);
+  describe("Message consistency", function () {
+    it("should have distinct enable and disable messages", function () {
+      expect(MCP_MESSAGES.enabled).not.toBe(MCP_MESSAGES.disabled);
+      expect(MCP_MESSAGES.alreadyEnabled).not.toBe(
+        MCP_MESSAGES.alreadyDisabled,
+      );
     });
 
-    it("should show appropriate message when configuration changes to disabled", function () {
-      // Test configuration change handling for disable
-      const configChangeDisabledMessage =
-        "Ansible Development Tools MCP Server has been disabled.";
-
-      // Simulate configuration change event
-      const configurationChanged = true;
-      const newSettingValue = false;
-      let messageShown = "";
-
-      if (configurationChanged && !newSettingValue) {
-        messageShown = configChangeDisabledMessage;
+    it("should all reference Ansible Development Tools MCP Server", function () {
+      for (const msg of Object.values(MCP_MESSAGES)) {
+        expect(msg).toContain("Ansible Development Tools MCP Server");
       }
-
-      assert.equal(messageShown, configChangeDisabledMessage);
     });
   });
 });
