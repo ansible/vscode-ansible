@@ -23,24 +23,35 @@ import { getAgentsGuidelines } from "@src/resources/agents.js";
  * Returns the resolved path or undefined if none found.
  */
 function extractPlaybookPath(userMessage: string): string | undefined {
-  const fileMatch = /[\w-]+\.(?:yml|yaml)/.exec(userMessage);
-  if (fileMatch) {
-    const fileName = fileMatch[0];
-    const startIdx = fileMatch.index;
+  const yamlIdx = userMessage.indexOf(".yaml");
+  const ymlIdx = userMessage.indexOf(".yml");
 
-    let pathStart = startIdx;
-    while (pathStart > 0 && /[\w./-]/.test(userMessage[pathStart - 1])) {
-      pathStart--;
-    }
+  let extIdx = -1;
+  let extLen = 0;
+  if (yamlIdx >= 0 && (ymlIdx < 0 || yamlIdx <= ymlIdx)) {
+    extIdx = yamlIdx;
+    extLen = 5;
+  } else if (ymlIdx >= 0) {
+    extIdx = ymlIdx;
+    extLen = 4;
+  }
 
-    const fullMatch = userMessage.substring(
-      pathStart,
-      startIdx + fileName.length,
-    );
-    if (!fullMatch.startsWith("playbooks/") && !fullMatch.startsWith("/")) {
-      return `playbooks/${fullMatch}`;
+  if (extIdx > 0) {
+    let nameStart = extIdx;
+    while (nameStart > 0) {
+      const code = userMessage.codePointAt(nameStart - 1);
+      if (code === undefined || !isPathChar(code)) {
+        break;
+      }
+      nameStart--;
     }
-    return fullMatch;
+    if (nameStart < extIdx) {
+      const fullMatch = userMessage.substring(nameStart, extIdx + extLen);
+      if (!fullMatch.startsWith("playbooks/") && !fullMatch.startsWith("/")) {
+        return `playbooks/${fullMatch}`;
+      }
+      return fullMatch;
+    }
   }
 
   const nameMatch = /(?:run|execute|start|launch)\s+([\w-]+)/i.exec(
@@ -51,6 +62,18 @@ function extractPlaybookPath(userMessage: string): string | undefined {
   }
 
   return undefined;
+}
+
+function isPathChar(code: number): boolean {
+  return (
+    (code >= 0x30 && code <= 0x39) || // 0-9
+    (code >= 0x41 && code <= 0x5a) || // A-Z
+    (code >= 0x61 && code <= 0x7a) || // a-z
+    code === 0x5f || // _
+    code === 0x2d || // -
+    code === 0x2e || // .
+    code === 0x2f // /
+  );
 }
 
 /**

@@ -723,5 +723,11 @@ describe("MCP Handlers", () => {
         "playbooks/deploy.yml",
       );
     });
+
+    it("should prefer .yaml when both .yaml and .yml are present", () => {
+      expect(extractPlaybookPath("run site.yaml or deploy.yml")).toBe(
+        "playbooks/site.yaml",
+      );
+    });
   });
 });
