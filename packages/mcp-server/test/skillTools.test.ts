@@ -62,6 +62,20 @@ describe('SkillToolGenerator', () => {
         expect(names).toContain('skill_list_sources');
     });
 
+    it('all skill tools have readOnly annotations', () => {
+        const gen = new SkillToolGenerator();
+        const tools = gen.getTools();
+        for (const tool of tools) {
+            const ann = tool.annotations;
+            expect(ann, `annotations missing on ${tool.name}`).toBeDefined();
+            if (ann) {
+                expect(ann.readOnlyHint).toBe(true);
+                expect(ann.destructiveHint).toBe(false);
+                expect(ann.idempotentHint).toBe(true);
+            }
+        }
+    });
+
     it('isSkillTool identifies skill tools', () => {
         const gen = new SkillToolGenerator();
         expect(gen.isSkillTool('skill_search')).toBe(true);
@@ -90,13 +104,14 @@ describe('SkillToolGenerator', () => {
         expect(result.content[0].text).toContain('No skills found');
     });
 
-    it('skill_search requires query parameter', async () => {
+    it('skill_search returns structured MISSING_PARAM error', async () => {
         const gen = new SkillToolGenerator();
         await gen.initialize();
 
         const result = await gen.handleTool('skill_search', {});
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain('query');
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.code).toBe('MISSING_PARAM');
     });
 
     it('skill_list returns all skills', async () => {
@@ -120,15 +135,17 @@ describe('SkillToolGenerator', () => {
         expect(result.content[0].text).toContain('Test Skill');
     });
 
-    it('skill_get requires skill_id parameter', async () => {
+    it('skill_get returns structured MISSING_PARAM error', async () => {
         const gen = new SkillToolGenerator();
         await gen.initialize();
 
         const result = await gen.handleTool('skill_get', {});
         expect(result.isError).toBe(true);
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.code).toBe('MISSING_PARAM');
     });
 
-    it('skill_get returns error for unknown skill', async () => {
+    it('skill_get returns structured NOT_FOUND for unknown skill', async () => {
         const gen = new SkillToolGenerator();
         await gen.initialize();
 
@@ -136,7 +153,8 @@ describe('SkillToolGenerator', () => {
             skill_id: 'nonexistent/skill',
         });
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain('Skill not found');
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.code).toBe('NOT_FOUND');
     });
 
     it('skill_list_sources shows configured sources', async () => {

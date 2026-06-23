@@ -4,6 +4,13 @@
  * These define the tools available to AI agents via the MCP protocol.
  */
 
+export interface McpToolAnnotations {
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+}
+
 export interface McpToolDefinition {
     name: string;
     description: string;
@@ -12,12 +19,53 @@ export interface McpToolDefinition {
         properties: Record<string, unknown>;
         required?: string[];
     };
+    annotations?: McpToolAnnotations;
+}
+
+export type McpErrorCode =
+    | 'MISSING_PARAM'
+    | 'INVALID_INPUT'
+    | 'NOT_FOUND'
+    | 'SERVICE_UNAVAILABLE'
+    | 'OPERATION_FAILED';
+
+export type McpRecoverability = 'retry' | 'escalate' | 'fail';
+
+export interface McpErrorDetail {
+    code: McpErrorCode;
+    recoverability: McpRecoverability;
+    message: string;
+    suggestion?: string;
 }
 
 export interface McpToolResult {
     content: { type: 'text'; text: string }[];
     isError?: boolean;
 }
+
+/**
+ * Builds a structured, machine-readable MCP error response.
+ * @param detail - Error metadata including code, recoverability, and message
+ * @returns MCP tool result with `isError: true` and JSON-serialized detail
+ */
+export function mcpError(detail: McpErrorDetail): McpToolResult {
+    return {
+        content: [{ type: 'text', text: JSON.stringify(detail) }],
+        isError: true,
+    };
+}
+
+export const READ_ONLY: McpToolAnnotations = {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+};
+
+export const DESTRUCTIVE: McpToolAnnotations = {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: false,
+};
 
 // === Discovery Tools ===
 
@@ -33,6 +81,7 @@ Examples:
 - "cisco vlan" → cisco.nxos.nxos_vlans, cisco.ios.ios_vlans
 - "docker container" → community.docker.docker_container
 - "aws ec2" → amazon.aws.ec2_instance`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -65,6 +114,7 @@ export const GET_PLUGIN_DOC_TOOL: McpToolDefinition = {
 
 Returns synopsis, all parameters with types/defaults/choices, examples, and return values.
 Use search_ansible_plugins first if you need to find the plugin name.`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -102,6 +152,7 @@ Use search_ansible_plugins first if you need to find the plugin name.`,
 export const LIST_COLLECTIONS_TOOL: McpToolDefinition = {
     name: 'list_ansible_collections',
     description: 'List all installed Ansible collections with their versions.',
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -120,6 +171,7 @@ export const INSTALL_COLLECTION_TOOL: McpToolDefinition = {
 Examples:
 - install_ansible_collection({ name: "hetzner.hcloud" })
 - install_ansible_collection({ name: "cisco.nxos" })`,
+    annotations: DESTRUCTIVE,
     inputSchema: {
         type: 'object',
         properties: {
@@ -143,6 +195,7 @@ Examples:
 - search_available_collections({ query: "kubernetes" }) → finds k8s-related collections from all sources
 - search_available_collections({ query: "cisco", source: "galaxy" }) → finds Cisco collections from Galaxy only
 - search_available_collections({ query: "aap", source: "redhat-cop" }) → finds AAP collections from redhat-cop GitHub org`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -174,6 +227,7 @@ Examples:
 - list_source_collections({ source: "galaxy" }) → all Galaxy collections
 - list_source_collections({ source: "redhat-cop" }) → all collections from redhat-cop GitHub org
 - list_source_collections({ source: "ansible-collections" }) → all collections from ansible-collections GitHub org`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -199,6 +253,7 @@ Returns plugins grouped by type (modules, filters, lookups, etc.) with descripti
 Examples:
 - get_collection_plugins({ collection: "cisco.nxos" })
 - get_collection_plugins({ collection: "ansible.builtin", plugin_type: "module" })`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -245,6 +300,7 @@ to read its plugin docs without installing it.
 Examples:
 - get_galaxy_plugin_doc({ collection: "cisco.ios", plugin: "ios_acls", plugin_type: "module" })
 - get_galaxy_plugin_doc({ collection: "community.docker" }) → lists all plugin types and counts`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -296,6 +352,7 @@ Requires the collection to be in a configured GitHub organization.
 Examples:
 - get_scm_plugin_doc({ org: "redhat-cop", repo: "infra.aap_configuration", collection: "infra.aap_configuration", plugin: "credential_type", plugin_type: "module" })
 - get_scm_plugin_doc({ org: "redhat-cop", repo: "infra.aap_configuration", collection: "infra.aap_configuration" }) → lists all plugin types and counts`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -375,6 +432,7 @@ Examples:
     plugin: "cisco.nxos.nxos_vlans",
     params: { config: [{ vlan_id: 100, name: "Web" }], state: "merged" }
   })`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -384,6 +442,23 @@ Examples:
             },
             plugin_type: {
                 type: 'string',
+                enum: [
+                    'module',
+                    'filter',
+                    'lookup',
+                    'callback',
+                    'connection',
+                    'inventory',
+                    'become',
+                    'cache',
+                    'cliconf',
+                    'httpapi',
+                    'netconf',
+                    'shell',
+                    'strategy',
+                    'test',
+                    'vars',
+                ],
                 description: 'Plugin type (default: module)',
             },
             params: {
@@ -448,6 +523,7 @@ build_ansible_task({ session_id: "xxx", generate: true })
 → Returns final YAML
 
 Sessions timeout after 10 minutes of inactivity.`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -457,6 +533,23 @@ Sessions timeout after 10 minutes of inactivity.`,
             },
             plugin_type: {
                 type: 'string',
+                enum: [
+                    'module',
+                    'filter',
+                    'lookup',
+                    'callback',
+                    'connection',
+                    'inventory',
+                    'become',
+                    'cache',
+                    'cliconf',
+                    'httpapi',
+                    'netconf',
+                    'shell',
+                    'strategy',
+                    'test',
+                    'vars',
+                ],
                 description: 'Plugin type (default: module)',
             },
             session_id: {
@@ -501,6 +594,7 @@ export const GENERATE_PLAYBOOK_TOOL: McpToolDefinition = {
     description: `Generate a complete Ansible playbook with multiple tasks.
 
 Provide a list of tasks and this tool generates a properly formatted playbook.`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -550,6 +644,7 @@ Provide a list of tasks and this tool generates a properly formatted playbook.`,
 export const LIST_EE_TOOL: McpToolDefinition = {
     name: 'list_execution_environments',
     description: 'List available Ansible execution environment container images.',
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {},
@@ -567,6 +662,7 @@ This tool returns ALL information about the EE - no additional container inspect
 • ALL system packages (if available)
 
 Use the ee_name exactly as returned by list_execution_environments.`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -585,6 +681,7 @@ Use the ee_name exactly as returned by list_execution_environments.`,
 export const LIST_DEV_TOOLS_TOOL: McpToolDefinition = {
     name: 'list_ansible_dev_tools',
     description: 'List installed ansible-dev-tools packages and their versions.',
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {},
@@ -597,6 +694,7 @@ export const GET_CREATOR_SCHEMA_TOOL: McpToolDefinition = {
     name: 'get_ansible_creator_schema',
     description:
         'Get the full ansible-creator command schema showing all available scaffolding commands and their parameters. Use this to understand what content types can be created (collections, playbooks, plugins, etc.) and what options are available for each.',
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {},
@@ -637,6 +735,7 @@ This tool returns comprehensive guidelines covering:
 - testing: Testing strategies and validation
 
 Returns the guidelines in Markdown format.`,
+    annotations: READ_ONLY,
     inputSchema: {
         type: 'object',
         properties: {
@@ -656,6 +755,30 @@ Returns the guidelines in Markdown format.`,
                 default: 'full',
             },
         },
+    },
+};
+
+// === Getting Started ===
+
+export const GET_AGENT_ONBOARDING_TOOL: McpToolDefinition = {
+    name: 'get_agent_onboarding',
+    description:
+        'Get a guide to all available tools, skills, and recommended workflows for this MCP server. Call this first when starting a new session to understand what capabilities are available and how to use them effectively.',
+    annotations: READ_ONLY,
+    inputSchema: {
+        type: 'object',
+        properties: {},
+    },
+};
+
+export const GET_EXTENSION_WALKTHROUGH_TOOL: McpToolDefinition = {
+    name: 'get_extension_walkthrough',
+    description:
+        'Start an interactive, AI-guided tour of the Ansible extension. Walks through your current workspace, demonstrates plugin discovery, task generation, skills, and scaffolding capabilities step by step.',
+    annotations: READ_ONLY,
+    inputSchema: {
+        type: 'object',
+        properties: {},
     },
 };
 
@@ -690,4 +813,8 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
 
     // Best practices
     GET_BEST_PRACTICES_TOOL,
+
+    // Getting started
+    GET_AGENT_ONBOARDING_TOOL,
+    GET_EXTENSION_WALKTHROUGH_TOOL,
 ];

@@ -7,7 +7,7 @@
 
 import { SkillRegistry } from '@ansible/services';
 import type { SkillSource, SkillCategory } from '@ansible/services';
-import { McpToolDefinition, McpToolResult } from './tools';
+import { McpToolDefinition, McpToolResult, READ_ONLY, mcpError } from './tools';
 
 /** MCP tool names handled by this generator. */
 const SKILL_TOOL_NAMES = ['skill_search', 'skill_list', 'skill_get', 'skill_list_sources'] as const;
@@ -51,6 +51,7 @@ export class SkillToolGenerator {
                 description:
                     'Search available AI development skills by keyword. ' +
                     'Searches name, description, triggers, and tags.',
+                annotations: READ_ONLY,
                 inputSchema: {
                     type: 'object' as const,
                     properties: {
@@ -80,6 +81,7 @@ export class SkillToolGenerator {
                 name: 'skill_list',
                 description:
                     'List all available AI development skills, optionally filtered by category or source.',
+                annotations: READ_ONLY,
                 inputSchema: {
                     type: 'object' as const,
                     properties: {
@@ -101,6 +103,7 @@ export class SkillToolGenerator {
                 description:
                     'Get the full content of a skill by its ID. ' +
                     'Returns the SKILL.md body with instructions the agent should follow.',
+                annotations: READ_ONLY,
                 inputSchema: {
                     type: 'object' as const,
                     properties: {
@@ -117,6 +120,7 @@ export class SkillToolGenerator {
                 name: 'skill_list_sources',
                 description:
                     'List configured skill sources and their status (loaded count, trust level).',
+                annotations: READ_ONLY,
                 inputSchema: {
                     type: 'object' as const,
                     properties: {},
@@ -155,10 +159,11 @@ export class SkillToolGenerator {
             case 'skill_list_sources':
                 return this._handleListSources();
             default:
-                return {
-                    content: [{ type: 'text', text: `Unknown skill tool: ${name}` }],
-                    isError: true,
-                };
+                return mcpError({
+                    code: 'NOT_FOUND',
+                    recoverability: 'fail',
+                    message: `Unknown skill tool: ${name}`,
+                });
         }
     }
 
@@ -178,10 +183,12 @@ export class SkillToolGenerator {
     private _handleSearch(args: Record<string, unknown>): McpToolResult {
         const query = args.query as string | undefined;
         if (!query) {
-            return {
-                content: [{ type: 'text', text: 'Error: "query" parameter is required' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: query',
+                suggestion: 'Provide a search query string.',
+            });
         }
 
         const limit = typeof args.limit === 'number' ? args.limit : 10;
@@ -278,31 +285,31 @@ export class SkillToolGenerator {
     private async _handleGet(args: Record<string, unknown>): Promise<McpToolResult> {
         const skillId = args.skill_id as string | undefined;
         if (!skillId) {
-            return {
-                content: [{ type: 'text', text: 'Error: "skill_id" parameter is required' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: skill_id',
+                suggestion: 'Use skill_search or skill_list to find available skill IDs.',
+            });
         }
 
         const skill = this._registry.getSkill(skillId);
         if (!skill) {
-            return {
-                content: [{ type: 'text', text: `Skill not found: ${skillId}` }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Skill not found: ${skillId}`,
+                suggestion: 'Use skill_list to see available skills.',
+            });
         }
 
         const content = await this._registry.loadSkillContent(skillId);
         if (!content) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: 'Skill content could not be loaded. The source may be unavailable.',
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'retry',
+                message: 'Skill content could not be loaded. The source may be unavailable.',
+            });
         }
 
         const header =

@@ -102,6 +102,10 @@ Use the MCP tools for task generation:
 
 Use \`get_ee_details\` to get complete information about an execution environment.
 This returns all collections, Python packages, and system tools installed.
+
+## Getting Started
+
+Call \`get_agent_onboarding\` for a complete guide to available tools, skills, and workflows.
 `;
 
 // Resource definitions
@@ -137,6 +141,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             name: tool.name,
             description: tool.description,
             inputSchema: tool.inputSchema,
+            ...(tool.annotations ? { annotations: tool.annotations } : {}),
         })),
     };
 });
