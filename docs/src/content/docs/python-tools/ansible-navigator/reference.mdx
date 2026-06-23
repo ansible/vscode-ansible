@@ -1,0 +1,444 @@
+---
+title: "ansible-navigator: Reference"
+description: Complete settings reference, environment variables, and CLI flags for all ansible-navigator subcommands.
+---
+
+This page provides exhaustive reference material for ansible-navigator. For an introduction and typical usage, see the [ansible-navigator guide](/vscode-ansible/python-tools/ansible-navigator/).
+
+## Settings file locations
+
+Searched in order (first found wins):
+
+1. `ANSIBLE_NAVIGATOR_CONFIG` environment variable
+2. `./ansible-navigator.yml` (project directory — no dot prefix)
+3. `./ansible-navigator.yaml`
+4. `./ansible-navigator.json`
+5. `~/.ansible-navigator.yml` (home directory — with dot prefix)
+6. `~/.ansible-navigator.yaml`
+7. `~/.ansible-navigator.json`
+
+Only one settings file per directory is allowed. If multiple are found, Navigator exits with an error.
+
+## Priority order (lowest to highest)
+
+1. Default internal values
+2. Settings file
+3. Environment variables (`ANSIBLE_NAVIGATOR_*`)
+4. CLI flags
+5. TUI colon commands
+
+## Complete settings reference
+
+```yaml
+ansible-navigator:
+  ansible:
+    config:
+      path: <string>              # Path to ansible.cfg
+    cmdline: <string>             # Extra cmdline args for ansible
+    doc:
+      plugin:
+        name: <string>            # Default plugin name for :doc
+        type: <string>            # Default plugin type (become, cache, callback, etc.)
+    inventory:
+      entries:                    # Inventory sources
+        - <string>
+    playbook:
+      path: <string>             # Default playbook path
+
+  ansible-builder:
+    workdir: <string>            # Working directory for :builder
+
+  ansible-lint:
+    config: <string>             # Path to ansible-lint config
+    lintables: <string>          # Path to lint
+
+  ansible-runner:
+    artifact-dir: <string>       # Artifact directory
+    rotate-artifacts-count: <int> # Number of artifact sets to keep
+    timeout: <int>               # Runner timeout in seconds
+    job-events: <boolean>        # Enable job events
+
+  app: <string>                  # Default subcommand (welcome, run, collections, etc.)
+
+  collection-doc-cache-path: <string>  # Path to doc cache DB
+
+  color:
+    enable: <boolean>            # Enable colored output
+    osc4: <boolean>              # Use OSC4 terminal colors
+
+  editor:
+    command: <string>            # Editor command template
+    console: <boolean>           # Editor is terminal-based
+
+  enable-prompts: <boolean>      # Allow interactive prompts
+
+  exec:
+    shell: <boolean>             # Use shell for exec commands
+    command: <string>            # Default exec command
+
+  execution-environment:
+    container-engine: <string>   # auto, podman, or docker
+    enabled: <boolean>           # Enable/disable EE
+    environment-variables:
+      pass: []                   # Host vars to pass through
+      set: {}                    # Vars to set in container
+    image: <string>              # Container image
+    pull:
+      arguments: []              # Extra pull args
+      policy: <string>           # always, missing, never, tag
+    volume-mounts: []            # Additional mounts
+    container-options: []        # Extra container args
+
+  format: <string>               # stdout format: json or yaml
+
+  images:
+    details:                  # Choices: ansible_collections, ansible_version,
+      - ansible_version       # everything, os_release, python_packages,
+      - python_version        # python_version, redhat_release, system_packages
+
+  inventory-columns: []          # Extra inventory columns
+
+  logging:
+    level: <string>              # critical, error, warning, info, debug
+    append: <boolean>            # Append to log file
+    file: <string>               # Log file path
+
+  mode: <string>                 # interactive or stdout
+
+  playbook-artifact:
+    enable: <boolean>            # Enable artifact creation
+    replay: <string>             # Path to artifact for replay
+    save-as: <string>            # Artifact save path template
+
+  settings:
+    effective: <boolean>         # Show effective settings
+    sample: <boolean>            # Show sample config
+    schema: <string>             # Schema format (json)
+    sources: <boolean>           # Show settings sources
+
+  time-zone: <string>            # Timezone for timestamps (e.g., UTC, America/New_York)
+```
+
+## Settings field reference
+
+### `ansible-navigator.ansible`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `config.path` | `string` | — | Path to `ansible.cfg` |
+| `cmdline` | `string` | — | Extra command-line args (e.g., `"--forks 15"`) |
+| `doc.plugin.name` | `string` | — | Default plugin for `:doc` |
+| `doc.plugin.type` | `string` | — | Plugin type filter |
+| `inventory.entries` | `list[string]` | `[]` | Inventory file paths |
+| `playbook.path` | `string` | — | Default playbook path |
+
+### `ansible-navigator.execution-environment`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `container-engine` | `string` | `auto` | `auto`, `podman`, `docker` |
+| `enabled` | `boolean` | `true` | Run in container |
+| `environment-variables.pass` | `list[string]` | `[]` | Host env vars to forward |
+| `environment-variables.set` | `dict` | `{}` | New env vars to create |
+| `image` | `string` | (community image) | Container image to use |
+| `pull.arguments` | `list[string]` | `[]` | Extra `pull` arguments |
+| `pull.policy` | `string` | `tag` | `always`, `missing`, `never`, `tag` |
+| `volume-mounts` | `list[dict]` | `[]` | Additional volume mounts |
+| `container-options` | `list[string]` | `[]` | Extra container engine args |
+
+#### Volume mount entry format
+
+```yaml
+volume-mounts:
+  - src: "/host/path"
+    dest: "/container/path"
+    options: "Z"          # SELinux label, ro, rw, etc.
+```
+
+### `ansible-navigator.editor`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `command` | `string` | `vi +&#123;line_number&#125; &#123;filename&#125;` | Command template |
+| `console` | `boolean` | `true` | Whether editor runs in terminal |
+
+**Placeholders:** `&#123;filename&#125;`, `&#123;line_number&#125;`
+
+**IDE examples:**
+
+| Editor | `command` | `console` |
+|--------|-----------|-----------|
+| vi/vim | `vi +&#123;line_number&#125; &#123;filename&#125;` | `true` |
+| VS Code | `code -g &#123;filename&#125;:&#123;line_number&#125;` | `false` |
+| PyCharm | `charm --line &#123;line_number&#125; &#123;filename&#125;` | `false` |
+| Emacs (terminal) | `emacs -nw +&#123;line_number&#125; &#123;filename&#125;` | `true` |
+| Emacs (GUI) | `emacs +&#123;line_number&#125; &#123;filename&#125;` | `false` |
+| code-server | `code-server &#123;filename&#125;` | `false` |
+
+### `ansible-navigator.logging`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `level` | `string` | `warning` | `critical`, `error`, `warning`, `info`, `debug` |
+| `append` | `boolean` | `true` | Append to log (vs overwrite) |
+| `file` | `string` | `./ansible-navigator.log` | Log file path |
+
+### `ansible-navigator.playbook-artifact`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `enable` | `boolean` | `true` | Create artifacts |
+| `replay` | `string` | — | Artifact path for replay |
+| `save-as` | `string` | `&#123;playbook_dir&#125;/&#123;playbook_name&#125;-artifact-&#123;time_stamp&#125;.json` | Save path template |
+
+**Template variables:** `&#123;playbook_dir&#125;`, `&#123;playbook_name&#125;`, `&#123;time_stamp&#125;`
+
+## Environment variables
+
+Most settings map to an environment variable with the `ANSIBLE_NAVIGATOR_` prefix. However, some settings use standard Ansible or system environment variables instead:
+
+### Non-prefixed environment variables
+
+| Setting | Environment variable |
+|---------|---------------------|
+| `color.enable` | `NO_COLOR` |
+| `time-zone` | `TZ` |
+| `ansible.config.path` | `ANSIBLE_CONFIG` |
+| `ansible.inventory.entries` | `ANSIBLE_INVENTORY` |
+| `ansible-lint.config` | `ANSIBLE_LINT_CONFIG` |
+
+### Prefixed environment variables
+
+Nested keys use underscores:
+
+| Setting path | Environment variable |
+|-------------|---------------------|
+| `mode` | `ANSIBLE_NAVIGATOR_MODE` |
+| `execution-environment.enabled` | `ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_ENABLED` |
+| `execution-environment.image` | `ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_IMAGE` |
+| `execution-environment.container-engine` | `ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_CONTAINER_ENGINE` |
+| `execution-environment.pull.policy` | `ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_PULL_POLICY` |
+| `ansible.config.path` | `ANSIBLE_NAVIGATOR_ANSIBLE_CONFIG_PATH` |
+| `ansible.playbook.path` | `ANSIBLE_NAVIGATOR_ANSIBLE_PLAYBOOK_PATH` |
+| `logging.level` | `ANSIBLE_NAVIGATOR_LOGGING_LEVEL` |
+| `logging.file` | `ANSIBLE_NAVIGATOR_LOGGING_FILE` |
+| `editor.command` | `ANSIBLE_NAVIGATOR_EDITOR_COMMAND` |
+| `editor.console` | `ANSIBLE_NAVIGATOR_EDITOR_CONSOLE` |
+| `playbook-artifact.enable` | `ANSIBLE_NAVIGATOR_PLAYBOOK_ARTIFACT_ENABLE` |
+| `color.enable` | `ANSIBLE_NAVIGATOR_COLOR_ENABLE` |
+| `format` | `ANSIBLE_NAVIGATOR_FORMAT` |
+| `time-zone` | `ANSIBLE_NAVIGATOR_TIME_ZONE` |
+| `app` | `ANSIBLE_NAVIGATOR_APP` |
+| `enable-prompts` | `ANSIBLE_NAVIGATOR_ENABLE_PROMPTS` |
+
+## Subcommand CLI flags
+
+### `ansible-navigator run`
+
+| Flag | Description |
+|------|-------------|
+| `<playbook>` | Playbook path (positional) |
+| `-i, --inventory <path>` | Inventory path (repeatable) |
+| `-e, --extra-vars <vars>` | Extra variables (key=value or @file) |
+| `-l, --limit <pattern>` | Limit to hosts |
+| `-t, --tags <tags>` | Run only tagged tasks |
+| `--skip-tags <tags>` | Skip tagged tasks |
+| `-C, --check` | Check mode (dry run) |
+| `-D, --diff` | Show diffs |
+| `--forks <n>` | Parallelism level |
+| `--become` / `-b` | Become (privilege escalation) |
+| `--become-method <method>` | Escalation method |
+| `--become-user <user>` | Target user |
+| `--vault-id <id>` | Vault identity |
+| `--vault-password-file <path>` | Vault password file |
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+| `--execution-environment-image <image>` | EE image |
+| `--pull-policy <policy>` | Image pull policy |
+| `--container-engine <engine>` | Container runtime |
+| `--pass-environment-variable <var>` | Forward env var (repeatable) |
+| `--set-environment-variable <k=v>` | Set env var (repeatable) |
+| `--execution-environment-volume-mounts <mount>` | Volume mount (repeatable) |
+| `--container-options <opts>` | Extra container args (repeatable) |
+| `--playbook-artifact-enable <bool>` | Enable artifact creation |
+| `--pull-arguments <args>` | Extra arguments for image pull (e.g., `--tls-verify=false`) |
+
+### `ansible-navigator collections`
+
+| Flag | Description |
+|------|-------------|
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+
+### `ansible-navigator config`
+
+| Flag | Description |
+|------|-------------|
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+
+### `ansible-navigator doc`
+
+| Flag | Description |
+|------|-------------|
+| `<plugin>` | Plugin name (positional) |
+| `--type <type>` | Plugin type: `become`, `cache`, `callback`, `cliconf`, `connection`, `filter`, `httpapi`, `inventory`, `keyword`, `lookup`, `module`, `netconf`, `role`, `shell`, `strategy`, `test`, `vars` |
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+
+### `ansible-navigator inventory`
+
+| Flag | Description |
+|------|-------------|
+| `-i, --inventory <path>` | Inventory path (repeatable) |
+| `--list` | List all hosts |
+| `--graph` | Display inventory graph |
+| `--host <host>` | Show host variables |
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+
+### `ansible-navigator images`
+
+| Flag | Description |
+|------|-------------|
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+| `--details <fields>` | Details to show (e.g., `ansible_version,python_version`) |
+
+### `ansible-navigator exec`
+
+| Flag | Description |
+|------|-------------|
+| `--` | Separator for command arguments |
+| `--execution-environment-image <image>` | EE image |
+| `--container-engine <engine>` | Container runtime |
+| `--pass-environment-variable <var>` | Forward env var |
+| `--set-environment-variable <k=v>` | Set env var |
+| `--execution-environment-volume-mounts <mount>` | Volume mount |
+
+### `ansible-navigator lint`
+
+| Flag | Description |
+|------|-------------|
+| `<lintables>` | Files/directories to lint (positional) |
+| `--mode <mode>` | `interactive` or `stdout` |
+| `--execution-environment <bool>` | Enable/disable EE |
+| `--lint-config <path>` | ansible-lint config path |
+
+### `ansible-navigator replay`
+
+| Flag | Description |
+|------|-------------|
+| `<artifact>` | Artifact JSON file path (positional) |
+| `--mode <mode>` | `interactive` or `stdout` |
+
+### `ansible-navigator settings`
+
+| Flag | Description |
+|------|-------------|
+| `--effective` | Show effective (merged) settings |
+| `--sample` | Show sample configuration |
+| `--schema <format>` | Show settings JSON schema |
+| `--sources` | Show where each setting came from |
+
+## TUI colon commands
+
+Available during interactive mode:
+
+| Command | Description |
+|---------|-------------|
+| `:back` | Go back one level (same as Esc) |
+| `:collections` | Switch to collections view |
+| `:config` | Switch to config view |
+| `:doc <plugin>` | View plugin documentation |
+| `:exec <command>` | Run command in EE |
+| `:filter <text>` | Filter current view |
+| `:help` | Show help |
+| `:images` | Switch to images view |
+| `:inventory <path>` | Open inventory |
+| `:lint <path>` | Lint files |
+| `:log` | View log |
+| `:open` | Open current file in editor |
+| `:quit` | Exit (same as Ctrl+C) |
+| `:replay <path>` | Replay artifact |
+| `:run <playbook>` | Run a playbook |
+| `:rr` | Rerun last playbook |
+| `:settings` | View settings |
+| `:welcome` | Return to welcome page |
+| `:write <path>` | Write current content to file |
+
+## TUI keyboard shortcuts
+
+| Key | Action |
+|-----|--------|
+| `0-9` | Select numbered item |
+| `Enter` | Select/drill into |
+| `Esc` | Go back one level |
+| `:` | Enter colon command |
+| `/` | Search/filter |
+| `↑/↓` | Navigate items |
+| `←/→` | Scroll horizontally |
+| `PgUp/PgDn` | Page through results |
+| `Tab` | Switch between panes |
+
+## Pull policy behavior
+
+| Policy | When image exists locally | When image does not exist |
+|--------|--------------------------|---------------------------|
+| `always` | Pull (update) | Pull |
+| `missing` | Use local | Pull |
+| `never` | Use local | Error |
+| `tag` | Use local (unless tag is `latest`) | Pull |
+
+## Container engine discovery (`auto` mode)
+
+1. Check for `podman` in PATH → use if found
+2. Check for `docker` in PATH → use if found
+3. Error if neither found
+
+## Operational notes
+
+### SSH key handling in execution environments
+
+Navigator automatically handles SSH keys when running in an EE:
+- Mounts the ssh-agent socket and sets `SSH_AUTH_SOCK`
+- Mounts `~/.ssh/` to `/root/.ssh/` (for OpenSSH)
+- Mounts `~/.ssh/` to `/home/runner/.ssh/` (for paramiko)
+
+### Volume mount environment variable delimiter
+
+When defining volume mounts via environment variables, use semicolons (`;`) as delimiters because mount definitions contain colons:
+
+```bash
+export ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_VOLUME_MOUNTS="/tmp/src:/tmp/dest:Z;/data/input:/data/input:ro"
+```
+
+### `enable-prompts` side effects
+
+Setting `enable-prompts: true` has two side effects:
+- Forces mode to `stdout` (TUI cannot handle prompts)
+- Disables playbook artifact creation
+
+### Vault passwords in execution environments
+
+Three documented patterns for vault access inside EEs:
+
+1. **GPG-encrypted script**: Mount a decrypt script and pass via `--senv` / `--penv`
+2. **Password file**: Link a password file and set `ANSIBLE_VAULT_PASSWORD_FILE` + custom volume mount
+3. **Environment variable**: Use `HISTCONTROL=ignorespace` to avoid shell history, pass via `--set-environment-variable`
+
+### `ansible.cfg` placement for EEs
+
+The ansible.cfg must be in the project directory (auto-mounted) or referenced via `ANSIBLE_CONFIG` with a custom volume mount to the file's location.
+
+### Pass-through parameters
+
+Use `--` to pass arguments directly to ansible-playbook:
+
+```bash
+ansible-navigator run site.yml -- --forks 15 --start-at-task "Install packages"
+```
+
+### Podman `/dev/mqueue` requirement
+
+Podman requires `/dev/mqueue` to exist on the host. Some operating systems do not create this by default.

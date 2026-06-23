@@ -1,0 +1,270 @@
+---
+title: ansible-sign
+description: Sign and verify Ansible project content using GPG for supply chain integrity.
+---
+
+ansible-sign is a utility for signing and verifying Ansible project directory contents using GPG. It generates checksum manifests of project files and signs them cryptographically, enabling downstream consumers (Ansible Automation Platform, AWX, CI/CD pipelines) to verify that content has not been tampered with since it was signed.
+
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-sign
+```
+
+Verify installation:
+
+```bash
+ansible-sign --version
+```
+
+## Core concepts
+
+### How signing works
+
+1. ansible-sign scans your project directory for tracked files
+2. It generates SHA-256 checksums for each file, creating a **checksum manifest**
+3. The manifest is signed with your GPG private key, producing a **detached signature**
+4. Both the manifest (`.ansible-sign/sha256sum.txt`) and signature (`.ansible-sign/sha256sum.txt.sig`) are stored in the project
+
+### How verification works
+
+1. The verifier reads the signed manifest and signature
+2. GPG verifies the signature against the signer's public key
+3. File checksums are recalculated and compared against the manifest
+4. Any modified, added, or removed files cause verification to fail
+
+### MANIFEST.in
+
+The `MANIFEST.in` file controls which files are included in the checksum manifest. It uses Python's distutils manifest template syntax:
+
+```text
+include *.yml
+include *.yaml
+recursive-include roles *
+recursive-include playbooks *
+recursive-include inventory *
+recursive-include group_vars *
+recursive-include host_vars *
+exclude .git/*
+exclude .ansible-sign/*
+```
+
+If no `MANIFEST.in` exists, ansible-sign defaults to including all files tracked by git (minus the `.ansible-sign/` directory itself).
+
+### The `.ansible-sign/` directory
+
+After signing, your project contains:
+
+```text
+.ansible-sign/
+├── sha256sum.txt      # Checksum manifest
+└── sha256sum.txt.sig  # GPG detached signature
+```
+
+These files should be committed to version control so that consumers can verify the project.
+
+## CLI reference
+
+### `ansible-sign project gpg-sign`
+
+Sign the current project:
+
+```bash
+# Sign with default GPG key
+ansible-sign project gpg-sign .
+
+# Sign with a specific key
+ansible-sign project gpg-sign . --fingerprint ABCD1234...
+
+# Sign a project at a specific path
+ansible-sign project gpg-sign /path/to/project
+
+# Force re-sign (overwrite existing signature)
+ansible-sign project gpg-sign . --force
+```
+
+### `ansible-sign project gpg-verify`
+
+Verify a signed project:
+
+```bash
+# Verify the current directory
+ansible-sign project gpg-verify .
+
+# Verify with a specific keyring
+ansible-sign project gpg-verify . --keyring /path/to/keyring.gpg
+
+# Verify a project at a specific path
+ansible-sign project gpg-verify /path/to/project
+```
+
+Exit codes:
+
+| Code | Meaning |
+|------|---------|
+| `0` | Verification successful — all files match |
+| `1` | Verification failed — signature invalid or files modified |
+| `2` | Error — missing signature, missing keyring, or other problem |
+
+### Global options
+
+| Flag | Description |
+|------|-------------|
+| `--debug` | Enable debug output |
+| `--version` | Show version |
+| `-h, --help` | Show help |
+
+## GPG key management
+
+### Generating a key pair
+
+If you don't have a GPG key:
+
+```bash
+gpg --full-generate-key
+```
+
+Choose RSA 4096-bit, set an appropriate expiration, and provide your name and email.
+
+### Listing keys
+
+```bash
+# List public keys
+gpg --list-keys
+
+# List private keys (for signing)
+gpg --list-secret-keys
+```
+
+### Exporting for verification
+
+Export your public key for distribution to team members and automation platforms:
+
+```bash
+# Export as ASCII armor
+gpg --export --armor your.email@example.com > signing-key.pub
+
+# Import on another machine
+gpg --import signing-key.pub
+```
+
+## Workflow
+
+### Signing a project
+
+```bash
+cd /path/to/ansible-project
+
+# Create MANIFEST.in if you want to control which files are signed
+cat > MANIFEST.in << 'EOF'
+include *.yml
+include *.yaml
+recursive-include roles *
+recursive-include playbooks *
+recursive-include inventory *
+recursive-include group_vars *
+recursive-include host_vars *
+recursive-include collections *
+exclude .git/*
+EOF
+
+# Sign the project
+ansible-sign project gpg-sign .
+
+# Commit the signature
+git add .ansible-sign/ MANIFEST.in
+git commit -m "Sign project content"
+git push
+```
+
+### Verifying before deployment
+
+```bash
+# Clone or pull the project
+git clone git@github.com:myorg/ansible-project.git
+cd ansible-project
+
+# Verify signature before running
+ansible-sign project gpg-verify .
+if [ $? -eq 0 ]; then
+  ansible-navigator run site.yml
+else
+  echo "ERROR: Project signature verification failed!"
+  exit 1
+fi
+```
+
+## AWX/Controller integration
+
+Ansible Automation Platform Controller (and AWX) supports automatic content verification on project sync. When configured:
+
+1. Controller syncs the project from SCM (git)
+2. Before making the content available for job execution, it runs `ansible-sign project gpg-verify`
+3. If verification fails, the project sync fails and jobs cannot run the unverified content
+
+### Configuring in Controller
+
+1. Upload the signing public key to Controller's credential store as a **GPG Public Key** credential
+2. Attach the credential to the Project
+3. Enable "Content Signing Verification" on the Project settings
+4. On next sync, Controller automatically verifies the project signature
+
+### Configuring in AWX
+
+The same workflow applies to AWX (the open-source upstream of Controller):
+
+1. Create a GPG Public Key credential
+2. Associate it with the project
+3. AWX verifies on every project update
+
+## CI/CD integration
+
+### Signing in CI
+
+Add signing as a step in your release pipeline:
+
+```yaml
+# GitHub Actions example
+- name: Import GPG key
+  run: echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --import
+
+- name: Sign project
+  run: |
+    ansible-sign project gpg-sign . --fingerprint ${{ secrets.GPG_FINGERPRINT }}
+    git add .ansible-sign/
+    git commit -m "Update project signature"
+    git push
+```
+
+### Verifying in CI
+
+Add verification as a gate before deployment:
+
+```yaml
+- name: Import signing public key
+  run: echo "${{ secrets.GPG_PUBLIC_KEY }}" | gpg --import
+
+- name: Verify project signature
+  run: ansible-sign project gpg-verify .
+```
+
+## Security considerations
+
+- **Protect your private key**: Store GPG private keys in secure credential stores (vault, CI secrets), never in the repository
+- **Key rotation**: Establish a key rotation policy; update Controller/AWX credentials when rotating
+- **MANIFEST.in scope**: Be deliberate about what files are covered — exclude generated files, caches, and editor artifacts
+- **Git integration**: The default behavior (signing all git-tracked files) is the safest starting point
+- **Signature freshness**: Re-sign after any content change; stale signatures will cause verification failures
+
+## Next steps
+
+Your content is signed and ready for production. To see how all the tools fit together in a complete development cycle, read the [end-to-end workflow guide](/vscode-ansible/python-tools/workflow/).
+
+## Links
+
+- [PyPI: ansible-sign](https://pypi.org/project/ansible-sign/)
+- [GitHub: ansible/ansible-sign](https://github.com/ansible/ansible-sign)

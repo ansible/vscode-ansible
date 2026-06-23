@@ -1,0 +1,503 @@
+---
+title: ansible-builder
+description: Build execution environment container images from a declarative YAML definition.
+---
+
+ansible-builder automates the creation of execution environment (EE) container images. An execution environment packages `ansible-core`, `ansible-runner`, collections, Python dependencies, and system packages into a single container image — providing a consistent, reproducible Ansible control node for development, CI/CD, and production use with Ansible Automation Platform.
+
+Builder takes a declarative YAML definition file and produces a container image through a multi-stage build process, using Podman or Docker as the container runtime.
+
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-builder
+```
+
+Verify installation:
+
+```bash
+ansible-builder --version
+```
+
+## Core concepts
+
+### Execution environments
+
+An execution environment (EE) is a container image that serves as an Ansible control node. It contains everything needed to run Ansible automation:
+
+- Python interpreter
+- `ansible-core`
+- `ansible-runner`
+- Ansible collections
+- Python package dependencies
+- System package dependencies
+
+EEs ensure that playbooks run identically across development, CI/CD, and production — eliminating "works on my machine" problems.
+
+### The definition file
+
+An `execution-environment.yml` file declares what goes into the image. Builder reads this file and generates a Containerfile/Dockerfile, then builds the image.
+
+### Four-stage build process
+
+Builder creates EE images through four internal stages, each optimized for layer caching:
+
+1. **Base stage** — Pulls the base image, installs Python interpreter, pip, `ansible-core`, and `ansible-runner`
+2. **Galaxy stage** — Downloads collections from Galaxy, collects their Python and system dependency metadata
+3. **Builder stage** — Merges Python dependencies, downloads and builds Python wheels, downloads system packages
+4. **Final stage** — Integrates all stages, installs collections, system packages, and Python packages into the final image
+
+## EE definition file (v3)
+
+Version 3 is the current and recommended schema. It has seven top-level sections:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: docker.io/redhat/ubi9:latest
+
+dependencies:
+  ansible_core:
+    package_pip: ansible-core==2.17.0
+  ansible_runner:
+    package_pip: ansible-runner
+  galaxy: requirements.yml
+  python:
+    - boto3>=1.26
+    - requests
+    - psutil
+  system: bindep.txt
+  python_interpreter:
+    package_system: python3.12
+    python_path: /usr/bin/python3.12
+  exclude:
+    python:
+      - docker
+    system:
+      - python3-Cython
+
+build_arg_defaults:
+  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: '--pre'
+  ANSIBLE_GALAXY_CLI_ROLE_OPTS: ''
+  PKGMGR_PRESERVE_CACHE: ''
+
+additional_build_files:
+  - src: files/ansible.cfg
+    dest: configs
+  - src: scripts/
+    dest: scripts
+
+additional_build_steps:
+  prepend_base:
+    - RUN echo "Base stage prep"
+  append_base:
+    - RUN echo "Base stage done"
+  prepend_galaxy:
+    - COPY _build/configs/ansible.cfg /etc/ansible/ansible.cfg
+  append_galaxy: []
+  prepend_builder: []
+  append_builder: []
+  prepend_final:
+    - RUN whoami
+  append_final:
+    - RUN echo "Build complete"
+
+options:
+  container_init:
+    cmd: ["bash"]
+    entrypoint: ["/opt/builder/bin/entrypoint", "dumb-init"]
+    package_pip: dumb-init==1.2.5
+  package_manager_path: /usr/bin/dnf
+  skip_ansible_check: false
+  relax_passwd_permissions: true
+  workdir: /runner
+  user: 1000
+  tags:
+    - my-ee:latest
+    - my-ee:1.0.0
+```
+
+### `version`
+
+Required. Must be `3`.
+
+### `images`
+
+Defines the base container image:
+
+```yaml
+images:
+  base_image:
+    name: docker.io/redhat/ubi9:latest
+    signature_original_name: registry.redhat.io/ubi9:latest  # for mirrored images
+```
+
+Use `host/namespace/container:tag` format. The `signature_original_name` field is for verifying signed images that have been mirrored to a different registry (Podman only).
+
+### `dependencies`
+
+Declares everything the EE needs beyond the base image:
+
+#### `ansible_core` and `ansible_runner`
+
+```yaml
+dependencies:
+  ansible_core:
+    package_pip: ansible-core==2.17.0
+  ansible_runner:
+    package_pip: ansible-runner>=2.4.0
+```
+
+Values are passed directly to pip — can be version pins, URLs, or package names.
+
+#### `galaxy` (collections)
+
+Three formats supported:
+
+```yaml
+# File reference
+dependencies:
+  galaxy: requirements.yml
+
+# Inline dict
+dependencies:
+  galaxy:
+    collections:
+      - name: community.general
+      - name: ansible.utils
+        version: "3.0.0"
+      - name: company.internal
+        source: https://galaxy.internal.company.com/
+
+# Inline string
+dependencies:
+  galaxy: |
+    collections:
+      - community.general
+      - ansible.utils
+```
+
+#### `python` (Python packages)
+
+```yaml
+# File reference
+dependencies:
+  python: requirements.txt
+
+# Inline list (PEP 508 format)
+dependencies:
+  python:
+    - boto3>=1.26
+    - requests
+    - jmespath
+    - pywinrm  # for Windows hosts
+```
+
+#### `system` (system packages)
+
+```yaml
+# File reference
+dependencies:
+  system: bindep.txt
+
+# Inline list (bindep format)
+dependencies:
+  system:
+    - gcc [compile]
+    - python3-devel [compile]
+    - libffi-devel [compile]
+    - iputils [platform:rpm]
+    - openssh-clients
+```
+
+Bindep format markers:
+
+| Marker | Meaning |
+|--------|---------|
+| `[compile]` | Needed only during build, not in final image |
+| `[platform:rpm]` | Platform selector |
+| `[epel]` | Enables EPEL repos before install |
+| (no marker) | Runtime requirement, installed into final image |
+
+#### `python_interpreter`
+
+Override the Python interpreter in the base image:
+
+```yaml
+dependencies:
+  python_interpreter:
+    package_system: python3.12
+    python_path: /usr/bin/python3.12
+```
+
+#### `exclude`
+
+Exclude specific dependencies discovered from collections:
+
+```yaml
+dependencies:
+  exclude:
+    python:
+      - docker
+      - podman
+    system:
+      - python3-Cython
+    all_from_collections:
+      - community.docker
+      - ~community\..+  # regex: exclude all community.* collection deps
+```
+
+The `~` prefix enables regex matching for collection names.
+
+### `build_arg_defaults`
+
+```yaml
+build_arg_defaults:
+  ANSIBLE_GALAXY_CLI_COLLECTION_OPTS: '--pre'
+  ANSIBLE_GALAXY_CLI_ROLE_OPTS: '--force'
+  PKGMGR_PRESERVE_CACHE: always
+```
+
+### `additional_build_files`
+
+Copy files into the build context for use in custom build steps:
+
+```yaml
+additional_build_files:
+  - src: files/ansible.cfg
+    dest: configs
+  - src: scripts/post-install.sh
+    dest: scripts
+```
+
+Files are placed under `_build/<dest>/` in the build context, accessible in build steps as `COPY _build/<dest>/<filename> /target/path`.
+
+### `additional_build_steps`
+
+Inject custom commands at eight hook points in the build process:
+
+| Hook | When it runs |
+|------|-------------|
+| `prepend_base` | Before base stage operations |
+| `append_base` | After base stage operations |
+| `prepend_galaxy` | Before collection download |
+| `append_galaxy` | After collection download |
+| `prepend_builder` | Before dependency builds |
+| `append_builder` | After dependency builds |
+| `prepend_final` | Before final assembly |
+| `append_final` | After final assembly |
+
+Do NOT use `USER` directives in build steps — use `options.user` instead.
+
+### `options`
+
+```yaml
+options:
+  container_init:
+    cmd: ["bash"]
+    entrypoint: ["/opt/builder/bin/entrypoint", "dumb-init"]
+    package_pip: dumb-init==1.2.5
+  package_manager_path: /usr/bin/dnf
+  skip_ansible_check: false
+  skip_pip_install: false
+  relax_passwd_permissions: true
+  workdir: /runner
+  user: 1000
+  tags:
+    - my-ee:latest
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `package_manager_path` | `/usr/bin/dnf` | System package manager (also supports `microdnf`) |
+| `skip_ansible_check` | `false` | Skip validation of ansible/runner installation |
+| `skip_pip_install` | `false` | Skip pip installation into base image |
+| `relax_passwd_permissions` | `true` | Grant GID 0 write to `/etc/passwd` |
+| `workdir` | `/runner` | Working directory in the image |
+| `user` | `1000` | User ID for the image |
+| `tags` | `["ansible-execution-env:latest"]` | Image tags |
+
+## CLI reference
+
+### `ansible-builder build`
+
+Build the container image (generates context + builds):
+
+```bash
+# Basic build
+ansible-builder build
+
+# Custom tag
+ansible-builder build --tag my-org/my-ee:latest
+
+# Multiple tags
+ansible-builder build --tag my-ee:latest --tag my-ee:1.0.0
+
+# Custom definition file
+ansible-builder build --file custom-ee.yml
+
+# Use Docker instead of Podman
+ansible-builder build --container-runtime docker
+
+# Pass build arguments
+ansible-builder build --build-arg HTTP_PROXY=http://proxy:8080
+
+# Prune dangling images after build
+ansible-builder build --prune-images
+
+# Verbose output
+ansible-builder build -v 3
+```
+
+**Options:**
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--tag, -t` | Image name/tag (repeatable) | `ansible-execution-env:latest` |
+| `--file, -f` | EE definition file path | `execution-environment.yml` |
+| `--context, -c` | Build context output directory | `context` |
+| `--container-runtime` | `podman` or `docker` | `podman` |
+| `--build-arg` | Build-time variables (repeatable) | — |
+| `--prune-images` | Remove dangling images after build | `false` |
+| `--squash` | Layer squash: `new`, `all`, `off` (Podman only) | `off` |
+| `--galaxy-keyring` | GPG keyring for collection signature verification | — |
+| `--container-policy` | Image validation: `ignore_all`, `system`, `signature_required` | — |
+| `--container-keyring` | GPG keyring for container image validation | — |
+| `-v, --verbosity` | Verbosity level (0-3) | `2` |
+
+### `ansible-builder create`
+
+Generate the build context and Containerfile without building:
+
+```bash
+# Generate only
+ansible-builder create
+
+# Inspect the generated Containerfile
+cat context/Containerfile
+```
+
+Useful for:
+- Reviewing what Builder will do before building
+- Generating artifacts to build on a different platform (CI/CD)
+- Customizing the Containerfile manually before building
+
+### `ansible-builder introspect`
+
+Inspect installed collections and report their dependencies:
+
+```bash
+# Introspect default collections path
+ansible-builder introspect /usr/share/ansible/collections
+
+# Clean and deduplicate output
+ansible-builder introspect --sanitize /path/to/collections
+
+# Write combined requirements to files
+ansible-builder introspect --sanitize \
+  --write-pip requirements.txt \
+  --write-bindep bindep.txt \
+  /path/to/collections
+
+# Merge with user requirements
+ansible-builder introspect --sanitize \
+  --user-pip my-requirements.txt \
+  --user-bindep my-bindep.txt \
+  /path/to/collections
+```
+
+This is primarily useful for collection authors to verify their declared dependencies.
+
+## Collection-level dependencies
+
+Collections declare their dependencies in `meta/execution-environment.yml`:
+
+```yaml
+# meta/execution-environment.yml
+dependencies:
+  python: requirements.txt
+  system: bindep.txt
+```
+
+Or directly via files in the collection root:
+- `requirements.txt` — Python dependencies
+- `bindep.txt` — System dependencies
+
+Builder automatically discovers and merges these during the Galaxy and Builder stages.
+
+## Container runtime integration
+
+| Feature | Podman | Docker |
+|---------|--------|--------|
+| Default runtime | Yes | No (use `--container-runtime docker`) |
+| Build file name | `Containerfile` | `Dockerfile` |
+| Image signature verification | Yes (`--container-policy`) | Not supported |
+| Layer squashing | Yes (`new`, `all`, `off`) | Not supported |
+| Build args | Yes | Yes |
+| Multi-tag support | Yes | Yes |
+
+### Image signature verification (Podman only)
+
+```bash
+ansible-builder build \
+  --container-policy signature_required \
+  --container-keyring /path/to/keyring.gpg
+```
+
+Policies:
+- `ignore_all` — No signature checks
+- `system` — Use system-level `policy.json`
+- `signature_required` — All referenced images must have valid signatures
+
+## Using the community-ansible-dev-tools image as a base
+
+The ADT container image works as an EE base with all tools pre-installed:
+
+```yaml
+---
+version: 3
+images:
+  base_image:
+    name: ghcr.io/ansible/community-ansible-dev-tools:latest
+dependencies:
+  galaxy: requirements.yml
+  python: requirements.txt
+options:
+  package_manager_path: /usr/bin/dnf5
+```
+
+## Editor integration
+
+The VS Code extension integrates with ansible-builder through:
+
+- **ansible-creator** scaffolding of EE projects (generating `execution-environment.yml` with CI/CD workflows)
+- **ansible-navigator's `:builder`** subcommand for building EEs from within the navigator TUI
+- **Image introspection** to display EE contents (collections, packages, versions) in the extension's views
+
+## Migrating from v1/v2
+
+Versions 1 and 2 of the definition schema are deprecated (as of ansible-builder 3.2) and will be removed in 3.3. Key migration steps:
+
+1. Set `version: 3`
+2. Move `build_arg_defaults.EE_BASE_IMAGE` to `images.base_image.name`
+3. Remove `build_arg_defaults.EE_BUILDER_IMAGE` (no longer needed)
+4. Update `additional_build_steps` keys from `prepend`/`append` to stage-specific hooks
+
+## Next steps
+
+Your execution environment is built. Secure it for production:
+
+- [Run playbooks in your new EE with ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/) — use the image you just built
+- [Sign your project with ansible-sign](/vscode-ansible/python-tools/ansible-sign/) — protect the content from tampering before deploying to Automation Platform
+
+## Links
+
+- [PyPI: ansible-builder](https://pypi.org/project/ansible-builder/)
+- [GitHub: ansible/ansible-builder](https://github.com/ansible/ansible-builder)

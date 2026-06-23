@@ -1,0 +1,167 @@
+---
+title: "ansible-dev-environment: Reference"
+description: Complete CLI reference for all ade subcommands and options.
+---
+
+This page provides exhaustive reference material for ansible-dev-environment. For an introduction and typical usage, see the [ansible-dev-environment guide](/vscode-ansible/python-tools/ansible-dev-environment/).
+
+## Global options
+
+These options apply to all `ade` subcommands:
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--ansi` | | Enable colored output | `true` |
+| `--no-ansi` | | Disable colored output | — |
+| `--lf <path>` | | Log file path | — |
+| `--ll <level>` | | Log level: `notset`, `debug`, `info`, `warning`, `error`, `critical` | `notset` |
+| `--la <true\|false>` | | Append to log file | `true` |
+| `--uv` | | Use uv package manager if available | `true` |
+| `--no-uv` | | Disable uv usage | — |
+| `--verbose` | `-v` | Verbose output | — |
+| `--version` | `-V` | Show version and exit | — |
+| `--help` | `-h` | Show help and exit | — |
+
+## `ade install`
+
+Install a collection and its dependencies into a virtual environment.
+
+```text
+ade install [options] [collection_specifier]
+```
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--venv <path>` | | Target virtual environment directory | `.venv` |
+| `--editable` | `-e` | Install in editable mode (symlink) | — |
+| `--requirement <file>` | `-r` | Install from requirements file | — |
+| `--python <version>` | `-p` | Python interpreter (version number, name, or full path) | System default |
+| `--seed` | | Install `ansible-dev-tools` into venv | `true` |
+| `--no-seed` | | Skip `ansible-dev-tools` installation | — |
+| `--isolation-mode <mode>` | `--im` | Isolation mode: `cfg`, `restrictive`, `none` | `cfg` |
+| `--acv <constraint>` | | Ansible core version constraint (pip format) | — |
+| `--uv` | | Use uv for package operations | `true` |
+| `--no-uv` | | Disable uv | — |
+| `--cpi` | | Collection path isolation | — |
+| `--ssp` | | Enable system site packages | — |
+
+### Collection specifier format
+
+```bash
+# Current directory
+ade install -e .
+
+# Current directory with test extras
+ade install -e .[test]
+
+# Specific collection by FQCN
+ade install namespace.name
+
+# From requirements file
+ade install -r requirements.yml
+```
+
+### Isolation modes
+
+| Mode | Behavior |
+|------|----------|
+| `cfg` | Creates/updates `ansible.cfg` with `collections_path = .` in the current directory |
+| `restrictive` | Exits with error if collections exist in `~/.ansible/collections` or `/usr/share/ansible/collections` |
+| `none` | No collection path isolation |
+
+### Dependency resolution
+
+When installing a collection, `ade install` processes these files if present:
+
+| File | Purpose | When processed |
+|------|---------|----------------|
+| `requirements.txt` | Python runtime dependencies | Always |
+| `test-requirements.txt` | Python test/dev dependencies | With `[test]` extra |
+| `requirements.yml` | Collection dependencies | Always (via `ansible-galaxy`) |
+| `galaxy.yml` | Collection metadata and version | Always |
+
+## `ade uninstall`
+
+Remove a collection from the virtual environment.
+
+```text
+ade uninstall <namespace.name> [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment | `.venv` |
+
+## `ade list`
+
+List installed collections.
+
+```text
+ade list [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment | `.venv` |
+
+## `ade inspect`
+
+Inspect installed collections with detailed metadata.
+
+```text
+ade inspect [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment | `.venv` |
+
+## `ade check`
+
+Check installed collections for issues (missing dependencies, version conflicts).
+
+```text
+ade check [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment | `.venv` |
+
+## `ade tree`
+
+Display the dependency tree for installed collections.
+
+```text
+ade tree [options]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment | `.venv` |
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `SKIP_UV` | Set to `1` to disable uv acceleration |
+
+## How editable installs work
+
+When `ade install -e .` is used:
+
+1. ADE reads `galaxy.yml` to determine the collection namespace and name
+2. Creates the virtual environment (with uv if available)
+3. Installs `ansible-dev-tools` (unless `--no-seed`)
+4. Runs `ansible-galaxy collection build` to generate the collection tarball
+5. Runs `ansible-galaxy collection install` for collection dependencies from `requirements.yml`
+6. Creates a symlink from `<venv>/lib/python<ver>/site-packages/ansible_collections/<namespace>/<name>` to the source directory
+7. Installs Python dependencies from `requirements.txt`
+8. Installs test dependencies from `test-requirements.txt` (if `[test]` extra specified)
+
+The symlink means your source edits are immediately visible to:
+- `ansible-playbook` and `ansible` commands
+- `pytest` test runners
+- `ansible-lint`
+- `molecule`
+- Any tool using the venv's Python

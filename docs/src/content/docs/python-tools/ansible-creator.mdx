@@ -1,12 +1,289 @@
 ---
 title: ansible-creator
-description: Scaffolding tool for generating Ansible collections, roles, playbook projects, and more.
+description: Scaffolding tool for generating Ansible collections, playbook projects, roles, plugins, and execution environments.
 ---
 
-ansible-creator generates scaffolding for Ansible content -- collections, roles, playbook projects, devfiles, execution environment definitions, and more. The VS Code extension integrates ansible-creator through dynamically generated forms driven by the CLI's schema.
+ansible-creator generates project scaffolding for Ansible content — collections, playbook projects, roles, plugins, execution environment definitions, devcontainers, and devfiles. It encodes community leading practices into templates so that new projects start with CI/CD, testing, linting, and proper directory structures out of the box.
 
-- [Documentation](https://ansible.readthedocs.io/projects/creator/)
-- [PyPI](https://pypi.org/project/ansible-creator/)
-- [GitHub](https://github.com/ansible/ansible-creator)
+The VS Code extension integrates ansible-creator through dynamically generated forms driven by the CLI's schema, making scaffolding accessible without memorizing CLI flags.
 
-Content coming soon. This page will cover how ansible-creator powers the scaffolding experience in the editor.
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-creator
+```
+
+Verify installation:
+
+```bash
+ansible-creator --version
+```
+
+## Core concepts
+
+### Project types
+
+ansible-creator can scaffold three types of projects:
+
+| Type | Command | What it creates |
+|------|---------|-----------------|
+| **Collection** | `ansible-creator init collection` | Full Ansible collection with plugins, roles, tests, molecule scenarios, CI, devcontainer |
+| **Playbook** | `ansible-creator init playbook` | Playbook project with inventory, playbooks, a playbook-adjacent collection, and CI |
+| **Execution Environment** | `ansible-creator init execution_env` | EE definition file with CI/CD workflow |
+
+### Resources and plugins
+
+Beyond full projects, ansible-creator can add individual components to existing projects:
+
+| Command | What it adds |
+|---------|--------------|
+| `ansible-creator add resource devcontainer` | `.devcontainer/` directory with Docker and Podman variants |
+| `ansible-creator add resource devfile` | `devfile.yaml` |
+| `ansible-creator add resource execution-environment` | Sample `execution-environment.yml` |
+| `ansible-creator add resource role` | Role scaffold to an existing collection |
+| `ansible-creator add resource play-argspec` | Playbook argspec examples |
+| `ansible-creator add resource ee-ci` | CI files (GitHub Actions or GitLab CI) |
+| `ansible-creator add plugin module` | Module plugin scaffold |
+| `ansible-creator add plugin filter` | Filter plugin scaffold |
+| `ansible-creator add plugin action` | Action plugin scaffold |
+| `ansible-creator add plugin lookup` | Lookup plugin scaffold |
+| `ansible-creator add plugin test` | Test plugin scaffold |
+
+## CLI reference
+
+### `ansible-creator init collection`
+
+Create a new Ansible collection with full project structure.
+
+```bash
+ansible-creator init collection mynamespace.mycollection /path/to/output
+```
+
+This generates approximately 100 files including:
+
+- `galaxy.yml`, `README.md`, `LICENSE`, `CHANGELOG.rst`
+- `plugins/` with directories for modules, filters, actions, lookups, tests, and utilities
+- Sample plugins (`sample_module.py`, `sample_filter.py`, etc.)
+- `roles/run/` with the standard role directory structure
+- `tests/` with integration tests and unit test placeholders
+- `extensions/molecule/` with integration test scenarios
+- `.devcontainer/` with Docker and Podman configurations
+- `.github/workflows/` with release and test workflows
+- `.vscode/extensions.json` recommending the Ansible extension
+- `pyproject.toml`, `.pre-commit-config.yaml`
+
+**Options:**
+
+| Flag | Description |
+|------|-------------|
+| `-o, --overwrite` | Overwrite existing files |
+| `-no, --no-overwrite` | Prevent overwriting |
+| `--json` | JSON output mode |
+| `-v, --verbosity` | Verbosity level (0-3, additive) |
+| `--log-file` | Log file path |
+| `--log-level` | Log level |
+
+### `ansible-creator init playbook`
+
+Create a new playbook project.
+
+```bash
+ansible-creator init playbook mynamespace.myproject /path/to/output
+```
+
+Generates:
+
+- `ansible.cfg`, `ansible-navigator.yml`
+- `site.yml`, `linux_playbook.yml`, `network_playbook.yml`
+- `inventory/` with `hosts.yml`, `group_vars/`, `host_vars/`
+- `collections/` with an embedded playbook-adjacent collection
+- `.devcontainer/`, `.github/workflows/`, `.vscode/extensions.json`
+- `devfile.yaml`
+
+### `ansible-creator init execution_env`
+
+Create an execution environment project.
+
+```bash
+ansible-creator init execution_env /path/to/output
+```
+
+Generates:
+
+- `execution-environment.yml`
+- `.github/workflows/ee-build.yml` (or `.gitlab-ci.yml`)
+- `.gitignore`, `README.md`
+
+**EE-specific options:**
+
+| Flag | Description |
+|------|-------------|
+| `--ee-base-image <image>` | Base container image |
+| `--ee-collections <fqcn[:version]>` | Collections to include (repeatable) |
+| `--ee-python-deps <pkg>` | Python dependencies (repeatable) |
+| `--ee-system-packages <pkg>` | System packages (repeatable) |
+| `--ee-config '<json>'` | Inline JSON configuration |
+| `--ee-config-file <path>` | YAML/JSON config file path |
+| `--scm-provider <github\|gitlab>` | CI provider (default: `github`) |
+
+### `ansible-creator add resource`
+
+Add a resource to an existing project.
+
+```bash
+# Add a devcontainer with upstream image
+ansible-creator add resource devcontainer /path/to/project --image upstream
+
+# Add a role to a collection
+ansible-creator add resource role my_role /path/to/collection
+
+# Add CI for an EE project targeting GitLab
+ansible-creator add resource ee-ci /path/to/project --scm-provider gitlab
+```
+
+The `--image` flag for devcontainer accepts: `auto`, `upstream` (community image), or `aap` (Red Hat subscription image).
+
+### `ansible-creator add plugin`
+
+Add a plugin to an existing collection.
+
+```bash
+# Add a module plugin
+ansible-creator add plugin module my_module /path/to/collection
+
+# Add a filter plugin
+ansible-creator add plugin filter my_filter /path/to/collection
+```
+
+Plugin types: `action`, `filter`, `lookup`, `module`, `test`
+
+## Execution environment configuration
+
+The `init execution_env` command supports rich configuration for EE projects through three input methods (combinable):
+
+### CLI flags
+
+```bash
+ansible-creator init execution_env /path/to/output \
+  --ee-base-image docker.io/redhat/ubi9:latest \
+  --ee-collections community.general \
+  --ee-collections ansible.utils:3.0.0 \
+  --ee-python-deps boto3 \
+  --ee-system-packages gcc
+```
+
+### Inline JSON
+
+```bash
+ansible-creator init execution_env /path/to/output \
+  --ee-config '{"base_image": "docker.io/redhat/ubi9:latest", "collections": [{"name": "community.general"}]}'
+```
+
+### Config file
+
+```bash
+ansible-creator init execution_env /path/to/output \
+  --ee-config-file ee-config.yml
+```
+
+Example `ee-config.yml`:
+
+```yaml
+name: my-custom-ee
+base_image: docker.io/redhat/ubi9:latest
+collections:
+  - name: community.general
+    version: "8.0.0"
+  - name: ansible.utils
+    source: https://galaxy.ansible.com
+galaxy_servers:
+  - id: automation_hub
+    url: https://console.redhat.com/api/automation-hub/
+    token_required: true
+    validate_certs: true
+scm_servers:
+  - id: github
+    hostname: github.com
+    token_env_var: GITHUB_TOKEN
+python_deps:
+  - boto3
+  - requests>=2.28
+system_packages:
+  - gcc
+  - python3-devel
+options:
+  package_manager_path: /usr/bin/dnf5
+additional_build_steps:
+  append_final:
+    - RUN echo "Custom step"
+```
+
+**Configuration keys:**
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `name` | string | EE name |
+| `base_image` | string | Base container image URL |
+| `collections` | array | Collection entries with `name`, `version`, `type`, `source` |
+| `galaxy_servers` | array | Galaxy server entries with `id`, `url`, `auth_url`, `token_required`, `validate_certs` |
+| `scm_servers` | array | SCM provider entries with `id`, `hostname`, `token_env_var` |
+| `python_deps` | array | Python package dependencies |
+| `system_packages` | array | System packages to install |
+| `options` | object | Build options (e.g., `package_manager_path`) |
+| `additional_build_steps` | object | Custom Dockerfile steps at phases: `prepend_base`, `append_base`, `prepend_galaxy`, `prepend_final`, `append_final` |
+| `additional_build_files` | array | Extra files for build context (`src`, `dest`) |
+| `ee_file_name` | string | Override default `execution-environment.yml` name |
+| `ansible_cfg` | string | Raw `ansible.cfg` content (overrides `galaxy_servers`) |
+
+## VS Code extension integration
+
+The VS Code extension provides a graphical interface to ansible-creator through the **Ansible Development Tools** panel in the activity bar. This integration:
+
+1. **Reads schemas dynamically** from the `adt server` REST API
+2. **Renders interactive forms** for each scaffolding type (collection, playbook, EE, devcontainer, devfile)
+3. **Validates input** before invoking the CLI
+4. **Streams output** to the VS Code output panel
+
+The extension also exposes ansible-creator capabilities through the MCP server, enabling AI agents to scaffold projects programmatically.
+
+### Accessing from VS Code
+
+1. Open the Ansible section in the VS Code activity bar
+2. Navigate to "Ansible Development Tools"
+3. Select the content type to scaffold
+4. Fill in the form fields
+5. Click "Create" to generate the project
+
+### MCP server tools
+
+The MCP server exposes these ansible-creator-powered tools:
+
+- `create_playbook_project` — Scaffold a new playbook project
+- `create_collection` — Scaffold a new collection
+- `create_execution_environment` — Generate an EE definition with schema validation
+
+## Shell completion
+
+Experimental tab completion is available via `argcomplete`:
+
+```bash
+pip install argcomplete --user
+activate-global-python-argcomplete --user
+```
+
+## Next steps
+
+Your project is scaffolded. Now start developing:
+
+- [Set up an isolated environment with ansible-dev-environment](/vscode-ansible/python-tools/ansible-dev-environment/) — install your collection in editable mode for active development
+- [Lint your content with ansible-lint](/vscode-ansible/python-tools/ansible-lint/) — validate against best practices as you write
+- [Test with Molecule](/vscode-ansible/python-tools/molecule/) — the scaffolded project includes Molecule scenarios ready to run
+
+## Links
+
+- [PyPI: ansible-creator](https://pypi.org/project/ansible-creator/)
+- [GitHub: ansible/ansible-creator](https://github.com/ansible/ansible-creator)

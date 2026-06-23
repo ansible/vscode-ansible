@@ -43,9 +43,54 @@ export default defineConfig({
                     label: 'Python Tools',
                     items: [
                         { slug: 'python-tools/overview' },
-                        { slug: 'python-tools/ansible-lint' },
-                        { slug: 'python-tools/ansible-creator' },
-                        { slug: 'python-tools/ansible-navigator' },
+                        { slug: 'python-tools/workflow' },
+                        {
+                            label: 'Scaffold',
+                            items: [
+                                { slug: 'python-tools/ansible-creator' },
+                                {
+                                    slug: 'python-tools/ansible-creator/reference',
+                                    badge: 'Reference',
+                                },
+                                { slug: 'python-tools/ansible-dev-environment' },
+                                {
+                                    slug: 'python-tools/ansible-dev-environment/reference',
+                                    badge: 'Reference',
+                                },
+                            ],
+                        },
+                        {
+                            label: 'Validate',
+                            items: [
+                                { slug: 'python-tools/ansible-lint' },
+                                {
+                                    slug: 'python-tools/ansible-lint/reference',
+                                    badge: 'Reference',
+                                },
+                                { slug: 'python-tools/molecule' },
+                                {
+                                    slug: 'python-tools/molecule/reference',
+                                    badge: 'Reference',
+                                },
+                                { slug: 'python-tools/tox-ansible' },
+                            ],
+                        },
+                        {
+                            label: 'Execute & Ship',
+                            items: [
+                                { slug: 'python-tools/ansible-navigator' },
+                                {
+                                    slug: 'python-tools/ansible-navigator/reference',
+                                    badge: 'Reference',
+                                },
+                                { slug: 'python-tools/ansible-builder' },
+                                {
+                                    slug: 'python-tools/ansible-builder/reference',
+                                    badge: 'Reference',
+                                },
+                                { slug: 'python-tools/ansible-sign' },
+                            ],
+                        },
                     ],
                 },
                 {
