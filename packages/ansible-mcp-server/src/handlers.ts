@@ -18,39 +18,56 @@ import {
 } from "@src/tools/executionEnv.js";
 import { getAgentsGuidelines } from "@src/resources/agents.js";
 
+function findYamlExtension(
+  msg: string,
+): { idx: number; len: number } | undefined {
+  const yamlIdx = msg.indexOf(".yaml");
+  const ymlIdx = msg.indexOf(".yml");
+  if (yamlIdx >= 0 && (ymlIdx < 0 || yamlIdx <= ymlIdx)) {
+    return { idx: yamlIdx, len: 5 };
+  }
+  if (ymlIdx >= 0) {
+    return { idx: ymlIdx, len: 4 };
+  }
+  return undefined;
+}
+
+function scanPathStart(msg: string, endIdx: number): number {
+  let i = endIdx;
+  let code = msg.codePointAt(i - 1);
+  while (i > 0 && code !== undefined && isPathChar(code)) {
+    i--;
+    code = i > 0 ? msg.codePointAt(i - 1) : undefined;
+  }
+  return i;
+}
+
+function isPathChar(code: number): boolean {
+  if (code >= 0x61 && code <= 0x7a) return true; // a-z
+  if (code >= 0x41 && code <= 0x5a) return true; // A-Z
+  if (code >= 0x30 && code <= 0x39) return true; // 0-9
+  return code === 0x5f || code === 0x2d || code === 0x2e || code === 0x2f;
+}
+
+function prependPlaybooks(path: string): string {
+  if (path.startsWith("playbooks/") || path.startsWith("/")) {
+    return path;
+  }
+  return `playbooks/${path}`;
+}
+
 /**
  * Extract a playbook file path from a user message.
  * Returns the resolved path or undefined if none found.
  */
 function extractPlaybookPath(userMessage: string): string | undefined {
-  const yamlIdx = userMessage.indexOf(".yaml");
-  const ymlIdx = userMessage.indexOf(".yml");
-
-  let extIdx = -1;
-  let extLen = 0;
-  if (yamlIdx >= 0 && (ymlIdx < 0 || yamlIdx <= ymlIdx)) {
-    extIdx = yamlIdx;
-    extLen = 5;
-  } else if (ymlIdx >= 0) {
-    extIdx = ymlIdx;
-    extLen = 4;
-  }
-
-  if (extIdx > 0) {
-    let nameStart = extIdx;
-    while (nameStart > 0) {
-      const code = userMessage.codePointAt(nameStart - 1);
-      if (code === undefined || !isPathChar(code)) {
-        break;
-      }
-      nameStart--;
-    }
-    if (nameStart < extIdx) {
-      const fullMatch = userMessage.substring(nameStart, extIdx + extLen);
-      if (!fullMatch.startsWith("playbooks/") && !fullMatch.startsWith("/")) {
-        return `playbooks/${fullMatch}`;
-      }
-      return fullMatch;
+  const ext = findYamlExtension(userMessage);
+  if (ext && ext.idx > 0) {
+    const nameStart = scanPathStart(userMessage, ext.idx);
+    if (nameStart < ext.idx) {
+      return prependPlaybooks(
+        userMessage.substring(nameStart, ext.idx + ext.len),
+      );
     }
   }
 
@@ -60,20 +77,7 @@ function extractPlaybookPath(userMessage: string): string | undefined {
   if (nameMatch) {
     return `playbooks/${nameMatch[1]}.yml`;
   }
-
   return undefined;
-}
-
-function isPathChar(code: number): boolean {
-  return (
-    (code >= 0x30 && code <= 0x39) || // 0-9
-    (code >= 0x41 && code <= 0x5a) || // A-Z
-    (code >= 0x61 && code <= 0x7a) || // a-z
-    code === 0x5f || // _
-    code === 0x2d || // -
-    code === 0x2e || // .
-    code === 0x2f // /
-  );
 }
 
 /**

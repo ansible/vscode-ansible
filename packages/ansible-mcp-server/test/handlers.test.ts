@@ -729,5 +729,11 @@ describe("MCP Handlers", () => {
         "playbooks/site.yaml",
       );
     });
+
+    it("should handle paths with uppercase and digits", () => {
+      expect(extractPlaybookPath("run Setup2Deploy.yml")).toBe(
+        "playbooks/Setup2Deploy.yml",
+      );
+    });
   });
 });
