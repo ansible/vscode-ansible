@@ -101,6 +101,42 @@ function compareVersions(current: string, required: string): boolean {
 }
 
 /**
+ * Verify a single dependency's version meets the minimum requirement.
+ */
+async function checkDependencyVersion(dep: Dependency): Promise<{
+  dependency: Dependency;
+  currentVersion: string;
+  requiredVersion: string;
+} | null> {
+  if (!dep.minVersion || !dep.versionCommand) {
+    return null;
+  }
+
+  const currentVersion = await getCommandVersion(
+    dep.versionCommand,
+    dep.versionParser,
+  );
+
+  if (!currentVersion) {
+    return {
+      dependency: dep,
+      currentVersion: "unknown (command failed)",
+      requiredVersion: dep.minVersion,
+    };
+  }
+
+  if (!compareVersions(currentVersion, dep.minVersion)) {
+    return {
+      dependency: dep,
+      currentVersion,
+      requiredVersion: dep.minVersion,
+    };
+  }
+
+  return null;
+}
+
+/**
  * Check if all dependencies are satisfied (including versions)
  */
 export async function checkDependencies(
@@ -128,30 +164,9 @@ export async function checkDependencies(
       continue;
     }
 
-    // Check version if required
-    if (dep.minVersion && dep.versionCommand) {
-      const currentVersion = await getCommandVersion(
-        dep.versionCommand,
-        dep.versionParser,
-      );
-
-      if (currentVersion) {
-        if (!compareVersions(currentVersion, dep.minVersion)) {
-          versionMismatches.push({
-            dependency: dep,
-            currentVersion,
-            requiredVersion: dep.minVersion,
-          });
-        }
-      } else {
-        // If we can't get the version, treat it as a mismatch
-        // This handles broken installations or version command failures
-        versionMismatches.push({
-          dependency: dep,
-          currentVersion: "unknown (command failed)",
-          requiredVersion: dep.minVersion,
-        });
-      }
+    const mismatch = await checkDependencyVersion(dep);
+    if (mismatch) {
+      versionMismatches.push(mismatch);
     }
   }
 
@@ -160,6 +175,32 @@ export async function checkDependencies(
     missingDependencies: missing,
     versionMismatches,
   };
+}
+
+function formatMissingDeps(deps: Dependency[]): string {
+  return deps
+    .map((dep) => {
+      const desc = dep.description ? ` (${dep.description})` : "";
+      return `  - ${dep.name}${desc}\n    Install: ${dep.installCommand}`;
+    })
+    .join("\n\n");
+}
+
+function formatVersionMismatches(
+  mismatches: Array<{
+    dependency: Dependency;
+    currentVersion: string;
+    requiredVersion: string;
+  }>,
+): string {
+  return mismatches
+    .map((vm) => {
+      const desc = vm.dependency.description
+        ? ` (${vm.dependency.description})`
+        : "";
+      return `  - ${vm.dependency.name}${desc}\n    Current version: ${vm.currentVersion}\n    Required version: ${vm.requiredVersion} or higher\n    Update: ${vm.dependency.installCommand}`;
+    })
+    .join("\n\n");
 }
 
 /**
@@ -178,35 +219,16 @@ export function formatDependencyError(
 
   if (missingDeps.length > 0) {
     errorMessage += " because required dependencies are missing:\n\n";
-    const depList = missingDeps
-      .map((dep) => {
-        const desc = dep.description ? ` (${dep.description})` : "";
-        return `  - ${dep.name}${desc}\n    Install: ${dep.installCommand}`;
-      })
-      .join("\n\n");
-    errorMessage += depList;
+    errorMessage += formatMissingDeps(missingDeps);
   }
 
   if (versionMismatches && versionMismatches.length > 0) {
     if (missingDeps.length > 0) {
-      errorMessage += "\n\n";
+      errorMessage += "\n\nAdditionally, version requirements are not met:\n\n";
     } else {
       errorMessage += " because version requirements are not met:\n\n";
     }
-
-    const versionList = versionMismatches
-      .map((vm) => {
-        const desc = vm.dependency.description
-          ? ` (${vm.dependency.description})`
-          : "";
-        return `  - ${vm.dependency.name}${desc}\n    Current version: ${vm.currentVersion}\n    Required version: ${vm.requiredVersion} or higher\n    Update: ${vm.dependency.installCommand}`;
-      })
-      .join("\n\n");
-
-    if (missingDeps.length > 0) {
-      errorMessage += "Additionally, version requirements are not met:\n\n";
-    }
-    errorMessage += versionList;
+    errorMessage += formatVersionMismatches(versionMismatches);
   }
 
   errorMessage +=
@@ -285,3 +307,6 @@ export const COMMON_DEPENDENCIES = {
     },
   },
 };
+
+/** @internal Exposed only for unit tests; not part of the public API. */
+export const _testing = { checkDependencyVersion };

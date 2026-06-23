@@ -1282,6 +1282,60 @@ describe("ADE Tools", () => {
       expect(result.output).toContain("Package Manager: custom-pkg");
       expect(result.output).toContain("sudo custom-pkg install");
     });
+
+    it("should reject collection names with shell metacharacters", async () => {
+      vi.mocked(spawn).mockImplementation(() => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      await expect(
+        setupDevelopmentEnvironment("/test/workspace", {
+          collections: ["foo; rm -rf /"],
+        }),
+      ).rejects.toThrow("Invalid collection name");
+    });
+
+    it("should accept collection names with version specifiers", async () => {
+      vi.mocked(spawn).mockImplementation((command) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              setTimeout(() => callback(0), 10);
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+
+        if (command === "ansible-galaxy") {
+          mockChild.stdout.on = vi.fn((event, callback) => {
+            if (event === "data") {
+              setTimeout(() => callback("Collection installed"), 5);
+            }
+          });
+        }
+
+        return mockChild;
+      });
+
+      const result = await setupDevelopmentEnvironment("/test/workspace", {
+        collections: ["community.general:>=2.0.0"],
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.output).toContain("Collections installed successfully");
+    });
   });
 
   describe("checkAndInstallADT", () => {
@@ -1712,7 +1766,7 @@ describe("ADE Tools", () => {
       const calls = vi.mocked(spawn).mock.calls;
       expect(calls.length).toBeGreaterThan(0);
       const cmd = calls[0][0];
-      expect(cmd.match("bash.*source /test/venv/bin/activate"));
+      expect(cmd).toMatch(/bash.*source \/test\/venv\/bin\/activate/);
     });
   });
 
