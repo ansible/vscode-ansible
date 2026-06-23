@@ -314,7 +314,7 @@ jobs:
         if: contains(matrix.name, 'wsl')
         uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
-          distribution: Ubuntu-26.04
+          distribution: Ubuntu-24.04 # Ubuntu-26.04 not supported yet
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
