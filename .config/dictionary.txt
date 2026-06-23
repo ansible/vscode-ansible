@@ -70,8 +70,14 @@ keytar
 knip
 lcovonly
 lextudio
+libasound
+libatk
 libgbm
+libnspr
+libnss
 libonig
+libxkbcommon
+libxshmfence
 libyaml
 lightspeed
 lineinfile
@@ -124,3 +130,4 @@ watsonx
 wdio
 whereis
 xunit
+zstd
