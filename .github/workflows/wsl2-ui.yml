@@ -49,10 +49,10 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -93,7 +93,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # ── WSL2 Fedora setup ─────────────────────────────────────────
       - name: Enable WSL2
@@ -106,7 +106,7 @@ jobs:
 
       - name: Cache WSL distro image
         id: wsl-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: C:\wsl-cache
           key: wsl-fedora-44-base-v1
@@ -192,7 +192,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # ── WSL2 Fedora setup ─────────────────────────────────────────
       - name: Enable WSL2
@@ -205,7 +205,7 @@ jobs:
 
       - name: Cache WSL distro image
         id: wsl-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: C:\wsl-cache
           key: wsl-fedora-44-base-v1
