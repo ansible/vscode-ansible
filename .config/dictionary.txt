@@ -33,6 +33,7 @@ RHSSO
 Rhcustom
 SSOT
 Towncrier
+Vitest
 WDIO
 WSLENV
 Wdio
