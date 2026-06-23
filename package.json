@@ -33,6 +33,15 @@
     "redhat.vscode-yaml"
   ],
   "contributes": {
+    "icons": {
+      "ansible-logo": {
+        "description": "Ansible logo icon for status bar",
+        "default": {
+          "fontPath": "resources/fonts/ansible-icons.woff2",
+          "fontCharacter": "\\F101"
+        }
+      }
+    },
     "languages": [
       {
         "aliases": [
@@ -587,6 +596,16 @@
         "title": "Show LLM Status",
         "category": "Ansible Environments",
         "icon": "$(info)"
+      },
+      {
+        "command": "ansible.statusBar.pythonClick",
+        "title": "Python Environment Details",
+        "category": "Ansible"
+      },
+      {
+        "command": "ansible.statusBar.ansibleClick",
+        "title": "Ansible Environment Details",
+        "category": "Ansible"
       },
       {
         "command": "ansible.lightspeed.oauth",

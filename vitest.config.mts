@@ -58,7 +58,12 @@ export default defineConfig({
             project('ui', 'packages/ui', ['test/**/*.test.ts']),
             project('lightspeed', 'packages/lightspeed', ['test/**/*.test.ts']),
             {
-                resolve: sharedResolve,
+                resolve: {
+                    alias: {
+                        ...sharedResolve.alias,
+                        '@src': resolve(ROOT, 'src'),
+                    },
+                },
                 test: {
                     name: 'ext',
                     include: ['test/unit/**/*.test.ts'],

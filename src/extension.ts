@@ -67,6 +67,8 @@ import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
+import { PythonStatusBar } from '@src/statusBar/pythonStatusBar';
+import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible Environments');
@@ -296,6 +298,31 @@ export function activate(context: vscode.ExtensionContext) {
     const pythonEnvService = PythonEnvironmentService.getInstance();
     context.subscriptions.push(pythonEnvService);
 
+    // Status bar items — Python env + Ansible version, visible on ansible files
+    const pythonStatusBar = new PythonStatusBar(context, pythonEnvService);
+    const ansibleStatusBar = new AnsibleStatusBar(context, languageClient);
+    context.subscriptions.push(pythonStatusBar, ansibleStatusBar);
+
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(() => {
+            void pythonStatusBar.update();
+            ansibleStatusBar.update();
+        }),
+        vscode.workspace.onDidOpenTextDocument(() => {
+            void pythonStatusBar.update();
+            ansibleStatusBar.update();
+        }),
+        vscode.workspace.onDidChangeConfiguration((e) => {
+            if (
+                e.affectsConfiguration('ansible') ||
+                e.affectsConfiguration('ansibleEnvironments')
+            ) {
+                void pythonStatusBar.update();
+                ansibleStatusBar.forceRefresh();
+            }
+        }),
+    );
+
     // Wire terminal service to Python environment service
     const terminalService = TerminalService.getInstance();
     terminalService.setPythonEnvService(pythonEnvService);
@@ -369,6 +396,7 @@ export function activate(context: vscode.ExtensionContext) {
                 cacheDebounce = setTimeout(() => {
                     cacheDebounce = undefined;
                     void refreshCache();
+                    ansibleStatusBar.forceRefresh();
                 }, 1000);
             });
             context.subscriptions.push(envCacheListener);
