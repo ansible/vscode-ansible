@@ -11,8 +11,22 @@ comment:
   after_n_builds: 3
 coverage:
   status:
-    patch: false
-    project: true
+    # Project coverage fluctuates across linux/macos/wsl uploads and on
+    # indirect changes to unrelated lines; relax this check so minor
+    # fluctuations do not block merges.
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+    # Enforce coverage only on lines changed in the pull request.
+    patch:
+      default:
+        target: auto
+        threshold: 0%
+    # Indirect coverage changes on untouched lines are noisy in multi-OS CI.
+    changes:
+      default:
+        enabled: false
 github_checks:
   annotations: true
 ignore:
