@@ -69,6 +69,20 @@ describe('CreatorToolGenerator', () => {
         expect(tools[0].description).toContain('ansible-creator init playbook');
     });
 
+    it('all creator tools have destructive annotations', async () => {
+        const gen = new CreatorToolGenerator();
+        await gen.initialize();
+
+        for (const tool of gen.getTools()) {
+            const ann = tool.annotations;
+            expect(ann, `annotations missing on ${tool.name}`).toBeDefined();
+            if (ann) {
+                expect(ann.destructiveHint).toBe(true);
+                expect(ann.readOnlyHint).toBe(false);
+            }
+        }
+    });
+
     it('getTools() returns generated tool definitions with inputSchema', async () => {
         const gen = new CreatorToolGenerator();
         await gen.initialize();
@@ -104,14 +118,16 @@ describe('CreatorToolGenerator', () => {
         expect(gen.getTools()).toEqual([]);
     });
 
-    it('handleTool returns error for unknown ac_ tool', async () => {
+    it('handleTool returns structured NOT_FOUND for unknown ac_ tool', async () => {
         const gen = new CreatorToolGenerator();
         await gen.initialize();
 
         const result = await gen.handleTool('ac_unknown_leaf', {});
 
         expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain('Unknown creator tool');
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.code).toBe('NOT_FOUND');
+        expect(parsed.message).toContain('Unknown creator tool');
     });
 
     it('handleTool routes to CreatorService.runCommand with path and merged params', async () => {
@@ -249,7 +265,7 @@ describe('CreatorToolGenerator', () => {
         expect(tool.inputSchema.properties).toMatchObject({
             dry_run: { type: 'boolean', description: 'Dry run' },
             format: { type: 'string', enum: ['json', 'yaml'] },
-            count: { type: 'string', default: 1 },
+            count: { type: 'integer', default: 1 },
         });
     });
 });

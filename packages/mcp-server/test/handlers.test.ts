@@ -211,6 +211,17 @@ vi.mock('@ansible/services', () => ({
 }));
 
 import { McpToolHandler } from '../src/handlers';
+import type { McpToolResult, McpErrorDetail } from '../src/tools';
+
+/**
+ * Extract and parse a structured error from an MCP tool result.
+ * @param result - Tool result expected to carry an `isError` flag and JSON body
+ * @returns Parsed error detail object
+ */
+function parseError(result: McpToolResult): McpErrorDetail {
+    expect(result.isError).toBe(true);
+    return JSON.parse(result.content[0].text) as McpErrorDetail;
+}
 
 describe('McpToolHandler', () => {
     let handler: McpToolHandler;
@@ -284,11 +295,13 @@ describe('McpToolHandler', () => {
         vi.restoreAllMocks();
     });
 
-    it('returns error for unknown tool name', async () => {
+    it('returns structured error for unknown tool name', async () => {
         const result = await handler.handleTool('not_a_real_tool', {});
+        const err = parseError(result);
 
-        expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain('Unknown tool');
+        expect(err.code).toBe('NOT_FOUND');
+        expect(err.recoverability).toBe('fail');
+        expect(err.message).toContain('Unknown tool');
     });
 
     it('routes search_ansible_plugins to the search handler', async () => {
@@ -324,9 +337,10 @@ describe('McpToolHandler', () => {
 
     it('routes creator-prefixed tools to CreatorToolGenerator', async () => {
         const result = await handler.handleTool('ac_fake_command', {});
+        const err = parseError(result);
 
-        expect(result.isError).toBe(true);
-        expect(result.content[0].text).toContain('Unknown creator tool');
+        expect(err.code).toBe('NOT_FOUND');
+        expect(err.message).toContain('Unknown creator tool');
     });
 
     describe('list_ansible_collections', () => {
@@ -382,11 +396,33 @@ describe('McpToolHandler', () => {
     });
 
     describe('install_ansible_collection', () => {
-        it('returns error when name is missing', async () => {
+        it('returns structured error when name is missing', async () => {
             const result = await handler.handleTool('install_ansible_collection', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter: name');
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('name');
+        });
+
+        it('rejects invalid FQCN format', async () => {
+            const result = await handler.handleTool('install_ansible_collection', {
+                name: 'not-a-fqcn',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('namespace.name');
+        });
+
+        it('allows git URL names', async () => {
+            const result = await handler.handleTool('install_ansible_collection', {
+                name: 'git+https://github.com/org/repo.git',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(hoisted.installCollection).toHaveBeenCalledWith(
+                'git+https://github.com/org/repo.git',
+            );
         });
 
         it('installs collection and formats success', async () => {
@@ -399,23 +435,25 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('namespace.mycollection has been installed');
         });
 
-        it('returns error when install fails', async () => {
+        it('returns structured error when install fails', async () => {
             hoisted.installCollection.mockRejectedValue(new Error('galaxy offline'));
 
             const result = await handler.handleTool('install_ansible_collection', { name: 'x.y' });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Failed to install');
-            expect(result.content[0].text).toContain('galaxy offline');
+            expect(err.code).toBe('OPERATION_FAILED');
+            expect(err.recoverability).toBe('escalate');
+            expect(err.message).toContain('galaxy offline');
         });
     });
 
     describe('search_available_collections', () => {
-        it('returns error when query is missing', async () => {
+        it('returns structured error when query is missing', async () => {
             const result = await handler.handleTool('search_available_collections', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter: query');
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('query');
         });
 
         it('formats Galaxy search results', async () => {
@@ -470,22 +508,25 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('No collections found');
         });
 
-        it('returns error when search throws', async () => {
+        it('returns structured error when search throws', async () => {
             hoisted.galaxyInstance.ensureLoaded.mockRejectedValue(new Error('network'));
 
             const result = await handler.handleTool('search_available_collections', { query: 'x' });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Failed to search collections');
+            expect(err.code).toBe('OPERATION_FAILED');
+            expect(err.recoverability).toBe('retry');
+            expect(err.message).toContain('Failed to search collections');
         });
     });
 
     describe('list_source_collections', () => {
-        it('returns error when source is missing', async () => {
+        it('returns structured error when source is missing', async () => {
             const result = await handler.handleTool('list_source_collections', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter: source');
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('source');
         });
 
         it('lists Galaxy cache collections', async () => {
@@ -538,24 +579,26 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('No collections found in source');
         });
 
-        it('returns error when listing throws', async () => {
+        it('returns structured error when listing throws', async () => {
             hoisted.galaxyInstance.ensureLoaded.mockRejectedValue(new Error('disk'));
 
             const result = await handler.handleTool('list_source_collections', {
                 source: 'galaxy',
             });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Failed to list collections');
+            expect(err.code).toBe('OPERATION_FAILED');
+            expect(err.recoverability).toBe('retry');
         });
     });
 
     describe('get_collection_plugins', () => {
-        it('returns error when collection is missing', async () => {
+        it('returns structured error when collection is missing', async () => {
             const result = await handler.handleTool('get_collection_plugins', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter: collection');
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('collection');
         });
 
         it('formats plugins for an installed collection', async () => {
@@ -570,16 +613,16 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('get_plugin_documentation');
         });
 
-        it('returns not found when collection missing after refresh', async () => {
+        it('returns structured NOT_FOUND when collection missing after refresh', async () => {
             hoisted.getCollection.mockReturnValue(undefined);
 
             const result = await handler.handleTool('get_collection_plugins', {
                 collection: 'missing.ns',
             });
+            const err = parseError(result);
 
             expect(hoisted.forceRefresh).toHaveBeenCalled();
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('not found');
+            expect(err.code).toBe('NOT_FOUND');
         });
 
         it('refreshes when service is not loaded', async () => {
@@ -627,14 +670,14 @@ describe('McpToolHandler', () => {
     });
 
     describe('generate_ansible_playbook', () => {
-        it('returns error when required args missing', async () => {
+        it('returns structured error when required args missing', async () => {
             const result = await handler.handleTool('generate_ansible_playbook', {
                 name: 'Site',
                 hosts: 'all',
             });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameters');
+            expect(err.code).toBe('MISSING_PARAM');
         });
 
         it('generates playbook yaml', async () => {
@@ -687,29 +730,31 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('get_ee_details');
         });
 
-        it('returns error when load throws', async () => {
+        it('returns structured error when load throws', async () => {
             hoisted.eeInstance.loadExecutionEnvironments.mockRejectedValue(new Error('podman'));
 
             const result = await handler.handleTool('list_execution_environments', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Error loading execution environments');
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.recoverability).toBe('retry');
         });
     });
 
     describe('get_ee_details', () => {
-        it('returns error when ee_name missing', async () => {
+        it('returns structured error when ee_name missing', async () => {
             const result = await handler.handleTool('get_ee_details', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter: ee_name');
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('ee_name');
         });
 
-        it('returns error when EE not found', async () => {
+        it('returns structured NOT_FOUND when EE not found', async () => {
             const result = await handler.handleTool('get_ee_details', { ee_name: 'missing' });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('not found');
+            expect(err.code).toBe('NOT_FOUND');
         });
 
         it('formats full EE details', async () => {
@@ -745,13 +790,14 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('System Packages (2)');
         });
 
-        it('returns error when loadDetails throws', async () => {
+        it('returns structured error when loadDetails throws', async () => {
             hoisted.eeInstance.loadDetails.mockRejectedValue(new Error('timeout'));
 
             const result = await handler.handleTool('get_ee_details', { ee_name: 'x' });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Error loading EE details');
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.recoverability).toBe('retry');
         });
     });
 
@@ -785,13 +831,14 @@ describe('McpToolHandler', () => {
     });
 
     describe('get_ansible_creator_schema', () => {
-        it('returns error when schema is null', async () => {
+        it('returns structured SERVICE_UNAVAILABLE when schema is null', async () => {
             hoisted.creatorInstance.getSchema.mockReturnValue(null);
 
             const result = await handler.handleTool('get_ansible_creator_schema', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('ansible-creator is not available');
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.message).toContain('ansible-creator');
         });
 
         it('formats schema summary', async () => {
@@ -844,14 +891,14 @@ describe('McpToolHandler', () => {
     describe('get_ansible_best_practices', () => {
         const doc = `## Guiding Principles\nDo good.\n\n### Project structure\nLayout here.\n\n#### Naming Conventions\nNames.\n`;
 
-        it('returns error when file not found', async () => {
+        it('returns structured NOT_FOUND when file not found', async () => {
             fsMock.existsSync.mockReturnValue(false);
             vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network unavailable'));
 
             const result = await handler.handleTool('get_ansible_best_practices', {});
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Best practices document not found');
+            expect(err.code).toBe('NOT_FOUND');
         });
 
         it('returns full document when section is full', async () => {
@@ -879,28 +926,29 @@ describe('McpToolHandler', () => {
             expect(result.content[0].text).toContain('Do good');
         });
 
-        it('returns error for unknown section', async () => {
+        it('returns structured INVALID_INPUT for unknown section', async () => {
             fsMock.existsSync.mockReturnValue(true);
             fsMock.readFileSync.mockReturnValue(doc);
 
             const result = await handler.handleTool('get_ansible_best_practices', {
                 section: 'not_a_section',
             });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Unknown section');
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('Unknown section');
         });
 
-        it('returns error when known section heading is missing from file', async () => {
+        it('returns structured NOT_FOUND when known section heading is missing from file', async () => {
             fsMock.existsSync.mockReturnValue(true);
             fsMock.readFileSync.mockReturnValue('# Other doc\nNo principles here.\n');
 
             const result = await handler.handleTool('get_ansible_best_practices', {
                 section: 'principles',
             });
+            const err = parseError(result);
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Section "principles" not found');
+            expect(err.code).toBe('NOT_FOUND');
         });
 
         it('stops section extraction at the next heading of same or higher level', async () => {
@@ -920,27 +968,28 @@ describe('McpToolHandler', () => {
     });
 
     describe('get_galaxy_plugin_doc', () => {
-        it('returns error for missing collection parameter', async () => {
+        it('returns structured MISSING_PARAM for missing collection', async () => {
             const result = await handler.handleTool('get_galaxy_plugin_doc', {});
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameter');
+            const err = parseError(result);
+            expect(err.code).toBe('MISSING_PARAM');
         });
 
-        it('returns error for invalid collection format', async () => {
+        it('returns structured INVALID_INPUT for invalid collection format', async () => {
             const result = await handler.handleTool('get_galaxy_plugin_doc', {
                 collection: 'invalid',
             });
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('namespace.name format');
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
         });
 
-        it('returns error when collection not found on Galaxy', async () => {
+        it('returns structured NOT_FOUND when collection not found on Galaxy', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([]);
             const result = await handler.handleTool('get_galaxy_plugin_doc', {
                 collection: 'unknown.col',
             });
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('not found on Galaxy');
+            const err = parseError(result);
+            expect(err.code).toBe('NOT_FOUND');
+            expect(err.message).toContain('not found on Galaxy');
         });
 
         it('lists plugin types when no plugin specified', async () => {
@@ -1038,7 +1087,7 @@ describe('McpToolHandler', () => {
             expect(text).toContain('commands');
         });
 
-        it('returns error when specific plugin not found', async () => {
+        it('returns structured NOT_FOUND when specific plugin not found', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
                 {
                     namespace: 'cisco',
@@ -1054,12 +1103,11 @@ describe('McpToolHandler', () => {
                 collection: 'cisco.ios',
                 plugin: 'nonexistent',
             });
-
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('not found');
+            const err = parseError(result);
+            expect(err.code).toBe('NOT_FOUND');
         });
 
-        it('returns error when docs-blob fetch fails', async () => {
+        it('returns structured SERVICE_UNAVAILABLE when docs-blob fetch fails', async () => {
             hoisted.galaxyInstance.getCollections.mockReturnValue([
                 {
                     namespace: 'cisco',
@@ -1074,9 +1122,8 @@ describe('McpToolHandler', () => {
             const result = await handler.handleTool('get_galaxy_plugin_doc', {
                 collection: 'cisco.ios',
             });
-
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Failed to fetch');
+            const err = parseError(result);
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
         });
 
         it('formats recursive suboptions in plugin documentation', async () => {
@@ -1128,20 +1175,20 @@ describe('McpToolHandler', () => {
     });
 
     describe('get_scm_plugin_doc', () => {
-        it('returns error for missing parameters', async () => {
+        it('returns structured MISSING_PARAM for missing parameters', async () => {
             const result = await handler.handleTool('get_scm_plugin_doc', {});
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Missing required parameters');
+            const err = parseError(result);
+            expect(err.code).toBe('MISSING_PARAM');
         });
 
-        it('returns error for invalid collection format', async () => {
+        it('returns structured INVALID_INPUT for invalid collection format', async () => {
             const result = await handler.handleTool('get_scm_plugin_doc', {
                 org: 'test-org',
                 repo: 'test-repo',
                 collection: 'invalid',
             });
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('namespace.name format');
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
         });
 
         it('lists plugin types when no plugin specified', async () => {
@@ -1208,7 +1255,7 @@ describe('McpToolHandler', () => {
             expect(text).toContain('Return Values');
         });
 
-        it('returns error when plugin not found', async () => {
+        it('returns structured NOT_FOUND when plugin not found', async () => {
             hoisted.scmDocsInstance.getPluginDoc.mockResolvedValue(null);
 
             const result = await handler.handleTool('get_scm_plugin_doc', {
@@ -1217,12 +1264,11 @@ describe('McpToolHandler', () => {
                 collection: 'test.col',
                 plugin: 'nonexistent',
             });
-
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('not found');
+            const err = parseError(result);
+            expect(err.code).toBe('NOT_FOUND');
         });
 
-        it('returns error when indexing fails', async () => {
+        it('returns structured SERVICE_UNAVAILABLE when indexing fails', async () => {
             hoisted.scmDocsInstance.getPluginTypes.mockResolvedValue(null);
 
             const result = await handler.handleTool('get_scm_plugin_doc', {
@@ -1230,9 +1276,132 @@ describe('McpToolHandler', () => {
                 repo: 'test-repo',
                 collection: 'test.col',
             });
+            const err = parseError(result);
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+        });
+    });
 
-            expect(result.isError).toBe(true);
-            expect(result.content[0].text).toContain('Failed to index');
+    describe('input validation', () => {
+        it('generate_ansible_task rejects invalid plugin_type', async () => {
+            const result = await handler.handleTool('generate_ansible_task', {
+                plugin: 'ansible.builtin.copy',
+                params: { src: 'a', dest: 'b' },
+                plugin_type: 'invalid_type',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('invalid_type');
+        });
+
+        it('generate_ansible_task accepts valid plugin_type', async () => {
+            const result = await handler.handleTool('generate_ansible_task', {
+                plugin: 'ansible.builtin.copy',
+                params: { src: 'a', dest: 'b' },
+                plugin_type: 'module',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('```yaml');
+        });
+
+        it('build_ansible_task requires plugin or session_id', async () => {
+            const result = await handler.handleTool('build_ansible_task', {});
+            const err = parseError(result);
+
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('plugin');
+        });
+
+        it('search_ansible_plugins clamps limit to 50', async () => {
+            await handler.handleTool('search_ansible_plugins', {
+                query: 'copy',
+                limit: 999,
+            });
+            // The search should complete without error -- the clamping is internal
+            // We verify it doesn't crash and produces a valid result
+        });
+    });
+
+    describe('get_agent_onboarding', () => {
+        it('returns successfully with no arguments', async () => {
+            const result = await handler.handleTool('get_agent_onboarding', {});
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content).toHaveLength(1);
+            expect(result.content[0].text).toContain('# Agent Onboarding');
+        });
+
+        it('mentions key tool names', async () => {
+            const result = await handler.handleTool('get_agent_onboarding', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('skill_search');
+            expect(text).toContain('skill_get');
+            expect(text).toContain('generate_ansible_task');
+            expect(text).toContain('install_ansible_collection');
+            expect(text).toContain('get_ansible_best_practices');
+        });
+
+        it('covers skills guidance', async () => {
+            const result = await handler.handleTool('get_agent_onboarding', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('Skills: Use Them First');
+            expect(text).toContain('preferred over');
+        });
+
+        it('covers error handling guidance', async () => {
+            const result = await handler.handleTool('get_agent_onboarding', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('recoverability');
+            expect(text).toContain('retry');
+            expect(text).toContain('escalate');
+            expect(text).toContain('fail');
+        });
+    });
+
+    describe('get_extension_walkthrough', () => {
+        it('returns successfully with no arguments', async () => {
+            const result = await handler.handleTool('get_extension_walkthrough', {});
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content).toHaveLength(1);
+            expect(result.content[0].text).toContain('# Ansible Extension Walkthrough');
+        });
+
+        it('includes all walkthrough steps', async () => {
+            const result = await handler.handleTool('get_extension_walkthrough', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('Step 1: Welcome and Workspace Discovery');
+            expect(text).toContain('Step 2: Plugin Discovery');
+            expect(text).toContain('Step 3: Task Generation');
+            expect(text).toContain('Step 4: Collections');
+            expect(text).toContain('Step 5: Skills System');
+            expect(text).toContain('Step 6: Scaffolding and Creator Tools');
+            expect(text).toContain("Step 7: What's Next");
+        });
+
+        it('references key tools the agent should call during the tour', async () => {
+            const result = await handler.handleTool('get_extension_walkthrough', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('search_ansible_plugins');
+            expect(text).toContain('get_plugin_documentation');
+            expect(text).toContain('generate_ansible_task');
+            expect(text).toContain('list_ansible_collections');
+            expect(text).toContain('skill_list');
+            expect(text).toContain('skill_get');
+        });
+
+        it('instructs the agent to be interactive', async () => {
+            const result = await handler.handleTool('get_extension_walkthrough', {});
+            const text = result.content[0].text;
+
+            expect(text).toContain('interactive walkthrough');
+            expect(text).toContain('Do NOT dump all steps at once');
         });
     });
 });

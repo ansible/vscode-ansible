@@ -6,7 +6,7 @@
 
 import { CreatorService } from '@ansible/services';
 import type { SchemaNode } from '@ansible/services';
-import { McpToolDefinition, McpToolResult } from './tools';
+import { McpToolDefinition, McpToolResult, DESTRUCTIVE, mcpError } from './tools';
 
 /** Generates and dispatches MCP tools from the ansible-creator command schema. */
 export class CreatorToolGenerator {
@@ -77,10 +77,11 @@ export class CreatorToolGenerator {
     async handleTool(name: string, args: Record<string, unknown>): Promise<McpToolResult> {
         const toolPath = this._toolPathMap.get(name);
         if (!toolPath) {
-            return {
-                content: [{ type: 'text', text: `Unknown creator tool: ${name}` }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Unknown creator tool: ${name}`,
+            });
         }
 
         const service = CreatorService.getInstance();
@@ -146,12 +147,11 @@ export class CreatorToolGenerator {
                     '3. Or install it: pip install ansible-creator';
             }
 
-            return {
-                content: [
-                    { type: 'text', text: `[ERROR] ${commandStr}\n\n${errorMessage}${helpText}` },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'escalate',
+                message: `[ERROR] ${commandStr}\n\n${errorMessage}${helpText}`,
+            });
         }
     }
 
@@ -205,9 +205,10 @@ export class CreatorToolGenerator {
                     description: paramSchema.description || '',
                 };
 
-                // Map types
                 if (paramSchema.type === 'boolean') {
                     prop.type = 'boolean';
+                } else if (paramSchema.type === 'integer') {
+                    prop.type = 'integer';
                 } else if (paramSchema.enum && paramSchema.enum.length > 0) {
                     prop.type = 'string';
                     prop.enum = paramSchema.enum;
@@ -235,6 +236,7 @@ export class CreatorToolGenerator {
         return {
             name: toolName,
             description: desc + cmdHint,
+            annotations: DESTRUCTIVE,
             inputSchema: {
                 type: 'object',
                 properties,

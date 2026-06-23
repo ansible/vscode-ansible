@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { McpToolResult } from './tools';
+import { McpToolResult, mcpError } from './tools';
 import { PluginSearchIndex } from './pluginSearch';
 import { TaskGenerator } from './taskGenerator';
 import { TaskBuilder } from './taskBuilder';
@@ -40,6 +40,26 @@ function toArray(value: string | string[] | undefined): string[] {
     }
     return [value];
 }
+
+const VALID_PLUGIN_TYPES = new Set([
+    'module',
+    'filter',
+    'lookup',
+    'callback',
+    'connection',
+    'inventory',
+    'become',
+    'cache',
+    'cliconf',
+    'httpapi',
+    'netconf',
+    'shell',
+    'strategy',
+    'test',
+    'vars',
+]);
+
+const FQCN_PATTERN = /^[a-z0-9_]+\.[a-z0-9_]+$/;
 
 /** Routes MCP tool invocations to Ansible core services and local generators. */
 export class McpToolHandler {
@@ -140,22 +160,25 @@ export class McpToolHandler {
                 case 'get_ansible_best_practices':
                     return await this._handleGetBestPractices(args);
 
+                case 'get_agent_onboarding':
+                    return this._handleGetAgentOnboarding();
+
+                case 'get_extension_walkthrough':
+                    return this._handleGetExtensionWalkthrough();
+
                 default:
-                    return {
-                        content: [{ type: 'text', text: `Unknown tool: ${name}` }],
-                        isError: true,
-                    };
+                    return mcpError({
+                        code: 'NOT_FOUND',
+                        recoverability: 'fail',
+                        message: `Unknown tool: ${name}`,
+                    });
             }
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Error: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'escalate',
+                message: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 
@@ -170,18 +193,23 @@ export class McpToolHandler {
     private async _handleSearchPlugins(args: Record<string, unknown>): Promise<McpToolResult> {
         const query = args.query as string;
         if (!query) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: query' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: query',
+                suggestion: 'Provide a search query string.',
+            });
         }
 
         await this._searchIndex.ensureBuilt();
 
+        const rawLimit = args.limit as number | undefined;
+        const limit = rawLimit !== undefined ? Math.min(Math.max(1, rawLimit), 50) : undefined;
+
         const results = this._searchIndex.search(query, {
             pluginType: args.plugin_type as string,
             collection: args.collection as string,
-            limit: args.limit as number,
+            limit,
         });
 
         if (results.length === 0) {
@@ -218,10 +246,12 @@ export class McpToolHandler {
     private async _handleGetPluginDoc(args: Record<string, unknown>): Promise<McpToolResult> {
         const plugin = args.plugin as string;
         if (!plugin) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: plugin' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: plugin',
+                suggestion: 'Provide the full plugin name (e.g., "ansible.builtin.copy").',
+            });
         }
 
         const pluginType = (args.plugin_type as string | undefined) ?? 'module';
@@ -230,10 +260,12 @@ export class McpToolHandler {
         const doc = await service.getPluginDocumentation(plugin, pluginType);
 
         if (!doc?.doc) {
-            return {
-                content: [{ type: 'text', text: `Plugin not found: ${plugin}` }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Plugin not found: ${plugin}`,
+                suggestion: 'Use search_ansible_plugins to find the correct plugin name.',
+            });
         }
 
         const d = doc.doc;
@@ -385,10 +417,21 @@ export class McpToolHandler {
     private async _handleInstallCollection(args: Record<string, unknown>): Promise<McpToolResult> {
         const name = args.name as string;
         if (!name) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: name' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: name',
+                suggestion: 'Provide a collection name (e.g., "cisco.nxos").',
+            });
+        }
+
+        const isGitUrl = name.startsWith('git+') || name.startsWith('https://');
+        if (!isGitUrl && !FQCN_PATTERN.test(name)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Invalid collection name "${name}". Use namespace.name format (e.g., "cisco.nxos") or a git URL.`,
+            });
         }
 
         const service = CollectionsService.getInstance();
@@ -408,15 +451,12 @@ export class McpToolHandler {
                 ],
             };
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Failed to install collection: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'escalate',
+                message: `Failed to install collection: ${error instanceof Error ? error.message : String(error)}`,
+                suggestion: 'Check network connectivity and collection name.',
+            });
         }
     }
 
@@ -431,10 +471,12 @@ export class McpToolHandler {
     ): Promise<McpToolResult> {
         const query = args.query as string;
         if (!query) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: query' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: query',
+                suggestion: 'Provide search terms (e.g., "kubernetes", "cisco").',
+            });
         }
 
         const source = args.source as string | undefined;
@@ -543,15 +585,11 @@ export class McpToolHandler {
                 content: [{ type: 'text', text: lines.join('\n') }],
             };
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Failed to search collections: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'retry',
+                message: `Failed to search collections: ${error instanceof Error ? error.message : String(error)}`,
+            });
         }
     }
 
@@ -566,10 +604,12 @@ export class McpToolHandler {
     ): Promise<McpToolResult> {
         const source = args.source as string;
         if (!source) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: source' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: source',
+                suggestion: 'Provide a source name ("galaxy" or a GitHub org name).',
+            });
         }
 
         const limit = Math.min((args.limit as number | undefined) ?? 100, 500);
@@ -647,15 +687,11 @@ export class McpToolHandler {
                 content: [{ type: 'text', text: lines.join('\n') }],
             };
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'retry',
+                message: `Failed to list collections: ${error instanceof Error ? error.message : String(error)}`,
+            });
         }
     }
 
@@ -670,10 +706,12 @@ export class McpToolHandler {
     ): Promise<McpToolResult> {
         const collection = args.collection as string;
         if (!collection) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: collection' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: collection',
+                suggestion: 'Provide a collection name (e.g., "ansible.builtin").',
+            });
         }
 
         const service = CollectionsService.getInstance();
@@ -684,7 +722,6 @@ export class McpToolHandler {
 
         let collectionData = service.getCollection(collection);
 
-        // If collection not found, try a force refresh in case it was just installed externally
         if (!collectionData) {
             console.error(
                 `McpToolHandler: Collection "${collection}" not in cache, trying force refresh...`,
@@ -694,15 +731,13 @@ export class McpToolHandler {
         }
 
         if (!collectionData) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Collection "${collection}" not found.\n\nUse list_ansible_collections to see installed collections, or install_ansible_collection to install it.`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Collection "${collection}" not found.`,
+                suggestion:
+                    'Use list_ansible_collections to see installed collections, or install_ansible_collection to install it.',
+            });
         }
 
         const pluginTypeFilter = args.plugin_type as string | undefined;
@@ -768,23 +803,21 @@ export class McpToolHandler {
     private async _handleGetGalaxyPluginDoc(args: Record<string, unknown>): Promise<McpToolResult> {
         const collectionFqcn = args.collection as string;
         if (!collectionFqcn) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: collection' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: collection',
+                suggestion: 'Provide a collection FQCN (e.g., "cisco.ios").',
+            });
         }
 
         const parts = collectionFqcn.split('.');
         if (parts.length !== 2) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Invalid collection name "${collectionFqcn}". Use namespace.name format (e.g., "cisco.ios").`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Invalid collection name "${collectionFqcn}". Use namespace.name format (e.g., "cisco.ios").`,
+            });
         }
         const [namespace, name] = parts;
 
@@ -795,15 +828,12 @@ export class McpToolHandler {
             .getCollections()
             .find((c) => c.namespace === namespace && c.name === name);
         if (!match) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Collection "${collectionFqcn}" not found on Galaxy. Use search_available_collections to find it.`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Collection "${collectionFqcn}" not found on Galaxy.`,
+                suggestion: 'Use search_available_collections to find it.',
+            });
         }
 
         const docsCache = GalaxyDocsCache.getInstance();
@@ -813,15 +843,11 @@ export class McpToolHandler {
             const pluginTypes = await docsCache.getPluginTypes(namespace, name, match.version);
 
             if (!pluginTypes) {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: `Failed to fetch docs-blob for ${collectionFqcn} v${match.version} from Galaxy.`,
-                        },
-                    ],
-                    isError: true,
-                };
+                return mcpError({
+                    code: 'SERVICE_UNAVAILABLE',
+                    recoverability: 'retry',
+                    message: `Failed to fetch docs-blob for ${collectionFqcn} v${match.version} from Galaxy.`,
+                });
             }
 
             const text = this._formatPluginTypeList(
@@ -837,15 +863,13 @@ export class McpToolHandler {
         const doc = await docsCache.getPluginDoc(namespace, name, match.version, fqcn, pluginType);
 
         if (!doc) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Plugin "${pluginName}" (${pluginType}) not found in ${collectionFqcn}. Use get_galaxy_plugin_doc without a plugin name to list available plugins.`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Plugin "${pluginName}" (${pluginType}) not found in ${collectionFqcn}.`,
+                suggestion:
+                    'Use get_galaxy_plugin_doc without a plugin name to list available plugins.',
+            });
         }
 
         return { content: [{ type: 'text', text: this._formatPluginDoc(fqcn, pluginType, doc) }] };
@@ -994,28 +1018,20 @@ export class McpToolHandler {
         const collectionFqcn = args.collection as string;
 
         if (!org || !repo || !collectionFqcn) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: 'Missing required parameters: org, repo, and collection are all required.',
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameters: org, repo, and collection are all required.',
+            });
         }
 
         const parts = collectionFqcn.split('.');
         if (parts.length !== 2) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Invalid collection name "${collectionFqcn}". Use namespace.name format (e.g., "infra.aap_configuration").`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Invalid collection name "${collectionFqcn}". Use namespace.name format (e.g., "infra.aap_configuration").`,
+            });
         }
         const [namespace, name] = parts;
 
@@ -1031,15 +1047,12 @@ export class McpToolHandler {
             const pluginTypes = await scmCache.getPluginTypes(org, repo, namespace, name);
 
             if (!pluginTypes) {
-                return {
-                    content: [
-                        {
-                            type: 'text',
-                            text: `Failed to index ${collectionFqcn} from ${org}/${repo}. Ensure git and ansible-doc are available.`,
-                        },
-                    ],
-                    isError: true,
-                };
+                return mcpError({
+                    code: 'SERVICE_UNAVAILABLE',
+                    recoverability: 'retry',
+                    message: `Failed to index ${collectionFqcn} from ${org}/${repo}.`,
+                    suggestion: 'Ensure git and ansible-doc are available.',
+                });
             }
 
             const text = this._formatPluginTypeList(
@@ -1055,15 +1068,13 @@ export class McpToolHandler {
         const doc = await scmCache.getPluginDoc(org, repo, namespace, name, fqcn, pluginType);
 
         if (!doc) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Plugin "${pluginName}" (${pluginType}) not found in ${collectionFqcn}. Use get_scm_plugin_doc without a plugin name to list available plugins.`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Plugin "${pluginName}" (${pluginType}) not found in ${collectionFqcn}.`,
+                suggestion:
+                    'Use get_scm_plugin_doc without a plugin name to list available plugins.',
+            });
         }
 
         return { content: [{ type: 'text', text: this._formatPluginDoc(fqcn, pluginType, doc) }] };
@@ -1082,17 +1093,31 @@ export class McpToolHandler {
         const params = args.params;
 
         if (!plugin) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: plugin' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: plugin',
+                suggestion: 'Provide the full plugin name (e.g., "ansible.builtin.copy").',
+            });
         }
 
         if (typeof params !== 'object' || params === null || Array.isArray(params)) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: params' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: params',
+                suggestion: 'Provide plugin parameters as a key-value object.',
+            });
+        }
+
+        const pluginType = args.plugin_type as string | undefined;
+        if (pluginType && !VALID_PLUGIN_TYPES.has(pluginType)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Invalid plugin_type: "${pluginType}".`,
+                suggestion: `Valid types: ${[...VALID_PLUGIN_TYPES].join(', ')}`,
+            });
         }
 
         const result = await this._taskGenerator.generate({
@@ -1124,6 +1149,16 @@ export class McpToolHandler {
      * @returns Session prompts, generated YAML, or an error message
      */
     private async _handleBuildTask(args: Record<string, unknown>): Promise<McpToolResult> {
+        if (!args.session_id && !args.plugin) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: plugin',
+                suggestion:
+                    'Provide a plugin name to start a new session, or a session_id to continue an existing one.',
+            });
+        }
+
         const result = await this._taskBuilder.build({
             plugin: args.plugin as string,
             plugin_type: args.plugin_type as string,
@@ -1166,12 +1201,11 @@ export class McpToolHandler {
         const tasks = args.tasks;
 
         if (!name || !hosts || !Array.isArray(tasks)) {
-            return {
-                content: [
-                    { type: 'text', text: 'Missing required parameters: name, hosts, tasks' },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameters: name, hosts, tasks',
+            });
         }
 
         interface PlaybookTaskInput {
@@ -1266,15 +1300,13 @@ export class McpToolHandler {
                 ],
             };
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Error loading execution environments: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'retry',
+                message: `Error loading execution environments: ${error instanceof Error ? error.message : String(error)}`,
+                suggestion:
+                    'Ensure a container runtime (Podman or Docker) is installed and running.',
+            });
         }
     }
 
@@ -1287,10 +1319,12 @@ export class McpToolHandler {
     private async _handleGetEEDetails(args: Record<string, unknown>): Promise<McpToolResult> {
         const eeName = args.ee_name as string;
         if (!eeName) {
-            return {
-                content: [{ type: 'text', text: 'Missing required parameter: ee_name' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: ee_name',
+                suggestion: 'Use list_execution_environments to find available EE names.',
+            });
         }
 
         const service = ExecutionEnvService.getInstance();
@@ -1299,10 +1333,12 @@ export class McpToolHandler {
             const details = await service.loadDetails(eeName);
 
             if (!details) {
-                return {
-                    content: [{ type: 'text', text: `Execution environment not found: ${eeName}` }],
-                    isError: true,
-                };
+                return mcpError({
+                    code: 'NOT_FOUND',
+                    recoverability: 'fail',
+                    message: `Execution environment not found: ${eeName}`,
+                    suggestion: 'Use list_execution_environments to see available EEs.',
+                });
             }
 
             const sections: string[] = [];
@@ -1373,15 +1409,11 @@ export class McpToolHandler {
                 content: [{ type: 'text', text: sections.join('\n') }],
             };
         } catch (error) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Error loading EE details: ${error instanceof Error ? error.message : String(error)}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'retry',
+                message: `Error loading EE details: ${error instanceof Error ? error.message : String(error)}`,
+            });
         }
     }
 
@@ -1441,15 +1473,12 @@ export class McpToolHandler {
         const schema = service.getSchema();
 
         if (!schema) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: 'ansible-creator is not available.\n\nInstall with: pip install ansible-dev-tools',
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'retry',
+                message: 'ansible-creator is not available.',
+                suggestion: 'Install with: pip install ansible-dev-tools',
+            });
         }
 
         // Format the schema into a readable summary
@@ -1510,10 +1539,13 @@ export class McpToolHandler {
 
         const content = await this._loadBestPractices();
         if (!content) {
-            return {
-                content: [{ type: 'text', text: 'Best practices document not found.' }],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'retry',
+                message: 'Best practices document not found.',
+                suggestion:
+                    'Ensure the best_practices.md file is present in resources or network is available.',
+            });
         }
 
         if (section === 'full') {
@@ -1532,28 +1564,20 @@ export class McpToolHandler {
 
         const heading = sectionMap[section];
         if (!heading) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Unknown section: ${section}. Available sections: ${Object.keys(sectionMap).join(', ')}`,
+            });
         }
 
         const startIndex = content.indexOf(heading);
         if (startIndex === -1) {
-            return {
-                content: [
-                    {
-                        type: 'text',
-                        text: `Section "${section}" not found in best practices document.`,
-                    },
-                ],
-                isError: true,
-            };
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Section "${section}" not found in best practices document.`,
+            });
         }
 
         const headingLevel = (/^#+/.exec(heading) ?? ['##'])[0].length;
@@ -1566,6 +1590,173 @@ export class McpToolHandler {
         return {
             content: [{ type: 'text', text: content.slice(startIndex, endIndex).trim() }],
         };
+    }
+
+    // === Agent Onboarding ===
+
+    /**
+     * Handles `get_agent_onboarding` by returning a structured capability guide.
+     *
+     * @returns Markdown onboarding document covering tools, skills, and workflows
+     */
+    private _handleGetAgentOnboarding(): McpToolResult {
+        const guide = `# Agent Onboarding
+
+## Available Tool Categories
+
+### Discovery (read-only)
+- \`search_ansible_plugins\` -- find plugins by keyword
+- \`get_plugin_documentation\` -- full docs for a plugin
+- \`list_ansible_collections\` / \`search_available_collections\` -- browse collections
+- \`get_collection_plugins\` -- list plugins in a collection
+- \`get_galaxy_plugin_doc\` / \`get_scm_plugin_doc\` -- docs for uninstalled plugins
+
+### Task Generation (read-only, no side effects)
+- \`generate_ansible_task\` -- one-shot YAML generation
+- \`build_ansible_task\` -- interactive guided task building
+- \`generate_ansible_playbook\` -- multi-task playbook generation
+
+### Installation (destructive)
+- \`install_ansible_collection\` -- installs a collection via ade (do NOT use ansible-galaxy directly)
+
+### Scaffolding (destructive, \`ac_*\` tools)
+- Dynamically generated from ansible-creator schema
+- Use \`get_ansible_creator_schema\` to see available commands
+
+### Execution Environments (read-only)
+- \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs
+
+### Skills (read-only)
+- \`skill_search\` -- find skills by keyword
+- \`skill_list\` -- browse all skills by category
+- \`skill_get\` -- load full skill instructions by ID
+- \`skill_list_sources\` -- see configured skill sources
+
+### Reference
+- \`get_ansible_best_practices\` -- Ansible coding conventions and guidelines
+- \`list_ansible_dev_tools\` -- installed dev tool versions
+
+## Skills: Use Them First
+
+This server provides curated AI development skills for common Ansible workflows.
+**Before improvising a complex task, search for a relevant skill:**
+
+\`\`\`
+skill_search({ query: "summarize collection" })
+skill_get({ skill_id: "..." })
+\`\`\`
+
+Skills encode tested, project-specific workflows and should be preferred over
+world knowledge. Categories include:
+- **Task building** -- guided plugin parameter collection and YAML generation
+- **Collection analysis** -- summarize installed, Galaxy, and GitHub collections
+- **Playbook analysis** -- explain and summarize existing playbooks
+- **Execution environments** -- detailed EE inspection workflows
+- **Scaffolding** -- walkthrough ansible-creator commands for new projects
+- **Plugin documentation** -- deep-dive explanations of plugin parameters and usage
+
+## Recommended Workflows
+
+1. **Before generating tasks**: \`search_ansible_plugins\` -> \`get_plugin_documentation\` -> \`generate_ansible_task\`
+2. **Before installing**: \`list_ansible_collections\` (check if already installed) -> \`search_available_collections\` -> \`install_ansible_collection\`
+3. **Before any complex workflow**: \`skill_search\` to check if a skill exists for it
+4. **For scaffolding**: \`get_ansible_creator_schema\` -> use the appropriate \`ac_*\` tool
+
+## Error Handling
+
+All errors are returned as structured JSON with \`code\`, \`recoverability\`, and \`message\`.
+Check \`recoverability\` to decide next steps:
+- \`retry\` -- transient failure, try again
+- \`escalate\` -- requires human intervention
+- \`fail\` -- bad input, fix the request
+`;
+
+        return { content: [{ type: 'text', text: guide }] };
+    }
+
+    /**
+     * Handles `get_extension_walkthrough` by returning an interactive walkthrough
+     * script that an agent follows step-by-step with the user.
+     *
+     * @returns Markdown walkthrough script with agent instructions
+     */
+    private _handleGetExtensionWalkthrough(): McpToolResult {
+        const script = `# Ansible Extension Walkthrough
+
+You are now guiding the user through the Ansible VS Code extension. Follow these steps
+interactively -- execute each one, show the results, and explain what happened before
+moving to the next. Adapt based on what you find in their workspace.
+
+## Step 1: Welcome and Workspace Discovery
+
+Introduce yourself briefly, then explore the user's workspace:
+- Look for playbooks (*.yml, *.yaml in the workspace root and common directories)
+- Look for roles/ directories
+- Look for inventory files
+- Look for ansible.cfg or ansible-navigator.yml
+
+Summarize what you found. If the workspace is empty, mention that you can help
+scaffold a new project later in the walkthrough.
+
+## Step 2: Plugin Discovery
+
+Demonstrate the plugin search capability:
+- If you found playbooks in Step 1, pick a module used in one of them and search for it
+  using \`search_ansible_plugins\`
+- If the workspace is empty, search for a common module like "copy" or "file"
+- Show the results and explain how plugin search works
+
+Then pick one result and call \`get_plugin_documentation\` to show full docs.
+Highlight the parameters section and explain how this helps when writing tasks.
+
+## Step 3: Task Generation
+
+Using the plugin from Step 2, demonstrate task generation:
+- Call \`generate_ansible_task\` with a practical example relevant to the user's workspace
+- Show the generated YAML and explain it
+- Mention that \`build_ansible_task\` offers an interactive, guided alternative
+  with parameter-by-parameter assistance
+
+## Step 4: Collections
+
+Show the user their installed collections:
+- Call \`list_ansible_collections\` to show what's available
+- If they have collections installed, pick one and call \`get_collection_plugins\`
+  to show its contents
+- Mention \`search_available_collections\` for finding new collections on Galaxy
+- Mention \`install_ansible_collection\` for installing them
+
+## Step 5: Skills System
+
+Introduce the skill system -- curated AI workflows:
+- Call \`skill_list\` to show available skills and their categories
+- Pick a skill relevant to what you found in the workspace and call
+  \`skill_get\` to show what it does
+- Explain that skills encode tested workflows and should be preferred over
+  improvising complex tasks
+
+## Step 6: Scaffolding and Creator Tools
+
+If the user might want to create new Ansible content:
+- Mention \`get_ansible_creator_schema\` and the dynamic \`ac_*\` tools
+- Explain that these can scaffold new collections, roles, playbooks, and plugins
+- Offer to demonstrate if they're interested
+
+## Step 7: What's Next
+
+Wrap up by:
+- Summarizing the capabilities you demonstrated
+- Mentioning execution environments (\`list_execution_environments\`)
+  and best practices (\`get_ansible_best_practices\`) as additional resources
+- Asking what they'd like to explore further or what task they'd like help with
+
+---
+**Important**: This is an interactive walkthrough. Do NOT dump all steps at once.
+Execute each step, show real results from the user's environment, and pause for
+their reactions. Keep explanations concise and practical.
+`;
+
+        return { content: [{ type: 'text', text: script }] };
     }
 
     /**

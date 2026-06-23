@@ -11,7 +11,13 @@ import { CreatorService, buildMcpToolExamplePrompt } from '@ansible/services';
 import { log } from '@src/extension';
 import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
 
-type ToolCategory = 'discovery' | 'generation' | 'execution' | 'devtools' | 'creator';
+type ToolCategory =
+    | 'getting_started'
+    | 'discovery'
+    | 'generation'
+    | 'execution'
+    | 'devtools'
+    | 'creator';
 
 export interface ToolInfo {
     tool: McpToolDefinition;
@@ -38,6 +44,7 @@ class ToolCategoryNode extends vscode.TreeItem {
 
         // Set icons based on category
         const iconMap: Record<ToolCategory, string> = {
+            getting_started: 'rocket',
             discovery: 'search',
             generation: 'code',
             execution: 'package',
@@ -225,6 +232,9 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
      * @returns Category used to group the tool in the tree
      */
     private _categorizeStaticTool(name: string): ToolCategory {
+        if (name === 'get_agent_onboarding' || name === 'get_extension_walkthrough') {
+            return 'getting_started';
+        }
         if (
             name.includes('search') ||
             name.includes('list') ||
@@ -279,6 +289,7 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
 
             // Show tool categories
             const categories: { id: ToolCategory; label: string }[] = [
+                { id: 'getting_started', label: 'Getting Started' },
                 { id: 'discovery', label: 'Discovery' },
                 { id: 'generation', label: 'Task Generation' },
                 { id: 'execution', label: 'Execution Environments' },
