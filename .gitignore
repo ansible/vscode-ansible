@@ -20,6 +20,7 @@ out
 site
 dist
 lib
+.pnpm-store
 
 # TODO: Seek to remove these from this file:
 CHANGELOG.html

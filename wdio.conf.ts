@@ -6,11 +6,6 @@ const extensionsDir = path.join(testRoot, "extensions");
 
 export const config: WebdriverIO.Config = {
   runner: "local",
-  autoCompileOpts: {
-    tsNodeOpts: {
-      project: "./test/wdio/tsconfig.json",
-    },
-  },
   specs: ["./test/wdio/**/*.spec.ts"],
   maxInstances: 1,
 
