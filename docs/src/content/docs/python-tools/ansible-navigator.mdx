@@ -1,12 +1,440 @@
 ---
 title: ansible-navigator
-description: A text-based user interface for running and developing Ansible content.
+description: A text-based user interface for running, developing, and troubleshooting Ansible content with execution environment support.
 ---
 
-ansible-navigator provides a TUI for running playbooks, browsing collections, inspecting execution environments, and managing Ansible configuration. It supports both direct execution and execution environment (container) modes.
+ansible-navigator is a command-line tool and text-based user interface (TUI) for creating, reviewing, running, and troubleshooting Ansible content. It serves as the primary interface for running playbooks — either directly or inside execution environment containers — and provides interactive exploration of collections, inventories, configurations, and documentation.
 
-- [Documentation](https://ansible.readthedocs.io/projects/navigator/)
-- [PyPI](https://pypi.org/project/ansible-navigator/)
-- [GitHub](https://github.com/ansible/ansible-navigator)
+Navigator acts as an orchestrator between the user and a container engine (Podman or Docker), running Ansible content with the same isolation and reproducibility you get in production with Ansible Automation Platform.
 
-Content coming soon. This page will cover how ansible-navigator integrates with the editor's playbook execution features.
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-navigator
+```
+
+Verify installation:
+
+```bash
+ansible-navigator --version
+```
+
+## Core concepts
+
+### Execution environments (EE)
+
+An execution environment is a container image that serves as an Ansible control node. It contains Python, `ansible-core`, `ansible-runner`, collections, Python dependencies, and system packages — everything needed to run your playbooks consistently.
+
+By default, Navigator runs with EE **enabled** — all commands execute inside a container. This ensures your playbooks run the same way locally as they do in CI/CD and Ansible Automation Platform.
+
+### TUI vs stdout modes
+
+Navigator has two output modes:
+
+| Mode | Description | Best for |
+|------|-------------|----------|
+| **interactive** (default) | Curses-based TUI with drill-down navigation | Development, debugging, exploring |
+| **stdout** | Plain terminal output like `ansible-playbook` | CI/CD, scripts, log capture |
+
+Switch between modes:
+
+```bash
+# Interactive (default)
+ansible-navigator run site.yml
+
+# stdout mode
+ansible-navigator run site.yml --mode stdout
+```
+
+### Playbook artifacts
+
+Navigator captures detailed run data (plays, tasks, hosts, stdout) as JSON artifact files. These can be replayed later for review without re-running the playbook:
+
+```bash
+# Replay a previous run
+ansible-navigator replay /path/to/artifact.json
+```
+
+## Subcommands
+
+| Subcommand | Colon command | Description |
+|------------|---------------|-------------|
+| `run` | `:run` | Run a playbook |
+| `collections` | `:collections` | Explore available collections |
+| `config` | `:config` | Explore current Ansible configuration |
+| `doc` | `:doc` | Review module/plugin documentation |
+| `inventory` | `:inventory` | Explore an inventory |
+| `images` | `:images` | Explore execution environment images |
+| `exec` | `:exec` | Run a command within an execution environment |
+| `lint` | `:lint` | Lint files/directories for errors |
+| `builder` | `:builder` | Build an execution environment |
+| `replay` | `:replay` | Explore a previous run via artifact |
+| `settings` | `:settings` | Review current navigator settings |
+| `welcome` | `:welcome` | Show the welcome page |
+
+### Mapping to Ansible commands
+
+| Ansible command | Navigator equivalent |
+|-----------------|---------------------|
+| `ansible-playbook` | `ansible-navigator run` |
+| `ansible-config` | `ansible-navigator config` |
+| `ansible-doc` | `ansible-navigator doc` |
+| `ansible-inventory` | `ansible-navigator inventory` |
+| `ansible-lint` | `ansible-navigator lint` |
+| `ansible-builder` | `ansible-navigator builder` |
+| `ansible-galaxy` | `ansible-navigator exec -- ansible-galaxy ...` |
+| `ansible-test` | `ansible-navigator exec -- ansible-test ...` |
+| `ansible-vault` | `ansible-navigator exec -- ansible-vault ...` |
+
+### Running playbooks
+
+```bash
+# Basic playbook run
+ansible-navigator run site.yml -i inventory.yml
+
+# With extra variables
+ansible-navigator run site.yml -i inventory.yml -e "target=staging"
+
+# Limit to specific hosts
+ansible-navigator run site.yml -i inventory.yml --limit webservers
+
+# In stdout mode for CI
+ansible-navigator run site.yml -i inventory.yml --mode stdout
+
+# Without execution environment (use local Ansible)
+ansible-navigator run site.yml --execution-environment false
+```
+
+### Exploring collections
+
+```bash
+# Browse all available collections
+ansible-navigator collections
+
+# View a specific module's documentation
+ansible-navigator doc ansible.builtin.copy
+
+# View a plugin by type
+ansible-navigator doc ansible.netcommon.cli_command --type module
+```
+
+### Running commands in an EE
+
+```bash
+# Open a shell inside the EE
+ansible-navigator exec
+
+# Run a specific command
+ansible-navigator exec -- ansible-galaxy collection list
+
+# Run ansible-test sanity
+ansible-navigator exec -- ansible-test sanity --docker
+```
+
+## Configuration
+
+### Settings file locations
+
+Navigator searches for configuration in this order:
+
+1. `ANSIBLE_NAVIGATOR_CONFIG` environment variable
+2. `./ansible-navigator.yml` (project directory — no leading dot)
+3. `~/.ansible-navigator.yml` (home directory — with leading dot)
+
+Supported formats: `.yml`, `.yaml`, `.json`
+
+### Priority order (lowest to highest)
+
+1. Default internal values
+2. Settings file
+3. Environment variables
+4. CLI flags
+5. TUI colon commands
+
+### Complete settings reference
+
+```yaml
+ansible-navigator:
+  # Default subcommand when no subcommand specified
+  app: welcome
+
+  # Ansible configuration
+  ansible:
+    config:
+      path: /path/to/ansible.cfg
+    cmdline: "--forks 15"
+    inventory:
+      entries:
+        - /path/to/inventory.yml
+    playbook:
+      path: /path/to/playbook.yml
+
+  # ansible-builder settings (for :builder)
+  ansible-builder:
+    workdir: /path/to/workdir
+
+  # ansible-lint settings (for :lint)
+  ansible-lint:
+    config: ~/ansible-lint.yml
+    lintables: ~/myproject/
+
+  # ansible-runner settings
+  ansible-runner:
+    artifact-dir: /tmp/artifacts
+    rotate-artifacts-count: 10
+    timeout: 300
+    job-events: false
+
+  # Color settings
+  color:
+    enable: true
+    osc4: true
+
+  # Editor settings (for :open from TUI)
+  editor:
+    command: vi +{line_number} {filename}
+    console: true
+
+  # Disable interactive prompts (like AAP Controller)
+  enable-prompts: false
+
+  # Exec settings
+  exec:
+    shell: true
+    command: /bin/bash
+
+  # Execution environment settings
+  execution-environment:
+    container-engine: auto
+    enabled: true
+    environment-variables:
+      pass:
+        - SSH_AUTH_SOCK
+        - MY_TOKEN
+      set:
+        ANSIBLE_NOCOLOR: "false"
+    image: ghcr.io/ansible/community-ansible-dev-tools:latest
+    pull:
+      arguments:
+        - "--tls-verify=false"
+      policy: tag
+    volume-mounts:
+      - src: "/host/path"
+        dest: "/container/path"
+        options: "Z"
+    container-options:
+      - "--net=host"
+
+  # Output format for stdout mode (json or yaml)
+  format: yaml
+
+  # Image inspection details
+  images:
+    details:
+      - ansible_version
+      - python_version
+
+  # Custom inventory columns
+  inventory-columns:
+    - ansible_network_os
+    - ansible_connection
+
+  # Logging
+  logging:
+    level: warning
+    append: true
+    file: ./ansible-navigator.log
+
+  # Default mode
+  mode: interactive
+
+  # Playbook artifact settings
+  playbook-artifact:
+    enable: true
+    replay: /path/to/artifact.json
+    save-as: "{playbook_dir}/{playbook_name}-artifact-{time_stamp}.json"
+
+  # Time zone for timestamps
+  time-zone: UTC
+```
+
+### Key execution environment settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `execution-environment.enabled` | `true` | Run inside container |
+| `execution-environment.container-engine` | `auto` | `auto`, `podman`, or `docker` |
+| `execution-environment.image` | (community image) | Container image to use |
+| `execution-environment.pull.policy` | `tag` | `always`, `missing`, `never`, `tag` |
+| `execution-environment.volume-mounts` | — | Additional bind mounts |
+| `execution-environment.container-options` | — | Extra container engine args |
+| `execution-environment.environment-variables.pass` | — | Host env vars to pass through |
+| `execution-environment.environment-variables.set` | — | New env vars inside container |
+
+### Environment variables
+
+Every setting has a corresponding `ANSIBLE_NAVIGATOR_*` environment variable:
+
+```bash
+export ANSIBLE_NAVIGATOR_MODE=stdout
+export ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_IMAGE=my-ee:latest
+export ANSIBLE_NAVIGATOR_EXECUTION_ENVIRONMENT_ENABLED=false
+```
+
+## Execution environment management
+
+### Disabling EEs
+
+Run with local Ansible installation:
+
+```bash
+ansible-navigator run site.yml --execution-environment false
+```
+
+Or in settings:
+
+```yaml
+ansible-navigator:
+  execution-environment:
+    enabled: false
+```
+
+### Pull policies
+
+| Policy | Behavior |
+|--------|----------|
+| `always` | Pull image before every run |
+| `missing` | Pull only if not present locally |
+| `never` | Never pull (fail if not present) |
+| `tag` | Pull if tag is `latest` or image not present |
+
+### Volume mounts
+
+Navigator automatically mounts the project directory. Add custom mounts:
+
+```yaml
+ansible-navigator:
+  execution-environment:
+    volume-mounts:
+      - src: /home/user/.ssh
+        dest: /home/runner/.ssh
+        options: "ro"
+      - src: /tmp/artifacts
+        dest: /tmp/artifacts
+        options: "Z"
+```
+
+### Passing environment variables
+
+```yaml
+ansible-navigator:
+  execution-environment:
+    environment-variables:
+      pass:
+        - SSH_AUTH_SOCK
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+      set:
+        ANSIBLE_NOCOLOR: "false"
+        MY_CUSTOM_VAR: "value"
+```
+
+### Container engine discovery
+
+In `auto` mode, Navigator checks for `podman` first, then falls back to `docker`.
+
+## TUI navigation
+
+When running in interactive mode, the TUI provides:
+
+- **Drill-down navigation**: Click or press numbers to zoom into plays, tasks, hosts, results
+- **Keyboard shortcuts**: Arrow keys, Enter, Esc (back), numbers for selection
+- **Search and filter**: `/` to search within structured output
+- **`:help`**: Shows available colon commands at any time
+- **`:open`**: Open the current file in your configured editor
+
+### Editor configuration for TUI
+
+Configure what happens when you use `:open`:
+
+```yaml
+# VS Code
+ansible-navigator:
+  editor:
+    command: code -g {filename}:{line_number}
+    console: false
+
+# PyCharm
+ansible-navigator:
+  editor:
+    command: charm --line {line_number} {filename}
+    console: false
+
+# Vim (default)
+ansible-navigator:
+  editor:
+    command: vi +{line_number} {filename}
+    console: true
+
+# Emacs
+ansible-navigator:
+  editor:
+    command: emacs -nw +{line_number} {filename}
+    console: true
+```
+
+Set `console: false` for GUI editors (VS Code, PyCharm) — this tells Navigator the editor is not terminal-based.
+
+## VS Code extension integration
+
+The VS Code extension leverages ansible-navigator for:
+
+- **Playbook execution**: Running playbooks with real-time progress streaming via a callback plugin
+- **Execution environment awareness**: Detecting available EE images, displaying their contents (collections, Python packages, Ansible version)
+- **Collection browsing**: Using navigator's image introspection to show what's inside EE images
+
+The extension communicates with ansible-navigator through its stdout mode and artifact capture, providing a graphical overlay on top of navigator's capabilities.
+
+## CI/CD usage
+
+For CI/CD pipelines, use stdout mode:
+
+```yaml
+ansible-navigator:
+  mode: stdout
+  execution-environment:
+    enabled: true
+    image: my-org/my-ee:latest
+    pull:
+      policy: always
+  playbook-artifact:
+    enable: true
+    save-as: "{playbook_dir}/artifacts/{playbook_name}-{time_stamp}.json"
+```
+
+```bash
+ansible-navigator run deploy.yml -i inventory/production.yml --mode stdout
+```
+
+Artifacts are saved for later replay and debugging:
+
+```bash
+# On a developer machine, replay the CI run
+ansible-navigator replay artifacts/deploy-2026-06-23.json
+```
+
+## Next steps
+
+You're running playbooks successfully. Now package and secure your automation:
+
+- [Build a custom execution environment with ansible-builder](/vscode-ansible/python-tools/ansible-builder/) — create a container image with exactly the collections and dependencies your playbooks need
+- [Sign your project with ansible-sign](/vscode-ansible/python-tools/ansible-sign/) — cryptographically verify content integrity before production deployment
+
+## Links
+
+- [PyPI: ansible-navigator](https://pypi.org/project/ansible-navigator/)
+- [GitHub: ansible/ansible-navigator](https://github.com/ansible/ansible-navigator)

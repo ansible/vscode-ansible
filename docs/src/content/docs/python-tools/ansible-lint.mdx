@@ -1,12 +1,463 @@
 ---
 title: ansible-lint
-description: Best practices checker for Ansible content -- playbooks, roles, and collections.
+description: Best practices checker for Ansible playbooks, roles, and collections with tiered profiles and autofix.
 ---
 
-ansible-lint checks playbooks, roles, and collections for practices and behavior that could be improved. It encodes community best practices as rules and integrates with the Language Server for real-time diagnostics in your editor.
+ansible-lint checks playbooks, roles, and collections for practices and behavior that could be improved. It encodes community best practices as rules organized into tiered profiles, supports automatic fixing of common issues, and integrates with the Language Server for real-time diagnostics in your editor.
 
-- [Documentation](https://ansible.readthedocs.io/projects/lint/)
-- [PyPI](https://pypi.org/project/ansible-lint/)
-- [GitHub](https://github.com/ansible/ansible-lint)
+The tool is opinionated by design — following the same philosophy as `black` and `prettier` — promoting content that reads like documentation, is production-ready, and provides consistent results.
 
-Content coming soon. This page will cover how ansible-lint integrates with the editor and CI workflows.
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-lint
+
+# With locked dependencies (Python 3.10+, in venv)
+pip install "ansible-lint[lock]"
+
+# Fedora/RHEL
+dnf install ansible-lint
+```
+
+Verify installation:
+
+```bash
+ansible-lint --version
+```
+
+## Core concepts
+
+### Profiles
+
+ansible-lint uses a tiered profile system where each level includes all rules from the level below. Choose a profile based on your content's intended audience:
+
+| Profile | Purpose | Use when |
+|---------|---------|----------|
+| `min` | Content is parseable | You just need syntax validation |
+| `basic` | Standard style and formatting | Writing internal playbooks |
+| `moderate` | Maintainability best practices | Team-shared content |
+| `safety` | Security and determinism | Production deployments |
+| `shared` | Galaxy/Automation Hub quality | Publishing to Galaxy |
+| `production` | AAP certified/validated standards | Enterprise content |
+
+Set a profile in your config file or via CLI:
+
+```bash
+ansible-lint --profile moderate
+```
+
+### Rules
+
+ansible-lint ships with 45+ rules, each with a unique string ID. Rules check for:
+
+- **Style**: naming conventions, YAML formatting, key ordering
+- **Best practices**: FQCN usage, handler patterns, idempotency
+- **Security**: file permissions, password logging, prompts
+- **Compatibility**: deprecated modules, bare variables, free-form syntax
+- **Metadata**: galaxy.yml completeness, changelog presence, runtime.yml
+
+Rules can have sub-rules (e.g., `fqcn[action]`, `fqcn[canonical]`, `name[casing]`, `name[template]`).
+
+### Inline suppression
+
+Suppress a rule on a specific line with `# noqa`:
+
+```yaml
+- name: This task needs special permissions
+  ansible.builtin.file:
+    path: /etc/app.conf
+    mode: "0777" # noqa: risky-file-permissions
+```
+
+Suppress multiple rules:
+
+```yaml
+- name: Legacy task  # noqa: fqcn[action] no-changed-when
+  shell: /opt/legacy.sh
+```
+
+## Configuration
+
+### Config file locations
+
+ansible-lint searches for configuration in this order (within the project and parent directories, but not outside the git repo):
+
+1. `.ansible-lint`
+2. `.ansible-lint.yml`
+3. `.ansible-lint.yaml`
+4. `.config/ansible-lint.yml`
+5. `.config/ansible-lint.yaml`
+
+### Configuration reference
+
+```yaml
+# .ansible-lint
+profile: moderate
+
+# Paths to exclude from linting
+exclude_paths:
+  - .github/
+  - changelogs/
+  - molecule/
+
+# Rules to skip entirely
+skip_list:
+  - yaml[line-length]
+  - no-changed-when
+
+# Rules to report as warnings (non-blocking)
+warn_list:
+  - experimental
+  - role-name[path]
+
+# Opt-in rules to activate
+enable_list:
+  - fqcn
+  - no-log-password
+
+# Rules allowed to auto-fix (default: all)
+write_list:
+  - all
+
+# Disable network access
+offline: false
+
+# Mock unavailable modules during syntax check
+mock_modules:
+  - custom_internal_module
+
+# Mock unavailable roles during syntax check
+mock_roles:
+  - custom_internal_role
+
+# Variable naming pattern (regex)
+var_naming_pattern: "^[a-z_][a-z0-9_]*$"
+
+# Loop variable prefix pattern (regex)
+loop_var_prefix: "^(__|{role}_)"
+
+# Task name prefix for name[prefix] rule
+task_name_prefix: "{stem} | "
+
+# Maximum nested block depth
+max_block_depth: 20
+
+# Custom rule directories
+rulesdir:
+  - ./custom_rules/
+
+# Extra variables for syntax check
+extra_vars:
+  foo: bar
+
+# SARIF output file (for CI integration)
+sarif_file: ansible-lint-results.sarif
+```
+
+### Ignore file
+
+For gradual adoption, create `.ansible-lint-ignore` to suppress known violations:
+
+```text
+# Format: filename rule-id [# comment]
+playbooks/legacy.yml fqcn[action]
+roles/old_role/tasks/main.yml no-changed-when  # TODO: fix later
+```
+
+Auto-generate from current violations:
+
+```bash
+ansible-lint --generate-ignore
+```
+
+## Profiles in detail
+
+### min
+
+Ensures content is loadable by Ansible:
+
+- `internal-error` — ansible-lint internal failures
+- `load-failure` — files that cannot be loaded
+- `parser-error` — YAML/Jinja parsing failures
+- `syntax-check` — `ansible-playbook --syntax-check` failures
+
+### basic
+
+Standard formatting and style (includes all `min` rules):
+
+- `command-instead-of-module` — use modules instead of shell commands
+- `command-instead-of-shell` — use `command` when shell features aren't needed
+- `deprecated-bare-vars` / `deprecated-module` / `deprecated-local-action` — outdated syntax
+- `jinja` — Jinja2 spacing and syntax
+- `key-order` — consistent key ordering in tasks
+- `name` — task naming conventions (casing, templates, prefixes)
+- `no-free-form` — avoid free-form module arguments
+- `no-jinja-when` — don't wrap `when` values in `{{ }}`
+- `partial-become` — incomplete privilege escalation
+- `role-name` — role naming conventions
+- `schema` — validate against Ansible JSON schemas
+- `var-naming` — variable naming conventions
+- `yaml` — YAML formatting (via yamllint)
+
+### moderate
+
+Maintainability and quality (includes all `basic` rules):
+
+- `galaxy` — galaxy.yml metadata completeness
+- `ignore-errors` — avoid blanket `ignore_errors: true`
+- `meta-incorrect` / `meta-no-tags` — role metadata issues
+- `no-changed-when` — tasks that change state must declare `changed_when`
+- `no-handler` — use handlers instead of `when: result.changed`
+- `no-relative-paths` — avoid `../` in paths
+- `max-block-depth` / `max-tasks` — complexity limits
+
+### safety
+
+Security and determinism (includes all `moderate` rules):
+
+- `latest` — avoid `latest` as a version/tag
+- `no-log-password` — sensitive data must use `no_log`
+- `no-prompting` — avoid interactive prompts
+- `package-latest` — avoid `state: latest` for packages
+- `risky-file-permissions` — files must specify explicit permissions
+- `risky-octal` — catch malformed octal permissions
+- `risky-shell-pipe` — pipes must handle non-zero exit codes
+
+### shared
+
+Galaxy/Automation Hub publishing quality (includes all `safety` rules):
+
+- `galaxy[no-changelog]` — changelog required
+- `galaxy[tags]` — tags required in galaxy.yml
+- `galaxy[version-incorrect]` — valid semver version
+- `meta-runtime` — runtime.yml requirements
+- `no-tabs` — no tab characters
+
+### production
+
+AAP certified/validated content standards (includes all `shared` rules):
+
+- `avoid-dot-notation` — no dot notation for dict access
+- `fqcn` — fully qualified collection names required everywhere
+- `import-task-no-when` — no `when` on `import_tasks`
+- `meta-no-dependencies` — no collection dependencies in certified content
+- `sanity` — passes `ansible-test sanity`
+- `single-entry-point` — one role entry point
+- `use-loop` — prefer `loop` over `with_*`
+
+## Autofix
+
+ansible-lint can automatically fix many common issues:
+
+```bash
+# Fix all fixable issues
+ansible-lint --fix
+
+# Fix only specific rules
+ansible-lint --fix yaml,key-order,jinja
+```
+
+Rules with autofix support:
+
+| Rule | What it fixes |
+|------|---------------|
+| `command-instead-of-shell` | Converts `shell` to `command` when safe |
+| `deprecated-local-action` | Converts to `delegate_to: localhost` |
+| `fqcn` | Adds fully qualified collection names |
+| `jinja` | Fixes Jinja2 spacing |
+| `key-order` | Reorders task keys to standard order |
+| `name` | Fixes task name casing |
+| `no-free-form` | Converts free-form to structured arguments |
+| `no-jinja-when` | Removes `{{ }}` wrapping in `when` |
+| `no-log-password` | Adds `no_log: true` to password tasks |
+| `partial-become` | Completes partial `become` blocks |
+| `yaml` | Reformats YAML (always runs with `--fix`) |
+
+YAML reformatting always runs when `--fix` is used, regardless of `write_list` or `skip_list` settings.
+
+## CLI reference
+
+```bash
+# Lint specific files
+ansible-lint playbook.yml roles/myrole/
+
+# Lint with a specific profile
+ansible-lint --profile safety
+
+# List all available rules
+ansible-lint -L
+
+# List available profiles
+ansible-lint -P
+
+# Output in SARIF format (for CI)
+ansible-lint -f sarif --sarif-file results.sarif
+
+# Output in Code Climate format
+ansible-lint -f codeclimate
+
+# Skip specific rules
+ansible-lint -x yaml[line-length],no-changed-when
+
+# Run only specific tags
+ansible-lint -t security
+
+# Strict mode (non-zero exit on warnings)
+ansible-lint -s
+
+# Offline mode (no network)
+ansible-lint --offline
+
+# Verbose output
+ansible-lint -vvv
+```
+
+**Output formats:**
+
+| Format | Flag | Use case |
+|--------|------|----------|
+| `full` | `-f full` | Detailed human-readable output (default) |
+| `brief` | `-f brief` | Compact output |
+| `sarif` | `-f sarif` | SARIF JSON for CI integration |
+| `json` | `-f json` | Alias for SARIF |
+| `codeclimate` | `-f codeclimate` | GitLab Code Quality integration |
+| `pep8` | `-f pep8` | Compact one-line-per-finding |
+| `quiet` | `-f quiet` | Minimal output |
+| `md` | `-f md` | Markdown formatted |
+
+## YAML formatting
+
+ansible-lint uses the `yamllint` library internally with these defaults:
+
+- Line length: max 160 characters
+- Comments: 1 space minimum from content
+- Braces: max 1 space inside
+- Octal values: forbids both implicit and explicit
+- Truthy: consistent boolean formatting
+
+If you have a `.yamllint` file, it takes precedence — but it must remain compatible with the ansible-lint reformatter.
+
+## Editor integration
+
+### Language Server (LSP)
+
+ansible-lint integrates with editors via the Ansible Language Server:
+
+- **VS Code**: Official `redhat.ansible` extension
+- **Vim/Neovim**: `coc-ansible`
+- **Emacs**: `lsp-mode` with Ansible client
+
+The Language Server runs ansible-lint in the background on file open and save, presenting findings as editor diagnostics (errors and warnings).
+
+### VS Code settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `ansible.validation.enabled` | `true` | Enable/disable validation |
+| `ansible.validation.lint.enabled` | `true` | Enable/disable ansible-lint |
+| `ansible.validation.lint.path` | `"ansible-lint"` | Path to ansible-lint executable |
+| `ansible.validation.lint.arguments` | `""` | Extra CLI arguments |
+| `ansible.validation.lint.autoFixOnSave` | `false` | Run `--fix` on save |
+
+### How it works
+
+1. When you open or save an Ansible file, the Language Server invokes ansible-lint
+2. Findings appear as VS Code errors (rule violations) or warnings (rules in `warn_list`)
+3. Quick fixes are available for rules that support autofix
+4. If ansible-lint is unavailable, the server falls back to `ansible-playbook --syntax-check`
+
+## CI/CD integration
+
+### GitHub Actions
+
+```yaml
+- name: Run ansible-lint
+  uses: ansible/ansible-lint@main
+  with:
+    args: "--profile moderate"
+    working_directory: ./ansible/
+```
+
+### Pre-commit hook
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.4.0
+    hooks:
+      - id: ansible-lint
+```
+
+### SARIF output for CI
+
+Generate machine-readable results alongside human output:
+
+```bash
+ansible-lint --sarif-file results.sarif
+```
+
+This writes SARIF to the file while still showing normal output on stdout — useful for uploading to GitHub Code Scanning, SonarQube, or other SARIF consumers.
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANSIBLE_LINT_NODEPS` | Skip dependency installation and module-dependent checks |
+
+## Custom rules
+
+Write custom rules by extending `AnsibleLintRule`:
+
+```python
+from ansiblelint.rules import AnsibleLintRule
+
+class MyCustomRule(AnsibleLintRule):
+    id = "custom-001"
+    description = "Ensure all tasks use company namespace"
+    severity = "MEDIUM"
+    tags = ["custom", "company"]
+
+    def matchtask(self, task, file):
+        module = task.get("action", {}).get("__ansible_module__", "")
+        if module and not module.startswith("company."):
+            return "Task uses non-company module: %s" % module
+```
+
+Place custom rules in a directory and reference it:
+
+```yaml
+# .ansible-lint
+rulesdir:
+  - ./custom_rules/
+```
+
+Custom rules with autofix support can implement `TransformMixin`:
+
+```python
+from ansiblelint.rules import AnsibleLintRule, TransformMixin
+
+class MyFixableRule(AnsibleLintRule, TransformMixin):
+    id = "custom-002"
+    # ...
+
+    def transform(self, match, lintable, data):
+        # Modify data in place to fix the issue
+        pass
+```
+
+## Next steps
+
+Your content passes linting. Now prove it works:
+
+- [Test with Molecule](/vscode-ansible/python-tools/molecule/) — verify your roles and playbooks against real infrastructure
+- [Run playbooks with ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/) — execute and debug interactively or in containers
+
+## Links
+
+- [PyPI: ansible-lint](https://pypi.org/project/ansible-lint/)
+- [GitHub: ansible/ansible-lint](https://github.com/ansible/ansible-lint)

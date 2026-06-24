@@ -1,0 +1,283 @@
+---
+title: tox-ansible
+description: Tox plugin that dynamically generates test environments for Ansible collections across Python and ansible-core versions.
+---
+
+tox-ansible is a plugin for the [tox](https://tox.wiki/) testing automation tool that dynamically generates a full matrix of test environments for Ansible collections. It creates combinations of Python interpreters and ansible-core versions, running integration, sanity, and unit tests across all of them — both locally and in GitHub Actions.
+
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install tox-ansible
+```
+
+Verify installation:
+
+```bash
+tox --version
+# tox-ansible should appear in the plugin list
+```
+
+## Core concepts
+
+### Dynamic environment generation
+
+Unlike standard tox where you manually define every test environment, tox-ansible **automatically discovers** your collection structure and generates environments based on:
+
+- Available Python interpreters on the system
+- Supported ansible-core versions
+- Test types found in the collection (integration, unit, sanity)
+
+This means your `tox.ini` can be minimal — tox-ansible handles the combinatorial explosion.
+
+### Test types
+
+tox-ansible generates environments for three test types:
+
+| Type | What it tests | How |
+|------|---------------|-----|
+| **integration** | Molecule scenarios | Discovers `extensions/molecule/` scenarios and runs them |
+| **unit** | Python unit tests | Runs `pytest` against `tests/unit/` |
+| **sanity** | Ansible sanity checks | Runs `ansible-test sanity` |
+
+### Environment naming
+
+Generated environments follow the pattern:
+
+```text
+{python_version}-{ansible_core_version}-{test_type}[-{scenario}]
+```
+
+Examples:
+
+```text
+py312-2.17-integration-default
+py311-2.16-unit
+py312-2.17-sanity
+py312-2.17-integration-failover
+```
+
+## Configuration
+
+### Minimal `tox.ini`
+
+For most collections, a minimal configuration is sufficient:
+
+```ini
+[tox]
+requires =
+    tox>=4.0
+    tox-ansible>=26.0
+
+[ansible]
+# tox-ansible reads this section
+skip =
+    # Skip specific scenarios or test types
+    2.16-integration
+```
+
+### Configuration options
+
+The `[ansible]` section in `tox.ini` supports:
+
+| Key | Description |
+|-----|-------------|
+| `skip` | List of environment patterns to skip |
+| `python` | Python versions to test (defaults to discovered interpreters) |
+| `ansible-core` | ansible-core versions to test |
+
+### Integration with ansible-dev-environment
+
+tox-ansible delegates collection installation to `ade` (ansible-dev-environment), ensuring:
+
+- Collections are installed in editable mode within each tox environment
+- Python and collection dependencies are properly resolved
+- Each environment is fully isolated
+
+## CLI usage
+
+### List generated environments
+
+```bash
+# See all environments tox-ansible will generate
+tox list
+```
+
+### Run all tests
+
+```bash
+# Run the full matrix
+tox
+```
+
+### Run specific environments
+
+```bash
+# Run only integration tests on Python 3.12 with ansible-core 2.17
+tox -e py312-2.17-integration
+
+# Run only unit tests
+tox -e py312-2.17-unit
+
+# Run sanity checks
+tox -e py312-2.17-sanity
+
+# Run a specific molecule scenario
+tox -e py312-2.17-integration-default
+```
+
+### Parallel execution
+
+```bash
+# Run environments in parallel
+tox -p auto
+
+# Run with a specific number of workers
+tox -p 4
+```
+
+## GitHub Actions integration
+
+### `--gh-matrix` flag
+
+tox-ansible can output its generated environment list as a GitHub Actions matrix JSON, enabling dynamic CI matrices:
+
+```bash
+tox --gh-matrix
+```
+
+This outputs JSON suitable for use in a GitHub Actions matrix strategy.
+
+### Workflow example
+
+```yaml
+name: Collection Tests
+on: [push, pull_request]
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.envlist }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tox-ansible
+        run: pip install tox-ansible
+      - name: Generate matrix
+        id: matrix
+        run: |
+          echo "envlist=$(tox --gh-matrix)" >> $GITHUB_OUTPUT
+
+  test:
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.env.python }}
+      - name: Install dependencies
+        run: pip install ansible-dev-tools molecule-plugins[docker]
+      - name: Run tests
+        run: tox -e ${{ matrix.env.name }}
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+```
+
+### Benefits over static matrices
+
+| Static matrix | tox-ansible matrix |
+|---------------|-------------------|
+| Must manually list all Python × Ansible combinations | Auto-discovers available combinations |
+| Breaks when new versions are released | Adapts to new versions automatically |
+| Duplicates information between tox.ini and workflow | Single source of truth in `tox.ini` |
+| Hard to keep in sync | Always consistent |
+
+## Collection testing workflow
+
+### Typical project structure
+
+```text
+my_collection/
+├── galaxy.yml
+├── tox.ini
+├── plugins/
+│   └── modules/
+│       └── my_module.py
+├── tests/
+│   └── unit/
+│       └── test_my_module.py
+└── extensions/
+    └── molecule/
+        ├── default/
+        │   ├── molecule.yml
+        │   ├── converge.yml
+        │   └── verify.yml
+        └── failover/
+            ├── molecule.yml
+            ├── converge.yml
+            └── verify.yml
+```
+
+### Running locally
+
+```bash
+# Install the collection in development mode
+ade install -e .[test] --venv .venv
+source .venv/bin/activate
+
+# Run all tests via tox
+tox
+
+# Run just the default molecule scenario
+tox -e py312-2.17-integration-default
+
+# Run unit tests only
+tox -e py312-2.17-unit
+```
+
+### What tox-ansible does for each environment
+
+1. Creates an isolated virtual environment
+2. Installs the specified ansible-core version
+3. Uses `ade` to install the collection in editable mode
+4. Installs test dependencies
+5. Runs the appropriate test command:
+   - Integration: `molecule test -s <scenario>`
+   - Unit: `pytest tests/unit/`
+   - Sanity: `ansible-test sanity`
+
+## Additional test runners
+
+tox-ansible also supports:
+
+- **galaxy-importer** — validates the collection for Galaxy publishing
+- Custom test commands via standard tox `[testenv]` configuration
+
+## Editor integration
+
+Collections scaffolded by `ansible-creator` include a pre-configured `tox.ini` that works with tox-ansible out of the box. The VS Code extension recognizes tox configurations and provides task integration for running tests.
+
+## Next steps
+
+Your collection is tested across the matrix. Now run it for real and package it:
+
+- [Run playbooks with ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/) — execute in containers with the same isolation as production
+- [Build an execution environment with ansible-builder](/vscode-ansible/python-tools/ansible-builder/) — package your collection and its dependencies into a container image
+
+## Links
+
+- [PyPI: tox-ansible](https://pypi.org/project/tox-ansible/)
+- [GitHub: ansible/tox-ansible](https://github.com/ansible/tox-ansible)

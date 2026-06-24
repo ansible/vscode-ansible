@@ -1,0 +1,255 @@
+---
+title: End-to-End Workflow
+description: How all Ansible developer tools work together through the complete content lifecycle.
+---
+
+This page walks through a real development cycle — from an empty directory to signed, production-ready Ansible content — showing how each tool in the suite connects to the next. The individual tool pages cover features in depth; this page shows the journey.
+
+## The lifecycle
+
+```text
+ ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+ │ Scaffold │───▶│  Develop │───▶│   Test   │───▶│ Execute  │
+ │          │    │          │    │          │    │          │
+ │ creator  │    │ ade      │    │ lint     │    │navigator │
+ │          │    │ lint     │    │ molecule │    │ builder  │
+ │          │    │          │    │ tox      │    │ sign     │
+ └──────────┘    └──────────┘    └──────────┘    └──────────┘
+```
+
+## Phase 1: Scaffold
+
+You're starting a new Ansible collection. Instead of creating directories and boilerplate by hand, use **ansible-creator**:
+
+```bash
+ansible-creator init collection myorg.network_automation ~/projects/network_automation
+```
+
+This generates a complete project structure: plugins, roles, tests, molecule scenarios, CI workflows, devcontainer configuration, and a pre-configured `tox.ini`. You're starting with community best practices built in.
+
+**What you have now:** A fully structured collection with placeholder content, ready for development.
+
+**Tool used:** [ansible-creator](/vscode-ansible/python-tools/ansible-creator/)
+
+## Phase 2: Set up your environment
+
+Before writing code, create an isolated development environment using **ansible-dev-environment**:
+
+```bash
+cd ~/projects/network_automation
+ade install -e .[test] --venv .venv
+source .venv/bin/activate
+```
+
+This creates a virtual environment, installs your collection in editable mode (via symlink), resolves all Python and collection dependencies, and installs test dependencies. Changes to your source files are immediately visible to Ansible without reinstalling.
+
+**What you have now:** An isolated workspace where your collection is importable, testable, and won't conflict with other projects.
+
+**Tool used:** [ansible-dev-environment](/vscode-ansible/python-tools/ansible-dev-environment/)
+
+## Phase 3: Write and lint
+
+Open the project in VS Code with the Ansible extension. As you write playbooks, roles, and modules, **ansible-lint** runs continuously in the background via the Language Server, catching issues in real time:
+
+- Missing FQCNs flagged as you type
+- Naming convention violations highlighted
+- Security issues (missing `no_log`, risky permissions) surfaced immediately
+
+You can also run it explicitly:
+
+```bash
+ansible-lint --profile moderate
+```
+
+Fix common issues automatically:
+
+```bash
+ansible-lint --fix
+```
+
+**What you have now:** Clean, linted content that follows community best practices.
+
+**Tool used:** [ansible-lint](/vscode-ansible/python-tools/ansible-lint/)
+
+## Phase 4: Test locally
+
+Your scaffolded project came with Molecule scenarios. Run them to verify your roles work against real infrastructure:
+
+```bash
+# Run the default scenario
+molecule test
+
+# During development, iterate faster:
+molecule converge   # apply your role
+molecule verify     # check assertions
+molecule destroy    # clean up
+```
+
+Molecule provisions test containers (or VMs), applies your role, runs verification assertions, and tears everything down. The converge playbook exercises your role; the verify playbook proves it did what you intended.
+
+**What you have now:** Confidence that your content works against real targets.
+
+**Tool used:** [molecule](/vscode-ansible/python-tools/molecule/)
+
+## Phase 5: Test the matrix
+
+Before publishing, verify your collection works across the supported matrix of Python versions and ansible-core releases. **tox-ansible** generates this matrix automatically:
+
+```bash
+# See what environments will be tested
+tox list
+
+# Run the full matrix
+tox
+
+# Or run a specific combination
+tox -e py312-2.17-integration-default
+```
+
+For CI, generate a GitHub Actions matrix dynamically:
+
+```bash
+tox --gh-matrix
+```
+
+**What you have now:** Proof that your collection works across all supported Python and Ansible versions.
+
+**Tool used:** [tox-ansible](/vscode-ansible/python-tools/tox-ansible/)
+
+## Phase 6: Run for real
+
+Your collection is tested. Now run your playbooks against actual infrastructure using **ansible-navigator**:
+
+```bash
+# Interactive mode for development
+ansible-navigator run site.yml -i inventory/staging.yml
+
+# stdout mode for CI/CD
+ansible-navigator run site.yml -i inventory/production.yml --mode stdout
+```
+
+Navigator runs your playbook inside an execution environment container by default, giving you the same isolation you'll have in production with Ansible Automation Platform. Use the TUI to drill into results, inspect task output, and debug failures interactively.
+
+**What you have now:** Validated automation running against real infrastructure in a reproducible container environment.
+
+**Tool used:** [ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/)
+
+## Phase 7: Build your execution environment
+
+The default community EE image works for development, but production needs a custom image with exactly your collections and dependencies — nothing more, nothing less. Use **ansible-builder**:
+
+```yaml
+# execution-environment.yml
+---
+version: 3
+images:
+  base_image:
+    name: docker.io/redhat/ubi9:latest
+dependencies:
+  ansible_core:
+    package_pip: ansible-core==2.17.0
+  ansible_runner:
+    package_pip: ansible-runner
+  galaxy:
+    collections:
+      - name: myorg.network_automation
+      - name: ansible.netcommon
+      - name: ansible.utils
+  python:
+    - netmiko>=4.0
+    - paramiko
+  system:
+    - openssh-clients
+options:
+  tags:
+    - myorg/network-ee:latest
+    - myorg/network-ee:1.0.0
+```
+
+```bash
+ansible-builder build
+```
+
+This produces a minimal, production-ready container image that ansible-navigator and Ansible Automation Platform can use.
+
+**What you have now:** A custom execution environment image containing exactly what your automation needs.
+
+**Tool used:** [ansible-builder](/vscode-ansible/python-tools/ansible-builder/)
+
+## Phase 8: Sign and ship
+
+Before deploying to Automation Platform, sign your project to ensure no one can tamper with the content between your CI pipeline and production:
+
+```bash
+ansible-sign project gpg-sign .
+git add .ansible-sign/
+git commit -m "Sign release v1.0.0"
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+When Ansible Automation Platform Controller syncs this project, it automatically verifies the signature. If any file has been modified since signing, the sync fails and the content cannot run.
+
+**What you have now:** Cryptographically verified content that can be trusted in production.
+
+**Tool used:** [ansible-sign](/vscode-ansible/python-tools/ansible-sign/)
+
+## The complete picture
+
+Here's every tool in sequence with the artifact each produces:
+
+| Phase | Tool | Input | Output |
+|-------|------|-------|--------|
+| Scaffold | ansible-creator | A name and a command | Complete project structure |
+| Environment | ade | Project directory | Isolated venv with editable install |
+| Lint | ansible-lint | Your Ansible files | Clean, best-practice content |
+| Unit test | molecule | Scenarios + converge playbooks | Passing functional tests |
+| Matrix test | tox-ansible | tox.ini + collection | Green matrix across versions |
+| Execute | ansible-navigator | Playbook + inventory + EE | Successful automation runs |
+| Package | ansible-builder | EE definition | Custom container image |
+| Sign | ansible-sign | Project directory | Verified, tamper-proof release |
+
+## Where the editor fits
+
+Throughout this entire lifecycle, the VS Code extension (and its Language Server and MCP server) integrates with the tools at every stage:
+
+- **Scaffolding**: The extension's Creator panel calls `ansible-creator` through the `adt server` API
+- **Linting**: The Language Server runs `ansible-lint` on every save and surfaces diagnostics inline
+- **Testing**: Molecule scenarios get full Ansible language support in the editor
+- **Execution**: The extension can invoke `ansible-navigator` for playbook runs with progress streaming
+- **EE awareness**: The extension introspects execution environment images to show installed collections and versions
+
+AI agents connected via the MCP server have access to the same lifecycle — scaffolding projects, running diagnostics, and querying environment state — without any manual steps.
+
+## CI/CD pipeline
+
+In practice, several of these phases run in your CI/CD pipeline rather than locally:
+
+```yaml
+# .github/workflows/ci.yml (simplified)
+jobs:
+  lint:
+    steps:
+      - uses: ansible/ansible-lint@main
+
+  test:
+    needs: lint
+    strategy:
+      matrix:
+        env: ${{ fromJSON(needs.matrix.outputs.envlist) }}
+    steps:
+      - run: tox -e ${{ matrix.env.name }}
+
+  build-ee:
+    needs: test
+    steps:
+      - run: ansible-builder build --tag myorg/network-ee:${{ github.sha }}
+      - run: podman push myorg/network-ee:${{ github.sha }}
+
+  sign:
+    needs: build-ee
+    steps:
+      - run: ansible-sign project gpg-sign .
+```
+
+The tools compose naturally in CI because they're all designed to run headlessly with machine-readable output (SARIF, JSON, exit codes).

@@ -34,24 +34,25 @@ This framing has problems:
 ## Decision
 
 **The documentation site is titled "Ansible Developer Tools" and
-structured as an ecosystem hub covering all Ansible development
-tooling, not just the VS Code extension.**
+structured as the single, authoritative documentation source for all
+Ansible development tooling — not just the VS Code extension.**
 
 The site navigation is organized by capability area, not by artifact:
 
 - **Getting Started** — ecosystem overview, installation, configuration
 - **Python Tools** — ADT, ADE, ansible-lint, ansible-creator,
-  ansible-navigator (overview pages linking to each tool's own docs)
+  ansible-navigator, ansible-builder, molecule, tox-ansible,
+  ansible-sign (complete documentation for each tool)
 - **Editor Integration** — VS Code extension, Language Server, settings
 - **AI & Agents** — MCP server, connecting AI agents
 - **Development** — contributing, architecture, testing
 - **Reference** — commands, best practices
 - **Roadmap** — feature plans
 
-The Python Tools pages link to each tool's canonical documentation
-(Read the Docs, PyPI, GitHub) rather than duplicating it. The docs site
-provides integration context — how the tools work together and how they
-connect to the editor and AI agent layers.
+The Python Tools pages provide **complete coverage** of each tool:
+concepts, installation, CLI usage, configuration reference, and
+integration with the editor and AI agent layers. This site replaces
+the individual per-tool documentation sites as the canonical source.
 
 ## Alternatives Considered
 
@@ -96,13 +97,17 @@ own marketplace identity.
   support (Neovim, JetBrains) without restructuring.
 - **AI-era ready.** The MCP server and agent connectivity have a
   first-class home rather than being buried in extension features.
-- **Reduced duplication.** Python tool pages link to canonical docs
-  rather than rewriting them.
+- **Complete coverage.** All tool documentation lives in one place,
+  eliminating the need to cross-reference multiple Read the Docs sites.
+- **Consistent voice and structure.** A single documentation site
+  ensures consistent terminology, cross-linking, and editorial quality
+  across all tools.
 
 ### Negative
 
-- **Broader maintenance scope.** The site references tools maintained by
-  other teams. Links and descriptions can drift.
+- **Broader maintenance scope.** The site owns the documentation for
+  tools maintained by other teams. Content must be kept current as
+  upstream tools release new features.
 - **Naming ambiguity.** "Ansible Developer Tools" as a docs title could
   be confused with the `ansible-dev-tools` Python package. The site
   should make the distinction clear on the landing page.
@@ -130,3 +135,4 @@ own marketplace identity.
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-06-22 | — | Initial record |
+| 2026-06-23 | — | Amended: site provides complete tool coverage, replacing per-tool docs sites as canonical source |

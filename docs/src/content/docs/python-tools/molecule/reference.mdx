@@ -1,0 +1,767 @@
+---
+title: "molecule: Reference"
+description: Complete molecule.yml schema, environment variables, action definitions, driver configuration, and CLI flags.
+---
+
+This page provides exhaustive reference material for Molecule. For an introduction and typical usage, see the [Molecule guide](/vscode-ansible/python-tools/molecule/).
+
+## CLI flags
+
+### Global options
+
+| Flag | Description |
+|------|-------------|
+| `--debug` | Enable debug mode (passes `-vvv` to ansible-playbook) |
+| `--base-config <path>` | Path to base configuration file |
+| `--env-file <path>` | Path to environment file (`.env.yml`) |
+| `--version` | Show version |
+| `-h, --help` | Show help |
+
+### `molecule test`
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-s, --scenario-name <name>` | Target scenario (supports nested: `group/scenario`) | `default` |
+| `--all` | Run all scenarios |  — |
+| `--parallel / --no-parallel` | Run scenarios concurrently (deprecated) | `false` |
+| `--workers <n>` | Number of concurrent scenario workers | `1` |
+| `--command-borders` | Show command boundaries in output | — |
+| `--report` | Generate test report | — |
+| `--shared-state` | Share ephemeral state across scenarios | `false` |
+| `--` | Pass remaining args to ansible-playbook | — |
+
+### `molecule converge`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--` | Pass remaining args to ansible-playbook |
+
+### `molecule create`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--driver <name>` | Override driver |
+
+### `molecule destroy`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--all` | Destroy all scenarios |
+| `--parallel` | Destroy in parallel |
+| `--driver <name>` | Override driver |
+
+### `molecule verify`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+
+### `molecule prepare`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--force` | Force re-preparation (even if already prepared) |
+
+### `molecule login`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--host <name>` | Instance to connect to |
+
+### `molecule init scenario`
+
+| Flag | Description |
+|------|-------------|
+| `<name>` | Scenario name (positional) |
+| `--driver-name <name>` | Driver to use |
+
+### `molecule list`
+
+| Flag | Description |
+|------|-------------|
+| `-s, --scenario-name <name>` | Target scenario |
+| `--format <fmt>` | Output format: `simple`, `plain`, `yaml` |
+
+### `molecule matrix`
+
+| Flag | Description |
+|------|-------------|
+| `<subcommand>` | Show action list for this subcommand (positional) |
+| `-s, --scenario-name <name>` | Target scenario |
+
+## molecule.yml schema: Ansible-native configuration
+
+### Top-level structure
+
+```yaml
+---
+ansible: {}
+scenario: {}
+shared_state: false
+verifier: {}
+```
+
+### `ansible` section
+
+```yaml
+ansible:
+  executor:
+    backend: <string>        # "ansible-playbook" or "ansible-navigator"
+    args:
+      ansible_playbook: []   # list of CLI args
+      ansible_navigator: []  # list of CLI args
+  env: {}                    # environment variables (key: value)
+  cfg: {}                    # ansible.cfg sections (nested dict)
+  playbooks:
+    create: <string>         # create playbook filename
+    destroy: <string>        # destroy playbook filename
+    converge: <string>       # converge playbook filename
+    prepare: <string>        # prepare playbook filename
+    verify: <string>         # verify playbook filename
+    cleanup: <string>        # cleanup playbook filename
+    side_effect: <string>    # side_effect playbook filename
+```
+
+#### `ansible.executor`
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `backend` | `string` | `ansible-playbook` | Executor backend |
+| `args.ansible_playbook` | `list[string]` | `[]` | Extra args for ansible-playbook |
+| `args.ansible_navigator` | `list[string]` | `[]` | Extra args for ansible-navigator |
+
+#### `ansible.env`
+
+Key-value pairs set as environment variables during playbook execution:
+
+| Common variables | Purpose |
+|-----------------|---------|
+| `ANSIBLE_FORCE_COLOR` | Force colored output |
+| `ANSIBLE_HOST_KEY_CHECKING` | Disable SSH host key checking |
+| `ANSIBLE_STDOUT_CALLBACK` | Output callback (e.g., `yaml`, `debug`) |
+| `ANSIBLE_COLLECTIONS_PATH` | Collection search path |
+| `ANSIBLE_ROLES_PATH` | Role search path |
+
+#### `ansible.cfg`
+
+Nested dict that generates an `ansible.cfg` for the scenario:
+
+```yaml
+ansible:
+  cfg:
+    defaults:
+      host_key_checking: false
+      gathering: smart
+      fact_caching: memory
+      timeout: 30
+      stdout_callback: yaml
+    ssh_connection:
+      ssh_args: -o ControlMaster=auto -o ControlPersist=60s
+      pipelining: true
+    privilege_escalation:
+      become: true
+      become_method: sudo
+```
+
+#### `ansible.playbooks`
+
+| Field | Default filename | Description |
+|-------|-----------------|-------------|
+| `create` | `create.yml` | Provisions test infrastructure |
+| `destroy` | `destroy.yml` | Tears down test infrastructure |
+| `converge` | `converge.yml` | Applies content under test |
+| `prepare` | `prepare.yml` | Pre-configures instances |
+| `verify` | `verify.yml` | Runs verification |
+| `cleanup` | `cleanup.yml` | Cleans external resources |
+| `side_effect` | `side_effect.yml` | Produces side effects |
+
+### `scenario` section
+
+```yaml
+scenario:
+  create_sequence: []
+  converge_sequence: []
+  destroy_sequence: []
+  check_sequence: []
+  test_sequence: []
+```
+
+#### Default sequences
+
+**`test_sequence`** (full test):
+```yaml
+- dependency
+- cleanup
+- destroy
+- syntax
+- create
+- prepare
+- converge
+- idempotence
+- side_effect
+- verify
+- cleanup
+- destroy
+```
+
+**`create_sequence`:**
+```yaml
+- dependency
+- create
+- prepare
+```
+
+**`converge_sequence`:**
+```yaml
+- dependency
+- create
+- prepare
+- converge
+```
+
+**`destroy_sequence`:**
+```yaml
+- dependency
+- cleanup
+- destroy
+```
+
+**`check_sequence`:**
+```yaml
+- dependency
+- cleanup
+- destroy
+- create
+- prepare
+- converge
+- check
+- destroy
+```
+
+### `shared_state`
+
+| Value | Behavior |
+|-------|----------|
+| `false` (default) | Each scenario has independent ephemeral state |
+| `true` | Scenarios share ephemeral directory for efficient multi-scenario testing |
+
+### `verifier` section
+
+```yaml
+verifier:
+  name: <string>        # "ansible" or "testinfra"
+  enabled: <boolean>    # true/false
+  env: {}               # environment variables
+  options: {}           # verifier-specific options
+  directory: <string>   # test file directory
+  additional_files_or_dirs: []  # extra test paths
+```
+
+#### Ansible verifier
+
+```yaml
+verifier:
+  name: ansible
+  enabled: true
+  env:
+    ANSIBLE_VERBOSITY: 1
+```
+
+#### Testinfra verifier
+
+```yaml
+verifier:
+  name: testinfra
+  enabled: true
+  options:
+    n: 1                # pytest parallelism
+    verbose: true
+    capture: no
+    tb: short
+    sudo: true
+  env:
+    PYTHONPATH: /custom/path
+  directory: tests/
+  additional_files_or_dirs:
+    - ../shared_tests/test_common.py
+```
+
+## molecule.yml schema: Pre-ansible-native (legacy)
+
+### Top-level structure
+
+```yaml
+---
+driver: {}
+platforms: []
+provisioner: {}
+verifier: {}
+scenario: {}
+dependency: {}
+```
+
+### `driver` section
+
+```yaml
+driver:
+  name: <string>        # driver name
+  options:
+    managed: <boolean>  # whether Molecule manages instance lifecycle
+    login_cmd_template: <string>  # SSH command template
+    ansible_connection_options:
+      ansible_connection: <string>
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | `string` | `default` | Driver identifier |
+| `options.managed` | `boolean` | `true` | Molecule manages create/destroy |
+
+### `platforms` section
+
+```yaml
+platforms:
+  - name: <string>         # instance name (required)
+    image: <string>        # container/VM image
+    groups: []             # inventory groups
+    children: []           # child groups
+    command: <string>      # container override command
+    privileged: <boolean>  # privileged mode
+    volumes: []            # volume mounts
+    exposed_ports: []      # exposed ports
+    published_ports: []    # published ports
+    networks: []           # network attachments
+    env: {}                # environment variables
+    pre_build_image: <boolean>  # skip image build
+```
+
+Platform fields vary by driver. Common fields for container drivers (docker/podman):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Instance name (must be unique) |
+| `image` | `string` | Container image |
+| `groups` | `list[string]` | Ansible inventory groups |
+| `children` | `list[string]` | Child groups |
+| `command` | `string` | Override container CMD |
+| `privileged` | `boolean` | Run in privileged mode |
+| `volumes` | `list[string]` | Bind mounts (`/host:/container[:opts]`) |
+| `exposed_ports` | `list[string]` | Ports to expose |
+| `published_ports` | `list[string]` | Ports to publish (`host:container`) |
+| `networks` | `list[dict]` | Network configurations |
+| `env` | `dict` | Container environment variables |
+| `pre_build_image` | `boolean` | Use existing image (don't build) |
+| `tmpfs` | `list[string]` | tmpfs mounts |
+| `capabilities` | `list[string]` | Linux capabilities |
+| `security_opts` | `list[string]` | Security options |
+| `cgroupns_mode` | `string` | cgroup namespace mode |
+
+### `provisioner` section
+
+```yaml
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      host_key_checking: false
+    ssh_connection:
+      pipelining: true
+  connection_options:
+    ansible_connection: ssh
+  env:
+    ANSIBLE_STDOUT_CALLBACK: yaml
+  playbooks:
+    create: create.yml
+    destroy: destroy.yml
+    converge: converge.yml
+    prepare: prepare.yml
+    verify: verify.yml
+    cleanup: cleanup.yml
+    side_effect: side_effect.yml
+  inventory:
+    hosts: {}
+    group_vars:
+      all:
+        key: value
+    host_vars:
+      instance-1:
+        key: value
+    links:
+      hosts: inventory/hosts.yml
+      group_vars: inventory/group_vars/
+      host_vars: inventory/host_vars/
+  options:
+    become: true
+    v: true
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Always `ansible` |
+| `config_options` | `dict` | ansible.cfg sections |
+| `connection_options` | `dict` | Connection variables |
+| `env` | `dict` | Environment variables |
+| `playbooks` | `dict` | Playbook filenames |
+| `inventory` | `dict` | Inventory configuration |
+| `inventory.links` | `dict` | Symlinks to external inventory files |
+| `options` | `dict` | Extra ansible-playbook options |
+
+### `dependency` section
+
+```yaml
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yml
+    requirements-file: collections.yml
+    force: false
+  env:
+    ANSIBLE_GALAXY_SERVER_LIST: automation_hub
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `name` | `string` | `galaxy` | Dependency manager |
+| `options.role-file` | `string` | `requirements.yml` | Role requirements |
+| `options.requirements-file` | `string` | — | Collection requirements |
+| `options.force` | `boolean` | `false` | Force re-download |
+
+### Shell dependency manager
+
+```yaml
+dependency:
+  name: shell
+  command: path/to/command --flag1 subcommand --flag2
+  enabled: true
+  env:
+    FOO: bar
+```
+
+## Provisioner details
+
+### Skip tags
+
+Molecule recognizes special tags to exclude tasks from certain phases:
+
+| Tag | Effect |
+|-----|--------|
+| `molecule-notest` | Task is always skipped by Molecule |
+| `notest` | Alias for `molecule-notest` |
+| `molecule-idempotence-notest` | Task is skipped only during the idempotence action |
+
+### Provisioner logging
+
+```yaml
+provisioner:
+  name: ansible
+  log: true
+```
+
+### Playbook loading order
+
+Molecule resolves playbooks in this order:
+1. `provisioner.playbooks.<driver_name>.<action>` (driver-specific)
+2. `provisioner.playbooks.<action>` (generic)
+3. Bundled default playbook for the driver/action
+
+### Inventory links
+
+Use symlinks to external inventory files instead of inline definitions:
+
+```yaml
+provisioner:
+  inventory:
+    links:
+      hosts: inventory/hosts.yml
+      group_vars: inventory/group_vars/
+      host_vars: inventory/host_vars/
+```
+
+### Disallowed config_options
+
+These keys cannot be set in `provisioner.config_options` as they would break Molecule:
+- `library`
+- `filter_plugins`
+- `privilege_escalation`
+
+## Environment variables
+
+### Molecule-provided variables
+
+Available in `molecule.yml` via `$&#123;VAR&#125;` substitution and in playbooks as facts:
+
+| Variable | Description |
+|----------|-------------|
+| `MOLECULE_DEBUG` | Debug mode enabled |
+| `MOLECULE_FILE` | Path to `molecule.yml` |
+| `MOLECULE_ENV_FILE` | Path to `.env.yml` |
+| `MOLECULE_STATE_FILE` | Path to state file |
+| `MOLECULE_INVENTORY_FILE` | Path to generated inventory |
+| `MOLECULE_EPHEMERAL_DIRECTORY` | Temp directory for scenario |
+| `MOLECULE_SCENARIO_DIRECTORY` | Path to scenario directory |
+| `MOLECULE_PROJECT_DIRECTORY` | Path to project root |
+| `MOLECULE_INSTANCE_CONFIG` | Path to instance config file |
+| `MOLECULE_DEPENDENCY_NAME` | Dependency manager name |
+| `MOLECULE_SCENARIO_NAME` | Current scenario name |
+| `MOLECULE_VERBOSITY` | Verbosity level |
+| `MOLECULE_DRIVER_NAME` | Driver name (pre-native only) |
+| `MOLECULE_PROVISIONER_NAME` | Provisioner name (pre-native only) |
+| `MOLECULE_VERIFIER_NAME` | Verifier name (pre-native only) |
+| `MOLECULE_ANSIBLE_ARGS_STRICT_MODE` | Reverts to legacy behavior where ansible_args are excluded from create/destroy |
+| `MOLECULE_VERIFIER_TEST_DIRECTORY` | Path to verifier test directory (pre-ansible-native) |
+
+### Variable substitution in molecule.yml
+
+Shell-style substitution with defaults:
+
+```yaml
+platforms:
+  - name: instance-${MOLECULE_SCENARIO_NAME}
+    image: ${CONTAINER_IMAGE:-ubuntu:22.04}
+    env:
+      CI: ${CI:-false}
+```
+
+| Syntax | Behavior |
+|--------|----------|
+| `$&#123;VAR&#125;` | Value of VAR (error if unset) |
+| `$&#123;VAR:-default&#125;` | Value of VAR, or `default` if unset/empty |
+| `$&#123;VAR-default&#125;` | Value of VAR, or `default` if unset (not empty) |
+
+## Action reference
+
+### `dependency`
+
+Installs role and collection dependencies. Runs `ansible-galaxy` with the configured requirements files.
+
+### `cleanup`
+
+Runs `cleanup.yml` to clean external resources (load balancers, DNS entries, etc.) before destroying instances. Runs both before `destroy` in the test sequence.
+
+### `destroy`
+
+Runs `destroy.yml` to tear down test infrastructure.
+
+### `syntax`
+
+Runs `ansible-playbook --syntax-check` on the converge playbook. No playbook of its own.
+
+### `create`
+
+Runs `create.yml` to provision test infrastructure.
+
+### `prepare`
+
+Runs `prepare.yml` to pre-configure instances (install Python, configure repos, etc.). Only runs once unless `--force` is used.
+
+### `converge`
+
+Runs `converge.yml` — the main playbook that applies the role or content under test.
+
+### `idempotence`
+
+Re-runs the converge playbook and asserts no tasks report `changed`. No playbook of its own — reuses `converge.yml`.
+
+### `side_effect`
+
+Runs `side_effect.yml` to produce side effects (failover, reboot, config changes) for testing recovery scenarios.
+
+### `verify`
+
+Runs `verify.yml` (Ansible verifier) or pytest (Testinfra verifier) to validate the system state.
+
+### `check`
+
+Runs `ansible-playbook --check` (dry-run mode) on the converge playbook.
+
+## Configuration file locations
+
+Searched in order (later files override earlier):
+
+| Path | Scope | Description |
+|------|-------|-------------|
+| `$HOME/.config/molecule/config.yml` | Global | User-wide defaults |
+| `<project>/config.yml` | Project | Project-wide defaults |
+| `<project>/extensions/molecule/config.yml` | Collection | Collection base config |
+| `<scenario>/molecule.yml` | Scenario | Scenario-specific config |
+| `<project>/.env.yml` | Project | Variables injected into molecule.yml rendering |
+
+## Nested scenarios
+
+For collections with many components, scenarios can be organized in nested directories:
+
+```text
+extensions/molecule/
+├── appliance_vlans/
+│   ├── merged/
+│   │   ├── molecule.yml
+│   │   └── converge.yml
+│   └── replaced/
+│       ├── molecule.yml
+│       └── converge.yml
+└── interfaces/
+    └── default/
+        ├── molecule.yml
+        └── converge.yml
+```
+
+Target nested scenarios with `/` separator:
+
+```bash
+# Run a specific nested scenario
+molecule test -s appliance_vlans/merged
+
+# Wildcard targeting
+molecule test -s "appliance_vlans/*"
+```
+
+Enable recursive discovery with the `MOLECULE_GLOB` environment variable:
+
+```bash
+export MOLECULE_GLOB="extensions/molecule/**/molecule.yml"
+```
+
+Scenario names are derived from their relative path within `extensions/molecule/`.
+
+## Driver-specific configuration
+
+### Docker (`molecule-plugins[docker]`)
+
+```yaml
+platforms:
+  - name: instance
+    image: ubuntu:22.04
+    dockerfile: Dockerfile.j2
+    command: /sbin/init
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    tmpfs:
+      - /run
+      - /tmp
+    networks:
+      - name: molecule_net
+    exposed_ports:
+      - "8080/tcp"
+    published_ports:
+      - "0.0.0.0:8080:8080/tcp"
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    pre_build_image: true
+```
+
+### Podman (`molecule-plugins[podman]`)
+
+```yaml
+platforms:
+  - name: instance
+    image: registry.access.redhat.com/ubi9/ubi-init:latest
+    command: /sbin/init
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    security_opts:
+      - label=disable
+    capabilities:
+      - SYS_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+```
+
+### Full platform properties (container drivers)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Instance name (required, unique) |
+| `image` | `string` | Container image |
+| `hostname` | `string` | Container hostname |
+| `command` | `string` | Override container CMD |
+| `privileged` | `boolean` | Privileged mode |
+| `memory` | `string` | Memory limit (e.g., `512m`) |
+| `cpus` | `integer` | CPU count |
+| `groups` | `list[string]` | Ansible inventory groups |
+| `children` | `list[string]` | Child groups |
+| `env` | `dict` | Container environment variables |
+| `volumes` | `list[string]` | Bind mounts (`/host:/container[:opts]`) |
+| `tmpfs` | `list[string]` | tmpfs mounts |
+| `exposed_ports` | `list[string]` | Ports to expose |
+| `published_ports` | `list[string]` | Published ports (`host:container`) |
+| `networks` | `list[dict]` | Networks with `name`, `aliases`, `ipv4_address` |
+| `network_mode` | `string` | Network mode (bridge, host, none) |
+| `ulimits` | `list[string]` | ulimit settings |
+| `cgroupns_mode` | `string` | cgroup namespace mode |
+| `capabilities` | `list[string]` | Linux capabilities |
+| `security_opts` | `list[string]` | Security options |
+| `pre_build_image` | `boolean` | Use existing image (skip build) |
+| `pkg_extras` | `list[string]` | Extra packages for image build |
+| `registry` | `dict` | Registry config with `url`, `credentials` |
+| `dockerfile` | `string` | Path to Dockerfile template |
+| `port_bindings` | `dict` | Port binding configuration |
+
+### Delegated/Default (built-in)
+
+```yaml
+driver:
+  name: default
+  options:
+    managed: true
+    ansible_connection_options:
+      ansible_connection: ssh
+```
+
+With `managed: true`, you must provide `create.yml` and `destroy.yml` that manage the infrastructure using any Ansible modules.
+
+With `managed: false`, Molecule skips create/destroy and assumes instances already exist. Your inventory must provide connection details.
+
+## Delegated driver instance-config
+
+When using the delegated/default driver with `managed: true`, your `create.yml` must write instance connection details to `instance_config`. The schema varies by connection type:
+
+### SSH instances
+
+```yaml
+- address: "192.168.1.10"
+  identity_file: "/path/to/key"
+  instance: "my-instance"
+  port: 22
+  user: "root"
+  shell_type: "sh"
+  password: ""
+  become_method: "sudo"
+  become_pass: ""
+```
+
+### WinRM instances
+
+```yaml
+- address: "192.168.1.20"
+  instance: "win-instance"
+  connection: "winrm"
+  port: 5986
+  user: "Administrator"
+  password: "secret"
+  shell_type: "powershell"
+  winrm_transport: "ntlm"
+  winrm_cert_pem: ""
+  winrm_cert_key_pem: ""
+  winrm_server_cert_validation: "ignore"
+```
+
+### `driver.safe_files`
+
+Files listed in `safe_files` are preserved when instances are destroyed:
+
+```yaml
+driver:
+  name: default
+  safe_files:
+    - foo
+    - .molecule/bar
+```

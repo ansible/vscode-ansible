@@ -1,0 +1,210 @@
+---
+title: ansible-dev-environment
+description: A pip-like tool for installing and managing Ansible collections in isolated virtual environments.
+---
+
+ansible-dev-environment (ADE) provides pip-like install semantics for Ansible collections. It creates isolated virtual environments, resolves collection and Python dependencies, and supports editable installs for active development — making it the foundation for any local Ansible content development workflow.
+
+## Installation
+
+```bash
+# Via the full suite (recommended)
+pip install ansible-dev-tools
+
+# Standalone
+pip install ansible-dev-environment
+```
+
+After installation, the `ade` command is available:
+
+```bash
+ade --version
+```
+
+## Core concepts
+
+### Why not just pip and venv?
+
+Standard Python tooling has no awareness of Ansible collections. ADE bridges this gap:
+
+| Aspect | pip/venv | ADE |
+|--------|----------|-----|
+| Collection awareness | None | Understands `galaxy.yml`, FQCN namespaces, collection dependencies |
+| Dependency resolution | Python packages only | Resolves Python deps AND collection deps (`requirements.yml`) |
+| Editable installs | `pip install -e .` for Python packages | `ade install -e .` for Ansible collections via symlinks |
+| Isolation | Isolates Python packages | Three isolation modes for collection paths |
+| Test requirements | Manual `pip install -r test-requirements.txt` | Automatic with `ade install -e .[test]` |
+
+### Isolation modes
+
+ADE provides three levels of collection path isolation:
+
+| Mode | Behavior |
+|------|----------|
+| `cfg` (default) | Creates/updates `ansible.cfg` in the current directory with `collections_path = .` |
+| `restrictive` | Exits with error if collections are found in system locations (`~/.ansible/collections`, `/usr/share/ansible/collections`) |
+| `none` | No isolation (not recommended for development) |
+
+### Editable installs
+
+When developing a collection, `ade install -e .` symlinks the collection source into the virtual environment's `ansible_collections/` namespace. Changes to your source are immediately visible to Ansible, pytest, and other tools without reinstalling.
+
+### uv acceleration
+
+ADE automatically uses [uv](https://github.com/astral-sh/uv) when available for faster virtual environment creation and package installation. Disable with `--no-uv` or `SKIP_UV=1`.
+
+## CLI reference
+
+### `ade install`
+
+Install a collection and its dependencies into a virtual environment.
+
+```bash
+# Install the current collection in editable mode
+ade install -e .
+
+# Install with test dependencies
+ade install -e .[test]
+
+# Install from a requirements file
+ade install -r requirements.yml
+
+# Specify a custom venv location
+ade install -e . --venv /path/to/venv
+
+# Use a specific Python version
+ade install -e . --python python3.12
+
+# Choose isolation mode
+ade install -e . --im restrictive
+```
+
+**Options:**
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--venv <path>` | Target virtual environment directory | `.venv` |
+| `-e, --editable` | Install in editable mode (development) | — |
+| `-r, --requirement <file>` | Install from requirements file | — |
+| `-p, --python <version>` | Python interpreter (version, name, or path) | System default |
+| `--seed / --no-seed` | Install `ansible-dev-tools` into venv | `true` |
+| `--im, --isolation-mode` | Isolation mode: `restrictive`, `cfg`, `none` | `cfg` |
+| `--acv` | Ansible core version constraint | — |
+| `--uv / --no-uv` | Use uv package manager if available | `true` |
+| `--cpi` | Collection path isolation | — |
+| `--ssp` | System site packages | — |
+
+### `ade uninstall`
+
+Remove a collection from the virtual environment.
+
+```bash
+ade uninstall namespace.collection --venv .venv
+```
+
+### `ade list`
+
+List installed collections in the environment.
+
+```bash
+ade list --venv .venv
+```
+
+### `ade inspect`
+
+Inspect installed collections with detailed metadata.
+
+```bash
+ade inspect --venv .venv
+```
+
+### `ade check`
+
+Check installed collections for issues.
+
+```bash
+ade check --venv .venv
+```
+
+### `ade tree`
+
+Display the dependency tree for installed collections.
+
+```bash
+ade tree --venv .venv
+```
+
+### Global options
+
+| Flag | Description |
+|------|-------------|
+| `--ansi / --no-ansi` | Enable/disable colored output |
+| `--lf <path>` | Log file path |
+| `--ll <level>` | Log level: `notset`, `debug`, `info`, `warning`, `error`, `critical` |
+| `--la <true\|false>` | Append to log file |
+| `-v` | Verbose output |
+| `-V, --version` | Show version |
+
+## Typical workflow
+
+### New collection development
+
+```bash
+# Clone the collection repo
+git clone git@github.com:myorg/ansible-collection-myapp.git
+cd ansible-collection-myapp
+
+# Create an isolated environment with all dependencies
+ade install -e .[test] --venv .venv
+
+# Activate the environment
+source .venv/bin/activate
+
+# Develop — changes are immediately visible
+vim plugins/modules/my_module.py
+
+# Run tests directly
+pytest tests/unit/
+
+# View dependency tree
+ade tree --venv .venv
+
+# When done, deactivate
+deactivate
+```
+
+### Working with multiple collections
+
+```bash
+# Install from a requirements file
+ade install -r requirements.yml --venv .venv
+
+# List what's installed
+ade list --venv .venv
+```
+
+### Dependency processing
+
+When installing a collection, ADE automatically processes:
+
+- `requirements.txt` — Runtime Python dependencies
+- `test-requirements.txt` — Development/testing Python dependencies (with `[test]` extra)
+- `requirements.yml` — Collection dependencies (processed by `ansible-galaxy`)
+
+## Editor integration
+
+The VS Code extension uses ADE under the hood when managing Python environments for Ansible development. The extension's environment detection locates collections installed via ADE and provides full IntelliSense support for editable installs.
+
+When you configure a Python environment in the extension settings, ADE-managed virtual environments are automatically discovered and offered as options.
+
+## Next steps
+
+With your development environment set up, you're ready to scaffold content:
+
+- [Scaffold a new project with ansible-creator](/vscode-ansible/python-tools/ansible-creator/) — generate a collection, playbook project, or execution environment
+- [Validate your content with ansible-lint](/vscode-ansible/python-tools/ansible-lint/) — catch issues as you write
+
+## Links
+
+- [PyPI: ansible-dev-environment](https://pypi.org/project/ansible-dev-environment/)
+- [GitHub: ansible/ansible-dev-environment](https://github.com/ansible/ansible-dev-environment)

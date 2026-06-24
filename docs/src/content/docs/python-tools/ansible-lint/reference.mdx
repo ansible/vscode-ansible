@@ -1,0 +1,592 @@
+---
+title: "ansible-lint: Reference"
+description: Complete rule catalog, configuration options, profile compositions, and CLI flags for ansible-lint.
+---
+
+This page provides exhaustive reference material for ansible-lint. For an introduction and typical usage, see the [ansible-lint guide](/vscode-ansible/python-tools/ansible-lint/).
+
+## CLI flags
+
+```text
+ansible-lint [-h] [-P | -L | -T]
+  [-f {brief,full,md,json,codeclimate,quiet,pep8,sarif}]
+  [--sarif-file SARIF_FILE] [-q]
+  [--profile {min,basic,moderate,safety,shared,production}]
+  [-p] [--project-dir PROJECT_DIR] [-r RULESDIR] [-R] [-s]
+  [--fix [WRITE_LIST]] [--show-relpath] [-t TAGS] [-v]
+  [-x SKIP_LIST] [--generate-ignore] [-w WARN_LIST]
+  [--enable-list ENABLE_LIST] [--nocolor] [--force-color]
+  [--exclude EXCLUDE_PATHS [...]] [-c CONFIG_FILE]
+  [-i IGNORE_FILE] [--offline] [--version]
+  [lintables ...]
+```
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--help` | `-h` | Show help | — |
+| `--list-profiles` | `-P` | List available profiles | — |
+| `--list-rules` | `-L` | List all rules with descriptions | — |
+| `--list-tags` | `-T` | List rules with their tags | — |
+| `--format` | `-f` | Output format: `brief`, `full`, `md`, `json`, `codeclimate`, `quiet`, `pep8`, `sarif` | `full` |
+| `--sarif-file` | | Write SARIF to file (alongside normal stdout) | — |
+| `--quiet` | `-q` | Quieter output | — |
+| `--profile` | | Profile: `min`, `basic`, `moderate`, `safety`, `shared`, `production` | `null` |
+| `--parseable` | `-p` | Parseable output (legacy) | — |
+| `--project-dir` | | Project root directory | auto-detected |
+| `--rulesdir` | `-r` | Custom rule directories (repeatable) | — |
+| `--use-default-rules` | `-R` | When set with `-r`, don't load default rules | — |
+| `--strict` | `-s` | Non-zero exit on warnings | — |
+| `--fix` | | Auto-fix issues (optional: comma-separated rule list) | — |
+| `--show-relpath` | | Show relative paths in output | — |
+| `--tags` | `-t` | Run only rules with these tags (comma-separated) | — |
+| `--verbose` | `-v` | Increase verbosity | — |
+| `--skip-list` | `-x` | Skip rules (comma-separated IDs or tags) | — |
+| `--generate-ignore` | | Generate `.ansible-lint-ignore` from findings | — |
+| `--warn-list` | `-w` | Report as warnings (comma-separated) | — |
+| `--enable-list` | | Enable opt-in rules (comma-separated) | — |
+| `--nocolor` | | Disable colored output | — |
+| `--force-color` | | Force colored output | — |
+| `--exclude` | | Paths to exclude (repeatable) | — |
+| `--config-file` | `-c` | Configuration file path | auto-detected |
+| `--ignore-file` | `-i` | Ignore file path | auto-detected |
+| `--yamllint-file` | | Specify alternate yamllint config file | — |
+| `--offline` | | Disable network access | — |
+| `--version` | | Show version | — |
+
+## Configuration file options
+
+Complete list of all configuration keys for `.ansible-lint` / `.ansible-lint.yml`:
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `profile` | `string\|null` | `null` | Profile level |
+| `exclude_paths` | `list[string]` | `[]` | Paths to exclude |
+| `skip_list` | `list[string]` | `[]` | Rules/tags to skip |
+| `warn_list` | `list[string]` | `[]` | Rules/tags to report as warnings |
+| `enable_list` | `list[string]` | `[]` | Opt-in rules to activate |
+| `write_list` | `list[string]` | `["all"]` | Rules allowed to auto-fix |
+| `offline` | `boolean` | `false` | Disable network |
+| `mock_modules` | `list[string]` | `[]` | Modules to mock |
+| `mock_roles` | `list[string]` | `[]` | Roles to mock |
+| `loop_var_prefix` | `string` | `"^(__|&#123;role&#125;_)"` | Loop variable regex |
+| `var_naming_pattern` | `string` | `"^[a-z_][a-z0-9_]*$"` | Variable naming regex |
+| `use_default_rules` | `boolean` | `true` | Load built-in rules |
+| `rulesdir` | `list[string]` | `[]` | Custom rule directories |
+| `extra_vars` | `dict` | `&#123;&#125;` | Variables for syntax check |
+| `kinds` | `list[dict]` | `[]` | Custom file kind mappings |
+| `task_name_prefix` | `string` | `"&#123;stem&#125; \| "` | Prefix for `name[prefix]` rule |
+| `max_block_depth` | `integer` | `20` | Max nested block depth |
+| `supported_ansible_also` | `list[string]` | `[]` | Additional Ansible versions |
+| `only_builtins_allow_collections` | `list[string]` | `[]` | Allowed collections for only-builtins |
+| `only_builtins_allow_modules` | `list[string]` | `[]` | Allowed modules for only-builtins |
+| `sarif_file` | `string` | `""` | SARIF output path |
+| `quiet` | `boolean` | `false` | Reduce output verbosity |
+| `strict` | `boolean` | `false` | Non-zero exit on warnings |
+| `verbosity` | `integer` | `0` | Verbosity level (0-3) |
+| `tags` | `list[string]` | `[]` | Report only rules with these tags |
+| `skip_action_validation` | `boolean` | `false` | Skip action validation for tasks |
+
+### CLI override behavior
+
+- Scalar options (profile, config_file): CLI **replaces** config value
+- List options (skip_list, warn_list, exclude_paths): CLI **extends** config value
+
+## Complete rule catalog
+
+### args
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `args[module]` | Validate module arguments against schema | `basic` |
+
+### avoid-implicit
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `avoid-implicit[copy-content]` | Non-string content passed to copy module | `production` |
+
+### command-instead-of-module
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `command-instead-of-module` | Use Ansible module instead of shell command | `basic` | — |
+
+### command-instead-of-shell
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `command-instead-of-shell` | Use `command` instead of `shell` when shell features aren't used | `basic` | Yes |
+
+### complexity
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `complexity[nesting]` | Excessive block nesting (exceeds `max_block_depth`) | `moderate` |
+| `complexity[tasks]` | Too many tasks in a file (exceeds `max_tasks`, default: 100) | `moderate` |
+| `complexity[play]` | Too many tasks at play level | `moderate` |
+
+### deprecated-bare-vars
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `deprecated-bare-vars` | Do not use bare variables in loops | `basic` |
+
+### deprecated-local-action
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `deprecated-local-action` | Use `delegate_to: localhost` instead | `basic` | Yes |
+
+### deprecated-module
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `deprecated-module` | Avoid deprecated modules | `basic` |
+
+### empty-string-compare
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `empty-string-compare` | Don't compare to empty string | `basic` |
+
+### fqcn
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `fqcn[action]` | Use FQCN for module/action names | `production` | Yes |
+| `fqcn[action-core]` | Use FQCN for builtin module names | `production` | Yes |
+| `fqcn[canonical]` | Use canonical FQCN | `production` | Yes |
+| `fqcn[deep]` | Use FQCN in all contexts | `production` | Yes |
+| `fqcn[keyword]` | Use FQCN for keyword values | `production` | Yes |
+
+### galaxy
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `galaxy[no-changelog]` | Collection must have a changelog | `shared` |
+| `galaxy[no-runtime]` | Collection must have `meta/runtime.yml` | `moderate` |
+| `galaxy[tags]` | galaxy.yml must have tags | `shared` |
+| `galaxy[version-incorrect]` | galaxy.yml version must be valid semver | `shared` |
+| `galaxy[version-missing]` | galaxy.yml must have version | `shared` |
+| `galaxy[tags-format]` | Tags must match regex format | `shared` |
+| `galaxy[tags-length]` | Tags cannot exceed 64 characters | `shared` |
+| `galaxy[tags-count]` | Cannot exceed 20 tags | `shared` |
+| `galaxy[invalid-dependency-version]` | Invalid dependency version range | `shared` |
+
+### ignore-errors
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `ignore-errors` | Avoid using `ignore_errors` | `moderate` |
+
+### inline-env-var
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `inline-env-var` | Don't use inline environment variables | `basic` |
+
+### internal-error
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `internal-error` | ansible-lint internal error | `min` |
+
+### jinja
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `jinja[invalid]` | Invalid Jinja2 syntax | `basic` | — |
+| `jinja[spacing]` | Jinja2 spacing | `basic` | Yes |
+
+### key-order
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `key-order[task]` | Task key ordering | `basic` | Yes |
+| `key-order[play]` | Play key ordering | `basic` | Yes |
+
+### latest
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `latest[git]` | Git version must be pinned | `safety` |
+| `latest[hg]` | Mercurial version must be pinned | `safety` |
+
+### literal-compare
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `literal-compare` | Don't compare to literal True/False | `basic` |
+
+### load-failure
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `load-failure[*]` | File could not be loaded | `min` |
+
+### loop-var-prefix
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `loop-var-prefix` | Loop variables must match prefix pattern | `basic` |
+
+### meta-incorrect
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `meta-incorrect` | meta/main.yml has invalid content | `moderate` |
+
+### meta-no-tags
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `meta-no-tags` | Role meta must have tags | `moderate` |
+
+### meta-runtime
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `meta-runtime[unsupported-version]` | runtime.yml specifies unsupported version | `shared` |
+
+### meta-video-links
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `meta-video-links` | meta/main.yml video links must be valid | `moderate` |
+
+### name
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `name[casing]` | Task name casing | `basic` | Yes |
+| `name[missing]` | Task must have a name | `basic` | — |
+| `name[play]` | Play must have a name | `basic` | — |
+| `name[prefix]` | Task name must match prefix pattern | `basic` | Yes |
+| `name[template]` | Task name should not be templated | `basic` | — |
+| `name[unique]` | All task names within a play must be unique | `basic` | — |
+
+### no-changed-when
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-changed-when` | Tasks that may change must have `changed_when` | `moderate` |
+
+### no-free-form
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `no-free-form` | Avoid free-form module arguments | `basic` | Yes |
+
+### no-handler
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-handler` | Use handlers instead of `when: result.changed` | `moderate` |
+
+### no-jinja-when
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `no-jinja-when` | Don't wrap `when` in `{{ }}` | `basic` | Yes |
+
+### no-log-password
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `no-log-password` | Password tasks must use `no_log` | `safety` | Yes |
+
+### no-prompting
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-prompting` | Avoid interactive `vars_prompt` | `safety` |
+
+### no-relative-paths
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-relative-paths` | Don't use `../` in paths | `moderate` |
+
+### no-same-owner
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-same-owner` | Don't use `--same-owner` in tar commands | `safety` |
+
+### no-tabs
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `no-tabs` | No tab characters | `shared` |
+
+### only-builtins
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `only-builtins` | Only use builtin modules | opt-in |
+
+### package-latest
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `package-latest` | Don't use `state: latest` | `safety` |
+
+### parser-error
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `parser-error` | YAML/Jinja2 parsing error | `min` |
+
+### partial-become
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `partial-become[play]` | Incomplete become at play level | `basic` | Yes |
+| `partial-become[task]` | Incomplete become at task level | `basic` | Yes |
+
+### playbook-extension
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `playbook-extension` | Playbook files should use `.yml` extension | `basic` |
+
+### risky-file-permissions
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `risky-file-permissions` | File tasks must specify `mode` | `safety` |
+
+### risky-octal
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `risky-octal` | Octal file modes must be correct | `safety` |
+
+### risky-shell-pipe
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `risky-shell-pipe` | Shell pipes must handle failures | `safety` |
+
+### role-name
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `role-name[path]` | Role directory name conventions | `basic` |
+
+### run-once
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `run-once[play]` | Caution with `run_once` in plays | `moderate` |
+| `run-once[task]` | Caution with `run_once` on tasks | `moderate` |
+
+### sanity
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `sanity[*]` | Passes ansible-test sanity | `production` |
+| `sanity[cannot-ignore]` | Ignore file contains a disallowed test | `production` |
+| `sanity[bad-ignore]` | Ignore file entry is formatted incorrectly | `production` |
+
+### schema
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `schema[*]` | Validates against Ansible JSON schemas | `basic` |
+| `schema[moves]` | Module has moved between versions | `basic` |
+| `schema[changelog]` | Validates changelog schema | `basic` |
+| `schema[molecule]` | Validates molecule config | `basic` |
+| `schema[rulebook]` | Validates EDA rulebooks | `basic` |
+
+### syntax-check
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `syntax-check[*]` | Passes `ansible-playbook --syntax-check` | `min` |
+
+### var-naming
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `var-naming[no-jinja]` | Variable names must not contain Jinja | `basic` |
+| `var-naming[no-keyword]` | Variable names must not be Python keywords | `basic` |
+| `var-naming[no-reserved]` | Variable names must not be Ansible reserved | `basic` |
+| `var-naming[pattern]` | Variable names must match pattern | `basic` |
+| `var-naming[read-only]` | Don't override read-only variables | `basic` |
+
+### warning
+
+| Sub-rule | Description | Profile |
+|----------|-------------|---------|
+| `warning[raw-non-string]` | Raw non-string values | `basic` |
+
+### yaml
+
+| Sub-rule | Description | Profile | Autofix |
+|----------|-------------|---------|---------|
+| `yaml[brackets]` | Bracket spacing | `basic` | Yes |
+| `yaml[colons]` | Colon spacing | `basic` | Yes |
+| `yaml[commas]` | Comma spacing | `basic` | Yes |
+| `yaml[comments]` | Comment formatting | `basic` | Yes |
+| `yaml[comments-indentation]` | Comment indentation | `basic` | Yes |
+| `yaml[document-end]` | Document end marker | `basic` | Yes |
+| `yaml[document-start]` | Document start marker | `basic` | Yes |
+| `yaml[empty-lines]` | Empty line count | `basic` | Yes |
+| `yaml[empty-values]` | Empty values | `basic` | Yes |
+| `yaml[hyphens]` | Hyphen spacing | `basic` | Yes |
+| `yaml[indentation]` | Indentation | `basic` | Yes |
+| `yaml[key-duplicates]` | Duplicate keys | `basic` | — |
+| `yaml[key-ordering]` | Key ordering | `basic` | Yes |
+| `yaml[line-length]` | Line length (max 160) | `basic` | — |
+| `yaml[new-line-at-end-of-file]` | Trailing newline | `basic` | Yes |
+| `yaml[octal-values]` | Octal value formatting | `basic` | Yes |
+| `yaml[trailing-spaces]` | Trailing whitespace | `basic` | Yes |
+| `yaml[truthy]` | Boolean formatting | `basic` | Yes |
+
+## Profile compositions
+
+Each profile includes all rules from the profile below it. These tables show which rules are **added** at each level.
+
+### min (base)
+
+`internal-error`, `load-failure`, `parser-error`, `syntax-check`
+
+### basic (adds to min)
+
+`args`, `command-instead-of-module`, `command-instead-of-shell`, `deprecated-bare-vars`, `deprecated-local-action`, `deprecated-module`, `empty-string-compare`, `inline-env-var`, `jinja`, `key-order`, `literal-compare`, `loop-var-prefix`, `name`, `no-free-form`, `no-jinja-when`, `partial-become`, `playbook-extension`, `role-name`, `schema`, `var-naming`, `warning`, `yaml`
+
+### moderate (adds to basic)
+
+`complexity`, `galaxy[no-runtime]`, `galaxy[version-missing]`, `ignore-errors`, `meta-incorrect`, `meta-no-tags`, `meta-video-links`, `no-changed-when`, `no-handler`, `no-relative-paths`, `run-once`
+
+### safety (adds to moderate)
+
+`latest`, `no-log-password`, `no-prompting`, `no-same-owner`, `package-latest`, `risky-file-permissions`, `risky-octal`, `risky-shell-pipe`
+
+### shared (adds to safety)
+
+`galaxy[no-changelog]`, `galaxy[tags]`, `galaxy[version-incorrect]`, `meta-runtime`, `no-tabs`
+
+### production (adds to shared)
+
+`avoid-implicit`, `fqcn`, `sanity`
+
+## yamllint defaults
+
+ansible-lint uses yamllint internally with these built-in defaults:
+
+```yaml
+extends: default
+rules:
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
+  document-start: disable
+  document-end: disable
+  line-length:
+    max: 160
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+  truthy:
+    allowed-values:
+      - "true"
+      - "false"
+      - "yes"
+      - "no"
+```
+
+A `.yamllint` file in your project takes precedence, but must remain compatible with the ansible-lint reformatter when using `--fix`.
+
+## Ignore file format
+
+File: `.ansible-lint-ignore` or `.config/ansible-lint-ignore.txt`
+
+```text
+# Format: <filename> <rule-id> [# comment]
+# Use 'skip' suffix to suppress the "ignored" warning:
+
+playbooks/legacy.yml fqcn[action]
+playbooks/legacy.yml no-changed-when  # TODO: fix in Q3
+roles/old_role/tasks/main.yml command-instead-of-shell skip
+```
+
+## Output format details
+
+### SARIF (recommended for CI)
+
+```bash
+ansible-lint -f sarif
+# or
+ansible-lint -f json  # alias
+```
+
+Produces SARIF v2.1.0 JSON. Upload to GitHub Code Scanning, SonarQube, or any SARIF consumer.
+
+### Code Climate
+
+```bash
+ansible-lint -f codeclimate
+```
+
+Maps severity: warnings → `minor`, errors → `major`. Used by GitLab Code Quality.
+
+### Dual output (human + machine)
+
+```bash
+ansible-lint --sarif-file results.sarif
+```
+
+Writes SARIF to file while showing normal human-readable output on stdout.
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | No issues found |
+| `1` | Lint issues found (violations) |
+| `2` | Lint issues found (errors during linting) |
+
+With `--strict` (`-s`): warnings also cause non-zero exit.
+
+## Behavioral notes
+
+### Execution directory
+
+As of v25.7.0, ansible-lint must be run from the project root. Running from a subdirectory may produce zero findings.
+
+### GitHub Actions annotations
+
+When `GITHUB_ACTIONS=true` and `GITHUB_WORKFLOW` are detected, ansible-lint automatically outputs GitHub annotation format.
+
+### `.cache` implicit exclude
+
+The `.cache/` directory is automatically excluded unless `exclude_paths` is explicitly defined in the config file.
+
+### Requirements auto-discovery
+
+ansible-lint searches these locations for dependencies to install automatically:
+- `requirements.yml`
+- `roles/requirements.yml`
+- `collections/requirements.yml`
+- `tests/requirements.yml`
+- `tests/integration/requirements.yml`
+- `tests/unit/requirements.yml`
+- `galaxy.yml`
+
+### Ignore file alternate location
+
+In addition to `.ansible-lint-ignore`, the file `.config/ansible-lint-ignore.txt` is also searched.
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `ANSIBLE_LINT_NODEPS` | Skip dependency installation and module-dependent checks |
+| `ANSIBLE_LINT_CUSTOM_RULESDIR` | Additional rules lookup path |
+| `ANSIBLE_LINT_IGNORE_FILE` | Override default ignore file name |
+| `ANSIBLE_LINT_WRITE_TMP` | Dump fixes to temp files instead of overwriting (for testing) |
+| `ANSIBLE_LINT_SKIP_SCHEMA_UPDATE` | Skip schema refresh |

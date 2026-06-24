@@ -1,0 +1,379 @@
+---
+title: "ansible-creator: Reference"
+description: Complete CLI reference, scaffolded file trees, and configuration schema for ansible-creator.
+---
+
+This page provides exhaustive reference material for ansible-creator. For an introduction and typical usage, see the [ansible-creator guide](/vscode-ansible/python-tools/ansible-creator/).
+
+## CLI reference
+
+### Global options
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--version` | | Show version and exit |
+| `--help` | `-h` | Show help and exit |
+| `--json` | | Output in JSON format |
+| `--no-ansi` | `--na` | Disable colored output |
+| `--log-file` | `--lf` | Log file path (default: `./ansible-creator.log`) |
+| `--log-level` | `--ll` | Log level: `notset`, `debug`, `info`, `warning`, `error`, `critical` |
+| `--log-append` | `--la` | Append to log file (default: `true`) |
+| `--verbosity` | `-v` | Verbosity (0-3, additive: `-vvv`) |
+
+### `ansible-creator init collection`
+
+```text
+ansible-creator init collection <namespace.name> <path>
+```
+
+**Positional arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `namespace.name` | Collection namespace and name in dotted format (e.g., `myorg.myapp`) |
+| `path` | Output directory for the collection |
+
+**Options (in addition to global options):**
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--overwrite` | `-o` | Overwrite existing files | — |
+| `--no-overwrite` | `-no` | Prevent overwriting (error if files exist) | — |
+| `--force` | `-f` | Force re-initialization (deprecated, use `--overwrite`) | — |
+
+### `ansible-creator init playbook`
+
+```text
+ansible-creator init playbook <collection-name> <path>
+```
+
+**Positional arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `collection-name` | Name for the playbook-adjacent collection (e.g., `myorg.myproject`) |
+| `path` | Output directory for the playbook project |
+
+**Options:** Same subcommand-specific options as `init collection` (`--overwrite`, `--no-overwrite`, `--force`), plus all global options.
+
+### `ansible-creator init execution_env`
+
+```text
+ansible-creator init execution_env <path>
+```
+
+**Positional arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `path` | Output directory for the EE project |
+
+**Options (in addition to common options):**
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--ee-base-image <image>` | Base container image | — |
+| `--ee-collections <fqcn[:version]>` | Collections to include (repeatable) | — |
+| `--ee-python-deps <pkg>` | Python dependencies (repeatable) | — |
+| `--ee-system-packages <pkg>` | System packages (repeatable) | — |
+| `--ee-config '<json>'` | Inline JSON EE configuration | — |
+| `--ee-config-file <path>` | Path to YAML/JSON EE config file | — |
+| `--scm-provider <github\|gitlab>` | SCM provider for generated CI | `github` |
+
+### `ansible-creator add resource`
+
+```text
+ansible-creator add resource <type> <path> [options]
+```
+
+**Resource types:**
+
+| Type | Description | Additional options |
+|------|-------------|-------------------|
+| `devcontainer` | `.devcontainer/` directory | `--image <auto\|upstream\|aap>` |
+| `devfile` | `devfile.yaml` | — |
+| `execution-environment` | Sample `execution-environment.yml` | — |
+| `play-argspec` | Playbook argspec examples | — |
+| `role` | Role scaffold | Takes role name as additional positional arg |
+| `ee-ci` | CI workflow for EE builds | `--scm-provider <github\|gitlab>` |
+
+### `ansible-creator add plugin`
+
+```text
+ansible-creator add plugin <type> <name> <collection-path>
+```
+
+**Plugin types:** `action`, `filter`, `lookup`, `module`, `test`
+
+**Positional arguments:**
+
+| Argument | Description |
+|----------|-------------|
+| `type` | Plugin type |
+| `name` | Plugin name (will be used as filename and class name) |
+| `collection-path` | Path to the existing collection |
+
+## Scaffolded file trees
+
+### Collection (`init collection`)
+
+```text
+<namespace>.<name>/
+├── .devcontainer/
+│   ├── docker/
+│   │   └── devcontainer.json
+│   └── podman/
+│       └── devcontainer.json
+├── .github/
+│   └── workflows/
+│       ├── release.yml
+│       └── test.yml
+├── .vscode/
+│   └── extensions.json
+├── changelogs/
+│   └── config.yaml
+├── docs/
+├── extensions/
+│   ├── eda/
+│   │   └── rulebooks/
+│   └── molecule/
+│       └── integration/
+│           ├── molecule.yml
+│           ├── converge.yml
+│           └── verify.yml
+├── meta/
+│   └── runtime.yml
+├── plugins/
+│   ├── action/
+│   │   ├── __init__.py
+│   │   └── sample_action.py
+│   ├── cache/
+│   │   └── __init__.py
+│   ├── filter/
+│   │   ├── __init__.py
+│   │   └── sample_filter.py
+│   ├── inventory/
+│   │   └── __init__.py
+│   ├── lookup/
+│   │   ├── __init__.py
+│   │   └── sample_lookup.py
+│   ├── module_utils/
+│   │   └── __init__.py
+│   ├── modules/
+│   │   ├── __init__.py
+│   │   └── sample_module.py
+│   ├── plugin_utils/
+│   │   └── __init__.py
+│   ├── sub_plugins/
+│   │   └── __init__.py
+│   └── test/
+│       ├── __init__.py
+│       └── sample_test.py
+├── roles/
+│   └── run/
+│       ├── defaults/
+│       │   └── main.yml
+│       ├── files/
+│       ├── handlers/
+│       │   └── main.yml
+│       ├── meta/
+│       │   └── main.yml
+│       ├── tasks/
+│       │   └── main.yml
+│       ├── templates/
+│       ├── tests/
+│       │   ├── inventory
+│       │   └── test.yml
+│       └── vars/
+│           └── main.yml
+├── tests/
+│   ├── integration/
+│   │   └── targets/
+│   │       └── hello_world/
+│   │           └── tasks/
+│   │               └── main.yml
+│   └── unit/
+│       └── .keep
+├── .isort.cfg
+├── .pre-commit-config.yaml
+├── .prettierignore
+├── CHANGELOG.rst
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING
+├── LICENSE
+├── README.md
+├── galaxy.yml
+├── pyproject.toml
+└── tox.ini
+```
+
+### Playbook project (`init playbook`)
+
+```text
+<project>/
+├── .devcontainer/
+│   ├── docker/
+│   │   └── devcontainer.json
+│   └── podman/
+│       └── devcontainer.json
+├── .github/
+│   ├── ansible-code-bot.yml
+│   └── workflows/
+│       └── tests.yml
+├── .vscode/
+│   └── extensions.json
+├── collections/
+│   └── ansible_collections/
+│       └── <namespace>/
+│           └── <name>/
+│               ├── roles/
+│               │   └── run/
+│               │       ├── defaults/main.yml
+│               │       ├── handlers/main.yml
+│               │       ├── meta/main.yml
+│               │       ├── tasks/main.yml
+│               │       └── vars/main.yml
+│               └── galaxy.yml
+├── inventory/
+│   ├── group_vars/
+│   │   ├── all.yml
+│   │   └── web_servers.yml
+│   ├── host_vars/
+│   │   ├── server1.yml
+│   │   ├── server2.yml
+│   │   ├── server3.yml
+│   │   ├── switch1.yml
+│   │   └── switch2.yml
+│   └── hosts.yml
+├── ansible.cfg
+├── ansible-navigator.yml
+├── devfile.yaml
+├── linux_playbook.yml
+├── network_playbook.yml
+└── site.yml
+```
+
+### Execution environment (`init execution_env`)
+
+```text
+<project>/
+├── .github/
+│   └── workflows/
+│       └── ee-build.yml       # or .gitlab-ci.yml with --scm-provider gitlab
+├── .gitignore
+├── README.md
+└── execution-environment.yml
+```
+
+## EE configuration schema
+
+The `--ee-config-file` option accepts a YAML or JSON file with the following schema:
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `name` | `string` | Execution environment name |
+| `base_image` | `string` | Base container image URL |
+| `collections` | `array` | Collection entries (see below) |
+| `galaxy_servers` | `array` | Galaxy server entries (see below) |
+| `scm_servers` | `array` | SCM provider entries (see below) |
+| `python_deps` | `array of string` | Python package dependencies |
+| `system_packages` | `array of string` | System packages to install |
+| `options` | `object` | Build options |
+| `additional_build_steps` | `object` | Custom Dockerfile steps |
+| `additional_build_files` | `array` | Extra files for build context |
+| `ee_file_name` | `string` | Override default filename |
+| `ansible_cfg` | `string` | Raw ansible.cfg content |
+
+### `collections` entries
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | FQCN (e.g., `community.general`) |
+| `version` | `string` | No | Version constraint |
+| `type` | `string` | No | Source type |
+| `source` | `string` | No | Custom Galaxy server URL |
+
+### `galaxy_servers` entries
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Server identifier (used in ansible.cfg section name) |
+| `url` | `string` | Yes | Galaxy server URL |
+| `auth_url` | `string` | No | SSO authentication URL |
+| `token_required` | `boolean` | No | Whether authentication is required |
+| `validate_certs` | `boolean` | No | Validate TLS certificates |
+
+### `scm_servers` entries
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | `string` | Yes | Server identifier |
+| `hostname` | `string` | Yes | SCM hostname (e.g., `github.com`) |
+| `token_env_var` | `string` | Yes | Environment variable name containing the access token |
+
+### `options` fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `package_manager_path` | `string` | Path to package manager (e.g., `/usr/bin/dnf5`) |
+
+### `additional_build_steps` fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prepend_base` | `string or array` | Commands before base stage |
+| `append_base` | `string or array` | Commands after base stage |
+| `prepend_galaxy` | `string or array` | Commands before galaxy stage |
+| `prepend_final` | `string or array` | Commands before final stage |
+| `append_final` | `string or array` | Commands after final stage |
+
+### `additional_build_files` entries
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `src` | `string` | Yes | Source path (relative or absolute) |
+| `dest` | `string` | Yes | Destination subdirectory in build context |
+
+## Scaffolded EE in CI/CD
+
+A scaffolded execution environment project integrates with CI for automated builds:
+
+```yaml
+# .github/workflows/build-ee.yml
+name: Build Execution Environment
+on:
+  push:
+    paths:
+      - 'execution-environment.yml'
+      - 'requirements.txt'
+      - 'bindep.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install ansible-builder
+      - run: ansible-builder build --tag my-ee:${{ github.sha }}
+      - run: podman push my-ee:${{ github.sha }} registry.example.com/my-ee:${{ github.sha }}
+```
+
+## `adt server` REST API endpoints
+
+The VS Code extension communicates with ansible-creator through these endpoints served by `adt server`:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/metadata` | Server information |
+| POST | `/v1/creator/playbook` | Create playbook project (v1 API) |
+| POST | `/v1/creator/collection` | Create collection (v1 API) |
+| POST | `/v2/creator/playbook` | Create playbook project (v2 API) |
+| POST | `/v2/creator/collection` | Create collection (v2 API) |
+| POST | `/v2/creator/devfile` | Create devfile |
+| POST | `/v2/creator/ee_project` | Create execution environment project |
+| GET | `/v2/creator/capabilities` | Query available scaffolding types |
+| GET | `/v2/creator/schema` | Get JSON schema for scaffolding form |
+| POST | `/v2/creator/scaffold` | Run scaffolding (dynamic, schema-driven) |

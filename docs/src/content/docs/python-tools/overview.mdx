@@ -1,26 +1,173 @@
 ---
 title: Python Tools Overview
-description: The Python CLI tools that form the foundation of the Ansible development experience.
+description: The complete suite of Python CLI tools that form the foundation of the Ansible development experience.
 ---
 
-The Ansible developer tools ecosystem is built on a set of Python CLI packages maintained by the Ansible team at Red Hat. These tools work standalone from the command line and are also integrated into the VS Code extension and MCP server.
+
+The Ansible developer tools ecosystem is built on a curated set of Python CLI packages maintained by the Ansible team at Red Hat. These tools handle every phase of Ansible content development — from scaffolding new projects, through linting and testing, to building execution environments and signing content for distribution.
+
+All tools work standalone from the command line and are deeply integrated into the VS Code extension, Language Server, and MCP server.
 
 ## ansible-dev-tools (ADT)
 
-The meta-package that installs the full suite in one command:
+The `ansible-dev-tools` meta-package installs the entire suite in one command:
 
 ```bash
 pip install ansible-dev-tools
 ```
 
-- [PyPI](https://pypi.org/project/ansible-dev-tools/)
-- [GitHub](https://github.com/ansible/ansible-dev-tools)
+After installation, verify all tool versions with a single command:
 
-## Ansible Development Environment (ADE)
+```bash
+adt --version
+```
 
-A CLI for managing isolated Ansible development environments.
+```text
+ansible-builder                          3.1.1
+ansible-core                             2.21.0
+ansible-creator                          26.4.3
+ansible-dev-environment                  26.6.0
+ansible-dev-tools                        26.4.6
+ansible-lint                             26.4.0
+ansible-navigator                        26.4.0
+ansible-sign                             0.1.5
+molecule                                 26.4.0
+tox-ansible                              26.6.0
+```
 
-- [PyPI](https://pypi.org/project/ade/)
-- [GitHub](https://github.com/ansible/ade)
+### The `adt server` command
 
-Content coming soon. This page will provide a comprehensive overview of the Python tooling ecosystem.
+The `adt server` command launches a Django/Gunicorn REST API that the VS Code extension uses to power content scaffolding. It exposes endpoints for creating playbooks, collections, execution environments, and devfiles — all driven by dynamic schemas from `ansible-creator`.
+
+```bash
+adt server
+```
+
+The server runs on port 8000 by default and is typically managed automatically by the extension.
+
+### Container image
+
+All ADT tools come pre-installed in the `community-ansible-dev-tools` container image:
+
+```bash
+podman pull ghcr.io/ansible/community-ansible-dev-tools:latest
+```
+
+This image can be used as:
+
+- A **development container** via VS Code Dev Containers or GitHub Codespaces
+- A **base image** for custom execution environments
+- An **interactive environment** for Ansible development without local installation
+
+```bash
+podman run -it --rm \
+  -v $PWD:/workdir \
+  ghcr.io/ansible/community-ansible-dev-tools:latest
+```
+
+### DevContainer support
+
+The `ansible-dev-tools` repository provides sample `devcontainer.json` files for both Podman and Docker. Copy the `.devcontainer` directory into your Ansible project to get a fully configured development environment with all tools available.
+
+## Tool categories
+
+The tools are organized into three functional groups reflecting the Ansible content lifecycle:
+
+### Creation tools
+
+| Tool | Purpose |
+|------|---------|
+| [ansible-creator](/vscode-ansible/python-tools/ansible-creator/) | Scaffold collections, playbooks, roles, plugins, and execution environments |
+| [ansible-dev-environment](/vscode-ansible/python-tools/ansible-dev-environment/) | Manage isolated virtual environments for collection development |
+
+### Linting and testing tools
+
+| Tool | Purpose |
+|------|---------|
+| [ansible-lint](/vscode-ansible/python-tools/ansible-lint/) | Check playbooks, roles, and collections for best practices |
+| [molecule](/vscode-ansible/python-tools/molecule/) | Functional testing framework for Ansible content |
+| [tox-ansible](/vscode-ansible/python-tools/tox-ansible/) | Generate multi-version test matrices for collections |
+
+### Execution and deployment tools
+
+| Tool | Purpose |
+|------|---------|
+| [ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/) | Run and inspect Ansible content with a TUI or in execution environments |
+| [ansible-builder](/vscode-ansible/python-tools/ansible-builder/) | Build execution environment container images |
+| [ansible-sign](/vscode-ansible/python-tools/ansible-sign/) | Sign and verify Ansible project content with GPG |
+
+## Installation options
+
+### Full suite (recommended)
+
+```bash
+pip install ansible-dev-tools
+```
+
+### Individual tools
+
+Each tool can be installed independently:
+
+```bash
+pip install ansible-lint
+pip install molecule
+pip install ansible-navigator
+```
+
+### System packages
+
+On Fedora and RHEL:
+
+```bash
+dnf install ansible-lint
+```
+
+### From the container image
+
+No local Python installation required:
+
+```bash
+podman run -it --rm \
+  -v $PWD:/workdir \
+  ghcr.io/ansible/community-ansible-dev-tools:latest
+```
+
+## Your journey through the toolkit
+
+These tools aren't standalone utilities — they form a connected pipeline. Each step produces what the next step consumes:
+
+```text
+Scaffold ──▶ Environment ──▶ Lint ──▶ Test ──▶ Execute ──▶ Package ──▶ Sign
+creator      ade              lint    molecule  navigator   builder     sign
+                                      tox
+```
+
+### Where to start
+
+**Starting a new project?** Begin with [ansible-creator](/vscode-ansible/python-tools/ansible-creator/) to scaffold a collection or playbook project, then [set up your environment with ade](/vscode-ansible/python-tools/ansible-dev-environment/).
+
+**Already have content?** Jump to [ansible-lint](/vscode-ansible/python-tools/ansible-lint/) to validate it, then [Molecule](/vscode-ansible/python-tools/molecule/) to test it.
+
+**Ready to run playbooks?** Go straight to [ansible-navigator](/vscode-ansible/python-tools/ansible-navigator/) for interactive or container-based execution.
+
+**Preparing for production?** Read [ansible-builder](/vscode-ansible/python-tools/ansible-builder/) to create custom execution environments, then [ansible-sign](/vscode-ansible/python-tools/ansible-sign/) to secure them.
+
+**Want the full picture?** The [end-to-end workflow guide](/vscode-ansible/python-tools/workflow/) walks through the entire lifecycle from empty directory to signed release.
+
+### The editor and AI layer
+
+Underneath your workflow, the VS Code extension, Language Server, and MCP server integrate with every tool:
+
+- **ansible-creator** powers the extension's scaffolding panels via `adt server`
+- **ansible-lint** provides real-time diagnostics through the Language Server
+- **ansible-navigator** handles playbook execution with progress streaming
+- **ansible-builder** and **ansible-navigator** provide execution environment introspection
+- **ansible-dev-environment** manages Python environments the extension discovers
+
+AI agents connected via the MCP server access the same capabilities — scaffolding, linting, environment queries — without manual steps.
+
+## Links
+
+- [PyPI: ansible-dev-tools](https://pypi.org/project/ansible-dev-tools/)
+- [GitHub: ansible/ansible-dev-tools](https://github.com/ansible/ansible-dev-tools)
+- [Container image: ghcr.io/ansible/community-ansible-dev-tools](https://github.com/ansible/community-ansible-dev-tools-image)
