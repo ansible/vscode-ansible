@@ -297,10 +297,6 @@ tasks:
     cmds:
       - ./tools/release.sh
     interactive: true
-  builder:
-    desc: Build container image used for building the extension
-    cmds:
-      - ./tools/builder.sh
   ci_clean_cache:
     desc: Clean up caches (only runs when CI=true)
     status:

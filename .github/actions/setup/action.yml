@@ -2,9 +2,9 @@ name: setup
 description: Runs steps to setup build environment
 
 inputs:
-  job_name:
-    description: The name of the job
-    default: preflight
+  prek:
+    description: If it should include prek setup
+    default: "0"
 runs:
   using: "composite"
   steps:
@@ -30,14 +30,10 @@ runs:
         key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.id }}-${{ hashFiles('uv.lock', '.python-version') }}
 
     - name: Enable caching for prek
-      if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
+      if: ${{ inputs.prek == '1' }}
       uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
-        path: |
-          ~/.cache/pre-commit/
-          ~/.cache/prek/
-          ~/.npm
-        # ~/.npm is needed for the prek hooks using 'npx'
+        path: ~/.cache/prek/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
     - name: Get pnpm store directory

@@ -6,6 +6,10 @@ inputs:
     description: Slack webhook URL for failure notifications
     required: false
     default: ""
+  prek:
+    description: Whether to run prek hooks (lint)
+    required: false
+    default: "0" # set to "1" to run prek action early (~1m)
 
 outputs:
   context:
@@ -18,10 +22,58 @@ outputs:
 runs:
   using: "composite"
   steps:
+    # needed by our prek system hooks like toml
+    - name: Install uv (cache)
+      if: ${{ inputs.prek == '1' }}
+      uses: astral-sh/setup-uv@v8.2.0
+
+    # needed by our prek systems hooks like biome
+    - name: Install node (cache)
+      if: ${{ inputs.prek == '1' }}
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: "24"
+
+    - name: Install pnpm # needs node 24
+      if: ${{ inputs.prek == '1' }}
+      uses: pnpm/action-setup@v6
+      with:
+        cache: true
+        run_install: |
+          - recursive: true
+            args: [--frozen-lockfile]
+
+    - name: Debug
+      if: ${{ inputs.prek == '1' }}
+      shell: bash
+      run: |
+        which -a pnpm
+        pnpm --version
+
+    - name: Run prek
+      if: ${{ inputs.prek == '1' }}
+      uses: j178/prek-action@v2
+      # ideally prek should run in under 30s, but we keep a hard limit of 3
+      # minutes to count for slower hooks and uncached data. If a hook is
+      # slower, even occasionally it should be moved outside and included in
+      # another build step, like 'build' or 'package'.
+      # timeout-minutes: 3
+      with:
+        # show-verbose-logs: true
+        # we want to run in verbose to report speed of each hook
+        extra-args: "--all-files -v"
+        install-only: false
+        prek-version: ">=0.3.8"
+
     - name: Workaround for https://github.com/actions/runner/issues/2033
       shell: bash
       run: |
         chown -R $(id -u):$(id -g) $PWD
+
+    - name: Run setup steps (composite action)
+      uses: ./.github/actions/setup
+      with:
+        prek: ${{ inputs.prek == '1' }}
 
     - name: task setup
       if: runner.os != 'Windows'
@@ -97,12 +149,12 @@ runs:
 
     # this is kept here just to ensure 'task lint' command does not drift but
     # our main linting is run directly by 'prek' job, without involving task.
-    - name: task lint
-      # keep linting before any other task, to allow it be faster and independent
-      shell: bash
-      # timeout-minutes: 3
-      run: |
-        task lint
+    # - name: task lint
+    #   # keep linting before any other task, to allow it be faster and independent
+    #   shell: bash
+    #   # timeout-minutes: 3
+    #   run: |
+    #     task lint
 
     - name: task package
       shell: bash
