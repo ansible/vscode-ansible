@@ -45,7 +45,7 @@ describe("Sidebar and settings", () => {
     for (const webview of webviews) {
       await webview.open();
       try {
-        const link = await browser.$(
+        const link = browser.$(
           'a[title="Ansible Development Tools welcome page"]',
         );
         if (await link.isExisting()) {

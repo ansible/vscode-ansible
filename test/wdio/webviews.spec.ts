@@ -54,7 +54,7 @@ async function waitForWebviewText(
       try {
         const webview = await workbench.getWebviewByTitle(titlePattern);
         await webview.open();
-        const body = await $("body");
+        const body = $("body");
         if (await body.isExisting()) {
           lastText = await body.getText();
         }
@@ -88,7 +88,7 @@ describe("Webview tests", () => {
       const webview = await workbench.getWebviewByTitle(/Create Devfile/);
       await webview.open();
       try {
-        const form = await $("#devfile-form");
+        const form = $("#devfile-form");
         await form.waitForExist({ timeout: 20_000 });
         assert.ok(await form.isExisting());
       } finally {
@@ -105,7 +105,7 @@ describe("Webview tests", () => {
       const webview = await workbench.getWebviewByTitle(/Create Devcontainer/);
       await webview.open();
       try {
-        const form = await $("#devcontainer-form");
+        const form = $("#devcontainer-form");
         await form.waitForExist({ timeout: 20_000 });
         assert.ok(await form.isExisting());
       } finally {
@@ -191,7 +191,7 @@ describe("Webview tests", () => {
       const webview = await workbench.getWebviewByTitle(/LLM Provider/);
       await webview.open();
       try {
-        const editButtons = await $$("button.edit-btn");
+        const editButtons = await $$("button.edit-btn").getElements();
         assert.ok(editButtons.length > 0, "Expected at least one .edit-btn");
       } finally {
         await webview.close();
@@ -204,7 +204,7 @@ describe("Webview tests", () => {
       const webview = await workbench.getWebviewByTitle(/LLM Provider/);
       await webview.open();
       try {
-        const body = await $("body");
+        const body = $("body");
         const text = await body.getText();
         const connectCount = (text.match(/Connect/g) || []).length;
         assert.ok(
