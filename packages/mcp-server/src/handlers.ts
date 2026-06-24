@@ -152,6 +152,10 @@ export class McpToolHandler {
                 // Dev tools
                 case 'list_ansible_dev_tools':
                     return await this._handleListDevTools();
+                case 'install_ansible_dev_tools':
+                    return await this._handleInstallDevTools();
+                case 'create_python_environment':
+                    return this._handleCreatePythonEnvironment(args);
 
                 // Creator
                 case 'get_ansible_creator_schema':
@@ -1456,6 +1460,83 @@ export class McpToolHandler {
         };
     }
 
+    /**
+     * Handles `install_ansible_dev_tools` by delegating to DevToolsService.install().
+     *
+     * @returns Success confirmation or an error when installation fails
+     */
+    private async _handleInstallDevTools(): Promise<McpToolResult> {
+        const service = DevToolsService.getInstance();
+
+        if (service.hasPackages()) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: 'ansible-dev-tools is already installed. Use `list_ansible_dev_tools` to see versions.',
+                    },
+                ],
+            };
+        }
+
+        try {
+            await service.install();
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: 'ansible-dev-tools installation started. Use `list_ansible_dev_tools` to verify.',
+                    },
+                ],
+            };
+        } catch (error) {
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'escalate',
+                message: `Failed to install ansible-dev-tools: ${error instanceof Error ? error.message : String(error)}`,
+                suggestion:
+                    'Ensure a Python environment is selected. In VS Code, use the Environment Managers sidebar.',
+            });
+        }
+    }
+
+    /**
+     * Handles `create_python_environment`. This operation requires VS Code and
+     * is not available in standalone MCP server mode.
+     *
+     * @param args - Optional `name` for the venv directory (default: ".venv")
+     * @returns Guidance to use the extension UI since venv creation needs VS Code APIs
+     */
+    private _handleCreatePythonEnvironment(args: Record<string, unknown>): McpToolResult {
+        const name = (args.name as string | undefined) ?? '.venv';
+
+        if (!DevToolsService.getInstance().isInVSCode()) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message:
+                    'Virtual environment creation requires VS Code. Use `python -m venv` in a terminal instead.',
+                suggestion: `Run: python3 -m venv ${name} && source ${name}/bin/activate && pip install ansible-dev-tools`,
+            });
+        }
+
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text:
+                        `To create a virtual environment named "${name}", use the VS Code command:\n\n` +
+                        '1. Open the Command Palette (Ctrl+Shift+P)\n' +
+                        '2. Run "Ansible Environments: Create Environment"\n' +
+                        `3. Enter "${name}" when prompted\n\n` +
+                        'The extension will create the venv and select it automatically.\n\n' +
+                        'Alternatively, run in a terminal:\n' +
+                        `\`\`\`\npython3 -m venv ${name}\n\`\`\``,
+                },
+            ],
+        };
+    }
+
     // === Creator Handlers ===
 
     /**
@@ -1618,6 +1699,8 @@ export class McpToolHandler {
 
 ### Installation (destructive)
 - \`install_ansible_collection\` -- installs a collection via ade (do NOT use ansible-galaxy directly)
+- \`install_ansible_dev_tools\` -- installs ansible-dev-tools into the active Python environment
+- \`create_python_environment\` -- creates a Python venv for Ansible development (VS Code only)
 
 ### Scaffolding (destructive, \`ac_*\` tools)
 - Dynamically generated from ansible-creator schema

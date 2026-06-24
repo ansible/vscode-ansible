@@ -30,6 +30,17 @@ const PYTHON_EXT_ID = 'ms-python.python';
 const READY_TIMEOUT_MS = 5000;
 
 /**
+ * Tiered capability levels describing how much Python environment
+ * functionality is available in this editor session.
+ *
+ * - `full`        — python-envs extension + PET binary (best UX)
+ * - `envs-no-pet` — python-envs extension active but PET binary missing
+ * - `python-only` — only ms-python.python; terminal fallbacks for writes
+ * - `unavailable` — no Python extension at all
+ */
+export type PythonEnvCapability = 'full' | 'envs-no-pet' | 'python-only' | 'unavailable';
+
+/**
  * Convert an unknown thrown value into a log-safe error message.
  * @param error - Error object or value to stringify
  * @returns Human-readable error message text
@@ -324,6 +335,72 @@ export class PythonEnvironmentService implements vscode.Disposable {
         return this._pythonEnvApi !== undefined;
     }
 
+    // -------------------------------------------------------------------------
+    // Capability model
+    // -------------------------------------------------------------------------
+
+    /**
+     * Return the current capability tier for this session.
+     * @returns The highest capability level available
+     */
+    public getCapability(): PythonEnvCapability {
+        if (this._pythonEnvApi && this._petAvailable) return 'full';
+        if (this._pythonEnvApi) return 'envs-no-pet';
+        if (this._pythonExtApi) return 'python-only';
+        return 'unavailable';
+    }
+
+    /**
+     * Whether the Environments extension API should be used for write
+     * operations (create environment, manage packages).
+     * @returns True when Layer 2 (python-envs) is available
+     */
+    public prefersEnvsExtension(): boolean {
+        const cap = this.getCapability();
+        return cap === 'full' || cap === 'envs-no-pet';
+    }
+
+    /**
+     * Whether a venv can be created, either via API or terminal fallback.
+     * @returns True when at least Layer 3 is available
+     */
+    public canCreateEnvironment(): boolean {
+        return this.getCapability() !== 'unavailable';
+    }
+
+    /**
+     * Whether packages can be installed, either via API or terminal fallback.
+     * @returns True when at least Layer 3 is available
+     */
+    public canInstallPackages(): boolean {
+        return this.getCapability() !== 'unavailable';
+    }
+
+    /**
+     * Return the active write path for UI labels and logging.
+     * @returns 'api' when python-envs handles writes, 'terminal' for fallback, 'none' otherwise
+     */
+    public getActiveWritePath(): 'api' | 'terminal' | 'none' {
+        if (this.prefersEnvsExtension()) return 'api';
+        if (this.isAvailable()) return 'terminal';
+        return 'none';
+    }
+
+    /**
+     * Return a user-facing hint when a recommended extension is missing.
+     * @returns Install recommendation string, or undefined when fully capable
+     */
+    public getMissingExtensionHint(): string | undefined {
+        const cap = this.getCapability();
+        if (cap === 'python-only') {
+            return 'Install the Python Environments extension (ms-python.vscode-python-envs) for the best experience.';
+        }
+        if (cap === 'unavailable') {
+            return 'Install the Python extension (ms-python.python) to enable environment management.';
+        }
+        return undefined;
+    }
+
     /**
      * Get the raw PythonEnvironmentApi. Returns undefined when only the
      * fallback is active or no Python extension is available.
@@ -510,7 +587,12 @@ export class PythonEnvironmentService implements vscode.Disposable {
     }
 
     /**
-     * Create a new Python virtual environment via the Environments extension.
+     * Create a new Python virtual environment.
+     *
+     * When python-envs is available (Layer 2), delegates to its
+     * `createEnvironment` wizard. Otherwise falls back to terminal
+     * `python -m venv` and selects the new environment automatically.
+     *
      * @param scope - Workspace URI(s) or 'global' for the environment location
      * @param options - Creation options (manager, packages, etc.)
      * @returns The newly created environment, or undefined if creation was cancelled
@@ -519,13 +601,138 @@ export class PythonEnvironmentService implements vscode.Disposable {
         scope: vscode.Uri | vscode.Uri[] | 'global',
         options?: CreateEnvironmentOptions,
     ): Promise<PythonEnvironment | undefined> {
-        if (!this._pythonEnvApi) {
+        if (this._pythonEnvApi) {
+            return this._pythonEnvApi.createEnvironment(scope, options);
+        }
+
+        if (!this._pythonExtApi) {
             vscode.window.showWarningMessage(
-                'Environment creation requires the Python Environments extension (ms-python.vscode-python-envs).',
+                'Environment creation requires at least the Python extension (ms-python.python).',
             );
             return undefined;
         }
-        return this._pythonEnvApi.createEnvironment(scope, options);
+
+        return this._createEnvironmentViaTerminal(scope);
+    }
+
+    /**
+     * Terminal fallback for venv creation when python-envs is not installed.
+     * Resolves the active interpreter from ms-python.python and uses its
+     * exact path (avoids `python` vs `python3` portability issues on macOS).
+     * @param scope - workspace URI(s) or 'global' indicating where to create the venv
+     * @returns the newly created Python environment, or undefined if cancelled/failed
+     */
+    private async _createEnvironmentViaTerminal(
+        scope: vscode.Uri | vscode.Uri[] | 'global',
+    ): Promise<PythonEnvironment | undefined> {
+        const workspaceUri = Array.isArray(scope)
+            ? scope[0]
+            : scope === 'global'
+              ? vscode.workspace.workspaceFolders?.[0]?.uri
+              : scope;
+
+        if (!workspaceUri) {
+            vscode.window.showErrorMessage(
+                'No workspace folder available for environment creation.',
+            );
+            return undefined;
+        }
+
+        const pyApi = this._pythonExtApi;
+        let pythonExe = 'python3';
+        if (pyApi) {
+            const activeEnvPath = pyApi.environments.getActiveEnvironmentPath(workspaceUri);
+            const activeResolved = await pyApi.environments.resolveEnvironment(activeEnvPath);
+            pythonExe = activeResolved?.executable.uri?.fsPath ?? 'python3';
+        }
+
+        const venvName = await vscode.window.showInputBox({
+            title: 'Create Python Virtual Environment',
+            prompt: 'Enter the virtual environment directory name',
+            value: '.venv',
+            validateInput: (value) => {
+                if (!value.trim()) return 'Name cannot be empty';
+                if (/[/\\]/.test(value)) return 'Name cannot contain path separators';
+                return undefined;
+            },
+        });
+
+        if (!venvName) return undefined;
+
+        const venvDir = path.join(workspaceUri.fsPath, venvName);
+        if (fs.existsSync(venvDir)) {
+            const overwrite = await vscode.window.showWarningMessage(
+                `Directory "${venvName}" already exists. Overwrite?`,
+                'Overwrite',
+                'Cancel',
+            );
+            if (overwrite !== 'Overwrite') return undefined;
+        }
+
+        const cmd = `${pythonExe} -m venv ${venvName}`;
+        log(`Creating venv via terminal: ${cmd} in ${workspaceUri.fsPath}`);
+
+        const terminal = vscode.window.createTerminal({
+            name: `Create venv: ${venvName}`,
+            cwd: workspaceUri,
+        });
+        terminal.show();
+
+        const pythonBin =
+            process.platform === 'win32'
+                ? path.join(venvDir, 'Scripts', 'python.exe')
+                : path.join(venvDir, 'bin', 'python');
+
+        await new Promise<void>((resolve) => {
+            const shellIntegration = (
+                terminal as {
+                    shellIntegration?: {
+                        onDidEndCommandExecution?: (
+                            cb: (e: { exitCode: number | undefined }) => void,
+                        ) => { dispose(): void };
+                    };
+                }
+            ).shellIntegration;
+
+            const onEnd = shellIntegration?.onDidEndCommandExecution;
+            if (onEnd) {
+                const listener = onEnd((e) => {
+                    listener.dispose();
+                    if (e.exitCode !== 0) {
+                        vscode.window.showErrorMessage(
+                            `Failed to create virtual environment (exit code ${String(e.exitCode ?? 'unknown')}).`,
+                        );
+                    }
+                    resolve();
+                });
+                terminal.sendText(cmd);
+            } else {
+                terminal.sendText(cmd);
+                setTimeout(resolve, 5000);
+            }
+        });
+
+        if (!fs.existsSync(pythonBin)) {
+            vscode.window.showErrorMessage(
+                `Virtual environment creation failed — ${pythonBin} not found.`,
+            );
+            return undefined;
+        }
+
+        log(`Venv created, selecting: ${pythonBin}`);
+        if (pyApi) {
+            try {
+                await pyApi.environments.updateActiveEnvironmentPath(pythonBin, workspaceUri);
+            } catch (error) {
+                log(`Failed to select new venv: ${formatError(error)}`);
+            }
+        }
+
+        this._fireChangeDebounced();
+
+        if (!pyApi) return undefined;
+        const resolved = await pyApi.environments.resolveEnvironment(pythonBin);
+        return resolved ? this._adaptResolvedEnvironment(resolved) : undefined;
     }
 
     /**

@@ -32,6 +32,9 @@
     "ms-python.python",
     "redhat.vscode-yaml"
   ],
+  "extensionRecommendations": [
+    "ms-python.vscode-python-envs"
+  ],
   "contributes": {
     "icons": {
       "ansible-logo": {
@@ -296,9 +299,24 @@
     },
     "viewsWelcome": [
       {
+        "view": "ansibleDevToolsEnvManagers",
+        "contents": "No Python extension detected.\n[Install Python Extension](command:workbench.extensions.search?%22ms-python.python%22)",
+        "when": "!ansible.pythonEnvAvailable"
+      },
+      {
+        "view": "ansibleDevToolsEnvManagers",
+        "contents": "Environment management uses terminal fallbacks.\nFor the best experience, install the Python Environments extension.\n[Install Python Environments](command:workbench.extensions.search?%22ms-python.vscode-python-envs%22)\n[Create Virtual Environment](command:ansibleDevToolsEnvManagers.create)",
+        "when": "ansible.pythonEnvCapability == python-only"
+      },
+      {
         "view": "ansibleDevToolsPackages",
         "contents": "No ansible-dev-tools packages found.\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
-        "when": "!ansibleDevToolsPackages.hasPackages"
+        "when": "!ansibleDevToolsPackages.hasPackages && ansible.pythonEnvAvailable"
+      },
+      {
+        "view": "ansibleDevToolsPackages",
+        "contents": "No Python extension detected.\n[Install Python Extension](command:workbench.extensions.search?%22ms-python.python%22)",
+        "when": "!ansible.pythonEnvAvailable"
       }
     ],
     "commands": [

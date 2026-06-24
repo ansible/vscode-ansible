@@ -132,7 +132,11 @@ export class PythonStatusBar implements vscode.Disposable {
         if (!selected) return;
 
         if (selected.label.includes('Change Python')) {
-            void vscode.commands.executeCommand('python-envs.select');
+            if (this._envService.prefersEnvsExtension()) {
+                void vscode.commands.executeCommand('python-envs.select');
+            } else {
+                void vscode.commands.executeCommand('python.setInterpreter');
+            }
         } else if (selected.label.includes('Refresh')) {
             void this.update();
         }

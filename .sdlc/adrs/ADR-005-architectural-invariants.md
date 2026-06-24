@@ -138,6 +138,18 @@ authority.
 **Test**: If a new tool is added without behavioral annotations or a
 new skill lacks valid frontmatter, the PR violates this invariant.
 
+### 13. No write feature may hard-require `python-envs` (ADR-019)
+
+Every operation that modifies the Python environment (create venv,
+install packages) must work when `ms-python.vscode-python-envs` is
+absent. Use the `PythonEnvCapability` tier model: prefer the
+python-envs API (Layer 2) when available, fall back to terminal
+pip/venv (Layer 3) otherwise. `pip` is the only Layer 3 package
+manager; conda/poetry require python-envs.
+
+**Test**: If a new command creates a venv or installs a package,
+it must function when `getCapability() === 'python-only'`.
+
 ## Consequences
 
 ### Positive
@@ -176,6 +188,8 @@ new skill lacks valid frontmatter, the PR violates this invariant.
   (invariant 11)
 - [ADR-018](ADR-018-mcp-skills-compliance.md): MCP and skills
   compliance policy (invariant 12)
+- [ADR-019](ADR-019-tiered-python-env-capability.md): Tiered Python
+  environment capability model (invariant 13)
 
 ---
 
@@ -187,3 +201,4 @@ new skill lacks valid frontmatter, the PR violates this invariant.
 | 2026-06-10 | AI-assisted | Add invariants 9, 10 (shared UI) |
 | 2026-06-17 | AI-assisted | Add invariant 11 (MCP tool parity) |
 | 2026-06-23 | AI-assisted | Add invariant 12 (MCP/skills compliance) |
+| 2026-06-24 | AI-assisted | Add invariant 13 (python-envs not hard-required) |

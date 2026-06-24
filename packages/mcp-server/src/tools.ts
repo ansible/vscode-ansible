@@ -688,6 +688,37 @@ export const LIST_DEV_TOOLS_TOOL: McpToolDefinition = {
     },
 };
 
+export const INSTALL_DEV_TOOLS_TOOL: McpToolDefinition = {
+    name: 'install_ansible_dev_tools',
+    description: `Install the ansible-dev-tools package into the active Python environment.
+
+Uses pip in an activated terminal. Equivalent to \`pip install ansible-dev-tools\`.
+Call list_ansible_dev_tools first to check if already installed.`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {},
+    },
+};
+
+export const CREATE_PYTHON_ENVIRONMENT_TOOL: McpToolDefinition = {
+    name: 'create_python_environment',
+    description: `Create a Python virtual environment for Ansible development.
+
+Creates a venv in the workspace using \`python -m venv\` and selects it.
+Only available when running inside VS Code / Cursor (not standalone MCP).`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            name: {
+                type: 'string',
+                description: 'Virtual environment directory name (default: ".venv")',
+            },
+        },
+    },
+};
+
 // === Creator ===
 
 export const GET_CREATOR_SCHEMA_TOOL: McpToolDefinition = {
@@ -807,6 +838,8 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
 
     // Dev tools
     LIST_DEV_TOOLS_TOOL,
+    INSTALL_DEV_TOOLS_TOOL,
+    CREATE_PYTHON_ENVIRONMENT_TOOL,
 
     // Creator
     GET_CREATOR_SCHEMA_TOOL,
