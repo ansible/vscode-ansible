@@ -1,4 +1,4 @@
-# ADR-017: MCP and Skills Compliance Policy
+# ADR-018: MCP and Skills Compliance Policy
 
 ## Status
 
@@ -264,10 +264,10 @@ checklist covers semantic properties that automation cannot assess.
 
 - [ADR-005](ADR-005-architectural-invariants.md): Architectural
   invariants — this ADR adds invariant 12
-- [ADR-012](ADR-012-mcp-tool-parity.md): MCP tool parity — ADR-017
+- [ADR-012](ADR-012-mcp-tool-parity.md): MCP tool parity — ADR-018
   governs quality; ADR-012 governs coverage
 - [ADR-014](ADR-014-internal-skills-as-prompt-source.md): Internal
-  skills as prompt source — ADR-017 governs the format and spec
+  skills as prompt source — ADR-018 governs the format and spec
   conformance of those skill files
 
 ---

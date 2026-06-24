@@ -125,14 +125,14 @@ violates this invariant.
 **Test**: If a human can perform an action via the extension UI, an
 agent must be able to perform the same action via an MCP tool.
 
-### 12. MCP tools and skills conform to documented best practices (ADR-017)
+### 12. MCP tools and skills conform to documented best practices (ADR-018)
 
 Tools must have behavioral annotations (`readOnlyHint`,
 `destructiveHint`, `idempotentHint`), valid `inputSchema` with
 `type: "object"`, server-side input validation, and machine-readable
 error responses with recoverability signals. Skills must conform to
 the agentskills.io frontmatter spec and support three-level
-progressive disclosure. The compliance checklist in ADR-017 is the
+progressive disclosure. The compliance checklist in ADR-018 is the
 authority.
 
 **Test**: If a new tool is added without behavioral annotations or a
@@ -174,7 +174,7 @@ new skill lacks valid frontmatter, the PR violates this invariant.
   layer (invariants 9, 10)
 - [ADR-012](ADR-012-mcp-tool-parity.md): MCP tool parity
   (invariant 11)
-- [ADR-017](ADR-017-mcp-skills-compliance.md): MCP and skills
+- [ADR-018](ADR-018-mcp-skills-compliance.md): MCP and skills
   compliance policy (invariant 12)
 
 ---
