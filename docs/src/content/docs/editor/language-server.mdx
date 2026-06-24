@@ -1,13 +1,120 @@
 ---
 title: Language Server
-description: The Ansible Language Server -- completions, diagnostics, hover docs, and go-to-definition for any LSP-compatible editor.
+description: The Ansible Language Server -- completions, diagnostics, hover, and semantic tokens for any LSP-compatible editor.
 ---
 
-The Ansible Language Server implements the Language Server Protocol (LSP), providing editing intelligence that works in VS Code and any other LSP-compatible editor.
+The Ansible Language Server implements the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP), providing editing intelligence for Ansible playbooks and roles. It runs as a separate process and communicates with the editor over JSON-RPC, making it usable in VS Code, Cursor, IBM Bob, Neovim, Emacs, and any other LSP-compatible editor.
 
-Content coming soon. This page will cover:
+## Capabilities
 
-- Language server capabilities (completions, diagnostics, hover, go-to-definition)
-- ansible-lint integration for real-time diagnostics
-- Standalone usage outside VS Code (Neovim, Emacs, etc.)
-- Server settings and configuration
+| Capability | Description |
+|------------|-------------|
+| **Completions** | Context-aware suggestions for play, block, role, and task keywords. FQCN module names from installed collections. Module options with aliases, choices, and default values. Inventory hosts and groups. Variables from the current scope. |
+| **Completion resolve** | Enriches completion items with full documentation on selection -- module descriptions, option details, and examples fetched from the plugin doc cache. |
+| **Hover** | Documentation popups for keywords, modules, and module options. Shows descriptions, types, default values, and choices drawn from `ansible-doc` output. |
+| **Diagnostics** | Real-time validation using ansible-lint (preferred) or `ansible-playbook --syntax-check` as a fallback. YAML structural validation is always active. Diagnostics update on file open, save, and content change. |
+| **Semantic tokens** | Syntax highlighting tokens for modules, keywords, and properties. Enables theme-aware highlighting beyond what TextMate grammars provide. |
+
+### Completion context
+
+The completion provider understands Ansible document structure and offers context-specific suggestions:
+
+| Context | What is suggested |
+|---------|-------------------|
+| Play level | Play keywords (`hosts`, `tasks`, `roles`, `vars`, `handlers`, etc.) |
+| Block level | Block keywords (`block`, `rescue`, `always`, `when`, `become`, etc.) |
+| Task level | Module names (FQCN from installed collections), task keywords (`name`, `register`, `when`, `loop`, etc.) |
+| Module options | Option names, aliases, sub-options. Choices are shown as enum values. |
+| Role level | Role keywords (`role`, `when`, `tags`, `become`, etc.) |
+| Variables | Variable names from `vars`, `set_fact`, `register`, and inventory |
+
+## Diagnostics
+
+The Language Server runs validation automatically on three events:
+
+1. **File open** -- full validation against the current document
+2. **Content change** -- returns cached diagnostics for responsiveness
+3. **File save** -- re-runs full validation with the latest content
+
+### ansible-lint integration
+
+When ansible-lint is available and enabled (`ansible.validation.lint.enabled`), the server delegates validation to it. ansible-lint provides rule-based diagnostics covering best practices, deprecated syntax, FQCN enforcement, and more.
+
+When ansible-lint is not available, the server falls back to `ansible-playbook --syntax-check`, which catches YAML and basic Ansible syntax errors but does not enforce style rules.
+
+Configure the lint executable path and arguments via:
+
+- `ansible.validation.lint.path` -- path to the `ansible-lint` binary (default: `ansible-lint`)
+- `ansible.validation.lint.arguments` -- extra CLI arguments appended to every invocation
+
+## Standalone usage
+
+The Language Server can be used outside VS Code with any LSP-compatible editor.
+
+### Neovim
+
+Using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig):
+
+```lua
+require('lspconfig').ansiblels.setup({
+  cmd = { 'node', '/path/to/packages/language-server/out/server.js', '--stdio' },
+  filetypes = { 'yaml.ansible' },
+  settings = {
+    ansible = {
+      validation = {
+        lint = { enabled = true },
+      },
+    },
+  },
+})
+```
+
+### Emacs
+
+Using [lsp-mode](https://emacs-lsp.github.io/lsp-mode/):
+
+```elisp
+(with-eval-after-load 'lsp-mode
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection
+                     '("node" "/path/to/packages/language-server/out/server.js" "--stdio"))
+    :major-modes '(yaml-mode)
+    :server-id 'ansible-ls)))
+```
+
+### Server arguments
+
+The Language Server accepts these command-line arguments:
+
+| Argument | Description |
+|----------|-------------|
+| `--stdio` | Communicate over stdin/stdout (default for most editors) |
+| `--node-ipc` | Communicate over Node IPC (used by VS Code) |
+
+## Custom LSP notifications
+
+The server supports two non-standard notifications for integration with the extension's status bar:
+
+| Notification | Direction | Purpose |
+|-------------|-----------|---------|
+| `update/ansible-metadata` | Server -> Client | Sends ansible-core version, Python version, lint availability, and EE info to the status bar |
+| `resync/ansible-inventory` | Client -> Server | Forces a refresh of the cached inventory data |
+
+## Current scope
+
+The following LSP capabilities are not yet implemented:
+
+- Go to definition
+- Code actions / quick fixes
+- Document symbols / outline
+- Formatting
+- Rename
+- Signature help
+- Document links
+
+Contributions in these areas are welcome -- see [Contributing](/vscode-ansible/development/contributing/).
+
+## Configuration
+
+All Language Server settings are under the `ansible.*` namespace. See the [Settings Reference](/vscode-ansible/editor/settings/) for the complete list of configuration options.

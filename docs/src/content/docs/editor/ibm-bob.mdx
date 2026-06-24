@@ -1,0 +1,54 @@
+---
+title: IBM Bob
+description: Using the Ansible extension in IBM Bob -- installation, feature compatibility, and MCP integration with Bob's agentic modes.
+---
+
+[IBM Bob](https://bob.ibm.com/) is an AI-first development partner built on VS Code. It is a standalone IDE (not an extension) that provides agentic modes (Ask, Plan, Code, Advance) for orchestrating the full software development lifecycle. Since Bob is a VS Code fork, the Ansible extension is compatible.
+
+## Installation
+
+Install the extension from Bob's extension panel -- search for **Ansible** (publisher: Red Hat, ID: `redhat.ansible`). Alternatively, download the `.vsix` package from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) and sideload it via **Extensions > Install from VSIX**.
+
+## Feature compatibility
+
+All core extension features work in IBM Bob:
+
+- **Sidebar views** -- Environment Managers, Ansible Dev Tools, Installed Collections, Collection Sources, Execution Environments, Creator, Playbooks, AI Tools, AI Skills
+- **Webview panels** -- Plugin Documentation, Creator Forms, EE Details, Package Details, Playbook Config, Playbook Progress
+- **Status bar** -- Python environment indicator, Ansible metadata indicator
+- **Language Server** -- completions, hover, diagnostics, semantic tokens
+- **Playbook execution** -- run in terminal and run with progress modes
+- **Vault** -- encrypt/decrypt from the editor context menu
+
+## MCP integration
+
+The Ansible extension ships an MCP server that exposes collection discovery, plugin documentation, scaffolding, and playbook generation to AI agents. Bob supports MCP tool-calling through its agentic modes, allowing Bob to use Ansible tools during planning and code generation sessions.
+
+MCP server configuration in Bob may differ from VS Code and Cursor. Consult the [IBM Bob documentation](https://bob.ibm.com/docs/) for details on how to register MCP servers in your Bob workspace.
+
+The extension's MCP server binary is available at:
+
+```
+<extension-install-path>/packages/mcp-server/out/server.js
+```
+
+You can also run it standalone via the CLI entry point:
+
+```bash
+npx ansible-environments-mcp
+```
+
+For details on the MCP server's capabilities and available tools, see:
+
+- [MCP Server](/vscode-ansible/ai/mcp-server/)
+- [Connecting AI Agents](/vscode-ansible/ai/connecting-agents/)
+
+## Ansible Lightspeed
+
+IBM Bob uses its own multi-model orchestration (Granite, Claude, Mistral) for AI-assisted development. Ansible Lightspeed is a separate IBM watsonx Code Assistant service that can be enabled independently via the `ansible.lightspeed.enabled` setting. Both can run side by side -- Bob handles general coding assistance while Lightspeed provides Ansible-specific inline suggestions and playbook generation.
+
+## Links
+
+- [IBM Bob](https://bob.ibm.com/)
+- [Bob Quickstart](https://bob.ibm.com/docs/ide/getting-started/quickstart)
+- [VS Code](/vscode-ansible/editor/vscode-extension/) -- full feature reference

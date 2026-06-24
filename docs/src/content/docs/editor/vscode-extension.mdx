@@ -1,14 +1,92 @@
 ---
-title: VS Code Extension
-description: The Ansible extension for VS Code and compatible editors -- environment management, collections, scaffolding, and playbook execution.
+title: VS Code
+description: The Ansible extension for Visual Studio Code -- sidebar views, webview panels, playbook execution, scaffolding, and MCP server integration.
 ---
 
-The VS Code extension brings the full Ansible developer tools experience into your editor. It integrates with the Python CLI tools, provides a Language Server for editing intelligence, and hosts the MCP server for AI agent connectivity.
+The Ansible VS Code extension (`redhat.ansible`) brings the full Ansible developer tools experience into Visual Studio Code. It integrates with the [Python CLI tools](/vscode-ansible/python-tools/overview/), provides a [Language Server](/vscode-ansible/editor/language-server/) for editing intelligence, and hosts the [MCP server](/vscode-ansible/ai/mcp-server/) for AI agent connectivity.
 
-Content coming soon. This page will cover:
+## Installation
 
-- Installing from the VS Code marketplace
-- First-run experience and environment detection
-- Sidebar views (environments, collections, playbooks, EEs)
-- Playbook execution and run configuration
-- Scaffolding with ansible-creator
+Install the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) or search for **Ansible** (publisher: Red Hat) in the Extensions view (`Ctrl+Shift+X`).
+
+The extension automatically installs two dependencies:
+
+| Dependency | Purpose |
+|------------|---------|
+| `ms-python.python` | Python interpreter discovery and environment management |
+| `redhat.vscode-yaml` | YAML language support used by the Language Server |
+
+## Sidebar views
+
+The extension adds an **Ansible Environments** activity bar with the following tree views:
+
+| View | Description |
+|------|-------------|
+| **Environment Managers** | Python environments grouped by manager (venv, system, conda). Select the active interpreter for Ansible tooling. |
+| **Ansible Dev Tools** | Inventory of installed `ansible-dev-tools` packages with version info. Install or upgrade directly from the view. |
+| **Installed Collections** | Collections installed in the active environment, expandable to plugin types and individual plugins with inline documentation. |
+| **Collection Sources** | Browse collections from Ansible Galaxy and configurable GitHub organizations (`ansible`, `ansible-collections`, `redhat-cop` by default). Search, install, and view plugin docs from source. |
+| **Execution Environments** | Container images discovered by ansible-navigator. Expand to inspect bundled collections, Python packages, and system packages. |
+| **Creator** | Scaffolding tree built from `ansible-creator schema`. Click any template node to open a schema-driven form for generating collections, roles, plugins, or devcontainers. |
+| **Playbooks** | Workspace playbook discovery with folder and play hierarchy. Run playbooks, configure per-playbook settings, and view progress. |
+| **AI Tools** | Browsable catalog of MCP tools with "use in chat" and "copy prompt" actions. Visible when `ansibleEnvironments.enableAiFeatures` is enabled. |
+| **AI Skills** | Skills loaded from configured sources (default: [ai-forge](https://github.com/ansible-community/ai-forge)). Use in chat or copy prompt text. Visible when `ansibleEnvironments.enableAiFeatures` is enabled. |
+| **Lightspeed** | IBM watsonx Code Assistant (Ansible Lightspeed) sign-in, inline suggestions, and generation shortcuts. Visible when `ansible.lightspeed.enabled` is enabled. |
+
+## Webview panels
+
+Rich UI panels open in the editor area for detailed views and interactive forms:
+
+| Panel | Purpose |
+|-------|---------|
+| **Plugin Documentation** | Rendered documentation for any Ansible module, lookup, filter, or other plugin type. Opens from the Collections or Collection Sources views. |
+| **Creator Form** | Schema-driven form for ansible-creator scaffolding. Fields, defaults, and validation are generated from the CLI's JSON schema. |
+| **EE Details** | Detailed view of an execution environment image -- collections, Python packages, system packages, and image metadata. |
+| **Package Details** | Python or system package detail view showing version, summary, and dependencies. |
+| **Playbook Config** | Per-playbook run configuration -- inventory, extra vars, verbosity, limit, tags, and other `ansible-playbook` flags. |
+| **Playbook Progress** | Live execution progress with task-level status updates via a custom Ansible callback plugin and Unix socket. |
+
+## Status bar
+
+Two status bar items appear when editing Ansible files:
+
+- **Python Environment** (right) -- shows the active Python interpreter. Click to switch environments via the QuickPick selector.
+- **Ansible Metadata** (right) -- shows the ansible-core version, execution environment tag, and lint health. Data is fetched from the Language Server via a custom `update/ansible-metadata` notification.
+
+## Playbook execution
+
+The extension provides two ways to run playbooks:
+
+**Run in terminal** -- opens an integrated terminal with the virtual environment activated and runs `ansible-playbook` with the configured flags. Suitable for interactive sessions where you need full terminal access.
+
+**Run with progress** -- launches the playbook in the background and opens the Playbook Progress panel. A custom Ansible callback plugin streams task-level events over a Unix socket, providing live status updates without blocking the editor.
+
+Per-playbook configuration is stored in `.cache/ansible-environments/playbooks/` and can be edited via the Playbook Config panel or the `ansiblePlaybooks.editConfig` command.
+
+## Scaffolding
+
+The Creator sidebar view is built from `ansible-creator schema`, which returns the full set of available scaffolding templates. Each leaf node in the tree represents a scaffolding command (e.g., "Collection", "Playbook Project", "Devcontainer"). Clicking a node opens a schema-driven form that maps directly to `ansible-creator` CLI arguments.
+
+After form submission, the extension runs the `ansible-creator` command in an integrated terminal and refreshes the workspace.
+
+See the [ansible-creator guide](/vscode-ansible/python-tools/ansible-creator/) for details on available templates.
+
+## Vault
+
+The extension provides Ansible Vault encryption and decryption from the editor context menu. Select text in any Ansible file, right-click, and choose **Vault: Encrypt/Decrypt**. The vault password is passed via a temporary FIFO -- it is never written to disk.
+
+## MCP server
+
+On VS Code 1.99 and later, the extension automatically registers the Ansible MCP server using `vscode.lm.registerMcpServerDefinitionProvider()`. The server is immediately available to GitHub Copilot and other MCP-compatible tools without manual configuration.
+
+For details on the MCP server's capabilities and connecting other agents, see:
+
+- [MCP Server](/vscode-ansible/ai/mcp-server/)
+- [Connecting AI Agents](/vscode-ansible/ai/connecting-agents/)
+
+## Next steps
+
+- [Language Server](/vscode-ansible/editor/language-server/) -- completions, diagnostics, hover, and semantic tokens
+- [Settings Reference](/vscode-ansible/editor/settings/) -- all `ansibleEnvironments.*` and `ansible.*` settings
+- [Cursor](/vscode-ansible/editor/cursor/) -- using the extension in Cursor
+- [IBM Bob](/vscode-ansible/editor/ibm-bob/) -- using the extension in IBM Bob

@@ -1,0 +1,69 @@
+---
+title: Cursor
+description: Using the Ansible extension in Cursor -- automatic MCP registration, manual configuration, and differences from VS Code.
+---
+
+[Cursor](https://www.cursor.com/) is a VS Code fork with built-in AI capabilities. The Ansible extension installs and works identically to VS Code for all editing, sidebar, and playbook features. The primary difference is how the MCP server is registered.
+
+## Installation
+
+Install the extension from Cursor's extension panel -- search for **Ansible** (publisher: Red Hat, ID: `redhat.ansible`). The same marketplace package is used for both VS Code and Cursor.
+
+## MCP server auto-registration
+
+When the extension activates in Cursor, it detects the IDE via `vscode.env.appName` and automatically registers the MCP server using Cursor's extension API:
+
+```typescript
+cursor.mcp.registerServer({
+  name: 'ansible-environments',
+  server: { command: 'node', args: [serverPath], env: { ... } }
+})
+```
+
+The server is immediately available and enabled with no manual configuration needed. You can verify registration by running the **Ansible: Show MCP Status** command (`ansible-environments.showMcpStatus`), which opens a status panel showing the server path, Cursor API availability, and config file state.
+
+## Manual MCP configuration
+
+If the Cursor extension API is unavailable (older Cursor versions), the extension falls back to writing an `mcp.json` configuration file.
+
+Run the **Ansible: Configure Cursor MCP** command (`ansible-environments.configureCursorMcp`). You will be prompted to choose where to save the configuration:
+
+| Scope | File path | Effect |
+|-------|-----------|--------|
+| **Global** | `~/.cursor/mcp.json` | Available in all Cursor workspaces |
+| **Workspace** | `.cursor/mcp.json` | Available only in the current workspace |
+
+The command writes the server entry and prompts you to enable it in Cursor Settings (`Ctrl+Shift+J`) under **Features > MCP**.
+
+The generated `mcp.json` entry looks like:
+
+```json
+{
+  "mcpServers": {
+    "ansible-environments": {
+      "command": "node",
+      "args": ["/path/to/packages/mcp-server/out/server.js"],
+      "env": {}
+    }
+  }
+}
+```
+
+## Feature parity with VS Code
+
+All extension features work identically in Cursor:
+
+- Sidebar views (Environment Managers, Collections, Creator, Playbooks, AI Tools, AI Skills)
+- Webview panels (Plugin Docs, Creator Forms, EE Details, Playbook Config/Progress)
+- Status bar items (Python environment, Ansible metadata)
+- Language Server (completions, hover, diagnostics, semantic tokens)
+- Playbook execution (terminal and progress modes)
+- Vault encrypt/decrypt
+
+The one difference is the chat integration: where VS Code routes AI prompts through GitHub Copilot Chat, Cursor routes them through its native chat interface. The `ansibleEnvironments.llm.chatProvider` setting does not apply in Cursor since Cursor manages its own chat UI.
+
+## Next steps
+
+- [MCP Server](/vscode-ansible/ai/mcp-server/) -- capabilities and tool catalog
+- [Connecting AI Agents](/vscode-ansible/ai/connecting-agents/) -- connecting other AI agents
+- [VS Code](/vscode-ansible/editor/vscode-extension/) -- full feature reference

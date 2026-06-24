@@ -73,6 +73,9 @@ export default defineConfig({
                     label: 'Editor Integration',
                     items: [
                         { slug: 'editor/vscode-extension' },
+                        { slug: 'editor/cursor' },
+                        { slug: 'editor/ibm-bob' },
+                        { slug: 'editor/devspaces' },
                         { slug: 'editor/language-server' },
                         { slug: 'editor/settings' },
                     ],
@@ -95,30 +98,12 @@ export default defineConfig({
                         {
                             label: 'Python Tools',
                             items: [
-                                {
-                                    slug: 'python-tools/ansible-creator/reference',
-                                    badge: 'Reference',
-                                },
-                                {
-                                    slug: 'python-tools/ansible-dev-environment/reference',
-                                    badge: 'Reference',
-                                },
-                                {
-                                    slug: 'python-tools/ansible-lint/reference',
-                                    badge: 'Reference',
-                                },
-                                {
-                                    slug: 'python-tools/molecule/reference',
-                                    badge: 'Reference',
-                                },
-                                {
-                                    slug: 'python-tools/ansible-navigator/reference',
-                                    badge: 'Reference',
-                                },
-                                {
-                                    slug: 'python-tools/ansible-builder/reference',
-                                    badge: 'Reference',
-                                },
+                                { slug: 'python-tools/ansible-creator/reference' },
+                                { slug: 'python-tools/ansible-dev-environment/reference' },
+                                { slug: 'python-tools/ansible-lint/reference' },
+                                { slug: 'python-tools/molecule/reference' },
+                                { slug: 'python-tools/ansible-navigator/reference' },
+                                { slug: 'python-tools/ansible-builder/reference' },
                             ],
                         },
                         { slug: 'reference/commands' },

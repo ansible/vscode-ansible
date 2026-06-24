@@ -35,16 +35,6 @@ molecule                                 26.4.0
 tox-ansible                              26.6.0
 ```
 
-### The `adt server` command
-
-The `adt server` command launches a Django/Gunicorn REST API that the VS Code extension uses to power content scaffolding. It exposes endpoints for creating playbooks, collections, execution environments, and devfiles — all driven by dynamic schemas from `ansible-creator`.
-
-```bash
-adt server
-```
-
-The server runs on port 8000 by default and is typically managed automatically by the extension.
-
 ### Container image
 
 All ADT tools come pre-installed in the `community-ansible-dev-tools` container image:
