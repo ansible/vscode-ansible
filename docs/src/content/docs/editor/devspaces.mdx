@@ -1,0 +1,64 @@
+---
+title: Red Hat Dev Spaces
+description: Using the Ansible extension in Red Hat OpenShift Dev Spaces -- cloud-hosted workspaces with pre-configured Python environments.
+---
+
+[Red Hat OpenShift Dev Spaces](https://developers.redhat.com/products/openshift-dev-spaces/overview) provides cloud-hosted development workspaces based on Eclipse Che. Workspaces run in containers on OpenShift and use the **checode** editor (a VS Code derivative), making them compatible with the Ansible extension.
+
+## Installation
+
+Add the extension to your workspace by including it in your devfile configuration:
+
+```yaml
+components:
+  - name: che-code
+    container:
+      image: quay.io/devspaces/udi-rhel8:latest
+    attributes:
+      che-code.eclipse.org/vscode-extensions:
+        - redhat.ansible
+```
+
+Alternatively, install the extension from the Extensions view within an active Dev Spaces workspace -- search for **Ansible** (publisher: Red Hat, ID: `redhat.ansible`).
+
+## Python environment
+
+The extension automatically discovers Python environments available in the workspace container. When the container image includes `ansible-dev-tools`, all CLI tools (ansible-lint, ansible-creator, ansible-navigator, molecule, etc.) are available immediately with no additional installation.
+
+For custom workspace images, ensure the image includes:
+
+- Python 3.10 or later
+- `ansible-dev-tools` (recommended) or individual tools as needed
+
+The extension's Environment Managers view displays all detected Python interpreters, and the status bar shows the active selection.
+
+## Ansible Lightspeed authentication
+
+Ansible Lightspeed (IBM watsonx Code Assistant) authentication works in Dev Spaces through the `checode` URI scheme. The extension supports OAuth callback redirects for:
+
+- `checode://` URI scheme (Dev Spaces editor)
+- Authorities ending in `.openshiftapps.com` (OpenShift-hosted workspaces)
+
+No additional OAuth configuration is needed -- sign in through the Lightspeed view as you would in desktop VS Code.
+
+## Dev Container scaffolding
+
+Use [ansible-creator](/vscode-ansible/python-tools/ansible-creator/) to generate `.devcontainer/` configurations for Ansible projects:
+
+```bash
+ansible-creator add resource devcontainer
+```
+
+This produces Docker and Podman variants pre-configured with `ansible-dev-tools`, making it straightforward to set up consistent workspace images for Dev Spaces or any Dev Container environment.
+
+## Considerations
+
+- **Playbook execution** -- playbooks run within the workspace container. If the container has network access to target hosts, terminal-based execution works normally. The Unix socket-based progress viewer also works within the container.
+- **MCP server** -- the MCP server runs inside the workspace container alongside the extension. AI agents connected to the workspace can use the server's tools for collection discovery, scaffolding, and playbook generation.
+- **Execution environments** -- the EE view requires a container runtime (Podman or Docker) inside the workspace container. Nested container support depends on your Dev Spaces cluster configuration.
+
+## Links
+
+- [Red Hat OpenShift Dev Spaces](https://developers.redhat.com/products/openshift-dev-spaces/overview)
+- [Dev Spaces Documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_dev_spaces/)
+- [VS Code](/vscode-ansible/editor/vscode-extension/) -- full feature reference

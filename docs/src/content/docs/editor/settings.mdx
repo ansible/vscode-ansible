@@ -1,6 +1,109 @@
 ---
 title: Settings Reference
-description: Complete reference for all extension and language server settings.
+description: Complete reference for all extension and Language Server settings.
 ---
 
-Content coming soon. This page will provide a complete reference for all `ansible.*` settings available in the VS Code extension and Language Server.
+This page documents all settings contributed by the Ansible extension and consumed by the Language Server. Settings are organized into three namespaces.
+
+## Extension settings (`ansibleEnvironments.*`)
+
+These settings are declared in the extension manifest and appear in the Settings UI.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansibleEnvironments.enableAiFeatures` | boolean | `true` | Show AI Tools and AI Skills sidebar views, sparkle icons, and AI prompt buttons |
+| `ansibleEnvironments.skillSources` | array | See below | AI skill source registry. Each entry points to a GitHub repo or local directory containing SKILL.md files |
+| `ansibleEnvironments.pluginDocZoom` | number | `100` | Zoom level for the plugin documentation webview (50--200%) |
+| `ansibleEnvironments.pluginDocTheme` | string | `auto` | Theme for plugin documentation: `auto` (follow editor), `light`, or `dark` |
+| `ansibleEnvironments.githubCollectionOrgs` | string[] | `["ansible", "ansible-collections", "redhat-cop"]` | GitHub organizations to scan for Ansible collections in the Collection Sources view |
+| `ansibleEnvironments.llm.chatProvider` | string | `vscode` | Chat UI for AI features: `vscode` (GitHub Copilot Chat) or `openllm` (Open LLM Provider) |
+| `ansibleEnvironments.llm.provider` | string | `""` | *(Advanced)* LLM provider/vendor override. Leave empty for auto-selection |
+| `ansibleEnvironments.llm.model` | string | `""` | *(Advanced)* LLM model ID override. Leave empty for auto-selection |
+
+### Skill sources default
+
+```json
+[
+  {
+    "id": "ai-forge",
+    "type": "github",
+    "url": "https://github.com/ansible-community/ai-forge",
+    "trust": "community"
+  }
+]
+```
+
+Each skill source object requires:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `id` | string | Unique identifier for the source |
+| `type` | string | Transport type: `github`, `registry`, or `local` |
+| `url` | string | GitHub repo URL or local directory path |
+| `trust` | string | Trust level: `community`, `certified`, `partner`, or `private` |
+| `refreshInterval` | number | *(Optional)* Hours between cache refreshes (default: 24) |
+
+## Lightspeed settings (`ansible.lightspeed.*`)
+
+These settings control the Ansible Lightspeed (IBM watsonx Code Assistant) integration.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansible.lightspeed.enabled` | boolean | `false` | Enable the Lightspeed sidebar view, authentication, and AI features |
+| `ansible.lightspeed.URL` | string | `https://c.ai.ansible.redhat.com` | Ansible Lightspeed API endpoint URL |
+| `ansible.lightspeed.suggestions.enabled` | boolean | `true` | Enable inline code suggestions from Lightspeed (requires `ansible.lightspeed.enabled`) |
+
+## Language Server settings (`ansible.*`)
+
+These settings are consumed by the Language Server via LSP configuration requests. They have defaults in the server code but are **not declared in the extension manifest** on the `next` branch, which means they do not appear in the Settings UI. They are fully functional when set manually in `settings.json`.
+
+### Ansible
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansible.ansible.path` | string | `"ansible"` | Path to the `ansible` executable |
+| `ansible.ansible.useFullyQualifiedCollectionNames` | boolean | `true` | Use fully qualified collection names (FQCN) when inserting module names in completions |
+
+### Python
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansible.python.interpreterPath` | string | `""` | Path to the Python interpreter. Used to locate ansible and ansible-lint in a virtual environment |
+| `ansible.python.activationScript` | string | `""` | Path to a custom activation script for a Python virtual environment |
+
+### Completion
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansible.completion.provideModuleOptionAliases` | boolean | `true` | Include option aliases in module option completion suggestions |
+
+### Validation
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `ansible.validation.enabled` | boolean | `true` | Master toggle for validation. When enabled without ansible-lint, falls back to `ansible-playbook --syntax-check` |
+| `ansible.validation.lint.enabled` | boolean | `true` | Use ansible-lint for validation instead of syntax-check |
+| `ansible.validation.lint.path` | string | `"ansible-lint"` | Path to the `ansible-lint` executable |
+| `ansible.validation.lint.arguments` | string | `""` | Extra command-line arguments appended to every ansible-lint invocation |
+| `ansible.validation.lint.autoFixOnSave` | boolean | `false` | Run `ansible-lint --fix` automatically when saving a file |
+
+## Setting these in `settings.json`
+
+All settings can be configured in your `settings.json` file. The `ansibleEnvironments.*` and `ansible.lightspeed.*` settings also appear in the graphical Settings UI. The `ansible.*` Language Server settings must be set manually:
+
+```json
+{
+  "ansible.ansible.path": "/usr/bin/ansible",
+  "ansible.python.interpreterPath": "/path/to/venv/bin/python",
+  "ansible.validation.lint.enabled": true,
+  "ansible.validation.lint.path": "/path/to/venv/bin/ansible-lint",
+  "ansible.validation.lint.arguments": "--profile production",
+  "ansibleEnvironments.enableAiFeatures": true,
+  "ansibleEnvironments.githubCollectionOrgs": [
+    "ansible",
+    "ansible-collections",
+    "redhat-cop",
+    "my-org"
+  ]
+}
+```
