@@ -62,6 +62,20 @@ All extension features work identically in Cursor:
 
 The one difference is the chat integration: where VS Code routes AI prompts through GitHub Copilot Chat, Cursor routes them through its native chat interface. The `ansibleEnvironments.llm.chatProvider` setting does not apply in Cursor since Cursor manages its own chat UI.
 
+## Python environment capability tiers
+
+The extension depends on `ms-python.python` (hard dependency) and recommends `ms-python.vscode-python-envs` for the best experience. Cursor may not bundle the Python Environments extension, so the extension provides tiered fallbacks:
+
+| Capability | With python-envs | Without python-envs (terminal fallback) |
+|------------|-----------------|----------------------------------------|
+| **List environments** | PET-based fast discovery | `ms-python.python` known environments |
+| **Select environment** | `python-envs.select` picker | `python.setInterpreter` picker |
+| **Create venv** | Native create-env wizard | Terminal `python -m venv` + auto-select |
+| **Install ansible-dev-tools** | `managePackages` API | Terminal `pip install ansible-dev-tools` |
+| **Upgrade ansible-dev-tools** | Terminal pip (same) | Terminal pip (same) |
+
+When `python-envs` is missing, the extension shows a one-time notice recommending installation and uses terminal-based fallbacks for environment creation and package management. The sidebar Environment Managers view displays a welcome message explaining the limited mode with a link to install the recommended extension.
+
 ## Next steps
 
 - [MCP Server](/vscode-ansible/ai/mcp-server/) -- capabilities and tool catalog

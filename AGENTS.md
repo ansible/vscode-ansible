@@ -73,6 +73,13 @@ Package architecture is in [ADR-011](.sdlc/adrs/ADR-011-package-architecture.md)
    versa. PRs adding UI without a tool (or a tool without UI) violate
    this invariant.
 
+10. **No write feature may hard-require `python-envs`** (ADR-019).
+    Environment creation and package install must work when
+    `ms-python.vscode-python-envs` is absent. Use the
+    `PythonEnvCapability` tier model: prefer the API (Layer 2), fall
+    back to terminal pip/venv (Layer 3). `pip` is the only Layer 3
+    package manager.
+
 ## Branching Strategy
 
 See the `branching-strategy` skill for full details.

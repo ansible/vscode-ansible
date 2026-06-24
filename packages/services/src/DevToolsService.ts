@@ -25,7 +25,7 @@ export type PackageInstaller = () => Promise<void>;
 interface TerminalServiceLike {
     getInstance(): {
         createActivatedTerminal(opts: { name: string; show: boolean }): Promise<{
-            sendCommand(cmd: string, opts: { waitForCompletion: boolean }): void;
+            sendCommand(cmd: string, opts: { waitForCompletion: boolean }): Promise<unknown>;
         }>;
     };
 }
@@ -165,15 +165,39 @@ export class DevToolsService {
     }
 
     /**
-     * Install ansible-dev-tools package (VS Code only, requires full API)
+     * Install ansible-dev-tools package.
+     *
+     * Uses the python-envs managePackages API when available (Layer 2).
+     * Falls back to `pip install ansible-dev-tools` in an activated
+     * terminal when only ms-python.python is present (Layer 3).
      */
     public async install(): Promise<void> {
-        if (!this._packageInstaller) {
+        if (this._packageInstaller) {
+            await this._packageInstaller();
+            await this.refresh();
+            return;
+        }
+
+        if (!vscode) {
+            throw new Error('install is only available in VS Code');
+        }
+
+        if (!DevToolsService.terminalServiceFactory) {
             throw new Error(
-                'Package installation requires the Python Environments extension (ms-python.vscode-python-envs).',
+                'Package installation is not available. Install the Python Environments extension (ms-python.vscode-python-envs) or ensure a Python environment is selected.',
             );
         }
-        await this._packageInstaller();
+
+        const TerminalService = DevToolsService.terminalServiceFactory();
+        const terminalService = TerminalService.getInstance();
+        const managed = await terminalService.createActivatedTerminal({
+            name: 'Install ansible-dev-tools',
+            show: true,
+        });
+        await managed.sendCommand('pip install ansible-dev-tools', {
+            waitForCompletion: true,
+        });
+        log('DevToolsService: terminal install complete, refreshing packages');
         await this.refresh();
     }
 
@@ -196,9 +220,12 @@ export class DevToolsService {
             name: 'Upgrade ansible-dev-tools',
             show: true,
         });
-        managed.sendCommand('pip install --upgrade --upgrade-strategy eager ansible-dev-tools', {
-            waitForCompletion: true,
-        });
+        await managed.sendCommand(
+            'pip install --upgrade --upgrade-strategy eager ansible-dev-tools',
+            {
+                waitForCompletion: true,
+            },
+        );
         log('DevToolsService: upgrade complete, refreshing packages');
         await this.refresh();
     }

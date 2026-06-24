@@ -24,6 +24,11 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
         this._service = DevToolsService.getInstance();
 
         this._serviceListener = (this._service.onDidChange as vscode.Event<void>)(() => {
+            void vscode.commands.executeCommand(
+                'setContext',
+                'ansibleDevToolsPackages.hasPackages',
+                this._service.hasPackages(),
+            );
             this._onDidChangeTreeData.fire(undefined);
         });
 
@@ -31,7 +36,8 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
     }
 
     /**
-     * Subscribe to environment changes and defer the first refresh until discovery completes.
+     * Subscribe to environment changes and run an initial refresh once
+     * the Python environment is settled.
      * @param pythonEnvService - Service used to observe environment changes
      */
     private async _init(pythonEnvService: PythonEnvironmentService) {
@@ -40,25 +46,29 @@ export class AnsibleDevToolsProvider implements vscode.TreeDataProvider<DevToolP
 
             this._envListener = pythonEnvService.onDidChangeEnvironment(() => {
                 log('AnsibleDevToolsProvider: environment changed, scheduling refresh');
-                if (this._refreshDebounce) {
-                    clearTimeout(this._refreshDebounce);
-                }
-                this._refreshDebounce = setTimeout(() => {
-                    this._refreshDebounce = undefined;
-                    void this.refresh();
-                }, 1000);
+                this._scheduleRefresh();
             });
 
-            // Don't refresh eagerly — wait for the environment change event
-            // which fires once the Python extension has discovered environments.
-            // An eager refresh here would resolve tools from ~/.local/bin
-            // because the venv hasn't been discovered yet.
-            log('AnsibleDevToolsProvider: initialized, waiting for environment discovery');
+            // initialize() has resolved, so the binDirResolver points at the
+            // active venv. Refresh now to pick up already-installed tools.
+            log('AnsibleDevToolsProvider: initialized, running initial refresh');
+            this._scheduleRefresh();
         } catch (error) {
             log(
                 `AnsibleDevToolsProvider: init failed: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
+    }
+
+    /** Debounce rapid change events into a single refresh. */
+    private _scheduleRefresh(): void {
+        if (this._refreshDebounce) {
+            clearTimeout(this._refreshDebounce);
+        }
+        this._refreshDebounce = setTimeout(() => {
+            this._refreshDebounce = undefined;
+            void this.refresh();
+        }, 1000);
     }
 
     /** Reload developer tool packages from the active environment. */

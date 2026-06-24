@@ -174,9 +174,23 @@ describe('DevToolsService', () => {
         expect((DevToolsService as any).terminalServiceFactory).toBe(factory);
     });
 
+    it('install delegates to packageInstaller when set', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: ADT_OUTPUT,
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        const installer = vi.fn().mockResolvedValue(undefined);
+        svc.setPackageInstaller(installer);
+        await svc.install();
+        expect(installer).toHaveBeenCalledOnce();
+        expect(svc.isLoaded()).toBe(true);
+    });
+
     it('install throws when not in vscode', async () => {
         const svc = DevToolsService.getInstance();
-        await expect(svc.install()).rejects.toThrow('Package installation requires');
+        await expect(svc.install()).rejects.toThrow('install is only available in VS Code');
     });
 
     it('isInVSCode is false in test environment', () => {
@@ -278,9 +292,9 @@ describe('DevToolsService', () => {
         expect(svc.isInVSCode()).toBe(false);
     });
 
-    it('install throws when not in VS Code', async () => {
+    it('install throws when not in VS Code (duplicate)', async () => {
         const svc = DevToolsService.getInstance();
-        await expect(svc.install()).rejects.toThrow('Package installation requires');
+        await expect(svc.install()).rejects.toThrow('install is only available in VS Code');
     });
 
     it('upgrade throws when not in VS Code', async () => {

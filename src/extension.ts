@@ -352,8 +352,21 @@ export function activate(context: vscode.ExtensionContext) {
     pythonEnvService
         .initialize()
         .then((available) => {
+            const capability = pythonEnvService.getCapability();
             log(
-                `Python Environment Service initialized: available=${String(available)}, fullApi=${String(pythonEnvService.hasFullApi())}, envsExt=${String(pythonEnvService.hasEnvsExtension())}`,
+                `Python Environment Service initialized: available=${String(available)}, capability=${capability}, fullApi=${String(pythonEnvService.hasFullApi())}, envsExt=${String(pythonEnvService.hasEnvsExtension())}`,
+            );
+
+            // Publish capability context keys for viewsWelcome `when` clauses
+            void vscode.commands.executeCommand(
+                'setContext',
+                'ansible.pythonEnvCapability',
+                capability,
+            );
+            void vscode.commands.executeCommand(
+                'setContext',
+                'ansible.pythonEnvAvailable',
+                available,
             );
 
             // Wire package installer into DevToolsService when envs extension is available
@@ -370,6 +383,28 @@ export function activate(context: vscode.ExtensionContext) {
                         upgrade: false,
                     });
                 });
+            }
+
+            // One-time degraded-mode notice when python-envs is missing
+            if (capability === 'python-only') {
+                const DISMISSED_KEY = 'ansible.pythonEnvsDegradedDismissed';
+                if (!context.globalState.get<boolean>(DISMISSED_KEY)) {
+                    void vscode.window
+                        .showInformationMessage(
+                            'Python Environments extension not found. Environment creation and package install will use terminal fallbacks.',
+                            'Install Extension',
+                            'Dismiss',
+                        )
+                        .then((selection) => {
+                            if (selection === 'Install Extension') {
+                                void vscode.commands.executeCommand(
+                                    'workbench.extensions.search',
+                                    'ms-python.vscode-python-envs',
+                                );
+                            }
+                            void context.globalState.update(DISMISSED_KEY, true);
+                        });
+                }
             }
 
             // Cache environment for standalone consumers (MCP server, language server)

@@ -128,6 +128,9 @@ const hoisted = vi.hoisted(() => {
         isLoaded: vi.fn(() => true),
         refresh: vi.fn().mockResolvedValue(undefined),
         getPackages: vi.fn(() => [{ name: 'ansible-lint', version: '1.0.0' }]),
+        hasPackages: vi.fn(() => false),
+        install: vi.fn().mockResolvedValue(undefined),
+        isInVSCode: vi.fn(() => false),
     };
 
     const creatorInstance = {
@@ -827,6 +830,79 @@ describe('McpToolHandler', () => {
             const result = await handler.handleTool('list_ansible_dev_tools', {});
 
             expect(result.content[0].text).toContain('ansible-dev-tools is not installed');
+        });
+    });
+
+    describe('install_ansible_dev_tools', () => {
+        it('returns already-installed message when packages present', async () => {
+            hoisted.devToolsInstance.hasPackages.mockReturnValue(true);
+
+            const result = await handler.handleTool('install_ansible_dev_tools', {});
+
+            expect(result.content[0].text).toContain('already installed');
+        });
+
+        it('calls install and returns success', async () => {
+            hoisted.devToolsInstance.hasPackages.mockReturnValue(false);
+            hoisted.devToolsInstance.install.mockResolvedValue(undefined);
+
+            const result = await handler.handleTool('install_ansible_dev_tools', {});
+
+            expect(hoisted.devToolsInstance.install).toHaveBeenCalled();
+            expect(result.content[0].text).toContain('installation started');
+        });
+
+        it('returns error when install throws', async () => {
+            hoisted.devToolsInstance.hasPackages.mockReturnValue(false);
+            hoisted.devToolsInstance.install.mockRejectedValue(new Error('no terminal'));
+
+            const result = await handler.handleTool('install_ansible_dev_tools', {});
+            const err = parseError(result);
+
+            expect(err.code).toBe('OPERATION_FAILED');
+            expect(err.message).toContain('no terminal');
+        });
+    });
+
+    describe('create_python_environment', () => {
+        it('returns error when not in VS Code', async () => {
+            hoisted.devToolsInstance.isInVSCode.mockReturnValue(false);
+
+            const result = await handler.handleTool('create_python_environment', {});
+            const err = parseError(result);
+
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.suggestion).toContain('python3 -m venv');
+        });
+
+        it('uses custom name in suggestion', async () => {
+            hoisted.devToolsInstance.isInVSCode.mockReturnValue(false);
+
+            const result = await handler.handleTool('create_python_environment', {
+                name: 'my-env',
+            });
+            const err = parseError(result);
+
+            expect(err.suggestion).toContain('my-env');
+        });
+
+        it('returns guidance when in VS Code', async () => {
+            hoisted.devToolsInstance.isInVSCode.mockReturnValue(true);
+
+            const result = await handler.handleTool('create_python_environment', {});
+
+            expect(result.content[0].text).toContain('Command Palette');
+            expect(result.content[0].text).toContain('.venv');
+        });
+
+        it('uses custom name in VS Code guidance', async () => {
+            hoisted.devToolsInstance.isInVSCode.mockReturnValue(true);
+
+            const result = await handler.handleTool('create_python_environment', {
+                name: 'test-env',
+            });
+
+            expect(result.content[0].text).toContain('test-env');
         });
     });
 
