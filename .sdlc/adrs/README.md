@@ -31,6 +31,7 @@ Decisions that have been accepted but are not yet fully implemented.
 | [ADR-012](ADR-012-mcp-tool-parity.md) | MCP Tool Parity for Extension Capabilities | 2026-06-17 |
 | [ADR-013](ADR-013-scm-plugin-docs-via-shallow-clone.md) | SCM Collection Plugin Documentation via Shallow Clone | 2026-06-17 |
 | [ADR-014](ADR-014-internal-skills-as-prompt-source.md) | Internal Skills as AI Prompt Source of Truth | 2026-06-18 |
+| [ADR-018](ADR-018-mcp-skills-compliance.md) | MCP and Skills Compliance Policy | 2026-06-23 |
 
 ## Proposed
 
@@ -43,7 +44,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-018)
+2. Use the next available number (currently ADR-019)
 3. Include:
    - Status (Proposed → Accepted → Implemented)
    - Date

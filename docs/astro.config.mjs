@@ -48,30 +48,14 @@ export default defineConfig({
                             label: 'Scaffold',
                             items: [
                                 { slug: 'python-tools/ansible-creator' },
-                                {
-                                    slug: 'python-tools/ansible-creator/reference',
-                                    badge: 'Reference',
-                                },
                                 { slug: 'python-tools/ansible-dev-environment' },
-                                {
-                                    slug: 'python-tools/ansible-dev-environment/reference',
-                                    badge: 'Reference',
-                                },
                             ],
                         },
                         {
                             label: 'Validate',
                             items: [
                                 { slug: 'python-tools/ansible-lint' },
-                                {
-                                    slug: 'python-tools/ansible-lint/reference',
-                                    badge: 'Reference',
-                                },
                                 { slug: 'python-tools/molecule' },
-                                {
-                                    slug: 'python-tools/molecule/reference',
-                                    badge: 'Reference',
-                                },
                                 { slug: 'python-tools/tox-ansible' },
                             ],
                         },
@@ -79,15 +63,7 @@ export default defineConfig({
                             label: 'Execute & Ship',
                             items: [
                                 { slug: 'python-tools/ansible-navigator' },
-                                {
-                                    slug: 'python-tools/ansible-navigator/reference',
-                                    badge: 'Reference',
-                                },
                                 { slug: 'python-tools/ansible-builder' },
-                                {
-                                    slug: 'python-tools/ansible-builder/reference',
-                                    badge: 'Reference',
-                                },
                                 { slug: 'python-tools/ansible-sign' },
                             ],
                         },
@@ -115,7 +91,39 @@ export default defineConfig({
                 },
                 {
                     label: 'Reference',
-                    items: [{ slug: 'reference/commands' }, { slug: 'reference/best-practices' }],
+                    items: [
+                        {
+                            label: 'Python Tools',
+                            items: [
+                                {
+                                    slug: 'python-tools/ansible-creator/reference',
+                                    badge: 'Reference',
+                                },
+                                {
+                                    slug: 'python-tools/ansible-dev-environment/reference',
+                                    badge: 'Reference',
+                                },
+                                {
+                                    slug: 'python-tools/ansible-lint/reference',
+                                    badge: 'Reference',
+                                },
+                                {
+                                    slug: 'python-tools/molecule/reference',
+                                    badge: 'Reference',
+                                },
+                                {
+                                    slug: 'python-tools/ansible-navigator/reference',
+                                    badge: 'Reference',
+                                },
+                                {
+                                    slug: 'python-tools/ansible-builder/reference',
+                                    badge: 'Reference',
+                                },
+                            ],
+                        },
+                        { slug: 'reference/commands' },
+                        { slug: 'reference/best-practices' },
+                    ],
                 },
                 {
                     label: 'Roadmap',
