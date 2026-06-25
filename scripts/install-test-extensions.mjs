@@ -26,8 +26,6 @@ const DEPENDENCY_EXTENSIONS = [
   "redhat.vscode-yaml",
 ];
 
-const OPTIONAL_EXTENSIONS = ["redhat.abbenay-provider"];
-
 fs.mkdirSync(extensionsDir, { recursive: true });
 
 const vscodePath = await download({
@@ -49,20 +47,6 @@ for (const ext of DEPENDENCY_EXTENSIONS) {
       rootFlags,
     { stdio: "inherit" },
   );
-}
-
-for (const ext of OPTIONAL_EXTENSIONS) {
-  console.log(`Installing (optional): ${ext}`);
-  try {
-    execSync(
-      `"${cliPath}" --install-extension ${ext} --force` +
-        ` --extensions-dir "${extensionsDir}"` +
-        rootFlags,
-      { stdio: "inherit" },
-    );
-  } catch {
-    console.warn(`Skipped optional extension ${ext} (not available on this platform)`);
-  }
 }
 
 console.log("UI test dependency extensions installed.");

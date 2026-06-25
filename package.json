@@ -30,11 +30,11 @@
   },
   "extensionDependencies": [
     "ms-python.python",
-    "redhat.vscode-yaml",
-    "redhat.abbenay-provider"
+    "redhat.vscode-yaml"
   ],
   "extensionRecommendations": [
-    "ms-python.vscode-python-envs"
+    "ms-python.vscode-python-envs",
+    "redhat.abbenay-provider"
   ],
   "contributes": {
     "icons": {
