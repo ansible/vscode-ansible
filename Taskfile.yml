@@ -219,6 +219,7 @@ tasks:
     cmds:
       - rimraf .vscode-test/user-data/logs/*
       - mkdir -p out/e2e/tmp
+      - ansible-lint --version --offline
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
