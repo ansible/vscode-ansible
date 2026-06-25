@@ -167,7 +167,7 @@ node packages/mcp-server/out/server.js
 | `ansibleEnvironments.pluginDocZoom` | `100` | Plugin doc viewer zoom (50–200%) |
 | `ansibleEnvironments.pluginDocTheme` | `auto` | Plugin doc theme (auto/light/dark) |
 | `ansibleEnvironments.githubCollectionOrgs` | `["ansible", "ansible-collections", "redhat-cop"]` | GitHub orgs to scan for collections |
-| `ansibleEnvironments.llm.chatProvider` | `vscode` | Chat UI provider (vscode or openllm) |
+| `ansibleEnvironments.llm.chatProvider` | `vscode` | Chat UI provider (vscode or abbenay) |
 | `ansibleEnvironments.llm.provider` | `""` | LLM provider/vendor (advanced) |
 | `ansibleEnvironments.llm.model` | `""` | LLM model ID (advanced) |
 

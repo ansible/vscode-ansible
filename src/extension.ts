@@ -135,7 +135,7 @@ export function getLogFilePath(): string | undefined {
 
 /**
  * Open the AI chat with a prompt pre-filled.
- * Uses the configured chat provider (vscode or openllm).
+ * Uses the configured chat provider (vscode or abbenay).
  * Falls back to clipboard if the command doesn't support the query parameter.
  * @param prompt - Prompt text to send to the configured chat provider
  */
@@ -143,29 +143,17 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
     const config = vscode.workspace.getConfiguration('ansibleEnvironments');
     const chatProvider = config.get<string>('llm.chatProvider', 'vscode');
 
-    if (chatProvider === 'openllm') {
-        // Use Open LLM Provider's chat
+    if (chatProvider === 'abbenay') {
         try {
-            // Send message to OpenLLM chat using the correct command
-            await vscode.commands.executeCommand('openLLM.chat.send', {
-                message: prompt,
-                newSession: false, // Continue existing session if any
-            });
-            vscode.window.showInformationMessage('Prompt sent to Open LLM chat.');
+            await vscode.commands.executeCommand('abbenay.chatView.focus');
+            await vscode.env.clipboard.writeText(prompt);
+            vscode.window.showInformationMessage(
+                'Abbenay chat focused. Prompt copied to clipboard — paste to send.',
+            );
         } catch {
-            // Fallback: focus the chat panel and copy to clipboard
-            try {
-                await vscode.commands.executeCommand('openLLM.chatView.focus');
-                await vscode.env.clipboard.writeText(prompt);
-                vscode.window.showInformationMessage(
-                    'Open LLM chat focused. Prompt copied to clipboard - paste to send.',
-                );
-            } catch {
-                // OpenLLM extension not available
-                vscode.window.showWarningMessage(
-                    'Open LLM Provider extension not found. Install it or switch to VS Code chat in settings.',
-                );
-            }
+            vscode.window.showWarningMessage(
+                'Abbenay extension not found. Install it or switch to VS Code chat in settings.',
+            );
         }
     } else {
         // Use VS Code's built-in chat (Copilot)
@@ -1421,6 +1409,33 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Register Abbenay LLM provider command and status bar item
+    const configureLlmProviderCommand = vscode.commands.registerCommand(
+        'ansibleEnvironments.configureLlmProvider',
+        async () => {
+            const ext = vscode.extensions.getExtension('redhat.abbenay-provider');
+            if (!ext) {
+                vscode.window.showWarningMessage(
+                    'Abbenay extension not found. Install it to configure LLM providers.',
+                );
+                return;
+            }
+            if (!ext.isActive) {
+                await ext.activate();
+            }
+            await vscode.commands.executeCommand('abbenay.configureProvider');
+        },
+    );
+
+    const ansibleStatusBarItem = vscode.window.createStatusBarItem(
+        vscode.StatusBarAlignment.Right,
+        100,
+    );
+    ansibleStatusBarItem.text = '$(ansible-logo)';
+    ansibleStatusBarItem.tooltip = 'Configure LLM Provider';
+    ansibleStatusBarItem.command = 'ansibleEnvironments.configureLlmProvider';
+    ansibleStatusBarItem.show();
+
     context.subscriptions.push(
         refreshCommand,
         installCommand,
@@ -1477,6 +1492,8 @@ export function activate(context: vscode.ExtensionContext) {
         refreshGitHubCollectionCommand,
         selectLlmModelCommand,
         showLlmStatusCommand,
+        configureLlmProviderCommand,
+        ansibleStatusBarItem,
     );
 }
 

@@ -33,7 +33,8 @@
     "redhat.vscode-yaml"
   ],
   "extensionRecommendations": [
-    "ms-python.vscode-python-envs"
+    "ms-python.vscode-python-envs",
+    "redhat.abbenay-provider"
   ],
   "contributes": {
     "icons": {
@@ -616,6 +617,12 @@
         "icon": "$(info)"
       },
       {
+        "command": "ansibleEnvironments.configureLlmProvider",
+        "title": "Configure LLM Provider",
+        "category": "Ansible Environments",
+        "icon": "$(ansible-logo)"
+      },
+      {
         "command": "ansible.statusBar.pythonClick",
         "title": "Python Environment Details",
         "category": "Ansible"
@@ -1056,11 +1063,11 @@
           "default": "vscode",
           "enum": [
             "vscode",
-            "openllm"
+            "abbenay"
           ],
           "enumDescriptions": [
             "Use VS Code's built-in chat (GitHub Copilot Chat)",
-            "Use Open LLM Provider's chat panel"
+            "Use Abbenay's chat panel"
           ],
           "markdownDescription": "Which chat UI to use for AI features.",
           "scope": "resource",
@@ -1074,7 +1081,7 @@
         "ansibleEnvironments.llm.provider": {
           "type": "string",
           "default": "",
-          "markdownDescription": "*(Advanced)* LLM provider/vendor (e.g., `copilot`, `open-llm`). Leave empty for auto-selection.",
+          "markdownDescription": "*(Advanced)* LLM provider/vendor (e.g., `copilot`, `abbenay`). Leave empty for auto-selection.",
           "scope": "resource",
           "order": 3
         },

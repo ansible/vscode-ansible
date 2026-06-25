@@ -126,7 +126,7 @@ export class LlmService {
     public async showModelPicker(): Promise<boolean> {
         if (typeof vscode.lm.selectChatModels !== 'function') {
             vscode.window.showErrorMessage(
-                'Language Model API not available. Install GitHub Copilot, Open LLM Provider, or another LLM extension.',
+                'Language Model API not available. Install GitHub Copilot, Abbenay, or another LLM extension.',
             );
             return false;
         }
