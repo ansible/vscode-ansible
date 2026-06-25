@@ -22,7 +22,7 @@ vars:
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
     # keep the space after log filename as it is needed.
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log "; fi'
+    sh: node ./tools/xvfb-prefix.mts
 tasks:
   default:
     desc: Run most commands
@@ -141,15 +141,15 @@ tasks:
     sources:
       - docs/**/*
       - media/**/*
-      - mkdocs.yml
+      - zensical.toml
       - pyproject.toml
     generates:
-      - out/html/**/*
+      - site/**/*
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags || git fetch --tags --force
-      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
+      - uvx zensical build --strict
       - defer: { task: finish }
   lint:
     desc: Lint the project
