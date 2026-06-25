@@ -190,6 +190,7 @@ tasks:
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
+      - defer: { task: coverage }
       - defer: { task: finish }
     interactive: true
   e2e:
@@ -206,7 +207,6 @@ tasks:
       TMP: "{{ .TASKFILE_DIR }}/out/e2e/tmp"
     generates:
       - out/junit/e2e-test-results.xml
-      - out/coverage/e2e/cobertura-coverage.xml
       - out/coverage/e2e/lcov.info
       - out/log/e2e/e2e.log
     sources:
@@ -222,6 +222,7 @@ tasks:
       - ansible-lint --version --offline
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      - defer: { task: coverage }
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   wdio:
@@ -324,3 +325,11 @@ tasks:
     cmds:
       - find .vscode-test/user-data/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
       - defer: tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log
+  coverage:
+    desc: Consolidate and filter coverage reports
+    sources:
+      - out/coverage/*/lcov.info
+    generates:
+      - out/coverage/cobertura-coverage.xml
+    cmds:
+      - node tools/mk-cobertura.mts -o out/coverage/cobertura-coverage.xml -e "node_modules" -e "dist" -e ".*\/dist" out/coverage/*/lcov.info
