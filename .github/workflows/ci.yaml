@@ -45,56 +45,17 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-26.04
+    continue-on-error: false
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+      - name: Run prek hooks (lint)
+        uses: ./.github/actions/prek
 
-      # needed by our prek system hooks like toml
-      - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v8.2.0
-
-      # needed by our prek systems hooks like biome
-      - name: Install node (cache)
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: "24"
-
-      - name: Install pnpm # needs node 24
-        uses: pnpm/action-setup@v6
-        with:
-          cache: true
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile]
-
-      - name: Debug
-        run: |
-          which -a pnpm
-          pnpm --version
-
-      - name: Run prek
-        uses: j178/prek-action@v2
-        # ideally prek should run in under 30s, but we keep a hard limit of 3
-        # minutes to count for slower hooks and uncached data. If a hook is
-        # slower, even occasionally it should be moved outside and included in
-        # another build step, like 'build' or 'package'.
-        timeout-minutes: 3
-        with:
-          # show-verbose-logs: true
-          # we want to run in verbose to report speed of each hook
-          extra-args: "--all-files -v"
-          install-only: false
-          prek-version: ">=0.3.8"
-
-  preflight:
+  package:
     runs-on: ubuntu-26.04
-    container:
-      image: ghcr.io/ansible/ext-builder:latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MISE_TRUSTED_CONFIG_PATHS: /
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.build.outputs.context }}
@@ -104,7 +65,7 @@ jobs:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
-      - name: Run preflight task steps (composite action)
+      - name: Run task steps (composite action)
         id: build
         uses: ./.github/actions/task
         with:
@@ -112,8 +73,6 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
-    # Keep 'preflight' as a dependency because 'build' is resource-intensive;
-    # running it only after preflight succeeds prevents wasting matrix capacity.
     needs:
       - lint
 
@@ -499,36 +458,9 @@ jobs:
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
-  builder-image:
-    runs-on: ubuntu-26.04
-    needs: [preflight, lint]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push container image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
-
   mcp-server-image:
     runs-on: ubuntu-26.04
-    needs: [preflight, lint]
+    needs: [package, lint]
     permissions:
       contents: read
       packages: write
@@ -596,12 +528,10 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     needs:
-      - lint
-      - preflight
+      - package
       - build
-      - builder-image
       - mcp-server-image
-    if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
+    if: always() && !cancelled() && needs.build.result == 'success'
 
     permissions:
       checks: read # codecov
@@ -669,7 +599,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: builder-image, mcp-server-image
+          allowed-skips: mcp-server-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
