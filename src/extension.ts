@@ -1410,8 +1410,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Register Abbenay LLM provider command and status bar item
-    const openLlmProviderCommand = vscode.commands.registerCommand(
-        'ansibleEnvironments.openLlmProvider',
+    const configureLlmProviderCommand = vscode.commands.registerCommand(
+        'ansibleEnvironments.configureLlmProvider',
         async () => {
             const ext = vscode.extensions.getExtension('redhat.abbenay-provider');
             if (!ext) {
@@ -1433,7 +1433,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     ansibleStatusBarItem.text = '$(ansible-logo)';
     ansibleStatusBarItem.tooltip = 'Configure LLM Provider';
-    ansibleStatusBarItem.command = 'ansibleEnvironments.openLlmProvider';
+    ansibleStatusBarItem.command = 'ansibleEnvironments.configureLlmProvider';
     ansibleStatusBarItem.show();
 
     context.subscriptions.push(
@@ -1492,7 +1492,7 @@ export function activate(context: vscode.ExtensionContext) {
         refreshGitHubCollectionCommand,
         selectLlmModelCommand,
         showLlmStatusCommand,
-        openLlmProviderCommand,
+        configureLlmProviderCommand,
         ansibleStatusBarItem,
     );
 }

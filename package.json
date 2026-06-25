@@ -617,6 +617,12 @@
         "icon": "$(info)"
       },
       {
+        "command": "ansibleEnvironments.configureLlmProvider",
+        "title": "Configure LLM Provider",
+        "category": "Ansible Environments",
+        "icon": "$(ansible-logo)"
+      },
+      {
         "command": "ansible.statusBar.pythonClick",
         "title": "Python Environment Details",
         "category": "Ansible"
