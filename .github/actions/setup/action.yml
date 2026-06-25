@@ -21,7 +21,7 @@ runs:
 
     - name: Enable caching for python
       # left out due to having their own caching: pnpm, node_modules, mise
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
       with:
         # we cache only wheels because http cache cannot be cleaned well
         path: |
@@ -31,7 +31,7 @@ runs:
 
     - name: Enable caching for prek
       if: ${{ inputs.prek == '1' }}
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
       with:
         path: ~/.cache/prek/
         key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -42,7 +42,7 @@ runs:
       shell: bash
 
     - name: Enable cache for pnpm
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       id: pnpm-cache # use this to check for `cache-hit` (`steps.pnpm-cache.outputs.cache-hit != 'true'`)
       with:
         path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
@@ -53,7 +53,7 @@ runs:
     - name: Enable caching for vscode resources
       if: "${{ contains(matrix.name, 'test') }}"
       # left out due to having their own caching: pnpm, node_modules, mise
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
       with:
         path: |
           .vscode-test/extensions
