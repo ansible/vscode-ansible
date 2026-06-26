@@ -71,7 +71,7 @@ import { PythonStatusBar } from '@src/statusBar/pythonStatusBar';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 
 // Create output channel for extension logs
-export const outputChannel = vscode.window.createOutputChannel('Ansible Environments');
+export const outputChannel = vscode.window.createOutputChannel('Ansible');
 
 let _logFilePath: string | undefined;
 let _logStream: fs.WriteStream | undefined;
@@ -179,7 +179,7 @@ async function openChatWithPrompt(prompt: string): Promise<void> {
 }
 
 /**
- * Activate the Ansible Environments extension and register providers and commands.
+ * Activate the Ansible extension and register providers and commands.
  * @param context - VS Code extension activation context
  */
 export function activate(context: vscode.ExtensionContext) {
@@ -203,8 +203,8 @@ export function activate(context: vscode.ExtensionContext) {
     setCollectionsLogFunction(log);
     setCollectionSourcesLogFunction(log);
 
-    log('Ansible Environments extension is now active');
-    console.log('Ansible Environments extension is now active');
+    log('Ansible extension is now active');
+    console.log('Ansible extension is now active');
 
     // Helper to update MCP status context
     const updateMcpStatusContext = () => {
@@ -235,7 +235,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Check if workspace is open
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        vscode.window.showWarningMessage('Ansible Environments requires an open workspace folder.');
+        vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
         return;
     }
 

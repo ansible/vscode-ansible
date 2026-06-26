@@ -30,7 +30,7 @@
           "description": "In dev host: File \u2192 Open Folder \u2192 your Ansible project path."
         },
         {
-          "title": "Open Ansible Environments",
+          "title": "Open Ansible",
           "description": "Click Ansible icon in Activity Bar.",
           "view": "ansibleDevToolsEnvManagers"
         },
@@ -40,7 +40,7 @@
         },
         {
           "title": "Check output channel",
-          "description": "Output \u2192 Ansible Environments. Confirm no activation errors."
+          "description": "Output \u2192 Ansible. Confirm no activation errors."
         }
       ]
     },
@@ -66,7 +66,7 @@
         },
         {
           "title": "Create virtual environment",
-          "description": "Click the + button or run 'Ansible Environments: Create Environment' from Command Palette. Enter a name (e.g. .venv). The extension creates the venv and selects it automatically.",
+          "description": "Click the + button or run 'Ansible: Create Environment' from Command Palette. Enter a name (e.g. .venv). The extension creates the venv and selects it automatically.",
           "command": "ansibleDevToolsEnvManagers.create"
         },
         {
@@ -440,7 +440,7 @@
         },
         {
           "title": "Output channel",
-          "description": "Review Ansible Environments logs."
+          "description": "Review Ansible logs."
         }
       ]
     }

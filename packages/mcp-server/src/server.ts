@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Ansible Environments MCP Server
+ * Ansible MCP Server
  *
  * Standalone MCP server that exposes Ansible tools for AI agents.
  * Can be used with Cursor, VS Code Copilot, or any MCP-compatible client.
@@ -58,7 +58,7 @@ const server = new Server(
 );
 
 // Best practices resource content
-const BEST_PRACTICES_RESOURCE = `# Ansible Environments Extension - Best Practices
+const BEST_PRACTICES_RESOURCE = `# Ansible Extension - Best Practices
 
 ## Installing Collections
 
@@ -112,9 +112,8 @@ Call \`get_agent_onboarding\` for a complete guide to available tools, skills, a
 const RESOURCES = [
     {
         uri: 'ansible://best-practices',
-        name: 'Ansible Environments Best Practices',
-        description:
-            'Guidelines for using the Ansible Environments extension and MCP tools correctly',
+        name: 'Ansible Best Practices',
+        description: 'Guidelines for using the Ansible extension and MCP tools correctly',
         mimeType: 'text/markdown',
     },
 ];
@@ -212,7 +211,7 @@ process.on('SIGTERM', () => {
 // Start the server
 /** Initializes services and connects the MCP server over stdio transport. */
 async function main() {
-    console.error('[MCP Server] Starting Ansible Environments MCP server...');
+    console.error('[MCP Server] Starting Ansible MCP server...');
 
     try {
         // Configure skill sources from environment

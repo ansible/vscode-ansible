@@ -176,7 +176,11 @@ export class SkillsProvider implements vscode.TreeDataProvider<TreeNode> {
                 .filter((s) => s.source === element.source.id);
 
             if (skills.length === 0) {
-                return [new MessageNode('No skills loaded — check URL and auth', 'warning')];
+                const url = element.source.url;
+                const hint = url
+                    ? `Browse available skills at ${url}`
+                    : 'Configure access in Settings.';
+                return [new MessageNode(`No skills loaded. ${hint}`, 'info')];
             }
 
             const modules = new Map<string, SkillEntry[]>();
@@ -210,22 +214,23 @@ export class SkillsProvider implements vscode.TreeDataProvider<TreeNode> {
         return [];
     }
 
-    /** Show a warning notification for each source that loaded zero skills. */
+    /**
+     * Show an informational notification for user-added sources that loaded
+     * zero skills. Default sources (like ai-forge) are silently hidden from
+     * the tree and do not trigger a notification.
+     */
     private _notifyEmptySources(): void {
         const sources = this._registry.getSources();
         const allSkills = this._registry.getAllSkills();
+        const defaultSourceIds = new Set(['builtin', 'ai-forge']);
 
         for (const source of sources) {
-            if (source.type === 'builtin') continue;
+            if (defaultSourceIds.has(source.id)) continue;
             const count = allSkills.filter((s) => s.source === source.id).length;
             if (count === 0) {
-                const isGitHub = source.url.includes('github.com');
-                const hint = isGitHub
-                    ? 'Check the URL points to a valid GitHub repo with skills.'
-                    : 'The URL may not point to a supported skill repository.';
                 void vscode.window
-                    .showWarningMessage(
-                        `Skill source "${source.id}" loaded 0 skills. ${hint}`,
+                    .showInformationMessage(
+                        `Skill source "${source.id}" loaded 0 skills. The URL may not point to a supported skill repository.`,
                         'Open Settings',
                     )
                     .then((choice) => {

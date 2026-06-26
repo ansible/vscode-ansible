@@ -49,6 +49,11 @@ vi.mock('vscode', () => ({
         registerCommand: mockRegisterCommand,
         executeCommand: mockExecuteCommand,
     },
+    workspace: {
+        workspaceFolders: [
+            { uri: { fsPath: '/mock/workspace', toString: () => 'file:///mock/workspace' } },
+        ],
+    },
     StatusBarAlignment: { Right: 2 },
     ThemeColor: class MockThemeColor {
         /**
@@ -160,10 +165,10 @@ describe('PythonStatusBar', () => {
         expect(envService.onDidChangeEnvironment).toHaveBeenCalled();
     });
 
-    it('hides when active editor is not ansible', async () => {
+    it('shows even when active editor is not ansible', async () => {
         const vscode = await import('vscode');
         (vscode.window as unknown as { activeTextEditor: unknown }).activeTextEditor = {
-            document: { languageId: 'typescript' },
+            document: { languageId: 'typescript', uri: { fsPath: '/mock/file.ts' } },
         };
 
         const ctx = createMockContext();
@@ -175,7 +180,26 @@ describe('PythonStatusBar', () => {
         await bar.update();
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.hide).toHaveBeenCalled();
+        expect(item.show).toHaveBeenCalled();
+    });
+
+    it('shows using workspace folder when no editor is active', async () => {
+        const vscode = await import('vscode');
+        (vscode.window as unknown as { activeTextEditor: unknown }).activeTextEditor = undefined;
+
+        const ctx = createMockContext();
+        const envService = createMockEnvService();
+        const bar = new PythonStatusBar(
+            ctx as unknown as ExtensionContext,
+            envService as unknown as PythonEnvironmentService,
+        );
+        await bar.update();
+
+        const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
+        expect(item.show).toHaveBeenCalled();
+        expect(envService.getEnvironment).toHaveBeenCalledWith(
+            expect.objectContaining({ fsPath: '/mock/workspace' }),
+        );
     });
 
     it('shows env display name when environment is available', async () => {

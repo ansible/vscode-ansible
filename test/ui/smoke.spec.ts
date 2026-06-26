@@ -6,7 +6,7 @@ describe('VS Code UI smoke test', () => {
         await expect(browser.sessionId).toBeDefined();
     });
 
-    it('should show the Ansible Environments activity bar icon', async () => {
+    it('should show the Ansible activity bar icon', async () => {
         const workbench = await browser.getWorkbench();
         const activityBar = workbench.getActivityBar();
         const viewControls = await activityBar.getViewControls();
@@ -14,9 +14,9 @@ describe('VS Code UI smoke test', () => {
 
         // The view container may be collapsed under "Additional Views" if
         // a previous spec changed the activity bar state in the same session.
-        const visible = titles.includes('Ansible Environments');
+        const visible = titles.includes('Ansible');
         if (visible) {
-            await expect(titles).toContain('Ansible Environments');
+            await expect(titles).toContain('Ansible');
             return;
         }
 
@@ -31,7 +31,7 @@ describe('VS Code UI smoke test', () => {
                 };
             };
             return (pkg.contributes?.viewsContainers?.activitybar ?? []).some(
-                (c) => c.title === 'Ansible Environments',
+                (c) => c.title === 'Ansible',
             );
         });
         await expect(contributed).toBe(true);

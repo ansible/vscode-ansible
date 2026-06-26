@@ -152,13 +152,20 @@ interface CachedIndex {
 // ---------------------------------------------------------------------------
 
 let _cachedGhToken: string | undefined | null;
+let _tokenRejected = false;
 
 /**
  * Resolve a GitHub token from the environment or gh CLI.
+ * Returns undefined when the token was previously rejected (401)
+ * to avoid noisy retry loops.
  *
  * @returns Token string or undefined when no auth is available.
  */
 function _resolveGitHubToken(): string | undefined {
+    if (_tokenRejected) {
+        return undefined;
+    }
+
     if (_cachedGhToken !== undefined) {
         return _cachedGhToken ?? undefined;
     }
@@ -189,10 +196,22 @@ function _resolveGitHubToken(): string | undefined {
 }
 
 /**
+ * Mark the cached token as rejected so subsequent requests
+ * skip auth rather than retrying with a known-bad token.
+ */
+function _markTokenRejected(): void {
+    if (_cachedGhToken) {
+        log('SkillRegistry: GitHub token rejected, disabling auth for this session');
+    }
+    _tokenRejected = true;
+}
+
+/**
  * Reset the cached GitHub token (for tests).
  */
 export function _resetGitHubToken(): void {
     _cachedGhToken = undefined;
+    _tokenRejected = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -510,7 +529,9 @@ export class SkillRegistry {
             this._skills.set(skill.id, skill);
         }
 
-        this._writeCache(source.id, skills, format, source.url);
+        if (skills.length > 0 || source.type === 'local') {
+            this._writeCache(source.id, skills, format, source.url);
+        }
         log(
             `SkillRegistry: loaded ${String(skills.length)} skills from ${source.id}` +
                 (format ? ` (${format} format)` : ''),
@@ -551,6 +572,17 @@ export class SkillRegistry {
         const repoPath = this._githubRepoPath(source.url);
         if (!repoPath) {
             return 'generic';
+        }
+
+        const rawBase = this._githubRawBase(source.url);
+        if (rawBase) {
+            const rawLolaCheck = await this._httpGet(
+                `${rawBase}/main/lola-market.yml`,
+                this._getAuthHeaders(),
+            );
+            if (rawLolaCheck) {
+                return 'lola';
+            }
         }
 
         const apiHeaders = this._githubApiHeaders();
@@ -1368,7 +1400,23 @@ export class SkillRegistry {
                     return;
                 }
 
+                const isAuthRetryable =
+                    headers?.Authorization &&
+                    (res.statusCode === 401 ||
+                        (res.statusCode === 404 && url.includes('raw.githubusercontent.com')));
+                if (isAuthRetryable) {
+                    _markTokenRejected();
+                    const rest = Object.fromEntries(
+                        Object.entries(headers).filter(([k]) => k !== 'Authorization'),
+                    );
+                    void this._httpGet(url, Object.keys(rest).length > 0 ? rest : undefined).then(
+                        resolve,
+                    );
+                    return;
+                }
+
                 if (res.statusCode !== 200) {
+                    log(`SkillRegistry: HTTP ${String(res.statusCode)} for ${url}`);
                     resolve(undefined);
                     return;
                 }
@@ -1383,10 +1431,12 @@ export class SkillRegistry {
                 });
             });
 
-            req.on('error', () => {
+            req.on('error', (err) => {
+                log(`SkillRegistry: request error for ${url}: ${String(err)}`);
                 resolve(undefined);
             });
             req.setTimeout(10000, () => {
+                log(`SkillRegistry: request timeout for ${url}`);
                 req.destroy();
                 resolve(undefined);
             });

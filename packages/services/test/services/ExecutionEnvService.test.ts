@@ -271,6 +271,21 @@ describe('ExecutionEnvService', () => {
             expect(second).toEqual(first);
             expect(containerMocks.listImages).not.toHaveBeenCalled();
         });
+
+        it('caches empty result without re-querying container engine', async () => {
+            containerMocks.detectEngine.mockResolvedValue('podman');
+            containerMocks.listImages.mockResolvedValue([]);
+
+            const svc = ExecutionEnvService.getInstance();
+            const first = await svc.loadExecutionEnvironments();
+            expect(first).toHaveLength(0);
+            expect(containerMocks.listImages).toHaveBeenCalledTimes(1);
+
+            vi.clearAllMocks();
+            const second = await svc.loadExecutionEnvironments();
+            expect(second).toHaveLength(0);
+            expect(containerMocks.listImages).not.toHaveBeenCalled();
+        });
     });
 
     describe('loadDetails', () => {

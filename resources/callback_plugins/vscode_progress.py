@@ -1,5 +1,5 @@
 """
-VS Code Ansible Environments - Progress Callback Plugin
+VS Code Ansible - Progress Callback Plugin
 
 This callback plugin sends playbook execution events to a Unix socket
 for real-time progress display in VS Code. It runs alongside the

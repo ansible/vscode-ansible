@@ -6,11 +6,11 @@ import * as os from 'os';
 let _outputChannel: vscode.OutputChannel | undefined;
 
 /**
- * Append a timestamped message to the Ansible Environments output channel.
+ * Append a timestamped message to the Ansible output channel.
  * @param message - Log message to record
  */
 function log(message: string): void {
-    _outputChannel ??= vscode.window.createOutputChannel('Ansible Environments');
+    _outputChannel ??= vscode.window.createOutputChannel('Ansible');
     _outputChannel.appendLine(`[${new Date().toISOString()}] ${message}`);
 }
 
@@ -218,7 +218,7 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
         }
 
         const update = await vscode.window.showWarningMessage(
-            'Ansible Environments MCP is already configured with a different path. Update it?',
+            'Ansible MCP is already configured with a different path. Update it?',
             'Update',
             'Cancel',
         );
@@ -260,7 +260,7 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
 // -------------------------------------------------------------------------
 
 /**
- * Configure Cursor to use the Ansible Environments MCP server.
+ * Configure Cursor to use the Ansible MCP server.
  * Tries the Cursor extension API first; falls back to mcp.json.
  * @param context - Extension context used to resolve the MCP server path
  */
@@ -275,9 +275,7 @@ export async function configureCursorMcp(context: vscode.ExtensionContext): Prom
     }
 
     if (registerViaCursorApi(serverPath)) {
-        vscode.window.showInformationMessage(
-            'Ansible Environments MCP server registered and ready.',
-        );
+        vscode.window.showInformationMessage('Ansible MCP server registered and ready.');
         return;
     }
 
@@ -336,7 +334,7 @@ export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
     const cursorApi = getCursorMcpApi();
 
     const lines: string[] = [
-        '## Ansible Environments MCP Server Status\n',
+        '## Ansible MCP Server Status\n',
         `**Server Path:** \`${escapeHtml(serverPath)}\``,
         `**Server Exists:** ${fs.existsSync(serverPath) ? 'Yes' : 'No'}`,
         `**Cursor Extension API:** ${cursorApi ? 'Available' : 'Not available'}\n`,
@@ -417,7 +415,7 @@ export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
         .join('\n')}
 
     <div style="margin-top: 30px;">
-        <p>To configure, run: <strong>Ansible Environments: Configure Cursor MCP</strong></p>
+        <p>To configure, run: <strong>Ansible: Configure Cursor MCP</strong></p>
     </div>
 </body>
 </html>`;

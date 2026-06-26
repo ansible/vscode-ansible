@@ -33,7 +33,7 @@ describe('Ansible Language Server e2e', () => {
             // The extension logs "Ansible Language Server started" to the output channel.
             // Check the extension host log or registered commands for evidence.
             const outputDoc = vscode.workspace.textDocuments.find(
-                (d) => d.uri.scheme === 'output' && d.uri.path.includes('Ansible Environments'),
+                (d) => d.uri.scheme === 'output' && d.uri.path.includes('Ansible'),
             );
             return outputDoc?.getText() ?? '';
         });
