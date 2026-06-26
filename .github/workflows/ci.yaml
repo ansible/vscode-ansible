@@ -97,7 +97,7 @@ jobs:
       id-token: write # codecov actions
       checks: read # codecov actions
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         # Avoid letting github do the matrix multiplication and use manual
         # includes for each job, this gives us fine control over job name.
@@ -154,8 +154,6 @@ jobs:
 
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
-        with:
-          job_name: ${{ matrix.name }}
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -404,12 +402,12 @@ jobs:
             tar cf - --dereference out | tar xf - -C "$GITHUB_WORKSPACE"
           fi
 
-      - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
+      - name: Upload test logs and reports as logs-${{ matrix.name }}-${{ matrix.task-name }}.zip
         # git-leaks not support on Windows (except WSL which runs Linux)
         if: ${{ !cancelled() && (runner.os != 'Windows' || contains(matrix.name, 'wsl')) }}
         uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
+          name: logs-${{ matrix.name }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
           path: |
             out/als
             out/coverage
@@ -423,11 +421,11 @@ jobs:
           retention-days: 90
 
       - name: Upload test coverage data to codecov.io
-        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
+        if: ${{ always() && hashFiles('out/coverage/cobertura-coverage.xml') != '' && github.event_name != 'schedule' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           name: ${{ matrix.name }}
-          files: ./out/coverage/**/*coverage.xml
+          files: ./out/coverage/cobertura-coverage.xml
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
@@ -547,10 +545,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # needed for pycobertura
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
-
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -563,21 +557,6 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
-
-      - name: pycobertura diff across different platform runs
-        run: |
-          git diff
-          git status --porcelain --ignored
-          LINUX_COVERAGE=$(ls -1 logs-*linux*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          MACOS_COVERAGE=$(ls -1 logs-*macos*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          WSL_COVERAGE=$(ls -1 logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          cp -f "${LINUX_COVERAGE}" linux.xml
-          cp -f "${MACOS_COVERAGE}" macos.xml
-          cp -f "${WSL_COVERAGE}" wsl.xml
-          # linux vs macos (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml macos.xml || true
-          # linux vs wsl  (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml wsl.xml || true
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main

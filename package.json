@@ -1081,6 +1081,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
     "@eslint/js": "^10.0.1",
+    "@splicemood/lcov-to-cobertura": "^0.1.1",
     "@types/express": "^5.0.6",
     "@types/ini": "^4.1.1",
     "@types/js-yaml": "^4.0.9",

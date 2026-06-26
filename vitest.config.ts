@@ -25,7 +25,6 @@ const reporters = ["default", "junit"]; // text-summary shows only overall cover
 if (process.env.GITHUB_ACTIONS) {
   reporters.push("github-actions");
 }
-const coverage_reporters = ["cobertura", "lcovonly", "text-summary", "text"];
 
 // Disable coverage when the user is running a targeted subset of tests, e.g.:
 //   vitest -t "my test name"
@@ -157,7 +156,11 @@ export default defineConfig({
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: `${__dirname}/out/coverage/unit`,
-      reporter: coverage_reporters,
+      reporter: [
+        ["lcovonly", { file: "lcov.info", projectRoot: __dirname }],
+        "text-summary",
+        "text",
+      ],
       skipFull: true,
       thresholds: {
         // We cannot enable until we normalize the results across all platforms.
