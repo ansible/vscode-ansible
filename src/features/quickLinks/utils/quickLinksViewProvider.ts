@@ -81,8 +81,12 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
 
   private _setWebviewMessageListener(webview: Webview) {
     let currentSystemInfo;
-    webview.onDidReceiveMessage(async (message) => {
-      const command = message.message || message.command;
+    webview.onDidReceiveMessage(async (message: unknown) => {
+      if (typeof message !== "object" || message === null) {
+        return;
+      }
+      const msg = message as { message?: string; command?: string };
+      const command = msg.message || msg.command;
       if (command === "set-system-status-view") {
         currentSystemInfo = await getSystemDetails();
         webview.postMessage({

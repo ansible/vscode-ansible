@@ -1,11 +1,20 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  McpServer,
+  type ToolCallback,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {
+  AnySchema,
+  ZodRawShapeCompat,
+} from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
+  type CallToolRequest,
   type CallToolResult,
   ErrorCode,
   McpError,
+  type ToolAnnotations,
 } from "@modelcontextprotocol/sdk/types.js";
 import {
   createZenOfAnsibleHandler,
@@ -30,6 +39,20 @@ import {
   getSampleExecutionEnvironment,
 } from "@src/resources/eeSchema.js";
 import { getFullAgentsGuidelines } from "@src/resources/agents.js";
+
+type RegisteredToolHandler = (
+  args: Record<string, unknown>,
+  workspaceRoot?: string,
+) => CallToolResult | Promise<CallToolResult>;
+
+interface RegisteredToolEntry {
+  handler?: RegisteredToolHandler;
+}
+
+/** McpServer extension exposing the SDK's internal tool registry. */
+interface McpServerWithRegisteredTools {
+  _registeredTools?: Record<string, RegisteredToolEntry>;
+}
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -209,18 +232,36 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   // Store original registerTool method
   const originalRegisterTool = server.registerTool.bind(server);
 
+  type RegisterToolConfig = {
+    title?: string;
+    description?: string;
+    inputSchema?: ZodRawShapeCompat | AnySchema;
+    outputSchema?: ZodRawShapeCompat | AnySchema;
+    annotations?: ToolAnnotations & {
+      keywords?: string[];
+      useCases?: string[];
+    };
+    _meta?: Record<string, unknown>;
+  };
+
+  type RegisterToolHandler = (
+    ...args: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+  ) => CallToolResult | Promise<CallToolResult>;
+
   // Helper function to register a tool with dependencies
   const registerToolWithDeps = (
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handler: any,
+    config: RegisterToolConfig,
+    handler: RegisterToolHandler,
     dependencies: Dependency[] = [],
   ) => {
     registeredTools.add(name);
     toolDependencies.set(name, dependencies);
-    return originalRegisterTool(name, config, handler);
+    return originalRegisterTool(
+      name,
+      config as Parameters<McpServer["registerTool"]>[1],
+      handler as ToolCallback,
+    );
   };
 
   // Register core tools
@@ -892,8 +933,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   // Add custom error handling for tool calls using the underlying server
   server.server.setRequestHandler(
     CallToolRequestSchema,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (request: any) => {
+    async (request: CallToolRequest) => {
       const toolName = request.params.name;
 
       if (!registeredTools.has(toolName)) {
@@ -926,21 +966,20 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       }
 
       // Execute the tool handler
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const handlers = (server as any)._registeredTools;
-      if (handlers && handlers[toolName]?.handler) {
+      const handlers: Record<string, RegisteredToolEntry> | undefined = (
+        server as unknown as McpServerWithRegisteredTools
+      )._registeredTools;
+      const toolHandler: RegisteredToolHandler | undefined =
+        handlers?.[toolName]?.handler;
+      if (toolHandler) {
         // Pass workspaceRoot to handlers that need it (like ansible_navigator)
-        const handlerArgs = request.params.arguments || {};
+        const handlerArgs: Record<string, unknown> =
+          request.params.arguments ?? {};
 
         if (toolName === "ansible_navigator") {
-          return (await handlers[toolName].handler(
-            handlerArgs,
-            workspaceRoot,
-          )) as CallToolResult;
+          return await toolHandler(handlerArgs, workspaceRoot);
         }
-        return (await handlers[toolName].handler(
-          handlerArgs,
-        )) as CallToolResult;
+        return await toolHandler(handlerArgs);
       }
 
       // Log available tools for debugging

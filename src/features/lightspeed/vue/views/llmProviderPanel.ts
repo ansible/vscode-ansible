@@ -5,6 +5,7 @@ import { disposePanelResources } from "@src/features/lightspeed/vue/views/panelU
 import {
   LlmProviderMessageHandlers,
   LlmProviderDependencies,
+  LlmProviderMessage,
 } from "@src/features/lightspeed/vue/views/llmProviderMessageHandlers";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
 
@@ -47,7 +48,13 @@ export class LlmProviderPanel {
     this.messageHandlers = new LlmProviderMessageHandlers(deps);
 
     // Set up panel lifecycle
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
 
     // Set the HTML content
     this._panel.webview.html = this._getWebviewContent(context);
@@ -55,15 +62,12 @@ export class LlmProviderPanel {
     // Set up message handler
     this.messageHandlers.setWebview(this._panel.webview);
     this._panel.webview.onDidReceiveMessage(
-      async (message) => {
+      async (message: LlmProviderMessage) => {
         await this.messageHandlers.handleMessage(message);
       },
       undefined,
       this._disposables,
     );
-
-    // Send initial settings
-    this.messageHandlers.sendProviderSettings();
   }
 
   // Renders the LLM Provider panel or reveals it if already open.
@@ -95,6 +99,14 @@ export class LlmProviderPanel {
         context,
         deps,
       );
+      // Send initial settings (async kickoff kept out of the constructor)
+      LlmProviderPanel.currentPanel.messageHandlers
+        .sendProviderSettings()
+        .catch((error) => {
+          console.error(
+            `[lightspeed] Initial provider settings sync failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
   }
 

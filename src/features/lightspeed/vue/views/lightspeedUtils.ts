@@ -53,7 +53,7 @@ export async function explainPlaybook(
             ? error.message
             : "Playbook explanation failed",
         code: "EXPLANATION_ERROR",
-      } as IError;
+      };
     }
   }
 
@@ -105,7 +105,7 @@ export async function explainRole(
         message:
           error instanceof Error ? error.message : "Role explanation failed",
         code: "EXPLANATION_ERROR",
-      } as IError;
+      };
     }
   }
 
@@ -169,7 +169,7 @@ export async function generateRole(
         message:
           error instanceof Error ? error.message : "Role generation failed",
         code: "GENERATION_ERROR",
-      } as IError;
+      };
     }
   }
 
@@ -220,7 +220,7 @@ export async function generatePlaybook(
         message:
           error instanceof Error ? error.message : "Playbook generation failed",
         code: "GENERATION_ERROR",
-      } as IError;
+      };
     }
   }
 

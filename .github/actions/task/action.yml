@@ -1,0 +1,198 @@
+name: task
+description: Reusable task runner, use to template main CI jobs
+
+inputs:
+  slack_webhook_url:
+    description: Slack webhook URL for failure notifications
+    required: false
+    default: ""
+  prek:
+    description: Whether to run prek hooks (lint)
+    required: false
+    default: "0" # set to "1" to run prek action early (~1m)
+
+outputs:
+  context:
+    description: Extracted commit context from conventional commit message
+    value: ${{ steps.extract_context.outputs.context }}
+  tasks:
+    description: JSON list of known task names and aliases
+    value: ${{ steps.extract_context.outputs.tasks }}
+
+runs:
+  using: "composite"
+  steps:
+    # needed by our prek system hooks like toml
+    - name: Install uv (cache)
+      if: ${{ inputs.prek == '1' }}
+      uses: astral-sh/setup-uv@v8.2.0
+
+    # needed by our prek systems hooks like biome
+    - name: Install node (cache)
+      if: ${{ inputs.prek == '1' }}
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      with:
+        node-version: "24"
+
+    - name: Install pnpm # needs node 24
+      if: ${{ inputs.prek == '1' }}
+      uses: pnpm/action-setup@v6
+      with:
+        cache: true
+        run_install: |
+          - recursive: true
+            args: [--frozen-lockfile]
+
+    - name: Debug
+      if: ${{ inputs.prek == '1' }}
+      shell: bash
+      run: |
+        which -a pnpm
+        pnpm --version
+
+    - name: Run prek
+      if: ${{ inputs.prek == '1' }}
+      uses: j178/prek-action@v2
+      # ideally prek should run in under 30s, but we keep a hard limit of 3
+      # minutes to count for slower hooks and uncached data. If a hook is
+      # slower, even occasionally it should be moved outside and included in
+      # another build step, like 'build' or 'package'.
+      # timeout-minutes: 3
+      with:
+        # show-verbose-logs: true
+        # we want to run in verbose to report speed of each hook
+        extra-args: "--all-files -v"
+        install-only: false
+        prek-version: ">=0.3.8"
+
+    - name: Workaround for https://github.com/actions/runner/issues/2033
+      shell: bash
+      run: |
+        chown -R $(id -u):$(id -g) $PWD
+
+    - name: Run setup steps (composite action)
+      uses: ./.github/actions/setup
+      with:
+        prek: ${{ inputs.prek == '1' }}
+
+    - name: task setup
+      if: runner.os != 'Windows'
+      shell: bash
+      # timeout-minutes: 7 # expected under 10s for container builds
+      run: |
+        set -ex
+        pwd
+        git config --global --add safe.directory '*'
+        mise install
+        mise list
+        mise cfg
+        mise exec -v -- which python3
+        mise exec -- printenv NODE_OPTIONS || true
+        task setup && task setup --status
+
+    - name: Extract commit context from conventional commit and list of known tasks
+      id: extract_context
+      shell: bash
+      env:
+        PR_TITLE: ${{ github.event.pull_request.title }}
+      run: |
+        set -e
+        # Use PR title if available, otherwise use commit message
+        if [[ -n "$PR_TITLE" ]]; then
+          MESSAGE="$PR_TITLE"
+          echo "Using PR title: $MESSAGE"
+        else
+          MESSAGE=$(git log -1 --pretty=%s)
+          echo "Using commit message: $MESSAGE"
+        fi
+
+        # Extract context/scope from conventional commit format: type(scope): message
+        # Matches patterns like: feat(mcp):, fix(ui):, chore(build):, etc.
+        if [[ "$MESSAGE" =~ ^[a-z]+\(([a-z0-9/-]+)\): ]]; then
+          CONTEXT="${BASH_REMATCH[1]}"
+          echo "Extracted context: $CONTEXT"
+          echo "context=$CONTEXT" >> "$GITHUB_OUTPUT"
+        else
+          echo "No context found in message"
+          echo "context=" >> "$GITHUB_OUTPUT"
+        fi
+        echo "tasks=$(task -l --json | jq -c '[.tasks[] | [.name] + (.aliases // []) | .[]]')" >> "$GITHUB_OUTPUT"
+
+    - name: task build
+      shell: bash
+      # timeout-minutes: 2 # expected under 1 minutes
+      run: |
+        task build && task build --status
+
+    - name: task als:package
+      shell: bash
+      # timeout-minutes: 4
+      run: |
+        task als:package && task als:package --status
+
+    - name: Run context-specific command if it is a known task
+      if: >-
+        steps.extract_context.outputs.context != '' &&
+        !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
+      shell: bash
+      run: task ${{ steps.extract_context.outputs.context }}
+
+    - name: task docs
+      shell: bash
+      # timeout-minutes: 2
+      run: |
+        task docs && task docs --status
+
+    - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
+      shell: bash
+      run: task dry
+
+    # this is kept here just to ensure 'task lint' command does not drift but
+    # our main linting is run directly by 'prek' job, without involving task.
+    # - name: task lint
+    #   # keep linting before any other task, to allow it be faster and independent
+    #   shell: bash
+    #   # timeout-minutes: 3
+    #   run: |
+    #     task lint
+
+    - name: task package
+      shell: bash
+      # timeout-minutes: 4
+      run: |
+        task als:package && task als:package --status
+        task package && task package --status
+
+    - name: task finish
+      shell: bash
+      run: task finish
+
+    - name: Upload vsix artifact
+      uses: actions/upload-artifact@v7
+      with:
+        path: out/ansible-*.vsix
+        archive: false
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload ansible-ansible-language-server npm package
+      uses: actions/upload-artifact@v7
+      with:
+        path: out/ansible-ansible-language-server-*.tgz
+        archive: false
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Upload ansible-ansible-mcp-server npm package
+      uses: actions/upload-artifact@v7
+      with:
+        path: out/ansible-ansible-mcp-server-*.tgz
+        archive: false
+        if-no-files-found: error
+        retention-days: 90
+
+    - name: Report unexpected failures
+      if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
+      uses: ./.github/actions/report
+      with:
+        slack_webhook_url: ${{ inputs.slack_webhook_url }}

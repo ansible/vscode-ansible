@@ -166,9 +166,9 @@ export const TEST_LIGHTSPEED_SETTINGS = {
   } as LightSpeedServiceSettings,
   UNSUPPORTED: {
     ...BASE_LIGHTSPEED_SETTINGS,
-    provider: "unsupported" as string,
+    provider: "unsupported",
     apiEndpoint: "",
-  } as LightSpeedServiceSettings,
+  },
   RHCUSTOM_MINIMAL: {
     ...BASE_LIGHTSPEED_SETTINGS,
     provider: PROVIDER_TYPES.RHCUSTOM,

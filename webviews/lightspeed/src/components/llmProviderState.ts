@@ -24,6 +24,30 @@ export interface ProviderInfo {
 
 type ProviderConfig = Record<string, string>;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asProviderInfoArray(value: unknown): ProviderInfo[] {
+  return Array.isArray(value) ? (value as ProviderInfo[]) : [];
+}
+
+function asConnectionStatuses(value: unknown): Record<string, boolean> {
+  return isRecord(value) ? (value as Record<string, boolean>) : {};
+}
+
+function asProviderConfigs(
+  value: unknown,
+): Record<string, Record<string, unknown>> {
+  return isRecord(value)
+    ? (value as Record<string, Record<string, unknown>>)
+    : {};
+}
+
 export function useProviderSettings() {
   const providers = ref<ProviderInfo[]>([]);
   const activeProvider = ref<string>("wca");
@@ -196,28 +220,35 @@ export function useProviderSettings() {
 
   // Message handler
   const handleMessage = (event: MessageEvent) => {
-    const message = event.data;
+    const message: unknown = event.data;
+    if (!isRecord(message) || typeof message.command !== "string") {
+      return;
+    }
 
     switch (message.command) {
       case "providerSettings": {
-        providers.value = message.providers || [];
-        activeProvider.value = message.currentProvider || "wca";
-        connectionStatuses.value = message.connectionStatuses || {};
+        providers.value = asProviderInfoArray(message.providers);
+        activeProvider.value = asString(message.currentProvider, "wca");
+        connectionStatuses.value = asConnectionStatuses(
+          message.connectionStatuses,
+        );
 
         // Load configs for ALL providers from backend, using configSchema as the field source
-        const backendConfigs = message.providerConfigs || {};
+        const backendConfigs = asProviderConfigs(message.providerConfigs);
 
         providers.value.forEach((provider) => {
-          const backendConfig = backendConfigs[provider.type] || {};
+          const backendConfig = backendConfigs[provider.type] ?? {};
           const config: ProviderConfig = {};
 
           // Initialize each field from configSchema with backend value or default
           provider.configSchema.forEach((field) => {
             if (field.key === "apiEndpoint") {
               config[field.key] =
-                backendConfig[field.key] || provider.defaultEndpoint || "";
+                asString(backendConfig[field.key]) ||
+                provider.defaultEndpoint ||
+                "";
             } else {
-              config[field.key] = backendConfig[field.key] || "";
+              config[field.key] = asString(backendConfig[field.key]);
             }
           });
 
@@ -234,11 +265,11 @@ export function useProviderSettings() {
       case "connectionResult":
         connectingProvider.value = null;
         if (message.connected) {
-          connectionStatuses.value[message.provider] = true;
+          connectionStatuses.value[asString(message.provider)] = true;
         } else {
-          connectionStatuses.value[message.provider] = false;
+          connectionStatuses.value[asString(message.provider)] = false;
           console.error(
-            `Connection failed for ${message.provider}: ${message.error}`,
+            `Connection failed for ${asString(message.provider)}: ${asString(message.error)}`,
           );
         }
         break;

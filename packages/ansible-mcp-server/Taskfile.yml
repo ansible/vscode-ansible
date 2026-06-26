@@ -38,7 +38,7 @@ tasks:
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
       - ../../tsconfig*.json
       - exclude: "**/*-artifact-*.json"
   test:
@@ -76,14 +76,13 @@ tasks:
       - README.md
       - package*.json
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
     generates:
       - dist/**/*
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
       - npm pkg set version={{ .VERSION }}
-      - pnpm exec tsup --silent
       - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
       - defer: npm pkg set version=0.0.0
     silent: false

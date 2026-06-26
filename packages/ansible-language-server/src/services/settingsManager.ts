@@ -6,6 +6,17 @@ import type {
   ExtensionSettings,
   SettingsEntry,
 } from "@src/interfaces/extensionSettings";
+import { isObject } from "@src/utils/misc.js";
+
+interface LegacyConfigurationSettings {
+  ansible?: ExtensionSettings;
+}
+
+function hasLegacyAnsibleSettings(
+  settings: unknown,
+): settings is LegacyConfigurationSettings {
+  return isObject(settings) && "ansible" in settings;
+}
 
 export class SettingsManager {
   private connection: Connection | null;
@@ -150,14 +161,15 @@ export class SettingsManager {
     }
     let result = this.documentSettings.get(uri);
     if (!result && this.connection) {
-      const clientSettings = await this.connection.workspace.getConfiguration({
-        scopeUri: uri,
-        section: "ansible",
-      });
+      const clientSettings: unknown =
+        await this.connection.workspace.getConfiguration({
+          scopeUri: uri,
+          section: "ansible",
+        });
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings = _.merge(
+      const mergedSettings: ExtensionSettings = _.merge(
         _.cloneDeep(this.globalSettings),
         clientSettings,
       );
@@ -176,51 +188,52 @@ export class SettingsManager {
     this.documentSettings.delete(uri);
   }
 
+  private async refreshConfigWithClient(): Promise<void> {
+    const newDocumentSettings: Map<
+      string,
+      Thenable<ExtensionSettings>
+    > = new Map();
+    const handlersToFire: { (): void }[] = [];
+
+    for (const [uri, handler] of this.configurationChangeHandlers) {
+      const config = await this.documentSettings.get(uri);
+      if (config && this.connection) {
+        const newConfigPromise = this.connection.workspace.getConfiguration({
+          scopeUri: uri,
+          section: "ansible",
+        });
+        newDocumentSettings.set(uri, newConfigPromise);
+
+        if (!_.isEqual(config, await newConfigPromise)) {
+          handlersToFire.push(handler);
+        }
+      }
+    }
+
+    this.documentSettings = newDocumentSettings;
+    handlersToFire.forEach((h) => {
+      h();
+    });
+  }
+
   public async handleConfigurationChanged(
     params: DidChangeConfigurationParams,
   ): Promise<void> {
     if (this.clientSupportsConfigRequests) {
-      // find configuration change handlers to fire
-
-      const newDocumentSettings: Map<
-        string,
-        Thenable<ExtensionSettings>
-      > = new Map();
-      const handlersToFire: { (): void }[] = [];
-
-      for (const [uri, handler] of this.configurationChangeHandlers) {
-        const config = await this.documentSettings.get(uri);
-        if (config && this.connection) {
-          // found cached values, now compare to the new ones
-
-          const newConfigPromise = this.connection.workspace.getConfiguration({
-            scopeUri: uri,
-            section: "ansible",
-          });
-          newDocumentSettings.set(uri, newConfigPromise);
-
-          if (!_.isEqual(config, await newConfigPromise)) {
-            // handlers may need to read config, so can't fire them until the
-            // cache is purged
-            handlersToFire.push(handler);
-          }
-        }
-      }
-
-      // resetting documents settings, but not wasting newly fetched values
-      this.documentSettings = newDocumentSettings;
-
-      // fire handlers
-      handlersToFire.forEach((h) => {
-        h();
-      });
+      await this.refreshConfigWithClient();
     } else {
-      if (params.settings.ansible) {
+      if (
+        hasLegacyAnsibleSettings(params.settings) &&
+        params.settings.ansible
+      ) {
         this.configurationChangeHandlers.forEach((h) => {
           h();
         });
       }
-      this.globalSettings = params.settings.ansible || this.defaultSettings;
+      this.globalSettings =
+        (hasLegacyAnsibleSettings(params.settings) &&
+          params.settings.ansible) ||
+        this.defaultSettings;
     }
   }
 

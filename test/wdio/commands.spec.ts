@@ -10,7 +10,7 @@ import type { Workbench } from "wdio-vscode-service";
 
 /** Dismiss the "Don't Save" dialog if it appears after closing a dirty editor. */
 async function dismissDontSaveIfPresent(): Promise<void> {
-  const dontSave = await browser.$('[aria-label="Don\'t Save"]');
+  const dontSave = browser.$('[aria-label="Don\'t Save"]');
   try {
     await dontSave.waitForDisplayed({ timeout: 2500 });
     await dontSave.click();
@@ -45,7 +45,7 @@ describe("Ansible commands", () => {
           const ext = vscode.extensions.getExtension("redhat.ansible");
           return ext?.isActive === true;
         });
-        return active === true;
+        return active;
       },
       {
         timeout: 60_000,

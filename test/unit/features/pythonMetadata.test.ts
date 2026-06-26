@@ -129,7 +129,7 @@ describe("PythonInterpreterManager", function () {
 
       await manager.updatePythonInfoInStatusbar();
 
-      // Status bar should be hidden (not shown for non-ansible files)
+      expect(mockPythonEnvService.getEnvironment).not.toHaveBeenCalled();
     });
 
     it("should show status bar for ansible files", async function () {

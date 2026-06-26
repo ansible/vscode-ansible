@@ -370,9 +370,7 @@ describe("ProviderManager", () => {
       );
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      mockSettingsManager.settings.lightSpeedService.provider =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        "unknown" as any;
+      mockSettingsManager.settings.lightSpeedService.provider = "unknown";
 
       const status = providerManager.getProviderStatus("llmprovider");
 

@@ -76,7 +76,7 @@ export class ValidationManager {
 
     // send the diagnostics to the client
     for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
-      this.connection.sendDiagnostics({
+      void this.connection.sendDiagnostics({
         uri: fileUri,
         diagnostics: fileDiagnostics,
       });
@@ -202,7 +202,7 @@ export class ValidationManager {
     if (counter <= 0) {
       // clear diagnostics of files that are no longer referenced
       this.validationCache.delete(fileUri);
-      this.connection.sendDiagnostics({
+      void this.connection.sendDiagnostics({
         uri: fileUri,
         diagnostics: [],
       });

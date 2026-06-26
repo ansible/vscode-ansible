@@ -32,17 +32,16 @@ export class AnsibleToxProvider implements vscode.TaskProvider {
   }
 
   public resolveTask(_task: vscode.Task): vscode.Task | undefined {
-    const testenv = _task.definition.ansible;
+    const definition = _task.definition as ToxTaskDefinition;
+    const testenv = definition.testenv;
     if (testenv) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const definition: ToxTaskDefinition = <any>_task.definition;
       return new vscode.Task(
         definition,
         _task.scope ?? vscode.TaskScope.Workspace,
-        definition.ansible,
+        testenv,
         AnsibleToxProvider.toxType,
         new vscode.ShellExecution(
-          `${ANSIBLE_TOX_RUN_COMMAND} ${definition.ansible} --ansible --conf tox-ansible.ini`,
+          `${ANSIBLE_TOX_RUN_COMMAND} ${testenv} --ansible --conf tox-ansible.ini`,
         ),
       );
     }

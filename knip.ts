@@ -17,6 +17,11 @@ const config: KnipConfig = {
     ],
   },
   includeEntryExports: true,
+  ignoreBinaries: [
+    "adt", // Ansible Development Tools CLI; on $PATH in CI/test env, not an npm bin
+    "ansible-creator", // external pip-installed CLI invoked via spawnSync
+    "which", // POSIX system utility for resolving executables on $PATH
+  ],
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",
@@ -31,6 +36,7 @@ const config: KnipConfig = {
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "pnpm",
     "ts-node", // used by wdio autoCompileOpts, not directly imported
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:

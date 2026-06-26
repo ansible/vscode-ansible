@@ -16,7 +16,7 @@ const MOCK_URL = `http://localhost:${MOCK_PORT}`;
 
 /** Count how many open tabs contain a webview panel. */
 async function getWebviewTabCount(): Promise<number> {
-  return (await browser.executeWorkbench(async (vscode) => {
+  return await browser.executeWorkbench(async (vscode) => {
     let count = 0;
     for (const group of vscode.window.tabGroups.all) {
       for (const tab of group.tabs) {
@@ -24,7 +24,7 @@ async function getWebviewTabCount(): Promise<number> {
       }
     }
     return count;
-  })) as number;
+  });
 }
 
 /** Open `playbook.ansible.yml` from the WDIO fixtures folder to trigger extension activation. */
@@ -69,7 +69,7 @@ async function injectMockSession(): Promise<void> {
           return false;
         }
       });
-      return ok === true;
+      return ok;
     },
     {
       timeout: 60_000,
@@ -103,7 +103,7 @@ describe("Lightspeed with mock server", () => {
           const ext = vscode.extensions.getExtension("redhat.ansible");
           return ext?.isActive === true;
         });
-        return active === true;
+        return active;
       },
       {
         timeout: 60_000,
@@ -114,11 +114,11 @@ describe("Lightspeed with mock server", () => {
 
     await mockServer.start(MOCK_PORT);
 
-    savedApiEndpoint = (await browser.executeWorkbench(async (vscode) => {
+    savedApiEndpoint = await browser.executeWorkbench(async (vscode) => {
       const config = vscode.workspace.getConfiguration("ansible");
       const val = config.inspect("lightspeed.apiEndpoint")?.globalValue;
       return typeof val === "string" ? val : undefined;
-    })) as string | undefined;
+    });
 
     const url = MOCK_URL;
     await browser.executeWorkbench(async (vscode, endpoint: string) => {

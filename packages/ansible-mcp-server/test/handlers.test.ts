@@ -5,7 +5,10 @@ import {
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
   createAgentsGuidelinesHandler,
+  _testing,
 } from "@src/handlers.js";
+
+const { extractPlaybookPath } = _testing;
 import { ZEN_OF_ANSIBLE } from "@src/constants.js";
 
 // Mock the adeTools module
@@ -381,6 +384,80 @@ describe("MCP Handlers", () => {
       );
       expect(result.isError).toBe(true);
     });
+
+    it("should auto-detect comma-separated collections from requirementsFile", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        osType: "linux",
+        osDistro: "fedora",
+        requirementsFile: "amazon.aws,ansible.posix",
+      });
+
+      expect(result.content[0].text).toContain("Auto-detected collections");
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({
+          collections: ["amazon.aws", "ansible.posix"],
+        }),
+      );
+    });
+
+    it("should not auto-detect invalid collection names from requirementsFile", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+        requirementsFile: "not-a-collection",
+      });
+
+      expect(result.content[0].text).not.toContain("Auto-detected collections");
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({ requirementsFile: "not-a-collection" }),
+      );
+    });
+
+    it("should not auto-detect from requirementsFile with .yml extension", async () => {
+      const { setupDevelopmentEnvironment } =
+        await import("../src/tools/adeTools.js");
+
+      vi.mocked(setupDevelopmentEnvironment).mockResolvedValue({
+        success: true,
+        output: "Environment setup completed",
+        error: undefined,
+      });
+
+      const handler = createADESetupEnvironmentHandler("/test/workspace");
+      const result = await handler({
+        osType: "linux",
+        osDistro: "ubuntu",
+        requirementsFile: "requirements.yml",
+      });
+
+      expect(result.content[0].text).not.toContain("Auto-detected collections");
+      expect(setupDevelopmentEnvironment).toHaveBeenCalledWith(
+        "/test/workspace",
+        expect.objectContaining({ requirementsFile: "requirements.yml" }),
+      );
+    });
   });
 
   describe("ADT Check Env Handler", () => {
@@ -581,6 +658,82 @@ describe("MCP Handlers", () => {
       await handler({ topic: "" });
 
       expect(getAgentsGuidelines).toHaveBeenCalledWith("");
+    });
+  });
+
+  describe("extractPlaybookPath", () => {
+    it("should extract a bare filename and prepend playbooks/", () => {
+      expect(extractPlaybookPath("run deploy.yml")).toBe(
+        "playbooks/deploy.yml",
+      );
+    });
+
+    it("should extract a .yaml file and prepend playbooks/", () => {
+      expect(extractPlaybookPath("check site.yaml please")).toBe(
+        "playbooks/site.yaml",
+      );
+    });
+
+    it("should preserve playbooks/ prefix when already present", () => {
+      expect(extractPlaybookPath("run playbooks/deploy.yml")).toBe(
+        "playbooks/deploy.yml",
+      );
+    });
+
+    it("should preserve absolute paths", () => {
+      expect(extractPlaybookPath("run /opt/playbooks/deploy.yml")).toBe(
+        "/opt/playbooks/deploy.yml",
+      );
+    });
+
+    it("should extract relative paths with directories", () => {
+      expect(extractPlaybookPath("run roles/tasks/main.yml")).toBe(
+        "playbooks/roles/tasks/main.yml",
+      );
+    });
+
+    it("should handle keyword-based extraction with 'run'", () => {
+      expect(extractPlaybookPath("run deploy")).toBe("playbooks/deploy.yml");
+    });
+
+    it("should handle keyword-based extraction case-insensitively", () => {
+      expect(extractPlaybookPath("RUN Deploy")).toBe("playbooks/Deploy.yml");
+    });
+
+    it("should handle 'execute' keyword", () => {
+      expect(extractPlaybookPath("execute my-playbook")).toBe(
+        "playbooks/my-playbook.yml",
+      );
+    });
+
+    it("should handle 'launch' keyword", () => {
+      expect(extractPlaybookPath("launch site")).toBe("playbooks/site.yml");
+    });
+
+    it("should return undefined for messages without playbook references", () => {
+      expect(extractPlaybookPath("hello world")).toBeUndefined();
+    });
+
+    it("should return undefined for empty string", () => {
+      expect(extractPlaybookPath("")).toBeUndefined();
+    });
+
+    it("should prefer file extension match over keyword match", () => {
+      expect(extractPlaybookPath("run deploy.yml")).toBe(
+        "playbooks/deploy.yml",
+      );
+    });
+
+    it("should prefer .yaml when both .yaml and .yml are present", () => {
+      expect(extractPlaybookPath("run site.yaml or deploy.yml")).toBe(
+        "playbooks/site.yaml",
+      );
+    });
+
+    it("should handle paths with uppercase and digits", () => {
+      expect(extractPlaybookPath("run Setup2Deploy.yml")).toBe(
+        "playbooks/Setup2Deploy.yml",
+      );
     });
   });
 });

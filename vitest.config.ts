@@ -65,6 +65,7 @@ const alsVitestProject = {
     isolate: true, // required or will produce MaxListenersExceededWarning warnings
     root: als_root, // ensure reports have valid paths
     testTimeout: 60000, // same as mocha timeout (60 seconds)
+    hookTimeout: 30000, // self-hosted WSL runner needs more than the 10s default
     setupFiles: [`${als_root}/test/vitestSetup.ts`],
     sequence: {
       concurrent: false,

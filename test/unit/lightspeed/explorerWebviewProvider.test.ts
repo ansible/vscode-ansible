@@ -30,7 +30,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       asWebviewUri: vi.fn((uri) => uri),
       onDidReceiveMessage: vi.fn(),
       postMessage: vi.fn(),
-    } as unknown as vscode.Webview;
+    };
 
     // Setup mock webview view
     const onDidDisposeCallbacks: Array<() => void> = [];

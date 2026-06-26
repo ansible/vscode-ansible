@@ -63,6 +63,10 @@
   "python.terminal.useEnvFile": true,
   "redhat.telemetry.enabled": false,
   "search.useParentIgnoreFiles": true,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "ansible",
+    "projectKey": "ansible_vscode-ansible"
+  },
   "vitest.maximumConfigs": 10,
   "vitest.shellType": "terminal"
 }

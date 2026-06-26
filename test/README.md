@@ -74,5 +74,5 @@ Run against real VS Code Electron using WebDriverIO (no container needed):
 To run a single spec file:
 
 ```shell
-    npx pnpm test:wdio -- --spec test/wdio/smoke.spec.ts
+    pnpm test:wdio -- --spec test/wdio/smoke.spec.ts
 ```

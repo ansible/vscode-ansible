@@ -13,7 +13,7 @@ export function setupPanelLifecycle(
   disposeCallback: () => void,
 ): void {
   panel.onDidDispose(disposeCallback, null, disposables);
-  ContentCreatorWebviewHelper.setupWebviewHooks(
+  void ContentCreatorWebviewHelper.setupWebviewHooks(
     panel.webview,
     disposables,
     context,

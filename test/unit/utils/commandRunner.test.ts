@@ -90,15 +90,12 @@ describe("commandRunner", () => {
       expect(result.env.PATH?.startsWith("/home/user/.venv/bin")).toBe(true);
     });
 
-    // Note: vscode.Uri instanceof checks don't work well in unit tests with mocks
-    // These are tested in integration tests and configurationMiddleware tests
-    it.skip("should set VIRTUAL_ENV when environment has Uri environmentPath", async () => {
-      // Skipped: instanceof vscode.Uri doesn't work with mocks
-    });
+    // vscode.Uri instanceof checks don't work with mocks — covered by integration tests
+    it.todo("should set VIRTUAL_ENV when environment has Uri environmentPath");
 
-    it.skip("should set VIRTUAL_ENV when environment has string environmentPath", async () => {
-      // Skipped: instanceof vscode.Uri doesn't work with mocks
-    });
+    it.todo(
+      "should set VIRTUAL_ENV when environment has string environmentPath",
+    );
 
     it("should not modify PATH when no interpreter is resolved", async () => {
       mockPythonEnvService.resolveInterpreterPath.mockResolvedValue(undefined);

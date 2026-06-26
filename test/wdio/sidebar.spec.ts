@@ -18,7 +18,7 @@ describe("Sidebar and settings", () => {
     const title = await sideBar.getTitlePart().getTitle();
     assert.match(title, /Ansible Development Tools/i);
 
-    const workspaceFolder = await browser.executeWorkbench((vscode) => {
+    const workspaceFolder: string = await browser.executeWorkbench((vscode) => {
       return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
     });
     if (workspaceFolder) {
@@ -45,7 +45,7 @@ describe("Sidebar and settings", () => {
     for (const webview of webviews) {
       await webview.open();
       try {
-        const link = await browser.$(
+        const link = browser.$(
           'a[title="Ansible Development Tools welcome page"]',
         );
         if (await link.isExisting()) {

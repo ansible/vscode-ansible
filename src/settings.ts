@@ -41,12 +41,8 @@ export class SettingsManager {
         };
 
     this.settings = {
-      activationScript: (await ansibleSettings.get(
-        "python.activationScript",
-      )) as string,
-      interpreterPath: (await ansibleSettings.get(
-        "python.interpreterPath",
-      )) as string,
+      activationScript: await ansibleSettings.get("python.activationScript"),
+      interpreterPath: await ansibleSettings.get("python.interpreterPath"),
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
