@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { LanguageClient, NotificationType } from 'vscode-languageclient/node';
-import { isAnsibleEditor, type AnsibleEnvironmentInfo } from '@src/statusBar/statusBarUtils';
-import { log, outputChannel } from '@src/extension';
-import { getCommandService } from '@ansible/services';
+import type { AnsibleEnvironmentInfo } from '@src/statusBar/statusBarUtils';
+import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
+import { log } from '@src/extension';
 
-const COMMAND_ID = 'ansible.statusBar.ansibleClick';
 const METADATA_NOTIFICATION = 'update/ansible-metadata';
+const LOADING_TIMEOUT_MS = 15_000;
 
 /**
  * Raw metadata received from the Ansible Language Server via the
@@ -26,55 +26,55 @@ interface AnsibleMetadata {
 }
 
 /**
- * A single tool entry parsed from `adt --version` output.
- */
-interface AdtToolEntry {
-    /** Tool name (e.g., "ansible-core"). */
-    name: string;
-    /** Version string (e.g., "2.19.11"). */
-    version: string;
-}
-
-/**
- * Status bar item displaying the Ansible version and tool health.
+ * Unified Ansible status bar item — the single entry point for all
+ * Ansible-related status in the editor footer.
  *
- * Communicates with the language server to fetch metadata for the active
- * file. Visible only when an Ansible file is open. Clicking opens a
- * QuickPick with detailed version info, ADT tool inventory, and actions
- * (resync, open output).
+ * Always visible when a workspace is open. Displays the Ansible logo
+ * icon; background color reflects tool health (green when healthy,
+ * warning when ansible-lint is missing, error when ansible is not
+ * found). Hovering shows a Markdown tooltip with clickable command
+ * links for quick actions (sidebar, diagnostics, LLM config, output
+ * log, refresh).
  *
- * Exposes {@link getMetadata} for telemetry consumption.
+ * Exposes {@link getMetadata} and {@link getEnvironmentInfo} for
+ * telemetry and the diagnostics panel.
  */
 export class AnsibleStatusBar implements vscode.Disposable {
     private readonly _item: vscode.StatusBarItem;
     private readonly _disposables: vscode.Disposable[] = [];
     private _metadata: AnsibleMetadata | undefined;
     private _loading = false;
+    private _loadingTimer: ReturnType<typeof setTimeout> | undefined;
     private _lastRequestedUri: string | undefined;
-    private _adtTools: AdtToolEntry[] | undefined;
-    private _adtFetched = false;
+    private _cachedPythonName?: string;
+    private _cachedPythonVersion?: string;
+    private _cachedPythonPath?: string;
 
     /**
-     * Create and register the Ansible metadata status bar item.
+     * Create and register the unified Ansible status bar item.
      * @param context - Extension context for subscription lifecycle.
      * @param _client - Language client for server communication.
+     * @param _envService - Python environment service for env info.
      */
     constructor(
         context: vscode.ExtensionContext,
         private readonly _client: LanguageClient,
+        private readonly _envService: PythonEnvironmentService,
     ) {
-        this._item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-        this._item.command = COMMAND_ID;
+        this._item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+        this._item.command = 'ansible.showDiagnostics';
         context.subscriptions.push(this._item);
 
+        this._disposables.push(this._registerNotificationHandler());
+
         this._disposables.push(
-            vscode.commands.registerCommand(COMMAND_ID, () => {
-                void this._showQuickPick();
+            this._envService.onDidChangeEnvironment(() => {
+                this.forceRefresh();
             }),
         );
 
-        this._disposables.push(this._registerNotificationHandler());
         context.subscriptions.push(...this._disposables);
+        void this._updatePythonCache();
         this.update();
     }
 
@@ -90,6 +90,10 @@ export class AnsibleStatusBar implements vscode.Disposable {
                 if (dataList.length > 0) {
                     this._metadata = dataList[0];
                     this._loading = false;
+                    if (this._loadingTimer) {
+                        clearTimeout(this._loadingTimer);
+                        this._loadingTimer = undefined;
+                    }
                     this._render();
                 }
             },
@@ -97,21 +101,21 @@ export class AnsibleStatusBar implements vscode.Disposable {
     }
 
     /**
-     * Refresh the status bar for the current editor. Only requests fresh
-     * metadata from the LS when the active file changes. Re-renders from
-     * cache for the same file to avoid spinner flicker.
+     * Refresh the status bar for the current editor. Requests fresh
+     * metadata from the LS when the active Ansible file changes.
+     * Always shows the item regardless of editor language.
      */
     public update(): void {
-        if (!isAnsibleEditor(vscode.window.activeTextEditor)) {
-            this._item.hide();
-            return;
-        }
+        const editor = vscode.window.activeTextEditor;
+        const isAnsible = editor?.document.languageId === 'ansible';
 
-        const activeUri = vscode.window.activeTextEditor?.document.uri.toString();
-        if (activeUri && activeUri !== this._lastRequestedUri) {
-            this._metadata = undefined;
-            this._lastRequestedUri = activeUri;
-            void this._requestMetadata(activeUri);
+        if (isAnsible) {
+            const activeUri = editor.document.uri.toString();
+            if (activeUri !== this._lastRequestedUri) {
+                this._metadata = undefined;
+                this._lastRequestedUri = activeUri;
+                void this._requestMetadata(activeUri);
+            }
         }
 
         this._render();
@@ -119,14 +123,21 @@ export class AnsibleStatusBar implements vscode.Disposable {
 
     /**
      * Force a metadata re-fetch regardless of cache state.
-     * Called when Python environment changes or user clicks "Resync".
+     * Called when Python environment changes or user clicks "Refresh".
      */
     public forceRefresh(): void {
         this._metadata = undefined;
         this._lastRequestedUri = undefined;
-        this._adtTools = undefined;
-        this._adtFetched = false;
+        void this._updatePythonCache();
         this.update();
+    }
+
+    /**
+     * Whether the language client is currently running.
+     * @returns True when the language server connection is active.
+     */
+    public isLanguageServerRunning(): boolean {
+        return this._client.isRunning();
     }
 
     /**
@@ -143,6 +154,18 @@ export class AnsibleStatusBar implements vscode.Disposable {
     }
 
     /**
+     * Returns cached Python environment data for telemetry or diagnostics.
+     * @returns Partial environment info with Python-specific fields populated.
+     */
+    public getEnvironmentInfo(): Partial<AnsibleEnvironmentInfo> {
+        return {
+            pythonEnvDisplayName: this._cachedPythonName,
+            pythonVersion: this._cachedPythonVersion,
+            pythonEnvPath: this._cachedPythonPath,
+        };
+    }
+
+    /**
      * Send an `update/ansible-metadata` notification to the language server.
      * The response arrives asynchronously via the notification handler.
      * @param fileUri - The URI of the active file to fetch metadata for.
@@ -154,6 +177,14 @@ export class AnsibleStatusBar implements vscode.Disposable {
 
         this._loading = true;
         this._render();
+
+        if (this._loadingTimer) clearTimeout(this._loadingTimer);
+        this._loadingTimer = setTimeout(() => {
+            if (this._loading) {
+                this._loading = false;
+                this._render();
+            }
+        }, LOADING_TIMEOUT_MS);
 
         try {
             await this._client.sendNotification(
@@ -170,180 +201,99 @@ export class AnsibleStatusBar implements vscode.Disposable {
     }
 
     /**
-     * Fetch the ADT tool inventory by running `adt --version`.
-     * Caches successful results; re-checks when ADT was not found.
-     * @returns Array of tool entries, or undefined if adt is not available.
+     * Refresh the cached Python environment info from the env service.
      */
-    private async _fetchAdtTools(): Promise<AdtToolEntry[] | undefined> {
-        if (this._adtFetched && this._adtTools) {
-            return this._adtTools;
-        }
-
+    private async _updatePythonCache(): Promise<void> {
         try {
-            const cmdService = getCommandService();
-            const result = await cmdService.runTool('adt', ['--version']);
-            if (result.exitCode !== 0 || !result.stdout) {
-                return undefined;
+            const activeUri =
+                vscode.window.activeTextEditor?.document.uri ??
+                vscode.workspace.workspaceFolders?.[0]?.uri;
+            const env = await this._envService.getEnvironment(activeUri);
+            if (env) {
+                this._cachedPythonName = env.displayName || env.name;
+                this._cachedPythonVersion = env.version;
+                this._cachedPythonPath = env.execInfo.run.executable;
+            } else {
+                this._cachedPythonName = undefined;
+                this._cachedPythonVersion = undefined;
+                this._cachedPythonPath = undefined;
             }
-
-            const tools: AdtToolEntry[] = [];
-            for (const line of result.stdout.split('\n')) {
-                const match = /^(\S+)\s+([\d.]+\S*)/.exec(line.trim());
-                if (match) {
-                    tools.push({ name: match[1], version: match[2] });
-                }
-            }
-            this._adtTools = tools.length > 0 ? tools : undefined;
-            this._adtFetched = true;
-            return this._adtTools;
-        } catch {
-            return undefined;
+        } catch (e: unknown) {
+            log(
+                `AnsibleStatusBar Python cache update failed: ${e instanceof Error ? e.message : String(e)}`,
+            );
         }
+        this._render();
     }
 
     /**
-     * Fetch Python version via `python3 --version` as a fallback when
-     * LS metadata is not yet available.
-     * @returns Version string (e.g., "3.12.5") or undefined.
-     */
-    private async _fetchPythonVersion(): Promise<string | undefined> {
-        try {
-            const cmdService = getCommandService();
-            const result = await cmdService.runTool('python3', ['--version']);
-            if (result.exitCode === 0 && result.stdout) {
-                const match = /Python\s+([\d.]+)/.exec(result.stdout);
-                return match ? match[1] : undefined;
-            }
-        } catch {
-            // python3 not available
-        }
-        return undefined;
-    }
-
-    /**
-     * Update the status bar item text and background from current state.
+     * Update the status bar item text, tooltip, and background from
+     * current state. Always visible — shows Ansible logo with version
+     * when available. Tooltip shows a rich Markdown summary with
+     * clickable action links.
      */
     private _render(): void {
-        if (!isAnsibleEditor(vscode.window.activeTextEditor)) {
-            this._item.hide();
-            return;
-        }
+        const editor = vscode.window.activeTextEditor;
+        const isAnsible = editor?.document.languageId === 'ansible';
 
-        if (this._loading && !this._metadata) {
-            this._item.text = '$(sync~spin) Ansible';
+        if (isAnsible && this._loading && !this._metadata) {
+            this._item.text = '$(sync~spin)';
+            this._item.tooltip = 'Loading Ansible metadata…';
             this._item.backgroundColor = undefined;
             this._item.show();
             return;
         }
 
         const meta = this._metadata;
-        if (!meta?.ansibleVersion) {
-            this._item.text = '$(error) Ansible';
+        if (isAnsible && meta && !meta.ansibleVersion) {
+            this._item.text = '$(ansible-logo)';
             this._item.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-            this._item.show();
-            return;
-        }
-
-        const eeTag = meta.executionEnvironmentEnabled ? ' [EE]' : '';
-        if (meta.ansibleLintVersion) {
-            this._item.text = `$(ansible-logo)${eeTag} ${meta.ansibleVersion}`;
-            this._item.backgroundColor = undefined;
-        } else {
-            this._item.text = `$(warning)${eeTag} ${meta.ansibleVersion}`;
+        } else if (isAnsible && meta?.ansibleVersion && !meta.ansibleLintVersion) {
+            this._item.text = '$(ansible-logo)';
             this._item.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+        } else {
+            this._item.text = '$(ansible-logo)';
+            this._item.backgroundColor = undefined;
         }
 
+        this._item.tooltip = this._buildTooltip();
         this._item.show();
     }
 
     /**
-     * Show a QuickPick with Ansible environment details, ADT tool
-     * inventory, and actions.
+     * Build a rich MarkdownString tooltip with status summary and
+     * clickable command links for quick actions.
+     * @returns MarkdownString tooltip for the status bar item.
      */
-    private async _showQuickPick(): Promise<void> {
-        const meta = this._metadata;
-        const items: vscode.QuickPickItem[] = [];
+    private _buildTooltip(): vscode.MarkdownString {
+        const llmCmd = 'ansibleEnvironments.configureLlmProvider';
+        const sidebarCmd = 'workbench.view.extension.ansible-environments';
 
-        // Tool versions — prefer ADT inventory when available, fall back to LS metadata
-        const adtTools = await this._fetchAdtTools();
+        const md = new vscode.MarkdownString('', true);
+        md.isTrusted = {
+            enabledCommands: [
+                sidebarCmd,
+                'ansible.showDiagnostics',
+                llmCmd,
+                'ansible.open-output',
+                'ansible.statusBar.refresh',
+            ],
+        };
 
-        if (adtTools && adtTools.length > 0) {
-            // Python version from LS metadata or python --version
-            const pythonVer = meta?.pythonVersion ?? (await this._fetchPythonVersion());
-            if (pythonVer) {
-                items.push({
-                    label: `$(python) Python: ${pythonVer}`,
-                });
-            }
-            items.push({ label: 'Ansible Dev Tools', kind: vscode.QuickPickItemKind.Separator });
-            for (const tool of adtTools) {
-                const displayName = tool.name === 'ansible-core' ? 'Ansible Core' : tool.name;
-                items.push({
-                    label: `$(package) ${displayName}`,
-                    description: tool.version,
-                });
-            }
-        } else {
-            if (meta?.ansibleVersion) {
-                items.push({
-                    label: `$(bracket-dot) Ansible Core: ${meta.ansibleVersion}`,
-                    description: meta.executionEnvironmentEnabled ? 'Execution Environment' : '',
-                });
-            } else {
-                items.push({
-                    label: '$(error) Ansible not found',
-                    description: 'Check your Python environment',
-                });
-            }
+        md.appendMarkdown(`$(list-tree) [Open Sidebar](command:${sidebarCmd})\n\n`);
+        md.appendMarkdown(`$(pulse) [Diagnostics](command:ansible.showDiagnostics)\n\n`);
+        md.appendMarkdown(`$(hubot) [Configure LLM](command:${llmCmd})\n\n`);
+        md.appendMarkdown(`$(output) [Output Log](command:ansible.open-output)\n\n`);
+        md.appendMarkdown(`$(refresh) [Refresh](command:ansible.statusBar.refresh)`);
 
-            if (meta?.pythonVersion) {
-                items.push({
-                    label: `$(python) Python: ${meta.pythonVersion}`,
-                });
-            }
-
-            if (meta?.ansibleLintVersion) {
-                items.push({
-                    label: `$(check) ansible-lint: ${meta.ansibleLintVersion}`,
-                });
-            } else {
-                items.push({
-                    label: '$(warning) ansible-lint: not found',
-                    description: 'Install for playbook validation',
-                });
-            }
-        }
-
-        // Actions
-        items.push({ label: 'Actions', kind: vscode.QuickPickItemKind.Separator });
-
-        items.push({
-            label: '$(refresh) Resync Metadata',
-            description: 'Re-fetch version info from language server',
-        });
-        items.push({
-            label: '$(output) Open Ansible Output',
-            description: 'View extension logs',
-        });
-
-        const selected = await vscode.window.showQuickPick(items, {
-            title: 'Ansible Environment',
-            placeHolder: 'Select an action',
-        });
-
-        if (!selected) return;
-
-        if (selected.label.includes('Resync')) {
-            this.forceRefresh();
-        } else if (selected.label.includes('Open Ansible Output')) {
-            outputChannel.show();
-        }
+        return md;
     }
 
     /**
      * Dispose all owned resources.
      */
     public dispose(): void {
+        if (this._loadingTimer) clearTimeout(this._loadingTimer);
         this._item.dispose();
         for (const d of this._disposables) d.dispose();
     }

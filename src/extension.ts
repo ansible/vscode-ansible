@@ -67,8 +67,8 @@ import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
-import { PythonStatusBar } from '@src/statusBar/pythonStatusBar';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
+import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible');
@@ -286,18 +286,27 @@ export function activate(context: vscode.ExtensionContext) {
     const pythonEnvService = PythonEnvironmentService.getInstance();
     context.subscriptions.push(pythonEnvService);
 
-    // Status bar items — Python env + Ansible version, visible on ansible files
-    const pythonStatusBar = new PythonStatusBar(context, pythonEnvService);
-    const ansibleStatusBar = new AnsibleStatusBar(context, languageClient);
-    context.subscriptions.push(pythonStatusBar, ansibleStatusBar);
+    // Unified Ansible status bar — single icon for all Ansible status and actions
+    const ansibleStatusBar = new AnsibleStatusBar(context, languageClient, pythonEnvService);
+    context.subscriptions.push(ansibleStatusBar);
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ansible.showDiagnostics', () => {
+            DiagnosticsPanel.show(context, ansibleStatusBar);
+        }),
+        vscode.commands.registerCommand('ansible.open-output', () => {
+            outputChannel.show(true);
+        }),
+        vscode.commands.registerCommand('ansible.statusBar.refresh', () => {
+            ansibleStatusBar.forceRefresh();
+        }),
+    );
 
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(() => {
-            void pythonStatusBar.update();
             ansibleStatusBar.update();
         }),
         vscode.workspace.onDidOpenTextDocument(() => {
-            void pythonStatusBar.update();
             ansibleStatusBar.update();
         }),
         vscode.workspace.onDidChangeConfiguration((e) => {
@@ -305,7 +314,6 @@ export function activate(context: vscode.ExtensionContext) {
                 e.affectsConfiguration('ansible') ||
                 e.affectsConfiguration('ansibleEnvironments')
             ) {
-                void pythonStatusBar.update();
                 ansibleStatusBar.forceRefresh();
             }
         }),
@@ -1427,15 +1435,6 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
-    const ansibleStatusBarItem = vscode.window.createStatusBarItem(
-        vscode.StatusBarAlignment.Right,
-        100,
-    );
-    ansibleStatusBarItem.text = '$(ansible-logo)';
-    ansibleStatusBarItem.tooltip = 'Configure LLM Provider';
-    ansibleStatusBarItem.command = 'ansibleEnvironments.configureLlmProvider';
-    ansibleStatusBarItem.show();
-
     context.subscriptions.push(
         refreshCommand,
         installCommand,
@@ -1493,7 +1492,6 @@ export function activate(context: vscode.ExtensionContext) {
         selectLlmModelCommand,
         showLlmStatusCommand,
         configureLlmProviderCommand,
-        ansibleStatusBarItem,
     );
 }
 

@@ -48,6 +48,10 @@ vi.mock('vscode', () => ({
     window: mockWindow,
     commands: {
         registerCommand: mockRegisterCommand,
+        executeCommand: vi.fn(),
+    },
+    workspace: {
+        workspaceFolders: [{ uri: { toString: () => 'file:///workspace' } }],
     },
     StatusBarAlignment: { Right: 2 },
     ThemeColor: class MockThemeColor {
@@ -56,6 +60,28 @@ vi.mock('vscode', () => ({
          * @param id - The theme color identifier.
          */
         constructor(public id: string) {}
+    },
+    MarkdownString: class MockMarkdownString {
+        value: string;
+        isTrusted = false;
+        supportHtml = false;
+        /**
+         * Create a mock MarkdownString.
+         * @param value - Initial markdown content.
+         */
+        constructor(value = '') {
+            this.value = value;
+        }
+
+        /**
+         * Append markdown text.
+         * @param val - Markdown string to append.
+         * @returns This instance for chaining.
+         */
+        appendMarkdown(val: string) {
+            this.value += val;
+            return this;
+        }
     },
     QuickPickItemKind: { Default: 0, Separator: -1 },
 }));
@@ -95,6 +121,7 @@ vi.mock('@src/extension', () => ({
 }));
 
 import { AnsibleStatusBar } from '../../../src/statusBar/ansibleStatusBar';
+import type { PythonEnvironmentService } from '../../../src/services/PythonEnvironmentService';
 
 /**
  * Create a mock ExtensionContext with a subscriptions array.
@@ -103,6 +130,22 @@ import { AnsibleStatusBar } from '../../../src/statusBar/ansibleStatusBar';
 function createMockContext(): { subscriptions: { dispose(): void }[] } {
     return {
         subscriptions: [] as { dispose(): void }[],
+    };
+}
+
+/**
+ * Create a mock PythonEnvironmentService.
+ * @returns A mock env service with getEnvironment and onDidChangeEnvironment.
+ */
+function createMockEnvService(): {
+    getEnvironment: ReturnType<typeof vi.fn>;
+    onDidChangeEnvironment: ReturnType<typeof vi.fn>;
+    prefersEnvsExtension: ReturnType<typeof vi.fn>;
+} {
+    return {
+        getEnvironment: vi.fn().mockResolvedValue(undefined),
+        onDidChangeEnvironment: vi.fn(() => ({ dispose: vi.fn() })),
+        prefersEnvsExtension: vi.fn().mockReturnValue(false),
     };
 }
 
@@ -139,55 +182,62 @@ describe('AnsibleStatusBar', () => {
         mockRegisterCommand.mockReturnValue({ dispose: vi.fn() });
     });
 
-    it('creates a status bar item with right alignment and priority 99', () => {
+    it('creates a status bar item with right alignment and priority 100', () => {
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
-        expect(mockCreateStatusBarItem).toHaveBeenCalledWith(2, 99);
+        expect(mockCreateStatusBarItem).toHaveBeenCalledWith(2, 100);
     });
 
-    it('registers the click command', () => {
+    it('sets click command to open diagnostics', () => {
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
-        expect(mockRegisterCommand).toHaveBeenCalledWith(
-            'ansible.statusBar.ansibleClick',
-            expect.any(Function),
-        );
+        const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
+        expect(item.command).toBe('ansible.showDiagnostics');
     });
 
     it('registers the metadata notification handler', () => {
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         expect(client.onNotification).toHaveBeenCalled();
     });
 
-    it('hides when active editor is not ansible', () => {
+    it('shows even when active editor is not ansible', () => {
         mockWindow.activeTextEditor = { document: { languageId: 'typescript' } };
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         const bar = new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
         bar.update();
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.hide).toHaveBeenCalled();
+        expect(item.text).toBe('$(ansible-logo)');
+        expect(item.show).toHaveBeenCalled();
     });
 
     it('shows loading spinner on first fetch', () => {
@@ -197,14 +247,16 @@ describe('AnsibleStatusBar', () => {
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         const bar = new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
         bar.update();
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.text).toBe('$(sync~spin) Ansible');
+        expect(item.text).toBe('$(sync~spin)');
     });
 
     it('shows version after metadata notification', () => {
@@ -214,9 +266,11 @@ describe('AnsibleStatusBar', () => {
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         void new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         client._fireNotification('update/ansible-metadata', [
@@ -224,55 +278,63 @@ describe('AnsibleStatusBar', () => {
         ]);
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.text).toBe('$(ansible-logo) 2.17.0');
+        expect(item.text).toBe('$(ansible-logo)');
     });
 
-    it('shows warning when ansible-lint is missing', () => {
+    it('shows warning background when ansible-lint is missing', () => {
         mockWindow.activeTextEditor = {
             document: { languageId: 'ansible', uri: { toString: () => 'file:///test.yml' } },
         };
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         void new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         client._fireNotification('update/ansible-metadata', [{ ansibleVersion: '2.17.0' }]);
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.text).toBe('$(warning) 2.17.0');
+        expect(item.text).toBe('$(ansible-logo)');
+        expect(item.backgroundColor).toEqual({ id: 'statusBarItem.warningBackground' });
     });
 
-    it('shows error when ansible is not found', () => {
+    it('shows error background when ansible is not found', () => {
         mockWindow.activeTextEditor = {
             document: { languageId: 'ansible', uri: { toString: () => 'file:///test.yml' } },
         };
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         void new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         client._fireNotification('update/ansible-metadata', [{}]);
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.text).toBe('$(error) Ansible');
+        expect(item.text).toBe('$(ansible-logo)');
+        expect(item.backgroundColor).toEqual({ id: 'statusBarItem.errorBackground' });
     });
 
-    it('shows EE tag when execution environment is enabled', () => {
+    it('shows clean background when all tools present', () => {
         mockWindow.activeTextEditor = {
             document: { languageId: 'ansible', uri: { toString: () => 'file:///test.yml' } },
         };
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         void new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         client._fireNotification('update/ansible-metadata', [
@@ -284,7 +346,8 @@ describe('AnsibleStatusBar', () => {
         ]);
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
-        expect(item.text).toBe('$(ansible-logo) [EE] 2.17.0');
+        expect(item.text).toBe('$(ansible-logo)');
+        expect(item.backgroundColor).toBeUndefined();
     });
 
     it('exposes metadata for telemetry', () => {
@@ -294,9 +357,11 @@ describe('AnsibleStatusBar', () => {
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         const bar = new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         client._fireNotification('update/ansible-metadata', [
@@ -316,9 +381,11 @@ describe('AnsibleStatusBar', () => {
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         const bar = new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         bar.update();
@@ -335,9 +402,11 @@ describe('AnsibleStatusBar', () => {
 
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         const bar = new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         bar.update();
@@ -349,9 +418,11 @@ describe('AnsibleStatusBar', () => {
     it('pushes disposables to context subscriptions', () => {
         const ctx = createMockContext();
         const client = createMockClient();
+        const envService = createMockEnvService();
         new AnsibleStatusBar(
             ctx as unknown as ExtensionContext,
             client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
         );
 
         expect(ctx.subscriptions.length).toBeGreaterThan(0);

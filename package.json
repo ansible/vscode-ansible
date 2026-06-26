@@ -439,6 +439,24 @@
         "icon": "$(window)"
       },
       {
+        "command": "ansible.showDiagnostics",
+        "title": "Ansible: Show Diagnostics",
+        "category": "Ansible",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "ansible.open-output",
+        "title": "Ansible: Show Output Log",
+        "category": "Ansible",
+        "icon": "$(output)"
+      },
+      {
+        "command": "ansible.statusBar.refresh",
+        "title": "Ansible: Refresh Status",
+        "category": "Ansible",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "ansible-environments.configureCursorMcp",
         "title": "Ansible: Configure Cursor MCP"
       },
