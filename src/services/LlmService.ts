@@ -390,7 +390,7 @@ export class LlmService {
     </ul>
     
     <p style="margin-top: 20px;">
-        <em>Use command "Ansible Environments: Select LLM Provider & Model" to change.</em>
+        <em>Use command "Ansible: Select LLM Provider & Model" to change.</em>
     </p>
 </body>
 </html>`;
@@ -573,7 +573,7 @@ export class LlmService {
             return {
                 success: false,
                 content: '',
-                error: 'No language model available. Use "Ansible Environments: Select LLM Provider & Model" to configure.',
+                error: 'No language model available. Use "Ansible: Select LLM Provider & Model" to configure.',
             };
         }
 

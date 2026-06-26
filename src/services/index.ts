@@ -1,7 +1,7 @@
 /**
  * Service layer exports
  *
- * These services contain the core business logic for the Ansible Environments extension.
+ * These services contain the core business logic for the Ansible extension.
  * They are designed to be independent of VS Code UI components and can be used by:
  * - TreeView providers (for UI rendering)
  * - Commands (for user actions)

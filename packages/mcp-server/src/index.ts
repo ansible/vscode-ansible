@@ -1,5 +1,5 @@
 /**
- * @ansible/mcp-server — public API for the Ansible Environments MCP implementation.
+ * @ansible/mcp-server — public API for the Ansible MCP implementation.
  */
 
 export { McpToolHandler } from './handlers';

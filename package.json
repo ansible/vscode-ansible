@@ -1,6 +1,6 @@
 {
   "name": "ansible",
-  "displayName": "Ansible Environments",
+  "displayName": "Ansible",
   "description": "A VS Code extension for managing Ansible development environments using the Microsoft Python Environments extension API",
   "version": "0.0.1",
   "publisher": "redhat",
@@ -229,14 +229,14 @@
     "mcpServerDefinitionProviders": [
       {
         "id": "ansibleEnvironments",
-        "label": "Ansible Environments"
+        "label": "Ansible"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "ansible-environments",
-          "title": "Ansible Environments",
+          "title": "Ansible",
           "icon": "resources/ansible-icon.svg"
         }
       ]
@@ -440,11 +440,11 @@
       },
       {
         "command": "ansible-environments.configureCursorMcp",
-        "title": "Ansible Environments: Configure Cursor MCP"
+        "title": "Ansible: Configure Cursor MCP"
       },
       {
         "command": "ansible-environments.showMcpStatus",
-        "title": "Ansible Environments: Show MCP Status"
+        "title": "Ansible: Show MCP Status"
       },
       {
         "command": "ansibleMcpTools.refresh",
@@ -607,13 +607,13 @@
       {
         "command": "ansibleEnvironments.selectLlmModel",
         "title": "Select LLM Provider & Model",
-        "category": "Ansible Environments",
+        "category": "Ansible",
         "icon": "$(hubot)"
       },
       {
         "command": "ansibleEnvironments.showLlmStatus",
         "title": "Show LLM Status",
-        "category": "Ansible Environments",
+        "category": "Ansible",
         "icon": "$(info)"
       },
       {
@@ -963,7 +963,7 @@
       ]
     },
     "configuration": {
-      "title": "Ansible Environments",
+      "title": "Ansible",
       "properties": {
         "ansibleEnvironments.enableAiFeatures": {
           "type": "boolean",

@@ -1,4 +1,4 @@
-# Contributing to Ansible Environments
+# Contributing to Ansible
 
 ## Prerequisites
 

@@ -304,7 +304,7 @@ export class ExecutionEnvService {
             return this._loadingPromise;
         }
 
-        if (this._loaded && this._executionEnvironments.length > 0) {
+        if (this._loaded) {
             return this._executionEnvironments;
         }
 

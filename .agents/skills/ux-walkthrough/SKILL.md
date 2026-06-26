@@ -1,7 +1,7 @@
 ---
 name: ux-walkthrough
 description: >
-  Guide a team member through all Ansible Environments extension
+  Guide a team member through all Ansible extension
   functionality as an end user. Collect structured UX feedback and
   produce a Jira-ready report. Use when the user says "ux walkthrough",
   "dogfood the extension", "test the extension as a user", "ux review",

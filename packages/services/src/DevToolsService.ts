@@ -22,10 +22,15 @@ export interface DevToolPackage {
  */
 export type PackageInstaller = () => Promise<void>;
 
+interface CommandResult {
+    exitCode: number | undefined;
+    success: boolean;
+}
+
 interface TerminalServiceLike {
     getInstance(): {
         createActivatedTerminal(opts: { name: string; show: boolean }): Promise<{
-            sendCommand(cmd: string, opts: { waitForCompletion: boolean }): Promise<unknown>;
+            sendCommand(cmd: string, opts: { waitForCompletion: boolean }): Promise<CommandResult>;
         }>;
     };
 }
@@ -194,11 +199,25 @@ export class DevToolsService {
             name: 'Install ansible-dev-tools',
             show: true,
         });
-        await managed.sendCommand('pip install ansible-dev-tools', {
+        const result = await managed.sendCommand('pip install ansible-dev-tools', {
             waitForCompletion: true,
         });
         log('DevToolsService: terminal install complete, refreshing packages');
         await this.refresh();
+
+        if (!this.hasPackages() && result.exitCode === undefined) {
+            log('DevToolsService: shell integration unavailable, polling for packages');
+            const maxAttempts = 12;
+            const interval = 5000;
+            for (let i = 0; i < maxAttempts; i++) {
+                await new Promise((r) => setTimeout(r, interval));
+                await this.refresh();
+                if (this.hasPackages()) {
+                    log(`DevToolsService: packages found after ${String(i + 1)} poll(s)`);
+                    break;
+                }
+            }
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ interface ExtensionManifest {
     };
 }
 
-suite('Ansible Environments Extension', () => {
+suite('Ansible Extension', () => {
     suiteSetup(async () => {
         const ext = vscode.extensions.getExtension(EXTENSION_ID);
         if (ext && !ext.isActive) {

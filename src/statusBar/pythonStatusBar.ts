@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
-import { isAnsibleEditor, type AnsibleEnvironmentInfo } from '@src/statusBar/statusBarUtils';
+import type { AnsibleEnvironmentInfo } from '@src/statusBar/statusBarUtils';
 import { log } from '@src/extension';
 
 const COMMAND_ID = 'ansible.statusBar.pythonClick';
@@ -8,9 +8,9 @@ const COMMAND_ID = 'ansible.statusBar.pythonClick';
 /**
  * Status bar item displaying the active Python environment for Ansible.
  *
- * Visible only when an Ansible file is open. Clicking opens a QuickPick
- * with environment details and actions (change, refresh) instead of relying
- * on hover tooltips which are unreliable across platforms.
+ * Always visible when a workspace is open. Uses the active Ansible editor's
+ * URI for environment resolution, falling back to the first workspace folder.
+ * Clicking opens a QuickPick with environment details and actions.
  *
  * Exposes {@link getEnvironmentInfo} for telemetry consumption.
  */
@@ -55,13 +55,10 @@ export class PythonStatusBar implements vscode.Disposable {
      * Python environment and active editor.
      */
     public async update(): Promise<void> {
-        if (!isAnsibleEditor(vscode.window.activeTextEditor)) {
-            this._item.hide();
-            return;
-        }
-
         try {
-            const activeUri = vscode.window.activeTextEditor?.document.uri;
+            const activeUri =
+                vscode.window.activeTextEditor?.document.uri ??
+                vscode.workspace.workspaceFolders?.[0]?.uri;
             const env = await this._envService.getEnvironment(activeUri);
             if (env) {
                 this._cachedDisplayName = env.displayName || env.name;

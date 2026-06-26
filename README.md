@@ -1,4 +1,4 @@
-# Ansible Environments
+# Ansible
 
 A VS Code extension for managing Ansible development environments, leveraging the [Microsoft Python Environments extension](https://github.com/microsoft/vscode-python-environments) API.
 
@@ -22,7 +22,7 @@ src/                # Extension host (views, panels, commands)
 
 ### Sidebar Views
 
-The extension adds an **Ansible Environments** panel to the Activity Bar with seven tree views:
+The extension adds an **Ansible** panel to the Activity Bar with seven tree views:
 
 #### Environment Managers
 
@@ -123,7 +123,7 @@ The extension includes a standalone MCP server (`@ansible/mcp-server`) that expo
 **Automatic Configuration:**
 
 1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-2. Run: **Ansible Environments: Configure Cursor MCP**
+2. Run: **Ansible: Configure Cursor MCP**
 3. Choose Global or Workspace configuration
 4. Restart Cursor
 

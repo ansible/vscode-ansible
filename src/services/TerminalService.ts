@@ -185,27 +185,46 @@ export class TerminalService {
         command: string,
         timeout: number,
     ): Promise<CommandResult> {
-        terminal.sendText(command);
-
-        const shellIntegration = (
-            terminal as {
-                shellIntegration?: {
-                    onDidEndCommandExecution?: (
-                        cb: (e: { exitCode: number | undefined }) => void,
-                    ) => { dispose(): void };
+        interface ShellIntegrationTerminal {
+            shellIntegration?: {
+                onDidEndCommandExecution?: (cb: (e: { exitCode: number | undefined }) => void) => {
+                    dispose(): void;
                 };
-            }
-        ).shellIntegration;
+            };
+        }
 
-        const onDidEndCommandExecution = shellIntegration?.onDidEndCommandExecution;
-        if (onDidEndCommandExecution) {
+        const getShellIntegration = () =>
+            (terminal as ShellIntegrationTerminal).shellIntegration?.onDidEndCommandExecution;
+
+        let onDidEnd = getShellIntegration();
+
+        if (!onDidEnd) {
+            const ready = await new Promise<boolean>((resolve) => {
+                const d = vscode.window.onDidChangeTerminalShellIntegration((e) => {
+                    if (e.terminal === terminal) {
+                        d.dispose();
+                        resolve(true);
+                    }
+                });
+                setTimeout(() => {
+                    d.dispose();
+                    resolve(false);
+                }, 5000);
+            });
+            if (ready) {
+                onDidEnd = getShellIntegration();
+            }
+        }
+
+        if (onDidEnd) {
+            const endListener = onDidEnd;
             return new Promise((resolve) => {
                 const timeoutId = setTimeout(() => {
                     listener.dispose();
                     resolve({ output: '', exitCode: undefined, success: false });
                 }, timeout);
 
-                const listener = onDidEndCommandExecution((e: { exitCode: number | undefined }) => {
+                const listener = endListener((e: { exitCode: number | undefined }) => {
                     clearTimeout(timeoutId);
                     listener.dispose();
                     resolve({
@@ -214,9 +233,12 @@ export class TerminalService {
                         success: e.exitCode === 0,
                     });
                 });
+
+                terminal.sendText(command);
             });
         }
 
+        terminal.sendText(command);
         return { output: '', exitCode: undefined, success: true };
     }
 

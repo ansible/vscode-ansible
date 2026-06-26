@@ -29,9 +29,9 @@ drive module order, exercises, and Canvas content. Do not parse the block below.
         { "title": "Build the extension", "description": "In the repo window: npm run compile && npm run build" },
         { "title": "Press F5 (Run Extension)", "description": "Opens Extension Development Host window." },
         { "title": "Open workspace folder", "description": "In dev host: File → Open Folder → your Ansible project path." },
-        { "title": "Open Ansible Environments", "description": "Click Ansible icon in Activity Bar.", "view": "ansibleDevToolsEnvManagers" },
+        { "title": "Open Ansible", "description": "Click Ansible icon in Activity Bar.", "view": "ansibleDevToolsEnvManagers" },
         { "title": "Scan sidebar views", "description": "Scroll through all tree views." },
-        { "title": "Check output channel", "description": "Output → Ansible Environments. Confirm no activation errors." }
+        { "title": "Check output channel", "description": "Output → Ansible. Confirm no activation errors." }
       ]
     },
     {
@@ -45,7 +45,7 @@ drive module order, exercises, and Canvas content. Do not parse the block below.
       "exercise": "Create a venv from the sidebar, install ansible-dev-tools, select the environment, and verify the Dev Tools tree populates.",
       "steps": [
         { "title": "Open Environment Managers", "command": "ansibleDevToolsEnvManagers.refresh", "view": "ansibleDevToolsEnvManagers" },
-        { "title": "Create virtual environment", "description": "Click + or Command Palette → 'Ansible Environments: Create Environment'. Enter a name (e.g. .venv).", "command": "ansibleDevToolsEnvManagers.create" },
+        { "title": "Create virtual environment", "description": "Click + or Command Palette → 'Ansible: Create Environment'. Enter a name (e.g. .venv).", "command": "ansibleDevToolsEnvManagers.create" },
         { "title": "Verify environment selected", "description": "Confirm the new venv appears in Environment Managers and the Python status bar updates.", "view": "ansibleDevToolsEnvManagers" },
         { "title": "Install ansible-dev-tools", "description": "In Dev Tools Packages view, click 'Install ansible-dev-tools'. Verify tree populates.", "command": "ansibleDevToolsPackages.install", "view": "ansibleDevToolsPackages" },
         { "title": "Inspect Dev Tools", "description": "Verify expected packages appear (ansible-lint, ansible-navigator, etc.).", "command": "ansibleDevToolsPackages.refresh", "view": "ansibleDevToolsPackages" },
@@ -214,7 +214,7 @@ drive module order, exercises, and Canvas content. Do not parse the block below.
         { "title": "Disable AI features", "description": "Toggle enableAiFeatures off; verify core views." },
         { "title": "Empty/error states", "description": "Note messaging when data or tools missing." },
         { "title": "Settings review", "description": "Search ansible in Settings." },
-        { "title": "Output channel", "description": "Review Ansible Environments logs." }
+        { "title": "Output channel", "description": "Review Ansible logs." }
       ]
     }
   ]

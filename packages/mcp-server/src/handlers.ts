@@ -1527,7 +1527,7 @@ export class McpToolHandler {
                     text:
                         `To create a virtual environment named "${name}", use the VS Code command:\n\n` +
                         '1. Open the Command Palette (Ctrl+Shift+P)\n' +
-                        '2. Run "Ansible Environments: Create Environment"\n' +
+                        '2. Run "Ansible: Create Environment"\n' +
                         `3. Enter "${name}" when prompted\n\n` +
                         'The extension will create the venv and select it automatically.\n\n' +
                         'Alternatively, run in a terminal:\n' +
