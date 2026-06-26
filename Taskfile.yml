@@ -231,13 +231,17 @@ tasks:
       - build
     env:
       TS_NODE_PROJECT: test/wdio/tsconfig.json
+    generates:
+      - out/coverage/wdio/lcov.info
     sources:
       - "{src,test}/**/*"
       - wdio.conf.ts
+      - tools/wdio-coverage.mts
     cmds:
       - "pnpm pretest:wdio"
       - "node tools/ensure-chromedriver.mts"
       - "{{.XVFB}}pnpm test:wdio"
+      - defer: { task: coverage }
     interactive: true
   unit:
     desc: Run unit tests with coverage report

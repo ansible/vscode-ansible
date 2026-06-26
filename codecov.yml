@@ -44,3 +44,4 @@ github_checks:
   annotations: true
 ignore:
   - ".agents/**"  # Exclude agent skill documentation from coverage
+  - "wdio.conf.ts"
