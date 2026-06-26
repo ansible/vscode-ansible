@@ -48,5 +48,13 @@ export { SchemaForm } from './components/SchemaForm';
 export { CreatorFormView } from './views/CreatorFormView';
 
 export type { PlaybookConfigBridge, PlaybookProgressBridge } from './bridge/playbook';
+export type {
+    DiagnosticsBridge,
+    DiagnosticsData,
+    DiagnosticsPython,
+    DiagnosticsAnsible,
+    DiagnosticsTool,
+} from './bridge/diagnostics';
 export { PlaybookConfigView } from './views/PlaybookConfigView';
 export { PlaybookProgressView } from './views/PlaybookProgressView';
+export { DiagnosticsView } from './views/DiagnosticsView';

@@ -2,7 +2,9 @@ import type * as vscode from 'vscode';
 
 /**
  * Shared environment data consumed by status bar items and future telemetry.
- * Both PythonStatusBar and AnsibleStatusBar populate subsets of this interface.
+ * Ansible fields come from LS metadata; Python fields come from the
+ * PythonEnvironmentService cache. Fields may be undefined until data
+ * is available.
  */
 export interface AnsibleEnvironmentInfo {
     /** Ansible core version string (e.g., "2.17.0"). */

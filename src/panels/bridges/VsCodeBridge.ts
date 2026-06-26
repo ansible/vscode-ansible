@@ -13,6 +13,8 @@ import type {
     ExecutionFinishedEvent,
     PlaybookConfigBridge,
     PlaybookProgressBridge,
+    DiagnosticsBridge,
+    DiagnosticsData,
 } from '@ansible/ui';
 import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/common';
 import { buildPlaybookCommand } from '@ansible/common';
@@ -33,7 +35,7 @@ type VsCodeApi = {
 /** Timeout for RPC requests in milliseconds. */
 const RPC_TIMEOUT_MS = 30_000;
 
-export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, PlaybookConfigBridge, PlaybookProgressBridge {
+export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, PlaybookConfigBridge, PlaybookProgressBridge, DiagnosticsBridge {
     enableAiFeatures = false;
     workspacePath = '';
     isGlobal = false;
@@ -239,5 +241,26 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, P
 
     analyzeWithAi(data: AiAnalyzeData): void {
         this._vscode.postMessage({ method: 'analyzeWithAi', params: { data } });
+    }
+
+    // DiagnosticsBridge
+    async getDiagnostics(): Promise<DiagnosticsData> {
+        return this._request('getDiagnostics');
+    }
+
+    changePythonEnvironment(): void {
+        this._vscode.postMessage({ method: 'changePythonEnvironment' });
+    }
+
+    upgradeDevTools(): void {
+        this._vscode.postMessage({ method: 'upgradeDevTools' });
+    }
+
+    resyncMetadata(): void {
+        this._vscode.postMessage({ method: 'resyncMetadata' });
+    }
+
+    openOutput(): void {
+        this._vscode.postMessage({ method: 'openOutput' });
     }
 }

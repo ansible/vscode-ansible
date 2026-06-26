@@ -16,6 +16,7 @@ import {
     CreatorFormView,
     PlaybookConfigView,
     PlaybookProgressView,
+    DiagnosticsView,
 } from '@ansible/ui';
 import type { SchemaNode } from '@ansible/ui';
 import { buildPreviewString } from '@ansible/common';
@@ -97,6 +98,8 @@ function App() {
                 return <PlaybookConfigView />;
             case 'playbook-progress':
                 return <PlaybookProgressView />;
+            case 'diagnostics':
+                return <DiagnosticsView />;
             default:
                 return <div>Unknown view: {viewName}</div>;
         }

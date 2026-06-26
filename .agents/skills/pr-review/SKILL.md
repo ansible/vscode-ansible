@@ -139,9 +139,19 @@ above should catch novel issues these don't cover.
 - **VS Code commands**: guard `node` parameters — Command Palette can
   invoke commands with `undefined` args even when `when` hides the menu
 - **MarkdownString**: use `appendText` for dynamic content,
-  `appendMarkdown` for static template text only
+  `appendMarkdown` for static template text only. Set `isTrusted` to
+  `{ enabledCommands: [...] }` — never `true` — to restrict which
+  command URIs can execute
 - **Runtime config guards**: if a feature is `when`-gated in
   `package.json`, also guard the handler at runtime
+- **Command manifest parity**: every command registered via
+  `vscode.commands.registerCommand()` must also appear in
+  `contributes.commands` in `package.json`, or it won't show in the
+  Command Palette. Check both directions — runtime ↔ manifest
+- **Async timeouts**: any request-response pattern (LS notifications,
+  RPC calls, tool execution) must have a timeout fallback. If the
+  response never arrives, the UI must not stay in a loading state
+  indefinitely
 - **Generated files**: after codegen, lint the full project — generated
   `.content.ts` files must pass prettier and typescript-eslint
 

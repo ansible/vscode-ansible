@@ -105,7 +105,10 @@ translate it:
 2. **Does this expose more than it should?** Check every log call,
    error message, and user-facing string. Does it contain user content,
    credentials, or internal state? Could a caller or log reader learn
-   something they shouldn't?
+   something they shouldn't? Also check every capability grant:
+   `isTrusted`, permission scopes, `enabledCommands`, CORS origins,
+   CSP directives. Does each grant the minimum necessary, or does it
+   open a wider surface than the code actually uses?
 
 3. **Would a caller be surprised?** Read every public function from
    the caller's perspective. Can it return a value the type doesn't
@@ -132,7 +135,12 @@ translate it:
    module: do all code paths use the same patterns (e.g., registry
    lookups vs hardcoded values)? Are exports named consistently
    (capitalization, prefixes)? Across the repo: do tsconfig targets,
-   engine floors, and conventions match sibling packages?
+   engine floors, and conventions match sibling packages? For VS Code
+   extensions: is every command registered in TypeScript also declared
+   in `contributes.commands`? Is every `when` clause, menu entry, and
+   keybinding backed by a registered command? Cross-artifact mismatches
+   (runtime registration vs manifest declaration) are the easiest to
+   miss and the most embarrassing to ship.
 
 8. **Would a constructed scenario break this?** For each public
    function, construct one realistic failure case: an edge-case
@@ -140,6 +148,11 @@ translate it:
    an empty-but-not-falsy value. Trace it through the code path.
    If it fails silently, sends a vacuous request, or produces a
    return value that violates the declared type, that's a finding.
+   Also construct *temporal* failures: what happens when an async
+   dependency never responds, times out, or responds after the
+   consumer has moved on? What happens when a state-change handler
+   updates one cache but not a sibling cache that shares the same
+   UI surface?
 
 9. **Do inherited contracts hold?** When extending a class or
    implementing an interface, check that the subclass honors the
@@ -148,7 +161,78 @@ translate it:
    needs dispose, EventEmitter needs cleanup). TypeScript enforces
    structure; runtime contracts include semantics.
 
-Only proceed to Step 4 after completing this review.
+Only proceed to Step 3b after completing this review.
+
+### Step 3b: Cold subagent review
+
+**This step is mandatory.** The self-review in Step 3 is necessary but
+insufficient — it suffers from confirmation bias because the reviewing
+agent wrote the code. Spin up a **read-only subagent** with no
+conversation history to review the diff cold.
+
+The subagent sees only the diff and the review questions. It has no
+memory of the intent, iterations, or trade-offs that led to the code.
+This forces it to read every line at face value — the same way Copilot
+or a human reviewer would.
+
+```
+Launch a Task subagent with:
+  subagent_type: "generalPurpose"
+  readonly: true
+  run_in_background: false
+```
+
+Use this prompt template (fill in the repository path and diff):
+
+````
+You are reviewing a pull request diff. You have no prior context about
+why these changes were made — review every line at face value.
+
+Repository: <absolute path to repo>
+Base branch: upstream/next
+
+Run `git diff upstream/next...HEAD` to get the full diff, then read
+every changed file in full (not just the diff hunks — you need
+surrounding context to evaluate contracts and consistency).
+
+Evaluate the diff against these 9 questions. For each question, either
+report a concrete finding (file, line, what's wrong, why it matters)
+or state "No findings." Do not pad with observations that aren't
+actionable.
+
+1. Does every statement mean what it says? (types, return values,
+   comments, docstrings — does the runtime honor them on every path?)
+2. Does this expose more than it should? (logs, errors, user strings,
+   capability grants like isTrusted, permission scopes, CSP)
+3. Would a caller be surprised? (nullable returns, hidden side effects,
+   undisclosed I/O, inconsistency with sibling functions)
+4. Is everything still true after this change? (prose vs code drift —
+   renamed symbols with old docstrings, changed behavior with old
+   descriptions)
+5. Are dependencies and versions pinned to intent?
+6. Is there dead weight? (unused imports, unreachable branches,
+   written-but-never-read variables)
+7. Is this internally and externally consistent? (patterns, naming,
+   cross-artifact parity — e.g., commands registered in TS must be
+   declared in package.json contributes.commands)
+8. Would a constructed scenario break this? (edge-case inputs,
+   empty-but-not-falsy values, temporal failures — async dependency
+   never responds, state handler updates one cache but not a sibling)
+9. Do inherited contracts hold? (interface implementations honor
+   runtime semantics, not just compiler-required members)
+
+Return ONLY findings. Format each as:
+  **[Q#] file:line — description**
+
+If there are no findings across all 9 questions, return:
+  "No findings."
+````
+
+**Act on every finding.** Fix the code, then re-run `npm run ci`.
+Do not dismiss findings without a clear technical justification
+documented in the self-review output.
+
+If the subagent returns "No findings", proceed to Step 4.
 
 ### Step 4: Commit with conventional commits
 
