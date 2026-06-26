@@ -39,7 +39,7 @@ export const config: WebdriverIO.Config = {
             {
                 cachePath: testRoot,
                 coverage: {
-                    enabled: !!process.env.WDIO_COVERAGE,
+                    enabled: process.env.WDIO_COVERAGE === '1',
                     reporter: ['lcov', 'text'],
                     reportsDirectory: './coverage/wdio',
                     include: ['dist/**'],

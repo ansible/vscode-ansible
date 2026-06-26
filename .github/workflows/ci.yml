@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload WDIO coverage to Codecov
         if: ${{ always() && hashFiles('coverage/wdio/lcov.info') != '' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: ./coverage/wdio/lcov.info
           flags: wdio
