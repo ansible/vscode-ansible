@@ -13,3 +13,4 @@ lib/
 .ansible/
 docs/.astro/
 docs/dist/
+packages/common/src/skills/*.content.ts

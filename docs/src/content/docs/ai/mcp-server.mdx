@@ -1,13 +1,168 @@
 ---
 title: MCP Server
-description: The Ansible MCP server -- exposing collection discovery, scaffolding, and playbook generation to AI agents.
+description: The Ansible MCP server — exposing collection discovery, scaffolding, and playbook generation to AI agents.
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 The Ansible MCP server implements the [Model Context Protocol](https://modelcontextprotocol.io/) to expose Ansible development capabilities to AI agents. It works with any MCP-compatible client, including GitHub Copilot, Cursor, Claude Code, and others.
 
-Content coming soon. This page will cover:
+## Available tools
 
-- What MCP is and why it matters for Ansible development
-- Available tools (collection discovery, plugin documentation, scaffolding, playbook generation)
-- Running the MCP server standalone (`ansible-environments-mcp`)
-- Using the MCP server through the VS Code extension
+### Discovery
+
+| Tool | Description |
+|------|-------------|
+| `search_ansible_plugins` | Search for plugins by keyword across all installed collections |
+| `get_plugin_documentation` | Get full documentation for an installed plugin |
+| `list_ansible_collections` | List all installed collections with versions |
+| `get_collection_plugins` | List all plugins in a specific collection |
+| `search_available_collections` | Search Galaxy and GitHub orgs for collections to install |
+| `list_source_collections` | List all collections from a specific source |
+| `get_galaxy_plugin_doc` | Get docs for a plugin from an uninstalled Galaxy collection |
+| `get_scm_plugin_doc` | Get docs for a plugin from a GitHub-hosted collection |
+
+### Task generation
+
+| Tool | Description |
+|------|-------------|
+| `generate_ansible_task` | Generate a task YAML for any plugin (one-shot) |
+| `build_ansible_task` | Interactively build a task with guided parameter collection |
+| `generate_ansible_playbook` | Generate a complete playbook with multiple tasks |
+
+### Execution environments
+
+| Tool | Description |
+|------|-------------|
+| `list_execution_environments` | List available EE container images |
+| `get_ee_details` | Get complete EE info (collections, Python packages, system tools) |
+
+### Scaffolding
+
+| Tool | Description |
+|------|-------------|
+| `get_ansible_creator_schema` | Get the full ansible-creator command schema |
+| `ac_*` (dynamic) | Scaffold collections, playbooks, plugins via ansible-creator |
+
+### Development tools
+
+| Tool | Description |
+|------|-------------|
+| `list_ansible_dev_tools` | List installed ansible-dev-tools packages |
+| `install_ansible_dev_tools` | Install ansible-dev-tools into the active Python environment |
+| `install_ansible_collection` | Install a collection using ade (ansible-dev-environment) |
+| `create_python_environment` | Create a Python venv for Ansible development |
+
+### Skills
+
+| Tool | Description |
+|------|-------------|
+| `skill_search` | Search available skills by keyword |
+| `skill_list` | List all available skills with metadata |
+| `skill_get` | Retrieve full skill content by ID |
+| `skill_list_sources` | List configured skill sources |
+
+### Guidance
+
+| Tool | Description |
+|------|-------------|
+| `get_ansible_best_practices` | Get coding guidelines and best practices |
+| `get_agent_onboarding` | Get a guide to all available tools and workflows |
+| `get_extension_walkthrough` | Interactive tour of capabilities |
+
+## Running standalone
+
+The MCP server is a single-file Node.js bundle with zero runtime dependencies:
+
+```bash
+node mcp-server.js
+```
+
+It communicates over stdio using the MCP JSON-RPC protocol.
+
+### Getting the server
+
+**From CI artifacts:** Every pull request produces a standalone `mcp-server.js` file (~950KB).
+
+**From the plugin:** Bundled at `servers/mcp-server.js` inside the [plugin package](/ai/plugin/).
+
+**Build from source:**
+```bash
+git clone https://github.com/ansible/vscode-ansible.git
+cd vscode-ansible && git checkout next
+npm ci && npm run build
+# Output: dist/mcp-server.js
+```
+
+## Configuration
+
+### Skill sources
+
+Configure additional skill sources via the `ANSIBLE_SKILL_SOURCES` environment variable:
+
+```json
+[
+  { "type": "builtin" },
+  { "type": "local", "path": "./skills" },
+  { "type": "github", "repo": "ansible-community/ai-forge" }
+]
+```
+
+### MCP client configuration
+
+<Tabs>
+  <TabItem label="Cursor (.cursor/mcp.json)">
+    ```json
+    {
+      "mcpServers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Claude Desktop">
+    ```json
+    {
+      "mcpServers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="VS Code (settings.json)">
+    ```json
+    {
+      "mcp": {
+        "servers": {
+          "ansible": {
+            "command": "node",
+            "args": ["/path/to/mcp-server.js"]
+          }
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Requirements
+
+- **Node.js >= 20**
+- **Python 3** with `ansible-core` installed
+- **Optional:** `ansible-dev-tools` for scaffolding (`ac_*` tools)
+- **Optional:** Container runtime (podman/docker) for execution environment tools
+
+## Design principles
+
+The MCP server follows [ADR-018](/development/architecture/) compliance:
+
+- **Intent-based naming** — tools named after user outcomes, not API endpoints
+- **Behavioral annotations** — `readOnlyHint`, `destructiveHint`, `idempotentHint` on every tool
+- **Structured errors** — machine-readable error codes with recoverability signals (`retry`, `escalate`, `fail`)
+- **Server-side validation** — all inputs validated regardless of LLM behavior

@@ -1,0 +1,122 @@
+---
+title: Ansible DevTools Plugin
+description: Install the Ansible DevTools plugin for Cursor, Claude Code, Codex, and other Open Plugin-compatible AI agent hosts.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The **Ansible DevTools Plugin** packages the MCP server, language server, and 13 built-in skills into a single distributable unit that any [Open Plugin](https://github.com/vercel-labs/open-plugin-spec)-compatible host can install.
+
+## What's included
+
+| Component | Description |
+|-----------|-------------|
+| **MCP server** | 25+ tools for plugin search, documentation, task generation, scaffolding, and execution environment management |
+| **Language server** | YAML completion, hover documentation, and diagnostics for Ansible files |
+| **13 skills** | Guided workflows for task building, playbook analysis, collection discovery, and more |
+
+All servers are bundled as single-file Node.js scripts with zero runtime dependencies beyond Node.js 20+.
+
+## Plugin vs extension
+
+If you use **VS Code or Cursor with the Ansible extension**, you already have all these capabilities plus the full IDE experience (tree views, webviews, language server integration, linting). The plugin is for **agent-only workflows** outside the extension.
+
+| Scenario | Use |
+|----------|-----|
+| Full IDE with tree views, webviews, linting | Install the VS Code extension |
+| Agent-only (Cursor without extension, Claude Code, Codex) | Install the plugin |
+| Terminal agent (Neovim, Windsurf, Zed) | Download standalone servers or use `npx skills add` |
+
+## Installation
+
+<Tabs>
+  <TabItem label="Cursor">
+    ```
+    /add-plugin ansible-devtools
+    ```
+
+    Or browse [cursor.com/marketplace](https://cursor.com/marketplace) and search for "ansible".
+  </TabItem>
+  <TabItem label="Claude Code">
+    ```bash
+    # Add the marketplace source
+    claude plugin marketplace add ansible/vscode-ansible
+
+    # Install the plugin
+    claude plugin install ansible-devtools
+    ```
+
+    For session-only testing:
+    ```bash
+    claude --plugin-dir /path/to/plugin
+    claude --plugin-url https://url/to/ansible-devtools-plugin.zip
+    ```
+  </TabItem>
+  <TabItem label="Codex">
+    ```bash
+    # Register the marketplace
+    codex plugins marketplace add ansible/vscode-ansible
+
+    # Install via TUI
+    codex  # then /plugins → select marketplace → install
+    ```
+  </TabItem>
+  <TabItem label="Local testing">
+    ```bash
+    # Cursor — symlink to local plugins directory
+    ln -s /path/to/repo ~/.cursor/plugins/local/ansible-devtools
+
+    # Claude Code — load directly
+    claude --plugin-dir /path/to/repo
+    ```
+
+    For development, build the servers first:
+    ```bash
+    npm run build
+    ```
+
+    The repo-root `.mcp.json` points to `dist/mcp-server.js` so the plugin loads from your local build.
+  </TabItem>
+</Tabs>
+
+## Testing from CI artifacts
+
+Every pull request produces a plugin zip as a CI artifact. To test a PR build:
+
+**Claude Code:**
+```bash
+claude --plugin-url https://github.com/ansible/vscode-ansible/actions/runs/XXXXX/artifacts/plugin
+```
+
+**Cursor:**
+1. Download the `plugin` artifact from the PR's Actions tab
+2. Unzip to `~/.cursor/plugins/local/ansible-devtools/`
+3. Run **Developer: Reload Window**
+
+## Requirements
+
+- **Node.js >= 20** (for the bundled servers)
+- **Python 3** with `ansible-core` installed (for plugin discovery, documentation, and linting)
+- **Optional:** `ansible-dev-tools` for full scaffolding support via `ansible-creator`
+
+## How it works
+
+The plugin follows the [Open Plugin Specification v1.0.0](https://github.com/vercel-labs/open-plugin-spec):
+
+```
+ansible-devtools/
+├── .plugin/plugin.json          # Vendor-neutral manifest
+├── .cursor-plugin/plugin.json   # Cursor-preferred manifest
+├── .claude-plugin/plugin.json   # Claude Code-preferred manifest
+├── skills/                      # 13 SKILL.md files (Agent Skills spec)
+│   ├── build-task/SKILL.md
+│   ├── explain-plugin/SKILL.md
+│   └── ...
+├── .mcp.json                    # MCP server configuration
+├── .lsp.json                    # Language server configuration
+└── servers/
+    ├── mcp-server.js            # Bundled MCP server (950KB)
+    └── language-server.js       # Bundled language server (1.3MB)
+```
+
+The host discovers skills at `skills/*/SKILL.md`, starts the MCP server from `.mcp.json`, and optionally starts the language server from `.lsp.json`. The `${PLUGIN_ROOT}` placeholder resolves to the plugin's install directory at runtime.

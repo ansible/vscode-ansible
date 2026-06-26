@@ -1,14 +1,162 @@
 ---
 title: Connecting AI Agents
-description: How to connect AI agents and coding assistants to the Ansible MCP server.
+description: How to connect AI agents and coding assistants to Ansible development tools.
 ---
 
-The Ansible MCP server works with any AI agent or coding assistant that supports the Model Context Protocol. This page will walk through connecting popular tools.
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Content coming soon. This page will cover:
+There are three ways to connect an AI agent to Ansible development tools, depending on your host and preferences:
 
-- Configuring GitHub Copilot (VS Code)
-- Configuring Cursor
-- Configuring Claude Code / Claude Desktop
-- Using `mcp-config.example.json` as a starting point
-- Tool discovery and capabilities
+| Path | Best for | What you get |
+|------|----------|--------------|
+| **Install the plugin** | Cursor, Claude Code, Codex | MCP server + language server + skills, zero config |
+| **Configure MCP manually** | Any MCP client (Neovim, Windsurf, Zed, Claude Desktop) | MCP server tools only |
+| **Install skills only** | Any of 68+ agents | Guided workflow instructions, no server |
+
+## Path 1: Install the plugin
+
+The fastest path — one command gives you everything. See the [Plugin page](/ai/plugin/) for details.
+
+<Tabs>
+  <TabItem label="Cursor">
+    ```
+    /add-plugin ansible-devtools
+    ```
+  </TabItem>
+  <TabItem label="Claude Code">
+    ```bash
+    claude plugin marketplace add ansible/vscode-ansible
+    claude plugin install ansible-devtools
+    ```
+  </TabItem>
+</Tabs>
+
+## Path 2: Configure MCP manually
+
+For hosts that support MCP but not the Open Plugin format, point your MCP config at the server binary.
+
+### Get the server
+
+Download `mcp-server.js` from the latest [CI build](https://github.com/ansible/vscode-ansible/actions) or build from source:
+
+```bash
+git clone https://github.com/ansible/vscode-ansible.git
+cd vscode-ansible && git checkout next
+npm ci && npm run build
+# Output: dist/mcp-server.js (~950KB, zero dependencies)
+```
+
+### Configure your host
+
+<Tabs>
+  <TabItem label="Cursor">
+    Create `.cursor/mcp.json` in your project:
+    ```json
+    {
+      "mcpServers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Claude Code">
+    Add to `.claude/settings.json`:
+    ```json
+    {
+      "mcpServers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Claude Desktop">
+    Add to your Claude Desktop config:
+    ```json
+    {
+      "mcpServers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="VS Code Copilot">
+    Add to `.vscode/mcp.json`:
+    ```json
+    {
+      "servers": {
+        "ansible": {
+          "command": "node",
+          "args": ["/path/to/mcp-server.js"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Neovim (mcp.nvim)">
+    ```lua
+    require('mcp').setup({
+      servers = {
+        ansible = {
+          command = 'node',
+          args = { '/path/to/mcp-server.js' },
+        },
+      },
+    })
+    ```
+  </TabItem>
+</Tabs>
+
+## Path 3: Install skills only
+
+For agents that support skills but not MCP servers, use the universal `skills` CLI:
+
+```bash
+# Install to all detected agents
+npx skills add ansible/vscode-ansible
+
+# Install to a specific agent
+npx skills add ansible/vscode-ansible -a windsurf
+npx skills add ansible/vscode-ansible -a zed
+npx skills add ansible/vscode-ansible -a gemini-cli
+```
+
+This installs 13 SKILL.md files that guide the agent through Ansible workflows. The agent uses its own capabilities (file reading, shell commands) rather than MCP tools. See the [Skills page](/ai/skills/) for the full catalog.
+
+## Requirements
+
+All paths require:
+
+- **Node.js >= 20** (for the MCP server and/or language server)
+- **Python 3** with `ansible-core` installed (for plugin discovery and documentation)
+- **Optional:** `ansible-dev-tools` for full scaffolding support
+
+## Verifying the connection
+
+Once connected, ask your agent:
+
+> "What Ansible tools do you have available?"
+
+It should list the MCP tools. Then try:
+
+> "Search for Ansible collections related to Kubernetes"
+
+This exercises `search_available_collections` and confirms the full pipeline (Node.js server → Python ansible tooling → Galaxy API) is working.
+
+## Troubleshooting
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| "Cannot find module" | Wrong path to server JS | Verify the path in your MCP config points to the actual file |
+| "ansible-doc: command not found" | Python/ansible-core not in PATH | Ensure `ansible-core` is installed and the `ansible-doc` binary is on PATH |
+| "No collections found" | No collections installed | Run `pip install ansible-core` for built-in collections, or install specific ones |
+| Tools listed but returning errors | Server started but Python env missing | Check that the terminal environment where the server runs has Python + ansible-core |
+| Skills not appearing | Wrong install path | Run `npx skills list` to verify installation locations |

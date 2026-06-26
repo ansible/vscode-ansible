@@ -1,0 +1,123 @@
+---
+title: Agent Skills
+description: Built-in AI agent skills for Ansible development workflows, installable across 68+ coding agents.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Agent skills are reusable instruction sets that guide AI agents through specialized Ansible development tasks. They follow the [Agent Skills specification](https://agentskills.io/specification) — each skill is a `SKILL.md` file with YAML frontmatter and structured instructions.
+
+## Built-in skills
+
+The Ansible DevTools project ships 13 built-in skills covering the core development workflows:
+
+| Skill | Category | Description |
+|-------|----------|-------------|
+| `build-task` | scaffold | Interactively create an Ansible task using a specific plugin |
+| `explain-plugin` | domain | Explain a plugin with practical examples and parameter guidance |
+| `summarize-playbook` | workflow | Comprehensive analysis of a playbook including structure and collection audit |
+| `summarize-collection` | domain | Summarize a specific Ansible collection's capabilities |
+| `summarize-collections` | domain | Overview of all installed collections |
+| `overview-collection-sources` | domain | Overview of configured collection sources (Galaxy, GitHub orgs) |
+| `summarize-galaxy-source` | domain | Summarize collections available from Galaxy |
+| `summarize-github-source` | domain | Summarize collections from a GitHub organization |
+| `summarize-execution-envs` | domain | Overview of available execution environments |
+| `detail-execution-env` | domain | Detailed information about a specific execution environment |
+| `overview-creator` | scaffold | Overview of ansible-creator scaffolding capabilities |
+| `walkthrough-creator-command` | scaffold | Guided walkthrough of a specific creator command |
+| `analyze-task-result` | workflow | Analyze the result of a task execution |
+
+## Installing skills
+
+### Via the plugin
+
+If you install the [Ansible DevTools Plugin](/ai/plugin/), skills are included automatically and discoverable by the host.
+
+### Via `npx skills` (68+ agents)
+
+The [`skills` CLI](https://github.com/vercel-labs/skills) installs skills to any supported coding agent:
+
+```bash
+# Install all Ansible skills to detected agents
+npx skills add ansible/vscode-ansible
+
+# List available skills first
+npx skills add ansible/vscode-ansible --list
+
+# Install specific skills
+npx skills add ansible/vscode-ansible --skill build-task --skill explain-plugin
+
+# Install to specific agents
+npx skills add ansible/vscode-ansible -a cursor -a claude-code
+
+# Install globally (available across all projects)
+npx skills add ansible/vscode-ansible -g
+```
+
+This works with Cursor, Claude Code, Codex, Windsurf, Zed, Neovim (Neovate), Gemini CLI, GitHub Copilot, and [60+ more agents](https://github.com/vercel-labs/skills#supported-agents).
+
+### Via the MCP server
+
+The MCP server exposes skills programmatically through four tools:
+
+- `skill_search` — search skills by keyword
+- `skill_list` — list all available skills with metadata
+- `skill_get` — retrieve full skill content by ID
+- `skill_list_sources` — list configured skill sources
+
+## Skill format
+
+Each skill is a directory containing a `SKILL.md` file:
+
+```
+skills/build-task/
+└── SKILL.md
+```
+
+The file uses YAML frontmatter for metadata and markdown for instructions:
+
+```markdown
+---
+name: Build Ansible Task
+description: Interactively create an Ansible task using a specific plugin
+tags: [tasks, plugins, generation]
+category: scaffold
+triggers: [build task, create task, new task, task builder]
+---
+
+# Build Ansible Task
+
+Instructions for the agent...
+```
+
+### Frontmatter fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Human-readable skill name |
+| `description` | Yes | Brief explanation of what the skill does |
+| `tags` | Recommended | Discovery and categorization tags |
+| `category` | Recommended | One of: `scaffold`, `domain`, `workflow` |
+| `triggers` | Recommended | Phrases that should activate this skill |
+
+### Three-level progressive disclosure
+
+Skills support three levels of context loading (per [ADR-018](/development/architecture/)):
+
+1. **Level 1 — Frontmatter:** Name + description always in context (for discovery)
+2. **Level 2 — Body:** Full SKILL.md loaded when the agent decides to apply the skill
+3. **Level 3 — References:** Additional files loaded on demand during the workflow
+
+## Custom skill sources
+
+The MCP server loads skills from multiple sources configured via the `ANSIBLE_SKILL_SOURCES` environment variable:
+
+```json
+[
+  { "type": "builtin" },
+  { "type": "local", "path": "/path/to/custom/skills" },
+  { "type": "github", "repo": "ansible-community/ai-forge" }
+]
+```
+
+This enables teams to maintain organization-specific skills alongside the built-in set.

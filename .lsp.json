@@ -1,0 +1,16 @@
+{
+  "ansible-language-server": {
+    "command": "node",
+    "args": ["${PLUGIN_ROOT}/dist/language-server.js", "--stdio"],
+    "extensionToLanguage": {
+      ".yml": "yaml",
+      ".yaml": "yaml"
+    },
+    "initializationOptions": {
+      "ansible": {
+        "validation": { "enabled": true },
+        "completion": { "enabled": true }
+      }
+    }
+  }
+}

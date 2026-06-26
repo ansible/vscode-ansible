@@ -142,9 +142,36 @@ jobs:
       - name: Build VSIX
         run: npm exec vsce -- package --no-dependencies
 
+      - name: Build servers
+        run: npm run build
+
+      - name: Build plugin
+        run: ./scripts/build-plugin.sh
+
       - name: Upload VSIX
         uses: actions/upload-artifact@v7
         with:
           name: vsix
           path: "*.vsix"
+          retention-days: 14
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin
+          path: dist/ansible-devtools-plugin.zip
+          retention-days: 14
+
+      - name: Upload MCP server
+        uses: actions/upload-artifact@v7
+        with:
+          name: mcp-server
+          path: dist/mcp-server.js
+          retention-days: 14
+
+      - name: Upload language server
+        uses: actions/upload-artifact@v7
+        with:
+          name: language-server
+          path: dist/language-server.js
           retention-days: 14
