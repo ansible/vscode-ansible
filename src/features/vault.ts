@@ -457,6 +457,7 @@ const handleLiteralMultiline = (
 const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
   const text = prepareMultiline(lines, leadingSpacesCount).reduce(
     foldedMultilineReducer,
+    "",
   );
   const chompingStyle = getChompingStyle(lines);
   if (chompingStyle === ChompingStyle.Strip) {
@@ -496,20 +497,18 @@ const reindentText = (
   const leadingSpacesCount = (indentationLevel + 1) * tabSize;
   const lines = text.split("\n");
   let trailingNewlines = 0;
-  for (const line of lines.reverse()) {
-    if (line === "") {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i] === "") {
       trailingNewlines++;
     } else {
       break;
     }
   }
-  lines.reverse();
   if (lines.length > 1) {
     const leadingWhitespaces = " ".repeat(leadingSpacesCount);
     const rejoinedLines = lines
       .map((line) => `${leadingWhitespaces}${line}`)
       .join("\n");
-    rejoinedLines.replace(/\n$/, "");
     if (trailingNewlines > 1) {
       return `${MultilineStyle.Literal}${ChompingStyle.Keep}\n${rejoinedLines}`;
     } else if (trailingNewlines === 0) {

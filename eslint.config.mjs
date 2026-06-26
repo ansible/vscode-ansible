@@ -1,5 +1,5 @@
 // @ts-check
-// cspell: ignore tseslint
+// cspell: ignore tseslint sonarjs
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
+import { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
 const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- local CJS plugin loaded via require
@@ -21,16 +22,15 @@ const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
-  ...[
-    importPlugin.flatConfigs.recommended,
-    eslint.configs.recommended,
-    prettierRecommendedConfig,
-    tseslint.configs.recommended,
-    tseslint.configs.strict,
-    // TODO: enable later
-    // tseslint.configs.stylistic,
-    // tseslint.configs.strictTypeChecked,
-  ],
+  importPlugin.flatConfigs.recommended,
+  eslint.configs.recommended,
+  sonarjsConfigs.recommended,
+  prettierRecommendedConfig,
+  tseslint.configs.recommended,
+  tseslint.configs.strict,
+  // TODO: enable later
+  // tseslint.configs.stylistic,
+  // tseslint.configs.strictTypeChecked,
   {
     /** Files that use type-aware linting (TS/JS in src, packages, test). */
     files: ["**/*.{js,mjs,ts,tsx,mts,cjs}"],
@@ -95,6 +95,38 @@ export default defineConfig(
       "@typescript-eslint/restrict-template-expressions": "error",
       "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-return": "error",
+      // Ignored on purpose
+      "sonarjs/no-os-command-from-path": "off",
+      "sonarjs/publicly-writable-directories": "off",
+      // TODO: address later (rules with 5+ violations)
+      "sonarjs/cognitive-complexity": "off",
+      "sonarjs/prefer-regexp-exec": "off",
+      "sonarjs/no-trivial-assertions": "off",
+      "sonarjs/super-linear-regex": "off",
+      "sonarjs/public-static-readonly": "off",
+      "sonarjs/different-types-comparison": "off",
+      "sonarjs/prefer-specific-assertions": "off",
+      "sonarjs/no-clear-text-protocols": "off",
+      "sonarjs/todo-tag": "off",
+      "sonarjs/no-redundant-jump": "off",
+      "sonarjs/constructor-for-side-effects": "off",
+      "sonarjs/no-undefined-argument": "off",
+      "sonarjs/no-nested-conditional": "off",
+      "sonarjs/prefer-single-boolean-return": "off",
+      "sonarjs/no-floating-point-equality": "off",
+      // TODO: address later (fewer violations but non-trivial fixes)
+      "sonarjs/class-name": "off",
+      "sonarjs/no-try-promise": "off",
+      "sonarjs/no-skipped-tests": "off",
+      "sonarjs/no-nested-template-literals": "off",
+      "sonarjs/no-nested-assignment": "off",
+      "sonarjs/no-control-regex": "off",
+      "sonarjs/no-all-duplicated-branches": "off",
+      "sonarjs/post-message": "off",
+      "sonarjs/no-small-switch": "off",
+      "sonarjs/no-async-constructor": "off",
+      "sonarjs/function-return-type": "off",
+      "sonarjs/fixme-tag": "off",
     },
     settings: {
       // workaround for vscode imports in test files

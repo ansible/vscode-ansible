@@ -1119,6 +1119,7 @@
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-sonarjs": "^4.1.0",
     "express": "^5.2.1",
     "find-process": "^2.1.1",
     "glob": "^13.0.6",

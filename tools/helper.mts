@@ -153,7 +153,7 @@ function findPackagedVsix(): string[] {
     return [];
   }
   return names
-    .filter((name) => /^ansible-[0-9].*\.vsix$/.test(name))
+    .filter((name) => /^ansible-\d.*\.vsix$/.test(name))
     .map((name) => join("out", name));
 }
 

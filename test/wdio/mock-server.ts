@@ -151,6 +151,7 @@ export function start(port: number): Promise<void> {
   }
   return new Promise((resolve, reject) => {
     const app = express();
+    app.disable("x-powered-by");
     app.use(express.json());
 
     const routes: Array<[string, "get" | "post"]> = [
