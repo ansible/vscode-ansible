@@ -9,7 +9,7 @@ vars:
 tasks:
   pnpm:
     cmds:
-      - pnpm -r install --frozen-lockfile
+      - pnpm -r install --frozen-lockfile --reporter append-only
     deps:
       - mise
     dir: "{{ .TASKFILE_DIR }}"
@@ -29,6 +29,9 @@ tasks:
       - bash ./tools/uv.sh
     deps:
       - mise
+    vars:
+      VIRTUAL_ENV:
+        sh: echo "${HOME}/.local/share/virtualenvs/vsa"
     generates:
       - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
       - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"

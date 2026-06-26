@@ -17,8 +17,6 @@ env:
   # Overridden by some specific jobs
   CODE_VERSION: max
 vars:
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
     # keep the space after log filename as it is needed.
@@ -44,6 +42,7 @@ tasks:
       - git clean -dxf
   finish:
     desc: Commands to run at the end of build and test processes
+    platforms: [linux, darwin]
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
@@ -155,7 +154,7 @@ tasks:
     desc: Lint the project
     interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v --color=always"
+      - uv run prek run -a -v --color=always
       - defer: { task: finish }
     silent: true
     sources:
@@ -331,6 +330,7 @@ tasks:
       - defer: tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log
   coverage:
     desc: Consolidate and filter coverage reports
+    platforms: [linux, darwin]
     sources:
       - out/coverage/*/lcov.info
     generates:
