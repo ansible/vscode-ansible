@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/dist/mcp-server.js"],
+      "env": {
+        "ANSIBLE_SKILL_SOURCES": "[{\"type\":\"local\",\"path\":\"${PLUGIN_ROOT}/skills\"}]"
+      }
+    }
+  }
+}

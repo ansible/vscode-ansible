@@ -1,0 +1,138 @@
+---
+title: Language Server
+description: Use the Ansible language server standalone in any LSP-compatible editor — Neovim, Zed, Helix, Emacs, and more.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Ansible language server provides YAML completion, hover documentation, and diagnostics for Ansible playbooks, roles, and task files. It implements the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) and works with any LSP-compatible editor.
+
+## Capabilities
+
+| Feature | Description |
+|---------|-------------|
+| **Completion** | Module names, parameter names, parameter values (choices), Jinja2 filters |
+| **Hover** | Module documentation, parameter descriptions, and defaults on hover |
+| **Diagnostics** | YAML syntax errors, unknown modules, missing required parameters |
+| **Semantic tokens** | Syntax highlighting for Ansible-specific constructs |
+
+## Getting the server
+
+### From CI artifacts
+
+Every pull request produces a standalone `language-server.js` file as a CI artifact. Download it from the Actions tab.
+
+### From the plugin
+
+If you install the [Ansible DevTools Plugin](/ai/plugin/), the language server is bundled at `servers/language-server.js` inside the plugin directory.
+
+### Build from source
+
+```bash
+git clone https://github.com/ansible/vscode-ansible.git
+cd vscode-ansible
+git checkout next
+npm ci
+npm run build
+# Output: dist/language-server.js (single file, ~1.3MB)
+```
+
+## Running standalone
+
+```bash
+node language-server.js --stdio
+```
+
+The server communicates over stdio using JSON-RPC (standard LSP transport). It requires:
+
+- **Node.js >= 20**
+- **Python 3** with `ansible-core` installed (for module discovery and documentation)
+
+## Editor configuration
+
+<Tabs>
+  <TabItem label="Neovim (nvim-lspconfig)">
+    ```lua
+    local lspconfig = require('lspconfig')
+    local configs = require('lspconfig.configs')
+
+    configs.ansible_ls = {
+      default_config = {
+        cmd = { 'node', '/path/to/language-server.js', '--stdio' },
+        filetypes = { 'yaml', 'yaml.ansible' },
+        root_dir = lspconfig.util.root_pattern(
+          'ansible.cfg', '.ansible-lint', 'galaxy.yml', 'playbooks/'
+        ),
+        settings = {
+          ansible = {
+            validation = { enabled = true },
+            completion = { enabled = true },
+          },
+        },
+      },
+    }
+
+    lspconfig.ansible_ls.setup({})
+    ```
+  </TabItem>
+  <TabItem label="Zed">
+    In `.zed/settings.json`:
+    ```json
+    {
+      "lsp": {
+        "ansible-language-server": {
+          "binary": {
+            "path": "node",
+            "arguments": ["/path/to/language-server.js", "--stdio"]
+          }
+        }
+      },
+      "languages": {
+        "YAML": {
+          "language_servers": ["ansible-language-server"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Helix">
+    In `~/.config/helix/languages.toml`:
+    ```toml
+    [[language]]
+    name = "yaml"
+    language-servers = ["ansible-language-server"]
+
+    [language-server.ansible-language-server]
+    command = "node"
+    args = ["/path/to/language-server.js", "--stdio"]
+    ```
+  </TabItem>
+  <TabItem label="Emacs (eglot)">
+    ```elisp
+    (with-eval-after-load 'eglot
+      (add-to-list 'eglot-server-programs
+        '(yaml-mode . ("node" "/path/to/language-server.js" "--stdio"))))
+    ```
+  </TabItem>
+  <TabItem label="Open Plugin (.lsp.json)">
+    For hosts that support the Open Plugin LSP component:
+    ```json
+    {
+      "ansible-language-server": {
+        "command": "node",
+        "args": ["${PLUGIN_ROOT}/servers/language-server.js", "--stdio"],
+        "extensionToLanguage": {
+          ".yml": "yaml",
+          ".yaml": "yaml"
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Relationship to the VS Code extension
+
+The VS Code extension bundles and manages the language server automatically — no manual configuration needed. The standalone server is for editors that don't support VS Code extensions but do support LSP.
+
+Both use the same codebase (`packages/language-server/`) and produce identical behavior.

@@ -1,0 +1,23 @@
+{
+  "name": "ansible-devtools",
+  "version": "0.0.1",
+  "description": "Ansible development toolkit — plugin discovery, documentation, task generation, scaffolding, and execution environments for AI agents.",
+  "author": {
+    "name": "Red Hat Ansible DevTools",
+    "url": "https://github.com/ansible/vscode-ansible"
+  },
+  "homepage": "https://ansible.readthedocs.io/projects/vscode-ansible/",
+  "repository": "https://github.com/ansible/vscode-ansible",
+  "license": "MIT",
+  "keywords": [
+    "ansible",
+    "automation",
+    "devtools",
+    "collections",
+    "galaxy",
+    "playbook",
+    "task-generation",
+    "execution-environments",
+    "infrastructure-as-code"
+  ]
+}
