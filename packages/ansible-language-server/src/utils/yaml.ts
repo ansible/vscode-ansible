@@ -54,7 +54,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
   ): AncestryBuilder<X> {
     this._index--;
     if (isPair(this.get())) {
-      if (!type || !(type === Pair.prototype.constructor)) {
+      if (!type || type !== Pair.prototype.constructor) {
         this._index--;
       }
     }
@@ -287,7 +287,7 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     // traverse the YAML up through the Ansible blocks
     const builder = new AncestryBuilder(path).parent(YAMLSeq).parent(YAMLMap);
     const key = builder.getStringKey();
-    if (key && /^block|rescue|always$/.test(key)) {
+    if (key && /^(?:block|rescue|always)$/.test(key)) {
       declaredCollections.push(...getDeclaredCollectionsForMap(builder.get()));
       path = builder.getPath();
     } else {

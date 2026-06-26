@@ -133,8 +133,7 @@ describe(__filename, function () {
   describe("'expandPath()' utility functions for the content creator", function () {
     expandPathTests.forEach(({ name, pathUrl, expected }) => {
       it(`should provide details for ${name}`, function () {
-        const result = expandPath(pathUrl);
-        assert.equal(result, expected);
+        expect(expandPath(pathUrl)).toBe(expected);
       });
     });
   });

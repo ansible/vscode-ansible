@@ -48,7 +48,7 @@ describe("MCP Tool InputSchema Validation", () => {
         toolsWithSchema.push(toolName);
       }
     }
-    return toolsWithSchema.sort();
+    return toolsWithSchema.sort((a, b) => a.localeCompare(b));
   }
 
   /**
