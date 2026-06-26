@@ -1201,7 +1201,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
     "vitest": "^3.1.1",
-    "wdio-vscode-service": "github:cidrblock/wdio-vscode-service#0d188b6"
+    "wdio-vscode-service": "github:cidrblock/wdio-vscode-service#a3cf6cc"
   },
   "dependencies": {
     "@ansible/common": "*",
