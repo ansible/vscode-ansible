@@ -7,7 +7,7 @@
  *   node tools/helper.mts --package
  *   node tools/helper.mts --publish
  */
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import {
   copyFileSync,
   linkSync,
@@ -35,16 +35,25 @@ function pySplit(s: string, sep: string, maxsplit: number): string[] {
   return [head, ...rest];
 }
 
-function getTags(cmd: string): string {
+let warnedMissingTags = false;
+
+function git(...args: string[]): string {
+  return execFileSync("git", args, { encoding: "utf8" }).trimEnd();
+}
+
+function getTags(match: string): string {
   try {
-    return execSync(cmd, { encoding: "utf8", shell: "/bin/sh" }).trimEnd();
+    return git("describe", "--dirty", "--tags", "--long", "--match", match);
   } catch {
+    if (!warnedMissingTags) {
+      warnedMissingTags = true;
+      console.warn(
+        "This repository is missing tags. Fetch tags from upstream repository.",
+      );
+    }
     const now = new Date();
     const yy = now.getFullYear() % 100;
     const month = now.getMonth() + 1;
-    console.warn(
-      "This repository is missing tags. Fetch tags from upstream repository.",
-    );
     return `v${String(yy).padStart(2, "0")}.${month}.1-1-no_tags`;
   }
 }
@@ -52,14 +61,14 @@ function getTags(cmd: string): string {
 /** Best-effort tag sync when a git remote exists (no-op in shallow/offline contexts). */
 function fetchTagsIfPossible(): void {
   try {
-    execSync("git ls-remote", {
+    execFileSync("git", ["ls-remote"], {
       stdio: ["ignore", "ignore", "ignore"],
     });
-    execSync("git fetch --tags", {
+    execFileSync("git", ["fetch", "--tags"], {
       stdio: ["ignore", "ignore", "ignore"],
     });
   } catch {
-    console.warn("ignored git remote command");
+    // offline or shallow clone; version resolution still proceeds
   }
 }
 
@@ -73,7 +82,7 @@ function resolveVersion(): ResolvedVersion {
   fetchTagsIfPossible();
 
   let preRelease = false;
-  let result = getTags('git describe --dirty --tags --long --match "v*.*"');
+  let result = getTags("v*.*");
   let gitTag = result;
   const firstParts = pySplit(gitTag, "-", 2);
   let tag = firstParts[0] ?? "";
@@ -84,9 +93,11 @@ function resolveVersion(): ResolvedVersion {
 
   if (suffix.includes("-dirty") || commitsSince !== "0") {
     preRelease = true;
-    result = getTags('git describe --dirty --tags --long --match "v*.*.0"');
+    result = getTags("v*.*.0");
     gitTag = result;
-    tag = pySplit(gitTag, "-", 2)[0] ?? "";
+    const secondParts = pySplit(gitTag, "-", 2);
+    tag = secondParts[0] ?? "";
+    const secondSuffix = secondParts[2] ?? "";
     version = tag.slice(1);
     versionInfo = version.split(".").map((x) => Number.parseInt(x, 10));
 
@@ -102,22 +113,33 @@ function resolveVersion(): ResolvedVersion {
 
     let lastTagTimestamp: number;
     let lastCommitTimestamp: number;
-    try {
-      lastTagTimestamp = Number.parseInt(
-        execSync(`git -P log -1 --format=%ct ${tag}`, {
-          encoding: "utf8",
-        }).trimEnd(),
-        10,
-      );
-      lastCommitTimestamp = Number.parseInt(
-        execSync("git -P show --no-patch --format=%ct HEAD", {
-          encoding: "utf8",
-        }).trimEnd(),
-        10,
-      );
-    } catch {
+    if (suffix.includes("no_tags") || secondSuffix.includes("no_tags")) {
       lastTagTimestamp = 1_721_335_286;
       lastCommitTimestamp = 1_722_605_520;
+    } else {
+      try {
+        lastTagTimestamp = Number.parseInt(
+          execFileSync("git", ["-P", "log", "-1", "--format=%ct", tag], {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"],
+          }).trimEnd(),
+          10,
+        );
+        lastCommitTimestamp = Number.parseInt(
+          execFileSync(
+            "git",
+            ["-P", "show", "--no-patch", "--format=%ct", "HEAD"],
+            {
+              encoding: "utf8",
+              stdio: ["ignore", "pipe", "ignore"],
+            },
+          ).trimEnd(),
+          10,
+        );
+      } catch {
+        lastTagTimestamp = 1_721_335_286;
+        lastCommitTimestamp = 1_722_605_520;
+      }
     }
     versionInfo[2] = lastCommitTimestamp - lastTagTimestamp;
   }
@@ -140,9 +162,13 @@ function usage(): void {
 }
 
 function run(parts: string[]): void {
-  const cmd = parts.filter((p) => p.length > 0).join(" ");
-  console.error(`run: ${cmd}`);
-  execSync(cmd, { stdio: "inherit" });
+  const args = parts.filter((p) => p.length > 0);
+  const command = args[0];
+  if (command === undefined) {
+    throw new Error("empty command");
+  }
+  console.error(`run: ${args.join(" ")}`);
+  execFileSync(command, args.slice(1), { stdio: "inherit" });
 }
 
 function findPackagedVsix(): string[] {

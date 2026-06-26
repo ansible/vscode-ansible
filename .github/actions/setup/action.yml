@@ -30,13 +30,6 @@ runs:
           ${{ github.workspace }}/.cache/uv
         key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.id }}-${{ hashFiles('uv.lock', '.python-version') }}
 
-    - name: Enable caching for prek
-      if: ${{ inputs.prek == '1' }}
-      uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
-      with:
-        path: ~/.cache/prek/
-        key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
-
     - name: Get pnpm store directory
       id: pnpm-cache-dir-path
       run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
