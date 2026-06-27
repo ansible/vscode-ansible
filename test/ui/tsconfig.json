@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "ES2020",
-    "lib": ["ES2020"],
-    "types": ["node", "mocha", "vscode", "@wdio/globals/types", "wdio-vscode-service"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node", "mocha", "@wdio/globals/types", "wdio-vscode-service"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

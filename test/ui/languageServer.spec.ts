@@ -23,7 +23,7 @@ describe('Ansible Language Server e2e', () => {
             return editor?.document.languageId;
         });
 
-        await expect(languageId).toBe('ansible');
+        expect(languageId).toBe('ansible');
     });
 
     it('should start the Ansible Language Server', async () => {
@@ -41,14 +41,14 @@ describe('Ansible Language Server e2e', () => {
         // The output channel may not be accessible as a text document in all VS Code versions.
         // Fall back to checking that the language client started via the VS Code API.
         if (outputText) {
-            await expect(outputText).toContain('Ansible Language Server started');
+            expect(outputText).toContain('Ansible Language Server started');
         } else {
             // Verify the language server client is registered by checking active extensions
             const isActive: boolean = await browser.executeWorkbench((vscode: typeof VsCode) => {
                 const ext = vscode.extensions.getExtension('redhat.ansible');
                 return ext?.isActive ?? false;
             });
-            await expect(isActive).toBe(true);
+            expect(isActive).toBe(true);
         }
     });
 
@@ -80,7 +80,7 @@ describe('Ansible Language Server e2e', () => {
             fixtureUri,
         );
 
-        await expect(completionTriggered).toBe(true);
+        expect(completionTriggered).toBe(true);
 
         // Give the suggest widget time to appear, then dismiss it
         await browser.pause(1500);
@@ -100,6 +100,6 @@ describe('Ansible Language Server e2e', () => {
             return editor.document.languageId === 'ansible';
         });
 
-        await expect(hasTokenization).toBe(true);
+        expect(hasTokenization).toBe(true);
     });
 });

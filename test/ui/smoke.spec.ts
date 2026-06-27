@@ -2,8 +2,8 @@ import { browser } from '@wdio/globals';
 import type * as VsCode from 'vscode';
 
 describe('VS Code UI smoke test', () => {
-    it('should launch a VS Code session', async () => {
-        await expect(browser.sessionId).toBeDefined();
+    it('should launch a VS Code session', () => {
+        expect(browser.sessionId).toBeDefined();
     });
 
     it('should show the Ansible activity bar icon', async () => {
@@ -16,7 +16,7 @@ describe('VS Code UI smoke test', () => {
         // a previous spec changed the activity bar state in the same session.
         const visible = titles.includes('Ansible');
         if (visible) {
-            await expect(titles).toContain('Ansible');
+            expect(titles).toContain('Ansible');
             return;
         }
 
@@ -34,6 +34,6 @@ describe('VS Code UI smoke test', () => {
                 (c) => c.title === 'Ansible',
             );
         });
-        await expect(contributed).toBe(true);
+        expect(contributed).toBe(true);
     });
 });

@@ -30,29 +30,29 @@ describe('Language Server full stack e2e', function () {
         this.timeout(600_000);
     });
 
-    it('should create a virtual environment', async function () {
+    it('should create a virtual environment', function () {
         this.timeout(30_000);
 
         if (fs.existsSync(VENV_PYTHON)) {
             // Reuse cached venv from a prior run
             const version = shell(`"${VENV_PYTHON}" --version`);
-            await expect(version).toContain('Python');
+            expect(version).toContain('Python');
             return;
         }
 
         shell(`python3 -m venv "${VENV_DIR}"`);
-        await expect(fs.existsSync(VENV_PYTHON)).toBe(true);
+        expect(fs.existsSync(VENV_PYTHON)).toBe(true);
 
         shell(`"${VENV_BIN}/pip" install --upgrade pip`);
     });
 
-    it('should install ansible-dev-tools in the venv', async function () {
+    it('should install ansible-dev-tools in the venv', function () {
         this.timeout(480_000);
 
         const ansibleDoc = path.join(VENV_BIN, 'ansible-doc');
         if (fs.existsSync(ansibleDoc)) {
             const version = shell(`"${ansibleDoc}" --version`);
-            await expect(version).toContain('ansible');
+            expect(version).toContain('ansible');
             return;
         }
 
@@ -60,10 +60,10 @@ describe('Language Server full stack e2e', function () {
             timeout: 480_000,
         });
 
-        await expect(fs.existsSync(ansibleDoc)).toBe(true);
+        expect(fs.existsSync(ansibleDoc)).toBe(true);
     });
 
-    it('should install ansible.posix collection', async function () {
+    it('should install ansible.posix collection', function () {
         this.timeout(60_000);
 
         shell(`"${VENV_BIN}/ansible-galaxy" collection install ansible.posix --force`, {
@@ -71,7 +71,7 @@ describe('Language Server full stack e2e', function () {
         });
 
         const list = shell(`"${VENV_BIN}/ansible-galaxy" collection list`);
-        await expect(list).toContain('ansible.posix');
+        expect(list).toContain('ansible.posix');
     });
 
     it('should write the environment cache for the LS', function () {
@@ -93,13 +93,13 @@ describe('Language Server full stack e2e', function () {
             },
         };
         fs.writeFileSync(cacheFile, JSON.stringify(cacheData, null, 2), 'utf-8');
-        void expect(fs.existsSync(cacheFile)).toBe(true);
+        expect(fs.existsSync(cacheFile)).toBe(true);
 
         // Verify the cache is readable
         const written = JSON.parse(fs.readFileSync(cacheFile, 'utf-8')) as {
             selectedEnvironment: { binDir: string };
         };
-        void expect(written.selectedEnvironment.binDir).toBe(VENV_BIN);
+        expect(written.selectedEnvironment.binDir).toBe(VENV_BIN);
     });
 
     it('should return keyword completions at a task position', async function () {
@@ -141,7 +141,7 @@ describe('Language Server full stack e2e', function () {
         const taskKeywords = ['name', 'register', 'when', 'become', 'block'];
         const hasKeywords = taskKeywords.some((kw) => labels.includes(kw));
         const hasModules = labels.some((l) => l.includes('.') || l === 'debug' || l === 'ping');
-        await expect(hasKeywords || hasModules).toBe(true);
+        expect(hasKeywords || hasModules).toBe(true);
     });
 
     it('should return module option completions from ansible-doc', async function () {
@@ -179,6 +179,6 @@ describe('Language Server full stack e2e', function () {
 
         const debugOptions = ['msg', 'var', 'verbosity'];
         const foundOptions = debugOptions.filter((opt) => labels.includes(opt));
-        await expect(foundOptions.length).toBeGreaterThan(0);
+        expect(foundOptions.length).toBeGreaterThan(0);
     });
 });

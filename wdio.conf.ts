@@ -6,11 +6,7 @@ const extensionsDir = path.join(testRoot, 'extensions');
 
 export const config: WebdriverIO.Config = {
     runner: 'local',
-    autoCompileOpts: {
-        tsNodeOpts: {
-            project: './test/ui/tsconfig.json',
-        },
-    },
+    tsConfigPath: './test/ui/tsconfig.json',
     specs: ['./test/ui/**/*.spec.ts'],
     maxInstances: 1,
 
@@ -42,6 +38,20 @@ export const config: WebdriverIO.Config = {
             'vscode',
             {
                 cachePath: testRoot,
+                coverage: {
+                    enabled: process.env.WDIO_COVERAGE === '1',
+                    reporter: ['lcov', 'text'],
+                    reportsDirectory: './coverage/wdio',
+                    sourceDirectories: [
+                        'src',
+                        'packages/common/src',
+                        'packages/services/src',
+                        'packages/language-server/src',
+                        'packages/mcp-server/src',
+                        'packages/lightspeed/src',
+                    ],
+                    include: ['src/**', 'packages/*/src/**'],
+                },
             },
         ],
     ],

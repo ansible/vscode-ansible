@@ -66,10 +66,6 @@ jobs:
       - name: Bundle
         run: npm run build
 
-      - name: Apply wdio-vscode-service patch
-        shell: bash
-        run: patch -p1 --forward --directory=node_modules/wdio-vscode-service < patches/wdio-vscode-service@6.1.4.patch || true
-
       - name: Pre-install Chromedriver
         shell: bash
         run: npx tsx tools/ensure-chromedriver.mts
@@ -158,11 +154,6 @@ jobs:
         shell: powershell
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run build"
-
-      - name: Apply wdio-vscode-service patch
-        shell: powershell
-        run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && patch -p1 --forward --directory=node_modules/wdio-vscode-service < patches/wdio-vscode-service@6.1.4.patch || true"
 
       - name: Pre-install Chromedriver
         shell: powershell
