@@ -46,14 +46,14 @@ Replace all `npx` usage with `npm exec` across the project:
 
 ### Syntax mapping
 
-| Before | After |
-|--------|-------|
-| `npx tsc -b` | `npm exec tsc -- -b` |
-| `npx eslint .` | `npm exec eslint -- .` |
+| Before               | After                        |
+| -------------------- | ---------------------------- |
+| `npx tsc -b`         | `npm exec tsc -- -b`         |
+| `npx eslint .`       | `npm exec eslint -- .`       |
 | `npx eslint . --fix` | `npm exec eslint -- . --fix` |
-| `npx vitest run` | `npm exec vitest -- run` |
-| `npx vsce package` | `npm exec vsce -- package` |
-| `npx wdio run ...` | `npm exec wdio -- run ...` |
+| `npx vitest run`     | `npm exec vitest -- run`     |
+| `npx vsce package`   | `npm exec vsce -- package`   |
+| `npx wdio run ...`   | `npm exec wdio -- run ...`   |
 
 The `--` separator is required when passing arguments to the tool (as
 opposed to `npm exec` itself).

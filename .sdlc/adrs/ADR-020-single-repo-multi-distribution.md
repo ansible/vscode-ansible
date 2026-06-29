@@ -49,13 +49,13 @@ to agents outside the extension.
 four built as CI artifacts on every pull request and one consumed
 directly from the repository source.**
 
-| Format | Artifact | Audience |
-|--------|----------|----------|
-| VSIX | VS Code extension package | VS Code / Cursor extension users |
-| Plugin zip | Open Plugin Spec v1 package | Cursor, Claude Code, Codex plugin users |
-| MCP server | Single-file Node.js bundle | Any MCP client (manual config) |
-| Language server | Single-file Node.js bundle | Any LSP editor (manual config) |
-| Skills (via `npx skills`) | Git repo source | 68+ coding agents (Copilot, Cline, Aider, etc.) |
+| Format                    | Artifact                    | Audience                                        |
+| ------------------------- | --------------------------- | ----------------------------------------------- |
+| VSIX                      | VS Code extension package   | VS Code / Cursor extension users                |
+| Plugin zip                | Open Plugin Spec v1 package | Cursor, Claude Code, Codex plugin users         |
+| MCP server                | Single-file Node.js bundle  | Any MCP client (manual config)                  |
+| Language server           | Single-file Node.js bundle  | Any LSP editor (manual config)                  |
+| Skills (via `npx skills`) | Git repo source             | 68+ coding agents (Copilot, Cline, Aider, etc.) |
 
 The fifth format — `npx skills add` — requires no build step. The
 `skills/*/SKILL.md` layout at the repo root is itself a distribution
@@ -95,7 +95,7 @@ dependency graph where capabilities are built once and consumed by all
 distribution formats (see [ADR-011](ADR-011-package-architecture.md)
 for full details):
 
-```
+```text
                   ┌─────────────────────┐
                   │   skills/*/SKILL.md  │  ← Markdown source of truth
                   └──────────┬──────────┘
@@ -144,13 +144,13 @@ for full details):
 
 The critical linkages:
 
-| Layer | What it provides | Who consumes it |
-|-------|-----------------|-----------------|
-| `skills/*/SKILL.md` | Prompt instructions, behavioral contracts | All five formats (compiled into servers via `@ansible/common`, copied raw into plugin, consumed directly via `npx skills`) |
-| `@ansible/common` | Types, skill content embeds, prompt builders, parsers | `@ansible/services`, `@ansible/ui`, extension |
-| `@ansible/services` | `SkillRegistry`, `CommandService`, collection discovery, container runtime | MCP server, language server, extension |
-| `@ansible/mcp-server` | MCP tool handlers (skill_search, playbook_run, etc.) | Plugin zip, standalone MCP artifact, VSIX |
-| `@ansible/language-server` | LSP handlers (completion, diagnostics, hover) | Plugin zip, standalone LSP artifact, VSIX |
+| Layer                      | What it provides                                                           | Who consumes it                                                                                                            |
+| -------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `skills/*/SKILL.md`        | Prompt instructions, behavioral contracts                                  | All five formats (compiled into servers via `@ansible/common`, copied raw into plugin, consumed directly via `npx skills`) |
+| `@ansible/common`          | Types, skill content embeds, prompt builders, parsers                      | `@ansible/services`, `@ansible/ui`, extension                                                                              |
+| `@ansible/services`        | `SkillRegistry`, `CommandService`, collection discovery, container runtime | MCP server, language server, extension                                                                                     |
+| `@ansible/mcp-server`      | MCP tool handlers (skill_search, playbook_run, etc.)                       | Plugin zip, standalone MCP artifact, VSIX                                                                                  |
+| `@ansible/language-server` | LSP handlers (completion, diagnostics, hover)                              | Plugin zip, standalone LSP artifact, VSIX                                                                                  |
 
 This means a bug fix in `@ansible/services` (e.g., improving
 collection discovery) automatically propagates to **all five
@@ -169,11 +169,13 @@ features.
 that imports from the main repo and assembles the plugin package.
 
 **Pros**:
+
 - Clean separation of concerns
 - Independent release cadence
 - No clutter in the main repo root
 
 **Cons**:
+
 - Two repos to keep in sync
 - Skills must be duplicated or submoduled
 - CI complexity increases (cross-repo artifact dependencies)
@@ -190,10 +192,12 @@ truth" principle is violated by extraction to a separate repo.
 `.mcp.json` uses `npx -y @ansible/mcp-server` instead of bundling.
 
 **Pros**:
+
 - Smaller plugin zip (no server binary)
 - Automatic updates when npm package is bumped
 
 **Cons**:
+
 - Requires npm registry access at runtime (breaks air-gapped envs)
 - Untestable from PRs (package not published yet)
 - Version skew between plugin and server
@@ -209,10 +213,12 @@ and are testable from CI artifacts. The `next` branch is pre-release
 assembles the plugin from other packages.
 
 **Pros**:
+
 - Fits the existing monorepo package model
 - Could have its own tests and build config
 
 **Cons**:
+
 - Over-engineering for what is essentially a file-copy step
 - The plugin is not a library — it has no importable API
 - Adds a package.json, tsconfig, and test file for no code
@@ -261,7 +267,7 @@ distribution format, not a software component.
 
 ### Build pipeline
 
-```
+```text
 skills/*/SKILL.md  ──┐
                      ├──→ scripts/generate-skill-content.mjs
                      │         │
@@ -289,26 +295,26 @@ skills/*/SKILL.md  ──┐
 
 ### Key files
 
-| File | Purpose |
-|------|---------|
-| `skills/*/SKILL.md` | Source of truth for all skills |
-| `.plugin/plugin.json` | Open Plugin manifest (vendor-neutral) |
-| `.cursor-plugin/plugin.json` | Cursor-preferred manifest |
-| `.claude-plugin/plugin.json` | Claude Code-preferred manifest |
-| `.mcp.json` / `mcp.json` | MCP server config (dev: `dist/`, prod: `servers/`) |
-| `.lsp.json` | Language server config |
-| `scripts/build-plugin.sh` | Assembles the plugin zip from build outputs |
-| `scripts/generate-skill-content.mjs` | Generates `.content.ts` from `SKILL.md` |
+| File                                 | Purpose                                            |
+| ------------------------------------ | -------------------------------------------------- |
+| `skills/*/SKILL.md`                  | Source of truth for all skills                     |
+| `.plugin/plugin.json`                | Open Plugin manifest (vendor-neutral)              |
+| `.cursor-plugin/plugin.json`         | Cursor-preferred manifest                          |
+| `.claude-plugin/plugin.json`         | Claude Code-preferred manifest                     |
+| `.mcp.json` / `mcp.json`             | MCP server config (dev: `dist/`, prod: `servers/`) |
+| `.lsp.json`                          | Language server config                             |
+| `scripts/build-plugin.sh`            | Assembles the plugin zip from build outputs        |
+| `scripts/generate-skill-content.mjs` | Generates `.content.ts` from `SKILL.md`            |
 
 ### Distribution discovery
 
-| Channel | Discovery mechanism |
-|---------|-------------------|
-| `npx skills add` | Scans `skills/` at repo root |
-| Open Plugin hosts | Reads `.plugin/plugin.json` → discovers `skills/`, `.mcp.json`, `.lsp.json` |
-| Manual MCP config | User points config at `mcp-server.js` |
-| Manual LSP config | User points editor at `language-server.js --stdio` |
-| VS Code Marketplace | Standard VSIX packaging via `vsce` |
+| Channel             | Discovery mechanism                                                         |
+| ------------------- | --------------------------------------------------------------------------- |
+| `npx skills add`    | Scans `skills/` at repo root                                                |
+| Open Plugin hosts   | Reads `.plugin/plugin.json` → discovers `skills/`, `.mcp.json`, `.lsp.json` |
+| Manual MCP config   | User points config at `mcp-server.js`                                       |
+| Manual LSP config   | User points editor at `language-server.js --stdio`                          |
+| VS Code Marketplace | Standard VSIX packaging via `vsce`                                          |
 
 ## Related Decisions
 
@@ -337,6 +343,6 @@ skills/*/SKILL.md  ──┐
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author                         | Change           |
+| ---------- | ------------------------------ | ---------------- |
 | 2026-06-26 | Bradley Thornton (AI-assisted) | Initial decision |

@@ -1,16 +1,16 @@
 ---
 name: submit-pr
 description: >
-  Prepare and submit a pull request for the vscode-ansible project.
-  Syncs with the `next` branch, creates a feature branch, runs lint and
-  type checks, commits with conventional commits, then creates the PR
-  targeting `next` via gh. Use when the user asks to submit, create, or
-  open a pull request, or says "submit PR", "open PR", "create PR".
+    Prepare and submit a pull request for the vscode-ansible project.
+    Syncs with the `next` branch, creates a feature branch, runs lint and
+    type checks, commits with conventional commits, then creates the PR
+    targeting `next` via gh. Use when the user asks to submit, create, or
+    open a pull request, or says "submit PR", "open PR", "create PR".
 argument-hint: "[branch-name] [--title 'PR title']"
 user-invocable: true
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # Submit PR
@@ -53,6 +53,7 @@ running this command. Partial lint (on changed files only) or skipping
 the build step has caused repeated CI failures.
 
 If violations are found:
+
 1. Run `npm exec eslint -- . --fix` to auto-fix what it can
 2. Manually fix remaining violations (type errors, test failures)
 3. Re-run `npm run ci` until clean — do not shortcut with partial runs
@@ -79,7 +80,7 @@ you haven't actually reviewed the diff.
 **Artifact-type sweep.** Before answering the questions below, list
 every distinct artifact type in the diff (e.g., TypeScript, YAML
 workflow, shell script, Dockerfile, JSON config). For each question,
-you must cite at least one file of *each* artifact type — not just
+you must cite at least one file of _each_ artifact type — not just
 TypeScript. If a question feels inapplicable to an artifact type,
 translate it:
 
@@ -148,7 +149,7 @@ translate it:
    an empty-but-not-falsy value. Trace it through the code path.
    If it fails silently, sends a vacuous request, or produces a
    return value that violates the declared type, that's a finding.
-   Also construct *temporal* failures: what happens when an async
+   Also construct _temporal_ failures: what happens when an async
    dependency never responds, times out, or responds after the
    consumer has moved on? What happens when a state-change handler
    updates one cache but not a sibling cache that shares the same
@@ -175,7 +176,7 @@ memory of the intent, iterations, or trade-offs that led to the code.
 This forces it to read every line at face value — the same way Copilot
 or a human reviewer would.
 
-```
+```text
 Launch a Task subagent with:
   subagent_type: "generalPurpose"
   readonly: true
@@ -184,7 +185,7 @@ Launch a Task subagent with:
 
 Use this prompt template (fill in the repository path and diff):
 
-````
+```text
 You are reviewing a pull request diff. You have no prior context about
 why these changes were made — review every line at face value.
 
@@ -226,7 +227,7 @@ Return ONLY findings. Format each as:
 
 If there are no findings across all 9 questions, return:
   "No findings."
-````
+```
 
 **Act on every finding.** Fix the code, then re-run `npm run ci`.
 Do not dismiss findings without a clear technical justification
@@ -239,7 +240,7 @@ If the subagent returns "No findings", proceed to Step 4.
 Use the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 format:
 
-```
+```text
 <type>[optional scope]: <description>
 
 [optional body]
@@ -249,22 +250,23 @@ format:
 
 Common types for this project:
 
-| Type | When to use |
-|------|-------------|
-| `feat` | New feature (provider, service, view, panel) |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Code style/formatting (no logic change) |
-| `refactor` | Code restructuring (no feature or fix) |
-| `test` | Adding or updating tests |
-| `build` | Build system, dependencies, packaging |
-| `ci` | CI/CD configuration |
-| `chore` | Maintenance tasks |
+| Type       | When to use                                  |
+| ---------- | -------------------------------------------- |
+| `feat`     | New feature (provider, service, view, panel) |
+| `fix`      | Bug fix                                      |
+| `docs`     | Documentation only                           |
+| `style`    | Code style/formatting (no logic change)      |
+| `refactor` | Code restructuring (no feature or fix)       |
+| `test`     | Adding or updating tests                     |
+| `build`    | Build system, dependencies, packaging        |
+| `ci`       | CI/CD configuration                          |
+| `chore`    | Maintenance tasks                            |
 
 Scopes reflect project areas: `core`, `ls` (language server), `mcp`,
 `extension`, `views`, `panels`, `ci`.
 
 Examples:
+
 - `feat(ls): add hover documentation for module options`
 - `fix(core): handle missing ansible-doc gracefully`
 - `test(ls): add completion provider unit tests`
@@ -334,4 +336,4 @@ These requirements come from the project's AGENTS.md:
 - **Single commit**: PR should contain a single commit. Squash changes and
   rebase before pushing new changes.
 - **Atomic changes**: If changes can be split into smaller atomic PRs, do so.
-- **Draft status**: Keep PR as *draft* until CI reports green on all jobs.
+- **Draft status**: Keep PR as _draft_ until CI reports green on all jobs.

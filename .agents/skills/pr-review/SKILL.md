@@ -1,14 +1,14 @@
 ---
 name: pr-review
 description: >
-  Guide for handling pull request reviews, including automated (Copilot) and
-  human reviewer feedback. Use when responding to PR comments, resolving
-  review threads, or updating PRs after review.
-argument-hint: "<PR number>"
+    Respond to pull request review feedback and resolve review threads. Use
+    this skill when addressing automated (Copilot) or human reviewer
+    comments, updating PRs after review, or closing open threads.
+argument-hint: '<PR number>'
 user-invocable: true
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # PR Review
@@ -45,8 +45,8 @@ found something, the agent's pre-submit self-review (see the
 `submit-pr` skill) should have found it first. Without tightening that
 loop, we will never ship a PR without comments.
 
-After fixing each Copilot finding, ask: *which principle from the
-submit-pr self-review should have caught this?* If one exists but
+After fixing each Copilot finding, ask: _which principle from the
+submit-pr self-review should have caught this?_ If one exists but
 didn't trigger, the principle needs to be clearer or the agent didn't
 apply it. If no principle covers it, add one — but frame it as a
 general evaluation criterion, not a specific instance. Adding "don't
@@ -161,11 +161,13 @@ above should catch novel issues these don't cover.
    pushing fixes, rebase onto `next`. A stale base causes misleading CI
    results and merge conflicts. See the `branching-strategy` skill for
    why `next` is the target branch, not `main`.
-   ```bash
-   git fetch upstream
-   git rebase upstream/next
-   git push --force-with-lease
-   ```
+
+    ```bash
+    git fetch upstream
+    git rebase upstream/next
+    git push --force-with-lease
+    ```
+
 2. After pushing a PR, wait for both CI and Copilot review.
 3. Check CI status and read all review comments.
 4. Fix all issues in a single commit (or minimal commits).
@@ -245,8 +247,8 @@ gh api graphql -f query='mutation {
 }'
 ```
 
-7. Update the PR description to include the new commit(s).
-8. If CI failure is unrelated to your changes (e.g., flaky test, transient
+1. Update the PR description to include the new commit(s).
+2. If CI failure is unrelated to your changes (e.g., flaky test, transient
    network issue), fix it anyway — the PR owns the green build.
 
 ### After pushing fixes: check for a new Copilot review

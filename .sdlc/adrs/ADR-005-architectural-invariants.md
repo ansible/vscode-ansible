@@ -43,7 +43,9 @@ All VS Code API usage in `packages/core/` uses the conditional pattern:
 
 ```typescript
 let vscode: typeof import('vscode') | undefined;
-try { vscode = require('vscode'); } catch {}
+try {
+    vscode = require('vscode');
+} catch {}
 ```
 
 An unconditional `import * as vscode from 'vscode'` in any core file
@@ -195,10 +197,10 @@ it must function when `getCapability() === 'python-only'`.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
-| 2026-05-26 | AI-assisted | Initial invariants (8 rules) |
-| 2026-06-10 | AI-assisted | Add invariants 9, 10 (shared UI) |
-| 2026-06-17 | AI-assisted | Add invariant 11 (MCP tool parity) |
-| 2026-06-23 | AI-assisted | Add invariant 12 (MCP/skills compliance) |
+| Date       | Author      | Change                                           |
+| ---------- | ----------- | ------------------------------------------------ |
+| 2026-05-26 | AI-assisted | Initial invariants (8 rules)                     |
+| 2026-06-10 | AI-assisted | Add invariants 9, 10 (shared UI)                 |
+| 2026-06-17 | AI-assisted | Add invariant 11 (MCP tool parity)               |
+| 2026-06-23 | AI-assisted | Add invariant 12 (MCP/skills compliance)         |
 | 2026-06-24 | AI-assisted | Add invariant 13 (python-envs not hard-required) |

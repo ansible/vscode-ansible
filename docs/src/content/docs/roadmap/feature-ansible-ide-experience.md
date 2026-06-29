@@ -1,5 +1,5 @@
 ---
-title: "Feature: Ansible IDE Experience"
+title: 'Feature: Ansible IDE Experience'
 description: Product requirements document for the integrated Ansible IDE experience.
 ---
 
@@ -154,73 +154,73 @@ A senior engineer or architect responsible for ensuring automation content meets
 
 Provide a visual, automated experience for managing the Ansible development environment.
 
-| Capability | Without AI | With AI |
-|---|---|---|
-| Discover Python environments (venv, global, conda) | Auto-discovered tree view with managers and environments | Same |
-| Create new virtual environments | One-click creation | Same |
-| Select environment with automatic tool path resolution | Click to select; all `ansible-*` tools resolve from selected env | Same |
-| View installed `ansible-dev-tools` packages and versions | Persistent tree view | Same |
-| Install and upgrade dev tools | One-click install/upgrade | Same |
-| Warn on global environment usage | Visual warning with "Create Virtual Environment" alternative | Same |
+| Capability                                               | Without AI                                                       | With AI |
+| -------------------------------------------------------- | ---------------------------------------------------------------- | ------- |
+| Discover Python environments (venv, global, conda)       | Auto-discovered tree view with managers and environments         | Same    |
+| Create new virtual environments                          | One-click creation                                               | Same    |
+| Select environment with automatic tool path resolution   | Click to select; all `ansible-*` tools resolve from selected env | Same    |
+| View installed `ansible-dev-tools` packages and versions | Persistent tree view                                             | Same    |
+| Install and upgrade dev tools                            | One-click install/upgrade                                        | Same    |
+| Warn on global environment usage                         | Visual warning with "Create Virtual Environment" alternative     | Same    |
 
 ### 2. Collection Discovery and Documentation
 
 Make Ansible collections a first-class, browsable, searchable, installable part of the experience.
 
-| Capability | Without AI | With AI |
-|---|---|---|
-| Browse installed collections | Tree: Collection → Plugin Type → Plugin with counts, versions, descriptions | Same |
-| Search plugins by keyword across all collections | In-memory search index with relevance scoring | AI can search via MCP tool with natural language |
-| View rich plugin documentation | Interactive panel: synopsis, parameters, examples, return values | AI can retrieve and explain docs |
-| Generate sample tasks from plugin schemas | Sample task generator with three detail levels (minimal, documented, full) | AI generates tasks from schemas via MCP tools |
-| Search remote collections (Galaxy + GitHub orgs) | Unified search across configured sources | AI can search and recommend via MCP |
-| Install collections from sidebar | One-click install from any source | AI can install via MCP tool |
-| Manage collection sources (add/remove GitHub orgs) | Settings-driven with visual source list | Same |
+| Capability                                         | Without AI                                                                  | With AI                                          |
+| -------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------ |
+| Browse installed collections                       | Tree: Collection → Plugin Type → Plugin with counts, versions, descriptions | Same                                             |
+| Search plugins by keyword across all collections   | In-memory search index with relevance scoring                               | AI can search via MCP tool with natural language |
+| View rich plugin documentation                     | Interactive panel: synopsis, parameters, examples, return values            | AI can retrieve and explain docs                 |
+| Generate sample tasks from plugin schemas          | Sample task generator with three detail levels (minimal, documented, full)  | AI generates tasks from schemas via MCP tools    |
+| Search remote collections (Galaxy + GitHub orgs)   | Unified search across configured sources                                    | AI can search and recommend via MCP              |
+| Install collections from sidebar                   | One-click install from any source                                           | AI can install via MCP tool                      |
+| Manage collection sources (add/remove GitHub orgs) | Settings-driven with visual source list                                     | Same                                             |
 
 ### 3. Content Scaffolding
 
 Provide dynamic, schema-driven scaffolding that adapts to the current `ansible-creator` version.
 
-| Capability | Without AI | With AI |
-|---|---|---|
-| Scaffold collections, playbook projects, roles, plugins | Interactive form generated from `ansible-creator` schema | AI can scaffold via MCP tools (e.g., "create a collection for network automation") |
-| Live command preview | Form shows exact `ansible-creator` command that will run | Same |
-| Auto-adapt to new subcommands | Schema is read at runtime; new creator commands appear automatically | Same |
+| Capability                                              | Without AI                                                           | With AI                                                                            |
+| ------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Scaffold collections, playbook projects, roles, plugins | Interactive form generated from `ansible-creator` schema             | AI can scaffold via MCP tools (e.g., "create a collection for network automation") |
+| Live command preview                                    | Form shows exact `ansible-creator` command that will run             | Same                                                                               |
+| Auto-adapt to new subcommands                           | Schema is read at runtime; new creator commands appear automatically | Same                                                                               |
 
 ### 4. Playbook Execution and Visualization
 
 Go beyond "run in terminal" to provide structured, visual playbook execution.
 
-| Capability | Without AI | With AI |
-|---|---|---|
-| Discover playbooks in workspace | Tree with folder structure, play names, hosts, task counts | Same |
-| Configure execution parameters | Visual form: inventory, connection, privilege escalation, vault, execution options | Same |
-| Per-playbook configuration | Saved per playbook; separate from global defaults | Same |
-| Real-time progress visualization | Split-pane: tree (plays → tasks → hosts) + detail panel + live stats (ok/changed/failed/skipped) | Same |
-| Failure highlighting | Failed tasks auto-expanded, status-colored, detail panel shows error | AI can analyze failures via MCP |
+| Capability                       | Without AI                                                                                       | With AI                         |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------- |
+| Discover playbooks in workspace  | Tree with folder structure, play names, hosts, task counts                                       | Same                            |
+| Configure execution parameters   | Visual form: inventory, connection, privilege escalation, vault, execution options               | Same                            |
+| Per-playbook configuration       | Saved per playbook; separate from global defaults                                                | Same                            |
+| Real-time progress visualization | Split-pane: tree (plays → tasks → hosts) + detail panel + live stats (ok/changed/failed/skipped) | Same                            |
+| Failure highlighting             | Failed tasks auto-expanded, status-colored, detail panel shows error                             | AI can analyze failures via MCP |
 
 ### 5. Execution Environment Inspection
 
 Provide visibility into containerized execution environments.
 
-| Capability | Without AI | With AI |
-|---|---|---|
-| Discover available EE images | Tree view of EE images via `ansible-navigator` | Same |
-| Inspect EE contents | Drill into: Ansible info, collections, Python packages, system packages | AI can summarize EE contents |
-| Understand EE capabilities | Manual inspection of collections and packages | AI generates natural-language summary of what an EE is suited for |
+| Capability                   | Without AI                                                              | With AI                                                           |
+| ---------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Discover available EE images | Tree view of EE images via `ansible-navigator`                          | Same                                                              |
+| Inspect EE contents          | Drill into: Ansible info, collections, Python packages, system packages | AI can summarize EE contents                                      |
+| Understand EE capabilities   | Manual inspection of collections and packages                           | AI generates natural-language summary of what an EE is suited for |
 
 ### 6. AI-Powered Content Authoring
 
 Deliver Lightspeed-equivalent capabilities — natural language to Ansible content — through a schema-driven, provider-agnostic approach.
 
-| Capability | How It Works |
-|---|---|
-| **"Make me a role"** | User describes intent in chat. AI agent uses MCP tools: searches plugins → retrieves docs → generates tasks from real schemas → scaffolds role structure via ansible-creator → populates task files with validated content. |
-| **"Author a playbook"** | User describes desired outcome. AI builds playbook step-by-step using `build_ansible_task` (session-based, guided parameter collection from plugin schemas) or `generate_ansible_playbook` (one-shot with multiple tasks). |
-| **"What module should I use?"** | AI searches installed plugins via `search_ansible_plugins`, retrieves docs via `get_plugin_documentation`, and recommends with full parameter guidance. |
-| **"Explain this playbook"** | AI reads playbook structure and generates natural-language explanation using collection and plugin context. |
-| **Interactive task building** | Session-based workflow: AI selects plugin → fetches schema → collects required parameters conversationally → generates validated YAML. User builds complex tasks through guided dialogue. |
-| **Best practices enforcement** | All generation prompts include curated Ansible best practices (FQCN, idempotency, naming, role structure, testing). AI produces content that follows standards by default. |
+| Capability                      | How It Works                                                                                                                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **"Make me a role"**            | User describes intent in chat. AI agent uses MCP tools: searches plugins → retrieves docs → generates tasks from real schemas → scaffolds role structure via ansible-creator → populates task files with validated content. |
+| **"Author a playbook"**         | User describes desired outcome. AI builds playbook step-by-step using `build_ansible_task` (session-based, guided parameter collection from plugin schemas) or `generate_ansible_playbook` (one-shot with multiple tasks).  |
+| **"What module should I use?"** | AI searches installed plugins via `search_ansible_plugins`, retrieves docs via `get_plugin_documentation`, and recommends with full parameter guidance.                                                                     |
+| **"Explain this playbook"**     | AI reads playbook structure and generates natural-language explanation using collection and plugin context.                                                                                                                 |
+| **Interactive task building**   | Session-based workflow: AI selects plugin → fetches schema → collects required parameters conversationally → generates validated YAML. User builds complex tasks through guided dialogue.                                   |
+| **Best practices enforcement**  | All generation prompts include curated Ansible best practices (FQCN, idempotency, naming, role structure, testing). AI produces content that follows standards by default.                                                  |
 
 **Key differentiator:** This approach uses the user's actual installed collections and `ansible-doc` schemas as the source of truth — not model training data. This means:
 
@@ -230,17 +230,17 @@ Deliver Lightspeed-equivalent capabilities — natural language to Ansible conte
 
 ### 7. Content Designer Agent (Deferred)
 
-*Note: The Content Designer is deferred to a future release. The implementation is preserved on the `feature/content-designer` branch. This section describes the intended design for reference.*
+_Note: The Content Designer is deferred to a future release. The implementation is preserved on the `feature/content-designer` branch. This section describes the intended design for reference._
 
 An example of a specialized agent delivered as an independent module, integrated into the IDE as a guided, multi-phase workflow for specification-driven Ansible content development.
 
-| Phase | What Happens | AI Role | Without AI |
-|---|---|---|---|
-| **1. Requirements** | User captures structured requirements as user stories (persona, intent, outcome) with tags | None — fully manual | Fully functional |
-| **2. Assessment** | Requirements analyzed for collection dependencies and design decisions (architecture, security, error handling, testing) | AI generates targeted questions and identifies collections | Rule-based default questions and keyword-based collection matching |
-| **3. Planning** | Implementation plan created with individually reviewable build items, each traced to requirements and decisions | AI creates detailed plan with file paths, content descriptions, and tool calls | Fallback plan: scaffold + generate per requirement |
-| **4. Build** | Approved plan items executed: scaffolding, content generation, collection installation, validation via ansible-lint | AI generates content using requirements, design decisions, plugin docs, and best practices | Build cannot proceed without AI (plan execution requires generation) |
-| **5. Drift Detection** | Current content compared against specification; findings scored and categorized; resolutions tracked | Rule-based compliance checks (AI optional for deeper analysis) | Fully functional |
+| Phase                  | What Happens                                                                                                             | AI Role                                                                                    | Without AI                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| **1. Requirements**    | User captures structured requirements as user stories (persona, intent, outcome) with tags                               | None — fully manual                                                                        | Fully functional                                                     |
+| **2. Assessment**      | Requirements analyzed for collection dependencies and design decisions (architecture, security, error handling, testing) | AI generates targeted questions and identifies collections                                 | Rule-based default questions and keyword-based collection matching   |
+| **3. Planning**        | Implementation plan created with individually reviewable build items, each traced to requirements and decisions          | AI creates detailed plan with file paths, content descriptions, and tool calls             | Fallback plan: scaffold + generate per requirement                   |
+| **4. Build**           | Approved plan items executed: scaffolding, content generation, collection installation, validation via ansible-lint      | AI generates content using requirements, design decisions, plugin docs, and best practices | Build cannot proceed without AI (plan execution requires generation) |
+| **5. Drift Detection** | Current content compared against specification; findings scored and categorized; resolutions tracked                     | Rule-based compliance checks (AI optional for deeper analysis)                             | Fully functional                                                     |
 
 **Traceability chain:** Every artifact traces back through: `Requirement → Design Decisions → Plan Item → Generated Artifact`. This chain is persisted in a local SQLite database and exported as version-control-friendly YAML for inclusion in code reviews and audits.
 
@@ -250,14 +250,14 @@ An example of a specialized agent delivered as an independent module, integrated
 
 The extension exposes its full Ansible development context to AI agents via the Model Context Protocol (MCP), making the AI environment-aware regardless of which AI client or model is used.
 
-| Tool Category | Tools | Purpose |
-|---|---|---|
-| **Discovery** | `search_ansible_plugins`, `list_ansible_collections`, `get_collection_plugins`, `search_available_collections`, `list_source_collections` | Find and browse Ansible content |
-| **Documentation** | `get_plugin_documentation`, `get_ansible_best_practices` | Understand how to use content correctly |
-| **Generation** | `generate_ansible_task`, `build_ansible_task`, `generate_ansible_playbook` | Produce validated Ansible YAML from real schemas |
-| **Environment** | `list_execution_environments`, `get_ee_details`, `list_ansible_dev_tools` | Understand the user's environment |
-| **Management** | `install_ansible_collection`, `get_ansible_creator_schema` | Modify the environment |
-| **Design** | `query_design_db`, `get_project_requirements`, `get_design_decisions` | Access Content Designer context (deferred) |
+| Tool Category     | Tools                                                                                                                                     | Purpose                                          |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| **Discovery**     | `search_ansible_plugins`, `list_ansible_collections`, `get_collection_plugins`, `search_available_collections`, `list_source_collections` | Find and browse Ansible content                  |
+| **Documentation** | `get_plugin_documentation`, `get_ansible_best_practices`                                                                                  | Understand how to use content correctly          |
+| **Generation**    | `generate_ansible_task`, `build_ansible_task`, `generate_ansible_playbook`                                                                | Produce validated Ansible YAML from real schemas |
+| **Environment**   | `list_execution_environments`, `get_ee_details`, `list_ansible_dev_tools`                                                                 | Understand the user's environment                |
+| **Management**    | `install_ansible_collection`, `get_ansible_creator_schema`                                                                                | Modify the environment                           |
+| **Design**        | `query_design_db`, `get_project_requirements`, `get_design_decisions`                                                                     | Access Content Designer context (deferred)       |
 
 ---
 
@@ -287,17 +287,17 @@ The extension exposes its full Ansible development context to AI agents via the 
 
 ## Links
 
-| Document | Location |
-|---|---|
-| POC Repository | [ansible-environments] |
-| Content Designer Proposal | `feature/content-designer` branch: `docs/ansible-content-designer-proposal.md` |
-| Content Designer Task Breakdown | `feature/content-designer` branch: `docs/ansible-content-designer-tasks.md` |
-| Ansible Best Practices Reference | `resources/best_practises.md` |
-| MCP Configuration Example | `mcp-config.example.json` |
-| PRD | [TBD] |
-| ADR | [TBD] |
-| UX Interaction Design | [TBD] |
-| Architecture Decision Record | [TBD] |
+| Document                         | Location                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| POC Repository                   | [ansible-environments]                                                         |
+| Content Designer Proposal        | `feature/content-designer` branch: `docs/ansible-content-designer-proposal.md` |
+| Content Designer Task Breakdown  | `feature/content-designer` branch: `docs/ansible-content-designer-tasks.md`    |
+| Ansible Best Practices Reference | `resources/best_practises.md`                                                  |
+| MCP Configuration Example        | `mcp-config.example.json`                                                      |
+| PRD                              | [TBD]                                                                          |
+| ADR                              | [TBD]                                                                          |
+| UX Interaction Design            | [TBD]                                                                          |
+| Architecture Decision Record     | [TBD]                                                                          |
 
 ---
 

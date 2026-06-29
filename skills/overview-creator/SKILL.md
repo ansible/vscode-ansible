@@ -1,6 +1,6 @@
 ---
 name: ansible-creator Overview
-description: Explain ansible-creator scaffolding capabilities and content types
+description: Use this skill when exploring what ansible-creator can scaffold. Explains available content types, key parameters, and best practices for project setup.
 tags: [creator, scaffolding, project-setup]
 category: scaffold
 triggers: [ansible-creator, scaffolding, create project, new collection]

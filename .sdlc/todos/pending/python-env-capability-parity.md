@@ -5,8 +5,8 @@ status: pending
 priority: high
 scope: extension, mcp
 related:
-  - .sdlc/todos/complete/add-python-env-fallback.md
-  - docs/src/content/docs/roadmap/feature-ansible-ide-experience.md
+    - .sdlc/todos/complete/add-python-env-fallback.md
+    - docs/src/content/docs/roadmap/feature-ansible-ide-experience.md
 ---
 
 # Python environment capability parity

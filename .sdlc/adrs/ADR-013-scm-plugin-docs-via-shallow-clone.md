@@ -64,17 +64,17 @@ Concretely:
 
 2. On cache miss, the service:
    a. Shallow-clones the repo (`git clone --depth 1 --single-branch`)
-      into a temporary directory structured as
-      `{tmp}/ansible_collections/{namespace}/{name}/`.
+   into a temporary directory structured as
+   `{tmp}/ansible_collections/{namespace}/{name}/`.
    b. Resolves the HEAD SHA from the clone via `git rev-parse HEAD`.
    c. If a cache file for that SHA already exists, refreshes its
-      timestamp and returns the existing data (avoids re-indexing
-      when only the TTL expired but the content is unchanged).
+   timestamp and returns the existing data (avoids re-indexing
+   when only the TTL expired but the content is unchanged).
    d. Runs `ansible-doc --metadata-dump --no-fail-on-errors` with
-      `ANSIBLE_COLLECTIONS_PATH={tmp}` to extract all plugin
-      documentation in one JSON blob.
+   `ANSIBLE_COLLECTIONS_PATH={tmp}` to extract all plugin
+   documentation in one JSON blob.
    e. Parses the metadata dump using the same shared utility that
-      `CollectionsService` uses for installed collections.
+   `CollectionsService` uses for installed collections.
    f. Persists the result to `~/.cache/ansible-environments/scm-docs/`.
    g. Removes the temporary clone directory.
 
@@ -95,12 +95,14 @@ plugin directories, then fetch each plugin's Python file and parse
 the `DOCUMENTATION` YAML string from the docstring.
 
 **Pros**:
+
 - No local disk usage beyond the JSON cache
 - No dependency on local Python/ansible-doc
 - Works in constrained environments (Codespaces, remote SSH)
 - Incremental updates via tree SHA comparison
 
 **Cons**:
+
 - Heavy API usage: 200 modules = 200+ API calls per refresh
 - Fragile parsing: must replicate `ansible-doc`'s DOCUMENTATION
   extraction (extends_documentation_fragment, version_added
@@ -120,11 +122,13 @@ be reimplemented in TypeScript.
 `DOCUMENTATION`/`EXAMPLES`/`RETURN` YAML blocks ourselves.
 
 **Pros**:
+
 - Single API call per collection (tarball download)
 - All files available locally for parsing
 - No `git` binary dependency
 
 **Cons**:
+
 - Full repo download: includes tests, CI, docs (community.general ~50MB)
 - Same fragile documentation parsing as Alternative 1
 - Would reimplement what `ansible-doc` already does
@@ -187,7 +191,7 @@ authoritative tool.
 
 ### Cache structure
 
-```
+```text
 ~/.cache/ansible-environments/scm-docs/
   ansible-collections__cisco.ios-abc1234.json
   redhat-cop__infra.aap_configuration-def5678.json
@@ -195,7 +199,7 @@ authoritative tool.
 
 ### Temp directory lifecycle
 
-```
+```text
 os.tmpdir()/ansible-scm-docs-{random}/
   ansible_collections/
     {namespace}/
@@ -221,6 +225,6 @@ Clone, run `ansible-doc`, save JSON, `rm -rf` the temp dir.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change           |
+| ---------- | ----------- | ---------------- |
 | 2026-06-17 | AI-assisted | Initial decision |

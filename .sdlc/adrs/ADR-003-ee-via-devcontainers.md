@@ -65,10 +65,12 @@ Concretely:
 exec routing in the `next` architecture.
 
 **Pros**:
+
 - Feature parity with `main`
 - No user workflow change
 
 **Cons**:
+
 - Reimplements what devcontainers already solve
 - Ongoing maintenance of container engine abstraction
 - Fragile subprocess-through-container execution
@@ -81,9 +83,11 @@ developer experience with less custom code.
 **Description**: Remove the EE tree view and provide no EE integration.
 
 **Pros**:
+
 - Simplest implementation
 
 **Cons**:
+
 - Loses the ability to inspect EE images
 - No migration path for existing EE users
 
@@ -123,6 +127,6 @@ low-maintenance. Users need to see what's inside their EEs.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change           |
+| ---------- | ----------- | ---------------- |
 | 2026-05-26 | AI-assisted | Initial proposal |

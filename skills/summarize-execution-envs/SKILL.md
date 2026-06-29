@@ -1,6 +1,6 @@
 ---
 name: Summarize Execution Environments
-description: List and compare all available Ansible Execution Environments
+description: Use this skill when choosing an Execution Environment. Lists and compares all available EEs with recommendations for different automation scenarios.
 tags: [execution-environments, containers, overview]
 category: domain
 triggers: [list EEs, execution environments, compare EEs]

@@ -1,6 +1,6 @@
 ---
 name: Summarize GitHub Organization Source
-description: Describe a GitHub organization's Ansible collection catalog
+description: Use this skill when exploring a GitHub organization's collections. Summarizes the org's collection catalog, use cases, and notable collections.
 tags: [collections, github, sources, organizations]
 category: domain
 triggers: [github org, organization collections, github source]

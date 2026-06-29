@@ -50,7 +50,7 @@ branch, exceeding `main`'s coverage:
   type-checked rules plus stricter variants. This catches:
   - Floating promises (`no-floating-promises`)
   - Unsafe `any` propagation (`no-unsafe-argument`, `no-unsafe-return`,
-    `no-unsafe-member-access`)
+      `no-unsafe-member-access`)
   - Unnecessary type assertions (`no-unnecessary-type-assertion`)
   - Non-null assertions (`no-non-null-assertion`)
   - Unbound methods (`unbound-method`)
@@ -62,13 +62,13 @@ branch, exceeding `main`'s coverage:
 
 ### Additional rules
 
-| Rule | Rationale |
-|------|-----------|
+| Rule                                    | Rationale                                                                                                                             |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `@typescript-eslint/no-require-imports` | Enforce ESM; `require()` is only allowed in the conditional `try { require('vscode') } catch {}` pattern via inline disable comments. |
-| `@typescript-eslint/require-await` | Prevent `async` functions that never `await`, which hide performance issues and mislead callers. |
-| `no-restricted-imports` (src/) | Ban relative imports in `src/` — enforce `@src/` path aliases (see ADR-006). Ban `chai` — use `vitest` or `node:assert`. |
-| `local/node-DEP0190` | Custom plugin catching Node.js DEP0190 deprecation patterns. |
-| `eqeqeq: smart` | Require `===`/`!==` except for `null` checks. |
+| `@typescript-eslint/require-await`      | Prevent `async` functions that never `await`, which hide performance issues and mislead callers.                                      |
+| `no-restricted-imports` (src/)          | Ban relative imports in `src/` — enforce `@src/` path aliases (see ADR-006). Ban `chai` — use `vitest` or `node:assert`.              |
+| `local/node-DEP0190`                    | Custom plugin catching Node.js DEP0190 deprecation patterns.                                                                          |
+| `eqeqeq: smart`                         | Require `===`/`!==` except for `null` checks.                                                                                         |
 
 ### Integrations
 
@@ -135,7 +135,7 @@ tracking upstream changes.
   exception explicit.
 - **Learning curve**: Contributors unfamiliar with strict TypeScript
   linting may encounter unfamiliar errors. The rules have clear
-  documentation at https://typescript-eslint.io/rules/.
+  documentation at <https://typescript-eslint.io/rules/>.
 
 ### Neutral
 

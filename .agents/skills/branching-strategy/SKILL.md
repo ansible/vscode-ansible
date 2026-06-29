@@ -1,17 +1,15 @@
 ---
 name: branching-strategy
 description: >
-  Branching strategy for the vscode-ansible repository. The `next` branch
-  is the active development branch containing the ansible-environments
-  architecture. The `main` branch is the legacy codebase and must never
-  receive code from `next`. All new PRs target `next`. Use when creating
-  branches, submitting PRs, rebasing, cherry-picking, or when unsure which
-  branch to target.
-argument-hint: ""
+    Use this skill when creating branches, submitting PRs, rebasing,
+    cherry-picking, or deciding which branch to target. Explains the `next`
+    vs `main` branch layout and enforces the rule that all new PRs target
+    `next`.
+argument-hint: ''
 user-invocable: false
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # Branching Strategy
@@ -98,7 +96,7 @@ and use `gh pr edit <number> --base next`.
 
 The `next` branch is organized as an npm monorepo:
 
-```
+```text
 packages/
   core/           → @ansible/core (VS Code-independent services)
   language-server/ → @ansible/language-server (LSP server)

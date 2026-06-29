@@ -24,7 +24,7 @@ emitted JavaScript. As a result:
 // src/views/CollectionsProvider.ts
 import { CollectionsService } from '@src/services/CollectionsService';
 // Compiles to:
-const { CollectionsService } = require("@src/services/CollectionsService");
+const { CollectionsService } = require('@src/services/CollectionsService');
 // Node.js cannot resolve "@src/services/CollectionsService" → runtime crash
 ```
 
@@ -73,7 +73,7 @@ checking.**
 
 ### Build pipeline
 
-```
+```text
 tsc -b            → type-check all packages (errors, declarations)
 esbuild (ext)     → bundle src/extension.ts → dist/extension.js
 esbuild (ls)      → bundle packages/language-server/src/cli.ts → dist/language-server.js
@@ -94,9 +94,9 @@ Each bundle target uses:
 With esbuild resolving aliases at bundle time, `tsconfig.json` `paths`
 become safe to use:
 
-| Alias | Resolves to | Scope |
-|-------|-------------|-------|
-| `@src/*` | `./src/*` | Root extension |
+| Alias    | Resolves to | Scope          |
+| -------- | ----------- | -------------- |
+| `@src/*` | `./src/*`   | Root extension |
 
 A `@test/*` alias for test files may be added in a follow-up if needed.
 Packages use their own `tsconfig.json` `paths` scoped to their directory.
@@ -105,13 +105,13 @@ Packages use their own `tsconfig.json` `paths` scoped to their directory.
 
 ```jsonc
 {
-  "main": "./dist/extension.js",  // was: "./out/extension.js"
-  "scripts": {
-    "compile": "tsc -b",
-    "build": "node scripts/build.mjs",
-    "vscode:prepublish": "npm run compile && npm run build",
-    "watch": "tsc -b -w"
-  }
+    "main": "./dist/extension.js", // was: "./out/extension.js"
+    "scripts": {
+        "compile": "tsc -b",
+        "build": "node scripts/build.mjs",
+        "vscode:prepublish": "npm run compile && npm run build",
+        "watch": "tsc -b -w",
+    },
 }
 ```
 
@@ -123,11 +123,13 @@ Packages use their own `tsconfig.json` `paths` scoped to their directory.
 in the emitted `.js` files to relative paths. No bundling.
 
 **Pros**:
+
 - Minimal change to the build pipeline
 - No new bundler concept to understand
 - Keeps the `out/` directory structure unchanged
 
 **Cons**:
+
 - Adds an extra build step per package
 - Still ships `node_modules/` (no tree shaking)
 - Still ships hundreds of individual `.js` files (no activation speedup)
@@ -143,11 +145,13 @@ opportunity.
 **Description**: Use webpack as the bundler instead of esbuild.
 
 **Pros**:
+
 - Mature ecosystem with many plugins
 - First-party VS Code extension documentation
 - Extensive configuration flexibility
 
 **Cons**:
+
 - Significantly slower build times than esbuild
 - Complex configuration (`webpack.config.js` files per target)
 - The `main` branch already chose esbuild; matching reduces divergence
@@ -161,15 +165,17 @@ simpler. The `main` branch already validates the esbuild approach.
 map `#src/*` to `./src/*`. Node resolves these without a bundler.
 
 **Pros**:
+
 - Zero external tooling — built into Node.js
 - Works at runtime without compilation
 
 **Cons**:
+
 - Uses `#` prefix (unconventional in TypeScript projects)
 - Requires Node.js 16+ (met, but adds a constraint)
 - Still ships `node_modules/` and individual `.js` files
 - TypeScript support for `imports` mapping requires `moduleResolution:
-  "bundler"` or `"node16"`, which conflicts with `"commonjs"` module
+"bundler"` or `"node16"`, which conflicts with `"commonjs"` module
   setting
 
 **Why not chosen**: Requires changing the module resolution strategy
@@ -247,6 +253,6 @@ provide bundling benefits.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author                         | Change           |
+| ---------- | ------------------------------ | ---------------- |
 | 2026-06-10 | Bradley Thornton (AI-assisted) | Initial proposal |

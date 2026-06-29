@@ -1,16 +1,16 @@
 ---
 name: review-contributor-pr
 description: >
-  Review and help prepare a contributor's pull request. Use when the user asks
-  to review a PR, get a contributor PR ready, update a contributor's branch,
-  or ensure a PR meets project standards before merge. Follow this skill so
-  contributor PRs are reviewed consistently and avoid rework (lint failures,
-  outdated base, weak description).
-argument-hint: "<PR number or URL>"
+    Review and help prepare a contributor's pull request. Use when the user asks
+    to review a PR, get a contributor PR ready, update a contributor's branch,
+    or ensure a PR meets project standards before merge. Follow this skill so
+    contributor PRs are reviewed consistently and avoid rework (lint failures,
+    outdated base, weak description).
+argument-hint: '<PR number or URL>'
 user-invocable: true
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # Review Contributor PR
@@ -83,9 +83,9 @@ commit and then push so CI stays green.
 - You can update the PR body via GitHub (if you have permission) or draft
   text for the maintainer/contributor to paste:
 
-  ```bash
-  gh pr edit <N> --body-file path/to/body.md
-  ```
+    ```bash
+    gh pr edit <N> --body-file path/to/body.md
+    ```
 
 - Keep the description accurate: list what changed and how to verify (tests,
   manual steps).
@@ -97,10 +97,10 @@ commit and then push so CI stays green.
 
 - Before pushing:
 
-  1. Rebase onto `upstream/next` so the PR is up to date.
-  2. Ensure `npm exec eslint -- .` and `npm exec tsc -- -b` pass.
-  3. Use `--force-with-lease` when pushing a rebased branch:
-     `git push <remote> <local-branch>:<their-branch> --force-with-lease`.
+    1. Rebase onto `upstream/next` so the PR is up to date.
+    2. Ensure `npm exec eslint -- .` and `npm exec tsc -- -b` pass.
+    3. Use `--force-with-lease` when pushing a rebased branch:
+       `git push <remote> <local-branch>:<their-branch> --force-with-lease`.
 
 - After pushing, the PR will update automatically. Optionally update the PR
   description to mention the new commits.
@@ -114,10 +114,10 @@ the resolution is visible. Use the same method as the **pr-review** skill:
   a reply). Replace `PR` with the pull request number and `COMMENT_ID` with
   the top-level comment's `id`:
 
-  ```bash
-  gh api -X POST "repos/cidrblock/ansible-environments/pulls/PR/comments/COMMENT_ID/replies" \
-    -f body="Brief explanation of the fix. Fixed in COMMIT_SHA."
-  ```
+    ```bash
+    gh api -X POST "repos/cidrblock/ansible-environments/pulls/PR/comments/COMMENT_ID/replies" \
+      -f body="Brief explanation of the fix. Fixed in COMMIT_SHA."
+    ```
 
 - To find comment IDs:
   `gh api repos/cidrblock/ansible-environments/pulls/PR/comments` — use the

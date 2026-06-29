@@ -1,6 +1,6 @@
 ---
 name: Summarize Playbook
-description: Comprehensive analysis of an Ansible playbook including structure, roles, and collection audit
+description: Use this skill when you need to understand what a playbook does. Analyzes structure, roles, tasks, and audits collection dependencies.
 tags: [playbooks, analysis, collections, audit]
 category: workflow
 triggers: [playbook summary, analyze playbook, what does playbook do]

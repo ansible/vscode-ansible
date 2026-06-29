@@ -1,6 +1,6 @@
 ---
 name: Summarize Galaxy Source
-description: Describe Ansible Galaxy as a collection source with popular collections and search guidance
+description: Use this skill when exploring Ansible Galaxy as a source. Describes Galaxy's collection catalog, popular collections, and how to search effectively.
 tags: [collections, galaxy, sources]
 category: domain
 triggers: [galaxy source, what is galaxy, galaxy collections]

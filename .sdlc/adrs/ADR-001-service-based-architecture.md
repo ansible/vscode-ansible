@@ -36,7 +36,7 @@ Growing demand for Ansible tooling in non-VS Code contexts — Neovim LSP client
 
 **We will organize the codebase as an npm monorepo with three packages — `@ansible/core`, `@ansible/language-server`, and `@ansible/mcp-server` — where `@ansible/core` contains all VS Code-independent domain logic and the other packages are thin consumer shells.**
 
-```
+```text
 packages/
   core/             → @ansible/core
   language-server/  → @ansible/language-server
@@ -80,10 +80,12 @@ src/
 **Description**: Continue with domain logic embedded in the extension and language server, with no shared package.
 
 **Pros**:
+
 - No structural changes needed
 - Simpler build configuration
 
 **Cons**:
+
 - MCP server would need to duplicate or fork domain logic
 - Language server and extension maintain parallel implementations of the same concepts
 - Standalone consumption (Neovim, CI) remains impossible
@@ -95,10 +97,12 @@ src/
 **Description**: Publish `@ansible/core` as an independent npm package in its own git repository.
 
 **Pros**:
+
 - Clean separation of concerns
 - Independent versioning
 
 **Cons**:
+
 - Cross-repo development friction (change core, publish, update consumers, test)
 - Harder to make atomic changes that span core and consumers
 - Additional CI/CD pipeline to maintain
@@ -110,10 +114,12 @@ src/
 **Description**: Instead of conditional `require('vscode')`, pass VS Code APIs into services via constructor injection.
 
 **Pros**:
+
 - Explicit dependencies, easier to test with mocks
 - No runtime `require` magic
 
 **Cons**:
+
 - Requires threading API objects through the entire call graph
 - Every service constructor gains parameters that are `undefined` in standalone mode
 - Clutters the public API for non-VS Code consumers who must pass `undefined` for every VS Code parameter
@@ -144,10 +150,14 @@ src/
 ## Implementation Notes
 
 - All `@ansible/core` service files follow the same pattern for optional VS Code access:
-  ```typescript
-  let vscode: typeof import('vscode') | undefined;
-  try { vscode = require('vscode'); } catch {}
-  ```
+
+    ```typescript
+    let vscode: typeof import('vscode') | undefined;
+    try {
+        vscode = require('vscode');
+    } catch {}
+    ```
+
 - Services use the singleton pattern (`getInstance()`) to ensure a single instance is shared across all consumers within the same process.
 - The `SimpleEventEmitter` utility provides a VS Code `EventEmitter`-compatible API for standalone mode, so services can fire events without checking which environment they're in at every call site.
 
@@ -159,6 +169,6 @@ src/
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change                                                                  |
+| ---------- | ----------- | ----------------------------------------------------------------------- |
 | 2026-05-26 | AI-assisted | Initial proposal (Implemented status — documents existing architecture) |

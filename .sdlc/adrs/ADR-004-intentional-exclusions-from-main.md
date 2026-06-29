@@ -138,6 +138,6 @@ scenarios.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change                                    |
+| ---------- | ----------- | ----------------------------------------- |
 | 2026-05-26 | AI-assisted | Initial record of gap analysis exclusions |

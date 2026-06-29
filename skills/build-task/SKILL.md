@@ -1,6 +1,6 @@
 ---
 name: Build Ansible Task
-description: Interactively create an Ansible task using a specific plugin
+description: Use this skill when building a new Ansible task. Interactively guides through plugin parameter selection and produces a well-formed task definition.
 tags: [tasks, plugins, generation]
 category: scaffold
 triggers: [build task, create task, new task, task builder]

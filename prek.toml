@@ -24,7 +24,7 @@ hooks = [
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
 rev = "v0.13.0"
 hooks = [
-    { id = "markdownlint-cli2", args = ["--config", ".markdownlint.json"], exclude = '^node_modules/' },
+    { id = "markdownlint-cli2", args = ["--config", ".markdownlint.json"], exclude = '(^|/)node_modules/' },
 ]
 
 # ── Actionlint — GitHub Actions workflow validation ────────────────────

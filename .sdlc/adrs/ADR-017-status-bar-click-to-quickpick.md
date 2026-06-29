@@ -66,7 +66,7 @@ duplicating data collection.
 Status bar code lives in `src/statusBar/` (a UI infrastructure layer), not in
 `src/features/` (feature-specific logic like vault, file association, lightspeed).
 
-```
+```text
 src/statusBar/
 ├── statusBarUtils.ts      — AnsibleEnvironmentInfo interface + isAnsibleEditor()
 ├── pythonStatusBar.ts     — Python environment status bar
@@ -102,12 +102,14 @@ Click shows/focuses the Ansible output channel.
 ## Consequences
 
 **Positive:**
+
 - Reliable interaction — QuickPick always renders correctly.
 - Actionable — users can change env or resync from the same menu.
 - Telemetry-ready — shared data model avoids duplicate collection.
 - Expandable — new actions or info items are one array push.
 
 **Negative:**
+
 - Extra click required vs. hover (when hover works).
 - QuickPick items are text-only — no rich markdown formatting.
 

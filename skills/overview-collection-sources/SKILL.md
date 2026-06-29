@@ -1,6 +1,6 @@
 ---
 name: Collection Sources Overview
-description: Compare Galaxy vs GitHub collection sources with guidance on source selection
+description: Use this skill when choosing between collection sources. Compares Galaxy vs GitHub sources and provides guidance on which to use for a given use case.
 tags: [collections, galaxy, github, sources]
 category: domain
 triggers: [collection sources, galaxy vs github, where to find collections]

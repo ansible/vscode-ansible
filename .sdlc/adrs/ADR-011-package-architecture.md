@@ -79,7 +79,7 @@ implementations) — and retire the `@ansible/core` package.**
 
 ### Project Architecture
 
-```
+```text
 packages/
   common/           → @ansible/common    (browser-safe: types, prompts, utils, parsers)
   services/         → @ansible/services  (Node.js: service implementations)
@@ -123,12 +123,12 @@ Contains everything that can run in any JavaScript environment:
 browsers, Node.js, Deno, web workers. Zero dependencies on Node.js
 builtins or `vscode`.
 
-| Directory | Purpose | Examples |
-|-----------|---------|----------|
-| `types/` | Shared interfaces and type definitions | `PlaybookConfig`, `PluginData`, `SchemaNode`, `CommandOptions`, `ExecResult` |
-| `prompts/` | AI prompt builder functions | `buildTaskAnalysisPrompt`, `buildCollectionsSummaryPrompt` |
-| `utils/` | Pure utility functions | `buildCommandArgs`, `SimpleEventEmitter`, `log` |
-| `parsers/` | Stateless data transformation | `playbookParser` (`buildPlaybookCommand`, `parsePlaybook`, `mergePlaybookConfig`) |
+| Directory  | Purpose                                | Examples                                                                          |
+| ---------- | -------------------------------------- | --------------------------------------------------------------------------------- |
+| `types/`   | Shared interfaces and type definitions | `PlaybookConfig`, `PluginData`, `SchemaNode`, `CommandOptions`, `ExecResult`      |
+| `prompts/` | AI prompt builder functions            | `buildTaskAnalysisPrompt`, `buildCollectionsSummaryPrompt`                        |
+| `utils/`   | Pure utility functions                 | `buildCommandArgs`, `SimpleEventEmitter`, `log`                                   |
+| `parsers/` | Stateless data transformation          | `playbookParser` (`buildPlaybookCommand`, `parsePlaybook`, `mergePlaybookConfig`) |
 
 **Rule**: If a module uses `import` or `require` of `fs`, `path`,
 `os`, `child_process`, `https`, `net`, `crypto`, or any other Node.js
@@ -140,19 +140,19 @@ Contains stateful services that interact with the operating system,
 network, and filesystem. Depends on `@ansible/common` for types and
 re-exports them for consumer convenience.
 
-| Module | Responsibility | Key Node.js deps |
-|--------|---------------|------------------|
-| `CommandService` | Execute external commands, manage bin paths | `child_process`, `fs`, `path` |
-| `CollectionsService` | Discover and cache Ansible collections | `fs`, `path` |
-| `ContainerRuntime` | Detect engines, run containers, inspect images | `fs`, `os`, `path` |
-| `CreatorService` | Drive ansible-creator scaffolding | (dynamic `CommandService`) |
-| `DevToolsService` | Discover installed dev tools | `path` |
-| `EECache` | Cache execution environment introspection | `fs`, `os`, `path` |
-| `EnvironmentCache` | Cache Python environment selections | `fs`, `path` |
-| `ExecutionEnvService` | Manage execution environments | `fs`, `path` |
-| `GalaxyCollectionCache` | Cache Galaxy collection metadata | `https`, `fs`, `path`, `os` |
-| `GitHubCollectionCache` | Cache GitHub-hosted collections | `fs`, `os`, `path` |
-| `SkillRegistry` | Discover and manage AI skills | `https`, `fs`, `path`, `os` |
+| Module                  | Responsibility                                 | Key Node.js deps              |
+| ----------------------- | ---------------------------------------------- | ----------------------------- |
+| `CommandService`        | Execute external commands, manage bin paths    | `child_process`, `fs`, `path` |
+| `CollectionsService`    | Discover and cache Ansible collections         | `fs`, `path`                  |
+| `ContainerRuntime`      | Detect engines, run containers, inspect images | `fs`, `os`, `path`            |
+| `CreatorService`        | Drive ansible-creator scaffolding              | (dynamic `CommandService`)    |
+| `DevToolsService`       | Discover installed dev tools                   | `path`                        |
+| `EECache`               | Cache execution environment introspection      | `fs`, `os`, `path`            |
+| `EnvironmentCache`      | Cache Python environment selections            | `fs`, `path`                  |
+| `ExecutionEnvService`   | Manage execution environments                  | `fs`, `path`                  |
+| `GalaxyCollectionCache` | Cache Galaxy collection metadata               | `https`, `fs`, `path`, `os`   |
+| `GitHubCollectionCache` | Cache GitHub-hosted collections                | `fs`, `os`, `path`            |
+| `SkillRegistry`         | Discover and manage AI skills                  | `https`, `fs`, `path`, `os`   |
 
 **Rule**: Services use the conditional `require('vscode')` pattern
 (ADR-001). An unconditional `import * as vscode from 'vscode'` in any
@@ -164,17 +164,17 @@ not alongside the service implementation.
 
 ### Naming Rationale
 
-| Package | Name | Why |
-|---------|------|-----|
-| Browser-safe foundation | `@ansible/common` | Standard monorepo convention for shared code; immediately communicates "safe to import anywhere" |
-| Node.js implementations | `@ansible/services` | Describes what it contains; the word "service" already implies runtime infrastructure and stateful operations |
-| Pure parsing (in common) | `parsers/playbookParser` | Avoids confusion with `@ansible/services`; "parser" communicates stateless data transformation |
+| Package                  | Name                     | Why                                                                                                           |
+| ------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Browser-safe foundation  | `@ansible/common`        | Standard monorepo convention for shared code; immediately communicates "safe to import anywhere"              |
+| Node.js implementations  | `@ansible/services`      | Describes what it contains; the word "service" already implies runtime infrastructure and stateful operations |
+| Pure parsing (in common) | `parsers/playbookParser` | Avoids confusion with `@ansible/services`; "parser" communicates stateless data transformation                |
 
 ## Guidance for New Code
 
 When adding new functionality, use this decision tree:
 
-```
+```text
 Is it a type definition or interface?
   → @ansible/common/types/
 
@@ -196,13 +196,13 @@ Is it VS Code-specific (TreeView, webview lifecycle, commands)?
 
 ### Import Conventions
 
-| Consumer | Import from | Never import from |
-|----------|-------------|-------------------|
-| Webview / `@ansible/ui` | `@ansible/common` | `@ansible/services` (would pull Node.js) |
-| Extension (`src/`) | `@ansible/common`, `@ansible/services` | `@ansible/core` (retired) |
-| Language server | `@ansible/services` | `@ansible/core/out/...` (removed) |
-| MCP server | `@ansible/services` | `@ansible/core/out/...` (removed) |
-| Tests | Package under test + `@ansible/common` for types | — |
+| Consumer                | Import from                                      | Never import from                        |
+| ----------------------- | ------------------------------------------------ | ---------------------------------------- |
+| Webview / `@ansible/ui` | `@ansible/common`                                | `@ansible/services` (would pull Node.js) |
+| Extension (`src/`)      | `@ansible/common`, `@ansible/services`           | `@ansible/core` (retired)                |
+| Language server         | `@ansible/services`                              | `@ansible/core/out/...` (removed)        |
+| MCP server              | `@ansible/services`                              | `@ansible/core/out/...` (removed)        |
+| Tests                   | Package under test + `@ansible/common` for types | —                                        |
 
 `@ansible/services` re-exports all public types from
 `@ansible/common`. Node.js consumers that only need one import can
@@ -231,10 +231,12 @@ After the split, no resolution workarounds are needed:
 barrel.
 
 **Pros**:
+
 - No new packages; fewer workspace entries
 - Standard Node.js mechanism
 
 **Cons**:
+
 - Already attempted and reverted — broke TypeScript type inference
   for barrel imports in the language server (hundreds of lint errors)
 - Barrel import still pulls the full graph unless consumers are
@@ -254,10 +256,12 @@ from `@ansible/core` in a webview file silently breaks the build.
 the platform.
 
 **Pros**:
+
 - Single package name for all consumers
 - Bundlers (webpack, esbuild) support conditions
 
 **Cons**:
+
 - TypeScript does not natively resolve condition-based exports in
   `moduleResolution: "node10"` (our extension and LS setting)
 - Requires maintaining two barrel files that must stay synchronized
@@ -276,9 +280,11 @@ name for the browser-safe portion; create `@ansible/core-node` for
 services.
 
 **Pros**:
+
 - Less migration churn for types/prompts consumers (keep same import)
 
 **Cons**:
+
 - `core` does not communicate "browser-safe" — new contributors
   importing `@ansible/core` in a webview would not realize it is
   intentionally limited
@@ -381,6 +387,6 @@ architecture self-documenting. The migration is a one-time cost.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author                         | Change           |
+| ---------- | ------------------------------ | ---------------- |
 | 2026-06-16 | Bradley Thornton (AI-assisted) | Initial decision |

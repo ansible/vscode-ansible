@@ -73,33 +73,33 @@ verified during code review using the checklist below.**
 
 ### Security
 
-6. **Server-side input validation.** Treat all tool inputs as
+1. **Server-side input validation.** Treat all tool inputs as
    untrusted — they originate from an LLM influenced by prompt
    injection, poisoned context, or hallucination. Validate types,
    bounds-check numerics, sanitize for injection (command, path
    traversal), and validate enums. Never rely on the LLM to
    self-constrain.
 
-7. **No prompt-based access control.** Access control must be enforced
+2. **No prompt-based access control.** Access control must be enforced
    in code (middleware, guards, decorators). Prompt-based restrictions
    ("only use tools X, Y, Z") have bypass rates of 25–92%.
 
-8. **No read-only-as-security-boundary.** Read access to a tool does
+3. **No read-only-as-security-boundary.** Read access to a tool does
    not imply the data it returns is safe to surface. Apply data-level
    controls (redaction, masking) before sensitive data enters tool
    responses.
 
 ### Error Handling
 
-9. **Machine-readable error responses.** Every error response must
+1. **Machine-readable error responses.** Every error response must
    include:
-   - A machine-readable error code (not just a human string)
-   - A recoverability signal: `retry`, `escalate`, or `fail`
-   - A suggested next action when applicable
+    - A machine-readable error code (not just a human string)
+    - A recoverability signal: `retry`, `escalate`, or `fail`
+    - A suggested next action when applicable
 
-   Ambiguous errors trigger retry storms from probabilistic callers.
+    Ambiguous errors trigger retry storms from probabilistic callers.
 
-10. **Destructive operations gated.** Tools that modify state
+2. **Destructive operations gated.** Tools that modify state
     (`install_ansible_collection`, creator scaffold tools) must be
     annotated with `destructiveHint: true` so hosts can interpose
     confirmation. Where the MCP spec supports elicitations, prefer
@@ -107,38 +107,38 @@ verified during code review using the checklist below.**
 
 ### Skill Compliance
 
-11. **agentskills.io frontmatter.** Every skill file must have YAML
+1. **agentskills.io frontmatter.** Every skill file must have YAML
     frontmatter with at minimum `name` and `description`, conforming
     to the Agent Skills specification. Additional keys (`tags`,
     `triggers`, `category`, `domain`) are recommended.
 
-12. **Three-level progressive disclosure.** Skills must support:
+2. **Three-level progressive disclosure.** Skills must support:
     - Level 1: Frontmatter (name + description) — always in context
     - Level 2: SKILL.md body — loaded when the model decides to apply
     - Level 3: Reference files — loaded on demand during the workflow
 
-13. **`skill://` URI alignment.** When SEP-2640 is ratified, skill
+3. **`skill://` URI alignment.** When SEP-2640 is ratified, skill
     resources must be addressable via the `skill://` URI scheme.
     Until ratification, skill URIs should be structured so migration
     is a rename, not a redesign.
 
-14. **Skills are data, not directives.** Skill content served over
+4. **Skills are data, not directives.** Skill content served over
     MCP must be treated as untrusted input. Hosts must not
     automatically execute scripts or hooks embedded in skill
     frontmatter from remote sources.
 
 ### Context Management
 
-15. **Progressive discovery.** When the total tool definitions served
+1. **Progressive discovery.** When the total tool definitions served
     by `@ansible/mcp-server` exceed 1–5% of a typical context window
     (~200k tokens), implement a `search_tools` meta-tool pattern to
     defer loading full schemas into context.
 
-16. **Cache-friendly tool arrays.** Append newly discovered tool
+2. **Cache-friendly tool arrays.** Append newly discovered tool
     definitions after the cache breakpoint rather than re-sorting the
     `tools` array, to preserve prompt caching.
 
-17. **`skill://index.json`.** When the skill catalog is served over
+3. **`skill://index.json`.** When the skill catalog is served over
     MCP, expose a `skill://index.json` resource enumerating available
     skills with frontmatter summaries and content digests.
 
@@ -166,10 +166,12 @@ PRs that touch `packages/mcp-server/` or skill files must answer:
 document and trust contributors to follow them voluntarily.
 
 **Pros**:
+
 - No additional process overhead
 - Flexible — contributors adapt practices case-by-case
 
 **Cons**:
+
 - Drift is inevitable without a review gate
 - No way to audit compliance across the tool surface
 - New contributors have no clear checklist
@@ -185,10 +187,12 @@ insufficient.
 against a JSON Schema for annotations, inputSchema, and error format.
 
 **Pros**:
+
 - Mechanical enforcement — no human review needed for schema quality
 - Catches regressions automatically
 
 **Cons**:
+
 - Cannot validate semantic properties (intent-based naming, adequate
   descriptions, correct recoverability signals)
 - Significant upfront tooling investment
@@ -230,35 +234,35 @@ checklist covers semantic properties that automation cannot assess.
 
 ### Current Compliance Gaps (to be tracked separately)
 
-| Gap | Scope |
-|-----|-------|
-| Missing behavioral annotations | All 15 static tools |
-| No `outputSchema` | All tools |
-| Error responses are human strings | Most tool handlers |
-| No `skill://` URI scheme | All skills |
-| No `skill://index.json` resource | MCP server |
+| Gap                               | Scope               |
+| --------------------------------- | ------------------- |
+| Missing behavioral annotations    | All 15 static tools |
+| No `outputSchema`                 | All tools           |
+| Error responses are human strings | Most tool handlers  |
+| No `skill://` URI scheme          | All skills          |
+| No `skill://index.json` resource  | MCP server          |
 
 ### Key Files
 
-| File | Relevance |
-|------|-----------|
-| `packages/mcp-server/src/tools.ts` | Tool definitions — annotations go here |
-| `packages/mcp-server/src/handlers.ts` | Tool handlers — error format changes |
-| `packages/mcp-server/src/server.ts` | Server setup — progressive discovery |
-| `packages/mcp-server/src/skillTools.ts` | Skill tool generation |
-| `packages/common/src/skills/*.md` | Internal skill files |
-| `packages/services/src/SkillRegistry.ts` | Skill loading and registry |
+| File                                     | Relevance                              |
+| ---------------------------------------- | -------------------------------------- |
+| `packages/mcp-server/src/tools.ts`       | Tool definitions — annotations go here |
+| `packages/mcp-server/src/handlers.ts`    | Tool handlers — error format changes   |
+| `packages/mcp-server/src/server.ts`      | Server setup — progressive discovery   |
+| `packages/mcp-server/src/skillTools.ts`  | Skill tool generation                  |
+| `packages/common/src/skills/*.md`        | Internal skill files                   |
+| `packages/services/src/SkillRegistry.ts` | Skill loading and registry             |
 
 ## References
 
-| Document | Location |
-|----------|----------|
-| MCP and Skills: Synthesis and Landscape | `.sdlc/research/mcp-skills-landscape.md` |
-| MCP Client Best Practices | [modelcontextprotocol.io](https://modelcontextprotocol.io/docs/develop/clients/client-best-practices) |
-| Skills Over MCP WG Charter (SEP-2640) | [modelcontextprotocol.io](https://modelcontextprotocol.io/community/working-groups/skills-over-mcp) |
-| Agent Skills Specification | [agentskills.io](https://agentskills.io/specification) |
-| MCP Best Practices and Anti-Patterns | `.sdlc/research/mcp-best-practices-and-anti-patterns.md` |
-| MCP Server Recommended Practices | `.sdlc/research/mcp-server-recommended-practices.md` |
+| Document                                | Location                                                                                              |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| MCP and Skills: Synthesis and Landscape | `.sdlc/research/mcp-skills-landscape.md`                                                              |
+| MCP Client Best Practices               | [modelcontextprotocol.io](https://modelcontextprotocol.io/docs/develop/clients/client-best-practices) |
+| Skills Over MCP WG Charter (SEP-2640)   | [modelcontextprotocol.io](https://modelcontextprotocol.io/community/working-groups/skills-over-mcp)   |
+| Agent Skills Specification              | [agentskills.io](https://agentskills.io/specification)                                                |
+| MCP Best Practices and Anti-Patterns    | `.sdlc/research/mcp-best-practices-and-anti-patterns.md`                                              |
+| MCP Server Recommended Practices        | `.sdlc/research/mcp-server-recommended-practices.md`                                                  |
 
 ## Related Decisions
 
@@ -274,6 +278,6 @@ checklist covers semantic properties that automation cannot assess.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change           |
+| ---------- | ----------- | ---------------- |
 | 2026-06-23 | AI-assisted | Initial decision |

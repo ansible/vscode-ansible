@@ -123,12 +123,14 @@ For iterative development, `npm run check` (compile + lint + test without covera
 ## Versioning
 
 Dynamic versioning from git tags via `tools/version.mts`:
+
 - Clean release tag (e.g., `v26.4.4`) → version `26.4.4`
 - Between releases → patch = seconds since last tag (pre-release builds)
 
 ## CI/CD
 
 GitHub Actions (`.github/workflows/ci.yml`):
+
 - **lint** → **build-and-test** (Node 20, 22) → **integration** → **ui** → **package**
 - **Windows + WSL2** tests (`.github/workflows/wsl2-ui.yml`)
 - **docs** deployment (`.github/workflows/docs-deploy.yml`)

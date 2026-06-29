@@ -132,7 +132,7 @@ own marketplace identity.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
-| 2026-06-22 | — | Initial record |
-| 2026-06-23 | — | Amended: site provides complete tool coverage, replacing per-tool docs sites as canonical source |
+| Date       | Author | Change                                                                                           |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------ |
+| 2026-06-22 | —      | Initial record                                                                                   |
+| 2026-06-23 | —      | Amended: site provides complete tool coverage, replacing per-tool docs sites as canonical source |

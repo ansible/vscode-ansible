@@ -342,7 +342,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Use `template` module over `copy` for most file pushes
 - [ ] Avoid `lineinfile` where feasible, prefer `template` or specific modules
 
-##### Documentation
+##### Role Documentation
 
 - [ ] Create meaningful README in role root
 - [ ] Include example playbooks
@@ -474,7 +474,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Write unit tests for all plugins
 - [ ] Follow Ansible Developer Guide testing standards
 
-##### Documentation
+##### Plugin Documentation
 
 - [ ] Document all plugin types with input parameters, outputs, and examples
 - [ ] Follow Ansible Developer Guide standards

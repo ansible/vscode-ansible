@@ -131,7 +131,7 @@ extension window), rebuild explicitly.
 
 ## Project Structure
 
-```
+```text
 packages/
   common/           → @ansible/common (browser-safe types, prompts, utils, parsers)
   services/         → @ansible/services (Node.js service implementations)
@@ -169,11 +169,13 @@ tags: [collections, plugins]
 category: domain
 triggers: [explain plugin, plugin docs]
 ---
+
 # Explain Ansible Plugin
 
 Instructions go here...
 
 ---
+
 Context is appended below the second separator at runtime.
 ```
 
@@ -197,19 +199,19 @@ the closing `---` is the instruction text. Prompt builders call
 
 ### Dual consumption paths
 
-| Consumer | How it reads skills |
-|----------|---------------------|
-| Extension prompt builders | `import skill from '../skills/foo.content'` + `stripFrontmatter()` |
+| Consumer                                | How it reads skills                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------- |
+| Extension prompt builders               | `import skill from '../skills/foo.content'` + `stripFrontmatter()`                    |
 | MCP agents (`skill_list` / `skill_get`) | `SkillRegistry` loads `BUILTIN_SKILLS` with `source: 'builtin'`, `trust: 'certified'` |
 
 ## Key Skills
 
-| Skill | When to use |
-|-------|-------------|
-| `onboard` | First-time developer orientation |
-| `submit-pr` | Creating a pull request |
-| `pr-review` | Responding to review comments |
-| `write-adr` | Architectural decisions (not bug fixes) |
-| `manage-todos` | Project work item tracking |
-| `branching-strategy` | Understanding next vs main |
-| `review-contributor-pr` | Reviewing external contributions |
+| Skill                   | When to use                             |
+| ----------------------- | --------------------------------------- |
+| `onboard`               | First-time developer orientation        |
+| `submit-pr`             | Creating a pull request                 |
+| `pr-review`             | Responding to review comments           |
+| `write-adr`             | Architectural decisions (not bug fixes) |
+| `manage-todos`          | Project work item tracking              |
+| `branching-strategy`    | Understanding next vs main              |
+| `review-contributor-pr` | Reviewing external contributions        |

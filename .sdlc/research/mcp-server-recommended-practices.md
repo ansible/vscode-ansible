@@ -28,6 +28,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Over 80% of MCP servers fail Origin header validation (analysis of 41,924 servers). DNS rebinding attacks bypass same-origin policy by re-resolving a domain from an attacker's IP to `127.0.0.1`, giving a malicious webpage full access to localhost MCP servers. Live exploits demonstrated bypass in approximately 3 seconds on Chrome. CVE-2025-11249 affected the official TypeScript SDK, which shipped with DNS rebinding protection disabled by default. Multiple servers from Google, Docker, and Apollo were confirmed vulnerable. Firefox and Safari remain fully exploitable with no protection.
 
 **What to look for in code**:
+
 - Server validates the `Origin` header on every request and returns HTTP 403 for unrecognized origins
 - Server validates the `Host` header to reject requests where Host doesn't match expected values
 - DNS rebinding protection is enabled by default, not opt-in
@@ -45,6 +46,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Only approximately 22% of MCP v2+ servers use OAuth despite it being the spec-recommended authentication mechanism. API keys are not part of the MCP specification, give full access without scopes, require users to manually mint and manage keys, and cannot be narrowed or time-limited. OAuth 2.1 enables scoped access, short-lived tokens, and delegated authorization — all essential for multi-agent environments where tokens may be exchanged between services.
 
 **What to look for in code**:
+
 - Server implements OAuth 2.1 authorization flow, not just API key validation
 - Server supports Dynamic Client Registration (DCR)
 - Tokens are short-lived with refresh capability
@@ -62,6 +64,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: 19% of all MCP tools (across 218,410 analyzed) have broken input schemas — 8.9% have null or empty schemas, and 10.9% have empty objects missing the required `type: "object"` field. Broken schemas cause agents to guess at parameters, leading to failed tool calls, hallucinated inputs, and wasted tokens.
 
 **What to look for in code**:
+
 - Every tool definition includes a non-empty `inputSchema` with `"type": "object"`
 - Required parameters are listed in the `required` array
 - Parameter types are explicitly specified (not relying on framework defaults)
@@ -80,6 +83,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: 67% of servers fail PRM endpoint discovery (SHOULD in MCP V3, MUST in V4). 22% fail to return proper 401 status codes and 24% fail to return the `WWW-Authenticate` header — both MUST requirements in the spec. Without PRM, clients cannot automatically discover how to authenticate. Without proper 401 responses, clients cannot distinguish auth failures from other errors.
 
 **What to look for in code**:
+
 - Server exposes a `/.well-known/oauth-protected-resource` endpoint returning valid PRM metadata
 - Authentication failures return HTTP 401 (not 403 or 500)
 - 401 responses include a `WWW-Authenticate` header with the appropriate scheme
@@ -98,6 +102,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Naive 1:1 mapping of API endpoints to MCP tools forces the LLM to become an integration engineer — managing API plumbing, sequencing calls, and reasoning about system identifiers rather than focusing on user intent. Every additional parameter is a value the LLM must reason about, and every exposed system identifier is a potential exfiltration surface. Apollo demonstrated that design-first tools achieved 70% fewer tool calls and 50% fewer tool tokens with the same output quality. Prompt-based access control bypass rates range from 25% to 92%, making tool boundary design a security concern, not just a UX concern.
 
 **What to look for in code**:
+
 - Tools are named after outcomes (e.g., `process_refund`, `deploy_to_staging`) rather than API operations (e.g., `post_orders`, `patch_deployment`)
 - A single tool handles a complete workflow rather than requiring the agent to chain multiple tool calls
 - Tools abstract away system identifiers, pagination, and API-specific patterns
@@ -115,6 +120,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Loading 80 tools consumes 72% of the context window before the user provides any input. A server with approximately 100 tools consumes roughly 60,000 tokens just for tool schemas. Apollo found that their first-generation MCP server (using generic search/read tools) burned approximately 25,000 tokens per response in wasteful search-read loops, while a redesigned tool backed by semantic chunking and vector retrieval cut tool calls by 70% and tool tokens by 50%. "Context is courtesy" — minimizing the token burden on the model is the single most important quality factor for an MCP server.
 
 **What to look for in code**:
+
 - Tool descriptions are concise and directly explain what the tool does and when to use it
 - Each tool's parameter descriptions are brief but clear
 - The server does not expose more than approximately 15-20 tools (consider splitting into specialized servers if higher)
@@ -133,6 +139,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Clients use these annotations to determine whether to auto-approve tool calls, show confirmation dialogs, or flag destructive operations for human review. Without annotations, clients must treat every tool as potentially destructive, which either degrades the user experience through excessive confirmations or compromises safety by auto-approving everything.
 
 **What to look for in code**:
+
 - Every tool includes an `annotations` object with appropriate hint values
 - Read-only tools are annotated with `readOnlyHint: true`
 - Tools that modify state are annotated with `destructiveHint: true`
@@ -150,6 +157,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Structured outputs enable "code mode" composability — where models write code that chains tool calls together using a REPL or interpreter. Without output schemas, models must parse unstructured text, which reduces reliability and prevents programmatic composition.
 
 **What to look for in code**:
+
 - Tools define output schemas in their tool definitions
 - Return types are consistent and predictable across invocations
 - Complex return values use structured formats (JSON objects with typed fields) rather than plain text
@@ -167,6 +175,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Prompts are suggestions, not constraints — instructing an agent to "only use tools X, Y, Z" provides zero enforcement. Prompt-based access control bypass rates range from 25% to 92%. Access to a server should not automatically grant access to all its tools. Each tool should require its own privilege grant, and data returned by tools should be filtered by the caller's role. Without tool-level RBAC, a compromised or prompt-injected agent has access to every tool on every connected server.
 
 **What to look for in code**:
+
 - Tool invocations check the caller's authenticated identity and role before executing
 - Different roles have access to different subsets of tools
 - Server access does not automatically imply access to all tools
@@ -185,6 +194,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: More tools on a single server means a larger decision space for the agent (more hallucinations), higher token costs, and a wider security blast radius. A sprawled agent with broad access gives prompt injection attacks an exfiltration surface proportional to the number of available tools. Specialization contains failure — a misbehaving agent using a specialized server cannot access tools outside its domain.
 
 **What to look for in code**:
+
 - Server tools are cohesive — they relate to a single domain or use case
 - Server credentials and API access are scoped to only what its tools require
 - The server does not access systems or data beyond what its declared tools need
@@ -201,6 +211,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Tool inputs come from an LLM, which may be influenced by prompt injection, poisoned context, or hallucination. An agent can be steered through a malicious document, calendar invite, or PR description to call tools with attacker-chosen parameters. MCP servers should be treated as handling input from an insider threat, not a trusted caller. Real-world incidents include agents deleting production databases and being hijacked via poisoned calendar invites.
 
 **What to look for in code**:
+
 - Input validation occurs in server code, not just in schema declarations
 - String parameters are sanitized for injection (SQL, command, path traversal)
 - Numeric parameters are bounds-checked
@@ -219,6 +230,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Read-only access is not a security boundary. An agent with SELECT access can still extract SSNs, salary data, credentials, and PII. Tool output gets summarized back into the model's context, where prompt injection can direct it to exfiltration tools. A sprawled agent with read-only access to HR, finance, infrastructure, and customer data gives attacks 50+ tools worth of data exfiltration paths.
 
 **What to look for in code**:
+
 - Sensitive columns (SSN, salary, PII, credentials) are masked or omitted based on caller role
 - Row-level filtering limits results to the caller's authorized scope
 - Database queries use parameterized queries with role-based WHERE clauses
@@ -236,6 +248,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: When all agents use one service account, auditing becomes impossible — you cannot trace which agent performed which action. Shared credentials also violate least privilege: every agent gets the same access regardless of its actual needs. Running agents under the end user's full identity gives agents more access than they need and breaks the principle that an agent should have a second, narrower level of access control beyond the user's permissions.
 
 **What to look for in code**:
+
 - Server authentication distinguishes between different agent callers
 - Audit logs record which specific agent (not just which user) made each tool call
 - Server does not accept a single shared token for all callers
@@ -254,6 +267,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: AI-initiated actions that change infrastructure state, create tickets, send messages, or modify data carry real-world consequences that may be irreversible. Agents hallucinate, get prompt-injected, and make reasoning errors. Gating write operations behind approval is a trust and safety requirement, not a nice-to-have.
 
 **What to look for in code**:
+
 - Write, update, and delete tools include a confirmation step before execution
 - Tools are annotated with `destructiveHint: true` where appropriate
 - The server supports elicitation-based confirmation for destructive actions
@@ -273,6 +287,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Elicitations provide structured, validated input directly from the user, bypassing the LLM's interpretation. This is more reliable for configuration parameters, enum selections, and authentication handoffs. Four design patterns apply: configuration (settings at connection time), confirmation (gating destructive actions), selection (enums instead of guesses), and auth handoff (URL mode for OAuth redirects).
 
 **What to look for in code**:
+
 - Server uses `elicitation/create` with JSON Schema for structured inputs
 - Elicitation schemas define proper validation (required fields, enums, formats)
 - Server checks client capability for elicitation support and degrades gracefully to text fallback
@@ -291,6 +306,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Long-running operations (deployments, data processing, report generation) can block the agent-server connection and fail silently on timeout. The Tasks primitive supports a five-state machine (working, input_required, completed, failed, cancelled) and enables human checkpoints mid-operation via the `input_required` state — which most implementations miss.
 
 **What to look for in code**:
+
 - Long-running operations return a `CreateTaskResult` with a task ID immediately
 - Server emits `notifications/tasks/status` updates during execution
 - Task results persist and survive client disconnections
@@ -308,6 +324,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Incorrect field usage leads to data leaking to the model that should be hidden (wasting tokens and creating security risk), or model-needed context being suppressed (breaking downstream reasoning).
 
 **What to look for in code**:
+
 - `content`: Contains explanations for the model about what the app already displayed to the user
 - `structuredContent`: Contains typed data that the model may need for reasoning
 - `_meta`: Contains internal IDs, routing info, and implementation details that the model should never see
@@ -325,6 +342,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Without CSP/CORS restrictions, MCP Apps can load arbitrary external resources, creating data exfiltration vectors and violating the principle of least privilege for network access.
 
 **What to look for in code**:
+
 - Non-authenticated data access uses `fetch()` or WebSocket with CSP/CORS controls
 - CSP allowlists are declared in `_meta.ui.csp.resourceDomains` and `_meta.ui.csp.connectDomains`
 - `ui.domain` is set for CORS restriction to a known origin
@@ -343,6 +361,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Ambiguous error responses trigger retry storms. When a tool returns a vague error like "operation failed," the LLM cannot determine whether to retry, try a different approach, or escalate to the user. This wastes tokens, amplifies API calls, and can cause cascading failures. Clear recovery contracts let agents make informed decisions about what to do next.
 
 **What to look for in code**:
+
 - Error responses include a machine-readable error code (not just human-readable messages)
 - Responses include a recoverability signal: `retry` (transient failure), `escalate` (needs human), or `fail` (permanent)
 - When applicable, responses suggest a next action
@@ -360,6 +379,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: When an LLM retries a "create user" operation, it will not send the same JSON payload with the same idempotency token — it will generate a structurally different request with the same semantic intent. If the server cannot distinguish a retry from a genuinely new request, it may create duplicate records, trigger duplicate workflows, or apply mutations twice. This is especially critical for infrastructure automation where duplicate operations have real consequences.
 
 **What to look for in code**:
+
 - Mutation tools have server-side deduplication logic (e.g., check for existing matching records before creating)
 - The server can detect semantically equivalent requests even if parameters differ in structure
 - Tool results clearly indicate whether the operation was performed or was already completed
@@ -378,6 +398,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Agents have a larger blast radius than human users — they can make more calls, faster, across more tools. Without observability, you cannot trace what agents are doing, detect anomalies, or reconstruct incidents. Observability should be an emergent property of correct architecture — produced at invocation time by the server performing the operation — not a separate system you bolt on later. LLMs are black boxes; observability must be enforced in the deterministic layer (the server).
 
 **What to look for in code**:
+
 - Every tool call is logged with: tool name, parameters, caller identity, timestamp, outcome
 - Sensitive parameters are redacted in logs (not omitted entirely — the call itself should still be logged)
 - Logs are structured (JSON) rather than freeform text
@@ -397,6 +418,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it matters**: Real-world supply chain attacks have already hit the MCP ecosystem. The postmark-mcp package (approximately 1,600 downloads) exfiltrated all emails via BCC after working flawlessly for 15 versions. The mcp-remote package (437K+ downloads, CVSS 9.6) had command injection. The LiteLLM compromise reached MCP servers as a transitive dependency through a Cursor MCP plugin. The Axios RAT (100M weekly downloads) used a self-erasing phantom dependency. Every dependency is an attack surface.
 
 **What to look for in code**:
+
 - Dependencies are pinned to specific versions (not ranges)
 - `package.json` or `requirements.txt` is auditable with no unnecessary dependencies
 - npm post-install scripts are disabled or audited (`ignore-scripts` setting)
@@ -419,6 +441,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: This forces the LLM to become an integration engineer — managing pagination, sequencing CRUD operations, handling API-specific identifiers, and reasoning about implementation details instead of user outcomes. Every unnecessary parameter widens the attack surface and adds reasoning burden. Every extra parameter adds cost and unnecessarily widens the attack surface. A "deploy application" workflow exposed as separate "create job template," "set inventory," "launch job," "check status" tools requires the agent to understand API plumbing that should be hidden.
 
 **What it looks like in code**:
+
 - Tool names mirror HTTP methods and resource paths (e.g., `post_users`, `get_orders_by_id`, `patch_deployment`)
 - Tools expose internal system identifiers, pagination tokens, or API-specific parameters
 - Multiple tools exist for what is conceptually a single user workflow
@@ -437,6 +460,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: More tools equals less predictable agent behavior. Each additional tool increases the context window consumption (approximately 500 tokens per tool), token costs, hallucination risk, and security blast radius. A sprawled agent with tools from multiple domains gives prompt injection attacks an exfiltration surface proportional to the number of available tools. Loading 80 tools consumes 72% of the context window before the user provides input.
 
 **What it looks like in code**:
+
 - A single server file defines 30+ tools spanning multiple unrelated domains
 - Tools cover both read and write operations across different backend systems
 - One set of credentials grants access to everything
@@ -457,6 +481,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: Prompts are suggestions, not constraints. They provide zero technical enforcement. Research shows prompt-based access control bypass rates of 25% to 92%. A prompt telling an agent to "only use read-only tools" can be overridden by prompt injection from a malicious document, email, or calendar invite. Worse, prompt-based controls create a false sense of security — teams believe they have access control when they have none. Prompt-based access control is worse than no access control because it masks the absence of real enforcement.
 
 **What it looks like in code**:
+
 - Access restrictions exist only in system prompts or prompt templates, not in server-side code
 - No middleware, decorators, or guards check caller permissions before tool execution
 - The server exposes all tools to all callers regardless of identity or role
@@ -475,6 +500,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: Shared credentials make auditing impossible — you cannot trace actions back to specific agents. They violate least privilege because every agent gets identical access regardless of its actual needs. If one agent's token is compromised, all agents are compromised.
 
 **What it looks like in code**:
+
 - Server authentication accepts a single hardcoded token or API key
 - No mechanism exists to distinguish between different callers
 - Audit logs show a generic service account name for all operations
@@ -493,6 +519,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: An agent with read access can still SELECT secrets, PII, credentials, salary data, and any other sensitive information in the database. Tool output gets summarized back into the model's context, where prompt injection can direct it to exfiltration vectors (external APIs, email, Slack). A sprawled agent with read-only access to HR, finance, infrastructure, and customer databases gives attacks 50+ tools worth of data exfiltration paths.
 
 **What it looks like in code**:
+
 - Server implements write restrictions but no data-level access controls
 - Database queries return all columns without masking sensitive fields
 - Tool results include PII, credentials, or internal system details
@@ -513,6 +540,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: Each major MCP SDK framework has known silent failure modes: Python defaults untyped parameters to `{"type": "string"}`; TypeScript's Zod silently drops discriminated unions to empty objects; Go's uninitialized struct fields produce invalid schema output. 19% of all MCP tools have broken schemas due to these framework behaviors, and developers typically don't discover the problem because frameworks don't warn.
 
 **What it looks like in code**:
+
 - Tool parameters lack explicit type annotations (relying on framework inference)
 - Complex types (unions, discriminated unions, optional fields) are used without verifying the generated schema
 - No tests validate the actual JSON Schema output of tool definitions
@@ -533,6 +561,7 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 **Why it's a problem**: When a tool returns "operation failed" or a raw exception message, the LLM cannot determine the correct recovery action. This triggers retry storms (wasting tokens and API calls), cascading failures (when the LLM tries creative workarounds), or silent abandonment (when the LLM gives up without informing the user). Ambiguous errors compound because each retry generates a fresh, structurally different request.
 
 **What it looks like in code**:
+
 - Error responses contain only human-readable strings with no error codes
 - No distinction between transient and permanent errors
 - Raw exceptions or stack traces are returned to the caller
@@ -548,11 +577,11 @@ This document was synthesized from dozens of sessions at MCP Dev Summit North Am
 
 This document contains **22 recommended practices** and **8 anti-patterns** across seven categories:
 
-| Importance | Practices | Anti-Patterns | Total |
-|------------|-----------|---------------|-------|
-| CRITICAL   | 5         | 3             | 8     |
-| HIGH       | 12        | 5             | 17    |
-| MEDIUM     | 5         | 0             | 5     |
+| Importance | Practices | Anti-Patterns | Total  |
+| ---------- | --------- | ------------- | ------ |
+| CRITICAL   | 5         | 3             | 8      |
+| HIGH       | 12        | 5             | 17     |
+| MEDIUM     | 5         | 0             | 5      |
 | **Total**  | **22**    | **8**         | **30** |
 
 **Key themes across all sources**:
