@@ -40,10 +40,12 @@ const { SESSIONS_SECRET_KEY, ACCOUNT_SECRET_KEY } = webUtils;
 const getUserInfoMock = lightSpeedManager.lightspeedAuthenticatedUser
   .getUserInfo as unknown as Mock;
 
-type AnyProvider = LightSpeedAuthenticationProvider & {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-};
+// These tests deliberately reach into private members of the provider
+// (_sessionChangeEmitter, _disposable, login, handleUriForCode, ...). vitest
+// transpiles without type info, but vue-tsc --noEmit in CI enforces private
+// access, so alias to any for those reaches.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyProvider = any;
 
 const fetchMock = vi.fn();
 
@@ -133,7 +135,7 @@ beforeEach(() => {
   (vscode.env as any).uriScheme = "vscode";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (vscode.env as any).asExternalUri = vi.fn(async () => ({
-    toString: () => "vscode://redhat.ansible/cb",
+    toString: (): string => "vscode://redhat.ansible/cb",
   }));
   (vscode.Uri.parse as unknown as Mock).mockImplementation((s: string) => ({
     raw: s,
