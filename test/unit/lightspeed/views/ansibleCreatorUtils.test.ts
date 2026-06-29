@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as semver from "semver";
+import type { Webview } from "vscode";
 
 // Use an elaborate vscode mock so Uri.parse/joinPath behave like the real API
 // (the shared mocks/vscode.ts returns undefined from Uri.parse which breaks the
@@ -62,10 +63,12 @@ import type {
   PluginFormInterface,
 } from "@src/features/contentCreator/types";
 
-type Web = { postMessage: ReturnType<typeof vi.fn> };
+// Intersect with Webview so the fake is assignable to the SUT's
+// vscode.Webview parameters, while keeping postMessage typed as a vi mock.
+type Web = Webview & { postMessage: ReturnType<typeof vi.fn> };
 
 function makeWeb(): Web {
-  return { postMessage: vi.fn() };
+  return { postMessage: vi.fn() } as unknown as Web;
 }
 
 // Returns the commandOutput of the last execution-log postMessage.
@@ -152,7 +155,7 @@ describe("AnsibleCreatorOperations", () => {
     vi.clearAllMocks();
     vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
     vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
-    vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0");
+    vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
     vi.mocked(runCommand).mockResolvedValue({
       output: "creator-output\n",
       status: "passed",
@@ -489,7 +492,7 @@ describe("AnsibleCreatorOperations", () => {
     });
 
     it("posts ADEPresence true when ade is found", async () => {
-      vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0");
+      vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
       const web = makeWeb();
       await ops.isADEPresent(web as never);
       expect(web.postMessage).toHaveBeenCalledWith({
