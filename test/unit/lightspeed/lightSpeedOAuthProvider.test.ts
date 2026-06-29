@@ -15,6 +15,8 @@ import {
 import * as webUtils from "@src/features/lightspeed/utils/webUtils";
 import { lightSpeedManager } from "@src/extension";
 import { LightSpeedCommands } from "@src/definitions/lightspeed";
+import type { SettingsManager } from "@src/settings";
+import type { Log } from "@src/utils/logger";
 
 // The SUT imports `lightSpeedManager` at module load and uses it inside
 // createSession (`currentModelValue` + `lightspeedAuthenticatedUser.getUserInfo`).
@@ -45,7 +47,7 @@ const getUserInfoMock = lightSpeedManager.lightspeedAuthenticatedUser
 // transpiles without type info, but vue-tsc --noEmit in CI enforces private
 // access, so alias to any for those reaches.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyProvider = any;
+type AnyProvider = Record<string, any>;
 
 const fetchMock = vi.fn();
 
@@ -82,14 +84,12 @@ function makeProvider(
   };
   logger = { debug: vi.fn(), trace: vi.fn(), info: vi.fn() };
   return new LightSpeedAuthenticationProvider(
-    context,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    {} as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger as any,
+    context as unknown as vscode.ExtensionContext,
+    {} as unknown as SettingsManager,
+    logger as unknown as Log,
     "auth-lightspeed",
     "Ansible Lightspeed",
-  ) as AnyProvider;
+  ) as unknown as AnyProvider;
 }
 
 // Subscribe through the public event so tests verify the real notification
@@ -109,7 +109,7 @@ function captureSessionChanges(): SessionChangeEvent[] {
   provider._sessionChangeEmitter = {
     event: (listener: (e: SessionChangeEvent) => void) => {
       listeners.push(listener);
-      return { dispose: () => {} };
+      return { dispose: () => undefined };
     },
     fire: (e: SessionChangeEvent) => listeners.forEach((l) => l(e)),
   };
@@ -128,7 +128,7 @@ beforeEach(() => {
 
   consoleErrorSpy = vi
     .spyOn(console, "error")
-    .mockImplementation(() => {}) as unknown as Mock;
+    .mockImplementation(() => undefined) as unknown as Mock;
 
   // vscode env extensions the alias mock lacks.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -193,8 +193,7 @@ describe("redirect URI helpers", () => {
   it("falls back to empty publisher/name when packageJSON is empty", async () => {
     const p = makeProvider({});
     await LightSpeedAuthenticationProvider.getExternalRedirectUri(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (p as any).context,
+      p.context as unknown as vscode.ExtensionContext,
     );
     expect(vscode.Uri.parse).toHaveBeenCalledWith("vscode://.");
   });
@@ -283,7 +282,7 @@ describe("removeSession", () => {
     // The persisted list must no longer contain the removed id (a regression
     // that re-saved the original array would otherwise pass).
     const [, storedSessions] = secretsStore.mock.calls[0];
-    expect(JSON.parse(storedSessions)).toEqual([{ id: "a" }]);
+    expect(JSON.parse(storedSessions as string)).toEqual([{ id: "a" }]);
     expect(events).toHaveLength(1);
     expect(events[0].removed).toEqual([{ id: "target" }]);
   });
@@ -423,16 +422,13 @@ describe("login", () => {
 
     // Replace the UriEventHandler with a binding-safe emitter, since the alias
     // mock's EventEmitter.event method is not auto-bound.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const listeners: Array<(u: any) => void> = [];
+    const listeners: Array<(u: { query: string }) => void> = [];
     provider._uriHandler = {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      event: (l: any) => {
+      event: (l: (u: { query: string }) => void) => {
         listeners.push(l);
-        return { dispose: () => {} };
+        return { dispose: () => undefined };
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      fire: (u: any) => listeners.forEach((l) => l(u)),
+      fire: (u: { query: string }) => listeners.forEach((l) => l(u)),
     };
 
     getBaseUriMock.mockResolvedValue("https://ls.example");
@@ -440,7 +436,7 @@ describe("login", () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       async (_opts: any, task: any) => {
         const token = {
-          onCancellationRequested: () => ({ dispose: () => {} }),
+          onCancellationRequested: () => ({ dispose: () => undefined }),
         };
         const p = task({ report: vi.fn() }, token);
         provider._uriHandler.fire({ query: "code=the-code" });
