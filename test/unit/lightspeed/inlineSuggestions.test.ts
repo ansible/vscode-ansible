@@ -311,7 +311,7 @@ describe("getCompletionState (via provideInlineCompletionItems)", () => {
       ctx(h.InlineCompletionTriggerKind.Invoke),
     );
     expect(Array.isArray(res)).toBe(true);
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
     // cached path does not issue a new completion request
     expect(
       h.lightSpeedManager.providerManager.completionRequest,
@@ -362,7 +362,7 @@ describe("WCA provider apiEndpoint matrix", () => {
     );
     // falls through to the Default path -> a real suggestion is produced
     expect(h.window.showErrorMessage).not.toHaveBeenCalled();
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
   });
 });
 
@@ -399,7 +399,7 @@ describe("getInlineSuggestionState valid-prompt dispatch", () => {
       singleTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
     expect(
       h.lightSpeedManager.providerManager.completionRequest,
     ).toHaveBeenCalled();
@@ -412,7 +412,7 @@ describe("getInlineSuggestionState valid-prompt dispatch", () => {
       multiTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
     expect(
       h.lightSpeedManager.providerManager.completionRequest,
     ).toHaveBeenCalled();
@@ -477,7 +477,7 @@ describe("onDoSingleTasksSuggestion happy path", () => {
       singleTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
     expect(res[0]).toBeInstanceOf(h.InlineCompletionItem);
     expect(res[0].command.command).toBe(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
@@ -493,8 +493,8 @@ describe("onDoSingleTasksSuggestion happy path", () => {
     expect(details[0].suggestionId).toBe("resp-sid");
     // activity tracker first-insert
     expect(
-      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker).length,
-    ).toBe(1);
+      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker),
+    ).toHaveLength(1);
   });
 });
 
@@ -535,7 +535,7 @@ describe("isDocumentChangedImmediately", () => {
       singleTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
   });
 
   it("waitWindow > 0 returns empty when the document changes during the wait", async () => {
@@ -855,8 +855,8 @@ describe("additional branch coverage", () => {
   it("reuses the existing activity tracker entry for the same document", async () => {
     await arm(singleTaskPos());
     expect(
-      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker).length,
-    ).toBe(1);
+      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker),
+    ).toHaveLength(1);
     // reset the displayed state via a NotForMe pass, then request again
     await provide(
       makeDoc(["x"], { languageId: "plaintext" }),
@@ -866,8 +866,8 @@ describe("additional branch coverage", () => {
     await arm(new h.Position(1, 4));
     // same documentUri -> the tracker entry is reused, not re-inserted
     expect(
-      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker).length,
-    ).toBe(1);
+      Object.keys(h.lightSpeedManager.lightSpeedActivityTracker),
+    ).toHaveLength(1);
   });
 
   it("single-task: prediction with no leading whitespace", async () => {
@@ -881,7 +881,7 @@ describe("additional branch coverage", () => {
       singleTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
   });
 
   it("multi-task: prediction with no leading whitespace", async () => {
@@ -896,7 +896,7 @@ describe("additional branch coverage", () => {
       multiTaskPos(),
       ctx(h.InlineCompletionTriggerKind.Automatic),
     );
-    expect(res.length).toBe(1);
+    expect(res).toHaveLength(1);
   });
 
   it("handles a prompt and cursor with no leading whitespace", async () => {
