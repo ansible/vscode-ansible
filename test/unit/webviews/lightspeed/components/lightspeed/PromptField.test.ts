@@ -96,4 +96,31 @@ describe("PromptField", () => {
       "Current prompt text",
     );
   });
+
+  it("sorts received recent prompts and filters them on complete", async () => {
+    const wrapper = mount(PromptField, { props: { prompt: "" } });
+
+    const handler = vi
+      .mocked(vscodeApi.on)
+      .mock.calls.find((call) => call[0] === "getRecentPrompts")?.[1];
+    void handler?.(["b", "a"]);
+    await flushPromises();
+
+    const ac = wrapper.findComponent({ name: "AutoComplete" });
+
+    // empty query -> full (sorted) list
+    ac.vm.$emit("complete", { query: "" });
+    await flushPromises();
+    expect(ac.props("suggestions")).toEqual(["a", "b"]);
+
+    // matching query -> filtered list
+    ac.vm.$emit("complete", { query: "a" });
+    await flushPromises();
+    expect(ac.props("suggestions")).toEqual(["a"]);
+
+    // whitespace-only query -> full list
+    ac.vm.$emit("complete", { query: "   " });
+    await flushPromises();
+    expect(ac.props("suggestions")).toEqual(["a", "b"]);
+  });
 });

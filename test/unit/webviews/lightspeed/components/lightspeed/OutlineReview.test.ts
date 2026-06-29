@@ -99,4 +99,55 @@ describe("OutlineReview", () => {
     const textarea = wrapper.find("#outline-field");
     expect(textarea.attributes("rows")).toBe("12"); // 10 lines + 2
   });
+
+  // These tests attach to document.body so the component's
+  // document.querySelector("#outline-field") resolves; each unmounts to keep a
+  // single #outline-field in the document at a time.
+  it("emits outlineUpdate with reapplied line numbers on input", async () => {
+    const wrapper = mount(OutlineReview, {
+      props: { outline: "1. a\n2. b", type: "playbook" as const },
+      attachTo: document.body,
+    });
+    const textarea = wrapper.find("#outline-field");
+    const el = textarea.element as HTMLTextAreaElement;
+    el.value = "1. Install nginx\nConfigure";
+    el.selectionStart = el.value.length;
+    await textarea.trigger("input");
+
+    const emitted = wrapper.emitted("outlineUpdate");
+    expect(emitted).toBeTruthy();
+    expect(emitted?.[0]?.[0]).toBe("1. Install nginx\n2. Configure");
+    wrapper.unmount();
+  });
+
+  it("removes a line that is only a bare line number", async () => {
+    const wrapper = mount(OutlineReview, {
+      props: { outline: "1. a\n2.\n3. c", type: "playbook" as const },
+      attachTo: document.body,
+    });
+    const textarea = wrapper.find("#outline-field");
+    const el = textarea.element as HTMLTextAreaElement;
+    el.value = "1. a\n2.\n3. c";
+    el.selectionStart = 7; // end of the bare "2."
+    await textarea.trigger("input");
+
+    const emitted = wrapper.emitted("outlineUpdate");
+    expect(emitted?.[0]?.[0]).toBe("1. a\n2. c");
+    wrapper.unmount();
+  });
+
+  it("handles the cursor sitting right after a newline", async () => {
+    const wrapper = mount(OutlineReview, {
+      props: { outline: "1. a\n2. b", type: "playbook" as const },
+      attachTo: document.body,
+    });
+    const textarea = wrapper.find("#outline-field");
+    const el = textarea.element as HTMLTextAreaElement;
+    el.value = "1. a\n2. b";
+    el.selectionStart = 5; // char before is "\n"
+    await textarea.trigger("input");
+
+    expect(wrapper.emitted("outlineUpdate")).toBeTruthy();
+    wrapper.unmount();
+  });
 });

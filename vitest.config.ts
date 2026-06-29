@@ -144,7 +144,15 @@ export default defineConfig({
       cleanOnRerun: true,
       clean: true,
       enabled: !isFiltered,
-      exclude: [],
+      exclude: [
+        // Pure bootstrap/demo webview entrypoints (createApp().mount() glue / demo)
+        "webviews/lightspeed/src/explanation.ts",
+        "webviews/lightspeed/src/hello-world.ts",
+        "webviews/lightspeed/src/playbook-generation.ts",
+        "webviews/lightspeed/src/role-generation.ts",
+        "webviews/lightspeed/src/HelloWorld.vue",
+        "webviews/lightspeed/src/explorer.ts",
+      ],
       include: [
         "src/**/**.{js,jsx,ts,tsx}",
         ...(skipAlsTests
