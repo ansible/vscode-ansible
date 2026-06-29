@@ -415,8 +415,8 @@ Use this when you know the plugin and parameters needed.
 
 Examples:
 • Copy file:
-  generate_ansible_task({ 
-    plugin: "ansible.builtin.copy", 
+  generate_ansible_task({
+    plugin: "ansible.builtin.copy",
     params: { src: "app.conf", dest: "/etc/app/", mode: "0644" }
   })
 
@@ -658,7 +658,7 @@ export const GET_EE_DETAILS_TOOL: McpToolDefinition = {
 This tool returns ALL information about the EE - no additional container inspection is needed:
 • Container base OS and Ansible version
 • ALL installed Ansible collections with versions
-• ALL installed Python packages with versions  
+• ALL installed Python packages with versions
 • ALL system packages (if available)
 
 Use the ee_name exactly as returned by list_execution_environments.`,

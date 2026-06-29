@@ -95,8 +95,9 @@ See the `branching-strategy` skill for full details.
 Before committing:
 
 1. `npm run ci` — **required before every commit/push**. Runs skill
-   codegen, TypeScript compilation, ESLint on the full project, Vitest
-   with coverage thresholds (85/75/85/85), and esbuild bundling. This
+   codegen, TypeScript compilation, ESLint, prek hooks (skillmark,
+   cspell, markdownlint, actionlint, file hygiene), Vitest with
+   coverage thresholds (85/75/85/85), and esbuild bundling. This
    mirrors what CI runs. Do not push if it fails. Do not claim quality
    gates passed without running this command.
 2. Verify no architectural invariants (above) were violated.
@@ -116,7 +117,7 @@ extension window), rebuild explicitly.
 ## Commit Format
 
 [Conventional Commits](https://www.conventionalcommits.org). Scopes:
-`core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`.
+`core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`, `deps`.
 
 ## Project Structure
 

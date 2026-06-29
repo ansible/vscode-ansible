@@ -43,7 +43,7 @@ class CallbackModule(CallbackBase):
         self._start_time = None
         self._play_start_time = None
         self._task_start_times = {}
-        
+
         socket_path = os.environ.get('ANSIBLE_ENV_SOCKET')
         if socket_path:
             try:
@@ -70,11 +70,11 @@ class CallbackModule(CallbackBase):
         """Clean result data for transmission."""
         if not isinstance(result, dict):
             return result
-        
+
         sanitized = {}
         # Keys to omit (too large or sensitive)
         omit_keys = {'ansible_facts', 'ansible_env'}
-        
+
         for key, value in result.items():
             if key in omit_keys:
                 continue
@@ -84,7 +84,7 @@ class CallbackModule(CallbackBase):
                 sanitized[key] = '[large data omitted]'
             else:
                 sanitized[key] = value
-        
+
         return sanitized
 
     def _host_result(self, result):
@@ -93,7 +93,7 @@ class CallbackModule(CallbackBase):
         duration = None
         if task_uuid in self._task_start_times:
             duration = time.time() - self._task_start_times[task_uuid]
-        
+
         return {
             'host': result._host.get_name(),
             'task': result._task.get_name(),

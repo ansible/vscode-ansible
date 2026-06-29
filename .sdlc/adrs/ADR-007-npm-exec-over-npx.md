@@ -20,7 +20,7 @@ project's security and reproducibility requirements:
 `npx` was designed for ad-hoc execution. When a package is not installed
 locally, `npx` downloads and runs it from the npm registry — potentially
 without prompting (behavior varies across npm versions). This creates a
-supply-chain attack vector: a typo like `npx eslitn` could execute a
+supply-chain attack vector: a typo like `npx eslitn` could execute a <!-- cspell:disable-line -->
 malicious package.
 
 ### Inconsistent prompting across npm versions

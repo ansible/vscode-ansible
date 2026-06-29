@@ -65,7 +65,7 @@ const BEST_PRACTICES_RESOURCE = `# Ansible Extension - Best Practices
 **ALWAYS use the \`install_ansible_collection\` MCP tool** to install collections.
 This tool uses \`ade install\` (ansible-dev-environment) which:
 - Properly manages the workspace's collection path
-- Updates ansible.cfg automatically  
+- Updates ansible.cfg automatically
 - Works with both Galaxy and GitHub sources
 
 **NEVER suggest using \`ansible-galaxy collection install\` directly.**

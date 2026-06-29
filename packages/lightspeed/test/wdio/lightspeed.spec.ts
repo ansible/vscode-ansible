@@ -74,7 +74,7 @@ async function closeAllEditors(): Promise<void> {
 
 describe('Lightspeed with mock server', () => {
     before(async function () {
-        
+
 
         await openPlaybookFixture();
         await browser.waitUntil(

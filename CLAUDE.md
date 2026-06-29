@@ -72,6 +72,7 @@ npm run test:lightspeed:ui          # Run WDIO lightspeed tests
 
 ```bash
 npm run lint            # ESLint on the full project
+npm run lint:prek       # Run prek hooks (skillmark, cspell, markdownlint, actionlint, file hygiene)
 ```
 
 ### Packaging & Release
@@ -98,15 +99,22 @@ npm run docs:preview    # Preview built docs
 ## Code Quality
 
 - **ESLint** — TypeScript/JavaScript linting (`eslint.config.mjs`)
-- **Conventional commits** — `fix(core):`, `feat(ls):`, `test(ui):`, `chore(deps):` (scopes: `core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`)
+- **prek** — Git hook manager (`prek.toml`); runs skillmark, cspell, markdownlint, actionlint, file hygiene, commitlint, and the custom skill frontmatter checker
+- **cspell** — Spell checking for markdown, TypeScript, docs (`.cspell.json`)
+- **markdownlint** — Markdown linting (`.markdownlint.json`)
+- **actionlint** — GitHub Actions workflow validation
+- **skillmark** — SKILL.md validation against agentskills.io spec (`.skillmark.toml`)
+- **commitlint** — Conventional commit enforcement (`commitlint.config.mjs`)
+- **Conventional commits** — `fix(core):`, `feat(ls):`, `test(ui):`, `chore(deps):` (scopes: `core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`, `deps`)
 - **PR labels** — required: one of `breaking`, `chore`, `feat`, `fix`
 
 ## Quality Gates
 
 Before committing:
 
-1. `npm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, vitest with coverage thresholds, and esbuild bundling.
+1. `npm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, prek hooks (skillmark, cspell, markdownlint, actionlint, file hygiene), vitest with coverage thresholds, and esbuild bundling.
 2. After any code change, run `npm run compile && npm run build` — the extension loads from `dist/` (esbuild bundles) and stale bundles mask bugs.
+3. Optionally run `prek install` to activate git hooks for commit-time validation.
 
 For iterative development, `npm run check` (compile + lint + test without coverage or build) is acceptable.
 

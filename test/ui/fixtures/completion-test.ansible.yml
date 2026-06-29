@@ -8,4 +8,4 @@
         msg: "hello"
     - name: Test task keywords
       ansible.builtin.ping:
-    - 
+    -
