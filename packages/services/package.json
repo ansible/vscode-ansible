@@ -11,7 +11,7 @@
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "clean": "rimraf out"
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@ansible/common": "0.0.1",

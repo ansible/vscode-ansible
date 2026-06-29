@@ -31,10 +31,11 @@ const catalog = [
   ["Linting", {
     lint: "ESLint on the full project",
     "lint:prek": "prek hooks (skillmark, cspell, markdownlint, actionlint)",
+    "lint:knip": "Find unused files, deps, and exports (knip)",
   }],
   ["Quality Gates", {
     check: "compile + lint + test (iterative development)",
-    ci: "Full CI: compile + lint + prek + test:coverage + build",
+    ci: "Full CI: compile + lint + prek + knip + test:coverage + build",
   }],
   ["Packaging", {
     package: "Create .vsix package",
