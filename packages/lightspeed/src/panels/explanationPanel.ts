@@ -184,8 +184,7 @@ export class ExplanationPanel {
             case 'explainPlaybook': {
                 this.log('info', '[explanation] Webview requested playbook explanation');
                 const data = message.data as
-                    | { content?: string; explanationId?: string }
-                    | undefined;
+                    { content?: string; explanationId?: string } | undefined;
                 const content = data?.content;
                 if (content) {
                     await this._requestExplanation({ content, explanationType: 'playbook' });
@@ -197,8 +196,7 @@ export class ExplanationPanel {
             case 'explainRole': {
                 this.log('info', '[explanation] Webview requested role explanation');
                 const data = message.data as
-                    | { content?: string; explanationId?: string; files?: unknown[] }
-                    | undefined;
+                    { content?: string; explanationId?: string; files?: unknown[] } | undefined;
                 const content = data?.content;
                 if (content) {
                     await this._requestExplanation({ content, explanationType: 'role' });

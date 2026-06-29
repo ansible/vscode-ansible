@@ -42,8 +42,7 @@ export function getFetch(): typeof globalThis.fetch {
     try {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const electron = require('electron') as
-            | { net?: { fetch?: typeof globalThis.fetch } }
-            | undefined;
+            { net?: { fetch?: typeof globalThis.fetch } } | undefined;
         const electronFetch = electron?.net?.fetch;
         if (electronFetch) {
             return electronFetch;

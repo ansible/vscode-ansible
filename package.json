@@ -1172,7 +1172,8 @@
     "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
     "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",
     "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs",
-    "help": "node scripts/help.mjs"
+    "help": "node scripts/help.mjs",
+    "deps:check": "echo '=== Outdated ===' && npm outdated --depth=0 || true && echo '\n=== Audit ===' && npm audit || true"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0",

@@ -37,8 +37,7 @@ export class PluginSearchIndex {
         try {
             const service = CollectionsService.getInstance();
             const onDidChange = service.onDidChange as
-                | ((listener: () => void) => { dispose: () => void })
-                | undefined;
+                ((listener: () => void) => { dispose: () => void }) | undefined;
 
             if (onDidChange && typeof onDidChange === 'function') {
                 onDidChange(() => {

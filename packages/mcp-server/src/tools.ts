@@ -23,11 +23,7 @@ export interface McpToolDefinition {
 }
 
 export type McpErrorCode =
-    | 'MISSING_PARAM'
-    | 'INVALID_INPUT'
-    | 'NOT_FOUND'
-    | 'SERVICE_UNAVAILABLE'
-    | 'OPERATION_FAILED';
+    'MISSING_PARAM' | 'INVALID_INPUT' | 'NOT_FOUND' | 'SERVICE_UNAVAILABLE' | 'OPERATION_FAILED';
 
 export type McpRecoverability = 'retry' | 'escalate' | 'fail';
 
