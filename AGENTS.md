@@ -106,10 +106,11 @@ locally before running `npm run ci` or `npm run lint:prek`.
 
 1. `npm run ci` — **required before every commit/push**. Runs skill
    codegen, TypeScript compilation, ESLint, prek hooks (skillmark,
-   cspell, markdownlint, actionlint, file hygiene), Vitest with
-   coverage thresholds (85/75/85/85), and esbuild bundling. This
-   mirrors what CI runs. Do not push if it fails. Do not claim quality
-   gates passed without running this command.
+   cspell, markdownlint, actionlint, file hygiene), knip (unused
+   deps/exports), Vitest with coverage thresholds (85/75/85/85), and
+   esbuild bundling. This mirrors what CI runs. Do not push if it
+   fails. Do not claim quality gates passed without running this
+   command.
 2. Verify no architectural invariants (above) were violated.
 
 For iterative development, `npm run check` (compile + lint + test

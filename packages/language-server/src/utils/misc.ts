@@ -1,4 +1,3 @@
-import * as path from 'path';
 import { promises as fs } from 'fs';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Range } from 'vscode-languageserver-types';
@@ -60,51 +59,6 @@ export function isObject<X>(obj: X): obj is X & Record<PropertyKey, unknown> {
  */
 export function insert(str: string, index: number, val: string): string {
     return `${str.substring(0, index)}${val}${str.substring(index)}`;
-}
-
-/**
- * Adjusts the command and environment for a Python virtual-environment.
- *
- * @param executable - Ansible or lint executable name or path.
- * @param args - Command-line arguments to append.
- * @param interpreterPath - Path to the Python interpreter in the venv.
- * @param activationScript - Optional shell script that activates the venv.
- * @returns The shell command and environment variables to use.
- */
-export function withInterpreter(
-    executable: string,
-    args: string,
-    interpreterPath: string,
-    activationScript: string,
-): { command: string; env: NodeJS.ProcessEnv } {
-    let command = `${executable} ${args}`;
-
-    const newEnv: NodeJS.ProcessEnv = {
-        ...process.env,
-        NO_COLOR: '1',
-        ANSIBLE_FORCE_COLOR: '0',
-        PYTHONBREAKPOINT: '0',
-    };
-
-    if (activationScript) {
-        command = `sh -c '. ${activationScript} && ${executable} ${args}'`;
-        return { command, env: newEnv };
-    }
-
-    if (interpreterPath) {
-        const virtualEnv = path.resolve(interpreterPath, '../..');
-        const pathEntry = path.join(virtualEnv, 'bin');
-
-        if (path.isAbsolute(executable)) {
-            command = `${executable} ${args}`;
-        }
-
-        newEnv.VIRTUAL_ENV = virtualEnv;
-        newEnv.PATH = `${pathEntry}:${process.env.PATH ?? ''}`;
-        delete newEnv.PYTHONHOME;
-    }
-
-    return { command, env: newEnv };
 }
 
 /**

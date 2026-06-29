@@ -66,6 +66,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run lint:prek
+      - run: npm run lint:knip
 
   integration:
     runs-on: ubuntu-latest

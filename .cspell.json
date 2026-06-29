@@ -38,6 +38,7 @@
         "fqcn",
         "frontmatter",
         "genai",
+        "knip",
         "lightspeed",
         "modelcontextprotocol",
         "markdownlint",

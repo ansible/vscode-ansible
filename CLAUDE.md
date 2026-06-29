@@ -75,6 +75,7 @@ npm run test:lightspeed:ui          # Run WDIO lightspeed tests
 ```bash
 npm run lint            # ESLint on the full project
 npm run lint:prek       # Run prek hooks (skillmark, cspell, markdownlint, actionlint, file hygiene)
+npm run lint:knip       # Find unused files, deps, and exports (knip)
 ```
 
 ### Packaging & Release
@@ -105,6 +106,7 @@ npm run docs:preview    # Preview built docs
 - **cspell** — Spell checking for markdown, TypeScript, docs (`.cspell.json`)
 - **markdownlint** — Markdown linting (`.markdownlint.json`)
 - **actionlint** — GitHub Actions workflow validation
+- **knip** — Unused files, dependencies, and exports detection (`knip.json`)
 - **skillmark** — SKILL.md validation against agentskills.io spec (`.skillmark.toml`)
 - **commitlint** — Conventional commit enforcement (`commitlint.config.mjs`)
 - **Conventional commits** — `fix(core):`, `feat(ls):`, `test(ui):`, `chore(deps):` (scopes: `core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`, `deps`)
@@ -114,7 +116,7 @@ npm run docs:preview    # Preview built docs
 
 Before committing:
 
-1. `npm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, prek hooks (skillmark, cspell, markdownlint, actionlint, file hygiene), vitest with coverage thresholds, and esbuild bundling.
+1. `npm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, prek hooks, knip (unused deps/exports), vitest with coverage thresholds, and esbuild bundling.
 2. After any code change, run `npm run compile && npm run build` — the extension loads from `dist/` (esbuild bundles) and stale bundles mask bugs.
 3. Optionally run `prek install` to activate git hooks for commit-time validation.
 

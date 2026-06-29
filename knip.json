@@ -1,0 +1,79 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/extension.ts",
+        "src/panels/webview-entry.tsx",
+        "scripts/*.mjs",
+        "tools/*.mts",
+        "wdio.conf.wsl.ts",
+        "wdio.lightspeed.conf.ts",
+        ".vscode-test.mjs",
+        "test/**/*.spec.ts",
+        "test/**/*.test.ts"
+      ],
+      "project": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "scripts/**", "tools/**"],
+      "ignoreDependencies": [
+        "@vscode-elements/elements",
+        "@modelcontextprotocol/sdk",
+        "js-yaml",
+        "zod",
+        "zod-to-json-schema",
+        "@commitlint/cli",
+        "cspell",
+        "markdownlint-cli2",
+        "@typescript-eslint/eslint-plugin",
+        "@wdio/local-runner",
+        "ts-node",
+        "yaml",
+        "@wdio/globals"
+      ],
+      "ignoreBinaries": ["prek", "code", "gh", "powershell"]
+    },
+    "packages/language-server": {
+      "project": ["src/**/*.ts", "test/**/*.ts"]
+    },
+    "packages/mcp-server": {
+      "entry": ["src/tools.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["zod-to-json-schema"]
+    },
+    "packages/lightspeed": {
+      "entry": [
+        "webviews/src/*.ts",
+        "webviews/src/*.vue",
+        "test/**/*.spec.ts"
+      ],
+      "project": ["src/**/*.ts", "webviews/src/**/*.{ts,vue}", "test/**/*.ts"],
+      "ignoreDependencies": ["@ansible/services", "electron", "vscode"]
+    },
+    "packages/ui": {
+      "entry": ["src/bridge/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": ["react-dom", "@types/react-dom"]
+    },
+    "packages/common": {
+      "project": ["src/**/*.ts"]
+    },
+    "packages/services": {
+      "project": ["src/**/*.ts"]
+    },
+    "docs": {
+      "entry": ["src/**/*.{ts,astro,mdx}"],
+      "project": ["src/**/*.{ts,astro,mdx}"],
+      "ignoreDependencies": [
+        "@fontsource/red-hat-display",
+        "@fontsource/red-hat-text",
+        "@fontsource/red-hat-mono"
+      ]
+    }
+  },
+  "ignore": [
+    "src/panels/webview.d.ts",
+    "src/panels/webviewStyles.ts",
+    "src/services/index.ts",
+    "packages/lightspeed/webviews/src/components/**/*.vue"
+  ],
+  "ignoreExportsUsedInFile": true
+}

@@ -11,13 +11,12 @@
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "clean": "rimraf out"
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@ansible/services": "0.0.1",
     "@flatten-js/interval-tree": "^2.0.3",
     "antsibull-docs": "^1.1.4",
-    "glob": "^13.0.6",
     "ini": "^6.0.0",
     "lodash": "^4.17.23",
     "vscode-languageserver": "^9.0.1",

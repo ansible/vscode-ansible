@@ -14,7 +14,7 @@
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "clean": "rimraf out"
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
     "@ansible/services": "0.0.1",

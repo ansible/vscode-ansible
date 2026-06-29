@@ -11,7 +11,7 @@
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
-    "clean": "rimraf out dist",
+    "clean": "node -e \"['out','dist'].forEach(d=>require('fs').rmSync(d,{recursive:true,force:true}))\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
