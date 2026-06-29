@@ -431,7 +431,7 @@ describe("webUtils - generateCodeVerifier", () => {
     const spy = vi
       .spyOn(crypto, "randomBytes")
       // symbol-heavy buffer -> base64 of all "/" -> 0 alphanumeric chars -> recurse
-      .mockReturnValueOnce(Buffer.alloc(44, 0xff))
+      .mockReturnValueOnce(Buffer.alloc(44, 0xff) as never)
       .mockImplementation(((n: number) => realRandomBytes(n)) as never);
 
     const result = generateCodeVerifier();
@@ -510,10 +510,10 @@ describe("webUtils - getLoggedInUserDetails", () => {
       orgOptOutTelemetry: false,
     });
 
-    expect(result.userInfo.role).toBe("Administrator");
-    expect(result.userInfo.subscribed).toBe(true);
-    expect(result.userInfo.userType).toBe("Licensed");
-    expect(result.modelInfo.model).toBe("model-x");
+    expect(result.userInfo?.role).toBe("Administrator");
+    expect(result.userInfo?.subscribed).toBe(true);
+    expect(result.userInfo?.userType).toBe("Licensed");
+    expect(result.modelInfo?.model).toBe("model-x");
   });
 
   it("returns empties and 'Not logged in' when there is no session or model", () => {
@@ -523,9 +523,9 @@ describe("webUtils - getLoggedInUserDetails", () => {
 
     const result = getLoggedInUserDetails();
 
-    expect(result.userInfo.userType).toBe("Not logged in");
-    expect(result.userInfo.role).toBeUndefined();
-    expect(result.userInfo.subscribed).toBeUndefined();
-    expect(result.modelInfo.model).toBeUndefined();
+    expect(result.userInfo?.userType).toBe("Not logged in");
+    expect(result.userInfo?.role).toBeUndefined();
+    expect(result.userInfo?.subscribed).toBeUndefined();
+    expect(result.modelInfo?.model).toBeUndefined();
   });
 });
