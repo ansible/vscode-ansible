@@ -90,8 +90,37 @@ function makeProvider(
   ) as AnyProvider;
 }
 
+// Subscribe through the public event so tests verify the real notification
+// path (onDidChangeSessions) rather than spying on the internal emitter.
+type SessionChangeEvent = {
+  added?: readonly unknown[];
+  removed?: readonly unknown[];
+  changed?: readonly unknown[];
+};
+function captureSessionChanges(): SessionChangeEvent[] {
+  const events: SessionChangeEvent[] = [];
+  // The shared MockEventEmitter.event is an unbound prototype method, so a
+  // detached `onDidChangeSessions(listener)` call would bind `this` to the
+  // provider instead of the emitter. Install a minimal bound emitter so the
+  // public event path actually delivers payloads through onDidChangeSessions.
+  const listeners: Array<(e: SessionChangeEvent) => void> = [];
+  provider._sessionChangeEmitter = {
+    event: (listener: (e: SessionChangeEvent) => void) => {
+      listeners.push(listener);
+      return { dispose: () => {} };
+    },
+    fire: (e: SessionChangeEvent) => listeners.forEach((l) => l(e)),
+  };
+  provider.onDidChangeSessions((e: SessionChangeEvent) => {
+    events.push(e);
+  });
+  return events;
+}
+
 beforeEach(() => {
-  vi.clearAllMocks();
+  // resetAllMocks (not clearAllMocks) so prior mockResolvedValue/
+  // mockImplementation state on shared fakes does not leak between tests.
+  vi.resetAllMocks();
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
 
@@ -183,7 +212,7 @@ describe("createSession", () => {
       rh_org_has_subscription: true,
       rh_user_is_org_admin: true,
     });
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     const session = await provider.createSession([]);
 
@@ -194,10 +223,8 @@ describe("createSession", () => {
       SESSIONS_SECRET_KEY,
       expect.any(String),
     );
-    expect(fireSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ added: [expect.anything()] }),
-    );
-    expect(fireSpy.mock.calls[0][0].added).toHaveLength(1);
+    expect(events).toHaveLength(1);
+    expect(events[0].added).toHaveLength(1);
   });
 
   it("throws when login yields no account", async () => {
@@ -243,7 +270,7 @@ describe("removeSession", () => {
     secretsGet.mockResolvedValue(
       JSON.stringify([{ id: "a" }, { id: "target" }]),
     );
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     await provider.removeSession("target");
 
@@ -251,19 +278,22 @@ describe("removeSession", () => {
       SESSIONS_SECRET_KEY,
       expect.any(String),
     );
-    expect(fireSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ removed: [{ id: "target" }] }),
-    );
+    // The persisted list must no longer contain the removed id (a regression
+    // that re-saved the original array would otherwise pass).
+    const [, storedSessions] = secretsStore.mock.calls[0];
+    expect(JSON.parse(storedSessions)).toEqual([{ id: "a" }]);
+    expect(events).toHaveLength(1);
+    expect(events[0].removed).toEqual([{ id: "target" }]);
   });
 
   it("stores without firing when the id is absent", async () => {
     secretsGet.mockResolvedValue(JSON.stringify([{ id: "a" }]));
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     await provider.removeSession("missing");
 
     expect(secretsStore).toHaveBeenCalled();
-    expect(fireSpy).not.toHaveBeenCalled();
+    expect(events).toHaveLength(0);
   });
 
   it("returns early when there are no stored sessions", async () => {
@@ -287,7 +317,7 @@ describe("getSessions / setMockSession / onDidChangeSessions", () => {
 
   it("writes a synthetic session and fires an added event", async () => {
     secretsGet.mockResolvedValue(undefined);
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     await provider.setMockSession({
       accessToken: "tok",
@@ -299,11 +329,8 @@ describe("getSessions / setMockSession / onDidChangeSessions", () => {
       SESSIONS_SECRET_KEY,
       expect.any(String),
     );
-    expect(fireSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        added: [expect.objectContaining({ id: "id-1" })],
-      }),
-    );
+    expect(events).toHaveLength(1);
+    expect(events[0].added).toEqual([expect.objectContaining({ id: "id-1" })]);
   });
 
   it("exposes the session-change event", () => {
@@ -616,7 +643,7 @@ describe("refreshAccessToken", () => {
       refreshToken: "r2",
       expiresAtTimestampInSeconds: nowSeconds() + 100000,
     });
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     const token = await provider.refreshAccessToken(session);
 
@@ -629,9 +656,8 @@ describe("refreshAccessToken", () => {
       SESSIONS_SECRET_KEY,
       expect.any(String),
     );
-    expect(fireSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ changed: [expect.anything()] }),
-    );
+    expect(events).toHaveLength(1);
+    expect(events[0].changed).toHaveLength(1);
   });
 
   it("prompts to reconnect when the refresh fails", async () => {
@@ -697,11 +723,11 @@ describe("refreshAccessToken", () => {
       refreshToken: "r2",
       expiresAtTimestampInSeconds: nowSeconds() + 100000,
     });
-    const fireSpy = vi.spyOn(provider._sessionChangeEmitter, "fire");
+    const events = captureSessionChanges();
 
     const token = await provider.refreshAccessToken(session);
 
     expect(token).toBe("fresh");
-    expect(fireSpy).not.toHaveBeenCalled();
+    expect(events).toHaveLength(0);
   });
 });
