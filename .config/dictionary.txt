@@ -58,6 +58,7 @@ esbuild
 eslintcache
 ffdx
 fqcn
+fqcns
 geckodriver
 genai
 haaaad
