@@ -34,7 +34,6 @@ describe('Language Server full stack e2e', function () {
         this.timeout(30_000);
 
         if (fs.existsSync(VENV_PYTHON)) {
-            // Reuse cached venv from a prior run
             const version = shell(`"${VENV_PYTHON}" --version`);
             expect(version).toContain('Python');
             return;
@@ -77,10 +76,6 @@ describe('Language Server full stack e2e', function () {
     it('should write the environment cache for the LS', function () {
         this.timeout(15_000);
 
-        // Write the cache file so that CommandService in the LS process can
-        // find the venv's bin directory.  The LS process (standalone Node,
-        // no vscode module) resolves getWorkspaceRoot() via process.cwd(),
-        // which vscode-languageclient sets to the first workspace folder.
         const cacheDir = path.join(FIXTURES_DIR, '.cache', 'ansible-environments');
         fs.mkdirSync(cacheDir, { recursive: true });
         const cacheFile = path.join(cacheDir, 'environment.json');
@@ -95,7 +90,6 @@ describe('Language Server full stack e2e', function () {
         fs.writeFileSync(cacheFile, JSON.stringify(cacheData, null, 2), 'utf-8');
         expect(fs.existsSync(cacheFile)).toBe(true);
 
-        // Verify the cache is readable
         const written = JSON.parse(fs.readFileSync(cacheFile, 'utf-8')) as {
             selectedEnvironment: { binDir: string };
         };

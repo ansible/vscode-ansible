@@ -97,7 +97,7 @@
     "overrides": [
         {
             "filename": ".sdlc/**",
-            "words": ["BYOLLM", "GSTACK", "PKCE", "elicitations", "kiro"]
+            "words": ["BYOLLM", "GSTACK", "PKCE", "elicitations", "kiro", "taskfile"]
         }
     ]
 }
