@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { WCA_API_ENDPOINT_DEFAULT } from "@src/definitions/lightspeed";
 import { SettingsManager } from "@src/settings";
 
@@ -15,7 +15,14 @@ vi.mock("@src/extension", () => {
 });
 
 // Import after mocks are set up
-import { getBaseUri } from "@src/features/lightspeed/utils/webUtils";
+import crypto from "crypto";
+import {
+  getBaseUri,
+  generateCodeVerifier,
+  coerceExpiresIn,
+  getUserTypeLabel,
+  getLoggedInUserDetails,
+} from "@src/features/lightspeed/utils/webUtils";
 import { lightSpeedManager } from "@src/extension";
 
 // Type for mocked lightSpeedManager to avoid 'any' usage
@@ -405,5 +412,120 @@ describe("webUtils - getBaseUri", () => {
 
       expect(result).toBe(WCA_API_ENDPOINT_DEFAULT);
     });
+  });
+});
+
+describe("webUtils - generateCodeVerifier", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("returns an alphanumeric string of at least 50 characters", () => {
+    const result = generateCodeVerifier();
+    expect(result.length).toBeGreaterThanOrEqual(50);
+    expect(result).toMatch(/^[a-zA-Z0-9]+$/);
+  });
+
+  it("recurses when the first random bytes produce too few alphanumeric chars", () => {
+    const realRandomBytes = crypto.randomBytes.bind(crypto);
+    const spy = vi
+      .spyOn(crypto, "randomBytes")
+      // symbol-heavy buffer -> base64 of all "/" -> 0 alphanumeric chars -> recurse
+      .mockReturnValueOnce(Buffer.alloc(44, 0xff))
+      .mockImplementation(((n: number) => realRandomBytes(n)) as never);
+
+    const result = generateCodeVerifier();
+
+    expect(spy.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(result.length).toBeGreaterThanOrEqual(50);
+    expect(result).toMatch(/^[a-zA-Z0-9]+$/);
+  });
+});
+
+describe("webUtils - coerceExpiresIn", () => {
+  it("returns a positive number unchanged", () => {
+    expect(coerceExpiresIn(3600)).toBe(3600);
+  });
+
+  it("coerces a numeric string", () => {
+    expect(coerceExpiresIn("120")).toBe(120);
+  });
+
+  it("returns the default for zero", () => {
+    expect(coerceExpiresIn(0)).toBe(3600);
+  });
+
+  it("returns the default for a negative number", () => {
+    expect(coerceExpiresIn(-5)).toBe(3600);
+  });
+
+  it("returns the default for NaN", () => {
+    expect(coerceExpiresIn(NaN)).toBe(3600);
+  });
+
+  it("returns the default for a non-numeric string", () => {
+    expect(coerceExpiresIn("abc")).toBe(3600);
+  });
+
+  it("returns the default for undefined", () => {
+    expect(coerceExpiresIn(undefined)).toBe(3600);
+  });
+
+  it("honors a custom defaultSeconds", () => {
+    expect(coerceExpiresIn(0, 99)).toBe(99);
+  });
+});
+
+describe("webUtils - getUserTypeLabel", () => {
+  it("returns 'Not logged in' for undefined", () => {
+    expect(getUserTypeLabel(undefined)).toBe("Not logged in");
+  });
+
+  it("returns 'Licensed' for true", () => {
+    expect(getUserTypeLabel(true)).toBe("Licensed");
+  });
+
+  it("returns 'Unlicensed' for false", () => {
+    expect(getUserTypeLabel(false)).toBe("Unlicensed");
+  });
+});
+
+describe("webUtils - getLoggedInUserDetails", () => {
+  afterEach(() => {
+    (
+      lightSpeedManager as unknown as { currentModelValue?: string }
+    ).currentModelValue = undefined;
+  });
+
+  it("populates admin, subscription, licensed user type and model", () => {
+    (
+      lightSpeedManager as unknown as { currentModelValue?: string }
+    ).currentModelValue = "model-x";
+
+    const result = getLoggedInUserDetails({
+      rhOrgHasSubscription: true,
+      rhUserIsOrgAdmin: true,
+      displayName: "Admin",
+      displayNameWithUserType: "Admin (licensed)",
+      orgOptOutTelemetry: false,
+    });
+
+    expect(result.userInfo.role).toBe("Administrator");
+    expect(result.userInfo.subscribed).toBe(true);
+    expect(result.userInfo.userType).toBe("Licensed");
+    expect(result.modelInfo.model).toBe("model-x");
+  });
+
+  it("returns empties and 'Not logged in' when there is no session or model", () => {
+    (
+      lightSpeedManager as unknown as { currentModelValue?: string }
+    ).currentModelValue = undefined;
+
+    const result = getLoggedInUserDetails();
+
+    expect(result.userInfo.userType).toBe("Not logged in");
+    expect(result.userInfo.role).toBeUndefined();
+    expect(result.userInfo.subscribed).toBeUndefined();
+    expect(result.modelInfo.model).toBeUndefined();
   });
 });

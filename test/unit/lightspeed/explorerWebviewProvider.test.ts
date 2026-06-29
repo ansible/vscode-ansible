@@ -110,4 +110,106 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       expect(mockWebviewView.onDidDispose).toHaveBeenCalled();
     });
   });
+
+  describe("disposal handler behavior", () => {
+    it("should dispose all disposables and empty the array when view is disposed", async () => {
+      let capturedDispose: (() => void) | undefined;
+      let capturedDisposables: Array<{ dispose: () => void }> | undefined;
+
+      (
+        mockWebviewView.onDidDispose as ReturnType<typeof vi.fn>
+      ).mockImplementation((cb: () => void) => {
+        capturedDispose = cb;
+        return { dispose: vi.fn() };
+      });
+
+      const d1 = { dispose: vi.fn() };
+      const d2 = { dispose: vi.fn() };
+      vi.mocked(WebviewHelper.setupWebviewHooks).mockImplementation(
+        async (
+          _webview: unknown,
+          disposables: Array<{ dispose: () => void }>,
+        ) => {
+          capturedDisposables = disposables;
+          disposables.push(d1, d2);
+        },
+      );
+
+      await provider.resolveWebviewView(
+        mockWebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        {} as vscode.CancellationToken,
+      );
+
+      expect(capturedDisposables).toHaveLength(2);
+      expect(capturedDispose).toBeDefined();
+
+      capturedDispose?.();
+
+      expect(d1.dispose).toHaveBeenCalledTimes(1);
+      expect(d2.dispose).toHaveBeenCalledTimes(1);
+      expect(capturedDisposables).toHaveLength(0);
+    });
+
+    it("should skip falsy disposables and not throw", async () => {
+      let capturedDispose: (() => void) | undefined;
+
+      (
+        mockWebviewView.onDidDispose as ReturnType<typeof vi.fn>
+      ).mockImplementation((cb: () => void) => {
+        capturedDispose = cb;
+        return { dispose: vi.fn() };
+      });
+
+      const realDisposable = { dispose: vi.fn() };
+      vi.mocked(WebviewHelper.setupWebviewHooks).mockImplementation(
+        async (
+          _webview: unknown,
+          disposables: Array<{ dispose: () => void }>,
+        ) => {
+          // Last element popped first is falsy (L54 false branch),
+          // then the real disposable (L54 true branch).
+          disposables.push(
+            realDisposable,
+            undefined as unknown as { dispose: () => void },
+          );
+        },
+      );
+
+      await provider.resolveWebviewView(
+        mockWebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        {} as vscode.CancellationToken,
+      );
+
+      expect(() => capturedDispose?.()).not.toThrow();
+      expect(realDisposable.dispose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("refreshWebView", () => {
+    it("should post a refresh message after the view is resolved", async () => {
+      await provider.resolveWebviewView(
+        mockWebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        {} as vscode.CancellationToken,
+      );
+
+      provider.refreshWebView();
+
+      expect(mockWebview.postMessage).toHaveBeenCalledWith({
+        type: "userRefreshExplorerState",
+        data: {},
+      });
+    });
+
+    it("should not post a message when the view has not been resolved", () => {
+      const freshProvider = new LightspeedExplorerWebviewViewProvider(
+        mockContext,
+      );
+
+      expect(() => freshProvider.refreshWebView()).not.toThrow();
+      expect(mockWebview.postMessage).not.toHaveBeenCalled();
+    });
+  });
 });
