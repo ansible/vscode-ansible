@@ -367,13 +367,13 @@ export class LlmService {
 </head>
 <body>
     <h2>LLM Configuration Status</h2>
-    
+
     <p><strong>Settings:</strong></p>
     <ul>
         <li>Provider: ${provider || '<em>(auto)</em>'}</li>
         <li>Model: ${modelId || '<em>(auto)</em>'}</li>
     </ul>
-    
+
     <p><strong>Active Model:</strong></p>
     <ul>
         ${
@@ -383,12 +383,12 @@ export class LlmService {
                 : '<li><em>None available</em></li>'
         }
     </ul>
-    
+
     <p><strong>Available Providers:</strong></p>
     <ul>
         ${providers.map((p) => `<li>${p}</li>`).join('\n        ')}
     </ul>
-    
+
     <p style="margin-top: 20px;">
         <em>Use command "Ansible: Select LLM Provider & Model" to change.</em>
     </p>

@@ -7,6 +7,7 @@ description: >
   strategy, or making any structural choice that future contributors must
   understand. Do NOT use for bug fixes, config changes, or tactical
   refactors that don't change the system's shape.
+user-invocable: true
 ---
 
 # Write an ADR

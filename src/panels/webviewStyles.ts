@@ -33,7 +33,7 @@ export const BASE_CSS_VARIABLES = `
  */
 export const BASE_BODY_STYLES = `
     * { box-sizing: border-box; }
-    
+
     body {
         font-family: var(--vscode-font-family);
         font-size: var(--vscode-font-size);
@@ -43,14 +43,14 @@ export const BASE_BODY_STYLES = `
         margin: 0;
         line-height: 1.5;
     }
-    
+
     h1 { font-size: 1.4em; font-weight: 500; margin: 0 0 8px 0; }
     h2 { font-size: 1.2em; font-weight: 500; margin: 16px 0 8px 0; }
     h3 { font-size: 1.1em; font-weight: 500; margin: 12px 0 6px 0; }
-    
+
     a { color: var(--link); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    
+
     .subtitle { color: var(--vscode-descriptionForeground); font-size: 0.9em; }
     .hint { color: var(--vscode-descriptionForeground); font-size: 0.85em; margin-top: 4px; }
 `;
@@ -67,36 +67,36 @@ export const BUTTON_STYLES = `
         cursor: pointer;
         transition: background 0.2s;
     }
-    
+
     button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
-    
+
     button.primary {
         background: var(--button-bg);
         color: var(--button-fg);
     }
-    
+
     button.primary:hover:not(:disabled) {
         background: var(--button-hover);
     }
-    
+
     button.secondary {
         background: transparent;
         color: var(--fg);
         border: 1px solid var(--input-border);
     }
-    
+
     button.secondary:hover:not(:disabled) {
         background: var(--secondary-bg);
     }
-    
+
     button.small {
         padding: 2px 8px;
         font-size: 0.8em;
     }
-    
+
     button.icon-btn {
         background: transparent;
         border: none;
@@ -105,7 +105,7 @@ export const BUTTON_STYLES = `
         padding: 2px 4px;
         font-size: 1em;
     }
-    
+
     button.icon-btn:hover {
         color: var(--fg);
     }
@@ -118,13 +118,13 @@ export const FORM_STYLES = `
     .form-group {
         margin-bottom: 16px;
     }
-    
+
     label {
         display: block;
         margin-bottom: 4px;
         font-weight: 500;
     }
-    
+
     input[type="text"],
     input[type="number"],
     textarea,
@@ -138,25 +138,25 @@ export const FORM_STYLES = `
         font-family: inherit;
         font-size: inherit;
     }
-    
+
     input:focus,
     textarea:focus,
     select:focus {
         outline: none;
         border-color: var(--focus);
     }
-    
+
     textarea {
         resize: vertical;
         min-height: 60px;
     }
-    
+
     .checkbox-group {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
     }
-    
+
     .checkbox-item {
         display: flex;
         align-items: center;
@@ -164,7 +164,7 @@ export const FORM_STYLES = `
         font-weight: normal;
         cursor: pointer;
     }
-    
+
     .checkbox-item input {
         width: auto;
     }
@@ -179,7 +179,7 @@ export const TABLE_STYLES = `
         border-collapse: collapse;
         font-size: 0.9em;
     }
-    
+
     th {
         text-align: left;
         padding: 8px;
@@ -187,13 +187,13 @@ export const TABLE_STYLES = `
         border-bottom: 1px solid var(--border);
         font-weight: 500;
     }
-    
+
     td {
         padding: 8px;
         border-bottom: 1px solid var(--border);
         vertical-align: top;
     }
-    
+
     tr:hover {
         background: var(--secondary-bg);
     }
@@ -210,12 +210,12 @@ export const SECTION_STYLES = `
         padding: 16px;
         margin-bottom: 16px;
     }
-    
+
     .section h2:first-child,
     .section h3:first-child {
         margin-top: 0;
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 24px;
@@ -233,7 +233,7 @@ export const PROGRESS_STYLES = `
         border-radius: 2px;
         overflow: hidden;
     }
-    
+
     .progress-fill {
         height: 100%;
         background: var(--success);
@@ -250,14 +250,14 @@ export const TOOLBAR_STYLES = `
         gap: 8px;
         align-items: center;
     }
-    
+
     .toolbar-right {
         margin-left: auto;
         display: flex;
         gap: 4px;
         align-items: center;
     }
-    
+
     .header {
         display: flex;
         justify-content: space-between;
@@ -275,7 +275,7 @@ export const ZOOM_THEME_STYLES = `
         gap: 4px;
         align-items: center;
     }
-    
+
     .view-controls button {
         background: var(--secondary-bg);
         border: 1px solid var(--border);
@@ -285,11 +285,11 @@ export const ZOOM_THEME_STYLES = `
         cursor: pointer;
         font-size: 0.9em;
     }
-    
+
     .view-controls button:hover {
         background: var(--input-bg);
     }
-    
+
     .container {
         zoom: 1;
     }
@@ -306,7 +306,7 @@ export const BADGE_STYLES = `
         border-radius: 3px;
         background: var(--secondary-bg);
     }
-    
+
     .badge.success { background: var(--success); color: white; }
     .badge.warning { background: var(--warning); color: black; }
     .badge.error { background: var(--error); color: white; }
@@ -357,7 +357,7 @@ export function getZoomThemeScript(settingsKey: string): string {
             const container = document.querySelector('.container') || document.body;
             let currentZoom = 1;
             let currentTheme = 'auto';
-            
+
             // Load saved settings
             const savedZoom = localStorage.getItem('${settingsKey}.zoom');
             const savedTheme = localStorage.getItem('${settingsKey}.theme');
@@ -369,7 +369,7 @@ export function getZoomThemeScript(settingsKey: string): string {
                 currentTheme = savedTheme;
                 applyTheme(currentTheme);
             }
-            
+
             function applyTheme(theme) {
                 document.body.classList.remove('theme-light', 'theme-dark');
                 if (theme === 'light') {
@@ -379,19 +379,19 @@ export function getZoomThemeScript(settingsKey: string): string {
                 }
                 // 'auto' uses VS Code's theme (no class needed)
             }
-            
+
             document.getElementById('zoomInBtn')?.addEventListener('click', () => {
                 currentZoom = Math.min(currentZoom + 0.1, 2);
                 container.style.zoom = currentZoom;
                 localStorage.setItem('${settingsKey}.zoom', currentZoom.toString());
             });
-            
+
             document.getElementById('zoomOutBtn')?.addEventListener('click', () => {
                 currentZoom = Math.max(currentZoom - 0.1, 0.5);
                 container.style.zoom = currentZoom;
                 localStorage.setItem('${settingsKey}.zoom', currentZoom.toString());
             });
-            
+
             document.getElementById('themeBtn')?.addEventListener('click', () => {
                 const themes = ['auto', 'light', 'dark'];
                 const idx = themes.indexOf(currentTheme);
@@ -416,7 +416,7 @@ export const THEME_OVERRIDE_STYLES = `
         --input-fg: #333333;
         --input-border: #cccccc;
     }
-    
+
     body.theme-dark {
         --bg: #1e1e1e;
         --fg: #cccccc;
@@ -457,9 +457,9 @@ export const AGENT_PROGRESS_STYLES = `
         flex-direction: column;
         overflow: hidden;
     }
-    
+
     .agent-progress-panel.hidden { display: none; }
-    
+
     .progress-header {
         display: flex;
         align-items: center;
@@ -468,22 +468,22 @@ export const AGENT_PROGRESS_STYLES = `
         background: var(--input-bg);
         border-bottom: 1px solid var(--border);
     }
-    
+
     .progress-spinner {
         animation: spin 1s linear infinite;
         font-size: 1.2em;
     }
-    
+
     @keyframes spin {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
-    
+
     .progress-title {
         font-weight: 500;
         flex-grow: 1;
     }
-    
+
     .progress-log {
         flex: 1;
         overflow-y: auto;
@@ -492,19 +492,19 @@ export const AGENT_PROGRESS_STYLES = `
         font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
         font-size: 0.85em;
     }
-    
+
         .log-entry {
             display: flex;
             padding: 3px 0;
             line-height: 1.4;
             animation: fadeIn 0.2s ease-out;
         }
-        
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(3px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .log-time {
             flex-shrink: 0;
             width: 65px;
@@ -512,17 +512,17 @@ export const AGENT_PROGRESS_STYLES = `
             color: var(--vscode-descriptionForeground);
             opacity: 0.6;
         }
-        
+
         .log-prefix {
             flex-shrink: 0;
             width: 50px;
             font-weight: 500;
         }
-        
+
         .log-msg {
             flex: 1;
         }
-        
+
         .log-entry.tool_call .log-prefix { color: var(--link); }
         .log-entry.tool_call .log-msg { color: var(--link); }
         .log-entry.tool_result .log-prefix { color: var(--vscode-descriptionForeground); }
@@ -539,10 +539,10 @@ export const AGENT_PROGRESS_STYLES = `
         .log-entry.parsed .log-prefix { color: var(--success); }
         .log-entry.parsed .log-msg { color: var(--success); }
         .log-entry.info .log-msg { color: var(--fg); opacity: 0.9; }
-    
+
     .agent-progress-panel.complete .progress-spinner { animation: none; }
     .agent-progress-panel.complete .progress-title { color: var(--success); }
-    
+
     /* Backdrop */
     .progress-backdrop {
         position: fixed;
@@ -553,7 +553,7 @@ export const AGENT_PROGRESS_STYLES = `
         background: rgba(0, 0, 0, 0.4);
         z-index: 999;
     }
-    
+
     .progress-backdrop.hidden { display: none; }
 `;
 
@@ -590,42 +590,42 @@ export function getAgentProgressScript(completionTitle: string, autoHideDelay = 
         // Handle agent progress messages
         window.addEventListener('message', event => {
             const message = event.data;
-            
+
             if (message.command === 'agentProgress') {
                 const panel = document.getElementById('agentProgressPanel');
                 const backdrop = document.getElementById('progressBackdrop');
                 const log = document.getElementById('progressLog');
                 const title = panel?.querySelector('.progress-title');
                 const spinner = panel?.querySelector('.progress-spinner');
-                
+
                 if (!panel || !log) return;
-                
+
                 // Show panel
                 panel.classList.remove('hidden');
                 if (backdrop) backdrop.classList.remove('hidden');
-                
+
                 const { status, message: msg, type } = message.data;
-                
+
                 // Add log entry at TOP with three-column layout (time | prefix | msg)
                 const entry = document.createElement('div');
                 entry.className = 'log-entry';
                 if (type) entry.classList.add(type);
                 const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                
+
                 // Extract prefix from message (first word)
                 const parts = msg.split(' ');
                 const prefix = parts[0] || '';
                 const rest = parts.slice(1).join(' ');
-                
+
                 entry.innerHTML = '<span class="log-time">' + time + '</span><span class="log-prefix">' + prefix + '</span><span class="log-msg">' + rest + '</span>';
                 log.insertBefore(entry, log.firstChild);
-                
+
                 // Update panel state
                 if (status === 'complete') {
                     panel.classList.add('complete');
                     if (title) title.textContent = '${completionTitle}';
                     if (spinner) spinner.textContent = '✓';
-                    
+
                     ${
                         autoHideDelay > 0
                             ? `

@@ -1,0 +1,81 @@
+fail_fast = true
+
+# ── File hygiene (builtin — no network fetch) ──────────────────────────
+[[repos]]
+repo = "builtin"
+hooks = [
+    { id = "end-of-file-fixer", exclude = '\.svg$' },
+    { id = "trailing-whitespace", exclude = '\.svg$' },
+    { id = "mixed-line-ending" },
+    { id = "check-merge-conflict" },
+    { id = "check-json", exclude = '(ansible|jinja)-language-configuration\.json' },
+]
+
+# ── Skillmark — agentskills.io spec validation ─────────────────────────
+[[repos]]
+repo = "https://github.com/michellepellon/skillmark"
+rev = "v0.1.0"
+hooks = [
+    { id = "skillmark", language = "rust", args = ["--config", ".skillmark.toml"] },
+]
+
+# ── Markdownlint ───────────────────────────────────────────────────────
+[[repos]]
+repo = "https://github.com/DavidAnson/markdownlint-cli2"
+rev = "v0.13.0"
+hooks = [
+    { id = "markdownlint-cli2", args = ["--config", ".markdownlint.json"], exclude = '^node_modules/' },
+]
+
+# ── Actionlint — GitHub Actions workflow validation ────────────────────
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "v1.7.7"
+hooks = [
+    { id = "actionlint" },
+]
+
+# ── pre-commit-hooks (additional checks) ───────────────────────────────
+[[repos]]
+repo = "https://github.com/pre-commit/pre-commit-hooks"
+rev = "v6.0.0"
+hooks = [
+    { id = "check-executables-have-shebangs" },
+    { id = "fix-byte-order-marker" },
+]
+
+# ── Commitlint — conventional commit enforcement ──────────────────────
+[[repos]]
+repo = "https://github.com/alessandrojcm/commitlint-pre-commit-hook"
+rev = "v9.25.0"
+hooks = [
+    { id = "commitlint", stages = ["commit-msg"] },
+]
+
+# ── Local hooks ────────────────────────────────────────────────────────
+[[repos]]
+repo = "local"
+
+[[repos.hooks]]
+id = "eslint"
+name = "eslint"
+entry = "npm exec eslint -- . --no-warn-ignored --color --fix --max-warnings=0"
+language = "system"
+pass_filenames = false
+always_run = true
+
+[[repos.hooks]]
+id = "cspell"
+name = "cspell"
+entry = "npm exec cspell -- --no-progress --no-summary --color"
+language = "system"
+types = ["markdown"]
+exclude = '(node_modules/|dist/|out/|\.wdio-vscode/)'
+
+[[repos.hooks]]
+id = "check-skill-frontmatter"
+name = "check-skill-frontmatter"
+entry = "uvx --with pyyaml python3 scripts/check_skill_frontmatter.py"
+language = "system"
+pass_filenames = false
+always_run = true

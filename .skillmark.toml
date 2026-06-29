@@ -1,0 +1,25 @@
+fail-on = "errors"
+min-score = 100
+
+[rules]
+# E030 — replaced by scripts/check_skill_frontmatter.py (supports emerging
+#         standard fields not yet in the agentskills.io spec, see #105).
+# E033 — internal skills use project-specific metadata fields (category, tags).
+# E009/E012/E013 — internal skills use human-readable display names with
+#         spaces and uppercase for the SkillRegistry UI. These intentionally
+#         differ from the kebab-case directory names.
+# E031 — false positives on cross-workspace skill references in onboard skill.
+# E035 — false positives on API URL examples in onboard skill.
+disable = ["E009", "E012", "E013", "E030", "E031", "E033", "E035"]
+experimental = false
+
+[scoring.weights]
+spec-compliance = 0.40
+description-quality = 0.20
+content-efficiency = 0.15
+composability-clarity = 0.10
+script-quality = 0.10
+discoverability = 0.05
+
+[paths]
+exclude = ["node_modules/", "dist/", "out/", ".wdio-vscode/"]
