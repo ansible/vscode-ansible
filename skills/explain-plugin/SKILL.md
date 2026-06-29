@@ -1,6 +1,6 @@
 ---
 name: Explain Ansible Plugin
-description: Explain an Ansible plugin with practical examples and parameter guidance
+description: Use this skill when you want to understand what a plugin does. Explains an Ansible plugin with practical examples, key parameters, and best practices.
 tags: [collections, plugins, documentation]
 category: domain
 triggers: [explain plugin, plugin docs, what does plugin do]

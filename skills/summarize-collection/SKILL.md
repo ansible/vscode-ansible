@@ -1,6 +1,6 @@
 ---
 name: Summarize Collection
-description: Deep-dive into a single Ansible collection's plugins and use cases
+description: Use this skill when you want to learn about a specific collection. Summarizes the collection's plugins, roles, common use cases, and dependencies.
 tags: [collections, plugins, overview]
 category: domain
 triggers: [collection summary, what is collection, describe collection]

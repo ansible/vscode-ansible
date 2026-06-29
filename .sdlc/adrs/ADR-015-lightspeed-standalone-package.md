@@ -160,7 +160,7 @@ The implementation plan is tracked in
 
 ### Implemented file structure
 
-```
+```text
 packages/lightspeed/           — all lightspeed code, removed as a unit
 ├── src/
 │   ├── index.ts               — barrel exports
@@ -232,6 +232,6 @@ See the detailed 23-step removal checklist in
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
-| 2026-06-18 | — | Initial proposal |
+| Date       | Author | Change           |
+| ---------- | ------ | ---------------- |
+| 2026-06-18 | —      | Initial proposal |

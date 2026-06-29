@@ -1,6 +1,6 @@
 ---
 name: Summarize Installed Collections
-description: List and categorize all installed Ansible collections in the workspace
+description: Use this skill when you want an overview of installed collections. Lists and categorizes all Ansible collections in the workspace with recommendations.
 tags: [collections, inventory, overview]
 category: domain
 triggers: [list collections, installed collections, collection summary]

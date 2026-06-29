@@ -112,12 +112,14 @@ export function buildGalaxyPluginExplanationPrompt(
     pluginName: string,
     pluginType: string,
 ): string {
-    return stripFrontmatter(explainPluginSkill) +
+    return (
+        stripFrontmatter(explainPluginSkill) +
         `\nPlugin: ${pluginName}\n` +
         `Type: ${pluginType}\n` +
         `Collection: ${collectionFqcn}\n` +
         `Source: Galaxy\n` +
-        `MCP Tool: get_galaxy_plugin_doc`;
+        `MCP Tool: get_galaxy_plugin_doc`
+    );
 }
 ```
 
@@ -144,21 +146,21 @@ the 18 existing builders (3 meta-prompt builders — `buildSkillLoadPrompt`,
 `buildSkillClipboardPrompt`, `buildMcpToolExamplePrompt` — remain as-is
 since they are launchers, not instruction bodies):
 
-| Skill File | Replaces Builders |
-|---|---|
-| `explain-plugin.md` | `buildPluginExplanationPrompt`, `buildGalaxyPluginExplanationPrompt`, `buildScmPluginExplanationPrompt` |
-| `summarize-collections.md` | `buildCollectionsSummaryPrompt` |
-| `summarize-collection.md` | `buildCollectionSummaryPrompt` |
-| `overview-collection-sources.md` | `buildCollectionSourcesOverviewPrompt` |
-| `summarize-galaxy-source.md` | `buildGalaxySourceSummaryPrompt` |
-| `summarize-github-source.md` | `buildGithubOrgSourceSummaryPrompt` |
-| `summarize-execution-envs.md` | `buildEESummaryPrompt` |
-| `detail-execution-env.md` | `buildEEDetailPrompt` |
-| `overview-creator.md` | `buildCreatorOverviewPrompt` |
-| `walkthrough-creator-command.md` | `buildCreatorCommandWalkthroughPrompt` |
-| `build-task.md` | `buildTaskBuilderPrompt` |
-| `analyze-task-result.md` | `buildTaskAnalysisPrompt` |
-| `summarize-playbook.md` | `buildPlaybookSummaryPrompt` |
+| Skill File                       | Replaces Builders                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `explain-plugin.md`              | `buildPluginExplanationPrompt`, `buildGalaxyPluginExplanationPrompt`, `buildScmPluginExplanationPrompt` |
+| `summarize-collections.md`       | `buildCollectionsSummaryPrompt`                                                                         |
+| `summarize-collection.md`        | `buildCollectionSummaryPrompt`                                                                          |
+| `overview-collection-sources.md` | `buildCollectionSourcesOverviewPrompt`                                                                  |
+| `summarize-galaxy-source.md`     | `buildGalaxySourceSummaryPrompt`                                                                        |
+| `summarize-github-source.md`     | `buildGithubOrgSourceSummaryPrompt`                                                                     |
+| `summarize-execution-envs.md`    | `buildEESummaryPrompt`                                                                                  |
+| `detail-execution-env.md`        | `buildEEDetailPrompt`                                                                                   |
+| `overview-creator.md`            | `buildCreatorOverviewPrompt`                                                                            |
+| `walkthrough-creator-command.md` | `buildCreatorCommandWalkthroughPrompt`                                                                  |
+| `build-task.md`                  | `buildTaskBuilderPrompt`                                                                                |
+| `analyze-task-result.md`         | `buildTaskAnalysisPrompt`                                                                               |
+| `summarize-playbook.md`          | `buildPlaybookSummaryPrompt`                                                                            |
 
 ## Alternatives Considered
 
@@ -168,11 +170,13 @@ since they are launchers, not instruction bodies):
 files. SkillRegistry reads them from disk at runtime as a local source.
 
 **Pros**:
+
 - Skills live alongside repo-local SDLC skills — consistent directory
   convention
 - No build-time import required
 
 **Cons**:
+
 - `.agents/skills/` is for Cursor IDE agent skills, not product skills
   — mixing concerns
 - Requires filesystem access at runtime — `@ansible/common` cannot
@@ -193,10 +197,12 @@ Create an adapter in `@ansible/services` that registers each prompt
 builder's output as a synthetic skill in SkillRegistry.
 
 **Pros**:
+
 - No new file format or build tooling
 - Prompt builders unchanged
 
 **Cons**:
+
 - Skill content is generated dynamically — no stable markdown to
   review or browse
 - Dual maintenance remains (TypeScript strings + adapter wiring)
@@ -208,14 +214,15 @@ agent discoverability problems.
 
 ### Alternative 3: Skills as TypeScript exported string constants
 
-**Description**: Store skill text as `export const skillText = \`...\``
-in `.ts` files instead of `.md` files.
+**Description**: Store skill text as `export const skillText = \`...\``in`.ts`files instead of`.md` files.
 
 **Pros**:
+
 - No build tooling changes (standard TypeScript imports)
 - Works in all environments
 
 **Cons**:
+
 - Markdown in template literals is the problem we're solving
 - No markdown preview tooling, no syntax highlighting
 - Authors must escape backticks inside instructions
@@ -271,12 +278,13 @@ worth the small build-tooling cost.
 
 2. **TypeScript**: Add a `*.md` module declaration to
    `packages/common/src/globals.d.ts`:
-   ```typescript
-   declare module '*.md' {
-       const content: string;
-       export default content;
-   }
-   ```
+
+    ```typescript
+    declare module '*.md' {
+        const content: string;
+        export default content;
+    }
+    ```
 
 3. **vitest**: Verify `.md` imports work in tests (vitest's esbuild
    transform should handle this automatically).
@@ -300,15 +308,15 @@ its existing `_parseSkillMd` method.
 
 ### Key files
 
-| File | Change |
-|------|--------|
-| `packages/common/src/skills/*.md` | New skill files (13) |
-| `packages/common/src/prompts/*.ts` | Refactored to import skills |
-| `packages/common/src/utils/skillHelpers.ts` | New: `stripFrontmatter` |
-| `packages/common/src/globals.d.ts` | Add `*.md` module declaration |
-| `packages/services/src/SkillRegistry.ts` | Add `builtin` source type |
-| `scripts/build.mjs` | Add `.md` text loader |
-| `AGENTS.md` | Document internal skills pattern |
+| File                                        | Change                           |
+| ------------------------------------------- | -------------------------------- |
+| `packages/common/src/skills/*.md`           | New skill files (13)             |
+| `packages/common/src/prompts/*.ts`          | Refactored to import skills      |
+| `packages/common/src/utils/skillHelpers.ts` | New: `stripFrontmatter`          |
+| `packages/common/src/globals.d.ts`          | Add `*.md` module declaration    |
+| `packages/services/src/SkillRegistry.ts`    | Add `builtin` source type        |
+| `scripts/build.mjs`                         | Add `.md` text loader            |
+| `AGENTS.md`                                 | Document internal skills pattern |
 
 ## Related Decisions
 
@@ -323,6 +331,6 @@ its existing `_parseSkillMd` method.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author                         | Change           |
+| ---------- | ------------------------------ | ---------------- |
 | 2026-06-18 | Bradley Thornton (AI-assisted) | Initial decision |

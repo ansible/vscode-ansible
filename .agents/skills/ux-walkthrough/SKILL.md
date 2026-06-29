@@ -1,16 +1,16 @@
 ---
 name: ux-walkthrough
 description: >
-  Guide a team member through all Ansible extension
-  functionality as an end user. Collect structured UX feedback and
-  produce a Jira-ready report. Use when the user says "ux walkthrough",
-  "dogfood the extension", "test the extension as a user", "ux review",
-  or wants to evaluate release readiness.
-argument-hint: "[--epic EPIC-KEY] [--resume] [--no-ai]"
+    Guide a team member through all Ansible extension
+    functionality as an end user. Collect structured UX feedback and
+    produce a Jira-ready report. Use when the user says "ux walkthrough",
+    "dogfood the extension", "test the extension as a user", "ux review",
+    or wants to evaluate release readiness.
+argument-hint: '[--epic EPIC-KEY] [--resume] [--no-ai]'
 user-invocable: true
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # UX Walkthrough (Team Dogfooding)
@@ -25,21 +25,21 @@ readiness** feedback.
 
 ## References
 
-| File | Purpose |
-|------|---------|
-| [`walkthrough-modules.md`](walkthrough-modules.md) | Module order, exercises, steps (human + JSON block) |
-| [`walkthrough-modules.json`](walkthrough-modules.json) | Same content — for Phase 2 extension panel |
-| [`catalog.md`](catalog.md) | Full feature inventory by module |
-| [`report-template.md`](report-template.md) | Report scaffold |
-| [`docs/.../feature-ansible-ide-experience.md`](../../../docs/src/content/docs/roadmap/feature-ansible-ide-experience.md) | PRD user stories & acceptance criteria |
+| File                                                                                                                     | Purpose                                             |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| [`walkthrough-modules.md`](walkthrough-modules.md)                                                                       | Module order, exercises, steps (human + JSON block) |
+| [`walkthrough-modules.json`](walkthrough-modules.json)                                                                   | Same content — for Phase 2 extension panel          |
+| [`catalog.md`](catalog.md)                                                                                               | Full feature inventory by module                    |
+| [`report-template.md`](report-template.md)                                                                               | Report scaffold                                     |
+| [`docs/.../feature-ansible-ide-experience.md`](../../../docs/src/content/docs/roadmap/feature-ansible-ide-experience.md) | PRD user stories & acceptance criteria              |
 
 ## Arguments
 
-| Flag | Behavior |
-|------|----------|
-| `--epic AAP-XXXX` | Stamp epic on report + Jira story proposals |
-| `--resume` | Continue from `last_module` in latest in-progress report |
-| `--no-ai` | Skip `ai-authoring`, `mcp-skills`, and `lightspeed` modules |
+| Flag              | Behavior                                                    |
+| ----------------- | ----------------------------------------------------------- |
+| `--epic AAP-1234` | Stamp epic on report + Jira story proposals                 |
+| `--resume`        | Continue from `last_module` in latest in-progress report    |
+| `--no-ai`         | Skip `ai-authoring`, `mcp-skills`, and `lightspeed` modules |
 
 ## Session start
 
@@ -47,16 +47,16 @@ readiness** feedback.
 
 **Ask first** — use `AskQuestion` or a direct prompt:
 
-| Option | What happens |
-|--------|----------------|
+| Option                        | What happens                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Scaffold a sample project** | Agent creates a small playbook project (similar to `~/github/demo`) under `~/ansible-ux-walkthrough/` |
-| **Use an existing project** | User provides a path (e.g. `~/github/demo`) that already has playbooks/inventory |
+| **Use an existing project**   | User provides a path (e.g. `~/github/demo`) that already has playbooks/inventory                      |
 
 Record the chosen path in the report frontmatter: `environment.workspace`.
 
 **Sample project layout** (when scaffolding):
 
-```
+```text
 ~/ansible-ux-walkthrough/
   ansible.cfg
   inventory/hosts.yml
@@ -88,9 +88,11 @@ UX feedback.
 ### 1. Launch the extension (repo window)
 
 1. **Build the extension** (repo root):
-   ```bash
-   npm run compile && npm run build
-   ```
+
+    ```bash
+    npm run compile && npm run build
+    ```
+
 2. **Press F5** — opens the **Extension Development Host** window.
 3. **Open the workspace** — in the dev host: **File → Open Folder** →
    `<workspace-path>` (the scaffolded or existing Ansible project).
@@ -121,7 +123,7 @@ On `--resume`, find the newest report with `session_status: in_progress` and rea
 
 If the reviewer uses **Cursor**, create or update a Canvas at:
 
-```
+```text
 ~/.cursor/projects/<workspace>/canvases/ux-walkthrough-progress.canvas.tsx
 ```
 
@@ -201,20 +203,20 @@ Ask: "Ready for the next module, or pause here?" Respect pauses.
 
 ## Module sequence
 
-| Order | ID | Title | Skip when |
-|------:|----|-------|-----------|
-| 0 | `setup` | Setup & First Impressions | never |
-| 1 | `environment` | Environment & Tool Management | never |
-| 2 | `editor-lsp` | Editor & Language Server | never |
-| 3 | `collections-installed` | Installed Collections & Plugin Docs | never |
-| 4 | `collections-remote` | Collection Sources & Installation | never |
-| 5 | `creator` | Content Scaffolding | never |
-| 6 | `playbooks` | Playbook Execution | never |
-| 7 | `execution-envs` | Execution Environments | never |
-| 8 | `ai-authoring` | AI-Assisted Authoring | `--no-ai` |
-| 9 | `mcp-skills` | MCP Tools & AI Skills | `--no-ai` |
-| 10 | `lightspeed` | Ansible Lightspeed | Lightspeed disabled |
-| 11 | `cross-cutting` | Cross-Cutting UX | never |
+| Order | ID                      | Title                               | Skip when           |
+| ----: | ----------------------- | ----------------------------------- | ------------------- |
+|     0 | `setup`                 | Setup & First Impressions           | never               |
+|     1 | `environment`           | Environment & Tool Management       | never               |
+|     2 | `editor-lsp`            | Editor & Language Server            | never               |
+|     3 | `collections-installed` | Installed Collections & Plugin Docs | never               |
+|     4 | `collections-remote`    | Collection Sources & Installation   | never               |
+|     5 | `creator`               | Content Scaffolding                 | never               |
+|     6 | `playbooks`             | Playbook Execution                  | never               |
+|     7 | `execution-envs`        | Execution Environments              | never               |
+|     8 | `ai-authoring`          | AI-Assisted Authoring               | `--no-ai`           |
+|     9 | `mcp-skills`            | MCP Tools & AI Skills               | `--no-ai`           |
+|    10 | `lightspeed`            | Ansible Lightspeed                  | Lightspeed disabled |
+|    11 | `cross-cutting`         | Cross-Cutting UX                    | never               |
 
 ## Session wrap-up
 
@@ -256,9 +258,9 @@ is not installed, guide the reviewer through manual Jira filing using the
 
 ## Related skills
 
-| Skill | When |
-|-------|------|
-| `onboard` | New developer learning the codebase |
-| `manage-todos` | Track extension work items in `.sdlc/todos/` |
+| Skill              | When                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| `onboard`          | New developer learning the codebase                           |
+| `manage-todos`     | Track extension work items in `.sdlc/todos/`                  |
 | `jira-integration` | File stories from the report (user-level skill, `~/.agents/`) |
-| `submit-pr` | Ship fixes from walkthrough findings |
+| `submit-pr`        | Ship fixes from walkthrough findings                          |

@@ -30,7 +30,7 @@ workflow.
 
 The extension's value proposition depends on a closed loop:
 
-```
+```text
 Navigate → Find → Read content → Agent tool → Summarize / Generate
     ↑                                              ↓
     └──────────────────────────────────────────────┘
@@ -97,10 +97,12 @@ PRs that touch user-facing capabilities must answer:
 requests them. Treat MCP as an optional power-user surface.
 
 **Pros**:
+
 - Lower upfront cost per feature
 - Smaller MCP tool surface to maintain
 
 **Cons**:
+
 - Agents discover gaps at runtime, producing poor UX
 - Gaps accumulate silently; no systematic way to detect them
 - Breaks the navigate → generate loop for new features
@@ -115,10 +117,12 @@ agent tokens and user patience.
 introspecting registered VS Code commands and their argument schemas.
 
 **Pros**:
+
 - Eliminates manual parity tracking
 - Guarantees 1:1 mapping
 
 **Cons**:
+
 - VS Code commands lack typed schemas; many accept opaque tree nodes
 - Generated tool descriptions would be poor quality
 - No control over tool naming, grouping, or argument validation
@@ -162,16 +166,16 @@ authored tools with curated schemas produce better agent experiences.
 
 ### Current MCP Tool Inventory
 
-| Category | MCP Tools | UI Surface |
-|----------|-----------|------------|
-| Discovery | `search_ansible_plugins`, `list_ansible_collections`, `search_available_collections`, `list_source_collections`, `get_collection_plugins` | Collections tree, Collection Sources tree |
-| Documentation | `get_plugin_documentation`, `get_galaxy_plugin_doc` | PluginDocPanel webview |
-| Installation | `install_ansible_collection` | Install commands on tree nodes |
-| Generation | `generate_ansible_task`, `build_ansible_task`, `generate_ansible_playbook` | AI sparkle commands |
-| Environments | `list_execution_environments`, `get_ee_details` | EE tree, EEDetailPanel |
-| Dev Tools | `list_ansible_dev_tools` | DevTools tree view |
-| Creator | `get_ansible_creator_schema`, `ac_*` (dynamic) | CreatorFormPanel |
-| Skills | `skill_search`, `skill_list`, `skill_get`, `skill_list_sources` | Skills tree view |
+| Category      | MCP Tools                                                                                                                                 | UI Surface                                |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Discovery     | `search_ansible_plugins`, `list_ansible_collections`, `search_available_collections`, `list_source_collections`, `get_collection_plugins` | Collections tree, Collection Sources tree |
+| Documentation | `get_plugin_documentation`, `get_galaxy_plugin_doc`                                                                                       | PluginDocPanel webview                    |
+| Installation  | `install_ansible_collection`                                                                                                              | Install commands on tree nodes            |
+| Generation    | `generate_ansible_task`, `build_ansible_task`, `generate_ansible_playbook`                                                                | AI sparkle commands                       |
+| Environments  | `list_execution_environments`, `get_ee_details`                                                                                           | EE tree, EEDetailPanel                    |
+| Dev Tools     | `list_ansible_dev_tools`                                                                                                                  | DevTools tree view                        |
+| Creator       | `get_ansible_creator_schema`, `ac_*` (dynamic)                                                                                            | CreatorFormPanel                          |
+| Skills        | `skill_search`, `skill_list`, `skill_get`, `skill_list_sources`                                                                           | Skills tree view                          |
 
 ### Key Files
 
@@ -207,6 +211,6 @@ authored tools with curated schemas produce better agent experiences.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change           |
+| ---------- | ----------- | ---------------- |
 | 2026-06-17 | AI-assisted | Initial decision |

@@ -17,8 +17,8 @@ language server and MCP server packages were under 5%.
 
 ### Why docstrings matter in an AI-assisted workflow
 
-TypeScript's type system conveys the *shape* of data (parameter types,
-return types, generics) but not the *intent*: why a function exists,
+TypeScript's type system conveys the _shape_ of data (parameter types,
+return types, generics) but not the _intent_: why a function exists,
 what side effects it has, what invariants it maintains, or what callers
 should expect. This intent gap affects:
 
@@ -36,7 +36,7 @@ should expect. This intent gap affects:
 ### Why 100% coverage (not just exported)
 
 Internal/private functions are equally important for AI agents and
-future maintainers. A private helper's docstring explains *why* it was
+future maintainers. A private helper's docstring explains _why_ it was
 extracted, what edge cases it handles, and how it fits into the calling
 function's logic. Partial coverage creates inconsistent context —
 agents cannot predict which functions will have documentation.
@@ -47,16 +47,16 @@ Enforce JSDoc on **every** function declaration, method definition, and
 class declaration using `eslint-plugin-jsdoc` with the following rules
 set to `error`:
 
-| Rule | Purpose |
-|------|---------|
-| `jsdoc/require-jsdoc` | Require a JSDoc block on all functions, methods, classes, constructors, getters, and setters. |
-| `jsdoc/require-param` | Require `@param` for every function parameter. |
-| `jsdoc/require-param-description` | Require a description on each `@param` tag. |
-| `jsdoc/require-returns` | Require `@returns` on functions with non-void return types. |
-| `jsdoc/require-returns-description` | Require a description on the `@returns` tag. |
-| `jsdoc/check-param-names` | Validate that `@param` names match the actual signature. |
-| `jsdoc/check-tag-names` | Only allow standard JSDoc tags. |
-| `jsdoc/no-types` | Disallow type annotations in JSDoc (TypeScript provides the types). |
+| Rule                                | Purpose                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| `jsdoc/require-jsdoc`               | Require a JSDoc block on all functions, methods, classes, constructors, getters, and setters. |
+| `jsdoc/require-param`               | Require `@param` for every function parameter.                                                |
+| `jsdoc/require-param-description`   | Require a description on each `@param` tag.                                                   |
+| `jsdoc/require-returns`             | Require `@returns` on functions with non-void return types.                                   |
+| `jsdoc/require-returns-description` | Require a description on the `@returns` tag.                                                  |
+| `jsdoc/check-param-names`           | Validate that `@param` names match the actual signature.                                      |
+| `jsdoc/check-tag-names`             | Only allow standard JSDoc tags.                                                               |
+| `jsdoc/no-types`                    | Disallow type annotations in JSDoc (TypeScript provides the types).                           |
 
 ### No test file exemptions
 
@@ -69,7 +69,7 @@ that need to understand test fixtures and setup patterns.
 The `jsdoc/no-types` rule prevents `@param {string} name` syntax.
 TypeScript already provides type information; duplicating it in JSDoc
 creates a maintenance burden where types go stale. JSDoc should describe
-*intent and constraints*, not types:
+_intent and constraints_, not types:
 
 ```typescript
 // Good — describes intent, TypeScript provides the type
@@ -85,7 +85,7 @@ creates a maintenance burden where types go stale. JSDoc should describe
 
 TSDoc is a stricter specification used by the TypeScript compiler and
 VS Code APIs. However, `eslint-plugin-tsdoc` only validates syntax of
-*existing* comments — it does not enforce *presence*. We need both
+_existing_ comments — it does not enforce _presence_. We need both
 presence enforcement and syntax validation, which `eslint-plugin-jsdoc`
 provides.
 
@@ -122,7 +122,7 @@ functions are added without documentation.
 - **Ongoing cost**: Every new function requires a JSDoc block. This adds
   ~10-30 seconds per function during development.
 - **Potential for low-quality docstrings**: Enforcement guarantees
-  *presence* but not *quality*. Code review must still check that
+  _presence_ but not _quality_. Code review must still check that
   descriptions are meaningful, not just boilerplate to satisfy the linter.
 
 ### Neutral

@@ -1,12 +1,12 @@
 ---
 name: write-adr
 description: >
-  Write an Architecture Decision Record (ADR) for long-lasting architectural
-  decisions. Use when introducing a new service, changing the package
-  structure, adopting a new protocol or data model, altering caching
-  strategy, or making any structural choice that future contributors must
-  understand. Do NOT use for bug fixes, config changes, or tactical
-  refactors that don't change the system's shape.
+    Write an Architecture Decision Record (ADR) for long-lasting architectural
+    decisions. Use when introducing a new service, changing the package
+    structure, adopting a new protocol or data model, altering caching
+    strategy, or making any structural choice that future contributors must
+    understand. Do NOT use for bug fixes, config changes, or tactical
+    refactors that don't change the system's shape.
 user-invocable: true
 ---
 
@@ -42,17 +42,17 @@ Check `.sdlc/adrs/README.md` for the next available number.
 Create `.sdlc/adrs/ADR-NNN-<slug>.md` using the template at
 `.sdlc/templates/adr.md`. Every section is required:
 
-| Section | Guidance |
-|---------|----------|
-| **Status** | `Proposed` if not yet implemented; `Implemented` if the code ships in the same PR. |
-| **Date** | Today's date (YYYY-MM-DD). |
-| **Context** | What problem exists, what forces are in tension. Be specific — name the files, services, or flows involved. |
-| **Decision** | One bold sentence: **We will …**. Then describe the concrete changes. |
-| **Alternatives Considered** | At least two alternatives, each with Pros, Cons, and Why not chosen. |
-| **Consequences** | Split into Positive, Negative, Neutral. Be honest about trade-offs. |
-| **Implementation Notes** | Practical guidance: key files, migration steps, patterns to follow. |
-| **Related Decisions** | Link to any ADRs this builds on or supersedes. |
-| **Revision History** | Table with Date, Author, Change columns. |
+| Section                     | Guidance                                                                                                    |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Status**                  | `Proposed` if not yet implemented; `Implemented` if the code ships in the same PR.                          |
+| **Date**                    | Today's date (YYYY-MM-DD).                                                                                  |
+| **Context**                 | What problem exists, what forces are in tension. Be specific — name the files, services, or flows involved. |
+| **Decision**                | One bold sentence: **We will …**. Then describe the concrete changes.                                       |
+| **Alternatives Considered** | At least two alternatives, each with Pros, Cons, and Why not chosen.                                        |
+| **Consequences**            | Split into Positive, Negative, Neutral. Be honest about trade-offs.                                         |
+| **Implementation Notes**    | Practical guidance: key files, migration steps, patterns to follow.                                         |
+| **Related Decisions**       | Link to any ADRs this builds on or supersedes.                                                              |
+| **Revision History**        | Table with Date, Author, Change columns.                                                                    |
 
 ### 3. Update the index
 
@@ -80,13 +80,13 @@ not a follow-up task.
 
 ## ADR lifecycle
 
-| Status | Meaning |
-|--------|---------|
-| Proposed | Under discussion, not yet accepted. |
-| Accepted | Approved but not yet fully implemented. |
-| Implemented | Code reflects this decision. |
-| Deprecated | No longer relevant. |
-| Superseded by ADR-NNN | Replaced by a newer decision. |
+| Status                | Meaning                                 |
+| --------------------- | --------------------------------------- |
+| Proposed              | Under discussion, not yet accepted.     |
+| Accepted              | Approved but not yet fully implemented. |
+| Implemented           | Code reflects this decision.            |
+| Deprecated            | No longer relevant.                     |
+| Superseded by ADR-NNN | Replaced by a newer decision.           |
 
 A single PR can move status from Proposed → Implemented if the code
 ships together.

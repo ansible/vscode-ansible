@@ -1,6 +1,6 @@
 ---
 name: Analyze Task Result
-description: Analyze an Ansible task execution result and provide actionable insights
+description: Use this skill when a task fails, changes unexpectedly, or needs review. Analyzes an Ansible task execution result and provides actionable troubleshooting insights.
 tags: [playbooks, tasks, debugging, analysis]
 category: workflow
 triggers: [analyze task, task failed, task result, debug task]
@@ -16,9 +16,9 @@ Analyze an Ansible task execution result and provide insights.
 2. Review the module's parameters, return values, and examples
 3. If a source file path is provided, read the source file to understand the task context
 4. Analyze the task result:
-   - If **FAILED**: Explain the likely cause and suggest fixes
-   - If **CHANGED**: Confirm expected behavior or flag any concerns
-   - If **OK**: Verify the task behaved as intended
+    - If **FAILED**: Explain the likely cause and suggest fixes
+    - If **CHANGED**: Confirm expected behavior or flag any concerns
+    - If **OK**: Verify the task behaved as intended
 5. Compare the invocation against the module's best practices
 6. Suggest any improvements to the task configuration
 

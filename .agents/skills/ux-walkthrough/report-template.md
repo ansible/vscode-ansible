@@ -9,16 +9,16 @@ last_module:
 modules_completed: 0
 modules_total: 12
 issues_count:
-  blocker: 0
-  major: 0
-  minor: 0
-  enhancement: 0
+    blocker: 0
+    major: 0
+    minor: 0
+    enhancement: 0
 environment:
-  os:
-  editor:
-  launch_mode: F5 Extension Development Host
-  workspace:          # path to Ansible project (scaffolded or existing)
-  venv_path:            # e.g. <workspace>/.venv
+    os:
+    editor:
+    launch_mode: F5 Extension Development Host
+    workspace: # path to Ansible project (scaffolded or existing)
+    venv_path: # e.g. <workspace>/.venv
 ---
 
 # UX Walkthrough Report
@@ -35,13 +35,13 @@ environment:
 
 **Maps to:** {US-#} / {AC-#}
 
-| Question | Response |
-|----------|----------|
-| Expectation — What did you expect? | |
-| Outcome — Did it work? (yes / partial / no) | |
-| User mental model — What would end users expect? | |
-| Issues found | |
-| Value (1–5) | |
+| Question                                         | Response |
+| ------------------------------------------------ | -------- |
+| Expectation — What did you expect?               |          |
+| Outcome — Did it work? (yes / partial / no)      |          |
+| User mental model — What would end users expect? |          |
+| Issues found                                     |          |
+| Value (1–5)                                      |          |
 
 **Notes:**
 
@@ -49,9 +49,9 @@ environment:
 
 ## Issues catalog
 
-| ID | Severity | Module | US/AC | Type | Summary |
-|----|----------|--------|-------|------|---------|
-| UX-001 | | | | | |
+| ID     | Severity | Module | US/AC | Type | Summary |
+| ------ | -------- | ------ | ----- | ---- | ------- |
+| UX-001 |          |        |       |      |         |
 
 Severity: `blocker` | `major` | `minor` | `enhancement`
 
@@ -59,20 +59,20 @@ Type: `bug` | `ux-gap` | `expectation-mismatch` | `missing-feature` | `polish`
 
 ## Value matrix
 
-| Module | Score (1–5) | Rationale |
-|--------|-------------|-----------|
-| setup | | |
-| environment | | |
-| editor-lsp | | |
-| collections-installed | | |
-| collections-remote | | |
-| creator | | |
-| playbooks | | |
-| execution-envs | | |
-| ai-authoring | | |
-| mcp-skills | | |
-| lightspeed | | |
-| cross-cutting | | |
+| Module                | Score (1–5) | Rationale |
+| --------------------- | ----------- | --------- |
+| setup                 |             |           |
+| environment           |             |           |
+| editor-lsp            |             |           |
+| collections-installed |             |           |
+| collections-remote    |             |           |
+| creator               |             |           |
+| playbooks             |             |           |
+| execution-envs        |             |           |
+| ai-authoring          |             |           |
+| mcp-skills            |             |           |
+| lightspeed            |             |           |
+| cross-cutting         |             |           |
 
 ## Proposed Jira stories
 
@@ -89,6 +89,7 @@ Type: `bug` | `ux-gap` | `expectation-mismatch` | `missing-feature` | `polish`
 **Description:**
 
 **Acceptance criteria:**
+
 - [ ]
 - [ ]
 

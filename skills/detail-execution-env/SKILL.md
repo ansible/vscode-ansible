@@ -1,6 +1,6 @@
 ---
 name: Execution Environment Details
-description: Detailed analysis of a specific Ansible Execution Environment
+description: Use this skill when you need details about a specific Execution Environment. Retrieves and summarizes the EE's packages, collections, and best use cases.
 tags: [execution-environments, containers, details]
 category: domain
 triggers: [EE details, describe EE, execution environment info]
@@ -15,6 +15,7 @@ Generate a detailed summary of a specific Ansible Execution Environment.
 Use the `get_ee_details` MCP tool with the EE name to get all information about it.
 
 The tool returns complete details including:
+
 - Container base OS and Ansible version
 - ALL installed Python packages with versions
 - ALL installed Ansible collections with versions

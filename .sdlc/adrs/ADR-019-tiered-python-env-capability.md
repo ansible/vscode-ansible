@@ -80,12 +80,12 @@ them natively.
 
 `PythonEnvironmentService` exposes a `PythonEnvCapability` type:
 
-| Tier | Value | Meaning |
-|------|-------|---------|
-| Full | `full` | python-envs + PET binary |
-| Hybrid | `envs-no-pet` | python-envs active, PET missing (discovery via ms-python.python) |
-| Fallback | `python-only` | Only ms-python.python; terminal fallbacks for writes |
-| None | `unavailable` | No Python extension at all |
+| Tier     | Value         | Meaning                                                          |
+| -------- | ------------- | ---------------------------------------------------------------- |
+| Full     | `full`        | python-envs + PET binary                                         |
+| Hybrid   | `envs-no-pet` | python-envs active, PET missing (discovery via ms-python.python) |
+| Fallback | `python-only` | Only ms-python.python; terminal fallbacks for writes             |
+| None     | `unavailable` | No Python extension at all                                       |
 
 All capability-dependent UI surfaces (viewsWelcome, status bar
 routing, command error messages, MCP tool responses) query this
@@ -168,6 +168,6 @@ and onboarding flows are broken for a meaningful portion of users.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change         |
+| ---------- | ----------- | -------------- |
 | 2026-06-24 | AI-assisted | Initial record |

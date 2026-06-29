@@ -1,11 +1,11 @@
 ---
 name: manage-todos
 description: >
-  Create, list, and complete project todos tracked as files in
-  .sdlc/todos/. Use when the user says "add a todo", "create a task",
-  "what's pending", "mark X done", "list todos", or discusses work
-  items for the next branch. Do NOT use for in-conversation ephemeral
-  todos — this is for persistent project-level tracking.
+    Create, list, and complete project todos tracked as files in
+    .sdlc/todos/. Use when the user says "add a todo", "create a task",
+    "what's pending", "mark X done", "list todos", or discusses work
+    items for the next branch. Do NOT use for in-conversation ephemeral
+    todos — this is for persistent project-level tracking.
 user-invocable: true
 ---
 
@@ -13,7 +13,7 @@ user-invocable: true
 
 ## Structure
 
-```
+```text
 .sdlc/todos/
   pending/      → work not yet started or in progress
   complete/     → finished work
@@ -26,12 +26,12 @@ One markdown file per todo. The directory determines status.
 1. Pick a kebab-case filename from the title (e.g.,
    `add-definition-provider.md`).
 2. Copy `.sdlc/templates/todo.md` and fill in:
-   - `title` — concise description
-   - `created` — today's date
-   - `status` — `pending`
-   - `priority` — `low`, `medium`, or `high`
-   - `scope` — one of: `core`, `ls`, `mcp`, `extension`, `panels`,
-     `views`, `ci`, `docs`
+    - `title` — concise description
+    - `created` — today's date
+    - `status` — `pending`
+    - `priority` — `low`, `medium`, or `high`
+    - `scope` — one of: `core`, `ls`, `mcp`, `extension`, `panels`,
+      `views`, `ci`, `docs`
 3. Write a brief Context section explaining why this is needed.
 4. List concrete Acceptance criteria as checkboxes.
 5. Save to `.sdlc/todos/pending/<slug>.md`.
@@ -42,7 +42,7 @@ Keep the file short — aim for under 40 lines.
 
 Read the `pending/` directory. Show a table:
 
-```
+```text
 | File | Title | Priority | Scope |
 ```
 

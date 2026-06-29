@@ -29,10 +29,12 @@ What is the decision? State it clearly and concisely.
 **Description**: [What this alternative involves]
 
 **Pros**:
+
 - [Pro 1]
 - [Pro 2]
 
 **Cons**:
+
 - [Con 1]
 - [Con 2]
 
@@ -43,10 +45,12 @@ What is the decision? State it clearly and concisely.
 **Description**: [What this alternative involves]
 
 **Pros**:
+
 - [Pro 1]
 - [Pro 2]
 
 **Cons**:
+
 - [Con 1]
 - [Con 2]
 
@@ -90,7 +94,7 @@ Any guidance for implementing this decision:
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
-| YYYY-MM-DD | [Name] | Initial proposal |
+| Date       | Author | Change                |
+| ---------- | ------ | --------------------- |
+| YYYY-MM-DD | [Name] | Initial proposal      |
 | YYYY-MM-DD | [Name] | Accepted after review |

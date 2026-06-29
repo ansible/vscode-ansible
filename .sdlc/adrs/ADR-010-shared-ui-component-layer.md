@@ -115,6 +115,6 @@ logic is consolidated in `@ansible/core`.
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change           |
+| ---------- | ----------- | ---------------- |
 | 2026-06-10 | AI-assisted | Initial decision |

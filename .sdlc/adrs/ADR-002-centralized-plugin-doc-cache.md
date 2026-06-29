@@ -38,7 +38,7 @@ When a consumer later requested full documentation (e.g., user hovers over `ansi
 - **Latency**: Each hover or doc panel open incurred a 500ms-2s subprocess call. Users experienced a visible delay every time they viewed plugin documentation.
 - **Resource waste**: `ansible-doc` loads the full Ansible Python runtime on each invocation. On systems with many collections, this means loading hundreds of megabytes of Python modules per subprocess.
 - **Redundancy**: The data was available during the initial `--metadata-dump` call. Fetching it again per-plugin duplicated network/disk I/O, process startup, and Python import overhead.
-- **Offline fragility**: If the Python environment became unavailable after initial discovery (e.g., venv deactivated, container stopped), cached collection *names* were available but documentation was not — the subprocess fallback would fail.
+- **Offline fragility**: If the Python environment became unavailable after initial discovery (e.g., venv deactivated, container stopped), cached collection _names_ were available but documentation was not — the subprocess fallback would fail.
 
 ### Forces
 
@@ -68,10 +68,12 @@ Concretely:
 **Description**: Retain the current behavior where `getPluginDocumentation()` always spawns `ansible-doc --json <plugin>`.
 
 **Pros**:
+
 - No additional memory usage
 - Always returns the freshest possible documentation
 
 **Cons**:
+
 - 500ms-2s latency per documentation request
 - Redundant — the data was already fetched and discarded
 - Fails when the Python environment is unavailable
@@ -83,10 +85,12 @@ Concretely:
 **Description**: Don't store docs during the initial metadata dump. Instead, on first access to each plugin's docs, run the subprocess, cache the result, and serve subsequent requests from cache.
 
 **Pros**:
+
 - Lower initial memory footprint (only caches docs that are actually viewed)
 - Simpler change to the parsing loop (no widening needed)
 
 **Cons**:
+
 - First access to each plugin still pays the subprocess cost
 - Doesn't leverage the data already flowing through the parse loop
 - Users who browse collections in the sidebar (common workflow) would trigger hundreds of sequential subprocess calls as they expand collection nodes
@@ -98,9 +102,11 @@ Concretely:
 **Description**: Cache full docs for a configurable subset of plugins (e.g., top 100 by usage, or only `ansible.builtin.*`).
 
 **Pros**:
+
 - Reduces memory for users with thousands of plugins installed
 
 **Cons**:
+
 - Requires heuristics or configuration to decide which plugins to cache
 - Cache misses still hit the subprocess path
 - Complexity for marginal memory savings — the full dump is already parsed
@@ -142,6 +148,6 @@ Concretely:
 
 ## Revision History
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author      | Change                                                              |
+| ---------- | ----------- | ------------------------------------------------------------------- |
 | 2026-05-26 | AI-assisted | Initial proposal (Implemented status — documents change in this PR) |

@@ -1,16 +1,16 @@
 ---
 name: onboard
 description: >
-  Walk a new developer through the project architecture, ADRs,
-  development workflows, and codebase structure. Use when the user says
-  "onboard me", "walk me through the project", "I'm new here", "help me
-  get started", "show me the architecture", or any variant of asking for
-  an orientation to the ansible-environments codebase.
-argument-hint: "[--quick] [--topic architecture|workflows|adrs|skills]"
+    Walk a new developer through the project architecture, ADRs,
+    development workflows, and codebase structure. Use when the user says
+    "onboard me", "walk me through the project", "I'm new here", "help me
+    get started", "show me the architecture", or any variant of asking for
+    an orientation to the ansible-environments codebase.
+argument-hint: '[--quick] [--topic architecture|workflows|adrs|skills]'
 user-invocable: true
 metadata:
-  author: ansible-environments team
-  version: 1.0.0
+    author: ansible-environments team
+    version: 1.0.0
 ---
 
 # Developer Onboarding
@@ -51,11 +51,11 @@ Read and present `AGENTS.md`, focusing on:
 
 1. **Package architecture** — explain the five packages and their
    dependency rules:
-   - `@ansible/common` — browser-safe, zero Node.js dependencies
-   - `@ansible/services` — Node.js services, conditional `vscode` require
-   - `@ansible/language-server` — LSP server
-   - `@ansible/mcp-server` — standalone MCP server for AI agents
-   - `@ansible/ui` — shared React webview components
+    - `@ansible/common` — browser-safe, zero Node.js dependencies
+    - `@ansible/services` — Node.js services, conditional `vscode` require
+    - `@ansible/language-server` — LSP server
+    - `@ansible/mcp-server` — standalone MCP server for AI agents
+    - `@ansible/ui` — shared React webview components
 
 2. **Extension host** (`src/`) — panels, views, services, features
 
@@ -70,14 +70,14 @@ Point to `AGENTS.md` for the full reference.
 Read `.sdlc/adrs/README.md` to list all ADRs. Walk through the key
 ones in this order:
 
-| ADR | Why it matters for onboarding |
-|-----|-------------------------------|
+| ADR     | Why it matters for onboarding                                   |
+| ------- | --------------------------------------------------------------- |
 | ADR-001 | Foundational: why we have a service layer separate from VS Code |
-| ADR-011 | Package split: `@ansible/common` vs `@ansible/services` |
-| ADR-005 | The invariants — explains *why* each rule exists |
-| ADR-006 | esbuild bundler — how the build works |
-| ADR-014 | Internal skills — how AI prompts are managed |
-| ADR-012 | MCP tool parity — every UI feature needs an MCP tool |
+| ADR-011 | Package split: `@ansible/common` vs `@ansible/services`         |
+| ADR-005 | The invariants — explains _why_ each rule exists                |
+| ADR-006 | esbuild bundler — how the build works                           |
+| ADR-014 | Internal skills — how AI prompts are managed                    |
+| ADR-012 | MCP tool parity — every UI feature needs an MCP tool            |
 
 For each ADR, summarize the **Decision** and **Consequences** sections.
 Don't read them verbatim — explain them conversationally.
@@ -93,35 +93,40 @@ Walk through the daily development loop:
    them. All feature branches come from `upstream/next`.
 
 2. **Edit → Check → Iterate cycle**:
-   ```bash
-   npm run check    # compile + lint + test (fast feedback)
-   ```
+
+    ```bash
+    npm run check    # compile + lint + test (fast feedback)
+    ```
 
 3. **Before committing**:
-   ```bash
-   npm run ci       # compile + lint + test:coverage + build
-   ```
-   This mirrors CI. Do not push if it fails.
+
+    ```bash
+    npm run ci       # compile + lint + test:coverage + build
+    ```
+
+    This mirrors CI. Do not push if it fails.
 
 4. **Submitting a PR** — point to the `submit-pr` skill. Key points:
-   - Conventional Commits with project scopes
-   - Labels required (`breaking`, `chore`, `feat`, `fix`)
-   - Target `next`, never `main`
-   - Single commit, draft until CI green
+    - Conventional Commits with project scopes
+    - Labels required (`breaking`, `chore`, `feat`, `fix`)
+    - Target `next`, never `main`
+    - Single commit, draft until CI green
 
 5. **Handling PR review** — point to the `pr-review` skill. Key points:
-   - Reply to every comment with explanation + commit hash
-   - Resolve threads explicitly
-   - Common Copilot patterns to watch for
+    - Reply to every comment with explanation + commit hash
+    - Resolve threads explicitly
+    - Common Copilot patterns to watch for
 
 6. **Testing the extension locally**:
-   ```bash
-   npm run package           # package VSIX only
-   npm run package:install   # package + install into VS Code
-   ```
-   After `package:install`, reload VS Code to activate the updated
-   extension. Press `F5` for a lighter-weight Extension Development
-   Host (uses the dev build without packaging).
+
+    ```bash
+    npm run package           # package VSIX only
+    npm run package:install   # package + install into VS Code
+    ```
+
+    After `package:install`, reload VS Code to activate the updated
+    extension. Press `F5` for a lighter-weight Extension Development
+    Host (uses the dev build without packaging).
 
 ### Section 5: Internal Skills and AI Integration
 
@@ -142,15 +147,15 @@ Point to ADR-014 for the full rationale.
 Briefly explain the major services — what each one does, not how it
 works internally:
 
-| Service | What it does |
-|---------|-------------|
-| `CollectionsService` | Plugin doc cache, collection discovery |
-| `CommandService` | Runs CLI tools from the active Python env |
-| `CreatorService` | Scaffolds content via `ansible-creator` |
-| `ExecutionEnvService` | EE image listing and inspection |
-| `SkillRegistry` | AI skill discovery and indexing |
-| `EECache` / `EnvironmentCache` | Caching layers for EE and env data |
-| `SCMDocsCache` | Plugin docs from Git repos (shallow clone) |
+| Service                        | What it does                               |
+| ------------------------------ | ------------------------------------------ |
+| `CollectionsService`           | Plugin doc cache, collection discovery     |
+| `CommandService`               | Runs CLI tools from the active Python env  |
+| `CreatorService`               | Scaffolds content via `ansible-creator`    |
+| `ExecutionEnvService`          | EE image listing and inspection            |
+| `SkillRegistry`                | AI skill discovery and indexing            |
+| `EECache` / `EnvironmentCache` | Caching layers for EE and env data         |
+| `SCMDocsCache`                 | Plugin docs from Git repos (shallow clone) |
 
 Point to `packages/services/src/` for the implementations.
 
@@ -189,15 +194,15 @@ rework historically:
 List all skills in `.agents/skills/` with a one-line description of
 when to use each:
 
-| Skill | When to use |
-|-------|-------------|
-| `onboard` | First-time project orientation (you are here) |
-| `submit-pr` | Creating a pull request |
-| `pr-review` | Responding to review comments |
-| `write-adr` | Architectural decisions |
-| `manage-todos` | Project work item tracking |
-| `branching-strategy` | Branch questions (next vs main) |
-| `review-contributor-pr` | Reviewing external contributions |
+| Skill                   | When to use                                   |
+| ----------------------- | --------------------------------------------- |
+| `onboard`               | First-time project orientation (you are here) |
+| `submit-pr`             | Creating a pull request                       |
+| `pr-review`             | Responding to review comments                 |
+| `write-adr`             | Architectural decisions                       |
+| `manage-todos`          | Project work item tracking                    |
+| `branching-strategy`    | Branch questions (next vs main)               |
+| `review-contributor-pr` | Reviewing external contributions              |
 
 ### Wrap-up
 

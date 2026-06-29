@@ -13,7 +13,7 @@ designed for easy removal in a few months.
 `packages/lightspeed/` owns all domain logic; `src/` contains only a
 thin registration shim.
 
-```
+```text
 packages/lightspeed/ (@ansible/lightspeed)
 ├── src/
 │   ├── index.ts            # Public API barrel
@@ -96,7 +96,7 @@ The shim uses a normal `import`, not `require()`.
   - Checks `ansible.lightspeed.enabled` (default: `false`)
   - If disabled, returns early (zero runtime cost)
   - If enabled, imports `@ansible/lightspeed` and calls
-    `activate(context, telemetryReporter)`
+      `activate(context, telemetryReporter)`
   - Returns a `Disposable` for clean deactivation
 - No business logic, no state, no direct API calls
 
@@ -113,7 +113,7 @@ VS Code behavior and does not represent runtime cost.
 
 ### Package dependencies
 
-```
+```text
 @ansible/lightspeed → @ansible/services → @ansible/common
 ```
 
@@ -141,15 +141,16 @@ This decouples the Lightspeed port from the telemetry decision.
 ```typescript
 // packages/lightspeed/src/telemetry.ts
 export interface TelemetryReporter {
-  sendEvent(name: string, properties?: Record<string, string>): void;
+    sendEvent(name: string, properties?: Record<string, string>): void;
 }
 
 export const noopReporter: TelemetryReporter = {
-  sendEvent() {},
+    sendEvent() {},
 };
 ```
 
 Telemetry event types to define (ported from `main`):
+
 - `lightspeed.suggestion.accepted` / `rejected` / `ignored`
 - `lightspeed.generation.open` / `close` / `transition` / `accept`
 - `lightspeed.explanation.requested`
@@ -247,6 +248,7 @@ Write ADR-015 documenting the decision.
 - Committed this plan and ADR-015
 
 **Follow-up (before Phase 2):**
+
 - Standardize API return types: all methods should return `T | IError`
   (not `T | undefined`). Update `completionRequest()` and
   `feedbackRequest()` to return `IError` on error instead of `undefined`.
@@ -267,13 +269,13 @@ Write ADR-015 documenting the decision.
 
 ```typescript
 interface LightSpeedManager {
-  constructor(context: ExtensionContext, telemetry: TelemetryReporter);
-  readonly api: LightSpeedAPI;
-  readonly user: LightspeedUser;
-  readonly statusBar: LightspeedStatusBar;
-  initialize(): Promise<void>;
-  reinitialize(): Promise<void>;
-  dispose(): void;
+    constructor(context: ExtensionContext, telemetry: TelemetryReporter);
+    readonly api: LightSpeedAPI;
+    readonly user: LightspeedUser;
+    readonly statusBar: LightspeedStatusBar;
+    initialize(): Promise<void>;
+    reinitialize(): Promise<void>;
+    dispose(): void;
 }
 ```
 
@@ -389,6 +391,7 @@ Verify this path resolves correctly in both development and packaged
 **.vsix packaging:**
 
 Update `.vsignore` (or `package.json` `files` field) to include:
+
 - `packages/lightspeed/out/` (compiled TypeScript)
 - `packages/lightspeed/dist/webviews/` (Vite-built Vue bundles)
 
@@ -413,18 +416,18 @@ the package and don't affect the root build.
 
 ```typescript
 // src/features/lightspeed/register.ts
-import { activate } from "@ansible/lightspeed";
-import { noopReporter } from "@ansible/lightspeed";
+import { activate } from '@ansible/lightspeed';
+import { noopReporter } from '@ansible/lightspeed';
 
 export async function registerLightspeed(
-  context: vscode.ExtensionContext,
+    context: vscode.ExtensionContext,
 ): Promise<vscode.Disposable | undefined> {
-  const config = vscode.workspace.getConfiguration("ansible.lightspeed");
-  if (!config.get<boolean>("enabled", false)) {
-    return undefined; // Zero runtime cost
-  }
+    const config = vscode.workspace.getConfiguration('ansible.lightspeed');
+    if (!config.get<boolean>('enabled', false)) {
+        return undefined; // Zero runtime cost
+    }
 
-  return activate(context, noopReporter);
+    return activate(context, noopReporter);
 }
 ```
 
@@ -440,7 +443,7 @@ to `false` to disable all runtime effects without reverting.
 - **Update `.github/workflows/ci.yaml`** to include lightspeed:
   - Build step: run `build:lightspeed` script
   - Test step: run lightspeed unit tests (linux-only is acceptable
-    for the temporary period)
+      for the temporary period)
   - Optional: run lightspeed WDIO tests
 
 ## Open questions
@@ -461,18 +464,18 @@ to `false` to disable all runtime effects without reverting.
 
 ## Failure modes
 
-| Codepath | Failure | Test? | Error handling? | User visible? |
-|----------|---------|-------|-----------------|---------------|
-| OAuth token refresh | Token expired, refresh fails | Phase 3 unit | Session cleared, "Sign In" button shown, VS Code notification with re-auth action | Yes, actionable |
-| WCA API request | Network timeout (30s) | Phase 1 unit | Error banner in webview + output channel log | Yes, clear |
-| WCA API request | 503 service unavailable | Phase 1 unit | Error banner with specific message | Yes, clear |
-| WCA API request | 400 bad request | Phase 1 unit | Error banner with request detail | Yes, clear |
-| WCA API request | 429 rate limit | Phase 1 unit | "Too many requests" message | Yes, clear |
-| Inline suggestion | AbortController cancel | Phase 4 unit | Silent (expected) | No |
-| Vue webview load | CSP blocks scripts | Phase 5 verify | Blank panel | Verified working |
-| .vsix packaging | Missing lightspeed files | Phase 7 WDIO | Load failure | Verified working |
-| Settings change | reinitialize() throws | Phase 2 unit | Extension error | Yes, error log |
-| Role save to new collection | Collection not in workspace | Verified manually | Creates `collections/ansible_collections/{ns}/{name}/roles/` structure | Yes, clear |
+| Codepath                    | Failure                      | Test?             | Error handling?                                                                   | User visible?    |
+| --------------------------- | ---------------------------- | ----------------- | --------------------------------------------------------------------------------- | ---------------- |
+| OAuth token refresh         | Token expired, refresh fails | Phase 3 unit      | Session cleared, "Sign In" button shown, VS Code notification with re-auth action | Yes, actionable  |
+| WCA API request             | Network timeout (30s)        | Phase 1 unit      | Error banner in webview + output channel log                                      | Yes, clear       |
+| WCA API request             | 503 service unavailable      | Phase 1 unit      | Error banner with specific message                                                | Yes, clear       |
+| WCA API request             | 400 bad request              | Phase 1 unit      | Error banner with request detail                                                  | Yes, clear       |
+| WCA API request             | 429 rate limit               | Phase 1 unit      | "Too many requests" message                                                       | Yes, clear       |
+| Inline suggestion           | AbortController cancel       | Phase 4 unit      | Silent (expected)                                                                 | No               |
+| Vue webview load            | CSP blocks scripts           | Phase 5 verify    | Blank panel                                                                       | Verified working |
+| .vsix packaging             | Missing lightspeed files     | Phase 7 WDIO      | Load failure                                                                      | Verified working |
+| Settings change             | reinitialize() throws        | Phase 2 unit      | Extension error                                                                   | Yes, error log   |
+| Role save to new collection | Collection not in workspace  | Verified manually | Creates `collections/ansible_collections/{ns}/{name}/roles/` structure            | Yes, clear       |
 
 Error UX: all panels use `_getUserErrorMessage()` for actionable error
 mapping. Auth failures auto-clear the session and show the sidebar
@@ -480,14 +483,14 @@ mapping. Auth failures auto-clear the session and show the sidebar
 
 ## Worktree parallelization
 
-| Step | Modules touched | Depends on |
-|------|----------------|------------|
-| Phase 2: Manager | packages/lightspeed/src/ | Phase 1 |
-| Phase 3: OAuth | packages/lightspeed/src/oauth/ | Phase 2 |
-| Phase 4: Inline | packages/lightspeed/src/inline/ | Phase 3 |
-| Phase 5: Webviews | packages/lightspeed/webviews/ | Phase 1 |
-| Phase 6: Shim | src/features/lightspeed/ | Phase 2-5 |
-| Phase 7: E2E + CI | test/, .github/ | Phase 6 |
+| Step              | Modules touched                 | Depends on |
+| ----------------- | ------------------------------- | ---------- |
+| Phase 2: Manager  | packages/lightspeed/src/        | Phase 1    |
+| Phase 3: OAuth    | packages/lightspeed/src/oauth/  | Phase 2    |
+| Phase 4: Inline   | packages/lightspeed/src/inline/ | Phase 3    |
+| Phase 5: Webviews | packages/lightspeed/webviews/   | Phase 1    |
+| Phase 6: Shim     | src/features/lightspeed/        | Phase 2-5  |
+| Phase 7: E2E + CI | test/, .github/                 | Phase 6    |
 
 **Lane A:** Phase 2 → Phase 3 → Phase 4 (sequential, shared manager)
 **Lane B:** Phase 5 (independent, webviews only need Phase 1 API types)
@@ -499,52 +502,31 @@ Launch A + B in parallel worktrees. Merge both. Then Phase 6. Then Phase 7.
 When Lightspeed is deprecated:
 
 **Package removal (bulk delete):**
+
 1. `rm -rf packages/lightspeed/` — all source, tests, webviews, Vue
    deps, Vite config, fixtures, mock server go with it
 
-**Root `package.json` (6 changes):**
-2. Remove `"@ansible/lightspeed": "*"` from `dependencies`
-3. Remove scripts: `"test:lightspeed"`, `"test:lightspeed:ui"`,
-   `"build:lightspeed:webviews"`
-4. Remove `contributes.commands` — 6 entries starting with
-   `ansible.lightspeed.*`
-5. Remove `contributes.menus.commandPalette` — 6 entries for
-   lightspeed commands
-6. Remove `contributes.menus.editor/context` — 2 entries for
-   explain playbook/role
-7. Remove `contributes.configuration.properties` — 3 settings:
-   `ansible.lightspeed.enabled`, `ansible.lightspeed.URL`,
-   `ansible.lightspeed.suggestions.enabled`
-8. Remove `contributes.authentication` — `auth-lightspeed` entry
-9. Remove `contributes.views` — `ansibleLightspeed` entry
+**Root `package.json` (6 changes):** 2. Remove `"@ansible/lightspeed": "*"` from `dependencies` 3. Remove scripts: `"test:lightspeed"`, `"test:lightspeed:ui"`,
+`"build:lightspeed:webviews"` 4. Remove `contributes.commands` — 6 entries starting with
+`ansible.lightspeed.*` 5. Remove `contributes.menus.commandPalette` — 6 entries for
+lightspeed commands 6. Remove `contributes.menus.editor/context` — 2 entries for
+explain playbook/role 7. Remove `contributes.configuration.properties` — 3 settings:
+`ansible.lightspeed.enabled`, `ansible.lightspeed.URL`,
+`ansible.lightspeed.suggestions.enabled` 8. Remove `contributes.authentication` — `auth-lightspeed` entry 9. Remove `contributes.views` — `ansibleLightspeed` entry
 
-**Root config files (5 changes):**
-10. Remove `@ansible/lightspeed` alias from `scripts/build.mjs`
-11. Remove `{ "path": "packages/lightspeed" }` from `tsconfig.json`
-12. Remove `project('lightspeed', ...)` from `vitest.config.mts`
-13. Remove `!packages/lightspeed/out/**` and
-    `!packages/lightspeed/dist/**` from `.vscodeignore`
-14. Delete `wdio.lightspeed.conf.ts`
+**Root config files (5 changes):** 10. Remove `@ansible/lightspeed` alias from `scripts/build.mjs` 11. Remove `{ "path": "packages/lightspeed" }` from `tsconfig.json` 12. Remove `project('lightspeed', ...)` from `vitest.config.mts` 13. Remove `!packages/lightspeed/out/**` and
+`!packages/lightspeed/dist/**` from `.vscodeignore` 14. Delete `wdio.lightspeed.conf.ts`
 
-**Extension source (2 changes):**
-15. Delete `src/features/lightspeed/register.ts`
-16. Remove `registerLightspeed()` call and import from
-    `src/extension.ts`
+**Extension source (2 changes):** 15. Delete `src/features/lightspeed/register.ts` 16. Remove `registerLightspeed()` call and import from
+`src/extension.ts`
 
-**CI (2 changes):**
-17. Remove "Build Lightspeed webviews" and "Run Lightspeed UI tests"
-    steps from `.github/workflows/ci.yml`
-18. Remove "Apply wdio-vscode-service patch" step if no other
-    consumer remains
+**CI (2 changes):** 17. Remove "Build Lightspeed webviews" and "Run Lightspeed UI tests"
+steps from `.github/workflows/ci.yml` 18. Remove "Apply wdio-vscode-service patch" step if no other
+consumer remains
 
-**SDLC docs:**
-19. Update ADR-015 status to `Deprecated`
-20. Remove this plan document
+**SDLC docs:** 19. Update ADR-015 status to `Deprecated` 20. Remove this plan document
 
-**Verify:**
-21. `npm install && npm run compile && npm run build`
-22. `npx vitest run` — all non-lightspeed tests pass
-23. `npm run test:ui` — smoke + LS WDIO tests pass
+**Verify:** 21. `npm install && npm run compile && npm run build` 22. `npx vitest run` — all non-lightspeed tests pass 23. `npm run test:ui` — smoke + LS WDIO tests pass
 
 No refactoring of core extension code required.
 
@@ -595,12 +577,12 @@ a specific finding above. Run with Claude Code; checkbox as you ship.
 
 ## GSTACK REVIEW REPORT
 
-| Review | Trigger | Why | Runs | Status | Findings |
-|--------|---------|-----|------|--------|----------|
-| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | CLEAR (PLAN) | 4 issues, 0 critical gaps |
-| Outside Voice | Claude subagent | Independent 2nd opinion | 1 | issues_found | 13 findings, 3 tensions resolved |
-| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+| Review        | Trigger               | Why                             | Runs | Status       | Findings                         |
+| ------------- | --------------------- | ------------------------------- | ---- | ------------ | -------------------------------- |
+| CEO Review    | `/plan-ceo-review`    | Scope & strategy                | 0    | —            | —                                |
+| Eng Review    | `/plan-eng-review`    | Architecture & tests (required) | 1    | CLEAR (PLAN) | 4 issues, 0 critical gaps        |
+| Outside Voice | Claude subagent       | Independent 2nd opinion         | 1    | issues_found | 13 findings, 3 tensions resolved |
+| Design Review | `/plan-design-review` | UI/UX gaps                      | 0    | —            | —                                |
 
 **CROSS-MODEL:** Both reviewers agree on esbuild alias approach, per-phase
 testing, and .vsix packaging requirement. Outside voice caught 3 gaps the

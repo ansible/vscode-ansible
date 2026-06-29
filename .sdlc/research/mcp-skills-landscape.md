@@ -10,10 +10,10 @@ reference for the Ansible Developer Tools team.
 ## 1. Executive Summary
 
 MCP is evolving from a tool protocol into a **context protocol**. Tools tell an
-agent *what* it can do; skills tell it *how to orchestrate* multiple tools to
-achieve a goal. Progressive disclosure controls *when* tool definitions and skill
+agent _what_ it can do; skills tell it _how to orchestrate_ multiple tools to
+achieve a goal. Progressive disclosure controls _when_ tool definitions and skill
 content enter the model's context window. And programmatic tool calling controls
-*how* tools are invoked — letting the model write sandbox code that chains tools
+_how_ tools are invoked — letting the model write sandbox code that chains tools
 without passing intermediate results through context. Together these three axes
 — what, when, how — define the emerging MCP stack. The industry is converging on
 a layered architecture: specialized servers with intent-based tools, skills as
@@ -117,23 +117,23 @@ server code-review guide (22 practices), organized by theme.
 
 ### Critical
 
-| Anti-Pattern | Impact | Fix |
-|---|---|---|
-| **Loading all tool schemas upfront** | A server with ~100 tools consumes ~60,000 tokens before the user's message | Progressive discovery / tool search |
-| **God server / unconstrained sprawl** | 80 tools = 72% of context consumed; wider security blast radius | Split into domain-specific servers (<15–20 tools each) |
-| **Prompt-based access control** | Bypass rates 25–92%; creates false sense of security | RBAC in server code |
-| **1:1 API endpoint-to-tool mapping** | Forces the LLM to become an integration engineer; widens attack surface | Design around outcomes, not endpoints |
+| Anti-Pattern                          | Impact                                                                     | Fix                                                    |
+| ------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Loading all tool schemas upfront**  | A server with ~100 tools consumes ~60,000 tokens before the user's message | Progressive discovery / tool search                    |
+| **God server / unconstrained sprawl** | 80 tools = 72% of context consumed; wider security blast radius            | Split into domain-specific servers (<15–20 tools each) |
+| **Prompt-based access control**       | Bypass rates 25–92%; creates false sense of security                       | RBAC in server code                                    |
+| **1:1 API endpoint-to-tool mapping**  | Forces the LLM to become an integration engineer; widens attack surface    | Design around outcomes, not endpoints                  |
 
 ### High
 
-| Anti-Pattern | Impact | Fix |
-|---|---|---|
-| **Shared service account credentials** | Impossible to audit which agent did what | Distinct identity per agent |
-| **Treating read-only as a security boundary** | Agent can still SELECT secrets, PII, credentials | Column masking, row-level security |
-| **Framework-silent schema failures** | 19% of tools have broken schemas; agents guess at parameters | Explicitly type all params; validate generated schemas |
-| **Loading all tool results into context** | Massive output bloat from intermediate results | Programmatic tool calling / code mode |
-| **Expecting users to self-configure** | Even "one click to copy config" had low adoption (Duolingo) | Bring tools to where users already work |
-| **Standalone playgrounds** | Ungoverned; Uber deprecated all of them | Everything centrally committed in code |
+| Anti-Pattern                                  | Impact                                                       | Fix                                                    |
+| --------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| **Shared service account credentials**        | Impossible to audit which agent did what                     | Distinct identity per agent                            |
+| **Treating read-only as a security boundary** | Agent can still SELECT secrets, PII, credentials             | Column masking, row-level security                     |
+| **Framework-silent schema failures**          | 19% of tools have broken schemas; agents guess at parameters | Explicitly type all params; validate generated schemas |
+| **Loading all tool results into context**     | Massive output bloat from intermediate results               | Programmatic tool calling / code mode                  |
+| **Expecting users to self-configure**         | Even "one click to copy config" had low adoption (Duolingo)  | Bring tools to where users already work                |
+| **Standalone playgrounds**                    | Ungoverned; Uber deprecated all of them                      | Everything centrally committed in code                 |
 
 ---
 
@@ -141,9 +141,9 @@ server code-review guide (22 practices), organized by theme.
 
 ### The Gap Between Tools and Know-How
 
-MCP tools tell an agent *what* it can do. Tool descriptions explain parameters
+MCP tools tell an agent _what_ it can do. Tool descriptions explain parameters
 and return values. But tools alone are insufficient for complex workflows — they
-don't explain *how to orchestrate* multiple tools together. Skills bridge this
+don't explain _how to orchestrate_ multiple tools together. Skills bridge this
 gap. They are structured "how-to" knowledge: multi-step workflows, conditional
 logic, domain-specific patterns, and orchestration instructions that can run to
 hundreds of lines.
@@ -156,11 +156,11 @@ build directed graphs of MCP tool calls.
 
 Skills are not a competing paradigm to MCP tools — they are complementary:
 
-| Paradigm | Role | Strength |
-|---|---|---|
-| **MCP Tools** | Connectors that expose capabilities | What an agent *can* do |
-| **Skills** | Recipes that instruct the model | How to *orchestrate* tools |
-| **CLI** | Token-efficient progressive discovery | Composable via `--help` |
+| Paradigm      | Role                                  | Strength                   |
+| ------------- | ------------------------------------- | -------------------------- |
+| **MCP Tools** | Connectors that expose capabilities   | What an agent _can_ do     |
+| **Skills**    | Recipes that instruct the model       | How to _orchestrate_ tools |
+| **CLI**       | Token-efficient progressive discovery | Composable via `--help`    |
 
 The MCP Dev Summit consensus: "These paradigms are complementary, not competing.
 MCP Tools are the connectors that expose new capabilities, while Skills are the
@@ -185,7 +185,7 @@ implementations converged on `skill://` without coordination — a strong signal
 The final path segment must equal the skill's frontmatter `name`. Preceding
 segments are server-chosen organizational prefixes.
 
-```
+```text
 skill://git-workflow/SKILL.md
 skill://acme/billing/refunds/SKILL.md
 skill://pdf-processing/references/FORMS.md
@@ -204,11 +204,11 @@ skill://pdf-processing/references/FORMS.md
 
 ```json
 {
-  "capabilities": {
-    "extensions": {
-      "io.modelcontextprotocol/skills": {}
+    "capabilities": {
+        "extensions": {
+            "io.modelcontextprotocol/skills": {}
+        }
     }
-  }
 }
 ```
 
@@ -237,7 +237,7 @@ skills. The core principle: load context on demand, not upfront.
 
 ### For Tools: Three-Layer Pattern
 
-```
+```text
 Layer 1: Catalog    → search_tools({ query: "..." })
                       Returns names + one-line descriptions only
 
@@ -254,7 +254,7 @@ context window consumed by MCP tools to having them fully deferred.
 
 The Agent Skills specification defines a parallel three-level disclosure model:
 
-```
+```text
 Level 1: Frontmatter  → name + description (always in context)
                          Lets the model judge relevance
 
@@ -298,7 +298,7 @@ caching:
 Instead of round-tripping every tool result through the model, the model writes
 code that calls tools in a sandbox. Only the final result returns to context.
 
-```
+```text
 Model → writes script → Sandbox executes → function calls routed to MCP servers
                                           → only console output returns to model
 ```
@@ -393,10 +393,10 @@ skill instructions, even when preloaded in context.
 
 ## Sources
 
-| Document | Provenance | Date |
-|---|---|---|
-| [MCP Client Best Practices](https://modelcontextprotocol.io/docs/develop/clients/client-best-practices) | modelcontextprotocol.io | 2026 |
-| [Skills Over MCP WG Charter](https://modelcontextprotocol.io/community/working-groups/skills-over-mcp) | modelcontextprotocol.io | 2026-04-25 |
-| MCP Best Practices and Anti-Patterns Report | `.sdlc/research/mcp-best-practices-and-anti-patterns.md` — synthesized from 100 sessions, MCP Dev Summit NA 2026 | 2026-04-20 |
-| MCP Server Recommended Practices for Code Review | `.sdlc/research/mcp-server-recommended-practices.md` — 22 practices, 8 anti-patterns | 2026-04-23 |
-| Skills Over MCP Experimental Repository | [modelcontextprotocol/experimental-ext-skills](https://github.com/modelcontextprotocol/experimental-ext-skills) — SEP-2640 draft, problem statement, approaches, decisions, use cases, experimental findings, related work, URI scheme proposal, `_meta` keys | 2026-06 |
+| Document                                                                                                | Provenance                                                                                                                                                                                                                                                    | Date       |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| [MCP Client Best Practices](https://modelcontextprotocol.io/docs/develop/clients/client-best-practices) | modelcontextprotocol.io                                                                                                                                                                                                                                       | 2026       |
+| [Skills Over MCP WG Charter](https://modelcontextprotocol.io/community/working-groups/skills-over-mcp)  | modelcontextprotocol.io                                                                                                                                                                                                                                       | 2026-04-25 |
+| MCP Best Practices and Anti-Patterns Report                                                             | `.sdlc/research/mcp-best-practices-and-anti-patterns.md` — synthesized from 100 sessions, MCP Dev Summit NA 2026                                                                                                                                              | 2026-04-20 |
+| MCP Server Recommended Practices for Code Review                                                        | `.sdlc/research/mcp-server-recommended-practices.md` — 22 practices, 8 anti-patterns                                                                                                                                                                          | 2026-04-23 |
+| Skills Over MCP Experimental Repository                                                                 | [modelcontextprotocol/experimental-ext-skills](https://github.com/modelcontextprotocol/experimental-ext-skills) — SEP-2640 draft, problem statement, approaches, decisions, use cases, experimental findings, related work, URI scheme proposal, `_meta` keys | 2026-06    |

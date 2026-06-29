@@ -6,7 +6,7 @@ A VS Code extension for managing Ansible development environments, leveraging th
 
 The extension uses a multi-package architecture with npm workspaces:
 
-```
+```text
 packages/
   common/           # @ansible/common — browser-safe types, prompts, utils, parsers
   services/         # @ansible/services — Node.js service implementations
@@ -101,24 +101,24 @@ The extension includes a standalone MCP server (`@ansible/mcp-server`) that expo
 
 ### Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `search_ansible_plugins` | Search plugins by keyword |
-| `get_plugin_documentation` | Get full plugin documentation |
-| `list_ansible_collections` | List installed collections |
-| `install_ansible_collection` | Install a collection from Galaxy |
-| `search_available_collections` | Search Galaxy for collections |
-| `list_source_collections` | List collections from GitHub sources |
-| `get_collection_plugins` | List plugins in a collection |
-| `generate_ansible_task` | Generate task YAML (one-shot) |
-| `build_ansible_task` | Interactive task building with guided params |
-| `generate_ansible_playbook` | Generate a complete playbook |
-| `list_execution_environments` | List available EE images |
-| `get_ee_details` | Inspect EE collections and packages |
-| `list_ansible_dev_tools` | List installed dev tools |
-| `get_ansible_creator_schema` | Get creator command schema |
-| `get_ansible_best_practices` | Get Ansible coding guidelines |
-| `ac_*` | Dynamic tools from `ansible-creator schema` |
+| Tool                           | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| `search_ansible_plugins`       | Search plugins by keyword                    |
+| `get_plugin_documentation`     | Get full plugin documentation                |
+| `list_ansible_collections`     | List installed collections                   |
+| `install_ansible_collection`   | Install a collection from Galaxy             |
+| `search_available_collections` | Search Galaxy for collections                |
+| `list_source_collections`      | List collections from GitHub sources         |
+| `get_collection_plugins`       | List plugins in a collection                 |
+| `generate_ansible_task`        | Generate task YAML (one-shot)                |
+| `build_ansible_task`           | Interactive task building with guided params |
+| `generate_ansible_playbook`    | Generate a complete playbook                 |
+| `list_execution_environments`  | List available EE images                     |
+| `get_ee_details`               | Inspect EE collections and packages          |
+| `list_ansible_dev_tools`       | List installed dev tools                     |
+| `get_ansible_creator_schema`   | Get creator command schema                   |
+| `get_ansible_best_practices`   | Get Ansible coding guidelines                |
+| `ac_*`                         | Dynamic tools from `ansible-creator schema`  |
 
 ### Using with Cursor
 
@@ -135,12 +135,12 @@ Add to `.cursor/mcp.json`:
 
 ```json
 {
-  "mcpServers": {
-    "ansible-environments": {
-      "command": "node",
-      "args": ["/path/to/ansible-environments/packages/mcp-server/out/server.js"]
+    "mcpServers": {
+        "ansible-environments": {
+            "command": "node",
+            "args": ["/path/to/ansible-environments/packages/mcp-server/out/server.js"]
+        }
     }
-  }
 }
 ```
 
@@ -164,15 +164,15 @@ node packages/mcp-server/out/server.js
 
 ## Extension Settings
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `ansibleEnvironments.enableAiFeatures` | `true` | Enable AI enhancements (AI Tools view, sparkle icons) |
-| `ansibleEnvironments.pluginDocZoom` | `100` | Plugin doc viewer zoom (50–200%) |
-| `ansibleEnvironments.pluginDocTheme` | `auto` | Plugin doc theme (auto/light/dark) |
-| `ansibleEnvironments.githubCollectionOrgs` | `["ansible", "ansible-collections", "redhat-cop"]` | GitHub orgs to scan for collections |
-| `ansibleEnvironments.llm.chatProvider` | `vscode` | Chat UI provider (vscode or abbenay) |
-| `ansibleEnvironments.llm.provider` | `""` | LLM provider/vendor (advanced) |
-| `ansibleEnvironments.llm.model` | `""` | LLM model ID (advanced) |
+| Setting                                    | Default                                            | Description                                           |
+| ------------------------------------------ | -------------------------------------------------- | ----------------------------------------------------- |
+| `ansibleEnvironments.enableAiFeatures`     | `true`                                             | Enable AI enhancements (AI Tools view, sparkle icons) |
+| `ansibleEnvironments.pluginDocZoom`        | `100`                                              | Plugin doc viewer zoom (50–200%)                      |
+| `ansibleEnvironments.pluginDocTheme`       | `auto`                                             | Plugin doc theme (auto/light/dark)                    |
+| `ansibleEnvironments.githubCollectionOrgs` | `["ansible", "ansible-collections", "redhat-cop"]` | GitHub orgs to scan for collections                   |
+| `ansibleEnvironments.llm.chatProvider`     | `vscode`                                           | Chat UI provider (vscode or abbenay)                  |
+| `ansibleEnvironments.llm.provider`         | `""`                                               | LLM provider/vendor (advanced)                        |
+| `ansibleEnvironments.llm.model`            | `""`                                               | LLM model ID (advanced)                               |
 
 ## Development
 
@@ -200,6 +200,7 @@ npm run ci            # Full CI mirror: compile + lint + test:coverage + build
 ```
 
 The test suite uses:
+
 - **Vitest** for unit tests across all packages
 - **WebDriverIO** with `wdio-vscode-service` for e2e tests against a real VS Code instance
 

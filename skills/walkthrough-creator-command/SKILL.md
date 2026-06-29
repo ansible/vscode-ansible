@@ -1,6 +1,6 @@
 ---
 name: Creator Command Walkthrough
-description: Walk through a specific ansible-creator command's parameters and structure
+description: Use this skill when scaffolding new Ansible content. Walks through a specific ansible-creator command's parameters and executes it.
 tags: [creator, scaffolding, commands]
 category: scaffold
 triggers: [creator command, scaffold command, create content]

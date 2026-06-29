@@ -3,7 +3,7 @@
 Lightweight task tracking for the `next` branch. One file per todo,
 managed by moving files between directories.
 
-```
+```text
 .sdlc/todos/
   pending/    → work not yet started or in progress
   complete/   → finished work (kept for reference)
