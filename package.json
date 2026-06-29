@@ -11,7 +11,7 @@
   "icon": "resources/ansible-icon.png",
   "engines": {
     "vscode": "^1.93.0",
-    "node": ">=20.0.0"
+    "node": ">=22.18.0"
   },
   "workspaces": [
     "packages/*",

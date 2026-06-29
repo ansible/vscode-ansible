@@ -92,7 +92,17 @@ See the `branching-strategy` skill for full details.
 
 ## Quality Gates
 
-Before committing:
+### Prerequisites
+
+`npm run ci` requires two tools that are **not** npm dependencies:
+
+- **prek** — pre-commit hook runner (`pipx install prek`)
+- **uv** — Python package runner, provides `uvx` (`pipx install uv`)
+
+Both are installed automatically in CI. Contributors must install them
+locally before running `npm run ci` or `npm run lint:prek`.
+
+### Before committing
 
 1. `npm run ci` — **required before every commit/push**. Runs skill
    codegen, TypeScript compilation, ESLint, prek hooks (skillmark,

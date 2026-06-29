@@ -23,8 +23,10 @@ Monorepo using npm workspaces (`packages/*`, `docs`):
 
 ## Prerequisites
 
-- **Node.js** >= 18.20.8 (22+ recommended)
+- **Node.js** >= 22.18.0
 - **npm** (bundled with Node.js; the repo uses npm workspaces)
+- **prek** — pre-commit hook runner (`pipx install prek`)
+- **uv** — Python package runner, provides `uvx` (`pipx install uv`)
 
 ## Common Commands
 

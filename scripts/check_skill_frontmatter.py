@@ -102,8 +102,10 @@ def extract_frontmatter(path: Path) -> dict[str, object] | None:
         return None
 
     try:
-        result: dict[str, object] | None = yaml.safe_load(parts[1])
+        result = yaml.safe_load(parts[1])
     except yaml.YAMLError:
+        return None
+    if not isinstance(result, dict):
         return None
     return result
 

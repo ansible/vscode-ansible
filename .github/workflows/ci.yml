@@ -58,8 +58,10 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install prek
-        run: pipx install prek
+      - name: Install prek and uv
+        run: |
+          pipx install prek
+          pipx install uv
 
       - run: npm ci
       - run: npm run lint
