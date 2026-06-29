@@ -1167,7 +1167,8 @@
     "test:lightspeed": "npm run test -w packages/lightspeed",
     "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
     "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",
-    "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs"
+    "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs",
+    "help": "node scripts/help.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.1.0",
