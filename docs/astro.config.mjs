@@ -4,7 +4,6 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
     site: 'https://ansible.github.io',
     base: '/vscode-ansible',
-    legacy: { collections: true },
     integrations: [
         starlight({
             title: 'Ansible Developer Tools',
