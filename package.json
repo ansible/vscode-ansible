@@ -1065,7 +1065,7 @@
     "@vscode/codicons": "^0.0.45",
     "@vscode/python-extension": "1.0.6",
     "highlight.js": "^11.11.1",
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^5.0.0",
     "marked": "^18.0.5",
     "minimatch": "^10.2.5",
     "primevue": "4.5.5",
