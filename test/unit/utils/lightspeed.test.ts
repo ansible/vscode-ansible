@@ -60,8 +60,9 @@ describe("adjustInlineSuggestionIndent", () => {
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
     setEditor("    - name: x");
-    // line "malf"[3] === "f" (a word char) -> filtered out
-    const suggestion = "    foo\nmalf";
+    // second line's char at the boundary column ("data"[3] === "a") is a word
+    // char -> the line is dropped as malformed
+    const suggestion = "    foo\n" + "data";
 
     const result = adjustInlineSuggestionIndent(suggestion, pos(4));
 
