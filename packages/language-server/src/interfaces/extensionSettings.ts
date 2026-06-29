@@ -34,10 +34,7 @@ export interface ExtensionSettings extends ExtensionSettingsType {
 
 export interface SettingsEntry {
     [name: string]:
-        | { default: string | boolean; description: string }
-        | SettingsEntry
-        | string
-        | boolean;
+        { default: string | boolean; description: string } | SettingsEntry | string | boolean;
 }
 
 export interface ExtensionSettingsWithDescription {

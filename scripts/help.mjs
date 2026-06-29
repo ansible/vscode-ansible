@@ -50,6 +50,7 @@ const catalog = [
   }],
   ["Utilities", {
     help: "Show this help message",
+    "deps:check": "Show outdated packages and audit vulnerabilities",
   }],
 ];
 

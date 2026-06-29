@@ -25,16 +25,14 @@ interface MockEnvService {
 }
 
 const { mockCreateStatusBarItem, mockRegisterCommand, mockExecuteCommand } = vi.hoisted(() => ({
-    mockCreateStatusBarItem: vi.fn(
-        (): MockStatusBarItem => ({
-            text: '',
-            command: undefined,
-            backgroundColor: undefined,
-            show: vi.fn(),
-            hide: vi.fn(),
-            dispose: vi.fn(),
-        }),
-    ),
+    mockCreateStatusBarItem: vi.fn((): MockStatusBarItem => ({
+        text: '',
+        command: undefined,
+        backgroundColor: undefined,
+        show: vi.fn(),
+        hide: vi.fn(),
+        dispose: vi.fn(),
+    })),
     mockRegisterCommand: vi.fn(() => ({ dispose: vi.fn() })),
     mockExecuteCommand: vi.fn(),
 }));

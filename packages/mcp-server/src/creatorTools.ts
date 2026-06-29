@@ -110,8 +110,7 @@ export class CreatorToolGenerator {
 
         try {
             const result = (await service.runCommand(toolPath, params, positionalArgs)) as
-                | string
-                | undefined;
+                string | undefined;
 
             // VS Code terminal mode returns undefined instead of captured output
             if (result === undefined) {

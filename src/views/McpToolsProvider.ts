@@ -13,12 +13,7 @@ import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 
 type ToolCategory =
-    | 'getting_started'
-    | 'discovery'
-    | 'generation'
-    | 'execution'
-    | 'devtools'
-    | 'creator';
+    'getting_started' | 'discovery' | 'generation' | 'execution' | 'devtools' | 'creator';
 
 export interface ToolInfo {
     tool: McpToolDefinition;
