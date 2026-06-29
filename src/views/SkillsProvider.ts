@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import { SkillRegistry, buildSkillLoadPrompt, buildSkillClipboardPrompt } from '@ansible/services';
 import type { SkillEntry, SkillSource } from '@ansible/services';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 import { log } from '@src/extension';
 
 type TreeNode = SourceNode | ModuleNode | SkillNode | MessageNode;
@@ -254,19 +255,7 @@ export class SkillsProvider implements vscode.TreeDataProvider<TreeNode> {
  */
 export async function openChatWithSkill(skill: SkillEntry): Promise<void> {
     const prompt = buildSkillLoadPrompt(skill.name, skill.id, skill.description);
-
-    try {
-        await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
-    } catch {
-        await vscode.env.clipboard.writeText(prompt);
-        const selection = await vscode.window.showInformationMessage(
-            'Skill prompt copied to clipboard. Paste it into an agent chat session.',
-            'Open Chat',
-        );
-        if (selection === 'Open Chat') {
-            void vscode.commands.executeCommand('workbench.action.chat.open');
-        }
-    }
+    await openChatWithPrompt(prompt);
 }
 
 /**

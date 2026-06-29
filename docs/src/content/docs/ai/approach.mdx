@@ -1,0 +1,185 @@
+---
+title: Our AI Approach
+description: How Ansible Developer Tools makes any AI agent an Ansible expert — without competing with it.
+---
+
+import { Card, CardGrid, Badge } from '@astrojs/starlight/components';
+
+The Ansible extension doesn't ship its own AI.
+It makes **your** AI an Ansible expert.
+
+## The idea
+
+Every AI coding assistant — Copilot, Cursor, Claude Code, IBM Bob, Codex —
+is already good at writing code. What they lack is **domain expertise**:
+which Ansible module to use, what parameters it requires, how to structure a
+playbook for production, which collection to install for a given use case.
+
+Rather than build a competing AI or lock you into a single provider, Ansible
+Developer Tools takes a different approach:
+
+> **We give your agent Ansible superpowers — regardless of which agent you use
+> or which model it runs.**
+
+This means:
+
+- **No vendor lock-in.** Switch from Copilot to Cursor to Claude Code to Bob.
+  Your Ansible tooling follows you.
+- **No model lock-in.** Use GPT, Claude, Granite, Llama, or whatever model
+  your organization deploys. The domain tools work with all of them.
+- **No degraded experience.** Whether you're in VS Code with Copilot, Cursor
+  with Claude, or IBM Bob with Granite — you get the same Ansible
+  capabilities.
+
+## How it works
+
+The extension exposes Ansible domain knowledge through three layers, each
+designed to work with any AI system:
+
+<CardGrid>
+  <Card title="MCP Tools" icon="rocket">
+    A standalone [MCP server](/ai/mcp-server/) with 22+ tools for collection
+    discovery, plugin documentation, task generation, execution environment
+    introspection, and project scaffolding. Any MCP-compatible agent can call
+    these tools directly.
+  </Card>
+  <Card title="Skills" icon="document">
+    [13 guided workflows](/ai/skills/) written as portable SKILL.md files.
+    Skills teach your agent *how* to approach Ansible tasks — explaining
+    plugins, analyzing playbooks, building tasks interactively — without
+    requiring MCP support.
+  </Card>
+  <Card title="Chat integration" icon="star">
+    One-click "Use in chat" actions throughout the extension UI. Click the
+    sparkle icon on a plugin doc, collection, or playbook result, and the
+    prompt is routed directly to your IDE's native chat — Copilot Chat,
+    Cursor, or IBM Bob — with full domain context attached.
+  </Card>
+</CardGrid>
+
+### The MCP server: domain tools for any agent
+
+The MCP server is the core of the AI strategy. It runs as a lightweight
+Node.js process (under 1 MB) and exposes Ansible capabilities as structured
+tool calls that any agent can invoke:
+
+| Category | Tools | What agents can do |
+|----------|-------|--------------------|
+| **Discovery** | `search_ansible_plugins`, `list_ansible_collections`, `search_available_collections` | Find the right module, filter, or lookup for a task |
+| **Documentation** | `get_plugin_documentation`, `get_galaxy_plugin_doc`, `get_scm_plugin_doc` | Read full parameter docs, examples, and return values |
+| **Generation** | `generate_ansible_task`, `build_ansible_task`, `generate_ansible_playbook` | Produce correct YAML with validated parameters |
+| **Environments** | `list_execution_environments`, `get_ee_details` | Inspect EE contents without container exec |
+| **Scaffolding** | `get_ansible_creator_schema`, `ac_*` (dynamic) | Scaffold collections, playbooks, roles, and plugins |
+| **Guidance** | `get_ansible_best_practices`, `skill_search`, `skill_get` | Follow Ansible conventions and guided workflows |
+
+The server is **read-from-your-workspace**: it uses your installed
+collections, your Python environment, your execution environments. Agents
+get answers grounded in your actual project, not generic training data.
+
+### Skills: portable agent instructions
+
+Not every agent supports MCP. Skills bridge that gap. Each skill is a
+standalone markdown file that teaches an agent how to approach a specific
+Ansible workflow:
+
+- **Explain Plugin** — Break down a module's purpose, key parameters, and
+  common patterns
+- **Summarize Playbook** — Analyze structure, role dependencies, and
+  collection requirements
+- **Build Task** — Guide through interactive task construction with parameter
+  validation
+- **Analyze Task Result** — Troubleshoot failures with structured diagnostic
+  steps
+- **Summarize Collection** — Catalog plugins, roles, and real-world use cases
+
+Skills are distributed three ways: bundled in the extension, available via
+`npx skills add`, and queryable through MCP `skill_*` tools. They work with
+68+ agents including Cursor, Claude Code, Windsurf, Zed, and Gemini CLI.
+
+## IDE parity
+
+The extension auto-detects your IDE and adapts. No manual configuration
+required.
+
+| Capability | VS Code | Cursor | IBM Bob | Agent-only (CLI) |
+|------------|---------|--------|---------|------------------|
+| Language server (completions, diagnostics, hover) | Yes | Yes | Yes | [Standalone](/ai/language-server/) |
+| MCP server auto-registration | `vscode.lm` API | `cursor.mcp` API | `~/.bob/settings/mcp.json` | [Manual config](/ai/connecting-agents/) |
+| Chat prompt routing | Copilot Chat | Cursor Chat | Bob Chat | N/A |
+| Collection browser + sparkle actions | Yes | Yes | Yes | Via MCP tools |
+| Playbook execution + AI analysis | Yes | Yes | Yes | Via MCP tools |
+| Skills sidebar | Yes | Yes | Yes | `npx skills add` |
+
+The `ansibleEnvironments.llm.chatProvider` setting defaults to `auto` —
+the extension probes for IBM Bob's command API, falls back to
+`workbench.action.chat.open` (which works in both VS Code and Cursor), and
+routes accordingly. You can override to `vscode`, `bob`, or `abbenay` if
+needed.
+
+## What this means for your workflow
+
+**Before** (traditional AI code assistance):
+- Your agent generates Ansible YAML from training data
+- It might hallucinate module names, use deprecated parameters, or miss
+  required options
+- You manually verify against documentation
+
+**After** (with Ansible Developer Tools):
+- Your agent calls `search_ansible_plugins` to find the right module
+- It calls `get_plugin_documentation` to read the actual parameter spec
+- It calls `generate_ansible_task` to produce validated YAML
+- It follows the **Build Task** skill for interactive construction
+- Every answer is grounded in your installed collections and live
+  documentation
+
+The agent still does the reasoning. We give it the right information to
+reason *about*.
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────┐
+│              Your IDE + AI Agent                  │
+│   (VS Code, Cursor, IBM Bob, Claude Code, ...)   │
+└───────────┬──────────────────────┬───────────────┘
+            │                      │
+   Chat prompt routing      MCP tool calls
+            │                      │
+            ▼                      ▼
+┌───────────────────┐   ┌──────────────────────────┐
+│ Extension UI      │   │ @ansible/mcp-server      │
+│ Panels, tree      │   │ 22+ tools, 13 skills     │
+│ views, sparkle    │   │ Standalone Node.js stdio  │
+│ actions           │   │                          │
+└───────────────────┘   └────────────┬─────────────┘
+                                     │
+                        ┌────────────┴─────────────┐
+                        │ @ansible/services        │
+                        │ Collections, plugins,    │
+                        │ creator, EEs, dev tools  │
+                        └────────────┬─────────────┘
+                                     │
+                        ┌────────────┴─────────────┐
+                        │ Your workspace           │
+                        │ Python env, collections, │
+                        │ playbooks, EE images     │
+                        └──────────────────────────┘
+```
+
+The extension never calls an LLM directly. It builds domain-rich prompts and
+hands them to your chat UI, or exposes structured tools that your agent
+invokes. The model choice is always yours.
+
+## Getting started
+
+<CardGrid>
+  <Card title="Install the extension" icon="laptop">
+    Works out of the box in [VS Code](/editor/vscode-extension/),
+    [Cursor](/editor/cursor/), and [IBM Bob](/editor/ibm-bob/).
+    MCP auto-registration happens on activation.
+  </Card>
+  <Card title="Connect a standalone agent" icon="setting">
+    Using Claude Code, Codex, or another MCP client?
+    See [Connecting AI Agents](/ai/connecting-agents/) for setup.
+  </Card>
+</CardGrid>

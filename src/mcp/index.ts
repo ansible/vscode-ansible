@@ -29,3 +29,4 @@ export {
     detectIde,
     IdeType,
 } from '@src/mcp/cursorConfig';
+export { registerBobMcpServer } from '@src/mcp/bobConfig';

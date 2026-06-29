@@ -27,6 +27,7 @@ import {
     injectToolPromptIntoChat,
     type ToolInfo,
 } from '@src/views/McpToolsProvider';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 import {
     CollectionSourcesProvider,
     setCollectionSourcesLogFunction,
@@ -58,6 +59,7 @@ import {
     registerMcpServerProvider,
     isMcpAvailable,
     registerCursorMcpServer,
+    registerBobMcpServer,
     configureCursorMcp,
     showCursorMcpStatus,
     getMcpStatus,
@@ -134,51 +136,6 @@ export function getLogFilePath(): string | undefined {
 }
 
 /**
- * Open the AI chat with a prompt pre-filled.
- * Uses the configured chat provider (vscode or abbenay).
- * Falls back to clipboard if the command doesn't support the query parameter.
- * @param prompt - Prompt text to send to the configured chat provider
- */
-async function openChatWithPrompt(prompt: string): Promise<void> {
-    const config = vscode.workspace.getConfiguration('ansibleEnvironments');
-    const chatProvider = config.get<string>('llm.chatProvider', 'vscode');
-
-    if (chatProvider === 'abbenay') {
-        try {
-            await vscode.commands.executeCommand('abbenay.chatView.focus');
-            await vscode.env.clipboard.writeText(prompt);
-            vscode.window.showInformationMessage(
-                'Abbenay chat focused. Prompt copied to clipboard — paste to send.',
-            );
-        } catch {
-            vscode.window.showWarningMessage(
-                'Abbenay extension not found. Install it or switch to VS Code chat in settings.',
-            );
-        }
-    } else {
-        // Use VS Code's built-in chat (Copilot)
-        try {
-            // Try to open chat with the prompt directly (VS Code 1.93+ with Copilot)
-            await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
-            vscode.window.showInformationMessage('Prompt sent to chat.');
-        } catch {
-            // Fallback: copy to clipboard and let user paste
-            await vscode.env.clipboard.writeText(prompt);
-            vscode.window
-                .showInformationMessage(
-                    'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                    'Open Chat',
-                )
-                .then((selection) => {
-                    if (selection === 'Open Chat') {
-                        vscode.commands.executeCommand('workbench.action.chat.open');
-                    }
-                });
-        }
-    }
-}
-
-/**
  * Activate the Ansible extension and register providers and commands.
  * @param context - VS Code extension activation context
  */
@@ -218,7 +175,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Register MCP server with the appropriate IDE API
     const ide = detectIde();
-    if (ide === 'cursor') {
+    if (ide === 'bob') {
+        if (registerBobMcpServer(context)) {
+            log('MCP server registered in Bob global config (~/.bob/settings/mcp.json)');
+        } else {
+            log('Bob MCP auto-registration failed — server binary missing');
+        }
+    } else if (ide === 'cursor') {
         if (registerCursorMcpServer(context)) {
             log('MCP server registered via Cursor extension API');
         } else {
@@ -1061,7 +1024,20 @@ export function activate(context: vscode.ExtensionContext) {
     const mcpToolsConfigureCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.configure',
         async () => {
-            await configureCursorMcp(context);
+            const currentIde = detectIde();
+            if (currentIde === 'bob') {
+                if (registerBobMcpServer(context)) {
+                    vscode.window.showInformationMessage(
+                        'Ansible MCP server configured for IBM Bob.',
+                    );
+                } else {
+                    vscode.window.showErrorMessage(
+                        'Failed to configure MCP server — server binary not found.',
+                    );
+                }
+            } else {
+                await configureCursorMcp(context);
+            }
             updateMcpStatusContext();
             mcpToolsProvider.refresh();
         },

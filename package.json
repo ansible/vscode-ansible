@@ -1078,14 +1078,18 @@
         },
         "ansibleEnvironments.llm.chatProvider": {
           "type": "string",
-          "default": "vscode",
+          "default": "auto",
           "enum": [
+            "auto",
             "vscode",
-            "abbenay"
+            "abbenay",
+            "bob"
           ],
           "enumDescriptions": [
+            "Auto-detect: IBM Bob if available, otherwise VS Code / Cursor",
             "Use VS Code's built-in chat (GitHub Copilot Chat)",
-            "Use Abbenay's chat panel"
+            "Use Abbenay's chat panel",
+            "Use IBM Bob's chat (sends prompt via bob-code.sendMessageWithHiddenPrompt)"
           ],
           "markdownDescription": "Which chat UI to use for AI features.",
           "scope": "resource",
