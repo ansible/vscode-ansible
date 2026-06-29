@@ -18,6 +18,24 @@ function log(message: string): void {
 
 const MCP_SERVER_NAME = 'ansible-environments';
 
+/**
+ * Resolve the absolute path to the bundled MCP server entry point.
+ *
+ * In a packaged VSIX the server lives at `dist/mcp-server.js`.
+ * During local development it may be at `packages/mcp-server/out/server.js`.
+ * Try the bundled path first, then fall back to the dev path.
+ *
+ * @param context - Extension context for path resolution
+ * @returns Absolute path to the MCP server script
+ */
+export function resolveMcpServerPath(context: vscode.ExtensionContext): string {
+    const bundled = context.asAbsolutePath(path.join('dist', 'mcp-server.js'));
+    if (fs.existsSync(bundled)) {
+        return bundled;
+    }
+    return context.asAbsolutePath(path.join('packages', 'mcp-server', 'out', 'server.js'));
+}
+
 // -------------------------------------------------------------------------
 // Cursor extension API types
 // -------------------------------------------------------------------------
@@ -104,9 +122,7 @@ function registerViaCursorApi(serverPath: string): boolean {
  * @returns True when the server was registered successfully
  */
 export function registerCursorMcpServer(context: vscode.ExtensionContext): boolean {
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
+    const serverPath = resolveMcpServerPath(context);
 
     if (!fs.existsSync(serverPath)) {
         log(`MCP server binary not found at ${serverPath}`);
@@ -136,9 +152,7 @@ interface McpConfig {
  * @param context - Extension context used to resolve the MCP server path
  */
 async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
+    const serverPath = resolveMcpServerPath(context);
 
     if (!fs.existsSync(serverPath)) {
         vscode.window.showErrorMessage(`MCP server not found at: ${serverPath}`);
@@ -265,9 +279,7 @@ async function configureViaMcpJson(context: vscode.ExtensionContext): Promise<vo
  * @param context - Extension context used to resolve the MCP server path
  */
 export async function configureCursorMcp(context: vscode.ExtensionContext): Promise<void> {
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
+    const serverPath = resolveMcpServerPath(context);
 
     if (!fs.existsSync(serverPath)) {
         vscode.window.showErrorMessage(`MCP server not found at: ${serverPath}`);
@@ -322,9 +334,7 @@ function escapeHtml(text: string): string {
  * @param context - Extension context used to resolve the MCP server path
  */
 export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
+    const serverPath = resolveMcpServerPath(context);
     const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const workspaceConfigPath = workspaceFolder
@@ -425,21 +435,47 @@ export function showCursorMcpStatus(context: vscode.ExtensionContext): void {
 // IDE detection & status types
 // -------------------------------------------------------------------------
 
-export type IdeType = 'cursor' | 'vscode' | 'unknown';
+export type IdeType = 'cursor' | 'vscode' | 'bob' | 'unknown';
+
+let _cachedIde: IdeType | undefined;
 
 /**
- * Detect whether the extension is running in Cursor, VS Code, or another host.
+ * Detect whether the extension is running in Cursor, VS Code, IBM Bob, or another host.
+ *
+ * Checks `vscode.env.appName` first, then falls back to the extension
+ * install path (`.bobide/` → Bob, `.cursor/` → Cursor).
+ *
  * @returns Identified IDE type based on the application name
  */
 export function detectIde(): IdeType {
+    if (_cachedIde) {
+        return _cachedIde;
+    }
+
     const appName = vscode.env.appName.toLowerCase();
-    if (appName.includes('cursor')) {
-        return 'cursor';
+
+    if (appName.includes('bob')) {
+        _cachedIde = 'bob';
+    } else if (appName.includes('cursor')) {
+        _cachedIde = 'cursor';
+    } else if (appName.includes('visual studio code') || appName.includes('vscode')) {
+        _cachedIde = 'vscode';
+    } else {
+        // Fall back to checking the extension host data directory
+        const appRoot = vscode.env.appRoot.toLowerCase();
+        if (appRoot.includes('bob')) {
+            _cachedIde = 'bob';
+        } else if (appRoot.includes('cursor')) {
+            _cachedIde = 'cursor';
+        } else {
+            _cachedIde = 'unknown';
+        }
     }
-    if (appName.includes('visual studio code') || appName.includes('vscode')) {
-        return 'vscode';
-    }
-    return 'unknown';
+
+    log(
+        `IDE detected as "${_cachedIde}" (appName="${vscode.env.appName}", appRoot="${vscode.env.appRoot}")`,
+    );
+    return _cachedIde;
 }
 
 export interface McpStatus {
@@ -448,8 +484,28 @@ export interface McpStatus {
     cursorApiAvailable: boolean;
     cursorGlobalConfigured: boolean;
     cursorWorkspaceConfigured: boolean;
+    bobGlobalConfigured: boolean;
     serverExists: boolean;
     isConfigured: boolean;
+}
+
+/**
+ * Check whether a Bob or Cursor mcp.json has the Ansible server configured.
+ * @param configPath - Absolute path to the mcp.json file
+ * @param serverPath - Expected server script path
+ * @returns True when the file exists and contains a matching entry
+ */
+function isMcpJsonConfigured(configPath: string, serverPath: string): boolean {
+    if (!fs.existsSync(configPath)) {
+        return false;
+    }
+    try {
+        const content = JSON.parse(fs.readFileSync(configPath, 'utf8')) as McpConfig;
+        const configured = content.mcpServers[MCP_SERVER_NAME];
+        return configured.args[0] === serverPath;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -458,14 +514,7 @@ export interface McpStatus {
  * @returns Status flags for IDE type, APIs, config files, and server presence
  */
 export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
-    const globalConfigPath = path.join(os.homedir(), '.cursor', 'mcp.json');
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    const workspaceConfigPath = workspaceFolder
-        ? path.join(workspaceFolder.uri.fsPath, '.cursor', 'mcp.json')
-        : null;
+    const serverPath = resolveMcpServerPath(context);
 
     const ide = detectIde();
     const serverExists = fs.existsSync(serverPath);
@@ -475,30 +524,28 @@ export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
         typeof (vscode as unknown as { lm?: { registerTool?: unknown } }).lm?.registerTool ===
         'function';
 
-    let cursorGlobalConfigured = false;
-    if (fs.existsSync(globalConfigPath)) {
-        try {
-            const content = JSON.parse(fs.readFileSync(globalConfigPath, 'utf8')) as McpConfig;
-            const configured = content.mcpServers[MCP_SERVER_NAME];
-            cursorGlobalConfigured = configured.args[0] === serverPath;
-        } catch {
-            /* invalid JSON */
-        }
-    }
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
 
-    let cursorWorkspaceConfigured = false;
-    if (workspaceConfigPath && fs.existsSync(workspaceConfigPath)) {
-        try {
-            const content = JSON.parse(fs.readFileSync(workspaceConfigPath, 'utf8')) as McpConfig;
-            const configured = content.mcpServers[MCP_SERVER_NAME];
-            cursorWorkspaceConfigured = configured.args[0] === serverPath;
-        } catch {
-            /* invalid JSON */
-        }
-    }
+    const cursorGlobalConfigured = isMcpJsonConfigured(
+        path.join(os.homedir(), '.cursor', 'mcp.json'),
+        serverPath,
+    );
+    const cursorWorkspaceConfigured = workspaceFolder
+        ? isMcpJsonConfigured(
+              path.join(workspaceFolder.uri.fsPath, '.cursor', 'mcp.json'),
+              serverPath,
+          )
+        : false;
+
+    const bobGlobalConfigured = isMcpJsonConfigured(
+        path.join(os.homedir(), '.bob', 'settings', 'mcp.json'),
+        serverPath,
+    );
 
     let isConfigured = false;
-    if (ide === 'vscode') {
+    if (ide === 'bob') {
+        isConfigured = bobGlobalConfigured;
+    } else if (ide === 'vscode') {
         isConfigured = vscodeAvailable;
     } else if (ide === 'cursor') {
         isConfigured = cursorApiAvailable || cursorGlobalConfigured || cursorWorkspaceConfigured;
@@ -510,6 +557,7 @@ export function getMcpStatus(context: vscode.ExtensionContext): McpStatus {
         cursorApiAvailable,
         cursorGlobalConfigured,
         cursorWorkspaceConfigured,
+        bobGlobalConfigured,
         serverExists,
         isConfigured,
     };

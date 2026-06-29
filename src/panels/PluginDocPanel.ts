@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { CollectionsService } from '@ansible/services';
 import type { PluginData } from '@ansible/services';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 
 /**
  * Thin webview host for plugin documentation.
@@ -289,15 +290,8 @@ export class PluginDocPanel {
      * @param prompt - Optional prompt text to send to the chat provider.
      */
     private async _openChatWithPrompt(prompt?: string): Promise<void> {
-        try {
-            await vscode.commands.executeCommand('workbench.action.chat.open', prompt ?? '');
-        } catch {
-            if (prompt) {
-                await vscode.env.clipboard.writeText(prompt);
-            }
-            void vscode.window.showInformationMessage(
-                'AI prompt copied to clipboard. Paste it into a chat session.',
-            );
+        if (prompt) {
+            await openChatWithPrompt(prompt);
         }
     }
 

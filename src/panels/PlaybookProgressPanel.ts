@@ -12,6 +12,7 @@ import * as os from 'os';
 import { log } from '@src/extension';
 import type { ProgressEvent } from '@ansible/services';
 import { buildTaskAnalysisPrompt } from '@ansible/services';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 
 export interface PlaybookRunOptions {
     playbookPath: string;
@@ -292,19 +293,7 @@ export class PlaybookProgressPanel {
             path: typeof data.path === 'string' ? data.path : undefined,
         });
 
-        try {
-            await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
-            void vscode.window.showInformationMessage('Prompt sent to chat.');
-        } catch {
-            await vscode.env.clipboard.writeText(prompt);
-            const action = await vscode.window.showInformationMessage(
-                'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                'Open Chat',
-            );
-            if (action === 'Open Chat') {
-                await vscode.commands.executeCommand('workbench.action.chat.open');
-            }
-        }
+        await openChatWithPrompt(prompt);
     }
 
     /**

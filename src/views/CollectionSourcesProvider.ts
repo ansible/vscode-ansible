@@ -9,6 +9,7 @@ import {
     buildGithubOrgSourceSummaryPrompt,
 } from '@ansible/services';
 import type { GalaxyCollection, GitHubCollection, PluginInfo } from '@ansible/services';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 
 let extensionLog: (msg: string) => void = console.log;
 
@@ -18,29 +19,6 @@ let extensionLog: (msg: string) => void = console.log;
  */
 export function setCollectionSourcesLogFunction(logFn: (msg: string) => void): void {
     extensionLog = logFn;
-}
-
-/**
- * Open the chat panel with a pre-filled prompt, falling back to clipboard.
- * @param prompt - AI prompt string to send.
- */
-async function openChatWithPrompt(prompt: string): Promise<void> {
-    try {
-        await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
-        vscode.window.showInformationMessage('Prompt sent to chat.');
-    } catch {
-        await vscode.env.clipboard.writeText(prompt);
-        vscode.window
-            .showInformationMessage(
-                'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                'Open Chat',
-            )
-            .then((selection) => {
-                if (selection === 'Open Chat') {
-                    vscode.commands.executeCommand('workbench.action.chat.open');
-                }
-            });
-    }
 }
 
 // ---------------------------------------------------------------------------

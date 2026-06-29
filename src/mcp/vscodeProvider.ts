@@ -8,7 +8,7 @@
  */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
+import { resolveMcpServerPath } from '@src/mcp/cursorConfig';
 
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unnecessary-condition -- VS Code MCP API is not yet stable/typed */
 
@@ -36,9 +36,7 @@ export function registerMcpServerProvider(context: vscode.ExtensionContext): voi
 
     const didChangeEmitter = new vscode.EventEmitter<void>();
 
-    const serverPath = context.asAbsolutePath(
-        path.join('packages', 'mcp-server', 'out', 'server.js'),
-    );
+    const serverPath = resolveMcpServerPath(context);
 
     context.subscriptions.push(
         (vscode.lm as any).registerMcpServerDefinitionProvider('ansibleEnvironments', {

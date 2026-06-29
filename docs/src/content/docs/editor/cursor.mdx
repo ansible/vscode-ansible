@@ -60,7 +60,7 @@ All extension features work identically in Cursor:
 - Playbook execution (terminal and progress modes)
 - Vault encrypt/decrypt
 
-The one difference is the chat integration: where VS Code routes AI prompts through GitHub Copilot Chat, Cursor routes them through its native chat interface. The `ansibleEnvironments.llm.chatProvider` setting does not apply in Cursor since Cursor manages its own chat UI.
+The one difference is the chat integration: where VS Code routes AI prompts through GitHub Copilot Chat, Cursor routes them through its native chat interface. In IBM Bob, set `ansibleEnvironments.llm.chatProvider` to `bob` to send prompts directly to Bob's chat via `bob-code.sendMessageWithHiddenPrompt`. The `vscode` setting works in both VS Code and Cursor since both implement `workbench.action.chat.open`.
 
 ## Python environment capability tiers
 

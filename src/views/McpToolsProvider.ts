@@ -10,6 +10,7 @@ import { STATIC_TOOLS, type McpToolDefinition, CreatorToolGenerator } from '@ans
 import { CreatorService, buildMcpToolExamplePrompt } from '@ansible/services';
 import { log } from '@src/extension';
 import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
+import { openChatWithPrompt } from '@src/features/chatProvider';
 
 type ToolCategory =
     | 'getting_started'
@@ -120,7 +121,12 @@ class McpWarningNode extends vscode.TreeItem {
      * @param status - Current MCP status for the active IDE
      */
     constructor(status: McpStatus) {
-        const ideName = status.ide === 'cursor' ? 'Cursor' : 'VS Code Copilot';
+        const ideNames: Record<string, string> = {
+            bob: 'IBM Bob',
+            cursor: 'Cursor',
+            vscode: 'VS Code Copilot',
+        };
+        const ideName = ideNames[status.ide] ?? status.ide;
         super(`MCP not configured for ${ideName}`, vscode.TreeItemCollapsibleState.None);
 
         this.description = 'click to configure';
@@ -343,25 +349,6 @@ export class McpToolsProvider implements vscode.TreeDataProvider<ToolTreeItem> {
  * @param toolInfo - Tool metadata containing the example prompt to send
  */
 export async function injectToolPromptIntoChat(toolInfo: ToolInfo): Promise<void> {
-    const prompt = toolInfo.examplePrompt;
-
-    // Try to open chat with the prompt directly (VS Code 1.93+ with Copilot)
-    try {
-        await vscode.commands.executeCommand('workbench.action.chat.open', prompt);
-        vscode.window.showInformationMessage('Prompt sent to chat.');
-        log(`McpToolsProvider: Opened chat with prompt`);
-    } catch {
-        // Fallback: copy to clipboard and notify user
-        await vscode.env.clipboard.writeText(prompt);
-        vscode.window
-            .showInformationMessage(
-                'AI prompt copied to clipboard. Paste it into an agent chat session.',
-                'Open Chat',
-            )
-            .then((selection) => {
-                if (selection === 'Open Chat') {
-                    vscode.commands.executeCommand('workbench.action.chat.open');
-                }
-            });
-    }
+    await openChatWithPrompt(toolInfo.examplePrompt);
+    log(`McpToolsProvider: Opened chat with prompt`);
 }
