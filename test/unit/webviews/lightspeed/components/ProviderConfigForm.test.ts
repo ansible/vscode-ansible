@@ -45,18 +45,18 @@ function mountForm(hasChanges = false) {
 describe("ProviderConfigForm", () => {
   it("renders one .config-field per configSchema entry", () => {
     const wrapper = mountForm();
-    expect(wrapper.findAll(".config-field").length).toBe(2);
+    expect(wrapper.findAll(".config-field")).toHaveLength(2);
   });
 
   it("renders a required indicator only for required fields", () => {
     const wrapper = mountForm();
-    expect(wrapper.findAll(".required-indicator").length).toBe(1);
+    expect(wrapper.findAll(".required-indicator")).toHaveLength(1);
   });
 
   it("renders a field description when present", () => {
     const wrapper = mountForm();
     const descriptions = wrapper.findAll(".field-description");
-    expect(descriptions.length).toBe(1);
+    expect(descriptions).toHaveLength(1);
     expect(descriptions[0].text()).toContain("Your secret API key");
   });
 

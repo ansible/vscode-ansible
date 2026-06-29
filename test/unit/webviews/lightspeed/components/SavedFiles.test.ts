@@ -64,7 +64,7 @@ describe("SavedFiles", () => {
     });
     await flushPromises();
 
-    expect(wrapper.findAllComponents({ name: "SavedFilesEntry" }).length).toBe(
+    expect(wrapper.findAllComponents({ name: "SavedFilesEntry" })).toHaveLength(
       2,
     );
   });

@@ -12,8 +12,8 @@ describe("FinalPreviewAsync", () => {
       "The following role was generated for you",
     );
     expect(
-      wrapper.findAllComponents({ name: "GeneratedFileEntry" }).length,
-    ).toBe(0);
+      wrapper.findAllComponents({ name: "GeneratedFileEntry" }),
+    ).toHaveLength(0);
   });
 
   it("renders one GeneratedFileEntry per file with the file prop", () => {
@@ -31,7 +31,7 @@ describe("FinalPreviewAsync", () => {
       },
     });
     const entries = wrapper.findAllComponents({ name: "GeneratedFileEntry" });
-    expect(entries.length).toBe(2);
+    expect(entries).toHaveLength(2);
     expect(entries[0].props("file")).toEqual(files[0]);
     expect(entries[1].props("file")).toEqual(files[1]);
   });

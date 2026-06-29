@@ -94,14 +94,14 @@ describe("ErrorBox", () => {
 
     expect(wrapper.find("#errorContainer").exists()).toBe(true);
     const entries = wrapper.findAllComponents({ name: "ErrorBoxEntry" });
-    expect(entries.length).toBe(1);
+    expect(entries).toHaveLength(1);
     expect(entries[0].props("message")).toBe("boom");
   });
 
   it("renders one entry per item in a non-empty model", () => {
     const messages = ["a", "b", "c", "d"];
     const wrapper = mount(ErrorBox, { props: { errorMessages: messages } });
-    expect(wrapper.findAllComponents({ name: "ErrorBoxEntry" }).length).toBe(
+    expect(wrapper.findAllComponents({ name: "ErrorBoxEntry" })).toHaveLength(
       messages.length,
     );
   });
