@@ -1,6 +1,14 @@
 import { defineConfig, type UserConfig } from "tsdown";
 import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { builtinModules } from "node:module";
+
+const repoRoot = path.resolve(
+  fileURLToPath(new URL("../..", import.meta.url)),
+);
+// TS 7 native preview does not export ./bin/tsc via package exports.
+const tsgoPath = path.join(repoRoot, "node_modules/typescript-native/bin/tsc");
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf8")) as {
   version: string;
@@ -11,6 +19,7 @@ function generateConfig(env: "production" | "development"): UserConfig {
   return {
     clean: true,
     dts: {
+      tsgo: { path: tsgoPath },
       compilerOptions: {
         composite: false,
         // tsdown may inject baseUrl for path mapping; TS 6 treats that as deprecated
