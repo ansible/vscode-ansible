@@ -209,8 +209,8 @@ describe("RoleGenApp", () => {
 
       expect(wrapper.find("#page-number").text()).toBe("3 of 3");
       expect(
-        wrapper.findAllComponents({ name: "GeneratedFileEntry" }).length,
-      ).toBe(2);
+        wrapper.findAllComponents({ name: "GeneratedFileEntry" }),
+      ).toHaveLength(2);
       expect(
         wrapper.findComponent({ name: "CollectionSelector" }).exists(),
       ).toBe(true);
@@ -410,8 +410,8 @@ describe("RoleGenApp", () => {
       await flushPromises();
 
       expect(
-        wrapper.findAllComponents({ name: "GeneratedFileEntry" }).length,
-      ).toBe(2);
+        wrapper.findAllComponents({ name: "GeneratedFileEntry" }),
+      ).toHaveLength(2);
       expect(
         wrapper.findComponent({ name: "CollectionSelector" }).exists(),
       ).toBe(true);
