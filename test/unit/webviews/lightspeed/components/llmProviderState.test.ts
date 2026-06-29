@@ -263,7 +263,7 @@ describe("useProviderSettings", () => {
     it("handles a failed connectionResult by setting status false and logging", () => {
       const consoleSpy = vi
         .spyOn(console, "error")
-        .mockImplementation(() => {});
+        .mockImplementation(() => undefined);
       const c = mountComposable();
       sendMessage(c, {
         command: "providerSettings",

@@ -423,7 +423,7 @@ describe("RoleGenApp", () => {
     });
 
     it("saves files, sends CLOSE_ACCEPT feedback and shows SavedFiles", async () => {
-      const wrapper = mount(RoleGenApp);
+      const wrapper: ReturnType<typeof mount> = mount(RoleGenApp);
       await goToPage3(wrapper);
 
       // Populate the collection list so the AutoComplete renders, then choose
@@ -456,7 +456,7 @@ describe("RoleGenApp", () => {
     });
 
     it("runs the collectionName watcher when the collection changes", async () => {
-      const wrapper = mount(RoleGenApp);
+      const wrapper: ReturnType<typeof mount> = mount(RoleGenApp);
       await goToPage3(wrapper);
 
       void getHandler("getCollectionList")?.([
