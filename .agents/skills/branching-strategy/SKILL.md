@@ -96,7 +96,7 @@ and use `gh pr edit <number> --base next`.
 
 ## Architecture Reference
 
-The `next` branch is organized as a pnpm monorepo:
+The `next` branch is organized as an npm monorepo:
 
 ```
 packages/

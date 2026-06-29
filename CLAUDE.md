@@ -2,101 +2,113 @@
 
 ## Project Overview
 
-VS Code extension for Ansible — provides language server (LSP), linting, auto-completion, hover docs, and AI-powered Lightspeed features. Published to both VS Code Marketplace and Open VSX as `redhat.ansible`.
+VS Code extension for Ansible — provides language server (LSP), linting, auto-completion, hover docs, collection browsing, and execution environment support. Published to both VS Code Marketplace and Open VSX as `redhat.ansible`.
+
+> **Branch note:** This is the `next` branch (ansible-environments architecture). The `main` branch is a frozen legacy codebase — never merge between them. See the `branching-strategy` skill for details.
 
 ## Repository Structure
 
-Monorepo using npm workspaces (`packages/*`):
+Monorepo using npm workspaces (`packages/*`, `docs`):
 
-- **Root (`src/`)** — VS Code extension (TypeScript + ESBuild)
-- **`packages/ansible-language-server/`** — Ansible Language Server (LSP), published to npm as `@ansible/ansible-language-server`
-- **`packages/ansible-mcp-server/`** — MCP server for AI assistant integration, published as `@ansible/ansible-mcp-server`
-- **`webviews/`** — Vue 3 UI components (Lightspeed, settings panels)
-- **`docs/`** — Project documentation, development guides
+- **Root (`src/`)** — VS Code extension entry point, panels, views, and editor features
+- **`packages/common/`** — `@ansible/common` — browser-safe types, prompts, utils, parsers (zero Node.js deps)
+- **`packages/services/`** — `@ansible/services` — Node.js service implementations (fs, child_process, https)
+- **`packages/language-server/`** — `@ansible/language-server` — LSP server
+- **`packages/mcp-server/`** — `@ansible/mcp-server` — standalone MCP server for AI assistants
+- **`packages/lightspeed/`** — `@ansible/lightspeed` — Lightspeed AI features
+- **`packages/ui/`** — `@ansible/ui` — shared React components for webviews
+- **`docs/`** — Project documentation (Starlight site)
 - **`tools/`** — Build helpers (versioning, release scripts)
+- **`scripts/`** — Build and codegen scripts (esbuild, skill content generation)
 
 ## Prerequisites
 
-- **Node.js** >= 24.13.1
+- **Node.js** >= 18.20.8 (22+ recommended)
 - **npm** (bundled with Node.js; the repo uses npm workspaces)
-- **Python** 3.11–3.14 with `uv` for dependency management
-- **Task** (taskfile.dev) — primary build orchestrator
 
 ## Common Commands
+
+Use `npm run` (no arguments) to list all available scripts.
 
 ### Build & Development
 
 ```bash
-task setup          # Initial setup (install deps, build)
-task build          # Full build (extension + packages)
-task watch          # Watch mode for development
-npm run compile     # Compile TypeScript
-task code           # Install .vsix into VS Code
+npm install             # Install all dependencies (including workspace packages)
+npm run compile         # TypeScript compilation (generates skill content + tsc -b)
+npm run build           # esbuild bundle (extension, language server, MCP server, webview)
+npm run build:production # Production build (minified, no source maps)
+npm run watch           # Watch mode for TypeScript
+npm run watch:bundle    # Watch mode for esbuild
+npm run package:install # Build .vsix, install into VS Code, clean up
 ```
 
 ### Testing
 
 ```bash
-task test           # Run all tests
-task unit           # Unit tests only (vitest)
-task e2e            # E2E tests (VS Code test runner)
-task wdio           # WebDriverIO UI tests
+npm test                # Run all vitest tests (compile + lint first via pretest)
+npm run test:coverage   # Tests with coverage reporting
+npm run check           # compile + lint + test (iterative development)
+npm run ci              # compile + lint + test:coverage + build (pre-commit gate)
 
-# ALS tests specifically
-cd packages/ansible-language-server
-npm run test                    # All ALS tests (vitest --project=als)
-SKIP_PODMAN=1 SKIP_DOCKER=1 npm run test-without-ee  # Skip container tests
+# Specific test projects (vitest)
+npx vitest run --project=ext        # Extension tests
+npx vitest run --project=common     # @ansible/common tests
+npx vitest run --project=services   # @ansible/services tests
+npx vitest run --project=mcp        # MCP server tests
+npx vitest run --project=ls         # Language server tests
+npx vitest run --project=lightspeed # Lightspeed tests
+npx vitest run --project=ui         # UI component tests
 
-# Run a specific test file
-npx vitest run --project=als -- test/services/schemaService.test.ts
+# Integration tests (VS Code test runner)
+npm run test:integration
+
+# UI tests (WebDriverIO)
+npm run pretest:ui                  # Install chromedriver + test extensions (first time)
+npm run test:ui                     # Run WDIO smoke + language server tests
+npm run test:lightspeed:ui          # Run WDIO lightspeed tests
 ```
 
-### Lightspeed Testing
+### Linting
 
 ```bash
-# Unit tests (125 tests)
-npm run test:lightspeed                          # or: npx vitest run --project=lightspeed
-
-# E2E / WDIO tests (6 tests — requires built extension)
-npm run pretest:wdio                             # Pre-install chromedriver + test extensions (first time)
-npm run compile && npm run build                 # Build extension
-npm run build:lightspeed:webviews                # Build Vue webviews
-npm run test:lightspeed:ui                       # Run lightspeed E2E tests
-
-# All WDIO tests (smoke + language server + lightspeed)
-npm run test:ui
-```
-
-### Linting & Formatting
-
-```bash
-task lint           # Run all linters (biome, eslint, prek hooks)
-prek run -a -v      # Run all pre-commit hooks directly
+npm run lint            # ESLint on the full project
 ```
 
 ### Packaging & Release
 
 ```bash
-task package        # Create .vsix and npm tarballs
-task release        # Prepare release (tag-based versioning via tools/version.mts)
+npm run package         # Create .vsix (no dependencies bundled — esbuild handles it)
+```
+
+### Documentation
+
+```bash
+npm run docs:dev        # Start docs dev server
+npm run docs:build      # Build docs site
+npm run docs:preview    # Preview built docs
 ```
 
 ## Testing Framework
 
-- **Vitest** for unit/integration tests — configured with projects: `ext`, `als`, `mcp`, `vue`
-- **WebDriverIO** for UI/browser tests (`test/wdio/`)
-- **VS Code Test CLI** for extension integration tests
-- Test helpers in `packages/ansible-language-server/test/helper.ts` (mock connections, fixtures)
-- Path aliases in tests: `@src/*` → `src/*`, `@test/*` → `test/*`
+- **Vitest** for unit/integration tests — configured with projects: `ext`, `common`, `services`, `mcp`, `ls`, `lightspeed`, `ui`
+- **WebDriverIO** for UI/browser tests (`test/ui/`)
+- **VS Code Test CLI** for extension integration tests (`test/integration/`)
+- Path aliases in tests: `@src/*` → `src/*`
 
 ## Code Quality
 
-- **Biome** — TypeScript/JavaScript formatting and linting (`biome.json`)
-- **ESLint** — additional lint rules (`eslint.config.mjs`)
-- **prek** — pre-commit hooks (replaces pre-commit; config in `.pre-commit-config.yaml`)
-- **commitlint** — conventional commit messages enforced (e.g., `fix(als):`, `feat:`, `test:`)
-- **cspell/codespell** — spell checking; custom dictionary at `.config/dictionary.txt`
-- **PR labels** — required: one of `breaking`, `chore`, `feat`, `fix` (enforced by `ack` CI job)
+- **ESLint** — TypeScript/JavaScript linting (`eslint.config.mjs`)
+- **Conventional commits** — `fix(core):`, `feat(ls):`, `test(ui):`, `chore(deps):` (scopes: `core`, `ls`, `mcp`, `extension`, `views`, `panels`, `ci`, `docs`)
+- **PR labels** — required: one of `breaking`, `chore`, `feat`, `fix`
+
+## Quality Gates
+
+Before committing:
+
+1. `npm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, vitest with coverage thresholds, and esbuild bundling.
+2. After any code change, run `npm run compile && npm run build` — the extension loads from `dist/` (esbuild bundles) and stale bundles mask bugs.
+
+For iterative development, `npm run check` (compile + lint + test without coverage or build) is acceptable.
 
 ## Versioning
 
@@ -106,17 +118,16 @@ Dynamic versioning from git tags via `tools/version.mts`:
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/ci.yaml`):
-- **lint** → **preflight** → **build** → **test** (linux, macos, wsl, wdio) → **check**
-- **publish** — VS Code Marketplace + Open VSX (on release event)
-- **publish-npm** — npm packages (on release event)
-- Release triggered by creating a GitHub Release from a git tag
+GitHub Actions (`.github/workflows/ci.yml`):
+- **lint** → **build-and-test** (Node 20, 22) → **integration** → **ui** → **package**
+- **Windows + WSL2** tests (`.github/workflows/wsl2-ui.yml`)
+- **docs** deployment (`.github/workflows/docs-deploy.yml`)
+- **release** — VS Code Marketplace + Open VSX (`.github/workflows/release-vsix.yml`)
 
 ## Key Conventions
 
-- Use `npm` (the repo uses npm workspaces with package-lock.json)
-- Conventional commits: `fix(als):`, `feat:`, `test(ui):`, `chore(deps):`
+- Use `npm` (the repo uses npm workspaces with `package-lock.json`)
+- Conventional commits with scopes
 - TypeScript strict mode; ES2022 target
-- Import aliases: `@src`, `@webviews`, `@root` (ESBuild paths)
-- ALS builds to both ESM (`dist/cli.js`) and CJS (`dist/cli.cjs`) — the `bin` field uses CJS
-- The `NODE_ENV=production npm run compile` command in ALS produces the production bundle
+- Import aliases: `@src`, `@ansible/common`, `@ansible/services`, etc. (esbuild aliases in `scripts/build.mjs`)
+- All packages bundled by esbuild into `dist/` for distribution

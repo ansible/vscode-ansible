@@ -12,7 +12,9 @@ packages/
   services/         # @ansible/services — Node.js service implementations
   language-server/  # @ansible/language-server — LSP server
   mcp-server/       # @ansible/mcp-server — standalone MCP server
+  lightspeed/       # @ansible/lightspeed — Lightspeed AI features
   ui/               # @ansible/ui — shared React webview components
+docs/               # Project documentation (Starlight site)
 src/                # Extension host (views, panels, commands)
 ```
 
@@ -155,6 +157,7 @@ node packages/mcp-server/out/server.js
 ## Requirements
 
 - VS Code 1.93.0 or later
+- Node.js >= 20 (for development)
 - [Microsoft Python Environments](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-python-envs) extension
 - Python 3.9 or later
 - For Execution Environments: `ansible-navigator` and a container runtime (Podman/Docker)
