@@ -1,7 +1,4 @@
 [env]
-# hack installing mkdocs-ansible correctly on macOS
-# https://github.com/squidfunk/mkdocs-material/issues/5121
-DYLD_FALLBACK_LIBRARY_PATH = "{% if os() == 'macos' %}/opt/homebrew/lib{% endif %}"
 # 'vsa' is acronym for 'visual studio ansible'
 # we use HOME location below to avoid polluting the project directory with,
 # temporary data and to allow us to mount the codebase on multiple machines
@@ -28,8 +25,8 @@ http_retries = 5
 
 [tools]
 github-cli = "latest"
-node = "24.16"
+node = "24.18"
 python = { version = "3.13", os = ["linux", "macos"] }
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
-pnpm = "11.5.3"
+pnpm = "11.9.0"

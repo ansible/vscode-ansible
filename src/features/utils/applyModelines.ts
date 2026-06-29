@@ -141,7 +141,7 @@ function _parseGenericValue(value: string): string | number | boolean {
   value = value.trim();
   if (/^(true|false)$/i.test(value)) {
     return value.toLowerCase() === "true";
-  } else if (/^[0-9]+$/.test(value)) {
+  } else if (/^\d+$/.test(value)) {
     return parseInt(value, 10);
   }
   return value.replace(/['"]/g, "");

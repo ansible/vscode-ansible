@@ -143,4 +143,114 @@ describe("creator", () => {
       expect(result.content[0].text).toContain("outside the workspace");
     });
   });
+
+  describe("Input validation for extracted helpers", () => {
+    let validationTestDir: string;
+
+    beforeAll(() => {
+      validationTestDir = mkdtempSync(join(tmpdir(), "vitest-validation-"));
+    });
+
+    afterAll(() => {
+      rmSync(validationTestDir, { recursive: true, force: true });
+    });
+
+    it("should prompt when projectType is not provided", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        namespace: "foo",
+        collectionName: "bar",
+        projectDirectory: "test_dir",
+      });
+      expect(result.content[0].text).toContain(
+        "Please specify the project type",
+      );
+    });
+
+    it("should reject invalid projectType", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "invalid" as "collection",
+        namespace: "foo",
+        collectionName: "bar",
+        projectDirectory: "test_dir",
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Invalid project type");
+    });
+
+    it("should reject invalid namespace format", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "My-Org!",
+        collectionName: "bar",
+        projectDirectory: "test_dir",
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Invalid namespace");
+    });
+
+    it("should prompt when namespace is empty string", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "playbook",
+        namespace: "",
+        collectionName: "bar",
+        projectDirectory: "test_dir",
+      });
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain("namespace");
+    });
+
+    it("should prompt when collectionName is empty string", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "playbook",
+        namespace: "foo",
+        collectionName: "",
+        projectDirectory: "test_dir",
+      });
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain("collectionName");
+    });
+
+    it("should reject invalid collectionName format", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "BAR-invalid!",
+        projectDirectory: "test_dir",
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Invalid collection name");
+    });
+
+    it("should prompt when neither projectDirectory nor path is provided", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "bar",
+      });
+      expect(result.content[0].text).toContain(
+        "Please provide a project directory name",
+      );
+    });
+
+    it("should accept valid path parameter within workspace", async () => {
+      const handler = createProjectsHandler(validationTestDir);
+      const validPath = join(validationTestDir, "subdir");
+      const result = await handler({
+        projectType: "collection",
+        namespace: "foo",
+        collectionName: "bar",
+        path: validPath,
+      });
+      if (result.isError) {
+        expect(result.content[0].text).toContain("ansible-creator");
+      }
+    });
+  });
 });

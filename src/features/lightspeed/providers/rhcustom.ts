@@ -147,7 +147,10 @@ export class RHCustomProvider extends BaseLLMProvider<RHCustomConfig> {
 
       if (endMatch) {
         // Extract only the content between the code blocks
-        const yamlContent = remainingContent.substring(0, endMatch.index);
+        const yamlContent = remainingContent.substring(
+          0,
+          endMatch.index ?? remainingContent.length,
+        );
         console.log(
           "[RHCustom Provider] Extracted YAML from code block, length:",
           yamlContent.length,

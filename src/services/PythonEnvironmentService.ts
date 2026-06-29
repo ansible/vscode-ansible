@@ -302,21 +302,45 @@ export class PythonEnvironmentService implements vscode.Disposable {
     return this._pythonEnvApi !== undefined;
   }
 
+  private resolveScope(
+    scope?: GetEnvironmentScope,
+  ): GetEnvironmentScope | undefined {
+    if (scope && !vscode.workspace.getWorkspaceFolder(scope)) {
+      return vscode.workspace.workspaceFolders?.[0]?.uri;
+    }
+    if (!scope) {
+      return vscode.workspace.workspaceFolders?.[0]?.uri;
+    }
+    return scope;
+  }
+
+  private async getEnvironmentFromPythonExt(
+    resolvedScope: GetEnvironmentScope | undefined,
+  ): Promise<PythonEnvironment | undefined> {
+    if (!this._pythonExtApi) return undefined;
+    try {
+      const envPath =
+        this._pythonExtApi.environments.getActiveEnvironmentPath(resolvedScope);
+      const resolved =
+        await this._pythonExtApi.environments.resolveEnvironment(envPath);
+      if (resolved) {
+        return this._adaptResolvedEnvironment(resolved);
+      }
+    } catch (error) {
+      console.error(
+        `[Ansible] Error getting environment (python ext): ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    return undefined;
+  }
+
   public async getEnvironment(
     scope?: GetEnvironmentScope,
   ): Promise<PythonEnvironment | undefined> {
     await this.initialize();
 
-    // For files outside workspace, use first workspace folder instead
-    let resolvedScope = scope;
-    if (scope && !vscode.workspace.getWorkspaceFolder(scope)) {
-      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
-    } else if (!scope) {
-      // No scope provided - default to first workspace folder
-      resolvedScope = vscode.workspace.workspaceFolders?.[0]?.uri;
-    }
+    const resolvedScope = this.resolveScope(scope);
 
-    // Primary: Environments extension
     if (this._pythonEnvApi) {
       try {
         const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
@@ -328,27 +352,27 @@ export class PythonEnvironmentService implements vscode.Disposable {
       }
     }
 
-    // Fallback: Python extension
-    if (this._pythonExtApi) {
-      try {
-        const envPath =
-          this._pythonExtApi.environments.getActiveEnvironmentPath(
-            resolvedScope,
-          );
-        const resolved =
-          await this._pythonExtApi.environments.resolveEnvironment(envPath);
-        if (resolved) {
-          const adapted = this._adaptResolvedEnvironment(resolved);
-          return adapted;
-        }
-      } catch (error) {
-        console.error(
-          `[Ansible] Error getting environment (python ext): ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
+    return this.getEnvironmentFromPythonExt(resolvedScope);
+  }
 
-    return undefined;
+  private async getEnvironmentsFromPythonExt(): Promise<PythonEnvironment[]> {
+    if (!this._pythonExtApi) return [];
+    try {
+      const results: PythonEnvironment[] = [];
+      for (const env of this._pythonExtApi.environments.known) {
+        const resolved =
+          await this._pythonExtApi.environments.resolveEnvironment(env);
+        if (resolved) {
+          results.push(this._adaptResolvedEnvironment(resolved));
+        }
+      }
+      return results;
+    } catch (error) {
+      console.error(
+        `[Ansible] Error getting environments (python ext): ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    return [];
   }
 
   public async getEnvironments(
@@ -356,7 +380,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
   ): Promise<PythonEnvironment[]> {
     await this.initialize();
 
-    // Primary: Environments extension
     if (this._pythonEnvApi) {
       try {
         return await this._pythonEnvApi.getEnvironments(scope);
@@ -367,28 +390,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       }
     }
 
-    // Fallback: Python extension — resolve each known environment sequentially.
-    // May be slow for users with many Python installations; consider caching
-    // or lazy resolution if this becomes a bottleneck.
-    if (this._pythonExtApi) {
-      try {
-        const results: PythonEnvironment[] = [];
-        for (const env of this._pythonExtApi.environments.known) {
-          const resolved =
-            await this._pythonExtApi.environments.resolveEnvironment(env);
-          if (resolved) {
-            results.push(this._adaptResolvedEnvironment(resolved));
-          }
-        }
-        return results;
-      } catch (error) {
-        console.error(
-          `[Ansible] Error getting environments (python ext): ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
-
-    return [];
+    return this.getEnvironmentsFromPythonExt();
   }
 
   public async getExecutablePath(

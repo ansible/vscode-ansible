@@ -203,10 +203,7 @@ export abstract class BaseLLMProvider<
           "$1[REDACTED]",
         )
         .replaceAll(/(apiKey["']?\s*[:=]\s*["']?)[^"'\s,}]+/gi, "$1[REDACTED]")
-        .replaceAll(
-          /key["']?\s*[:=]\s*["'][A-Za-z0-9_-]{20,}["']/gi,
-          "key: [REDACTED]",
-        )
+        .replaceAll(/key["']?\s*[:=]\s*["'][\w-]{20,}["']/gi, "key: [REDACTED]")
         .replaceAll(
           /(x-goog-api-key["']?\s*[:=]\s*["']?)[^"'\s,}&]+/gi,
           "$1[REDACTED]",

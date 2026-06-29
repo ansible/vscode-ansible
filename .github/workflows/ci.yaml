@@ -33,7 +33,7 @@ concurrency:
 env:
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:GITHUB_OUTPUT/p:GITHUB_STATE/p:GITHUB_STEP_SUMMARY/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
   # help pytest output be colored on GHA
@@ -43,190 +43,25 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  lint:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0 # we need tags for dynamic versioning
-          show-progress: false
-
-      # needed by our prek system hooks like toml
-      - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v8.2.0
-
-      # needed by our prek systems hooks like biome
-      - name: Install node (cache)
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: "24"
-
-      - name: Install pnpm # needs node 24
-        uses: pnpm/action-setup@v6
-        with:
-          cache: true
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile]
-
-      - name: Debug
-        run: |
-          which -a pnpm
-          pnpm --version
-
-      - name: Run prek
-        uses: j178/prek-action@v2
-        # ideally prek should run in under 30s, but we keep a hard limit of 3
-        # minutes to count for slower hooks and uncached data. If a hook is
-        # slower, even occasionally it should be moved outside and included in
-        # another build step, like 'build' or 'package'.
-        timeout-minutes: 3
-        with:
-          # show-verbose-logs: true
-          # we want to run in verbose to report speed of each hook
-          extra-args: "--all-files -v"
-          install-only: false
-          prek-version: ">=0.3.8"
-
-  preflight:
-    runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/ansible/ext-builder:latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MISE_TRUSTED_CONFIG_PATHS: /
+  package:
+    runs-on: ubuntu-26.04
     continue-on-error: false
     outputs:
-      commit_context: ${{ steps.extract_context.outputs.context }}
+      commit_context: ${{ steps.build.outputs.context }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
-      - name: Workaround for https://github.com/actions/runner/issues/2033
-        run: |
-          chown -R $(id -u):$(id -g) $PWD
-
-      - name: task setup
-        if: runner.os != 'Windows'
-        timeout-minutes: 7 # expected under 10s for container builds
-        run: |
-          set -ex
-          pwd
-          git config --global --add safe.directory '*'
-          mise install
-          mise list
-          mise cfg
-          mise exec -v -- which python3
-          mise exec -- printenv NODE_OPTIONS || true
-          task setup && task setup --status
-
-      - name: Extract commit context from conventional commit and list of known tasks
-        id: extract_context
-        shell: bash
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          set -e
-          # Use PR title if available, otherwise use commit message
-          if [[ -n "$PR_TITLE" ]]; then
-            MESSAGE="$PR_TITLE"
-            echo "Using PR title: $MESSAGE"
-          else
-            MESSAGE=$(git log -1 --pretty=%s)
-            echo "Using commit message: $MESSAGE"
-          fi
-
-          # Extract context/scope from conventional commit format: type(scope): message
-          # Matches patterns like: feat(mcp):, fix(ui):, chore(build):, etc.
-          if [[ "$MESSAGE" =~ ^[a-z]+\(([a-z0-9/-]+)\): ]]; then
-            CONTEXT="${BASH_REMATCH[1]}"
-            echo "Extracted context: $CONTEXT"
-            echo "context=$CONTEXT" >> "$GITHUB_OUTPUT"
-          else
-            echo "No context found in message"
-            echo "context=" >> "$GITHUB_OUTPUT"
-          fi
-          echo "tasks=$(task -l --json | jq -c '[.tasks[] | [.name] + (.aliases // []) | .[]]')" >> "$GITHUB_OUTPUT"
-
-      - name: task build
-        timeout-minutes: 2 # expected under 1 minutes
-        run: |
-          task build && task build --status
-
-      - name: task als:package
-        timeout-minutes: 4
-        run: |
-          task als:package && task als:package --status
-
-      - name: Run context-specific command if it is a known task
-        if: >-
-          steps.extract_context.outputs.context != '' &&
-          !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
-        run: task ${{ steps.extract_context.outputs.context }}
-
-      - name: task docs
-        timeout-minutes: 2
-        run: |
-          task docs && task docs --status
-
-      - name: task dry (check that test frameworks are not misconfigured, but do not run tests)
-        run: task dry
-
-      # this is kept here just to ensure 'task lint' command does not drift but
-      # our main linting is run directly by 'prek' job, without involving task.
-      - name: task lint
-        # keep linting before any other task, to allow it be faster and independent
-        timeout-minutes: 3
-        run: |
-          task lint
-
-      - name: task package
-        timeout-minutes: 4
-        run: |
-          task als:package && task als:package --status
-          task package && task package --status
-
-      - name: task finish
-        run: task finish
-
-      - name: Upload vsix artifact
-        uses: actions/upload-artifact@v7
-        with:
-          path: out/ansible-*.vsix
-          archive: false
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-ansible-language-server npm package
-        uses: actions/upload-artifact@v7
-        with:
-          path: out/ansible-ansible-language-server-*.tgz
-          archive: false
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload ansible-ansible-mcp-server npm package
-        uses: actions/upload-artifact@v7
-        with:
-          path: out/ansible-ansible-mcp-server-*.tgz
-          archive: false
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Report unexpected failures
-        if: ${{ always() && failure() && github.ref == 'refs/heads/main' }}
-        uses: ./.github/actions/report
+      - name: Run task steps (composite action)
+        id: build
+        uses: ./.github/actions/task
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   build:
     name: ${{ matrix.name }}
-    # Keep 'preflight' as a dependency because 'build' is resource-intensive;
-    # running it only after preflight succeeds prevents wasting matrix capacity.
-    needs:
-      - lint
 
     environment:
       name: ci
@@ -241,7 +76,7 @@ jobs:
       run:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-26.04' }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     permissions:
@@ -249,7 +84,7 @@ jobs:
       id-token: write # codecov actions
       checks: read # codecov actions
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         # Avoid letting github do the matrix multiplication and use manual
         # includes for each job, this gives us fine control over job name.
@@ -257,7 +92,7 @@ jobs:
         continue-on-error:
           - false
         os:
-          - ubuntu-24.04
+          - ubuntu-26.04
         task-name:
           - test
         name:
@@ -281,71 +116,81 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          - name: test (linux-wdio)
-            id: test-linux-wdio
-            task-name: wdio
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-
           - name: test (wsl)
             id: test-wsl
             task-name: test
-            os: wsl-runner
-            runs-on: self-hosted
+            os: windows-latest
+            shell: "wsl-bash {0}"
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      # Self-hosted runners retain root-owned files from rootless Podman
-      # (overlay storage under out/als/tmp/).  These files live inside a
-      # user-namespace so normal rm fails with EACCES and sudo is
-      # unavailable.  `podman unshare` re-enters the same namespace,
-      # letting us delete them before checkout touches the workspace.
-      - name: Remove Podman overlay files on self-hosted runner
-        if: matrix.runs-on == 'self-hosted'
-        run: |
-          target="${GITHUB_WORKSPACE}/out/als/tmp/home/.local/share/containers"
-          if [ -d "$target" ]; then
-            podman unshare rm -rf -- "$target" \
-              || buildah unshare rm -rf -- "$target" \
-              || echo "::warning::Could not remove $target — checkout may fail"
-          fi
-
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           fetch-tags: true # needed for dynamic versioning
           show-progress: false
-          clean: ${{ (matrix.runs-on || '') != 'self-hosted' }}
 
-      - name: Clean workspace on self-hosted runner
-        if: matrix.runs-on == 'self-hosted'
-        run: |
-          set -euxo pipefail
-          # Rootless Podman overlays under .cache/containers/ use user
-          # namespace remapping; remove them with podman or sudo.
-          if [ -d .cache/containers ]; then
-            podman unshare rm -rf -- .cache/containers 2>/dev/null \
-              || sudo rm -rf -- .cache/containers \
-              || true
-          fi
-          sudo find . -not -user "$(id -u)" -delete 2>/dev/null || true
-          git reset --hard HEAD
-          git clean -ffdx -e out/als/tmp/
+      # # We want to lint as early as possible, even before running setup action
+      # # and stop if it fails to save compute resources.
+      # - name: Install uv (cache)
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: astral-sh/setup-uv@v8.2.0
+
+      # # needed by our prek systems hooks like biome
+      # - name: Install node (cache)
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      #   with:
+      #     node-version: "24"
+
+      # - name: Install pnpm # needs node 24
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: pnpm/action-setup@v6
+      #   with:
+      #     cache: true
+      #     run_install: |
+      #       - recursive: true
+      #         args: [--frozen-lockfile]
+
+      # - name: Debug
+      #   if: ${{ runner.os == 'Linux' }}
+      #   shell: bash
+      #   run: |
+      #     which -a pnpm
+      #     pnpm --version
+
+      # - name: Enable caching for prek
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+      #   with:
+      #     path: ~/.cache/prek/
+      #     key: prek-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      # - name: Run prek
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: j178/prek-action@v2
+      #   # ideally prek should run in under 30s, but we keep a hard limit of 3
+      #   # minutes to count for slower hooks and uncached data. If a hook is
+      #   # slower, even occasionally it should be moved outside and included in
+      #   # another build step, like 'build' or 'package'.
+      #   # timeout-minutes: 3
+      #   with:
+      #     # show-verbose-logs: true
+      #     # we want to run in verbose to report speed of each hook
+      #     extra-args: "--all-files -v"
+      #     install-only: false
+      #     prek-version: ">=0.3.8"
 
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
-        with:
-          job_name: ${{ matrix.name }}
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
-        if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
+        if: contains(matrix.name, 'wsl')
         uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
         with:
-          distribution: Ubuntu-24.04
+          distribution: Ubuntu-24.04 # Ubuntu-26.04 not supported yet
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
@@ -372,6 +217,16 @@ jobs:
             gpg
             gpg-agent
             jq
+            libasound2t64
+            libatk-bridge2.0-0t64
+            libatk1.0-0t64
+            libgbm1
+            libgtk-3-0t64
+            libnspr4
+            libnss3
+            libsecret-1-0
+            libxkbcommon0
+            libxshmfence1
             make
             python3-dev
             python3-full
@@ -380,10 +235,77 @@ jobs:
             tar
             unzip
             xvfb
+            zstd
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
+
+      - name: Cache WSL bootstrap
+        if: contains(matrix.name, 'wsl')
+        uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+        id: wsl-cache
+        with:
+          path: .cache/wsl-bootstrap
+          key: wsl-bootstrap-v2-${{ matrix.os }}-${{ github.ref }}-${{ hashFiles('.config/mise.toml', 'pnpm-lock.yaml') }}
+
+      - name: Bootstrap tools inside WSL
+        if: contains(matrix.name, 'wsl')
+        run: |
+          set -euxo pipefail
+
+          # Cache lives on the Windows filesystem (actions/cache can
+          # reach it); we tar WSL-side tools from/to there.
+          CACHE_TAR="$GITHUB_WORKSPACE/.cache/wsl-bootstrap/wsl-tools.tar.zst"
+
+          if [ -f "$CACHE_TAR" ]; then
+            echo "::group::Restoring cached WSL tools"
+            tar xf "$CACHE_TAR" -C /
+            echo "::endgroup::"
+          else
+            echo "::group::Installing mise and tools from scratch"
+            MISE_VERSION=v2026.5.15 curl -fsSL https://mise.run | sh
+            export PATH="$HOME/.local/bin:$PATH"
+            mise settings set experimental true
+            mise trust
+            mise install
+            mise reshim
+            echo "::endgroup::"
+          fi
+
+          # GITHUB_PATH doesn't work for WSL paths (runner is on the
+          # Windows side), so persist PATH via .bashrc which is loaded
+          # by every step (wsl-shell-command uses bash -i).
+          SHIMS="$HOME/.local/share/mise/shims"
+          export PATH="$HOME/.local/bin:$SHIMS:$PATH"
+          echo "export PATH=\"$HOME/.local/bin:$SHIMS:\$PATH\"" >> ~/.bashrc
+          mise reshim
+
+      - name: Save WSL bootstrap cache
+        if: contains(matrix.name, 'wsl') && steps.wsl-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
+          CACHE_TAR="$GITHUB_WORKSPACE/.cache/wsl-bootstrap/wsl-tools.tar.zst"
+          mkdir -p "$(dirname "$CACHE_TAR")"
+          tar cf "$CACHE_TAR" --zstd \
+            "$HOME/.local/bin/mise" \
+            "$HOME/.local/share/mise" \
+            2>/dev/null || true
+
+      - name: Copy source to native WSL filesystem
+        if: contains(matrix.name, 'wsl')
+        run: |
+          set -euxo pipefail
+          WSL_SRC="$HOME/workspace"
+          mkdir -p "$WSL_SRC"
+          tar cf - --exclude=.git --exclude=node_modules \
+            -C "$GITHUB_WORKSPACE" . | tar xf - -C "$WSL_SRC"
+          echo "gitdir: $GITHUB_WORKSPACE/.git" > "$WSL_SRC/.git"
+          echo "cd $WSL_SRC" >> ~/.bashrc
+
+          cd "$WSL_SRC"
+          pnpm install --frozen-lockfile
 
       # Workaround for: https://github.com/actions/runner/issues/1864
       - name: Ensure HOME is defined
+        if: runner.os != 'Windows'
         run: |
           set -euxo pipefail
           if [ -z "${HOME:-}" ]; then
@@ -409,16 +331,33 @@ jobs:
             exit 98
           }
 
+      - parallel:
+          - name: task lint
+            if: runner.os == 'Linux'
+            id: lint
+            run: task lint && task lint --status
+
+          - name: task build / package
+            # Warning: ensure that conditional templates have a negative condition
+            # expanding to an empty string because otherwise it will fail the command
+            # with exit code 1 even if the command effectively succeeded!
+            run: |
+              task build -v -x
+              task build -v --status
+              ${{ runner.os != 'Windows' && 'task package -v' || '' }}
+              ${{ runner.os != 'Windows' && 'task package -v --status' || ''}}
+
+          - name: task docs
+            id: docs
+            shell: bash
+            # timeout-minutes: 2
+            run: task docs && task docs --status
+
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
         run: task setup && task setup --status
         id: setup
-
-      - name: task build
-        id: build
-        run: |
-          task build && task build --status
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -434,45 +373,36 @@ jobs:
           EOT
           podman info
 
-      - name: task package
-        if: ${{ matrix.task-name != 'wdio' && runner.os != 'Windows' }}
-        id: package
-        run: |
-          task package -v ${{ matrix.env.TASKFILE_ARGS }} && task package -v ${{ matrix.env.TASKFILE_ARGS }} --status
+      - parallel:
+          - name: task unit (ext, vue, als, mcp)
+            id: unit
+            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            run: |
+              task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: save ready_to_test=true
-        id: ready_to_test
-        if: ${{ contains(matrix.name, 'test') && success() }}
-        run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
+          - name: task e2e (vscode-test)
+            id: e2e
+            # https://github.com/ansible/vscode-ansible/issues/1451
+            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            run: |
+              set -e
+              task build 2>out/log/build-before.txt
+              task e2e ${{ matrix.env.TASKFILE_ARGS }}
+              task build 2>out/log/build-after.txt
+              task build --status --verbose
+            # Add these once e2e is fixed:
+            #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
+            #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') && !contains(matrix.name, 'wdio') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
+          - name: task wdio (VS Code UI)
+            id: wdio
+            if: ${{ runner.os != 'Windows' }}
+            run: task wdio && task wdio --status && task build --status
+            timeout-minutes: 30
 
-      - name: task unit (ext, vue, als, mcp)
-        if: contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: |
-          task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task e2e (vscode-test)
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: |
-          set -e
-          task build 2>out/log/build-before.txt
-          task e2e ${{ matrix.env.TASKFILE_ARGS }}
-          task build 2>out/log/build-after.txt
-          task build --status --verbose
-        # Add these once e2e is fixed:
-        #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
-        #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task wdio (VS Code UI)
-        if: ${{ matrix.task-name == 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: |
-          task wdio
-          task build --status
-        timeout-minutes: 30
+      - name: task coverage
+        if: ${{ runner.os != 'Windows' }}
+        run: task coverage
 
       - name: task finish
         run: task finish
@@ -503,12 +433,20 @@ jobs:
           # Reduce artifact size by removing cached test data
           rm -rf out/e2e/tmp/home/.cache || true
 
-      - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
-        # git-leaks not support on Windows
-        if: ${{ !cancelled() && runner.os != 'Windows'}}
+      - name: Copy WSL test artifacts to Windows filesystem
+        if: ${{ always() && contains(matrix.name, 'wsl') }}
+        run: |
+          set -euxo pipefail
+          if [ -d out ]; then
+            tar cf - --dereference out | tar xf - -C "$GITHUB_WORKSPACE"
+          fi
+
+      - name: Upload test logs and reports as logs-${{ matrix.name }}-${{ matrix.task-name }}.zip
+        # git-leaks not support on Windows (except WSL which runs Linux)
+        if: ${{ !cancelled() && (runner.os != 'Windows' || contains(matrix.name, 'wsl')) }}
         uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
+          name: logs-${{ matrix.id }}-${{ matrix.os }}-${{ github.run_attempt }}.zip
           path: |
             out/als
             out/coverage
@@ -522,11 +460,11 @@ jobs:
           retention-days: 90
 
       - name: Upload test coverage data to codecov.io
-        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
+        if: ${{ always() && hashFiles('out/coverage/cobertura-coverage.xml') != '' && github.event_name != 'schedule' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           name: ${{ matrix.name }}
-          files: ./out/coverage/**/*coverage.xml
+          files: ./out/coverage/cobertura-coverage.xml
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
@@ -557,42 +495,15 @@ jobs:
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
-  builder-image:
-    runs-on: ubuntu-24.04
-    needs: [preflight, lint]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push container image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
-
   mcp-server-image:
-    runs-on: ubuntu-24.04
-    needs: [preflight, lint]
+    runs-on: ubuntu-26.04
+    needs: [package]
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: false
 
@@ -654,12 +565,10 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     needs:
-      - lint
-      - preflight
+      - package
       - build
-      - builder-image
       - mcp-server-image
-    if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
+    if: always() && !cancelled() && needs.build.result == 'success'
 
     permissions:
       checks: read # codecov
@@ -667,17 +576,13 @@ jobs:
       id-token: write # codecov
       pull-requests: read # slack report
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
-
-      # needed for pycobertura
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -691,21 +596,6 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
-
-      - name: pycobertura diff across different platform runs
-        run: |
-          git diff
-          git status --porcelain --ignored
-          LINUX_COVERAGE=$(ls -1 logs-*linux*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          MACOS_COVERAGE=$(ls -1 logs-*macos*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          WSL_COVERAGE=$(ls -1 logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          cp -f "${LINUX_COVERAGE}" linux.xml
-          cp -f "${MACOS_COVERAGE}" macos.xml
-          cp -f "${WSL_COVERAGE}" wsl.xml
-          # linux vs macos (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml macos.xml || true
-          # linux vs wsl  (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml wsl.xml || true
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
@@ -727,7 +617,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: builder-image, mcp-server-image
+          allowed-skips: mcp-server-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
@@ -754,7 +644,7 @@ jobs:
       checks: read
     steps:
       - name: Checkout Source
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 
@@ -773,13 +663,13 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install -y --frozen-lockfile
+          pnpm install -y --frozen-lockfile --reporter append-only
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces
@@ -809,7 +699,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Source
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Download the artifact
         uses: actions/download-artifact@v8
@@ -821,7 +711,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"

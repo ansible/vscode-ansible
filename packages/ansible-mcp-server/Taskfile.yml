@@ -6,8 +6,6 @@ env:
   DOCKER_CLI_HINTS: "false"
 vars:
   PROJECT: ansible-mcp-server
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 includes:
   base:
     taskfile: ../../Taskfile.base.yml
@@ -38,7 +36,7 @@ tasks:
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
       - ../../tsconfig*.json
       - exclude: "**/*-artifact-*.json"
   test:
@@ -76,7 +74,7 @@ tasks:
       - README.md
       - package*.json
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
     generates:
       - dist/**/*
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'

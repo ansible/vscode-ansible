@@ -15,8 +15,8 @@ allowBuilds:
 overrides:
   rollup: "npm:@rollup/wasm-node@*"
 patchedDependencies:
-  "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
-  wdio-vscode-service@6.1.4: patches/wdio-vscode-service@6.1.4.patch
+  # See: https://github.com/microsoft/vscode-test-cli/issues/106
+  "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
 packageExtensions:
   "cypress-multi-reporters@*":
     "dependencies":

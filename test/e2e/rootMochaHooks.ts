@@ -1,11 +1,8 @@
-import * as cp from "child_process";
 import { createLogger, format, transports } from "winston";
 import path from "path";
 import fs from "fs";
 
 type ConsoleMethod = "log" | "info" | "warn" | "error";
-
-const PRETEST_ERR_RC = 2;
 
 process.env = {
   ...process.env,
@@ -16,31 +13,6 @@ process.env = {
 const testHome = path.resolve("out/e2e/tmp/home");
 fs.mkdirSync(testHome, { recursive: true });
 process.env.HOME = testHome;
-
-// display ansible-lint version and exit testing if ansible-lint is absent
-const command = "ansible-lint --version --offline";
-try {
-  // ALWAYS use 'shell: true' when we execute external commands inside the
-  // extension because some of the tools may be installed in a way that does
-  // not make them available without a shell, common examples tools that may
-  // do this are: mise, asdf, pyenv.
-  const result = cp.spawnSync(command, { shell: true });
-  if (result.status === 0) {
-    console.info(`Detected: ${result.stdout.toString()}`);
-  } else {
-    throw new Error(
-      `rc=${result.status} stderr=${result.stderr.toString()} stdout=${result.stdout.toString()}`,
-    );
-  }
-} catch (err) {
-  const env = Object.entries(process.env)
-    .map(([k, v]) => `${k}=${v}`)
-    .join("\n");
-  console.error(
-    `error: test requisites not met, '${command}' returned ${err instanceof Error ? err.message : String(err)}\n${env}`,
-  );
-  process.exit(PRETEST_ERR_RC);
-}
 
 // Capturing console output and redirecting it to a file to avoid console
 // pollution from language server logging during test execution.
