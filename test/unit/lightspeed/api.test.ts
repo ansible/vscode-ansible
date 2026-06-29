@@ -49,7 +49,7 @@ vi.mock("@src/features/lightspeed/inlineSuggestions", () => ({
 
 vi.mock("@src/features/lightspeed/utils/oneClickTrial", () => ({
   getOneClickTrialProvider: () => h.trialProvider,
-  OneClickTrialProvider: class {},
+  OneClickTrialProvider: vi.fn(),
 }));
 
 type MockResponse = {
@@ -77,7 +77,7 @@ interface MkApiOpts {
   provider?: string;
   authed?: boolean;
   optOut?: boolean;
-  token?: string | undefined;
+  token?: string;
   packageJSON?: { version?: string };
 }
 
@@ -368,7 +368,7 @@ describe("LightSpeedAPI.feedbackRequest", () => {
     const { api } = mkApi({ authed: true });
     const consoleError = vi
       .spyOn(console, "error")
-      .mockImplementation(() => {});
+      .mockImplementation(() => undefined);
     fetchMock.mockResolvedValue(makeRes({ ok: false, status: 400, json: {} }));
 
     await api.feedbackRequest(
