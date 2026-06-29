@@ -44,8 +44,8 @@ const getUserInfoMock = lightSpeedManager.lightspeedAuthenticatedUser
 
 // These tests deliberately reach into private members of the provider
 // (_sessionChangeEmitter, _disposable, login, handleUriForCode, ...). vitest
-// transpiles without type info, but vue-tsc --noEmit in CI enforces private
-// access, so alias to any for those reaches.
+// compiles without type info, but vue-tsc --noEmit in CI enforces private
+// access, so alias to a record for those reaches.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyProvider = Record<string, any>;
 
