@@ -13,7 +13,9 @@ vi.mock("vscode", () => {
       return { path: joined, fsPath: joined, toString: () => joined };
     },
   };
-  return { Uri, Webview: class {} };
+  // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+  class Webview {}
+  return { Uri, Webview };
 });
 
 // Real semver for everything; just make the named exports overridable so we can
@@ -43,7 +45,9 @@ vi.mock("@src/features/utils/commandRunner", () => ({
 vi.mock("@src/settings", () => ({
   SettingsManager: class {
     settings = {};
-    async initialize() {}
+    async initialize() {
+      /* no-op */
+    }
   },
 }));
 
