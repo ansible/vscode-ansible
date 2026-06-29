@@ -10,11 +10,11 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.34",
-    "astro": "^5",
+    "@astrojs/starlight": "^0.41.1",
     "@fontsource/red-hat-display": "*",
-    "@fontsource/red-hat-text": "*",
     "@fontsource/red-hat-mono": "*",
+    "@fontsource/red-hat-text": "*",
+    "astro": "^7.0.3",
     "sharp": "^0.33"
   }
 }
