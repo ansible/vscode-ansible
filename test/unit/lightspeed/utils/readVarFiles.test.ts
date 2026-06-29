@@ -35,7 +35,14 @@ describe("readVarFiles", () => {
 
     const result = readVarFiles("/vars.yml");
 
-    expect(result).toBe(yaml.stringify(yaml.parse("key: value\n")));
+    // Assert the contract explicitly rather than recomputing the same
+    // parse/stringify pipeline (which would still pass if the impl dropped
+    // keepSourceTokens or skipped stringify).
+    expect(result).toBe("key: value\n");
+    expect(yaml.parse).toHaveBeenCalledWith("key: value\n", {
+      keepSourceTokens: true,
+    });
+    expect(yaml.stringify).toHaveBeenCalled();
   });
 
   it("returns undefined and logs an Error message when readFileSync throws an Error", () => {

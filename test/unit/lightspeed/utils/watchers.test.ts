@@ -216,6 +216,22 @@ describe("watchRolesDirectory", () => {
       ).not.toThrow();
     });
 
+    it("does not throw when the workspace has no cache bucket", () => {
+      // workspaceFolders present, but ansibleRolesCache has no entry for it.
+      const cache = {} as Record<string, unknown>;
+      const { handlers } = setupDelete(cache);
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => false,
+      } as never);
+      (vscode.workspace as { workspaceFolders: unknown }).workspaceFolders = [
+        { uri: { fsPath: "/ws" } },
+      ];
+
+      expect(() =>
+        handlers.delete?.({ fsPath: "/ws/roles/missing" }),
+      ).not.toThrow();
+    });
+
     it("does not throw when there are no workspace folders", () => {
       const cache = {} as Record<string, unknown>;
       const { handlers } = setupDelete(cache);

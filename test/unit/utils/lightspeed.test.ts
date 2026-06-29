@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as vscode from "vscode";
 import { adjustInlineSuggestionIndent } from "@src/features/utils/lightspeed";
 
@@ -54,6 +54,9 @@ describe("adjustInlineSuggestionIndent", () => {
   });
 
   it("filters out malformed lines whose boundary char is a word char", () => {
+    // This case intentionally hits the branch that logs via console.error;
+    // spy on it to keep test output clean and assert the branch explicitly.
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     setEditor("    - name: x");
     // line "malf"[3] === "f" (a word char) -> filtered out
     const suggestion = "    foo\nmalf";
@@ -61,5 +64,9 @@ describe("adjustInlineSuggestionIndent", () => {
     const result = adjustInlineSuggestionIndent(suggestion, pos(4));
 
     expect(result).toBe("foo");
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("ignoring malformed line"),
+    );
+    errorSpy.mockRestore();
   });
 });

@@ -69,7 +69,10 @@ export function watchRolesDirectory(
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (workspaceFolders) {
         const workspaceFolder = workspaceFolders[0].uri.fsPath;
-        if (dirPath in ansibleRolesCache[workspaceFolder]) {
+        if (
+          ansibleRolesCache[workspaceFolder] &&
+          dirPath in ansibleRolesCache[workspaceFolder]
+        ) {
           Reflect.deleteProperty(ansibleRolesCache[workspaceFolder], dirPath);
         }
       }
