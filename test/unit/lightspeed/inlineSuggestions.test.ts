@@ -591,7 +591,7 @@ describe("requestSuggestion error path", () => {
 
   it("handles a non-Error rejection from completionRequest", async () => {
     h.lightSpeedManager.providerManager.completionRequest.mockRejectedValue(
-      "stringly-typed failure",
+      "plain string failure",
     );
     const res = await provide(
       singleTaskDoc(),
@@ -600,7 +600,7 @@ describe("requestSuggestion error path", () => {
     );
     expect(res).toEqual([]);
     expect(h.window.showErrorMessage).toHaveBeenCalledWith(
-      "Error in inline suggestions: stringly-typed failure",
+      "Error in inline suggestions: plain string failure",
     );
   });
 });
