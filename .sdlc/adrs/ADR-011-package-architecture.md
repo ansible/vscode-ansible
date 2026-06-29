@@ -375,7 +375,7 @@ architecture self-documenting. The migration is a one-time cost.
 
 - [TypeScript `typesVersions`](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html#version-selection-with-typesversions) — the mechanism we are removing
 - [Node.js `exports` field](https://nodejs.org/api/packages.html#exports) — the mechanism that did not work with our toolchain
-- [pnpm workspaces](https://pnpm.io/workspaces) — how packages reference each other
+- [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) — how packages reference each other
 
 ---
 

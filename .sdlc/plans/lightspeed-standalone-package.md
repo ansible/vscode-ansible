@@ -373,7 +373,7 @@ until Phase 6.
 
 The package-local `vite.config.mts` builds Vue webviews independently
 of the root esbuild pipeline. Add a `build:lightspeed` script to the
-root `package.json` that runs `pnpm run build -w packages/lightspeed`.
+root `package.json` that runs `npm run build -w packages/lightspeed`.
 The root `task build` command chains this after the existing esbuild
 step. No changes to the React/esbuild toolchain are needed — Vite is
 self-contained within the Lightspeed package.
@@ -571,11 +571,11 @@ a specific finding above. Run with Claude Code; checkbox as you ship.
 - [x] **T1 (P1, human: ~1h / CC: ~10min)** — api.ts — Standardize return types to `T | IError`
   - Surfaced by: Code Quality — API return type inconsistency (D3)
   - Files: `packages/lightspeed/src/api.ts`, `packages/lightspeed/src/interfaces.ts`
-  - Verify: `pnpm run compile -w packages/lightspeed`
+  - Verify: `npm run compile -w packages/lightspeed`
 - [x] **T2 (P1, human: ~1h / CC: ~15min)** — test/ — Add Phase 1 unit tests + vitest config
   - Surfaced by: Test Review — 0/28 paths tested (D4)
   - Files: `packages/lightspeed/test/unit/api.test.ts`, `packages/lightspeed/test/unit/errors.test.ts`, `packages/lightspeed/vitest.config.mts`
-  - Verify: `pnpm run test -w packages/lightspeed`
+  - Verify: `npm run test -w packages/lightspeed`
 - [x] **T3 (P2, human: ~30min / CC: ~10min)** — test/helpers/ — Create shared ExtensionContext mock
   - Surfaced by: Outside voice — ExtensionContext mocking needed (D7)
   - Files: `packages/lightspeed/test/helpers/mockContext.ts`
