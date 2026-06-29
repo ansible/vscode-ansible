@@ -356,7 +356,9 @@ describe("RoleGenApp", () => {
       // page 2 role-name textfield (a vscode-textfield custom element) reflects
       // the response name via its v-model bound value property.
       const field = wrapper.find("vscode-textfield");
-      expect((field.element as HTMLInputElement).value).toBe("my_role");
+      expect((field.element as unknown as HTMLInputElement).value).toBe(
+        "my_role",
+      );
       expect(wrapper.findComponent({ name: "OutlineReview" }).exists()).toBe(
         true,
       );
@@ -370,7 +372,7 @@ describe("RoleGenApp", () => {
 
       // Editing the role name to a different value clears the response.
       const field = wrapper.find("vscode-textfield");
-      (field.element as HTMLInputElement).value = "renamed_role";
+      (field.element as unknown as HTMLInputElement).value = "renamed_role";
       await field.trigger("input");
       await flushPromises();
 
