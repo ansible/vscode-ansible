@@ -46,7 +46,9 @@ describe("readVarFiles", () => {
   });
 
   it("returns undefined and logs an Error message when readFileSync throws an Error", () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockImplementation(() => {
       throw new Error("disk failure");
@@ -62,7 +64,9 @@ describe("readVarFiles", () => {
   });
 
   it("returns undefined for a non-Error throw (String(err) branch)", () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue("contents");
     vi.mocked(yaml.parse).mockImplementationOnce(() => {

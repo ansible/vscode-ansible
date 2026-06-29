@@ -56,7 +56,9 @@ describe("adjustInlineSuggestionIndent", () => {
   it("filters out malformed lines whose boundary char is a word char", () => {
     // This case intentionally hits the branch that logs via console.error;
     // spy on it to keep test output clean and assert the branch explicitly.
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     setEditor("    - name: x");
     // line "malf"[3] === "f" (a word char) -> filtered out
     const suggestion = "    foo\nmalf";

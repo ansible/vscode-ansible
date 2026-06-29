@@ -41,13 +41,17 @@ describe("errors - formatErrorDetail", () => {
   });
 
   it("returns the name for a named function", () => {
-    function namedFn() {}
+    function namedFn() {
+      /* intentionally empty */
+    }
     expect(formatErrorDetail(namedFn)).toBe("namedFn");
   });
 
   it("returns 'function' for an anonymous function with empty name", () => {
     const anon = (() => {
-      const f = function () {};
+      const f = function () {
+        /* intentionally empty */
+      };
       Object.defineProperty(f, "name", { value: "" });
       return f;
     })();
