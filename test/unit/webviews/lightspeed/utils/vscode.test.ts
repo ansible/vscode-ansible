@@ -48,7 +48,9 @@ describe("vscodeApi (real WebviewApi)", () => {
   });
 
   it("logs an error and no-ops when acquireVsCodeApi is missing", async () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     const api = await loadFresh(undefined);
 
     expect(errorSpy).toHaveBeenCalledWith("acquireVsCodeApi is not a function");
