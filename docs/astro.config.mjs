@@ -83,6 +83,7 @@ export default defineConfig({
                 {
                     label: 'AI & Agents',
                     items: [
+                        { slug: 'ai/approach' },
                         { slug: 'ai/mcp-server' },
                         { slug: 'ai/plugin' },
                         { slug: 'ai/skills' },
