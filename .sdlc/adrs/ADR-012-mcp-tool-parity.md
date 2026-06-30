@@ -205,7 +205,7 @@ authored tools with curated schemas produce better agent experiences.
 - [ADR-005](ADR-005-architectural-invariants.md): Architectural
   invariants — this ADR adds invariant 11
 - [ADR-011](ADR-011-package-architecture.md): Package architecture —
-  MCP server depends on `@ansible/common` and `@ansible/services`
+  MCP server depends on `@ansible/common` and `@ansible/developer-services`
 
 ---
 

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getCommandService } from '@ansible/services';
+import { getCommandService } from '@ansible/developer-services';
 import { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 import { getMcpStatus } from '@src/mcp';
 import type { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';

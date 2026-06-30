@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { log } from '@src/extension';
-import { buildCommandArgs, getCommandService, type SchemaNode } from '@ansible/services';
+import { buildCommandArgs, getCommandService, type SchemaNode } from '@ansible/developer-services';
 
 /** Thin webview host for the creator form. Delegates UI to @ansible/ui SchemaForm. */
 export class CreatorFormPanel {

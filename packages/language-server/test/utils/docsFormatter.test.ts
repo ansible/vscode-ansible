@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MarkupKind } from 'vscode-languageserver';
-import type { PluginDoc, PluginOption } from '@ansible/services';
+import type { PluginDoc, PluginOption } from '@ansible/developer-services';
 
 vi.mock('antsibull-docs', () => ({
     parse: (text: string) => text,

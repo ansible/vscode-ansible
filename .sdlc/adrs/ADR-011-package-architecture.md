@@ -1,4 +1,4 @@
-# ADR-011: Package Architecture — @ansible/common and @ansible/services
+# ADR-011: Package Architecture — @ansible/common and @ansible/developer-services
 
 ## Status
 
@@ -74,7 +74,7 @@ reverted.
 ## Decision
 
 **We will split `@ansible/core` into two packages — `@ansible/common`
-(browser-safe foundation) and `@ansible/services` (Node.js service
+(browser-safe foundation) and `@ansible/developer-services` (Node.js service
 implementations) — and retire the `@ansible/core` package.**
 
 ### Project Architecture
@@ -82,10 +82,10 @@ implementations) — and retire the `@ansible/core` package.**
 ```text
 packages/
   common/           → @ansible/common    (browser-safe: types, prompts, utils, parsers)
-  services/         → @ansible/services  (Node.js: service implementations)
+  services/         → @ansible/developer-services  (Node.js: service implementations)
   ui/               → @ansible/ui        (React components, depends on @ansible/common)
-  language-server/  → @ansible/language-server (LSP, depends on @ansible/services)
-  mcp-server/       → @ansible/mcp-server (MCP tools, depends on @ansible/services)
+  language-server/  → @ansible/language-server (LSP, depends on @ansible/developer-services)
+  mcp-server/       → @ansible/mcp-server (MCP tools, depends on @ansible/developer-services)
 src/
   extension.ts      → VS Code extension entry point
   panels/           → Webview panel hosts (thin lifecycle management)
@@ -98,7 +98,7 @@ src/
 ```mermaid
 flowchart BT
     common["@ansible/common"]
-    services["@ansible/services"]
+    services["@ansible/developer-services"]
     ui["@ansible/ui"]
     ls["@ansible/language-server"]
     mcp["@ansible/mcp-server"]
@@ -134,7 +134,7 @@ builtins or `vscode`.
 `os`, `child_process`, `https`, `net`, `crypto`, or any other Node.js
 builtin, it does not belong in `@ansible/common`.
 
-### `@ansible/services` — the Node.js service layer
+### `@ansible/developer-services` — the Node.js service layer
 
 Contains stateful services that interact with the operating system,
 network, and filesystem. Depends on `@ansible/common` for types and
@@ -167,8 +167,8 @@ not alongside the service implementation.
 | Package                  | Name                     | Why                                                                                                           |
 | ------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | Browser-safe foundation  | `@ansible/common`        | Standard monorepo convention for shared code; immediately communicates "safe to import anywhere"              |
-| Node.js implementations  | `@ansible/services`      | Describes what it contains; the word "service" already implies runtime infrastructure and stateful operations |
-| Pure parsing (in common) | `parsers/playbookParser` | Avoids confusion with `@ansible/services`; "parser" communicates stateless data transformation                |
+| Node.js implementations  | `@ansible/developer-services`      | Describes what it contains; the word "service" already implies runtime infrastructure and stateful operations |
+| Pure parsing (in common) | `parsers/playbookParser` | Avoids confusion with `@ansible/developer-services`; "parser" communicates stateless data transformation                |
 
 ## Guidance for New Code
 
@@ -185,7 +185,7 @@ Is it an AI prompt template?
   → @ansible/common/prompts/
 
 Does it need fs, path, os, child_process, https, or network I/O?
-  → @ansible/services/
+  → @ansible/developer-services/
 
 Is it a React component rendering domain content?
   → @ansible/ui/
@@ -198,15 +198,15 @@ Is it VS Code-specific (TreeView, webview lifecycle, commands)?
 
 | Consumer                | Import from                                      | Never import from                        |
 | ----------------------- | ------------------------------------------------ | ---------------------------------------- |
-| Webview / `@ansible/ui` | `@ansible/common`                                | `@ansible/services` (would pull Node.js) |
-| Extension (`src/`)      | `@ansible/common`, `@ansible/services`           | `@ansible/core` (retired)                |
-| Language server         | `@ansible/services`                              | `@ansible/core/out/...` (removed)        |
-| MCP server              | `@ansible/services`                              | `@ansible/core/out/...` (removed)        |
+| Webview / `@ansible/ui` | `@ansible/common`                                | `@ansible/developer-services` (would pull Node.js) |
+| Extension (`src/`)      | `@ansible/common`, `@ansible/developer-services`           | `@ansible/core` (retired)                |
+| Language server         | `@ansible/developer-services`                              | `@ansible/core/out/...` (removed)        |
+| MCP server              | `@ansible/developer-services`                              | `@ansible/core/out/...` (removed)        |
 | Tests                   | Package under test + `@ansible/common` for types | —                                        |
 
-`@ansible/services` re-exports all public types from
+`@ansible/developer-services` re-exports all public types from
 `@ansible/common`. Node.js consumers that only need one import can
-use `@ansible/services` for both services and types.
+use `@ansible/developer-services` for both services and types.
 
 ### Build and Resolution
 
@@ -303,7 +303,7 @@ architecture self-documenting. The migration is a one-time cost.
   workarounds, no esbuild aliases for cross-package resolution.
   Standard pnpm workspace resolution works everywhere.
 - **Self-documenting architecture**: Package names communicate their
-  contract. `@ansible/common` is safe everywhere; `@ansible/services`
+  contract. `@ansible/common` is safe everywhere; `@ansible/developer-services`
   requires Node.js. New contributors and AI agents know immediately
   where code belongs.
 - **Webview safety guaranteed structurally**: It is impossible to
@@ -312,12 +312,12 @@ architecture self-documenting. The migration is a one-time cost.
   can contain Node.js builtins.
 - **Language server cleanup**: The `@ansible/core/out/services/...`
   anti-pattern (coupling to build artifacts) is replaced by a standard
-  barrel import from `@ansible/services`.
+  barrel import from `@ansible/developer-services`.
 - **Simpler build pipeline**: esbuild configuration drops 6 alias
   entries across 4 targets.
 - **Future-proof**: New browser-safe modules are added to
   `@ansible/common` without any configuration changes. New Node.js
-  services go to `@ansible/services`. No ad-hoc `typesVersions`
+  services go to `@ansible/developer-services`. No ad-hoc `typesVersions`
   entries needed.
 
 ### Negative
@@ -328,7 +328,7 @@ architecture self-documenting. The migration is a one-time cost.
 - **Two packages to maintain**: Two `package.json` files, two
   `tsconfig.json` files, two sets of tests. (Mitigated by the
   packages being cleanly separated with no shared build concerns.)
-- **Re-export convenience layer**: `@ansible/services` re-exporting
+- **Re-export convenience layer**: `@ansible/developer-services` re-exporting
   `@ansible/common` types adds a small maintenance surface. If a type
   is removed from `@ansible/common`, the re-export must also be
   removed.
@@ -339,12 +339,12 @@ architecture self-documenting. The migration is a one-time cost.
   the split it imports from `@ansible/common` instead of deep paths
   into `@ansible/core`. The dependency direction is unchanged.
 - The extension can import from both packages. Most files will use
-  `@ansible/services` for convenience (since it re-exports common
+  `@ansible/developer-services` for convenience (since it re-exports common
   types), with `@ansible/common` used only when a module is
   deliberately Node-independent (e.g., webview bridge code).
 - Vitest configuration splits into per-package projects (already the
   case for `@ansible/core`; now becomes `@ansible/common` +
-  `@ansible/services`).
+  `@ansible/developer-services`).
 
 ## Implementation Notes
 
@@ -353,10 +353,10 @@ architecture self-documenting. The migration is a one-time cost.
   This is a refactor-only step with no import changes for consumers.
 - **Phase 2**: Rename `packages/core/` to `packages/common/` (update
   `package.json` name to `@ansible/common`). Create
-  `packages/services/` (name: `@ansible/services`). Move Node-dependent
+  `packages/services/` (name: `@ansible/developer-services`). Move Node-dependent
   services to the new package. Rename `PlaybookConfigService` to
   `playbookParser` (in `parsers/` directory).
-- **Phase 3**: Update all consumer imports. `@ansible/services`
+- **Phase 3**: Update all consumer imports. `@ansible/developer-services`
   re-exports `@ansible/common` types during this phase for incremental
   migration.
 - **Phase 4**: Remove all resolution workarounds (`typesVersions`,
@@ -371,7 +371,7 @@ architecture self-documenting. The migration is a one-time cost.
   monorepo and `@ansible/core` — this ADR supersedes the single-package
   aspect of that decision while preserving the architectural principles.
 - [ADR-005](ADR-005-architectural-invariants.md): Invariants 1 and 2
-  will be updated to reference `@ansible/common` and `@ansible/services`.
+  will be updated to reference `@ansible/common` and `@ansible/developer-services`.
 - [ADR-006](ADR-006-esbuild-bundler.md): The esbuild configuration
   simplifies as aliases are removed.
 - [ADR-010](ADR-010-shared-ui-component-layer.md): `@ansible/ui`

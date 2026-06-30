@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mockGetPluginDocumentation = vi.fn();
 
-vi.mock('@ansible/services', () => ({
+vi.mock('@ansible/developer-services', () => ({
     CollectionsService: {
         getInstance: () => ({
             getPluginDocumentation: mockGetPluginDocumentation,

@@ -45,7 +45,7 @@
         "test/**/*.spec.ts"
       ],
       "project": ["src/**/*.ts", "webviews/src/**/*.{ts,vue}", "test/**/*.ts"],
-      "ignoreDependencies": ["@ansible/services", "electron", "vscode"]
+      "ignoreDependencies": ["@ansible/developer-services", "electron", "vscode"]
     },
     "packages/ui": {
       "entry": ["src/bridge/index.ts"],

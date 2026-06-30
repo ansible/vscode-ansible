@@ -9,9 +9,9 @@ import {
     DEFAULT_PLAYBOOK_CONFIG,
     type PlaybookConfig,
     type PlaybookPlay,
-} from '@ansible/services';
+} from '@ansible/developer-services';
 
-export type { PlaybookConfig, PlaybookPlay } from '@ansible/services';
+export type { PlaybookConfig, PlaybookPlay } from '@ansible/developer-services';
 export interface PlaybookInfo {
     name: string;
     path: string;
@@ -284,7 +284,7 @@ export class PlaybooksService {
 
     /**
      * Build an ansible-playbook shell command from saved configuration.
-     * Delegates to @ansible/services buildPlaybookCommand.
+     * Delegates to @ansible/developer-services buildPlaybookCommand.
      * @param playbookPath - Playbook file path passed to ansible-playbook
      * @param config - Effective playbook run settings
      * @returns Shell-ready ansible-playbook command string

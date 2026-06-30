@@ -7,7 +7,7 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 const sharedResolve = {
     alias: {
         '@ansible/common': resolve(ROOT, 'packages/common/src'),
-        '@ansible/services': resolve(ROOT, 'packages/services/src'),
+        '@ansible/developer-services': resolve(ROOT, 'packages/services/src'),
     },
 };
 

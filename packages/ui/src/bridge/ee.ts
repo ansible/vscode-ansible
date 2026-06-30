@@ -48,7 +48,7 @@ export interface SystemPackageDetail {
 
 /**
  * Bridge contract for execution environment detail views.
- * Host implementations fetch data from @ansible/services
+ * Host implementations fetch data from @ansible/developer-services
  * (extension) or REST APIs (Backstage).
  */
 export interface EEBridge extends HostBridgeCore {

@@ -58,7 +58,7 @@ decisions.
 ```text
 packages/
   common/           # @ansible/common — browser-safe types, prompts, utils
-  services/         # @ansible/services — Node.js service implementations
+  services/         # @ansible/developer-services — Node.js service implementations
   language-server/  # @ansible/language-server — LSP server
   mcp-server/       # @ansible/mcp-server — standalone MCP server
   ui/               # @ansible/ui — shared React webview components

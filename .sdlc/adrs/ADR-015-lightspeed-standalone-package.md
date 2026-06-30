@@ -227,7 +227,7 @@ See the detailed 23-step removal checklist in
   Feature Exclusions from `main` (Lightspeed was excluded; this ADR
   partially reverses that decision for a limited period)
 - [ADR-011](ADR-011-package-architecture.md) — Package Architecture
-  (defines `@ansible/common` and `@ansible/services` that this package
+  (defines `@ansible/common` and `@ansible/developer-services` that this package
   depends on)
 
 ## Revision History

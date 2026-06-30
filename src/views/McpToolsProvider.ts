@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { STATIC_TOOLS, type McpToolDefinition, CreatorToolGenerator } from '@ansible/mcp-server';
-import { CreatorService, buildMcpToolExamplePrompt } from '@ansible/services';
+import { CreatorService, buildMcpToolExamplePrompt } from '@ansible/developer-services';
 import { log } from '@src/extension';
 import { getMcpStatus, McpStatus } from '@src/mcp/cursorConfig';
 import { openChatWithPrompt } from '@src/features/chatProvider';

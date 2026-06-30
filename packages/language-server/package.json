@@ -8,13 +8,16 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "files": [
+    "out/"
+  ],
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@ansible/services": "workspace:*",
+    "@ansible/developer-services": "workspace:*",
     "@flatten-js/interval-tree": "^2.0.3",
     "antsibull-docs": "^1.1.4",
     "ini": "^6.0.0",

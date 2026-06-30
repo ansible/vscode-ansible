@@ -35,13 +35,13 @@ Full rationale for each invariant is in
 Package architecture is in [ADR-011](.sdlc/adrs/ADR-011-package-architecture.md).
 
 1. **Browser-safe code lives in `@ansible/common`, Node.js services in
-   `@ansible/services`** (ADR-011). Types, prompts, pure parsers, and
+   `@ansible/developer-services`** (ADR-011). Types, prompts, pure parsers, and
    utils go in `packages/common/`. Services that use `fs`, `path`,
    `child_process`, or `https` go in `packages/services/`.
 
 2. **`@ansible/common` has zero dependencies on Node.js builtins or
    `vscode`** (ADR-011). It must be importable in any JS environment
-   (browser, webview, Node, Deno). `@ansible/services` uses the
+   (browser, webview, Node, Deno). `@ansible/developer-services` uses the
    conditional `try { vscode = require('vscode') } catch {}` pattern.
 
 3. **The plugin doc cache is the single source of truth** (ADR-002).
@@ -135,7 +135,7 @@ extension window), rebuild explicitly.
 ```text
 packages/
   common/           → @ansible/common (browser-safe types, prompts, utils, parsers)
-  services/         → @ansible/services (Node.js service implementations)
+  services/         → @ansible/developer-services (Node.js service implementations)
   language-server/  → @ansible/language-server (LSP server)
   mcp-server/       → @ansible/mcp-server (standalone MCP server)
   ui/               → @ansible/ui (shared React components for webviews)

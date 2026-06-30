@@ -1218,7 +1218,7 @@
     "@ansible/common": "workspace:*",
     "@ansible/lightspeed": "workspace:*",
     "@ansible/mcp-server": "workspace:*",
-    "@ansible/services": "workspace:*",
+    "@ansible/developer-services": "workspace:*",
     "@ansible/ui": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@types/js-yaml": "^4.0.9",

@@ -8,6 +8,9 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "files": [
+    "out/"
+  ],
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",

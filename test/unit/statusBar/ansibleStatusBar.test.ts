@@ -107,7 +107,7 @@ vi.mock('vscode-languageclient/node', () => {
     };
 });
 
-vi.mock('@ansible/services', () => ({
+vi.mock('@ansible/developer-services', () => ({
     getCommandService: vi.fn(() => ({
         runTool: vi.fn().mockResolvedValue({ exitCode: 1, stdout: '' }),
     })),

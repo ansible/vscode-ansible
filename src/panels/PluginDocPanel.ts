@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { CollectionsService } from '@ansible/services';
-import type { PluginData } from '@ansible/services';
+import { CollectionsService } from '@ansible/developer-services';
+import type { PluginData } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 
 /**
