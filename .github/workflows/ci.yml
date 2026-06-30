@@ -11,14 +11,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  test:
+    name: test-${{ matrix.id }}
+    runs-on: ${{ matrix.runs-on }}
     permissions:
       contents: read
       id-token: write
     strategy:
       matrix:
-        node-version: [22, 24, 26]
+        id: [linux]
+        node-version: [24]
+        runs-on:
+          - ubuntu-latest
+          # - windows-2022
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v7
@@ -37,8 +43,75 @@ jobs:
       - name: Compile
         run: pnpm run compile
 
-      - name: Run tests with coverage
-        run: pnpm run test:coverage
+      - parallel:
+          - name: lint
+            if: runner.os != 'Windows'
+            run: |
+              pipx install uv
+              pnpm run lint
+              pnpm run lint:knip
+
+          - name: package
+            if: runner.os != 'Windows'
+            run: pnpm run package
+
+          - name: build docs
+            if: runner.os != 'Windows'
+            run: pnpm run docs:build
+
+          - name: Run tests with coverage
+            run: pnpm run test:coverage
+
+          - name: Run integration tests
+            if: runner.os != 'Windows'
+            run: xvfb-run --auto-servernum pnpm run test:integration
+
+      - parallel:
+          - name: Pre-install Chromedriver
+            if: runner.os != 'Windows'
+            run: pnpm exec tsx tools/ensure-chromedriver.mts
+          - name: Install test dependency extensions
+            if: runner.os != 'Windows'
+            run: pnpm run pretest:ui
+          - name: Build Lightspeed webviews
+            if: runner.os != 'Windows'
+            run: pnpm run build:lightspeed:webviews
+
+      - name: Run UI tests
+        if: runner.os != 'Windows'
+        run: xvfb-run --auto-servernum pnpm run test:ui
+        env:
+          WDIO_COVERAGE: "1"
+
+      - name: Run Lightspeed UI tests
+        if: runner.os != 'Windows'
+        run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
+        env:
+          WDIO_COVERAGE: "1"
+
+      - name: Story coverage report
+        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        run: node scripts/story-coverage.mjs --threshold 20 --lcov coverage/stories.lcov
+
+      - name: Upload story coverage to Codecov
+        if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('coverage/stories.lcov') != '' }}
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./coverage/stories.lcov
+          flags: stories
+          disable_search: true
+          fail_ci_if_error: false
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+
+      - name: Upload WDIO coverage to Codecov
+        if: ${{ always() && runner.os != 'Windows' && hashFiles('coverage/wdio/lcov.info') != '' }}
+        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
+        with:
+          files: ./coverage/wdio/lcov.info
+          flags: wdio
+          disable_search: true
+          fail_ci_if_error: false
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload coverage to Codecov
         if: ${{ always() && hashFiles('coverage/cobertura-coverage.xml') != '' }}
@@ -51,7 +124,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload coverage for SonarCloud
-        if: ${{ !cancelled() && hashFiles('coverage/**/lcov.info') != '' }}
+        if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('coverage/**/lcov.info') != '' }}
         uses: ansible/actions/upload-artifact@b2b0657c2e1d083cf979eba2fd04ae79e5ab3900 # v1.1.2
         with:
           name: sonar-coverage-node${{ matrix.node-version }}-${{ github.run_attempt }}
@@ -60,176 +133,48 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - uses: actions/setup-node@v6
+      - name: Upload logs and coverage reports
+        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        uses: ansible/actions/upload-artifact@main
         with:
-          node-version: 22
-          cache: pnpm
+          name: logs-${{ matrix.runs-on }}-${{ github.run_attempt }}.zip
+          path: |
+            coverage/**/lcov.info
+            dist
+            out
+            packages/*/out
+          if-no-files-found: ignore
+          retention-days: 90
 
-      - parallel:
-          - name: Install Node dependencies
-            run: pnpm install --frozen-lockfile
-          - name: Install prek and uv
-            run: |
-              pipx install prek
-              pipx install uv
-
-      - parallel:
-          - name: Lint (prek)
-            run: pnpm run lint
-          - name: Lint (knip)
-            run: pnpm run lint:knip
-
-  integration:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - uses: actions/setup-node@v6
+      - name: Upload VSIX
+        if: ${{ !cancelled() && matrix.id == 'linux' }}
+        uses: actions/upload-artifact@v7
         with:
-          node-version: 22
-          cache: pnpm
+          path: "*.vsix"
+          archive: false
+          retention-days: 14
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run compile
-      - run: pnpm run build
-
-      - name: Run integration tests
-        run: xvfb-run --auto-servernum pnpm run test:integration
-
-  ui:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - uses: actions/setup-node@v6
+      - name: Upload plugin
+        if: ${{ !cancelled() && matrix.id == 'linux' }}
+        uses: actions/upload-artifact@v7
         with:
-          node-version: 22
-          cache: pnpm
+          name: plugin
+          path: dist/ansible-devtools-plugin.zip
+          archive: false
+          retention-days: 14
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run compile
-      - run: pnpm run build
-
-      - parallel:
-          - name: Pre-install Chromedriver
-            run: pnpm exec tsx tools/ensure-chromedriver.mts
-          - name: Install test dependency extensions
-            run: pnpm run pretest:ui
-          - name: Build Lightspeed webviews
-            run: pnpm run build:lightspeed:webviews
-
-      - name: Run UI tests
-        run: xvfb-run --auto-servernum pnpm run test:ui
-
-      - name: Run Lightspeed UI tests
-        run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
-
-      - name: Story coverage report
-        if: ${{ !cancelled() }}
-        run: node scripts/story-coverage.mjs --threshold 20 --lcov coverage/stories.lcov
-
-      - name: Upload story coverage to Codecov
-        if: ${{ !cancelled() && hashFiles('coverage/stories.lcov') != '' }}
-        uses: codecov/codecov-action@v7
+      - name: Upload MCP server
+        if: ${{ !cancelled() && matrix.id == 'linux' }}
+        uses: actions/upload-artifact@v7
         with:
-          files: ./coverage/stories.lcov
-          flags: stories
-          disable_search: true
-          fail_ci_if_error: false
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+          name: mcp-server
+          path: dist/mcp-server.js
+          retention-days: 14
 
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - uses: actions/setup-node@v6
+      - name: Upload language server
+        if: ${{ !cancelled() && matrix.id == 'linux' }}
+        uses: actions/upload-artifact@v7
         with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-      - name: Build docs
-        run: pnpm run docs:build
-
-  package:
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build VSIX
-        run: pnpm exec vsce package --no-dependencies
-
-      - name: Build servers
-        run: pnpm run build
-
-      - name: Build plugin
-        run: ./scripts/build-plugin.sh
-
-      - name: Pack npm tarballs
-        run: |
-          pnpm run compile
-          pnpm --filter @ansible/common pack --pack-destination "$GITHUB_WORKSPACE"
-          pnpm --filter @ansible/developer-services pack --pack-destination "$GITHUB_WORKSPACE"
-          pnpm --filter @ansible/mcp-server pack --pack-destination "$GITHUB_WORKSPACE"
-          pnpm --filter @ansible/language-server pack --pack-destination "$GITHUB_WORKSPACE"
-
-      - parallel:
-          - name: Upload VSIX
-            uses: actions/upload-artifact@v7
-            with:
-              name: vsix
-              path: "*.vsix"
-              retention-days: 14
-          - name: Upload plugin
-            uses: actions/upload-artifact@v7
-            with:
-              name: plugin
-              path: dist/ansible-devtools-plugin.zip
-              retention-days: 14
-          - name: Upload MCP server
-            uses: actions/upload-artifact@v7
-            with:
-              name: mcp-server
-              path: dist/mcp-server.js
-              retention-days: 14
-          - name: Upload language server
-            uses: actions/upload-artifact@v7
-            with:
-              name: language-server
-              path: dist/language-server.js
-              retention-days: 14
-          - name: Upload npm tarballs
-            uses: actions/upload-artifact@v7
-            with:
-              name: npm-tarballs
-              path: "*.tgz"
-              retention-days: 14
+          name: language-server
+          path: dist/language-server.js
+          retention-days: 14

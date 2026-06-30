@@ -1,0 +1,26 @@
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false  # will exceed rate limits if enabled
+  auto_title_instructions: Use conventional commits structure
+  fail_commit_status: true
+  high_level_summary_instructions: |
+    Describe the main change in the pull request in 60 words max. Explain what was changed, why it was needed, and the approach taken.
+    Use single level bullet points to list individual changes.
+    Do not self-reference the pull request in the summary.
+    Do not include full or partial URLs for issue references.
+    The summary must not start with any heading or title.
+    Include the original commit message in the summary and keep attribution lines in the footer.
+    The footer section starts with a double newline; each footer entry must be on its own line.
+    Put issue references in the footer using one of: `Fixes: #<issue_number>`, `Closes: #<issue_number>`, or `Related: #<issue_number>` / `Related: AAP-<number>`.
+    If `Co-authored-by: Cursor` is present, omit `_AI-assisted (Cursor)._`.
+  in_progress_fortune: false
+  request_changes_workflow: true
+  review_status: false
+  pre_merge_checks:
+    docstrings:
+      mode: "off"  # not particularly useful, we will enable an eslint plugin for this
+  tools:
+    github-checks:
+      enabled: true
+      timeout_ms: 900000  # waits 15 minutes for github checks to complete, cannot be bigger than this

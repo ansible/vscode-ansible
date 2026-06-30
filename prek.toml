@@ -15,17 +15,18 @@ hooks = [
 ]
 
 # ── Skillmark — agentskills.io spec validation ─────────────────────────
-[[repos]]
-repo = "https://github.com/michellepellon/skillmark"
-rev = "v0.1.0"
-hooks = [
-  {
-    id = "skillmark",
-    language = "rust",
-    priority = 0,
-    args = ["--config", ".skillmark.toml"]
-  },
-]
+# Not mature enough, this repo has one github star.
+# [[repos]]
+# repo = "https://github.com/michellepellon/skillmark"
+# rev = "v0.1.0"
+# hooks = [
+#   {
+#     id = "skillmark",
+#     language = "rust",
+#     priority = 0,
+#     args = ["--config", ".skillmark.toml"]
+#   },
+# ]
 
 # ── Markdownlint ───────────────────────────────────────────────────────
 [[repos]]
@@ -41,12 +42,13 @@ hooks = [
 ]
 
 # ── Actionlint — GitHub Actions workflow validation ────────────────────
-[[repos]]
-repo = "https://github.com/rhysd/actionlint"
-rev = "v1.7.7"
-hooks = [
-  { id = "actionlint" },
-]
+# See: https://github.com/rhysd/actionlint/issues/693
+# [[repos]]
+# repo = "https://github.com/rhysd/actionlint"
+# rev = "v1.7.7"
+# hooks = [
+#   { id = "actionlint" },
+# ]
 
 # ── pre-commit-hooks (additional checks) ───────────────────────────────
 [[repos]]

@@ -76,6 +76,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.6.0(jiti@2.7.0)(supports-color@8.1.1))
+      '@j178/prek':
+        specifier: ^0.4.5
+        version: 0.4.5
       '@types/ini':
         specifier: ^4.1.1
         version: 4.1.1
@@ -180,7 +183,7 @@ importers:
         version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.22.4)(yaml@2.9.0)
       wdio-vscode-service:
         specifier: ^8.0.0
-        version: 8.0.0(webdriverio@9.29.1)
+        version: 8.0.0(supports-color@8.1.1)(webdriverio@9.29.1)
 
   docs:
     dependencies:
@@ -1790,6 +1793,124 @@ packages:
   '@istanbuljs/schema@0.1.6':
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
     engines: {node: '>=8'}
+
+  '@j178/prek-android-arm64@0.4.5':
+    resolution: {integrity: sha512-tuFxbPp9kuwRf2FReWNPwsOLB986KaYvwxs2NZLjbU7AERK7R+n4kmRQ0yWCabdSlX+5ZXAfqj9sA3uoAw7zGw==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [android]
+
+  '@j178/prek-darwin-arm64@0.4.5':
+    resolution: {integrity: sha512-QYLeXwCFdpC6Lbg2+u0qzGWyVlf5h0vwvoLdRvq1u0zYaHy/nYF1VShzzVzOKh8aMymazL9vB5fkB2XpNq1JVg==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@j178/prek-darwin-x64@0.4.5':
+    resolution: {integrity: sha512-m5PeplMTYbdu/FnWZuKVegyDaI/lqXWKxduTWUcS9n3eL/2bwmM8VPW9xKSdqrfYTKXnReg5IMAeN4pVb8VHjQ==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@j178/prek-linux-arm-gnueabihf@0.4.5':
+    resolution: {integrity: sha512-HB4Hd2ALRUZtBbNsuJn3t38wX79MppQ5BDPEakkgF0jiijJ4QR/u/Ozx1HFIyOyOQoVBb4SVn9Uavy5c8zecgw==}
+    engines: {node: '>=18'}
+    cpu: [arm]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-arm-musleabihf@0.4.5':
+    resolution: {integrity: sha512-QMyVe7Yk+7AbSsz276G9dPg3wEIi/Bo6qw32R/pIRgnlAEb6XSeyA0vw45BPADANS9cQnpqId03GugDb+/dOTw==}
+    engines: {node: '>=18'}
+    cpu: [arm]
+    os: [linux]
+    libc: [musl]
+
+  '@j178/prek-linux-arm64-gnu@0.4.5':
+    resolution: {integrity: sha512-OzGc34yI9PrRGUtx6Ia34y3oXPixBLg79ahgq8LKFBdhowmTGv/v7MaBVv0E99hmbZWHipTMeXyz62a81s8GTw==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-arm64-musl@0.4.5':
+    resolution: {integrity: sha512-xDPVFphjlfEeRlvVF8PTG85fW5CFsHW8sWQOvrX2sU6Nz2SbcxBZxzuio5C9c4WNaPFg/aTnmcVissplY4wKTA==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@j178/prek-linux-armv7-musleabihf@0.4.5':
+    resolution: {integrity: sha512-fg71rG0iVZ5ys+RjVG1ETqyknI4QREQCDZdPevVfdyx9BJXP2zv3ADj20EZhZP9sMsVRb47W1ltdmRvF1ofLWA==}
+    engines: {node: '>=18'}
+    cpu: [arm]
+    os: [linux]
+    libc: [musl]
+
+  '@j178/prek-linux-ia32-gnu@0.4.5':
+    resolution: {integrity: sha512-uzgHzkSCTyCk5iQeSGeIhl3Q5pLpagrgUDEP+CEeAs3A+HGIMVyxwSNkGmCYTG0muYbJHolAoUAfUpkv/LzeJg==}
+    engines: {node: '>=18'}
+    cpu: [ia32]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-ia32-musl@0.4.5':
+    resolution: {integrity: sha512-I2it1YEIfDR2YRFGbCPxNKh2i7AxST2v1STwk1m65/CdwGh8Z9VQi0DT9H0EEi0M3DLawLrHfAckFZ+viieTXg==}
+    engines: {node: '>=18'}
+    cpu: [ia32]
+    os: [linux]
+    libc: [musl]
+
+  '@j178/prek-linux-riscv64-gnu@0.4.5':
+    resolution: {integrity: sha512-lnbcR2bnNNrCHgaZQ9MYc0uRjPXjmAFn7Qo/9qJTLxz3L6shhvId48TtDQ2s3dH+6CfBhZszpthPO7iQZ+uL2Q==}
+    engines: {node: '>=18'}
+    cpu: [riscv64]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-s390x-gnu@0.4.5':
+    resolution: {integrity: sha512-xJdR9lzRaLRPzwnPTDqRWnjKy+QRz8LYkTpBd2axEhGUYRD1FhQ1ODjHAdnfkw+EU5984yKQMfA07+hYKXYzfQ==}
+    engines: {node: '>=18'}
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-x64-gnu@0.4.5':
+    resolution: {integrity: sha512-YuKgjw1tEYk4e/yqm+wWNFtMiQ8Y57kB0upGikNzvbo0W7d8BmCYWSHLiiI437K/Yn0lQ95i3zyFW6vCvJHb9w==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@j178/prek-linux-x64-musl@0.4.5':
+    resolution: {integrity: sha512-e5AN9NwsZJW8GhRNCeQeMURHIUhVU4sq8tIUI6DAhLcQ97tKo0OlPJ88X6+to4MriFPolmxG763dtkC0bin7Vg==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@j178/prek-win32-arm64-msvc@0.4.5':
+    resolution: {integrity: sha512-1JUiazaTBjv6NsDXPnjbXLiwANBW2k8D+qRqhe/X3/wPjb3NWh+2CIHu/r8nV++V2q19S/hgvaJRpIJAxIE8hQ==}
+    engines: {node: '>=18'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@j178/prek-win32-ia32-msvc@0.4.5':
+    resolution: {integrity: sha512-IQ7U3+hHxhTJTK5OfJ8dEs6tCtP0oHHNNOjpg3LHEfBVyAKE3+Bm5bJOJFceyXmL1DKaGfl9OeCqtJBfDyoVVg==}
+    engines: {node: '>=18'}
+    cpu: [ia32]
+    os: [win32]
+
+  '@j178/prek-win32-x64-msvc@0.4.5':
+    resolution: {integrity: sha512-m1PMp1ZrmwKvv5i4hJAm5nlxQ1BfJxLhdKyCm30GvmSHeBvnIf9GT1XTG46ZhT1mMxpL/pmoS/CPJoEWc7XnjQ==}
+    engines: {node: '>=18'}
+    cpu: [x64]
+    os: [win32]
+
+  '@j178/prek@0.4.5':
+    resolution: {integrity: sha512-VoeuVOC7EaB2+tYAVSB/XyKjreRaNoNfY9o1RZF2Yi3cL1f4HFGH/p9HIXXPdAT3618cmmBWfurESoCvIZB2vQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@jest/diff-sequences@30.4.0':
     resolution: {integrity: sha512-zOpzlfUs45l6u7jm39qr87JCHUDsaeCtvL+kQe/Vn9jSnRB4/5IPXISm0h9I1vZW/o00Kn4UTJ2MOlhnUGwv3g==}
@@ -9352,6 +9473,77 @@ snapshots:
 
   '@istanbuljs/schema@0.1.6': {}
 
+  '@j178/prek-android-arm64@0.4.5':
+    optional: true
+
+  '@j178/prek-darwin-arm64@0.4.5':
+    optional: true
+
+  '@j178/prek-darwin-x64@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-arm-gnueabihf@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-arm-musleabihf@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-arm64-gnu@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-arm64-musl@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-armv7-musleabihf@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-ia32-gnu@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-ia32-musl@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-riscv64-gnu@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-s390x-gnu@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-x64-gnu@0.4.5':
+    optional: true
+
+  '@j178/prek-linux-x64-musl@0.4.5':
+    optional: true
+
+  '@j178/prek-win32-arm64-msvc@0.4.5':
+    optional: true
+
+  '@j178/prek-win32-ia32-msvc@0.4.5':
+    optional: true
+
+  '@j178/prek-win32-x64-msvc@0.4.5':
+    optional: true
+
+  '@j178/prek@0.4.5':
+    optionalDependencies:
+      '@j178/prek-android-arm64': 0.4.5
+      '@j178/prek-darwin-arm64': 0.4.5
+      '@j178/prek-darwin-x64': 0.4.5
+      '@j178/prek-linux-arm-gnueabihf': 0.4.5
+      '@j178/prek-linux-arm-musleabihf': 0.4.5
+      '@j178/prek-linux-arm64-gnu': 0.4.5
+      '@j178/prek-linux-arm64-musl': 0.4.5
+      '@j178/prek-linux-armv7-musleabihf': 0.4.5
+      '@j178/prek-linux-ia32-gnu': 0.4.5
+      '@j178/prek-linux-ia32-musl': 0.4.5
+      '@j178/prek-linux-riscv64-gnu': 0.4.5
+      '@j178/prek-linux-s390x-gnu': 0.4.5
+      '@j178/prek-linux-x64-gnu': 0.4.5
+      '@j178/prek-linux-x64-musl': 0.4.5
+      '@j178/prek-win32-arm64-msvc': 0.4.5
+      '@j178/prek-win32-ia32-msvc': 0.4.5
+      '@j178/prek-win32-x64-msvc': 0.4.5
+
   '@jest/diff-sequences@30.4.0': {}
 
   '@jest/expect-utils@30.4.1':
@@ -10005,7 +10197,7 @@ snapshots:
     dependencies:
       '@textlint/ast-node-types': 15.7.1
 
-  '@tokenizer/inflate@0.2.7':
+  '@tokenizer/inflate@0.2.7(supports-color@8.1.1)':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       fflate: 0.8.3
@@ -10791,13 +10983,13 @@ snapshots:
 
   '@xhmikosr/archive-type@7.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
   '@xhmikosr/decompress-tar@8.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
       is-stream: 2.0.1
       tar-stream: 3.2.0
     transitivePeerDependencies:
@@ -10809,7 +11001,7 @@ snapshots:
   '@xhmikosr/decompress-tarbz2@8.1.0':
     dependencies:
       '@xhmikosr/decompress-tar': 8.1.0
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
       is-stream: 2.0.1
       seek-bzip: 2.0.0
       unbzip2-stream: 1.4.3
@@ -10822,7 +11014,7 @@ snapshots:
   '@xhmikosr/decompress-targz@8.1.0':
     dependencies:
       '@xhmikosr/decompress-tar': 8.1.0
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
       is-stream: 2.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -10832,7 +11024,7 @@ snapshots:
 
   '@xhmikosr/decompress-unzip@7.1.0':
     dependencies:
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
       get-stream: 6.0.1
       yauzl: 3.4.0
     transitivePeerDependencies:
@@ -10852,14 +11044,14 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  '@xhmikosr/downloader@15.2.0':
+  '@xhmikosr/downloader@15.2.0(supports-color@8.1.1)':
     dependencies:
       '@xhmikosr/archive-type': 7.1.0
       '@xhmikosr/decompress': 10.2.1
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
-      file-type: 20.5.0
+      file-type: 20.5.0(supports-color@8.1.1)
       filenamify: 6.0.0
       get-stream: 6.0.1
       got: 13.0.0
@@ -12600,9 +12792,9 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
-  file-type@20.5.0:
+  file-type@20.5.0(supports-color@8.1.1):
     dependencies:
-      '@tokenizer/inflate': 0.2.7
+      '@tokenizer/inflate': 0.2.7(supports-color@8.1.1)
       strtok3: 10.3.5
       token-types: 6.1.2
       uint8array-extras: 1.5.0
@@ -16594,14 +16786,14 @@ snapshots:
       defaults: 1.0.4
     optional: true
 
-  wdio-vscode-service@8.0.0(webdriverio@9.29.1):
+  wdio-vscode-service@8.0.0(supports-color@8.1.1)(webdriverio@9.29.1):
     dependencies:
       '@fastify/cors': 9.0.1
       '@fastify/static': 7.0.4
       '@types/ws': 8.18.1
       '@vscode/test-electron': 2.5.2
       '@wdio/logger': 9.29.1
-      '@xhmikosr/downloader': 15.2.0
+      '@xhmikosr/downloader': 15.2.0(supports-color@8.1.1)
       decamelize: 6.0.0
       fastify: 4.29.1
       get-port: 7.1.0
