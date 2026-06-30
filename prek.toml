@@ -93,7 +93,7 @@ name = "check-script-docs"
 entry = "node scripts/check-script-docs.mjs"
 language = "system"
 pass_filenames = false
-files = '(^|/)package\.json$|scripts/help\.mjs$'
+files = '^package\.json$|^scripts/help\.mjs$'
 priority = 0
 
 [[repos.hooks]]

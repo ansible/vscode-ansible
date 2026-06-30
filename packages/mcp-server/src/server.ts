@@ -9,7 +9,7 @@
  *   node packages/mcp-server/out/server.js
  *
  * Or via pnpm dlx (when published):
- *   pnpm dlx @ansible/mcp-server
+ *   pnpm dlx @ansible/mcp-server ansible-environments-mcp
  *
  * Configuration for Cursor (.cursor/mcp.json):
  * {

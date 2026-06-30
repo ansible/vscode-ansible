@@ -11,13 +11,18 @@ import { readFileSync } from "node:fs";
 const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
 const helpSrc = readFileSync("scripts/help.mjs", "utf-8");
 
-const lifecyclePrefixes = ["pre", "post", "vscode:"];
-const isLifecycle = (name) =>
-  lifecyclePrefixes.some((p) => name.startsWith(p));
+const allScriptNames = new Set(Object.keys(pkg.scripts || {}));
 
-const scriptNames = Object.keys(pkg.scripts || {}).filter(
-  (s) => !isLifecycle(s),
-);
+const isLifecycle = (name) => {
+  if (name.startsWith("vscode:")) return true;
+  for (const prefix of ["pre", "post"]) {
+    if (name.startsWith(prefix) && allScriptNames.has(name.slice(prefix.length)))
+      return true;
+  }
+  return false;
+};
+
+const scriptNames = [...allScriptNames].filter((s) => !isLifecycle(s));
 
 // Extract script names documented in the catalog object literals.
 // Matches both quoted keys ("build:production":) and unquoted (compile:).

@@ -27,9 +27,10 @@ const catalog = [
     "test:ui": "WebDriverIO UI tests (smoke + language server)",
     "test:lightspeed": "Lightspeed unit tests",
     "test:lightspeed:ui": "Lightspeed WebDriverIO UI tests",
+    "pretest:wdio": "Install Chromedriver and test dependency extensions",
   }],
   ["Linting", {
-    lint: "ESLint on the full project",
+    lint: "All linters via prek (eslint, cspell, markdownlint, etc.)",
     "lint:eslint": "Run ESLint via prek hook",
     "lint:knip": "Find unused files, deps, and exports (knip)",
   }],
