@@ -14,7 +14,7 @@ allowBuilds:
   "@vscode/vsce-sign": true
   keytar: true
   unrs-resolver: true
-  "wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb": true
+  "wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/0884a30386b46519006e4ae9f90a8e6177b0869a": true
 
 minimumReleaseAgeExclude:
   - '@commitlint/cli@21.2.0'
