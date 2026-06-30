@@ -14,3 +14,4 @@ lib/
 docs/.astro/
 docs/dist/
 packages/common/src/skills/*.content.ts
+**/*.tgz
