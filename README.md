@@ -4,7 +4,7 @@ A VS Code extension for managing Ansible development environments, leveraging th
 
 ## Architecture
 
-The extension uses a multi-package architecture with npm workspaces:
+The extension uses a multi-package architecture with pnpm workspaces:
 
 ```text
 packages/
@@ -179,9 +179,9 @@ node packages/mcp-server/out/server.js
 ### Setup
 
 ```bash
-npm ci            # Install dependencies (reproducible lockfile resolution)
-npm run compile   # Skill codegen + tsc -b (all packages)
-npm run build     # esbuild bundling
+pnpm install --frozen-lockfile   # Install dependencies (reproducible lockfile resolution)
+pnpm run compile                 # Skill codegen + tsc -b (all packages)
+pnpm run build                   # esbuild bundling
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full onboarding guide.
@@ -193,10 +193,10 @@ Press `F5` to launch a VS Code Extension Development Host with the extension loa
 ### Testing
 
 ```bash
-npm test              # Run unit tests (Vitest)
-npm run test:coverage # Run with coverage (thresholds enforced)
-npm run test:ui       # Run e2e tests (WebDriverIO + VS Code)
-npm run ci            # Full CI mirror: compile + lint + test:coverage + build
+pnpm test              # Run unit tests (Vitest)
+pnpm run test:coverage # Run with coverage (thresholds enforced)
+pnpm run test:ui       # Run e2e tests (WebDriverIO + VS Code)
+pnpm run ci            # Full CI mirror: compile + lint + test:coverage + build
 ```
 
 The test suite uses:
@@ -207,8 +207,8 @@ The test suite uses:
 ### Building
 
 ```bash
-npm run package             # Package the extension as a VSIX
-npm run package:install     # Package and install into VS Code for testing
+pnpm run package             # Package the extension as a VSIX
+pnpm run package:install     # Package and install into VS Code for testing
 ```
 
 ### Alpha releases (VSIX on GitHub)

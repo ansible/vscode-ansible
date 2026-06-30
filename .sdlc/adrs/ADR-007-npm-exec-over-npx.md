@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented
+Superseded by ADR-022 — principle unchanged (prefer explicit exec over npx), now expressed as `pnpm exec`
 
 ## Date
 

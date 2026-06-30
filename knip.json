@@ -26,7 +26,6 @@
         "@typescript-eslint/eslint-plugin",
         "@wdio/local-runner",
         "ts-node",
-        "yaml",
         "@wdio/globals"
       ],
       "ignoreBinaries": ["prek", "code", "gh", "powershell"]
@@ -57,7 +56,8 @@
       "project": ["src/**/*.ts"]
     },
     "packages/services": {
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["vscode"]
     },
     "docs": {
       "entry": ["src/**/*.{ts,astro,mdx}"],

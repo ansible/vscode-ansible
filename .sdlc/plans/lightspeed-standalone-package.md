@@ -172,7 +172,7 @@ Unit tests ship with each phase (shifted left). E2E/WDIO tests ship
 in Phase 7. Each phase's PR includes code + tests.
 
 - **Unit tests:** own `vitest.config.mts` inside the package, not in
-  root config. `npm test` at root never touches Lightspeed.
+  root config. `pnpm test` at root never touches Lightspeed.
 - **Shared mock factory:** `test/helpers/mockContext.ts` provides
   `createMockExtensionContext()` with mocked `subscriptions`,
   `secrets`, `globalState`, and `workspaceState`. Created in Phase 2,
@@ -180,8 +180,8 @@ in Phase 7. Each phase's PR includes code + tests.
 - **WDIO tests:** own `wdio.conf.ts` and mock server. Root WDIO runs
   are unaware of Lightspeed specs.
 - **Dedicated runners:**
-  - `npm run test -w packages/lightspeed` — unit tests
-  - `npm run test:wdio -w packages/lightspeed` — E2E tests
+  - `pnpm run test --filter @ansible/lightspeed` — unit tests
+  - `pnpm run test:wdio --filter @ansible/lightspeed` — E2E tests
 
 ## Scoping decisions
 
@@ -375,7 +375,7 @@ until Phase 6.
 
 The package-local `vite.config.mts` builds Vue webviews independently
 of the root esbuild pipeline. Add a `build:lightspeed` script to the
-root `package.json` that runs `npm run build -w packages/lightspeed`.
+root `package.json` that runs `pnpm run build --filter @ansible/lightspeed`.
 The root `task build` command chains this after the existing esbuild
 step. No changes to the React/esbuild toolchain are needed — Vite is
 self-contained within the Lightspeed package.
@@ -526,7 +526,7 @@ consumer remains
 
 **SDLC docs:** 19. Update ADR-015 status to `Deprecated` 20. Remove this plan document
 
-**Verify:** 21. `npm install && npm run compile && npm run build` 22. `npx vitest run` — all non-lightspeed tests pass 23. `npm run test:ui` — smoke + LS WDIO tests pass
+**Verify:** 21. `pnpm install && pnpm run compile && pnpm run build` 22. `pnpm exec vitest run` — all non-lightspeed tests pass 23. `pnpm run test:ui` — smoke + LS WDIO tests pass
 
 No refactoring of core extension code required.
 
@@ -553,11 +553,11 @@ a specific finding above. Run with Claude Code; checkbox as you ship.
 - [x] **T1 (P1, human: ~1h / CC: ~10min)** — api.ts — Standardize return types to `T | IError`
   - Surfaced by: Code Quality — API return type inconsistency (D3)
   - Files: `packages/lightspeed/src/api.ts`, `packages/lightspeed/src/interfaces.ts`
-  - Verify: `npm run compile -w packages/lightspeed`
+  - Verify: `pnpm run compile --filter @ansible/lightspeed`
 - [x] **T2 (P1, human: ~1h / CC: ~15min)** — test/ — Add Phase 1 unit tests + vitest config
   - Surfaced by: Test Review — 0/28 paths tested (D4)
   - Files: `packages/lightspeed/test/unit/api.test.ts`, `packages/lightspeed/test/unit/errors.test.ts`, `packages/lightspeed/vitest.config.mts`
-  - Verify: `npm run test -w packages/lightspeed`
+  - Verify: `pnpm run test --filter @ansible/lightspeed`
 - [x] **T3 (P2, human: ~30min / CC: ~10min)** — test/helpers/ — Create shared ExtensionContext mock
   - Surfaced by: Outside voice — ExtensionContext mocking needed (D7)
   - Files: `packages/lightspeed/test/helpers/mockContext.ts`

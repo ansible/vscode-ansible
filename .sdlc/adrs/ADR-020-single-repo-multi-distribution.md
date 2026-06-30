@@ -275,7 +275,7 @@ skills/*/SKILL.md  ──┐
                      │    packages/common/src/skills/*.content.ts
                      │         │
                      │         ▼
-                     │    npm run build (esbuild)
+                     │    pnpm run build (esbuild)
                      │         │
                      │         ├──→ dist/mcp-server.js (950KB)
                      │         ├──→ dist/language-server.js (1.3MB)

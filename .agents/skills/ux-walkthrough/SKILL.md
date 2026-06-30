@@ -90,7 +90,7 @@ UX feedback.
 1. **Build the extension** (repo root):
 
     ```bash
-    npm run compile && npm run build
+    pnpm run compile && pnpm run build
     ```
 
 2. **Press F5** — opens the **Extension Development Host** window.
@@ -103,7 +103,7 @@ UX feedback.
 **Cursor (optional):** Canvas progress UI stays in the repo window while the
 reviewer exercises the extension in the dev host.
 
-Alternative for packaged testing (not the default): `npm run package:install`.
+Alternative for packaged testing (not the default): `pnpm run package:install`.
 
 Ask for: reviewer name, epic key, workspace path, whether AI and Lightspeed
 are enabled **in the Extension Development Host window**.

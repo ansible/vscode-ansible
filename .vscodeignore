@@ -16,6 +16,7 @@ node_modules/**
 .sdlc/**
 .agents/**
 .claude/**
+.venv/**
 .ansible/**
 examples/**
 *.tsbuildinfo
@@ -43,5 +44,7 @@ AGENTS.md
 run
 mcp-config.example.json
 .vscode-test.mjs
-package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+uv.lock
 !dist/**

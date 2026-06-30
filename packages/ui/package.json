@@ -26,7 +26,7 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@ansible/common": "*",
+    "@ansible/common": "workspace:*",
     "js-yaml": "^4.1.1"
   },
   "devDependencies": {

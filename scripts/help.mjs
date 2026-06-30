@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Print a categorized, described list of npm scripts.
+ * Print a categorized, described list of package scripts.
  *
  * Keep this map in sync with package.json — the audit-npm-scripts
  * agent skill checks for drift automatically.
@@ -30,12 +30,12 @@ const catalog = [
   }],
   ["Linting", {
     lint: "ESLint on the full project",
-    "lint:prek": "prek hooks (skillmark, cspell, markdownlint, actionlint)",
+    "lint:eslint": "Run ESLint via prek hook",
     "lint:knip": "Find unused files, deps, and exports (knip)",
   }],
   ["Quality Gates", {
     check: "compile + lint + test (iterative development)",
-    ci: "Full CI: compile + lint + prek + knip + test:coverage + build",
+    ci: "Full CI: compile + lint (prek) + knip + test:coverage + build",
   }],
   ["Packaging", {
     package: "Create .vsix package",
@@ -76,4 +76,4 @@ if (undocumented.length > 0) {
   }
 }
 
-console.log(`\n  Run: npm run <name>       Full CI gate: npm run ci`);
+console.log(`\n  Run: pnpm run <name>      Full CI gate: pnpm run ci`);

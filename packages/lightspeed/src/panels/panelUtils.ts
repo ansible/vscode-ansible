@@ -33,7 +33,7 @@ export function getWebviewHtml(
     const htmlFile = findHtmlFile(distBase.fsPath, `${entryPoint}.html`);
 
     if (!htmlFile) {
-        return `<html><body><h2>Webview not found</h2><p>Could not find ${entryPoint}.html in dist/webviews/. Run <code>npm run build:webviews -w packages/lightspeed</code>.</p></body></html>`;
+        return `<html><body><h2>Webview not found</h2><p>Could not find ${entryPoint}.html in dist/webviews/. Run <code>pnpm --filter @ansible/lightspeed run build:webviews</code>.</p></body></html>`;
     }
 
     let html = fs.readFileSync(htmlFile, 'utf8');

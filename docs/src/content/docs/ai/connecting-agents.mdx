@@ -42,7 +42,7 @@ Download `mcp-server.js` from the latest [CI build](https://github.com/ansible/v
 ```bash
 git clone https://github.com/ansible/vscode-ansible.git
 cd vscode-ansible && git checkout next
-npm ci && npm run build
+pnpm install --frozen-lockfile && pnpm run build
 # Output: dist/mcp-server.js (~950KB, zero dependencies)
 ```
 

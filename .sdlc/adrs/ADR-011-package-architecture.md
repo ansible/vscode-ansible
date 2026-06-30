@@ -301,7 +301,7 @@ architecture self-documenting. The migration is a one-time cost.
 
 - **Zero resolution hacks**: No `typesVersions`, no `paths`
   workarounds, no esbuild aliases for cross-package resolution.
-  Standard npm workspace resolution works everywhere.
+  Standard pnpm workspace resolution works everywhere.
 - **Self-documenting architecture**: Package names communicate their
   contract. `@ansible/common` is safe everywhere; `@ansible/services`
   requires Node.js. New contributors and AI agents know immediately
@@ -361,7 +361,7 @@ architecture self-documenting. The migration is a one-time cost.
   migration.
 - **Phase 4**: Remove all resolution workarounds (`typesVersions`,
   `paths`, esbuild aliases). Verify `tsc -b`, `vitest run`, and
-  `npm exec eslint -- .` pass clean.
+  `pnpm exec eslint -- .` pass clean.
 - **Phase 5**: Update ADR-005 (architectural invariants) and
   `AGENTS.md` to reference the new package names.
 
@@ -381,7 +381,7 @@ architecture self-documenting. The migration is a one-time cost.
 
 - [TypeScript `typesVersions`](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html#version-selection-with-typesversions) — the mechanism we are removing
 - [Node.js `exports` field](https://nodejs.org/api/packages.html#exports) — the mechanism that did not work with our toolchain
-- [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) — how packages reference each other
+- [pnpm workspaces](https://pnpm.io/workspaces) — how packages reference each other
 
 ---
 

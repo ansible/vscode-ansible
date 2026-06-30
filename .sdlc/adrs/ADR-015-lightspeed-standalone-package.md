@@ -129,7 +129,7 @@ Keep Lightspeed on `main` only and let users who need it stay on
 - **Clean removal path.** Deleting the package directory plus a handful
   of registration lines removes Lightspeed completely. A documented
   removal checklist makes this a mechanical task.
-- **Core test suite unaffected.** Root `npm test` and WDIO runs never
+- **Core test suite unaffected.** Root `pnpm test` and WDIO runs never
   include Lightspeed tests.
 - **Opt-in activation.** Users who don't enable Lightspeed pay zero
   activation cost.

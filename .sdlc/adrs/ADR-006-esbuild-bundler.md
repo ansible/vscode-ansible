@@ -109,7 +109,7 @@ Packages use their own `tsconfig.json` `paths` scoped to their directory.
     "scripts": {
         "compile": "tsc -b",
         "build": "node scripts/build.mjs",
-        "vscode:prepublish": "npm run compile && npm run build",
+        "vscode:prepublish": "pnpm run compile && pnpm run build",
         "watch": "tsc -b -w",
     },
 }

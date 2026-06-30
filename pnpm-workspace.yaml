@@ -1,0 +1,35 @@
+packages:
+  - 'packages/*'
+  - 'docs'
+
+overrides:
+  "mocha>diff": "^8.0.3"
+  "mocha>serialize-javascript": "^7.0.5"
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  edgedriver: true
+  geckodriver: true
+  "@vscode/vsce-sign": true
+  keytar: true
+  unrs-resolver: true
+  "wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb": true
+
+minimumReleaseAgeExclude:
+  - '@commitlint/cli@21.2.0'
+  - '@commitlint/config-conventional@21.2.0'
+  - '@commitlint/config-validator@21.2.0'
+  - '@commitlint/ensure@21.2.0'
+  - '@commitlint/format@21.2.0'
+  - '@commitlint/is-ignored@21.2.0'
+  - '@commitlint/lint@21.2.0'
+  - '@commitlint/load@21.2.0'
+  - '@commitlint/message@21.2.0'
+  - '@commitlint/parse@21.2.0'
+  - '@commitlint/read@21.2.0'
+  - '@commitlint/resolve-extends@21.2.0'
+  - '@commitlint/rules@21.2.0'
+  - '@commitlint/top-level@21.2.0'
+  - '@commitlint/types@21.2.0'
+  - prettier@3.9.4

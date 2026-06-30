@@ -18,6 +18,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-016](ADR-016-docs-as-ecosystem-hub.md)          | Documentation Site as Ecosystem Hub                      | 2026-06-22 |
 | [ADR-017](ADR-017-status-bar-click-to-quickpick.md)  | Status Bar Click-to-QuickPick Interaction                | 2026-06-22 |
 | [ADR-020](ADR-020-single-repo-multi-distribution.md) | Single Repository, Multiple Distribution Formats         | 2026-06-26 |
+| [ADR-022](ADR-022-pnpm-package-manager.md)           | Migrate to pnpm for Supply-Chain Security                | 2026-06-30 |
 
 ## Accepted
 
@@ -38,14 +39,14 @@ Decisions that have been accepted but are not yet fully implemented.
 
 Decisions under consideration — not yet accepted or implemented.
 
-| ADR                                        | Title                                            | Date       |
-| ------------------------------------------ | ------------------------------------------------ | ---------- |
-| [ADR-003](ADR-003-ee-via-devcontainers.md) | Execution Environment Support via Dev Containers | 2026-05-26 |
+| ADR                                                    | Title                                            | Date       |
+| ------------------------------------------------------ | ------------------------------------------------ | ---------- |
+| [ADR-003](ADR-003-ee-via-devcontainers.md)             | Execution Environment Support via Dev Containers | 2026-05-26 |
 
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-021)
+2. Use the next available number (currently ADR-023)
 3. Include:
     - Status (Proposed → Accepted → Implemented)
     - Date

@@ -14,7 +14,7 @@
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@ansible/common": "0.0.1",
+    "@ansible/common": "workspace:*",
     "js-yaml": "^4.1.1"
   }
 }

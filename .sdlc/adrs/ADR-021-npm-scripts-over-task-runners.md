@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Partially superseded by ADR-022 — npm replaced by pnpm; `deps:check` replaced by `pnpm outdated`; script discoverability mitigations (help.mjs) remain
 
 ## Date
 
