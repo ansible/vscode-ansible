@@ -36,7 +36,7 @@ session), cherry-pick or rebase them onto the new branch.
 ### Step 2: Run the full CI check locally
 
 ```bash
-npm run ci
+pnpm run ci
 ```
 
 This single command runs skill codegen, TypeScript compilation, ESLint
@@ -47,20 +47,20 @@ esbuild production bundle. It mirrors what CI runs.
 changed. If the branch has pre-existing violations (e.g., from an old base),
 rebase onto `upstream/next` first.
 
-**CRITICAL:** Run `npm run ci` as the **last step before committing**.
+**CRITICAL:** Run `pnpm run ci` as the **last step before committing**.
 Do not push if it fails. Do not claim quality gates passed without
 running this command. Partial lint (on changed files only) or skipping
 the build step has caused repeated CI failures.
 
 If violations are found:
 
-1. Run `npm exec eslint -- . --fix` to auto-fix what it can
+1. Run `pnpm exec eslint -- . --fix` to auto-fix what it can
 2. Manually fix remaining violations (type errors, test failures)
-3. Re-run `npm run ci` until clean — do not shortcut with partial runs
+3. Re-run `pnpm run ci` until clean — do not shortcut with partial runs
 
-**Rebuild reminder:** After any code change, `npm run ci` handles
+**Rebuild reminder:** After any code change, `pnpm run ci` handles
 compilation and bundling. If testing interactively (e.g., reloading the
-extension), also run `npm run compile && npm run build` explicitly.
+extension), also run `pnpm run compile && pnpm run build` explicitly.
 
 ### Step 3: Self-review the diff
 
@@ -229,7 +229,7 @@ If there are no findings across all 9 questions, return:
   "No findings."
 ```
 
-**Act on every finding.** Fix the code, then re-run `npm run ci`.
+**Act on every finding.** Fix the code, then re-run `pnpm run ci`.
 Do not dismiss findings without a clear technical justification
 documented in the self-review output.
 
@@ -304,8 +304,8 @@ gh pr create --base next --label "<type>" --title "conventional commit style tit
 - List each AI-generated artifact and its purpose
 
 ## Test plan
-- [ ] `npm run ci` passes (compile + lint + test:coverage + build)
-- [ ] `npm run test:ui` passes (if e2e-relevant changes)
+- [ ] `pnpm run ci` passes (compile + lint + test:coverage + build)
+- [ ] `pnpm run test:ui` passes (if e2e-relevant changes)
 
 related: #<issue_number>
 EOF

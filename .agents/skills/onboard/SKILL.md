@@ -33,14 +33,14 @@ directly to that section.
 Read and present `CONTRIBUTING.md` (prerequisites, setup, daily
 workflow). Confirm the developer has:
 
-- Node.js 22+ and npm 10+
+- Node.js 22+ and pnpm 11+
 - VS Code installed
-- The repo cloned and `npm ci` completed
+- The repo cloned and `pnpm install --frozen-lockfile` completed
 
 Then run:
 
 ```bash
-npm run compile && npm run build
+pnpm run compile && pnpm run build
 ```
 
 Verify both succeed. If not, troubleshoot before continuing.
@@ -95,13 +95,13 @@ Walk through the daily development loop:
 2. **Edit → Check → Iterate cycle**:
 
     ```bash
-    npm run check    # compile + lint + test (fast feedback)
+    pnpm run check    # compile + lint + test (fast feedback)
     ```
 
 3. **Before committing**:
 
     ```bash
-    npm run ci       # compile + lint + test:coverage + build
+    pnpm run ci       # compile + lint + test:coverage + build
     ```
 
     This mirrors CI. Do not push if it fails.
@@ -120,8 +120,8 @@ Walk through the daily development loop:
 6. **Testing the extension locally**:
 
     ```bash
-    npm run package           # package VSIX only
-    npm run package:install   # package + install into VS Code
+    pnpm run package           # package VSIX only
+    pnpm run package:install   # package + install into VS Code
     ```
 
     After `package:install`, reload VS Code to activate the updated
@@ -167,14 +167,14 @@ Explain the test structure:
 - **Integration tests** — `test/integration/` (requires VS Code test runner)
 - **UI tests** (`wdio`) — `test/ui/` (requires display server)
 - **Coverage thresholds** — 85% statements, 75% branches, 85%
-  functions, 85% lines (enforced by `npm run test:coverage`)
+  functions, 85% lines (enforced by `pnpm run test:coverage`)
 
 Show how to run tests:
 
 ```bash
-npm test              # quick unit tests
-npm run test:coverage # with thresholds (matches CI)
-npm run test:ui       # e2e (requires display)
+pnpm test              # quick unit tests
+pnpm run test:coverage # with thresholds (matches CI)
+pnpm run test:ui       # e2e (requires display)
 ```
 
 ### Section 8: Common Pitfalls

@@ -72,7 +72,7 @@ repo = "local"
 [[repos.hooks]]
 id = "eslint"
 name = "eslint"
-entry = "npm exec eslint -- . --no-warn-ignored --color --fix --max-warnings=0"
+entry = "pnpm exec eslint . --no-warn-ignored --color --fix --max-warnings=0"
 language = "system"
 pass_filenames = false
 priority = 0
@@ -81,10 +81,19 @@ always_run = true
 [[repos.hooks]]
 id = "cspell"
 name = "cspell"
-entry = "npm exec cspell -- --no-progress --no-summary --color"
+entry = "pnpm exec cspell --no-progress --no-summary --color"
 language = "system"
 types = ["markdown"]
 exclude = '(node_modules/|dist/|out/|\.wdio-vscode/)'
+priority = 0
+
+[[repos.hooks]]
+id = "check-script-docs"
+name = "check-script-docs"
+entry = "node scripts/check-script-docs.mjs"
+language = "system"
+pass_filenames = false
+files = '^package\.json$|^scripts/help\.mjs$'
 priority = 0
 
 [[repos.hooks]]

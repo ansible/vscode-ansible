@@ -2,7 +2,11 @@
 
 ## Status
 
-Implemented
+Superseded
+
+> Superseded by [ADR-022](ADR-022-pnpm-package-manager.md). The
+> principle (prefer explicit exec over npx) is unchanged but now
+> expressed as `pnpm exec`.
 
 ## Date
 

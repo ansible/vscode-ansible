@@ -4,7 +4,7 @@ set -euo pipefail
 # Build the Open Plugin distributable from source skills and bundled servers.
 # Output: dist/plugin/ directory and dist/ansible-devtools-plugin.zip artifact.
 #
-# Prerequisites: run `npm run build` first to produce dist/mcp-server.js
+# Prerequisites: run `pnpm run build` first to produce dist/mcp-server.js
 # and dist/language-server.js (esbuild single-file bundles).
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,7 +17,7 @@ VERSION="${PLUGIN_VERSION:-$(node -p "require('$ROOT_DIR/packages/mcp-server/pac
 # Verify bundled servers exist
 for server in mcp-server.js language-server.js; do
   if [[ ! -f "$ROOT_DIR/dist/$server" ]]; then
-    echo "ERROR: dist/$server not found. Run 'npm run build' first." >&2
+    echo "ERROR: dist/$server not found. Run 'pnpm run build' first." >&2
     exit 1
   fi
 done
@@ -70,7 +70,7 @@ EOF
 cp "$PLUGIN_DIR/.plugin/plugin.json" "$PLUGIN_DIR/.cursor-plugin/plugin.json"
 cp "$PLUGIN_DIR/.plugin/plugin.json" "$PLUGIN_DIR/.claude-plugin/plugin.json"
 
-# Write .mcp.json — points to bundled server, no npm install needed
+# Write .mcp.json — points to bundled server, no package install needed
 cat > "$PLUGIN_DIR/.mcp.json" <<EOF
 {
   "mcpServers": {
@@ -120,7 +120,7 @@ AI agent plugin for Ansible development — works with Cursor, Claude Code, and 
 - **MCP server** with 25+ tools for plugin search, documentation, task generation, scaffolding, and execution environment management
 - **Language server** providing YAML completion, hover documentation, and diagnostics for Ansible files
 
-All servers are bundled as single-file Node.js scripts — no npm install required. Just Node.js 20+.
+All servers are bundled as single-file Node.js scripts — no package install required. Just Node.js 20+.
 
 ## Installation
 

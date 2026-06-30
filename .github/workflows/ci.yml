@@ -18,25 +18,27 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        node-version: [20, 22]
+        node-version: [22, 24, 26]
 
     steps:
       - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Compile
-        run: npm run compile
+        run: pnpm run compile
 
       - name: Run tests with coverage
-        run: npm run test:coverage
+        run: pnpm run test:coverage
 
       - name: Upload coverage to Codecov
         if: ${{ always() && hashFiles('coverage/cobertura-coverage.xml') != '' }}
@@ -53,19 +55,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install prek and uv
         run: |
           pipx install prek
           pipx install uv
 
-      - run: npm ci --ignore-scripts
-      - run: npm run lint
-      - run: npm run lint:knip
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run lint:knip
 
   integration:
     runs-on: ubuntu-latest
@@ -73,17 +77,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
-      - run: npm run compile
-      - run: npm run build
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      - run: pnpm run build
 
       - name: Run integration tests
-        run: xvfb-run --auto-servernum npm run test:integration
+        run: xvfb-run --auto-servernum pnpm run test:integration
 
   ui:
     runs-on: ubuntu-latest
@@ -94,31 +100,33 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
-      - run: npm run compile
-      - run: npm run build
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run compile
+      - run: pnpm run build
 
       - name: Pre-install Chromedriver
-        run: npx tsx tools/ensure-chromedriver.mts
+        run: pnpm exec tsx tools/ensure-chromedriver.mts
 
       - name: Install test dependency extensions
-        run: npm run pretest:ui
+        run: pnpm run pretest:ui
 
       - name: Build Lightspeed webviews
-        run: npm run build:lightspeed:webviews
+        run: pnpm run build:lightspeed:webviews
 
       - name: Run UI tests
-        run: xvfb-run --auto-servernum npm run test:ui
+        run: xvfb-run --auto-servernum pnpm run test:ui
         env:
           WDIO_COVERAGE: "1"
 
       - name: Run Lightspeed UI tests
-        run: xvfb-run --auto-servernum npm run test:lightspeed:ui
+        run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
         env:
           WDIO_COVERAGE: "1"
 
@@ -137,14 +145,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
       - name: Build docs
-        run: npm run docs:build
+        run: pnpm run docs:build
 
   package:
     runs-on: ubuntu-latest
@@ -152,18 +162,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       - name: Build VSIX
-        run: npm exec vsce -- package --no-dependencies
+        run: pnpm exec vsce package --no-dependencies
 
       - name: Build servers
-        run: npm run build
+        run: pnpm run build
 
       - name: Build plugin
         run: ./scripts/build-plugin.sh

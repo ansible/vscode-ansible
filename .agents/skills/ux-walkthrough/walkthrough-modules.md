@@ -31,7 +31,7 @@ drive module order, exercises, and Canvas content. Do not parse the block below.
                 },
                 {
                     "title": "Build the extension",
-                    "description": "In the repo window: npm run compile && npm run build"
+                    "description": "In the repo window: pnpm run compile && pnpm run build"
                 },
                 {
                     "title": "Press F5 (Run Extension)",

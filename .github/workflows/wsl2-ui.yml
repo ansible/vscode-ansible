@@ -51,33 +51,35 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Compile
-        run: npm run compile
+        run: pnpm run compile
 
       - name: Bundle
-        run: npm run build
+        run: pnpm run build
 
       - name: Pre-install Chromedriver
         shell: bash
-        run: npx tsx tools/ensure-chromedriver.mts
+        run: pnpm exec tsx tools/ensure-chromedriver.mts
 
       - name: Install test dependency extensions
-        run: npm run pretest:ui
+        run: pnpm run pretest:ui
 
       - name: WDIO smoke tests
-        run: npm exec wdio -- run wdio.conf.wsl.ts
+        run: pnpm exec wdio run wdio.conf.wsl.ts
 
       - name: Integration tests
-        run: npm run test:integration
+        run: pnpm run test:integration
 
   # ╔═══════════════════════════════════════════════════════════════════╗
   # ║  Job 2 — Fedora WSL: full WDIO test suite                      ║
@@ -132,7 +134,7 @@ jobs:
       - name: Provision Fedora WSL2
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && useradd -m ci && node --version && python3 --version"
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
 
       # ── Build and test inside WSL ─────────────────────────────────
       - name: Copy source to WSL native filesystem
@@ -143,32 +145,32 @@ jobs:
       - name: Install dependencies
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm ci"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm install --frozen-lockfile"
 
       - name: Compile
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run compile"
 
       - name: Bundle
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run build"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run build"
 
       - name: Pre-install Chromedriver
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npx tsx tools/ensure-chromedriver.mts"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm exec tsx tools/ensure-chromedriver.mts"
 
       - name: Install test dependency extensions
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 npm run pretest:ui"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run pretest:ui"
 
       - name: WDIO full test suite
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum npm run test:ui"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:ui"
 
   # ╔═══════════════════════════════════════════════════════════════════╗
   # ║  Job 3 — Fedora WSL: unit tests + integration tests             ║
@@ -226,7 +228,7 @@ jobs:
       - name: Provision Fedora WSL2
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && useradd -m ci && node --version && python3 --version"
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
 
       # ── Build and test inside WSL ─────────────────────────────────
       - name: Copy source to WSL native filesystem
@@ -237,22 +239,22 @@ jobs:
       - name: Install dependencies
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm ci"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm install --frozen-lockfile"
 
       - name: Compile
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run compile"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run compile"
 
       - name: Bundle
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run build"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run build"
 
       - name: Unit tests with coverage
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && npm run test:coverage"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run test:coverage"
 
       - name: Copy coverage out of WSL
         if: ${{ always() }}
@@ -273,4 +275,4 @@ jobs:
       - name: Integration tests
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum npm run test:integration"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:integration"

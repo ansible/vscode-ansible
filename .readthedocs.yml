@@ -18,10 +18,11 @@ build:
     nodejs: "24"
   jobs:
     install:
-      - npm ci
+      - npm install -g pnpm
+      - pnpm install --frozen-lockfile
     build:
       html:
-        - npm run docs:build
+        - pnpm run docs:build
     post_build:
       - mkdir -p $READTHEDOCS_OUTPUT/html/
       - cp --recursive docs/dist/* $READTHEDOCS_OUTPUT/html/

@@ -13,10 +13,7 @@
     "vscode": "^1.93.0",
     "node": ">=22.18.0"
   },
-  "workspaces": [
-    "packages/*",
-    "docs"
-  ],
+  "packageManager": "pnpm@11.9.0",
   "categories": [
     "Other"
   ],
@@ -1145,36 +1142,36 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile && npm run build",
+    "vscode:prepublish": "pnpm run compile && pnpm run build",
     "compile": "node scripts/generate-skill-content.mjs && tsc -b",
     "prebuild": "node scripts/generate-skill-content.mjs",
     "build": "node scripts/build.mjs",
     "build:production": "node scripts/build.mjs --production",
     "watch": "tsc -b -w",
     "watch:bundle": "node scripts/build.mjs --watch",
-    "pretest": "npm run compile && npm run lint",
+    "pretest": "pnpm run compile && pnpm run lint",
     "lint": "prek run -a",
     "lint:eslint": "prek run -a -v eslint",
     "lint:knip": "knip",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "check": "npm run compile && npm run lint && npm run test",
-    "ci": "npm run compile && npm run lint && npm run lint:prek && npm run lint:knip && npm run test:coverage && npm run build",
+    "check": "pnpm run compile && pnpm run lint && pnpm run test",
+    "ci": "pnpm run compile && pnpm run lint && pnpm run lint:knip && pnpm run test:coverage && pnpm run build",
     "test:watch": "vitest",
     "package": "vsce package --no-dependencies",
     "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "pretest:ui": "node scripts/install-test-extensions.mjs",
     "test:ui": "wdio run wdio.conf.ts",
-    "docs:dev": "npm run dev -w docs",
-    "docs:build": "npm run build -w docs",
-    "docs:preview": "npm run preview -w docs",
-    "test:lightspeed": "npm run test -w packages/lightspeed",
+    "docs:dev": "pnpm --filter docs run dev",
+    "docs:build": "pnpm --filter docs run build",
+    "docs:preview": "pnpm --filter docs run preview",
+    "test:lightspeed": "pnpm --filter @ansible/lightspeed run test",
     "test:lightspeed:ui": "wdio run wdio.lightspeed.conf.ts",
-    "build:lightspeed:webviews": "npm run build:webviews -w packages/lightspeed",
-    "pretest:wdio": "npx tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs",
+    "build:lightspeed:webviews": "pnpm --filter @ansible/lightspeed run build:webviews",
+    "pretest:wdio": "pnpm exec tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs",
     "help": "node scripts/help.mjs",
-    "deps:check": "echo '=== Outdated ===' && npm outdated --depth=0 || true && echo '\n=== Audit ===' && npm audit || true"
+    "deps:check": "echo '=== Outdated ===' && pnpm outdated || true && echo '\n=== Audit ===' && pnpm audit || true"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",
@@ -1213,15 +1210,16 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.62.1",
+    "tsx": "^4.22.4",
     "vitest": "^3.1.1",
     "wdio-vscode-service": "github:cidrblock/wdio-vscode-service#f8f4d79"
   },
   "dependencies": {
-    "@ansible/common": "*",
-    "@ansible/lightspeed": "*",
-    "@ansible/mcp-server": "*",
-    "@ansible/services": "*",
-    "@ansible/ui": "*",
+    "@ansible/common": "workspace:*",
+    "@ansible/lightspeed": "workspace:*",
+    "@ansible/mcp-server": "workspace:*",
+    "@ansible/services": "workspace:*",
+    "@ansible/ui": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@types/js-yaml": "^4.0.9",
     "@vscode-elements/elements": "^1.6.0",
@@ -1231,13 +1229,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "vscode-languageclient": "^9.0.1",
+    "yaml": "^2.9.0",
     "zod": "^4.3.5",
     "zod-to-json-schema": "^3.25.1"
-  },
-  "overrides": {
-    "mocha": {
-      "diff": "^8.0.3",
-      "serialize-javascript": "^7.0.5"
-    }
   }
 }

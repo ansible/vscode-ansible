@@ -6,7 +6,7 @@
         "dist",
         "out",
         ".wdio-vscode",
-        "package-lock.json",
+        "pnpm-lock.yaml",
         "*.vsix",
         "coverage",
         "**/*.content.ts",
@@ -52,6 +52,7 @@
         "packageable",
         "pipenv",
         "pipx",
+        "pnpm",
         "primeuix",
         "primevue",
         "playbook",
@@ -99,7 +100,7 @@
     "overrides": [
         {
             "filename": ".sdlc/**",
-            "words": ["BYOLLM", "GSTACK", "PKCE", "elicitations", "kiro", "taskfile"]
+            "words": ["BYOLLM", "GSTACK", "PKCE", "bunfig", "cooldown", "edgedriver", "elicitations", "kiro", "Mondoo", "Palo", "taskfile", "unrs"]
         }
     ]
 }

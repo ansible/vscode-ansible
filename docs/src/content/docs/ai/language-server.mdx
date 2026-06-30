@@ -32,8 +32,8 @@ If you install the [Ansible DevTools Plugin](/ai/plugin/), the language server i
 git clone https://github.com/ansible/vscode-ansible.git
 cd vscode-ansible
 git checkout next
-npm ci
-npm run build
+pnpm install --frozen-lockfile
+pnpm run build
 # Output: dist/language-server.js (single file, ~1.3MB)
 ```
 

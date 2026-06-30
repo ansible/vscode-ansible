@@ -94,17 +94,17 @@ See the `branching-strategy` skill for full details.
 
 ### Prerequisites
 
-`npm run ci` requires two tools that are **not** npm dependencies:
+`pnpm run ci` requires two tools that are **not** pnpm dependencies:
 
 - **prek** — pre-commit hook runner (`pipx install prek`)
 - **uv** — Python package runner, provides `uvx` (`pipx install uv`)
 
 Both are installed automatically in CI. Contributors must install them
-locally before running `npm run ci` or `npm run lint:prek`.
+locally before running `pnpm run ci` or `pnpm run lint`.
 
 ### Before committing
 
-1. `npm run ci` — **required before every commit/push**. Runs skill
+1. `pnpm run ci` — **required before every commit/push**. Runs skill
    codegen, TypeScript compilation, ESLint, prek hooks (skillmark,
    cspell, markdownlint, actionlint, file hygiene), knip (unused
    deps/exports), Vitest with coverage thresholds (85/75/85/85), and
@@ -113,15 +113,15 @@ locally before running `npm run ci` or `npm run lint:prek`.
    command.
 2. Verify no architectural invariants (above) were violated.
 
-For iterative development, `npm run check` (compile + lint + test
+For iterative development, `pnpm run check` (compile + lint + test
 without coverage thresholds or build) is acceptable. Switch to
-`npm run ci` before committing.
+`pnpm run ci` before committing.
 
 ### Rebuild after changes
 
-After **any** code change, run `npm run compile && npm run build`.
+After **any** code change, run `pnpm run compile && pnpm run build`.
 The extension, MCP server, and language server all load from `dist/`
-(esbuild bundles) — stale bundles mask bugs. `npm run ci` includes
+(esbuild bundles) — stale bundles mask bugs. `pnpm run ci` includes
 both steps, but if you are testing interactively (e.g., reloading the
 extension window), rebuild explicitly.
 

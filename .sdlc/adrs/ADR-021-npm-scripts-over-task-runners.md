@@ -4,6 +4,10 @@
 
 Accepted
 
+> Partially superseded by [ADR-022](ADR-022-pnpm-package-manager.md) —
+> npm replaced by pnpm; `deps:check` replaced by `pnpm outdated`;
+> script discoverability mitigations (help.mjs) remain.
+
 ## Date
 
 2026-06-29

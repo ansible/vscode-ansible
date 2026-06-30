@@ -34,7 +34,7 @@ Growing demand for Ansible tooling in non-VS Code contexts — Neovim LSP client
 
 ## Decision
 
-**We will organize the codebase as an npm monorepo with three packages — `@ansible/core`, `@ansible/language-server`, and `@ansible/mcp-server` — where `@ansible/core` contains all VS Code-independent domain logic and the other packages are thin consumer shells.**
+**We will organize the codebase as a pnpm monorepo with three packages — `@ansible/core`, `@ansible/language-server`, and `@ansible/mcp-server` — where `@ansible/core` contains all VS Code-independent domain logic and the other packages are thin consumer shells.**
 
 ```text
 packages/
@@ -139,7 +139,7 @@ src/
 ### Negative
 
 - **Conditional require pattern**: The `try { vscode = require('vscode') } catch {}` pattern is unconventional and can surprise contributors unfamiliar with the codebase.
-- **Monorepo tooling**: npm workspaces add build configuration complexity (workspace protocol, TypeScript project references, coordinated compilation).
+- **Monorepo tooling**: pnpm workspaces add build configuration complexity (workspace protocol, TypeScript project references, coordinated compilation).
 - **Degraded standalone behavior**: Some features (e.g., status bar messages, Python environment discovery via the `ms-python.vscode-python-envs` extension) are only available inside VS Code. Standalone consumers get functional but reduced behavior.
 
 ### Neutral

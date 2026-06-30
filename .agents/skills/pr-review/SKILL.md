@@ -133,7 +133,7 @@ above should catch novel issues these don't cover.
 - **JSDoc**: ESLint enforces `jsdoc/require-param` (with description)
   and `jsdoc/require-returns` on exported functions
 - **Prettier**: single quotes, trailing commas; run
-  `npm exec eslint -- . --fix` before review
+  `pnpm exec eslint -- . --fix` before review
 - **Imports**: use `@src/*` aliases for cross-package imports, not
   relative `../` paths; remove unused imports
 - **VS Code commands**: guard `node` parameters — Command Palette can
@@ -194,15 +194,15 @@ gh run view RUN_ID --log-failed 2>&1 | tail -80
 
 Common CI failures and how to fix them:
 
-- **Any of lint / compile / test / build**: Run `npm run ci` locally to
+- **Any of lint / compile / test / build**: Run `pnpm run ci` locally to
   reproduce the full CI pipeline. This is the fastest path to a fix.
-- **lint (eslint)**: Run `npm exec eslint -- . --fix` to auto-fix.
+- **lint (eslint)**: Run `pnpm exec eslint -- . --fix` to auto-fix.
   Common issues: unused imports, missing JSDoc, prettier formatting.
-- **compile (tsc)**: Run `npm run compile` (includes skill codegen).
+- **compile (tsc)**: Run `pnpm run compile` (includes skill codegen).
   Fix type mismatches, missing imports, and `any` type leaks.
-- **unit tests (vitest)**: Run `npm run test:coverage` to match CI
+- **unit tests (vitest)**: Run `pnpm run test:coverage` to match CI
   thresholds. Update tests when behavior changes.
-- **e2e tests (wdio)**: Run `npm run test:ui` to reproduce. These tests
+- **e2e tests (wdio)**: Run `pnpm run test:ui` to reproduce. These tests
   launch a real VS Code instance — check for timing issues and flaky
   selectors.
 

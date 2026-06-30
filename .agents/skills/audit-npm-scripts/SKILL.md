@@ -6,21 +6,21 @@ description: >
     removing, or renaming npm scripts, or when reviewing a PR that changes
     build commands.
 user-invocable: true
-triggers: [audit scripts, sync scripts, script drift, npm scripts]
+triggers: [audit scripts, sync scripts, script drift, pnpm scripts]
 ---
 
-# Audit npm Scripts
+# Audit pnpm Scripts
 
-Detect and fix drift between the four sources of truth for npm scripts:
+Detect and fix drift between the four sources of truth for pnpm scripts:
 
 1. **`package.json`** `scripts` — the canonical definitions
-2. **`scripts/help.mjs`** `catalog` — categorized descriptions for `npm run help`
+2. **`scripts/help.mjs`** `catalog` — categorized descriptions for `pnpm run help`
 3. **`CLAUDE.md`** — agent-facing documentation
 4. **`README.md`** — contributor-facing documentation
 
 ## When to Run
 
-- After adding, removing, or renaming an npm script
+- After adding, removing, or renaming a pnpm script
 - As part of PR self-review (submit-pr skill, Step 3)
 - When a contributor reports that docs don't match available commands
 
@@ -41,7 +41,7 @@ Read the four files and extract the script names from each:
 
 For each script in `package.json`, check:
 
-- **Missing from help.mjs** — the script won't appear in `npm run help`
+- **Missing from help.mjs** — the script won't appear in `pnpm run help`
 - **Missing from CLAUDE.md** — agents won't know about it
 - **Missing from README.md** — contributors won't know about it
 
@@ -66,14 +66,14 @@ For each finding:
 
 ### 4. Verify
 
-Run `npm run help` and confirm the output is complete and accurate.
+Run `pnpm run help` and confirm the output is complete and accurate.
 
 ## Output Format
 
 Report findings as a checklist:
 
 ```text
-npm scripts audit:
+pnpm scripts audit:
   [x] package.json has 27 scripts (25 user-facing, 2 lifecycle hooks)
   [x] help.mjs covers 25/25 user-facing scripts
   [ ] CLAUDE.md missing: test:lightspeed:ui, build:lightspeed:webviews
