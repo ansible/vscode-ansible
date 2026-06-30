@@ -42,11 +42,12 @@ Decisions under consideration — not yet accepted or implemented.
 | ADR                                                    | Title                                            | Date       |
 | ------------------------------------------------------ | ------------------------------------------------ | ---------- |
 | [ADR-003](ADR-003-ee-via-devcontainers.md)             | Execution Environment Support via Dev Containers | 2026-05-26 |
+| [ADR-023](ADR-023-wdio-feature-coverage.md)            | WDIO Feature Coverage Model                      | 2026-06-30 |
 
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-023)
+2. Use the next available number (currently ADR-024)
 3. Include:
     - Status (Proposed → Accepted → Implemented)
     - Date

@@ -1212,7 +1212,7 @@
     "typescript-eslint": "^8.62.1",
     "tsx": "^4.22.4",
     "vitest": "^3.1.1",
-    "wdio-vscode-service": "github:cidrblock/wdio-vscode-service#0884a30"
+    "wdio-vscode-service": "^8.0.0"
   },
   "dependencies": {
     "@ansible/common": "workspace:*",
