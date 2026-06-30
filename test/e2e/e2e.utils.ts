@@ -162,17 +162,21 @@ export function unSetFixtureAnsibleCollectionPathEnv(): void {
 }
 
 export async function enableExecutionEnvironmentSettings(): Promise<void> {
-  await updateSettings("trace.server", "verbose", "ansibleServer");
-  await updateSettings("executionEnvironment.enabled", true);
-
   const volumeMounts = [
     {
       src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
       dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
-      options: "ro", // read-only option for volume mounts
+      options: "ro",
     },
   ];
-  await updateSettings("executionEnvironment.volumeMounts", volumeMounts);
+
+  // Fire all three updates concurrently to minimize the window between
+  // the first and last didChangeConfiguration the ALS receives.
+  await Promise.all([
+    updateSettings("trace.server", "verbose", "ansibleServer"),
+    updateSettings("executionEnvironment.enabled", true),
+    updateSettings("executionEnvironment.volumeMounts", volumeMounts),
+  ]);
 }
 
 export async function disableExecutionEnvironmentSettings(): Promise<void> {
@@ -290,7 +294,7 @@ export async function testDiagnostics(
       assert.deepEqual(
         actualDiagnostic.range,
         expectedDiagnostic.range,
-        `Expected range ${expectedDiagnostic.range} but got ${actualDiagnostic.range}`,
+        `Expected range ${String(expectedDiagnostic.range)} but got ${String(actualDiagnostic.range)}`,
       );
       assert.strictEqual(
         actualDiagnostic.severity,
@@ -358,7 +362,7 @@ async function waitForDiagnosisCompletion(
       // treat it as if no processes were found to avoid test failures.
       // This makes the function more resilient to transient errors.
       console.warn(
-        `[waitForDiagnosisCompletion] Error checking for processes: ${error}`,
+        `[waitForDiagnosisCompletion] Error checking for processes: ${error instanceof Error ? error.message : String(error)}`,
       );
       processes = [];
     }

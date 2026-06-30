@@ -15,6 +15,7 @@ import {
   getDoc,
   resolveDocUri,
   setFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -242,7 +243,7 @@ describe("getAnsibleMetaData()", function () {
 
     describe("Verify ansible-lint details", function () {
       it("should contain all the keys for ansible-lint information", function () {
-        expect(actualAnsibleMetaData["ansible-lint information"]);
+        expect(actualAnsibleMetaData["ansible-lint information"]).toBeDefined();
         if (actualAnsibleMetaData["ansible-lint information"]) {
           const expectedKeys = Object.keys(ansibleLintInfoForTest);
           const actualKeys = Object.keys(
@@ -302,6 +303,10 @@ describe("getAnsibleMetaData()", function () {
 
   describe("@ee", function () {
     beforeAll(async () => {
+      if (skipEE()) {
+        return;
+      }
+
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings, context);
       }

@@ -7,7 +7,8 @@
         <template
           v-if="failures.length === 1 && failures[0].type === 'ansible-creator'"
         >
-          This feature requires ansible-creator version <b>25.0.1</b> or higher.
+          This feature requires ansible-creator version
+          <b>{{ failures[0].required }}</b> or higher.
           To upgrade or install ansible-creator, please refer to the official
           installation and upgrade
           <a href="https://docs.ansible.com/projects/creator/installing/"
@@ -54,6 +55,9 @@ defineProps<{
   margin-bottom: 20px;
   box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.04);
   gap: 18px;
+  width: 100%;
+  max-width: 650px;
+  box-sizing: border-box;
 }
 .banner-icon {
   font-size: 2em;

@@ -52,7 +52,7 @@ export class DocsLibrary {
       /* v8 ignore end */
       /* v8 ignore next */
       for (const modulesPath of ansibleConfig.module_locations) {
-        await this.findDocumentationInModulesPath(modulesPath);
+        this.findDocumentationInModulesPath(modulesPath);
       }
 
       (
@@ -62,6 +62,9 @@ export class DocsLibrary {
       for (const collectionsPath of ansibleConfig.collections_paths) {
         await this.findDocumentationInCollectionsPath(collectionsPath);
       }
+      void this.connection.sendNotification("ansible/docsLibraryReady", {
+        modulesCount: this.modules.size,
+      });
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
@@ -172,31 +175,29 @@ export class DocsLibrary {
     return [module, hitFqcn];
   }
 
-  private async findDocumentationInModulesPath(modulesPath: string) {
-    (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
+  private findDocumentationInModulesPath(modulesPath: string) {
+    findDocumentation(modulesPath, "builtin").forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);
     });
 
-    (await findDocumentation(modulesPath, "builtin_doc_fragment")).forEach(
-      (doc) => {
-        this.docFragments.set(doc.fqcn, doc);
-      },
-    );
+    findDocumentation(modulesPath, "builtin_doc_fragment").forEach((doc) => {
+      this.docFragments.set(doc.fqcn, doc);
+    });
   }
 
   private async findDocumentationInCollectionsPath(collectionsPath: string) {
-    (await findDocumentation(collectionsPath, "collection")).forEach((doc) => {
+    findDocumentation(collectionsPath, "collection").forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);
     });
 
     /* v8 ignore start */
-    (
-      await findDocumentation(collectionsPath, "collection_doc_fragment")
-    ).forEach((doc) => {
-      this.docFragments.set(doc.fqcn, doc);
-    });
+    findDocumentation(collectionsPath, "collection_doc_fragment").forEach(
+      (doc) => {
+        this.docFragments.set(doc.fqcn, doc);
+      },
+    );
     /* v8 ignore end */
 
     /* v8 ignore start */

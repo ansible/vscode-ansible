@@ -5,11 +5,11 @@ vars:
   GIT_ROOT:
     sh: git rev-parse --show-toplevel
   VERSION:
-    sh: "{{ .GIT_ROOT }}/tools/version.mts"
+    sh: "node {{ .GIT_ROOT }}/tools/helper.mts --version"
 tasks:
   pnpm:
     cmds:
-      - pnpm -r install --frozen-lockfile
+      - pnpm -r install --frozen-lockfile --reporter append-only
     deps:
       - mise
     dir: "{{ .TASKFILE_DIR }}"
@@ -19,19 +19,24 @@ tasks:
       - package.json
       - packages/*/package.json
       - pnpm-lock.yaml
+      - .config/mise.toml
     run: once
     interactive: true
   uv:
+    platforms: [linux, darwin]
     cmds:
       - uv sync --no-progress -q --active
       - bash ./tools/uv.sh
     deps:
       - mise
+    vars:
+      VIRTUAL_ENV:
+        sh: echo "${HOME}/.local/share/virtualenvs/vsa"
     generates:
       - "{{ .VIRTUAL_ENV }}/pyvenv.cfg"
       - "{{ .VIRTUAL_ENV }}/CACHEDIR.TAG"
-      - resources/contentCreator/createDevfile/devfile-template.txt
-      - resources/contentCreator/createDevcontainer/
+      - "{{ .TASKFILE_DIR }}/resources/contentCreator/createDevfile/devfile-template.txt"
+      - "{{ .TASKFILE_DIR }}/resources/contentCreator/createDevcontainer/.devcontainer/**/*.*"
     dir: "{{ .TASKFILE_DIR }}"
     sources:
       - pyproject.toml
@@ -51,16 +56,34 @@ tasks:
       - uv
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
-      - bash ./tools/test-setup.sh
-      - ./tools/precheck.sh
+      - task: setup:linux
+      - task: precheck
     sources:
       - ./tools/precheck.sh
       - pyproject.toml
       - tools/test-setup.sh
-    generates:
-      - out/log/manifest-*.json
     run: once
     interactive: true
+  "setup:linux":
+    cmds:
+      - cmd: bash ./tools/test-setup.sh
+    dir: "{{ .TASKFILE_DIR }}"
+    generates:
+      - out/log/manifest-*.json
+    platforms: [linux, darwin]
+    sources:
+      - ./tools/precheck.sh
+      - pyproject.toml
+      - tools/test-setup.sh
+    run: once
+    interactive: true
+  precheck:
+    desc: Check for duplicate executables (only runs when CI=true)
+    platforms: [linux, darwin]
+    status:
+      - '[ "$CI" != "true" ]'
+    cmds:
+      - "bash {{.GIT_ROOT}}/tools/precheck.sh"
   mise:
     desc: Check if mise is installed and working
     internal: true
@@ -75,7 +98,7 @@ tasks:
     interactive: true # no prefix
     dir: "{{ .TASKFILE_DIR }}" # mandatory because running from subfolder will not enable knip to find its config
     deps:
-      - package # production needs package, development needs build
+      - build # now both production and development builds are done by build step, also package itself runs knip at the end
     cmds:
       - npm exec -- knip
       - npm exec -- knip --production

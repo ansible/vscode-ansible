@@ -18,7 +18,9 @@ export class MainPanel {
       context,
       "playbook-generation",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

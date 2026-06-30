@@ -62,7 +62,7 @@ export class WorkspaceManager {
   ): Promise<void> {
     await Promise.all(
       _.map(Array.from(this.folderContexts.values()), (folder) =>
-        callbackfn(folder),
+        Promise.resolve(callbackfn(folder)),
       ),
     );
   }
@@ -146,6 +146,7 @@ export class WorkspaceFolderContext {
   private _ansibleInventory: Thenable<AnsibleInventory> | undefined;
   private _ansibleLint: AnsibleLint | undefined;
   private _ansiblePlaybook: AnsiblePlaybook | undefined;
+  private _configChangeTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(
     connection: Connection,

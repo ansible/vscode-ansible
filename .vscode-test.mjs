@@ -10,6 +10,7 @@ export default defineConfig({
   files: "test/e2e/**/*.test.ts",
   extensionDevelopmentPath: ".", // package.json location
   workspaceFolder: "test/testFixtures",
+  download: { timeout: 60_000 },
   launchArgs: [
     // cannot rely on vscode-test ability to install extensions because it does
     // implicitly use --force and the server can respond with 503 errors.
@@ -51,7 +52,6 @@ export default defineConfig({
     ],
   },
   coverage: {
-    includeAll: true,
-    exclude: ["**/node_modules", "out/server/external"],
+    // options here not working due https://github.com/microsoft/vscode-test-cli/issues/40#issuecomment-3622010158
   },
 });

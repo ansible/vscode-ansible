@@ -79,7 +79,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "errorMessage",
       )?.[1];
 
-      errorHandler?.("Generation failed");
+      void errorHandler?.("Generation failed");
       await flushPromises();
 
       expect(wrapper.findComponent({ name: "ErrorBox" }).exists()).toBe(true);
@@ -95,7 +95,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "generatePlaybook",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -112,7 +112,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "generatePlaybook",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -134,7 +134,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "generatePlaybook",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -154,7 +154,7 @@ describe("PlaybookGenApp", () => {
       )?.[1];
 
       // Go to page 2
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -182,7 +182,7 @@ describe("PlaybookGenApp", () => {
       )?.[1];
 
       // Go to page 2
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -207,7 +207,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "generatePlaybook",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
       });
@@ -233,7 +233,7 @@ describe("PlaybookGenApp", () => {
         (call) => call[0] === "generatePlaybook",
       )?.[1];
 
-      generateHandler?.({
+      void generateHandler?.({
         playbook: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         outline: "1. Debug message",
         warnings: ["Warning 1", "Warning 2"],

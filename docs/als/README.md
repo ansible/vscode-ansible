@@ -68,9 +68,6 @@ improve the user experience:
   collections configured with the [`collections` keyword] are honored. This
   behavior can be disabled in extension settings.
 
-[`collections` keyword]:
-  https://docs.ansible.com/projects/ansible/latest/collections_guide/collections_using_playbooks.html#simplifying-module-names-with-the-collections-keyword
-
 #### Auto-closing Jinja expressions
 
 ![Easier Jinja expression typing](https://github.com/ansible/ansible-language-server/raw/main/docs/images/jinja-expression.gif)
@@ -115,9 +112,6 @@ For details on settings, their descriptions and their default values refer to
 For details on setting up the development environment and debugging refer to the
 [development document].
 
-[development document]:
-  https://github.com/ansible/ansible-language-server/blob/main/docs/development.md
-
 ## Requirements
 
 - [Ansible 2.9+](https://docs.ansible.com/projects/ansible/latest/index.html)
@@ -142,3 +136,8 @@ For Windows users, this extension works perfectly well with extensions such as
 
 Based on the good work done by
 [Tomasz Maciążek](https://github.com/tomaciazek/vscode-ansible)
+
+[`collections` keyword]:
+  https://docs.ansible.com/projects/ansible/latest/collections_guide/collections_using_playbooks.html#simplifying-module-names-with-the-collections-keyword
+[development document]:
+  https://github.com/ansible/ansible-language-server/blob/main/docs/development.md

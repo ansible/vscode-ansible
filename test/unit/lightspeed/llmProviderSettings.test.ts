@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import { LlmProviderSettings } from "@src/features/lightspeed/llmProviderSettings";
 import type { ExtensionContext, SecretStorage, Memento } from "vscode";
 import {
+  API_ENDPOINTS,
+  MODEL_NAMES,
   PROVIDER_TYPES,
   TEST_API_KEYS,
 } from "@test/unit/lightspeed/testConstants";
@@ -56,9 +58,51 @@ vi.mock("@src/features/lightspeed/providers/factory", () => {
     ],
   };
 
+  const mockRhcustomProvider = {
+    type: "rhcustom",
+    name: "rhcustom",
+    displayName: "Red Hat AI",
+    defaultEndpoint: "",
+    defaultModel: undefined,
+    configSchema: [
+      {
+        key: "apiEndpoint",
+        label: "API Endpoint",
+        type: "string",
+        required: true,
+        placeholder: "https://your-api.example.com",
+      },
+      {
+        key: "apiKey",
+        label: "API Key",
+        type: "password",
+        required: true,
+        placeholder: "",
+      },
+      {
+        key: "modelName",
+        label: "Model Name",
+        type: "string",
+        required: true,
+        placeholder: "my-model",
+      },
+      {
+        key: "maxTokens",
+        label: "Max Tokens",
+        type: "number",
+        required: false,
+        placeholder: "1600",
+      },
+    ],
+  };
+
   return {
     providerFactory: {
-      getSupportedProviders: vi.fn(() => [mockWcaProvider, mockGoogleProvider]),
+      getSupportedProviders: vi.fn(() => [
+        mockWcaProvider,
+        mockGoogleProvider,
+        mockRhcustomProvider,
+      ]),
     },
   };
 });
@@ -243,6 +287,7 @@ describe("LlmProviderSettings", () => {
       expect(statuses).toEqual({
         wca: false,
         google: true,
+        rhcustom: false,
       });
     });
   });
@@ -256,12 +301,13 @@ describe("LlmProviderSettings", () => {
       const settings = await llmProviderSettings.getAllSettings();
 
       expect(settings.provider).toBe("google");
-      expect(settings.apiKey).toBe(TEST_API_KEYS.GOOGLE);
       expect(settings.apiEndpoint).toBe(
         "https://generativelanguage.googleapis.com/v1beta",
       );
       expect(settings.modelName).toBe("gemini-2.5-flash");
       expect(settings.connectionStatuses.google).toBe(true);
+      // apiKey must NOT be returned by getAllSettings (kept in secret store only)
+      expect((settings as Record<string, unknown>).apiKey).toBeUndefined();
     });
   });
 
@@ -576,6 +622,366 @@ describe("LlmProviderSettings", () => {
       expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
         "lightspeed.migratedFromSettings",
         true,
+      );
+    });
+
+    it("should import rhcustom provider from settings.json", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(llmProviderSettings.getProvider()).toBe(PROVIDER_TYPES.RHCUSTOM);
+    });
+
+    it("should import rhcustom apiEndpoint and modelName into globalState", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: API_ENDPOINTS.RHCUSTOM,
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: MODEL_NAMES.RHCUSTOM_DEEPSEEK,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      const endpoint = await llmProviderSettings.get("rhcustom", "apiEndpoint");
+      expect(endpoint).toBe(API_ENDPOINTS.RHCUSTOM);
+
+      const model = await llmProviderSettings.get("rhcustom", "modelName");
+      expect(model).toBe(MODEL_NAMES.RHCUSTOM_DEEPSEEK);
+    });
+
+    it("should import rhcustom apiKey into secrets", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: TEST_API_KEYS.RHCUSTOM,
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.rhcustom.apiKey",
+        TEST_API_KEYS.RHCUSTOM,
+      );
+    });
+
+    it("should not overwrite existing secret when importing password field", async () => {
+      secretsStore.set("lightspeed.secret.rhcustom.apiKey", "existing-key");
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "legacy-key-should-not-overwrite",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(secretsStore.get("lightspeed.secret.rhcustom.apiKey")).toBe(
+        "existing-key",
+      );
+    });
+
+    it("should not overwrite existing globalState when importing non-password field", async () => {
+      globalStateStore.set(
+        "lightspeed.setting.rhcustom.apiEndpoint",
+        "https://existing.example.com",
+      );
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://legacy.example.com",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(
+        globalStateStore.get("lightspeed.setting.rhcustom.apiEndpoint"),
+      ).toBe("https://existing.example.com");
+    });
+
+    it("should trim whitespace from non-password legacy values during import", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "  https://trimmed.example.com  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.rhcustom.apiEndpoint",
+        "https://trimmed.example.com",
+      );
+    });
+
+    it("should not trim password values during import", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.RHCUSTOM,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "  key-with-spaces  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.rhcustom.apiKey",
+        "  key-with-spaces  ",
+      );
+    });
+
+    it("should skip field when configSchema has no matching key", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.WCA,
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: "some-model",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalledWith(
+        expect.stringContaining("wca.modelName"),
+        expect.anything(),
+      );
+    });
+
+    it("should handle undefined providerInfo gracefully in importLegacyField", async () => {
+      // When provider is set to an unknown type, providerInfo will be undefined
+      // importLegacyField should return early when field is not found
+      mockInspectValues["provider"] = {
+        globalValue: "unknown-provider",
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://test.example.com",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      // Should not store anything since providerInfo is undefined
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalledWith(
+        expect.stringContaining("unknown-provider.apiEndpoint"),
+        expect.anything(),
+      );
+    });
+
+    it("should import password field only when secret store is empty", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "new-key-from-settings",
+      };
+
+      // Verify the secret is stored when empty
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "new-key-from-settings",
+      );
+    });
+
+    it("should import non-password field with trimming when globalState is empty", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "  https://spaced.example.com  ",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://spaced.example.com",
+      );
+    });
+
+    it("should handle all three legacy keys in sequence", async () => {
+      mockInspectValues["provider"] = {
+        globalValue: PROVIDER_TYPES.GOOGLE,
+      };
+      mockInspectValues["apiEndpoint"] = {
+        globalValue: "https://custom.api.com",
+      };
+      mockInspectValues["modelName"] = {
+        globalValue: "gemini-pro-custom",
+      };
+      mockInspectValues["apiKey"] = {
+        globalValue: "secret-key-123",
+      };
+
+      await llmProviderSettings.migrateFromSettingsJson();
+
+      const endpoint = await llmProviderSettings.get("google", "apiEndpoint");
+      expect(endpoint).toBe("https://custom.api.com");
+
+      const model = await llmProviderSettings.get("google", "modelName");
+      expect(model).toBe("gemini-pro-custom");
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "secret-key-123",
+      );
+    });
+  });
+
+  describe("importLegacyField (private method)", () => {
+    // Access private method via casting
+    interface PrivateLlmProviderSettings {
+      importLegacyField(
+        targetProvider: string,
+        providerInfo: unknown,
+        key: string,
+        legacy: string,
+      ): Promise<void>;
+    }
+    const priv = (settings: LlmProviderSettings) =>
+      settings as unknown as PrivateLlmProviderSettings;
+
+    it("should store password field in secrets", async () => {
+      const providerInfo = {
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiKey",
+        "secret-abc-123",
+      );
+
+      expect(mockSecretsStore).toHaveBeenCalledWith(
+        "lightspeed.secret.google.apiKey",
+        "secret-abc-123",
+      );
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should store non-password field in globalState", async () => {
+      const providerInfo = {
+        configSchema: [{ key: "apiEndpoint", type: "string", required: true }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiEndpoint",
+        "https://api.example.com",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://api.example.com",
+      );
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+    });
+
+    it("should trim whitespace from non-password field values", async () => {
+      const providerInfo = {
+        configSchema: [{ key: "modelName", type: "string", required: false }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "modelName",
+        "  gemini-pro  ",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.google.modelName",
+        "gemini-pro",
+      );
+    });
+
+    it("should not store password if secret already exists", async () => {
+      secretsStore.set("lightspeed.secret.google.apiKey", "existing-secret");
+      const providerInfo = {
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiKey",
+        "new-secret",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+    });
+
+    it("should not store non-password field if globalState already has value", async () => {
+      globalStateStore.set(
+        "lightspeed.setting.google.apiEndpoint",
+        "https://existing.com",
+      );
+      const providerInfo = {
+        configSchema: [{ key: "apiEndpoint", type: "string", required: true }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "apiEndpoint",
+        "https://new.com",
+      );
+
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when field is not in providerInfo schema", async () => {
+      const providerInfo = {
+        configSchema: [{ key: "apiKey", type: "password", required: true }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        providerInfo,
+        "unknownField",
+        "some-value",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when providerInfo is undefined", async () => {
+      await priv(llmProviderSettings).importLegacyField(
+        "google",
+        undefined,
+        "apiKey",
+        "some-value",
+      );
+
+      expect(mockSecretsStore).not.toHaveBeenCalled();
+      expect(mockGlobalStateUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should handle numeric field types", async () => {
+      const providerInfo = {
+        configSchema: [{ key: "maxTokens", type: "number", required: false }],
+      };
+
+      await priv(llmProviderSettings).importLegacyField(
+        "rhcustom",
+        providerInfo,
+        "maxTokens",
+        "1600",
+      );
+
+      expect(mockGlobalStateUpdate).toHaveBeenCalledWith(
+        "lightspeed.setting.rhcustom.maxTokens",
+        "1600",
       );
     });
   });

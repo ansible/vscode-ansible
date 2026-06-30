@@ -1,5 +1,5 @@
 // @ts-check
-// cspell: ignore tseslint
+// cspell: ignore tseslint sonarjs
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
@@ -7,12 +7,13 @@ import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
-import { defineConfig } from "eslint/config";
+import { defineConfig, includeIgnoreFile } from "eslint/config";
 import { createRequire } from "module";
 import importPlugin from "eslint-plugin-import";
-import { includeIgnoreFile } from "@eslint/compat";
+import { configs as sonarjsConfigs } from "eslint-plugin-sonarjs";
 const require = createRequire(import.meta.url);
 /** @type {import('eslint').ESLint.Plugin} */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- local CJS plugin loaded via require
 const eslintPluginLocal = require("./test/eslint/eslint-plugin-local.cjs");
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -21,15 +22,15 @@ const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
-  ...[
-    importPlugin.flatConfigs.recommended,
-    eslint.configs.recommended,
-    prettierRecommendedConfig,
-    tseslint.configs.recommended,
-    tseslint.configs.strict,
-    // TODO: enable later
-    // tseslint.configs.stylistic,
-  ],
+  importPlugin.flatConfigs.recommended,
+  eslint.configs.recommended,
+  sonarjsConfigs.recommended,
+  prettierRecommendedConfig,
+  tseslint.configs.recommended,
+  tseslint.configs.strict,
+  // TODO: enable later
+  // tseslint.configs.stylistic,
+  // tseslint.configs.strictTypeChecked,
   {
     /** Files that use type-aware linting (TS/JS in src, packages, test). */
     files: ["**/*.{js,mjs,ts,tsx,mts,cjs}"],
@@ -74,10 +75,12 @@ export default defineConfig(
       eqeqeq: ["error", "smart"],
       // "import/no-relative-parent-imports": "warn",
       // Needed for tseslint.configs.strictTypeChecked
+      "@typescript-eslint/no-unsafe-assignment": "error",
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-base-to-string": "error",
-      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-require-imports": "error",
       "local/node-DEP0190": "error",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
@@ -85,13 +88,45 @@ export default defineConfig(
       "no-empty-function": "error",
       "no-prototype-builtins": "error",
       // "@typescript-eslint/require-await": "error",  // electron import
-      // "@typescript-eslint/await-thenable": "error", // ~58 errors
+      "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",
-      // "@typescript-eslint/no-unsafe-member-access": "error", // ~550 errors
-      // "@typescript-eslint/no-floating-promises": "error", // ~100 errors
-      // "@typescript-eslint/restrict-template-expressions": "error",
-      // "@typescript-eslint/no-unsafe-argument": "error",
+      "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/restrict-template-expressions": "error",
+      "@typescript-eslint/no-unsafe-argument": "error",
       "@typescript-eslint/no-unsafe-return": "error",
+      // Ignored on purpose
+      "sonarjs/no-os-command-from-path": "off",
+      "sonarjs/publicly-writable-directories": "off",
+      // TODO: address later (rules with 5+ violations)
+      "sonarjs/cognitive-complexity": "off",
+      "sonarjs/prefer-regexp-exec": "off",
+      "sonarjs/no-trivial-assertions": "off",
+      "sonarjs/super-linear-regex": "off",
+      "sonarjs/public-static-readonly": "off",
+      "sonarjs/different-types-comparison": "off",
+      "sonarjs/prefer-specific-assertions": "off",
+      "sonarjs/no-clear-text-protocols": "off",
+      "sonarjs/todo-tag": "off",
+      "sonarjs/no-redundant-jump": "off",
+      "sonarjs/constructor-for-side-effects": "off",
+      "sonarjs/no-undefined-argument": "off",
+      "sonarjs/no-nested-conditional": "off",
+      "sonarjs/prefer-single-boolean-return": "off",
+      "sonarjs/no-floating-point-equality": "off",
+      // TODO: address later (fewer violations but non-trivial fixes)
+      "sonarjs/class-name": "off",
+      "sonarjs/no-try-promise": "off",
+      "sonarjs/no-skipped-tests": "off",
+      "sonarjs/no-nested-template-literals": "off",
+      "sonarjs/no-nested-assignment": "off",
+      "sonarjs/no-control-regex": "off",
+      "sonarjs/no-all-duplicated-branches": "off",
+      "sonarjs/post-message": "off",
+      "sonarjs/no-small-switch": "off",
+      "sonarjs/no-async-constructor": "off",
+      "sonarjs/function-return-type": "off",
+      "sonarjs/fixme-tag": "off",
     },
     settings: {
       // workaround for vscode imports in test files
@@ -110,7 +145,27 @@ export default defineConfig(
       "@typescript-eslint/no-base-to-string": "off",
       // Mocks and dynamic fixtures routinely return `any`
       "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
     },
+  },
+  {
+    // WDIO tests use their own tsconfig with relative imports; path aliases aren't practical
+    files: ["test/wdio/**/*.ts", "wdio.conf.ts"],
+    rules: {
+      "no-restricted-imports": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+    },
+  },
+  {
+    // Webview TypeScript uses dynamic message payloads; Vue SFCs are linted by biome
+    files: ["webviews/**/*.{js,ts,tsx}"],
+    rules: { "@typescript-eslint/no-unsafe-member-access": "off" },
+  },
+  {
+    // Standalone scripts have no tsconfig; skip eslint entirely
+    ignores: ["scripts/**", "**/tsdown.config.ts"],
   },
   {
     // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root

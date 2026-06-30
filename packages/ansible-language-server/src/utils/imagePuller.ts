@@ -69,7 +69,7 @@ export class ImagePuller {
         );
         setupComplete = true;
       } catch (error) {
-        let errorMsg = `Failed to pull container image ${this._containerEngine} with error '${error}'`;
+        let errorMsg = `Failed to pull container image ${this._containerEngine} with error '${error instanceof Error ? error.message : String(error)}'`;
         errorMsg +=
           "Check the execution environment image name, connectivity to and permissions for the registry, and try again";
         this.connection.console.error(errorMsg);

@@ -22,7 +22,7 @@ export interface ansibleMetaDataType {
   "ansible information"?: ansibleMetaDataEntryType;
   "python information"?: ansibleMetaDataEntryType;
   "ansible-lint information"?: ansibleMetaDataEntryType;
-  "execution environment information"?: ansibleMetaDataEntryType | undefined;
+  "execution environment information"?: ansibleMetaDataEntryType;
 }
 
 export async function getAnsibleMetaData(
@@ -67,22 +67,13 @@ export async function getResultsThroughCommandRunner(cmd: string, arg: string) {
       mountPaths,
     );
 
+    // Return result even if there's stderr (often just warnings)
     if (result.stderr) {
-      console.log(
-        `cmd '${cmd} ${arg}' has the following error/warning: ${result.stderr}`,
-      );
       return result;
     }
-  } catch (error) {
-    let errorMessage: string;
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    } else {
-      errorMessage = String(error);
-    }
-    console.log(
-      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${errorMessage}`,
-    );
+  } catch {
+    // Silently return undefined on command failures
+    // These are expected during environment transitions or when tools aren't installed
     return undefined;
   }
 
@@ -224,7 +215,7 @@ async function getExecutionEnvironmentInfo() {
           encoding: "utf-8",
         },
       ),
-    );
+    ) as Record<string, unknown>;
     eeServiceWorking = true;
   } catch (error) {
     eeServiceWorking = false;

@@ -247,6 +247,29 @@ Generate Ansible inventory content with:
   }
 
   /**
+   * Validate each item in a parsed task list / playbook, collecting errors.
+   */
+  private static validateAnsibleItemList(items: unknown[]): string[] {
+    const errors: string[] = [];
+    for (const item of items) {
+      if (!item || typeof item !== "object") {
+        errors.push("Invalid task or play structure");
+        continue;
+      }
+      const taskOrPlay = item as Record<string, unknown>;
+      const looksLikeTaskOrPlay =
+        "name" in taskOrPlay ||
+        Object.keys(taskOrPlay).some(
+          (key) => key !== "name" && !key.startsWith("_"),
+        );
+      if (!looksLikeTaskOrPlay) {
+        errors.push("Task missing name or module");
+      }
+    }
+    return errors;
+  }
+
+  /**
    * Validate that output is valid Ansible content
    */
   static validateAnsibleContent(content: string): {
@@ -266,25 +289,7 @@ Generate Ansible inventory content with:
       // Basic Ansible structure validation
       if (Array.isArray(parsed)) {
         // Task list or playbook
-        for (const item of parsed) {
-          if (typeof item !== "object") {
-            errors.push("Invalid task or play structure");
-            continue;
-          }
-
-          // Check for required fields in tasks
-          if (
-            "name" in item ||
-            Object.keys(item).some(
-              (key) => key !== "name" && !key.startsWith("_"),
-            )
-          ) {
-            // Looks like a task or play
-            continue;
-          } else {
-            errors.push("Task missing name or module");
-          }
-        }
+        errors.push(...AnsibleContextProcessor.validateAnsibleItemList(parsed));
       } else if (typeof parsed === "object") {
         // Single play or role structure
         if (!("hosts" in parsed || "tasks" in parsed || "main" in parsed)) {
@@ -292,7 +297,9 @@ Generate Ansible inventory content with:
         }
       }
     } catch (yamlError) {
-      errors.push(`YAML syntax error: ${yamlError}`);
+      errors.push(
+        `YAML syntax error: ${yamlError instanceof Error ? yamlError.message : String(yamlError)}`,
+      );
     }
 
     return { valid: errors.length === 0, errors };

@@ -1,6 +1,6 @@
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
-import { withInterpreter, asyncExec } from "@src/utils/misc.js";
+import { withInterpreter, asyncExec, asyncSpawn } from "@src/utils/misc.js";
 import { getAnsibleCommandExecPath } from "@src/utils/execPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
@@ -30,7 +30,7 @@ export class CommandRunner {
     stderr: string;
   }> {
     let executablePath: string;
-    let command: string | undefined;
+    let command: string | string[] | undefined;
     let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
     let interpreterPathFromConfig = this.settings.python.interpreterPath;
@@ -88,12 +88,19 @@ export class CommandRunner {
     const currentWorkingDirectory = workingDirectory
       ? workingDirectory
       : URI.parse(this.context.workspaceFolder.uri).path;
-    const result = await asyncExec(command, {
-      encoding: "utf-8",
+    const spawnOptions = {
+      encoding: "utf-8" as const,
       cwd: currentWorkingDirectory,
       env: runEnv,
       maxBuffer: 10 * 1000 * 1000,
-    });
+    };
+
+    if (Array.isArray(command)) {
+      const [executable, ...args] = command;
+      return asyncSpawn(executable, args, spawnOptions);
+    }
+
+    const result = await asyncExec(command, spawnOptions);
 
     return result;
   }

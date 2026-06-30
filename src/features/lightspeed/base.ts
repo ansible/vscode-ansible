@@ -91,6 +91,7 @@ export class LightSpeedManager {
     this.providerManager = new ProviderManager(
       this.settingsManager,
       this.apiInstance,
+      this.llmProviderSettings,
     );
 
     this.contentMatchesProvider = new ContentMatchesWebview(
@@ -132,7 +133,7 @@ export class LightSpeedManager {
       return;
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
-      this.statusBarProvider.setLightSpeedStatusBarTooltip();
+      void this.statusBarProvider.setLightSpeedStatusBarTooltip();
       this.setContext();
     }
 

@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
@@ -21,6 +22,12 @@ import {
   TransportKind,
   RevealOutputChannelOn,
 } from "vscode-languageclient/node";
+import type {
+  CancellationToken,
+  ConfigurationParams,
+  LSPAny,
+} from "vscode-languageserver-protocol";
+import type { HandlerResult } from "vscode-jsonrpc";
 
 /* local */
 import { SettingsManager } from "@src/settings";
@@ -107,7 +114,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize Terminal Service
   const terminalService = TerminalService.getInstance();
-  await terminalService.initialize();
   context.subscriptions.push(terminalService);
 
   // Create Telemetry Service
@@ -161,7 +167,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // start the client and the server
-  await startClient(context, telemetry);
+  const clientStarted = await startClient(context, telemetry, pythonEnvService);
+  if (!clientStarted) return;
 
   notifyAboutConflicts();
 
@@ -181,18 +188,31 @@ export async function activate(context: ExtensionContext): Promise<void> {
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
   } catch (error) {
-    console.error(`Error updating python status bar: ${error}`);
+    console.error(
+      `Error updating python status bar: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
-  // Subscribe to Python environment changes to update the status bar
+  // Subscribe to Python environment changes to update the status bar and LS
   context.subscriptions.push(
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
+        if (client && client.isRunning()) {
+          const refreshResult = await client.sendRequest<{
+            success: boolean;
+          }>("ansible/refreshConfiguration", {});
+          if (!refreshResult.success) {
+            console.error(
+              "Language Server configuration refresh failed; status bars may be stale",
+            );
+          }
+        }
+
         await pythonInterpreterManager.updatePythonInfoInStatusbar();
         await metaData.updateAnsibleInfoInStatusbar();
       } catch (error) {
         console.error(
-          `Error updating status bar after environment change: ${error}`,
+          `Error updating after environment change: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }),
@@ -207,6 +227,35 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     llmProviderSettings,
   );
+
+  // Initial async kickoffs, kept out of the (synchronous) constructors above
+  // so construction stays side-effect-free (Sonar S7059).
+  lightSpeedManager.statusBarProvider
+    .updateLightSpeedStatusbar()
+    .catch((error) => {
+      console.error(
+        `[lightspeed] Initial status bar update failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    });
+  // logAuthProviderDebugHints() self-handles its errors, so a bare void is safe.
+  void lightSpeedManager.lightspeedAuthenticatedUser.logAuthProviderDebugHints();
+
+  if (context.extensionMode !== vscode.ExtensionMode.Production) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "ansible.lightspeed.mockSession",
+        async (session: {
+          accessToken: string;
+          accountId: string;
+          accountLabel: string;
+        }) => {
+          await lightSpeedManager.lightSpeedAuthenticationProvider.setMockSession(
+            session,
+          );
+        },
+      ),
+    );
+  }
 
   // Register provider management commands
   const providerCommands = new ProviderCommands(
@@ -241,7 +290,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.contentMatchesProvider.showContentMatches();
+        void lightSpeedManager.contentMatchesProvider.showContentMatches();
       },
     ),
   );
@@ -250,7 +299,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_CLEAR_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.contentMatchesProvider.clearContentMatches();
+        void lightSpeedManager.contentMatchesProvider.clearContentMatches();
       },
     ),
   );
@@ -331,7 +380,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
-      rejectPendingSuggestion();
+      void rejectPendingSuggestion();
     }),
   );
 
@@ -339,7 +388,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.window.onDidChangeWindowState(async (state: vscode.WindowState) => {
       if (!state.focused) {
-        ignorePendingSuggestion();
+        void ignorePendingSuggestion();
       }
     }),
   );
@@ -374,7 +423,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!extSettings.settings.lightSpeedService.enabled) {
         return;
       }
-      metaData.sendAnsibleMetadataTelemetry();
+      void metaData.sendAnsibleMetadataTelemetry();
     }),
   );
   context.subscriptions.push(
@@ -426,19 +475,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
-      metaData.sendAnsibleMetadataTelemetry();
+      void metaData.sendAnsibleMetadataTelemetry();
     }),
   );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
-      inlineSuggestionTextDocumentChangeHandler(e);
+      void inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
-      inlineSuggestionTextDocumentChangeHandler(e);
+      void inlineSuggestionTextDocumentChangeHandler(e);
     }),
   );
 
@@ -477,7 +526,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         return;
       }
       lightSpeedManager.lightspeedExplorerProvider?.refreshWebView();
-      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+      void lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
 
@@ -516,7 +565,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         );
         return;
       }
-      lightspeedLogin(AuthProviderType.rhsso);
+      void lightspeedLogin(AuthProviderType.rhsso);
     },
   );
   context.subscriptions.push(lightspeedSignInWithRedHatCommand);
@@ -525,7 +574,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const lightspeedSignInWithLightspeedCommand = vscode.commands.registerCommand(
     LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED,
     () => {
-      lightspeedLogin(AuthProviderType.lightspeed);
+      void lightspeedLogin(AuthProviderType.lightspeed);
     },
   );
   context.subscriptions.push(lightspeedSignInWithLightspeedCommand);
@@ -534,7 +583,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
    * Handle "Ansible Tox" in the extension
    */
   const ansibleToxController = new AnsibleToxController();
-  context.subscriptions.push(await ansibleToxController.create());
+  context.subscriptions.push(ansibleToxController.create());
 
   const workspaceTox = findProjectDir();
 
@@ -563,7 +612,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-creator`,
           "--no-input",
@@ -879,7 +928,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             );
           } catch (error) {
             console.error(
-              `[Lightspeed Playbook Feedback] Telemetry failed: ${error}`,
+              `[Lightspeed Playbook Feedback] Telemetry failed: ${error instanceof Error ? error.message : String(error)}`,
               error,
             );
           }
@@ -890,13 +939,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         // WCA provider - send to API
         if (param.explanationId) {
-          lightSpeedManager.apiInstance.feedbackRequest(
+          void lightSpeedManager.apiInstance.feedbackRequest(
             { playbookExplanationFeedback: param },
             true,
             true,
           );
         } else {
-          lightSpeedManager.apiInstance.feedbackRequest(
+          void lightSpeedManager.apiInstance.feedbackRequest(
             { playbookOutlineFeedback: param },
             true,
             true,
@@ -929,7 +978,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
             );
           } catch (error) {
             console.error(
-              `[Lightspeed Role Feedback] Telemetry failed: ${error}`,
+              `[Lightspeed Role Feedback] Telemetry failed: ${error instanceof Error ? error.message : String(error)}`,
               error,
             );
           }
@@ -939,7 +988,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
 
         // WCA provider - send to API
-        lightSpeedManager.apiInstance.feedbackRequest(
+        void lightSpeedManager.apiInstance.feedbackRequest(
           { roleExplanationFeedback: param },
           true,
           true,
@@ -999,7 +1048,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const { command, env } = withInterpreter(
+        const { command, env } = await withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-dev-tools`,
           "--no-input",
@@ -1130,14 +1179,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
 const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager,
-) => {
-  // Prefer the server shipped in the vsix (packages/ansible-language-server/dist/); otherwise
-  // use the workspace package (e.g. when running from source).
-  const bundledServer = path.join(
+  pythonEnvService: PythonEnvironmentService,
+): Promise<boolean> => {
+  const distServer = path.join(
     context.extensionPath,
     "packages",
     "ansible-language-server",
     "dist",
+    "cli.cjs",
+  );
+  const libServer = path.join(
+    context.extensionPath,
+    "packages",
+    "ansible-language-server",
+    "lib",
     "cli.cjs",
   );
   const packageServer = path.join(
@@ -1148,6 +1203,15 @@ const startClient = async (
     "dist",
     "cli.js",
   );
+  const bundledServer = [distServer, libServer, packageServer].find((p) =>
+    fs.existsSync(p),
+  );
+  if (!bundledServer) {
+    window.showErrorMessage(
+      "Ansible Language Server not found. Please reinstall the extension.",
+    );
+    return false;
+  }
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
@@ -1155,7 +1219,7 @@ const startClient = async (
   const serverOptions: ServerOptions = {
     run: { module: bundledServer, transport: TransportKind.ipc },
     debug: {
-      module: packageServer,
+      module: bundledServer,
       transport: TransportKind.ipc,
       options: debugOptions,
     },
@@ -1166,11 +1230,10 @@ const startClient = async (
     lsName,
     4,
   );
-  const outputChannel = window.createOutputChannel(lsName);
+  const outputChannel = window.createOutputChannel(lsName, { log: true });
   lsOutputChannel = outputChannel;
 
   const clientOptions: LanguageClientOptions = {
-    // register the server for Ansible documents
     documentSelector: [{ scheme: "file", language: "ansible" }],
     revealOutputChannelOn: RevealOutputChannelOn.Never,
     errorHandler: telemetryErrorHandler,
@@ -1178,6 +1241,14 @@ const startClient = async (
       outputChannel,
       telemetry.telemetryService,
     ),
+    middleware: {
+      workspace: {
+        configuration: makeConfigurationMiddleware(
+          pythonEnvService,
+          outputChannel,
+        ),
+      },
+    },
   };
 
   client = new LanguageClient(
@@ -1197,12 +1268,39 @@ const startClient = async (
   try {
     await client.start();
 
+    // Level-triggered gate: resolves immediately if docsLibrary is already
+    // ready, otherwise waits for the next ansible/docsLibraryReady notification.
+    // Re-armed only when ansible.* config changes invalidate the library.
+    let docsReady = newDocsReadyGate();
+    let docsLibraryIsReady = false;
+    client.onNotification(
+      new NotificationType("ansible/docsLibraryReady"),
+      () => {
+        docsLibraryIsReady = true;
+        docsReady.resolve();
+      },
+    );
+    context.subscriptions.push(
+      workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration("ansible")) {
+          docsLibraryIsReady = false;
+          docsReady = newDocsReadyGate();
+        }
+      }),
+    );
+    context.subscriptions.push(
+      vscode.commands.registerCommand("ansible.awaitDocsLibraryReady", () =>
+        docsLibraryIsReady ? Promise.resolve() : docsReady.promise,
+      ),
+    );
+
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(true);
+    return true;
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {
@@ -1213,6 +1311,7 @@ const startClient = async (
     console.error(`Language Client initialization failed with ${errorMessage}`);
     // TODO: Temporary pause this telemetry event, will be enabled in future
     // telemetry.sendStartupTelemetryEvent(false, errorMessage);
+    return false;
   }
 };
 
@@ -1293,7 +1392,7 @@ async function updateAnsibleStatusBar(
 function notifyAboutConflicts(): void {
   const conflictingExtensions = getConflictingExtensions();
   if (conflictingExtensions.length > 0) {
-    showUninstallConflictsNotification(conflictingExtensions);
+    void showUninstallConflictsNotification(conflictingExtensions);
   }
 }
 
@@ -1310,7 +1409,9 @@ async function resyncAnsibleInventory(): Promise<void> {
         console.log("resync ansible inventory event ->", event);
       },
     );
-    client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+    void client.sendNotification(
+      new NotificationType(`resync/ansible-inventory`),
+    );
   }
 }
 
@@ -1340,4 +1441,158 @@ async function updateDocumentInRoleContext() {
     "redhat.ansible.isDocumentInRole",
     isInRole,
   );
+}
+
+/**
+ * Intercepts workspace/configuration requests from the Language Server and
+ * injects the Python interpreter path resolved by PythonEnvironmentService
+ * when the user has not explicitly set `ansible.python.interpreterPath`.
+ */
+export function makeConfigurationMiddleware(
+  pythonEnvService: PythonEnvironmentService,
+  outputChannel: vscode.OutputChannel,
+) {
+  // Per-scope state: track last logged path separately by source to prevent incorrect suppression
+  const lastLoggedUserByScope = new Map<string, string>(); // scopeUri -> user-configured path
+  const lastLoggedResolvedByScope = new Map<string, string>(); // scopeUri -> auto-resolved path or "" for none
+
+  async function resolveUserConfiguredPath(
+    scopeUri: string,
+    rawInterpreterPath: string,
+    config: Record<string, unknown>,
+    pythonConfig: Record<string, unknown> | undefined,
+  ): Promise<Record<string, unknown>> {
+    const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+    let resolvedUserPath: string | undefined;
+    try {
+      resolvedUserPath = await pythonEnvService.resolveInterpreterPath(
+        rawInterpreterPath,
+        scope,
+      );
+    } catch (error) {
+      outputChannel.appendLine(
+        `[Ansible] Failed to resolve user-configured interpreterPath: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return config;
+    }
+
+    if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
+      outputChannel.appendLine(
+        `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedUserPath !== rawInterpreterPath ? ` (resolved: ${resolvedUserPath})` : ""}`,
+      );
+      lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
+    }
+
+    if (resolvedUserPath && resolvedUserPath !== rawInterpreterPath) {
+      return {
+        ...config,
+        python: { ...pythonConfig, interpreterPath: resolvedUserPath },
+      };
+    }
+    return config;
+  }
+
+  async function resolveAutoDetectedPath(
+    scopeUri: string,
+    config: Record<string, unknown>,
+    pythonConfig: Record<string, unknown> | undefined,
+  ): Promise<Record<string, unknown>> {
+    const scope = scopeUri ? vscode.Uri.parse(scopeUri) : undefined;
+    let resolvedPath: string | undefined;
+    try {
+      resolvedPath = await pythonEnvService.getExecutablePath(scope);
+    } catch (error) {
+      if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+        outputChannel.appendLine(
+          `[Ansible] Failed to resolve Python environment: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        lastLoggedResolvedByScope.set(scopeUri, "");
+      }
+      return config;
+    }
+
+    if (resolvedPath) {
+      if (lastLoggedResolvedByScope.get(scopeUri) !== resolvedPath) {
+        outputChannel.appendLine(
+          `[Ansible] Python environment changed: ${resolvedPath}`,
+        );
+        lastLoggedResolvedByScope.set(scopeUri, resolvedPath);
+      }
+      return {
+        ...config,
+        python: { ...pythonConfig, interpreterPath: resolvedPath },
+      };
+    }
+
+    if (lastLoggedResolvedByScope.get(scopeUri) !== "") {
+      outputChannel.appendLine("[Ansible] No Python environment available");
+      lastLoggedResolvedByScope.set(scopeUri, "");
+    }
+    return config;
+  }
+
+  return (
+    params: ConfigurationParams,
+    token: CancellationToken,
+    next: (
+      params: ConfigurationParams,
+      token: CancellationToken,
+    ) => HandlerResult<LSPAny[], void>,
+  ): HandlerResult<LSPAny[], void> => {
+    return (async (): Promise<LSPAny[]> => {
+      let originalResult: LSPAny[] | LSPAny;
+      try {
+        originalResult = await next(params, token);
+      } catch (error) {
+        outputChannel.appendLine(
+          `[Ansible] Configuration middleware error: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return [];
+      }
+
+      if (!Array.isArray(originalResult)) {
+        return originalResult as unknown as LSPAny[];
+      }
+
+      const result = originalResult.slice();
+
+      for (let i = 0; i < params.items.length; i++) {
+        if (params.items[i].section !== "ansible") continue;
+
+        const config = result[i] as Record<string, unknown> | undefined;
+        if (!config) continue;
+
+        const scopeUri = params.items[i].scopeUri ?? "";
+        const pythonConfig = config.python as
+          | Record<string, unknown>
+          | undefined;
+        const rawInterpreterPath = pythonConfig?.interpreterPath;
+
+        if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
+          result[i] = await resolveUserConfiguredPath(
+            scopeUri,
+            rawInterpreterPath,
+            config,
+            pythonConfig,
+          );
+          continue;
+        }
+
+        result[i] = await resolveAutoDetectedPath(
+          scopeUri,
+          config,
+          pythonConfig,
+        );
+      }
+      return result;
+    })();
+  };
+}
+
+function newDocsReadyGate(): { resolve: () => void; promise: Promise<void> } {
+  let resolve!: () => void;
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
+  return { resolve, promise };
 }

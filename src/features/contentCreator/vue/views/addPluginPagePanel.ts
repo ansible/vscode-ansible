@@ -14,17 +14,16 @@ export class MainPanel {
 
   private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
-    setupPanelLifecycle(
-      this._panel,
-      context,
-      "add-plugin",
-      this._disposables,
-      () => this.dispose(),
-    );
 
     this._panel.webview.onDidReceiveMessage(
-      async (msg) => {
-        if (msg && msg.type === "request-requirements-status") {
+      async (msg: unknown) => {
+        if (
+          typeof msg === "object" &&
+          msg !== null &&
+          "type" in msg &&
+          (msg as Record<string, unknown>).type ===
+            "request-requirements-status"
+        ) {
           const status = await checkContentCreatorRequirements();
           this._panel.webview.postMessage({
             type: "requirements-status",
@@ -34,6 +33,16 @@ export class MainPanel {
       },
       null,
       this._disposables,
+    );
+
+    setupPanelLifecycle(
+      this._panel,
+      context,
+      "add-plugin",
+      this._disposables,
+      () => {
+        this.dispose();
+      },
     );
   }
 

@@ -18,7 +18,9 @@ export class MainPanel {
       context,
       "role-generation",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

@@ -1,12 +1,21 @@
 import * as child_process from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
+import * as os from "node:os";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { AnsibleConfig } from "@src/services/ansibleConfig.js";
 import { ImagePuller } from "@src/utils/imagePuller.js";
-import { asyncExec } from "@src/utils/misc.js";
+import {
+  formatVolumeMountSpec,
+  parseContainerOptions,
+  splitCommandString,
+  UnsafeContainerSettingError,
+  validateContainerEngineSetting,
+  validateExecutionEnvironmentSettings,
+} from "@src/utils/containerCommandSafety.js";
+import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type {
   ExtensionSettings,
@@ -95,6 +104,12 @@ export class ExecutionEnvironment {
         return;
       }
 
+      validateExecutionEnvironmentSettings(
+        this.settings.executionEnvironment.containerOptions,
+        this._container_volume_mounts || [],
+        this._container_image,
+      );
+
       /* v8 ignore next 3 */
       this.updateContainerVolumeMountFromSettings();
       this.settingsContainerOptions =
@@ -115,7 +130,9 @@ export class ExecutionEnvironment {
       }
     } catch (error) {
       /* v8 ignore next 3 */
-      if (error instanceof Error) {
+      if (error instanceof UnsafeContainerSettingError) {
+        this.connection.window.showErrorMessage(error.message);
+      } else if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
         /* v8 ignore next 3 */
@@ -132,7 +149,11 @@ export class ExecutionEnvironment {
 
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
     /* v8 ignore next 6 */
-    if (!this.isServiceInitialized || !this._container_image) {
+    if (
+      !this.isServiceInitialized ||
+      !this._container_image ||
+      !this._container_engine
+    ) {
       this.connection.console.error(
         `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
       );
@@ -154,13 +175,19 @@ export class ExecutionEnvironment {
 
     try {
       /* v8 ignore next 11 */
-      const containerImageIdCommand = `${this._container_engine} images ${this._container_image} --format="{{.ID}}" | head -n 1`;
-      this.connection.console.log(containerImageIdCommand);
-      this._container_image_id = child_process
-        .execSync(containerImageIdCommand, {
-          encoding: "utf-8",
-        })
-        .trim();
+      const imageIdArgv = ["images", this._container_image, "--format={{.ID}}"];
+      this.connection.console.log(
+        `${containerEngine} ${imageIdArgv.join(" ")}`,
+      );
+      const imageIdResult = spawnSyncWithResult(containerEngine, imageIdArgv);
+      this._container_image_id =
+        imageIdResult.stdout
+          .split("\n")
+          .map((line) => line.trim())
+          .find((line) => line !== "") ?? "";
+      const cacheBase =
+        process.env.XDG_CACHE_HOME ||
+        `${process.env.HOME || os.homedir()}/.cache`;
       const hostCacheBasePath = path.resolve(
         `${process.env.HOME}/.cache/ansible-language-server/${imageSafeName}/${this._container_image_id}`,
       );
@@ -177,7 +204,7 @@ export class ExecutionEnvironment {
         );
 
         this.connection.console.log(
-          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
       } else {
         /* v8 ignore next 4 */
@@ -196,7 +223,7 @@ export class ExecutionEnvironment {
         }
         /* v8 ignore next 38 */
         this.connection.console.log(
-          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
@@ -235,7 +262,7 @@ export class ExecutionEnvironment {
       }
       /* v8 ignore next 6 */
       this.connection.console.log(
-        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
       );
       // plugin cache successfully created
       fs.closeSync(
@@ -327,8 +354,36 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  private isExecutableAvailable(command: string): boolean {
+    const result = child_process.spawnSync("which", [command], {
+      encoding: "utf-8",
+      shell: false,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return result.status === 0;
+  }
+
+  private validateManualEngine(engine: string): boolean {
+    /* v8 ignore next 14 */
+    try {
+      validateContainerEngineSetting(engine);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.connection.window.showErrorMessage(error.message);
+      }
+      return false;
+    }
+    if (!this.isExecutableAvailable(engine)) {
+      this.connection.window.showErrorMessage(
+        `Container engine '${engine}' not found.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
   private setContainerEngine(): boolean {
-    /* v8 ignore next 41 */
+    /* v8 ignore next 24 */
     if (!this._container_engine) {
       this.connection.window.showErrorMessage(
         "Unable to setContainerEngine with incompletely initialized settings.",
@@ -338,11 +393,7 @@ export class ExecutionEnvironment {
 
     if (this._container_engine === "auto") {
       for (const ce of ["podman", "docker"]) {
-        try {
-          child_process.execSync(`command -v ${ce}`, {
-            encoding: "utf-8",
-          });
-        } catch {
+        if (!this.isExecutableAvailable(ce)) {
           this.connection.console.info(`Container engine '${ce}' not found`);
           continue;
         }
@@ -350,17 +401,8 @@ export class ExecutionEnvironment {
         this.connection.console.log(`Container engine set to: '${ce}'`);
         break;
       }
-    } else {
-      try {
-        child_process.execSync(`command -v ${this._container_engine}`, {
-          encoding: "utf-8",
-        });
-      } catch (error) {
-        this.connection.window.showErrorMessage(
-          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`,
-        );
-        return false;
-      }
+    } else if (!this.validateManualEngine(this._container_engine)) {
+      return false;
     }
     if (!["podman", "docker"].includes(this._container_engine)) {
       this.connection.window.showErrorMessage(
@@ -636,15 +678,15 @@ export class ExecutionEnvironment {
   }
 
   private cleanUpContainer(containerName: string): void {
-    /* v8 ignore next 75 */
+    /* v8 ignore next 18 */
     if (!this._container_engine) {
       return;
     }
-
     if (!this.doesContainerNameExist(containerName)) {
       return;
     }
 
+    const engine = this._container_engine;
     const cwd = URI.parse(this.context.workspaceFolder.uri).path;
 
     let runningContainers: string;
@@ -692,24 +734,15 @@ export class ExecutionEnvironment {
       allContainers = "";
     }
 
-    // Remove containers if any exist
-    if (allContainers) {
-      try {
-        const containerIds = allContainers
-          .split("\n")
-          .filter((id) => id.trim() !== "");
-        if (containerIds.length > 0) {
-          child_process.spawnSync(
-            this._container_engine,
-            ["rm", ...containerIds],
-            { cwd, shell: false },
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Error detected while trying to remove the container ${containerName}: ${error}`,
-        );
-      }
+    const all = this.getContainerIds(engine, [
+      "container",
+      "ls",
+      "-aq",
+      "-f",
+      `name=${containerName}`,
+    ]);
+    if (all.length > 0) {
+      this.runContainerCommand(engine, "rm", all, containerName, cwd);
     }
   }
 
@@ -736,19 +769,11 @@ export class ExecutionEnvironment {
   private updateContainerVolumeMountFromSettings(): void {
     /* v8 ignore next 16 */
     for (const volumeMounts of this._container_volume_mounts || []) {
-      const fsSrcPath = volumeMounts.src;
-      const fsDestPath = volumeMounts.dest;
-      const options = volumeMounts.options;
-
-      let mountPath = `${fsSrcPath}:${fsDestPath}`;
-      if (options && options !== "") {
-        mountPath += `:${options}`;
-      }
+      const mountPath = formatVolumeMountSpec(volumeMounts);
       if (this.settingsVolumeMounts.includes(mountPath)) {
         continue;
-      } else {
-        this.settingsVolumeMounts.push("-v", mountPath);
       }
+      this.settingsVolumeMounts.push(mountPath);
     }
   }
 
@@ -800,6 +825,10 @@ export class ExecutionEnvironment {
   ): Promise<string[]> {
     /* v8 ignore next 33 */
     const updatedHostDocPath: string[] = [];
+    const containerEngine = this._container_engine;
+    if (!containerEngine) {
+      return updatedHostDocPath;
+    }
 
     for (const srcPath of containerPluginPaths) {
       // Strip leading separators to prevent path.join from producing
@@ -822,7 +851,7 @@ export class ExecutionEnvironment {
         fs.mkdirSync(destPath, { recursive: true });
         const copyCommand = `${this._container_engine} cp ${shellQuote(`${containerName}:${srcPath}`)} ${shellQuote(destPathFolder)}`;
         this.connection.console.log(
-          `Copying plugins from container to local cache path ${copyCommand}`,
+          `Copying plugins from container to local cache path ${containerEngine} ${copyArgv.join(" ")}`,
         );
         await asyncExec(copyCommand, {
           encoding: "utf-8",

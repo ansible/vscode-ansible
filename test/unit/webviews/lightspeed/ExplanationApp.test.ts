@@ -56,7 +56,7 @@ describe("ExplanationApp", () => {
         (call) => call[0] === "setPlaybookData",
       )?.[1];
 
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         fileName: "/path/to/playbook.yml",
       });
@@ -74,7 +74,7 @@ describe("ExplanationApp", () => {
       const setPlaybookDataHandler = onCalls.find(
         (call) => call[0] === "setPlaybookData",
       )?.[1];
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         fileName: "/path/to/playbook.yml",
       });
@@ -84,7 +84,7 @@ describe("ExplanationApp", () => {
       const explainPlaybookHandler = onCalls.find(
         (call) => call[0] === "explainPlaybook",
       )?.[1];
-      explainPlaybookHandler?.({
+      void explainPlaybookHandler?.({
         content: "# Playbook Explanation\n\nThis playbook does something.",
       });
       await flushPromises();
@@ -102,7 +102,7 @@ describe("ExplanationApp", () => {
       const setPlaybookDataHandler = onCalls.find(
         (call) => call[0] === "setPlaybookData",
       )?.[1];
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         fileName: "/path/to/playbook.yml",
       });
@@ -112,7 +112,7 @@ describe("ExplanationApp", () => {
       const explainPlaybookHandler = onCalls.find(
         (call) => call[0] === "explainPlaybook",
       )?.[1];
-      explainPlaybookHandler?.({ content: "" });
+      void explainPlaybookHandler?.({ content: "" });
       await flushPromises();
 
       expect(wrapper.html()).toContain("No explanation provided");
@@ -127,7 +127,7 @@ describe("ExplanationApp", () => {
       const setPlaybookDataHandler = onCalls.find(
         (call) => call[0] === "setPlaybookData",
       )?.[1];
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  vars:\n    foo: bar",
         fileName: "/path/to/playbook.yml",
       });
@@ -148,7 +148,7 @@ describe("ExplanationApp", () => {
         (call) => call[0] === "setRoleData",
       )?.[1];
 
-      setRoleDataHandler?.({
+      void setRoleDataHandler?.({
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         roleName: "my_role",
       });
@@ -166,7 +166,7 @@ describe("ExplanationApp", () => {
       const setRoleDataHandler = onCalls.find(
         (call) => call[0] === "setRoleData",
       )?.[1];
-      setRoleDataHandler?.({
+      void setRoleDataHandler?.({
         files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
         roleName: "my_role",
       });
@@ -176,7 +176,7 @@ describe("ExplanationApp", () => {
       const explainRoleHandler = onCalls.find(
         (call) => call[0] === "explainRole",
       )?.[1];
-      explainRoleHandler?.({
+      void explainRoleHandler?.({
         content: "# Role Explanation\n\nThis role configures something.",
       });
       await flushPromises();
@@ -195,7 +195,7 @@ describe("ExplanationApp", () => {
         (call) => call[0] === "errorMessage",
       )?.[1];
 
-      errorHandler?.("Something went wrong");
+      void errorHandler?.("Something went wrong");
       await flushPromises();
 
       expect(wrapper.find(".codicon-error").exists()).toBe(true);
@@ -213,7 +213,7 @@ describe("ExplanationApp", () => {
       const setPlaybookDataHandler = onCalls.find(
         (call) => call[0] === "setPlaybookData",
       )?.[1];
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         fileName: "/path/to/playbook.yml",
       });
@@ -223,7 +223,7 @@ describe("ExplanationApp", () => {
       const explainPlaybookHandler = onCalls.find(
         (call) => call[0] === "explainPlaybook",
       )?.[1];
-      explainPlaybookHandler?.({
+      void explainPlaybookHandler?.({
         content: "# Playbook Explanation\n\nThis playbook does something.",
       });
       await flushPromises();
@@ -243,14 +243,14 @@ describe("ExplanationApp", () => {
         (call) => call[0] === "telemetryStatus",
       )?.[1];
 
-      telemetryHandler?.({ enabled: false });
+      void telemetryHandler?.({ enabled: false });
       await flushPromises();
 
       // Set up explanation to show feedback box
       const setPlaybookDataHandler = onCalls.find(
         (call) => call[0] === "setPlaybookData",
       )?.[1];
-      setPlaybookDataHandler?.({
+      void setPlaybookDataHandler?.({
         content: "- hosts: all\n  tasks:\n    - debug: msg=hello",
         fileName: "/path/to/playbook.yml",
       });
@@ -259,7 +259,7 @@ describe("ExplanationApp", () => {
       const explainPlaybookHandler = onCalls.find(
         (call) => call[0] === "explainPlaybook",
       )?.[1];
-      explainPlaybookHandler?.({
+      void explainPlaybookHandler?.({
         content: "# Explanation",
       });
       await flushPromises();

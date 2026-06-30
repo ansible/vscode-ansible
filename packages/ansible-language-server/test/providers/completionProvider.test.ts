@@ -1,10 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { expect, beforeAll, afterAll } from "vitest";
-import {
-  Position,
-  CompletionItemKind,
-  CompletionItem,
-} from "vscode-languageserver";
+import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 import {
   doCompletion,
   doCompletionResolve,
@@ -31,13 +27,13 @@ function testPlayKeywords(
   const tests = [
     {
       name: "name",
-      position: { line: 0, character: 2 } as Position,
+      position: { line: 0, character: 2 },
       triggerCharacter: "",
       completion: "name",
     },
     {
       name: "hosts",
-      position: { line: 2, character: 5 } as Position,
+      position: { line: 2, character: 5 },
       triggerCharacter: "hos",
       completion: "hosts",
     },
@@ -72,13 +68,13 @@ function testRoleKeywords(
   const tests = [
     {
       name: "name",
-      position: { line: 4, character: 6 } as Position,
+      position: { line: 4, character: 6 },
       triggerCharacter: "",
       completion: "name",
     },
     {
       name: "when",
-      position: { line: 5, character: 8 } as Position,
+      position: { line: 5, character: 8 },
       triggerCharacter: "wh",
       completion: "when",
     },
@@ -113,13 +109,13 @@ function testBlockKeywords(
   const tests = [
     {
       name: "become_user",
-      position: { line: 8, character: 13 } as Position,
+      position: { line: 8, character: 13 },
       triggerCharacter: "user",
       completion: "become_user",
     },
     {
       name: "become",
-      position: { line: 7, character: 8 } as Position,
+      position: { line: 7, character: 8 },
       triggerCharacter: "be",
       completion: "become",
     },
@@ -153,13 +149,13 @@ function testTaskKeywords(
   const tests = [
     {
       name: "loop",
-      position: { line: 10, character: 9 } as Position,
+      position: { line: 10, character: 9 },
       triggerCharacter: "loop",
       completion: "loop",
     },
     {
       name: "debugger",
-      position: { line: 13, character: 9 } as Position,
+      position: { line: 13, character: 9 },
       triggerCharacter: "deb",
       completion: "debugger",
     },
@@ -193,49 +189,49 @@ function testModuleNames(
   const tests = [
     {
       name: "with name as first option always",
-      position: { line: 6, character: 6 } as Position,
+      position: { line: 6, character: 6 },
       triggerCharacter: "",
       completion: "name",
     },
     {
       name: "`ansible.builtin.ping` with `ping`",
-      position: { line: 7, character: 8 } as Position,
+      position: { line: 7, character: 8 },
       triggerCharacter: "ping",
       completion: "ansible.builtin.ping",
     },
     {
       name: "`ansible.builtin.debug` with `debu`", // cspell: ignore debu
-      position: { line: 7, character: 8 } as Position,
+      position: { line: 7, character: 8 },
       triggerCharacter: "debu",
       completion: "ansible.builtin.debug",
     },
     {
       name: "list for all modules under ansible namespace with `ansible.`",
-      position: { line: 7, character: 8 } as Position,
+      position: { line: 7, character: 8 },
       triggerCharacter: "ansible.",
       completion: "ansible.",
     },
     {
       name: "list for all the modules under ansible.builtin with `ansible.builtin.`",
-      position: { line: 7, character: 8 } as Position,
+      position: { line: 7, character: 8 },
       triggerCharacter: "ansible.builtin.",
       completion: "ansible.builtin.",
     },
     {
       name: "list for all the collection modules starting with `c` under org_1 namespace with `org_1.c`",
-      position: { line: 16, character: 13 } as Position,
+      position: { line: 16, character: 13 },
       triggerCharacter: "org_1.c",
       completion: "org_1.c",
     },
     {
       name: "list for all the modules under coll_4 in org_1 with `org_1.coll_4.`",
-      position: { line: 16, character: 19 } as Position,
+      position: { line: 16, character: 19 },
       triggerCharacter: "org_1.coll_4.",
       completion: "org_1.coll_4.",
     },
     {
       name: "list for all the modules under coll_5 in org_1 with `org_1.coll_5.`",
-      position: { line: 34, character: 19 } as Position,
+      position: { line: 34, character: 19 },
       triggerCharacter: "org_1.coll_5.",
       completion: "org_1.coll_5.sub_coll_1.module_1",
     },
@@ -272,37 +268,37 @@ function testModuleOptions(
   const tests = [
     {
       name: "builtin module option (ansible.builtin.debug -> msg)",
-      position: { line: 8, character: 9 } as Position,
+      position: { line: 8, character: 9 },
       triggerCharacter: "m",
       completion: "msg",
     },
     {
       name: "collection module option (org_1.coll_4.module_1 -> opt_1)",
-      position: { line: 17, character: 8 } as Position,
+      position: { line: 17, character: 8 },
       triggerCharacter: "",
       completion: "opt_1",
     },
     {
       name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_1)",
-      position: { line: 21, character: 12 } as Position,
+      position: { line: 21, character: 12 },
       triggerCharacter: "1",
       completion: "sub_opt_1",
     },
     {
       name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_2 -> sub_sub_opt_3 -> sub_sub_sub_opt_2)",
-      position: { line: 26, character: 20 } as Position,
+      position: { line: 26, character: 20 },
       triggerCharacter: "2",
       completion: "sub_sub_sub_opt_2",
     },
     {
       name: "only non repeating options",
-      position: { line: 9, character: 9 } as Position,
+      position: { line: 9, character: 9 },
       triggerCharacter: "m",
       completion: "",
     },
     {
       name: "only non repeating suboptions",
-      position: { line: 29, character: 20 } as Position,
+      position: { line: 29, character: 20 },
       triggerCharacter: "1",
       completion: "",
     },
@@ -337,31 +333,31 @@ function testModuleOptionsValues(
   const tests = [
     {
       name: "builtin module option (ansible.builtin.debug -> msg)",
-      position: { line: 8, character: 13 } as Position,
+      position: { line: 8, character: 13 },
       triggerCharacter: "",
       completion: ["Hello world!"],
     },
     {
       name: "collection module option (org_1.coll_4.module_1 -> opt_3)",
-      position: { line: 30, character: 15 } as Position,
+      position: { line: 30, character: 15 },
       triggerCharacter: "3",
       completion: ["choice_3"],
     },
     {
       name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_1)",
-      position: { line: 18, character: 23 } as Position,
+      position: { line: 18, character: 23 },
       triggerCharacter: "1",
       completion: ["choice_1"],
     },
     {
       name: "default first",
-      position: { line: 30, character: 15 } as Position,
+      position: { line: 30, character: 15 },
       triggerCharacter: "",
       completion: ["choice_4", "choice_1", "choice_2", "choice_3"],
     },
     {
       name: "boolean values",
-      position: { line: 31, character: 15 } as Position,
+      position: { line: 31, character: 15 },
       triggerCharacter: "",
       completion: ["false", "true"],
     },
@@ -410,25 +406,25 @@ function testModuleNamesWithoutFQCN(
   const tests = [
     {
       name: "`ping` with `pin` (ansible.builtin.ping)",
-      position: { line: 7, character: 9 } as Position,
+      position: { line: 7, character: 9 },
       triggerCharacter: "pin",
       completion: "ping",
     },
     {
       name: "module option for ping (ping -> data)",
-      position: { line: 8, character: 8 } as Position,
+      position: { line: 8, character: 8 },
       triggerCharacter: "",
       completion: "data",
     },
     {
       name: "`module_3` from `org_1.coll_3` with `module_3` (org_1.coll_3.module_3)",
-      position: { line: 11, character: 14 } as Position,
+      position: { line: 11, character: 14 },
       triggerCharacter: "module_3",
       completion: "module_3",
     },
     {
       name: "module sub option for module_3 (org_1.coll_3.module_3 -> opt_1 -> sub_opt_2)",
-      position: { line: 13, character: 13 } as Position,
+      position: { line: 13, character: 13 },
       triggerCharacter: "2",
       completion: "sub_opt_2",
     },
@@ -473,19 +469,19 @@ function testPlaybookAdjacentCollection(
   const tests = [
     {
       name: "playbook adjacent module (adjacent_org.adjacent_coll.module_1)",
-      position: { line: 5, character: 19 } as Position,
+      position: { line: 5, character: 19 },
       triggerCharacter: "adjacent_org.",
       completion: "adjacent_org.adjacent_coll.module_1",
     },
     {
       name: "playbook adjacent module option (adjacent_org.adjacent_coll.module_1 -> opt_1)",
-      position: { line: 6, character: 11 } as Position,
+      position: { line: 6, character: 11 },
       triggerCharacter: "opt",
       completion: "opt_1",
     },
     {
       name: "playbook adjacent module sub option (adjacent_org.adjacent_coll.module_1 -> opt_1 -> sub_opt_1)",
-      position: { line: 7, character: 19 } as Position,
+      position: { line: 7, character: 19 },
       triggerCharacter: "sub_opt",
       completion: "sub_opt_1",
     },
@@ -519,13 +515,13 @@ function testNonPlaybookAdjacentCollection(
   const tests = [
     {
       name: "non playbook adjacent module (adjacent_org.adjacent_coll.module_1)",
-      position: { line: 5, character: 19 } as Position,
+      position: { line: 5, character: 19 },
       triggerCharacter: "adjacent_org.",
       completion: "",
     },
     {
       name: "non playbook adjacent module option (adjacent_org.adjacent_coll.module_1 -> opt_1)",
-      position: { line: 6, character: 11 } as Position,
+      position: { line: 6, character: 11 },
       triggerCharacter: "opt",
       completion: "",
     },
@@ -559,25 +555,25 @@ function testHostValues(
   const tests = [
     {
       name: "hello-worlds group",
-      position: { line: 2, character: 9 } as Position,
+      position: { line: 2, character: 9 },
       triggerCharacter: "hello",
       completion: ["hello-worlds", "hello.world.1", "hello.world.2"],
     },
     {
       name: "test-inventories group",
-      position: { line: 2, character: 9 } as Position,
+      position: { line: 2, character: 9 },
       triggerCharacter: "inventor",
       completion: ["test-inventories", "test.inventory.3", "test.inventory.4"],
     },
     {
       name: "localhost",
-      position: { line: 2, character: 14 } as Position,
+      position: { line: 2, character: 14 },
       triggerCharacter: "local",
       completion: ["localhost"],
     },
     {
       name: "all",
-      position: { line: 2, character: 9 } as Position,
+      position: { line: 2, character: 9 },
       triggerCharacter: "all",
       completion: ["all"],
     },
@@ -613,25 +609,25 @@ function testVarsCompletionInsideJinja(
   const tests = [
     {
       name: "variables defined at task level",
-      position: { line: 36, character: 17 } as Position,
+      position: { line: 36, character: 17 },
       triggerCharacter: "",
       completion: ["url", "home", "os", "password", "username"],
     },
     {
       name: "variables defined at block level",
-      position: { line: 30, character: 47 } as Position,
+      position: { line: 30, character: 47 },
       triggerCharacter: "var",
       completion: ["task_var", "block_var_1", "block_var_2"],
     },
     {
       name: "variables defined at play level",
-      position: { line: 14, character: 35 } as Position,
+      position: { line: 14, character: 35 },
       triggerCharacter: "",
       completion: ["home", "os", "password", "username"],
     },
     {
       name: "variables defined inside a vars file",
-      position: { line: 51, character: 33 } as Position,
+      position: { line: 51, character: 33 },
       triggerCharacter: "",
       completion: [
         "filepath",
@@ -700,7 +696,7 @@ function testModuleKindAndDocumentation(
 
   tests.forEach(({ moduleName, kind, documentation }) => {
     let resolvedItem: CompletionItem;
-    const position = { line: 34, character: 19 } as Position;
+    const position = { line: 34, character: 19 };
 
     expect(context).toBeDefined();
     if (context) {

@@ -9,7 +9,7 @@ import { LightspeedUser } from "@src/features/lightspeed/lightspeedUser";
 import { QuickLinksWebviewViewProvider } from "@src/features/quickLinks/utils/quickLinksViewProvider";
 import { ProviderInfo } from "@src/interfaces/lightspeed";
 
-interface LlmProviderMessage {
+export interface LlmProviderMessage {
   command: string;
   provider?: string;
   config?: Record<string, string>;
@@ -95,15 +95,17 @@ export class LlmProviderMessageHandlers {
     const settings = await this.llmProviderSettings.getAllSettings();
     const connectionStatuses = { ...settings.connectionStatuses };
 
-    // Build configs dynamically based on each provider's configSchema
+    // Build configs dynamically based on each provider's configSchema.
+    // Password fields are masked so the real secret is never sent to the webview.
     const providerConfigs: Record<string, Record<string, string>> = {};
     for (const provider of providers) {
       const config: Record<string, string> = {};
       for (const field of provider.configSchema) {
-        config[field.key] = await this.llmProviderSettings.get(
+        const raw = await this.llmProviderSettings.get(
           provider.type,
           field.key,
         );
+        config[field.key] = field.type === "password" && raw ? "••••••••" : raw;
       }
       providerConfigs[provider.type] = config;
     }
@@ -134,7 +136,7 @@ export class LlmProviderMessageHandlers {
     this.quickLinksProvider?.refreshProviderInfo();
 
     // Run heavy operations in background (don't block UI)
-    this.settingsManager.reinitialize().then(() => {
+    void this.settingsManager.reinitialize().then(() => {
       this.providerManager.refreshProviders().catch((error) => {
         console.error("Failed to refresh providers:", error);
       });
@@ -160,9 +162,13 @@ export class LlmProviderMessageHandlers {
       if (providerInfo) {
         for (const field of providerInfo.configSchema) {
           const value = message.config[field.key];
-          // Skip apiKey only if provider doesn't require it
-          // (but still save empty value to clear existing key)
           if (field.key === "apiKey" && !providerInfo.requiresApiKey) {
+            continue;
+          }
+          // The webview receives a mask ("••••••••") for password fields.
+          // Skip saving when the mask is returned unchanged so we never
+          // overwrite the real secret with the placeholder.
+          if (field.type === "password" && value === "••••••••") {
             continue;
           }
           await this.llmProviderSettings.set(
@@ -351,7 +357,6 @@ export class LlmProviderMessageHandlers {
       const provider = providerFactory.createProvider(
         providerType as ProviderType,
         {
-          apiKey,
           modelName,
           apiEndpoint,
           maxTokens: Number.isNaN(maxTokens) ? undefined : maxTokens,
@@ -360,6 +365,7 @@ export class LlmProviderMessageHandlers {
           timeout: 30000,
           suggestions: { enabled: true, waitWindow: 0 },
         },
+        apiKey || undefined,
       );
 
       const status = await provider.getStatus();

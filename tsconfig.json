@@ -15,6 +15,7 @@
     },
     "types": ["@types/mocha", "vscode-webview"]
   },
+  "exclude": ["test/wdio/**/*"],
   "extends": "./tsconfig.base.json",
   "include": [
     "*.js",

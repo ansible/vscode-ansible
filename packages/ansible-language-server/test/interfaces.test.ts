@@ -1,4 +1,5 @@
 import { IPullPolicy } from "@src/interfaces/extensionSettings.js";
+import { expect } from "vitest";
 
 describe("interfaces", function () {
   describe("IPullPolicy", function () {
@@ -6,8 +7,7 @@ describe("interfaces", function () {
       // Type existence is verified by TypeScript at compile time.
       // If IPullPolicy doesn't exist, this file won't compile.
       const _test: IPullPolicy = "always";
-      // Suppress unused variable warning
-      void _test;
+      expect(_test).toBe("always");
     });
   });
 });

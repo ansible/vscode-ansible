@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
 import { providerFactory } from "@src/features/lightspeed/providers/factory";
+import type { ProviderInfo } from "@src/interfaces/lightspeed";
 
 /**
  * Service for managing LLM provider settings.
@@ -31,7 +32,7 @@ export class LlmProviderSettings {
     const cfg = vscode.workspace.getConfiguration("ansible.lightspeed");
     const inspect = (key: string) => {
       const i = cfg.inspect<string>(key);
-      return i?.workspaceValue ?? i?.globalValue;
+      return i?.workspaceFolderValue ?? i?.workspaceValue ?? i?.globalValue;
     };
 
     // Import provider first — it determines where other fields are stored
@@ -51,22 +52,12 @@ export class LlmProviderSettings {
     for (const key of ["apiEndpoint", "modelName", "apiKey"]) {
       const legacy = inspect(key);
       if (!legacy) continue;
-
-      const field = providerInfo?.configSchema.find((f) => f.key === key);
-      if (!field) continue;
-
-      if (field.type === "password") {
-        const secretKey = `${LlmProviderSettings.SECRET_PREFIX}${targetProvider}.${key}`;
-        if ((await this.context.secrets.get(secretKey)) === undefined) {
-          await this.context.secrets.store(secretKey, legacy);
-        }
-      } else {
-        const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${targetProvider}.${key}`;
-        if (this.context.globalState.get<string>(stateKey) === undefined) {
-          await this.context.globalState.update(stateKey, legacy.trim());
-        }
-      }
+      await this.importLegacyField(targetProvider, providerInfo, key, legacy);
     }
+
+    // Scrub sensitive values from settings.json so they no longer persist
+    // in plain text after being migrated to the secret store.
+    await LlmProviderSettings.scrubLegacySecrets(cfg);
 
     await this.context.globalState.update(
       LlmProviderSettings.MIGRATION_KEY,
@@ -126,6 +117,69 @@ export class LlmProviderSettings {
     await this.context.globalState.update(stateKey, value?.trim() ?? "");
   }
 
+  /**
+   * Remove the apiKey from settings.json at both global and workspace scopes
+   * so it no longer persists in plain text on disk.
+   */
+  private static async scrubLegacySecrets(
+    cfg: vscode.WorkspaceConfiguration,
+  ): Promise<void> {
+    const info = cfg.inspect<string>("apiKey");
+    try {
+      if (info?.globalValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.Global,
+        );
+      }
+      if (info?.workspaceValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.Workspace,
+        );
+      }
+      if (info?.workspaceFolderValue !== undefined) {
+        await cfg.update(
+          "apiKey",
+          undefined,
+          vscode.ConfigurationTarget.WorkspaceFolder,
+        );
+      }
+    } catch {
+      // Best-effort: workspace may be read-only or untrusted
+    }
+  }
+
+  /**
+   * Import a single legacy settings.json field into Panel storage (secret or
+   * globalState depending on the field type), if not already present.
+   */
+  private async importLegacyField(
+    targetProvider: string,
+    providerInfo: ProviderInfo | undefined,
+    key: string,
+    legacy: string,
+  ): Promise<void> {
+    const field = providerInfo?.configSchema.find((f) => f.key === key);
+    if (!field) {
+      return;
+    }
+
+    if (field.type === "password") {
+      const secretKey = `${LlmProviderSettings.SECRET_PREFIX}${targetProvider}.${key}`;
+      if ((await this.context.secrets.get(secretKey)) === undefined) {
+        await this.context.secrets.store(secretKey, legacy);
+      }
+    } else {
+      const stateKey = `${LlmProviderSettings.SETTING_PREFIX}${targetProvider}.${key}`;
+      if (this.context.globalState.get<string>(stateKey) === undefined) {
+        await this.context.globalState.update(stateKey, legacy.trim());
+      }
+    }
+  }
+
   private getProviderInfo(providerType: string) {
     return providerFactory
       .getSupportedProviders()
@@ -174,21 +228,18 @@ export class LlmProviderSettings {
     provider: string;
     apiEndpoint: string;
     modelName: string | undefined;
-    apiKey: string;
     maxTokens?: string;
     connectionStatuses: Record<string, boolean>;
   }> {
     const currentProvider = this.getProvider();
     const apiEndpoint = await this.get(currentProvider, "apiEndpoint");
     const modelName = await this.get(currentProvider, "modelName");
-    const apiKey = await this.get(currentProvider, "apiKey");
     const maxTokens = await this.get(currentProvider, "maxTokens");
 
     return {
       provider: currentProvider,
       apiEndpoint,
       modelName: modelName || undefined,
-      apiKey,
       maxTokens: maxTokens || undefined,
       connectionStatuses: this.getAllConnectionStatuses(),
     };

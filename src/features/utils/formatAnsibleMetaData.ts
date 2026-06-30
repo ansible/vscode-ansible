@@ -1,9 +1,36 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { MarkdownString, workspace } from "vscode";
 import * as os from "os";
 import * as path from "path";
 
-export function formatAnsibleMetaData(ansibleMetaData: any) {
+const asRecord = (value: unknown): Record<string, unknown> =>
+  value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+function formatMetadataValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+}
+
+export interface FormattedAnsibleMetaData {
+  metaData: Record<string, unknown>;
+  markdown: MarkdownString;
+  ansiblePresent: boolean;
+  ansibleLintPresent: boolean;
+  eeEnabled?: boolean;
+}
+
+export function formatAnsibleMetaData(
+  ansibleMetaData: unknown,
+): FormattedAnsibleMetaData {
   let mdString = "";
   let ansiblePresent = true;
   let ansibleLintPresent = true;
@@ -13,14 +40,20 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   const WARNING_STYLE = `style="color:${WARNING_COLOR};"`;
 
   // check if ansible is missing
-  if (Object.keys(ansibleMetaData["ansible information"]).length === 0) {
+  const ansibleInfo = asRecord(
+    asRecord(ansibleMetaData)["ansible information"],
+  );
+  if (Object.keys(ansibleInfo).length === 0) {
     ansiblePresent = false;
     mdString += "#### $(close) Ansible not found in the environment\n";
 
     // if python exists
-    if (Object.keys(ansibleMetaData["python information"]).length !== 0) {
-      const obj = ansibleMetaData["python information"];
-      mdString += `Python version used: \`${obj["version"]}\` from \`${obj["location"]}\``;
+    const pythonInfo = asRecord(
+      asRecord(ansibleMetaData)["python information"],
+    );
+    if (Object.keys(pythonInfo).length !== 0) {
+      const obj = pythonInfo;
+      mdString += `Python version used: \`${String(obj["version"])}\` from \`${String(obj["location"])}\``;
     }
 
     const markdown = new MarkdownString(mdString, true);
@@ -28,20 +61,24 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     markdown.isTrusted = true;
 
     return {
-      metaData: ansibleMetaData,
+      metaData: asRecord(ansibleMetaData),
       markdown,
       ansiblePresent,
       ansibleLintPresent,
     };
   }
 
+  const metaDataRoot = asRecord(ansibleMetaData);
+
   // check if ee is enabled or not
-  if (ansibleMetaData["execution environment information"]) {
+  if (metaDataRoot["execution environment information"]) {
     eeEnabled = true;
   }
 
   // check is ansible-lint is missing
-  if (Object.keys(ansibleMetaData["ansible-lint information"]).length === 0) {
+  if (
+    Object.keys(asRecord(metaDataRoot["ansible-lint information"])).length === 0
+  ) {
     ansibleLintPresent = false;
   }
 
@@ -57,8 +94,10 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     .getConfiguration("ansible.validation.lint")
     .get("enabled");
 
-  Object.keys(ansibleMetaData).forEach((mainKey) => {
-    if (Object.keys(ansibleMetaData[mainKey]).length === 0) {
+  const root = metaDataRoot;
+  Object.keys(root).forEach((mainKey) => {
+    const section = asRecord(root[mainKey]);
+    if (Object.keys(section).length === 0) {
       return;
     }
     // put a marker stating ansible-lint setting is disabled
@@ -69,23 +108,27 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
       mdString += `\n**${mainKey}:** \n`;
     }
 
-    const valueObj = ansibleMetaData[mainKey];
+    const valueObj = section;
     Object.keys(valueObj).forEach((key) => {
       if (key === "upgrade status") {
-        mdString += ` <span ${WARNING_STYLE}>${valueObj[key]}`;
+        const value = valueObj[key] as string | number | boolean | null;
+        if (value != null && String(value).trim().toLowerCase() !== "nil") {
+          mdString += ` <span ${WARNING_STYLE}>${String(value)}</span>`;
+        }
         return;
       }
       mdString += `\n   - ${key}: `;
-      const value = valueObj[key];
-      if (typeof value === "object") {
-        value.forEach((val: any, index: any) => {
+      const value: unknown = valueObj[key];
+      if (Array.isArray(value)) {
+        value.forEach((val: unknown, index: number) => {
           if (val && val !== "None") {
+            const formattedVal = formatMetadataValue(val);
             if (key.includes("path")) {
               mdString += `\n       ${
                 index + 1
-              }. <a href='${val}'>${getTildePath(val)}</a>`;
+              }. <a href='${formattedVal}'>${getTildePath(formattedVal)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${getTildePath(val)}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(formattedVal)}`;
             }
           }
           if (index === value.length - 1) {
@@ -94,17 +137,18 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         });
       } else {
         if (key.includes("path")) {
-          mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
+          const pathValue = formatMetadataValue(value);
+          mdString += `<a href='${pathValue}'>${getTildePath(pathValue)}</a>`;
         } else if (key.includes("version")) {
-          const versionInfo = value.split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
+          const versionInfo = formatMetadataValue(value).split(/\r?\n/);
           mdString += `\`${versionInfo[0]}\`\n`;
           if (versionInfo[1]) {
             mdString += `*<span style="color:${WARNING_COLOR};">${versionInfo[1]}*\n`;
           }
         } else if (key.includes("location")) {
-          mdString += `${getTildePath(value)}\n`;
+          mdString += `${getTildePath(formatMetadataValue(value))}\n`;
         } else {
-          mdString += `${value}\n`;
+          mdString += `${formatMetadataValue(value)}\n`;
         }
       }
     });
@@ -126,7 +170,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   }
 
   return {
-    metaData: ansibleMetaData,
+    metaData: metaDataRoot,
     markdown,
     ansiblePresent,
     ansibleLintPresent,

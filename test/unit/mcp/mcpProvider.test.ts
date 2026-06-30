@@ -209,7 +209,9 @@ describe("AnsibleMcpServerProvider", function () {
       // After dispose, the provider should be cleaned up
       // We can't directly test the internal emitter, but we can verify
       // that dispose doesn't throw
-      expect(() => provider.dispose()).not.toThrow();
+      expect(() => {
+        provider.dispose();
+      }).not.toThrow();
     });
   });
 
@@ -218,7 +220,7 @@ describe("AnsibleMcpServerProvider", function () {
       const resolvedServerPath =
         "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
       const expectedCliPath =
-        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.cjs";
 
       // Mock require.resolve to return the server module path
       mockRequireResolve.mockReturnValue(resolvedServerPath);
@@ -239,15 +241,39 @@ describe("AnsibleMcpServerProvider", function () {
       );
     });
 
-    it("should return null when package cannot be resolved", function () {
+    it("should return null when package cannot be resolved and no fallback exists", function () {
       // Mock require.resolve to throw (package not found)
       mockRequireResolve.mockImplementation(() => {
         throw new Error("Cannot find module '@ansible/ansible-mcp-server'");
       });
 
+      // No fallback CLI file exists either
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (provider as any).findCliPath();
       expect(result).toBeNull();
+    });
+
+    it("should fall back to packaged extension path when module resolution fails", function () {
+      // Simulate packaged extension: createRequire().resolve() fails
+      mockRequireResolve.mockImplementation(() => {
+        throw new Error("Cannot find module '@ansible/ansible-mcp-server'");
+      });
+
+      const expectedPackagedCliPath = `${mockExtensionPath}/packages/ansible-mcp-server/dist/cli.cjs`;
+
+      // The fallback packaged CLI path exists
+      vi.mocked(fs.existsSync).mockImplementation(
+        (filePath) => filePath.toString() === expectedPackagedCliPath,
+      );
+      vi.mocked(fs.statSync).mockReturnValue({
+        isFile: () => true,
+      } as fs.Stats);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (provider as any).findCliPath();
+      expect(result).toBe(expectedPackagedCliPath);
     });
 
     it("should return null when CLI file does not exist at resolved path", function () {
@@ -268,7 +294,7 @@ describe("AnsibleMcpServerProvider", function () {
       const resolvedServerPath =
         "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
       const expectedCliPath =
-        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.cjs";
 
       mockRequireResolve.mockReturnValue(resolvedServerPath);
       vi.mocked(fs.existsSync).mockImplementation(
@@ -287,7 +313,7 @@ describe("AnsibleMcpServerProvider", function () {
       const resolvedServerPath =
         "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/server.js";
       const expectedCliPath =
-        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.js";
+        "/mock/extension/path/node_modules/@ansible/ansible-mcp-server/out/server/src/cli.cjs";
 
       mockRequireResolve.mockReturnValue(resolvedServerPath);
       vi.mocked(fs.existsSync).mockImplementation(

@@ -13,7 +13,7 @@ PROJECT_ROOT="$(dirname "$DIR")"
 
 # inside containers ARCH might not be set
 ARCH=${ARCH:-$(uname -m)}
-IMAGE_VERSION=$(./tools/get-image-version.mts)
+IMAGE_VERSION=$(node ./tools/get-image-version.mts)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 ERR=0
 EE_ANSIBLE_VERSION=null
@@ -93,7 +93,9 @@ fi
 
 if [[ "${OSTYPE:-}" == darwin* ]]; then
     # coreutils provides 'timeout' command
-    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1 brew install -q libssh coreutils
+    # retry to avoid Homebrew lock race when parallel CI tasks both trigger setup
+    export HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ENV_HINTS=1
+    retry 3 15 brew install -q libssh coreutils
 fi
 
 is_podman_running() {
@@ -162,14 +164,14 @@ fi
 
 if command -v pipx >/dev/null 2>&1; then
     log notice "Uninstalling pipx packages..."
-    pipx list 2> /dev/null
+    pipx list 2> /dev/null || true
     for pkg in ansible-core ansible-creator ansible-dev-tools ansible-lint ansible-navigator molecule yamllint; do
         if pipx list 2> /dev/null | grep -q "$pkg"; then
             pipx uninstall -q "$pkg"
         fi
     done
     log notice "pipx list after uninstall:"
-    pipx list 2> /dev/null
+    pipx list 2> /dev/null || true
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
@@ -358,7 +360,7 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     PODMAN_VERSION="$(get_version podman 2>/dev/null || echo null)"
     podman container prune -f
     log notice "Pull our test container image with podman."
-    retry 3 60 podman pull --quiet "${IMAGE}" || {
+    retry 3 60 podman pull "${IMAGE}" || {
         log error "Failed to pull image after 3 attempts."
         exit 1
     }

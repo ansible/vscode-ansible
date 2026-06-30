@@ -76,13 +76,18 @@ export class AnsibleConfig {
       const versionInfo = ini.parse(ansibleVersionResult.stdout);
       this._ansible_meta_data = versionInfo;
       this._module_locations = parsePythonStringArray(
-        versionInfo["configured module search path"],
+        versionInfo["configured module search path"] as string,
       );
       this._module_locations.push(
-        path.resolve(versionInfo["ansible python module location"], "modules"),
+        path.resolve(
+          versionInfo["ansible python module location"] as string,
+          "modules",
+        ),
       );
 
-      this._ansible_location = versionInfo["ansible python module location"];
+      this._ansible_location = versionInfo[
+        "ansible python module location"
+      ] as string;
 
       // get Python sys.path
       // this is needed to get the pre-installed collections to work
@@ -95,12 +100,15 @@ export class AnsibleConfig {
       );
     } catch (error) {
       /* v8 ignore start */
-      if (error instanceof Error) {
-        this.connection.window.showErrorMessage(error.message);
-      } else {
-        this.connection.console.error(
-          `Exception in AnsibleConfig service: ${JSON.stringify(error)}`,
-        );
+      // Suppress "command not found" errors completely
+      // The client-side already logs "Ansible not found" when showing the error state in UI
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        !errorMessage.includes("command not found") &&
+        !errorMessage.includes("ansible: command not found")
+      ) {
+        this.connection.console.error(`[AnsibleConfig] ${errorMessage}`);
       }
       /* v8 ignore end */
     }

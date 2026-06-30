@@ -18,7 +18,7 @@ export function setupPanelLifecycle(
     context,
     htmlEntryPoint,
   );
-  WebviewHelper.setupWebviewHooks(panel.webview, disposables, context);
+  void WebviewHelper.setupWebviewHooks(panel.webview, disposables, context);
 }
 
 /**

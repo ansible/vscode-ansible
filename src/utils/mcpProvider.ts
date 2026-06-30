@@ -80,7 +80,9 @@ export class AnsibleMcpServerProvider {
         `Registered MCP server: ${AnsibleMcpServerProvider.MCP_SERVER_NAME}`,
       );
     } catch (error) {
-      console.error(`Failed to provide MCP server definitions: ${error}`);
+      console.error(
+        `Failed to provide MCP server definitions: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
 
     return servers;
@@ -113,7 +115,7 @@ export class AnsibleMcpServerProvider {
 
       return server;
     } catch (error) {
-      const errorMessage = `Failed to resolve MCP server definition: ${error}`;
+      const errorMessage = `Failed to resolve MCP server definition: ${error instanceof Error ? error.message : String(error)}`;
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
       return undefined;
@@ -131,7 +133,9 @@ export class AnsibleMcpServerProvider {
       }
       return true;
     } catch (error) {
-      console.error(`Failed to check MCP server availability: ${error}`);
+      console.error(
+        `Failed to check MCP server availability: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return false;
     }
   }
@@ -140,36 +144,55 @@ export class AnsibleMcpServerProvider {
    * Find the CLI path using Node.js module resolution.
    * This avoids hardcoded paths and uses the package's bin entry point.
    */
+  private static readonly MCP_CLI_FILENAME = "cli.cjs";
+
   private findCliPath(): string | null {
+    // Try module resolution first (works in development with pnpm workspace symlinks)
     try {
-      // Use createRequire to resolve the package from the extension's context
       const require = createRequire(
         path.join(this.extensionPath, "package.json"),
       );
 
-      // Resolve the main module of the MCP server package
       const packageMainPath = require.resolve(
         AnsibleMcpServerProvider.MCP_PACKAGE_NAME,
       );
 
-      // The CLI is in the same directory as the main module (server.js -> cli.js)
+      // require.resolve returns the "main" entry (dist/cli.cjs); use its directory
       const packageDir = path.dirname(packageMainPath);
-      const cliPath = path.join(packageDir, "cli.js");
+      const cliPath = path.join(
+        packageDir,
+        AnsibleMcpServerProvider.MCP_CLI_FILENAME,
+      );
 
-      if (fs.existsSync(cliPath)) {
-        const stats = fs.statSync(cliPath);
-        if (stats.isFile()) {
-          console.log(`Found MCP server CLI via module resolution: ${cliPath}`);
-          return cliPath;
-        }
+      if (fs.existsSync(cliPath) && fs.statSync(cliPath).isFile()) {
+        console.log(`Found MCP server CLI via module resolution: ${cliPath}`);
+        return cliPath;
       }
-
-      console.error(`MCP server CLI not found at resolved path: ${cliPath}`);
-      return null;
-    } catch (error) {
-      console.error(`Failed to resolve MCP server package: ${error}`);
-      return null;
+    } catch {
+      // Module resolution fails in the packaged extension (no node_modules/)
     }
+
+    // Fallback: check the packaged extension path where vsce bundles the workspace package
+    const packagedCliPath = path.join(
+      this.extensionPath,
+      "packages",
+      "ansible-mcp-server",
+      "dist",
+      AnsibleMcpServerProvider.MCP_CLI_FILENAME,
+    );
+
+    if (
+      fs.existsSync(packagedCliPath) &&
+      fs.statSync(packagedCliPath).isFile()
+    ) {
+      console.log(`Found MCP server CLI at packaged path: ${packagedCliPath}`);
+      return packagedCliPath;
+    }
+
+    console.error(
+      "MCP server CLI not found via module resolution or packaged path",
+    );
+    return null;
   }
 
   /**

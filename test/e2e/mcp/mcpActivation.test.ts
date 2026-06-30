@@ -51,7 +51,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
         assert.ok(serverPath, "MCP server package should be resolvable");
 
         // CLI should be in the same directory as the main module
-        const cliPath = path.join(path.dirname(serverPath), "cli.js");
+        const cliPath = path.join(path.dirname(serverPath), "cli.cjs");
         assert.ok(existsSync(cliPath), `MCP CLI should exist at: ${cliPath}`);
       } catch (error) {
         // If module resolution fails, check for legacy paths as fallback
@@ -59,7 +59,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
           extensionPath,
           "out",
           "mcp",
-          "cli.js",
+          "cli.cjs",
         );
         const devCliPath = path.join(
           extensionPath,
@@ -68,7 +68,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
           "out",
           "server",
           "src",
-          "cli.js",
+          "cli.cjs",
         );
 
         const hasPackagedCli = existsSync(packagedCliPath);
@@ -79,7 +79,7 @@ describe("MCP server activation and availability (AAP-64488)", function () {
           `MCP CLI should be resolvable via module resolution or exist at:\n` +
             `  - Packaged: ${packagedCliPath} (exists: ${hasPackagedCli})\n` +
             `  - Development: ${devCliPath} (exists: ${hasDevCli})\n` +
-            `  - Module resolution error: ${error}`,
+            `  - Module resolution error: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     });

@@ -40,7 +40,7 @@ export function findHtmlFile(distDir: string, inputName: string): string {
  * for production builds. The dev server writes its URL to a marker file.
  */
 export function getDevServerUrl(extensionPath: string): string | undefined {
-  const markerPath = path.join(extensionPath, ".vite-dev-server-url");
+  const markerPath = path.join(extensionPath, "out", ".vite-dev-server-url");
   try {
     const raw = fs.readFileSync(markerPath, "utf8").trim();
     const parsed = new URL(raw);
@@ -122,7 +122,10 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
   html = html.replace(/<script /g, `<script nonce="${nonce}" `);
 
   // Rewrite absolute /assets/ paths to webview URIs
-  html = html.replace(/(href|src)="\/assets\//g, `$1="${baseUri}/assets/`);
+  html = html.replace(
+    /(href|src)="\/assets\//g,
+    `$1="${baseUri.toString()}/assets/`,
+  );
 
   return html;
 }

@@ -418,12 +418,45 @@ npm exec -- ansible-mcp-server --stdio
 }
 ```
 
-#### Testing with Cursor / Claude Desktop
+#### Testing with MCP Clients
 
-- Add MCP server config
+The server works with any MCP-compatible client, including Cursor,
+Claude Desktop, Claude Code, IBM Bob, and Gemini CLI.
+
+- Add MCP server config (see [Client Configuration](../mcp/README.md#client-configuration))
 - Restart client
 - Trigger tools via chat
 - Validate formatting, errors, and output correctness
+
+#### Testing with the Container Image
+
+Build a local container image:
+
+```bash
+task mcp:container
+```
+
+Run the server interactively:
+
+```bash
+docker run --rm -i ghcr.io/ansible/devtools-mcp-server:local --stdio
+```
+
+Pipe a JSON-RPC request to verify it responds:
+
+```bash
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}' \
+  | docker run --rm -i ghcr.io/ansible/devtools-mcp-server:local --stdio
+```
+
+To mount a local workspace and test tools that interact with files:
+
+```bash
+docker run --rm -i \
+  -v "$PWD:/workspace" \
+  -e WORKSPACE_ROOT=/workspace \
+  ghcr.io/ansible/devtools-mcp-server:local --stdio
+```
 
 #### Manual Testing Checklist
 

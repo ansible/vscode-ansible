@@ -17,19 +17,27 @@ const config: KnipConfig = {
     ],
   },
   includeEntryExports: true,
+  ignoreBinaries: [
+    "adt", // Ansible Development Tools CLI; on $PATH in CI/test env, not an npm bin
+    "ansible-creator", // external pip-installed CLI invoked via spawnSync
+    "which", // POSIX system utility for resolving executables on $PATH
+  ],
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",
     "@typescript-eslint/eslint-plugin",
-    "@vscode/test-electron",
     "@vscode/vsce",
+    "@wdio/local-runner", // referenced by string in wdio.conf.ts `runner: "local"`
     "cspell-cli",
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
+    "markdownlint-cli2",
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "pnpm",
+    "ts-node", // used by wdio autoCompileOpts, not directly imported
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:
     //   • root workspace: webviews/ are not analyzed (not in package.json main/bin)
@@ -38,6 +46,7 @@ const config: KnipConfig = {
       ? [
           // root workspace – webview or deep @src/* chain deps
           "@ansible/ansible-mcp-server", // used as a string constant, not imported
+          "@vscode/python-extension", // dynamic API import for ms-python.python fallback
           "@google/genai",
           "@highlightjs/vue-plugin",
           "@primeuix/themes",
@@ -77,18 +86,11 @@ const config: KnipConfig = {
       mocha: {
         entry: ["test/**/*.ts!"],
       },
-      project: [
-        "{src,webviews}/**/*.{mjs,js,json,ts,tsx,vue}",
-        "test/**/*.ts!",
-      ],
+      project: ["{src,webviews}/**/*.{mjs,js,ts,tsx,vue}", "test/**/*.ts!"],
     },
     "packages/ansible-language-server": {
       entry: ["test/**/*.ts"],
-      project: [
-        "!src/**/*.{mjs,js,json,ts,tsx}!",
-        "!test/**/*.ts!",
-        "test/*.ts!",
-      ],
+      project: ["!src/**/*.{mjs,js,ts,tsx}!", "!test/**/*.ts!", "test/*.ts!"],
     },
     "packages/ansible-mcp-server": {
       // src/cli.ts is auto-detected from package.json#bin in non-production mode;
@@ -96,8 +98,8 @@ const config: KnipConfig = {
       // unresolvable @src/* aliases — all src files are suppressed via ignoreIssues.
       entry: ["test/**/*.ts"],
       project: [
-        "{src,tools}/**/*.{mjs,js,json,ts,tsx}!",
-        "test/**/*.{mjs,js,json,ts,tsx}!",
+        "{src,tools}/**/*.{mjs,js,ts,tsx}!",
+        "test/**/*.{mjs,js,ts,tsx}!",
       ],
     },
   },
@@ -116,7 +118,11 @@ const config: KnipConfig = {
     // Files only imported by webview Vue files; not reachable in production
     "src/features/contentCreator/webviewUtils.ts": ["files"],
     // File loaded via dynamic require() — knip cannot trace dynamic imports
-    "src/features/lightspeed/ansibleContext.ts": ["files"],
+    "src/features/lightspeed/ansibleContext.ts": ["files", "types"],
+    "src/features/lightspeed/providers/base.ts": ["types"],
+    "src/interfaces/lightspeed.ts": ["types"],
+    "src/types/pythonEnvApi.ts": ["types"],
+    "webviews/lightspeed/src/components/llmProviderState.ts": ["types"],
     // Files only referenced by test files (no production caller)
     "src/features/utils/interpreterPathResolver.ts": ["files"],
     "src/webview/apps/common/editableList.ts": ["files"],
@@ -127,6 +133,7 @@ const config: KnipConfig = {
     // These helpers are exported for test access only; test files are excluded
     // in production mode. They live in package.json#exports entry files so
     // includeEntryExports:false should suppress them, but the global true wins.
+    "packages/ansible-language-server/test/globalSetup.ts": ["exports"],
     "packages/ansible-language-server/src/providers/completionProvider.ts": [
       "exports",
     ],
@@ -135,6 +142,10 @@ const config: KnipConfig = {
     ],
     "packages/ansible-language-server/src/utils/getAnsibleMetaData.ts": [
       "exports",
+      "types",
+    ],
+    "packages/ansible-language-server/src/interfaces/extensionSettings.ts": [
+      "types",
     ],
     "packages/ansible-mcp-server/src/constants.ts": ["exports", "types"],
     "packages/ansible-mcp-server/src/dependencyChecker.ts": ["exports"],
@@ -142,6 +153,7 @@ const config: KnipConfig = {
     "packages/ansible-mcp-server/src/server.ts": ["exports"],
     "packages/ansible-mcp-server/src/tools/adeTools.ts": ["types", "exports"],
     "packages/ansible-mcp-server/src/tools/executionEnv.ts": ["types"],
+    "packages/ansible-mcp-server/src/utils/pathValidation.ts": ["exports"],
   },
 };
 

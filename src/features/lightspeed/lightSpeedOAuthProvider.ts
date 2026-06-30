@@ -24,6 +24,7 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
+  coerceExpiresIn,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   getBaseUri,
@@ -140,8 +141,12 @@ export class LightSpeedAuthenticationProvider
   }
 
   private static getRedirectUri(context: ExtensionContext) {
-    const publisher = context.extension.packageJSON.publisher;
-    const name = context.extension.packageJSON.name;
+    const manifest = context.extension.packageJSON as {
+      publisher?: string;
+      name?: string;
+    };
+    const publisher = manifest.publisher ?? "";
+    const name = manifest.name ?? "";
 
     return `${env.uriScheme}://${publisher}.${name}`;
   }
@@ -163,6 +168,41 @@ export class LightSpeedAuthenticationProvider
     }
 
     return [];
+  }
+
+  /**
+   * Inject a fake authenticated session for WDIO UI tests.
+   *
+   * Writes a synthetic {@link LightspeedAuthSession} to the secret store and
+   * fires a session-change event so the rest of the extension treats the user
+   * as logged in. Called via the `ansible.lightspeed.mockSession` command.
+   */
+  public async setMockSession(sessionParams: {
+    accessToken: string;
+    accountId: string;
+    accountLabel: string;
+  }): Promise<void> {
+    const previous = await this.getSessions();
+    const session: LightspeedAuthSession = {
+      id: sessionParams.accountId,
+      accessToken: sessionParams.accessToken,
+      account: {
+        id: sessionParams.accountId,
+        label: sessionParams.accountLabel,
+      },
+      scopes: [],
+      rhOrgHasSubscription: false,
+      rhUserIsOrgAdmin: false,
+    };
+    await this.context.secrets.store(
+      SESSIONS_SECRET_KEY,
+      JSON.stringify([session]),
+    );
+    this._sessionChangeEmitter.fire({
+      added: [session],
+      removed: previous,
+      changed: [],
+    });
   }
 
   /**
@@ -225,7 +265,7 @@ export class LightSpeedAuthenticationProvider
       return session;
     } catch (e) {
       console.error(
-        `[ansible-lightspeed-oauth] Ansible Lightspeed sign in failed: ${e}`,
+        `[ansible-lightspeed-oauth] Ansible Lightspeed sign in failed: ${e instanceof Error ? e.message : String(e)}`,
       );
       throw e;
     }
@@ -267,7 +307,7 @@ export class LightSpeedAuthenticationProvider
 
       if (account) {
         const sessionId = account.id;
-        this.removeSession(sessionId);
+        void this.removeSession(sessionId);
       }
 
       this._logger.debug("[ansible-lightspeed-oauth] Disposing auth provider");
@@ -392,15 +432,20 @@ export class LightSpeedAuthenticationProvider
         },
       );
 
-      const data = await response.json();
+      interface OAuthTokenResponse {
+        access_token?: string;
+        refresh_token?: string;
+        expires_in?: unknown;
+      }
+      const data = (await response.json()) as OAuthTokenResponse;
 
       if (response.ok) {
         const account: OAuthAccount = {
           type: "oauth",
-          accessToken: data?.access_token,
-          refreshToken: data?.refresh_token,
+          accessToken: data.access_token ?? "",
+          refreshToken: data.refresh_token ?? "",
           expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-            data?.expires_in,
+            coerceExpiresIn(data.expires_in),
           ),
           // scope: data.scope,
         };
@@ -464,15 +509,20 @@ export class LightSpeedAuthenticationProvider
             },
           );
 
-          const data = await response.json();
+          interface OAuthTokenResponse {
+            access_token?: string;
+            refresh_token?: string;
+            expires_in?: unknown;
+          }
+          const data = (await response.json()) as OAuthTokenResponse;
 
           if (response.ok) {
             const account: OAuthAccount = {
               ...currentAccount,
-              accessToken: data?.access_token,
-              refreshToken: data?.refresh_token,
+              accessToken: data.access_token ?? currentAccount.accessToken,
+              refreshToken: data.refresh_token ?? currentAccount.refreshToken,
               expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-                data?.expires_in,
+                coerceExpiresIn(data.expires_in),
               ),
               // scope: data.scope,
             };
@@ -531,7 +581,8 @@ export class LightSpeedAuthenticationProvider
 
     this._logger.trace("[ansible-lightspeed-oauth] Account found");
 
-    const currentAccount: OAuthAccount = JSON.parse(account);
+    const parsedAccount: unknown = JSON.parse(account);
+    const currentAccount = parsedAccount as OAuthAccount;
     let tokenToBeReturned = currentAccount.accessToken;
 
     // check if token needs to be refreshed

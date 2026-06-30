@@ -6,8 +6,6 @@ env:
   DOCKER_CLI_HINTS: "false"
 vars:
   PROJECT: ansible-mcp-server
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 includes:
   base:
     taskfile: ../../Taskfile.base.yml
@@ -32,12 +30,13 @@ tasks:
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
       - ../../tsconfig*.json
       - exclude: "**/*-artifact-*.json"
   test:
@@ -75,16 +74,23 @@ tasks:
       - README.md
       - package*.json
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
     generates:
       - dist/**/*
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
-      - npm version {{ .VERSION }} --no-git-tag-version
-      - npm pack --silent --pack-destination '{{ .GIT_ROOT }}/out'
-      - defer: npm version 0.0.0 --no-git-tag-version
+      - npm pkg set version={{ .VERSION }}
+      - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
+      - defer: npm pkg set version=0.0.0
     silent: false
+  container:
+    desc: Build the MCP server container image
+    dir: "{{ .TASKFILE_DIR }}"
+    deps:
+      - package
+    cmds:
+      - docker build -f Containerfile -t ghcr.io/ansible/devtools-mcp-server:local .
   clean:
     desc: Clean build artifacts
     dir: "{{ .TASKFILE_DIR }}"

@@ -1,8 +1,10 @@
+# cspell: ignore carryforward
 codecov:
   require_ci_to_pass: false
   notify:
     after_n_builds: 3 # effectively number of uploads: linux, macos, wsl
-    wait_for_ci: false
+    wait_for_ci: false # do not wait for other CI checks to pass before reporting
+    notify_error: true # comment on upload failures
 comment:
   # https://docs.codecov.com/docs/pull-request-comments
   layout: "condensed_header, condensed_files, condensed_footer"
@@ -11,7 +13,35 @@ comment:
   after_n_builds: 3
 coverage:
   status:
-    patch: false
-    project: true
+    # Project coverage fluctuates across linux/macos/wsl uploads and on
+    # indirect changes to unrelated lines; relax this check so minor
+    # fluctuations do not block merges.
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+      tests:
+        target: 100%
+        threshold: 0%
+        flags:
+          - test
+        paths:
+          - test/
+          - packages/*/test/
+    # Enforce coverage only on lines changed in the pull request.
+    patch:
+      default:
+        target: auto
+        threshold: 0%
+    # Indirect coverage changes on untouched lines are noisy in multi-OS CI.
+    changes:
+      default:
+        enabled: false
+flag_management:
+  default_rules:
+    carryforward: false
 github_checks:
   annotations: true
+ignore:
+  - ".agents/**"  # Exclude agent skill documentation from coverage
+  - "wdio.conf.ts"

@@ -4,13 +4,16 @@ import {
   DidChangeWatchedFilesNotification,
   InitializeParams,
   InitializeResult,
+  SaveOptions,
   TextDocuments,
   TextDocumentSyncKind,
+  TextDocumentSyncOptions,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   doCompletion,
   doCompletionResolve,
+  hasCompletionDocumentUri,
 } from "@src/providers/completionProvider.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
 import { doHover } from "@src/providers/hoverProvider.js";
@@ -62,7 +65,13 @@ export class AnsibleLanguageService {
 
       const result: InitializeResult = {
         capabilities: {
-          textDocumentSync: TextDocumentSyncKind.Incremental,
+          textDocumentSync: {
+            openClose: true,
+            change: TextDocumentSyncKind.Incremental,
+            save: {
+              includeText: false,
+            } as SaveOptions,
+          } as TextDocumentSyncOptions,
           semanticTokensProvider: {
             documentSelector: [
               {
@@ -98,13 +107,16 @@ export class AnsibleLanguageService {
 
     this.connection.onInitialized(() => {
       if (this.workspaceManager.clientCapabilities.workspace?.configuration) {
-        // register for all configuration changes
-        this.connection.client.register(
-          DidChangeConfigurationNotification.type,
-          {
+        this.connection.client
+          .register(DidChangeConfigurationNotification.type, {
             section: "ansible",
-          },
-        );
+          })
+          .catch(() => {
+            this.connection.console.warn(
+              "Client does not support dynamic configuration registration. " +
+                "Configuration change notifications will not be received.",
+            );
+          });
       }
       if (
         this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
@@ -113,22 +125,30 @@ export class AnsibleLanguageService {
           this.workspaceManager.handleWorkspaceChanged(e);
         });
       }
-      this.connection.client.register(DidChangeWatchedFilesNotification.type, {
-        watchers: [
-          {
-            // watch ansible configuration
-            globPattern: "**/ansible.cfg",
-          },
-          {
-            // watch ansible-lint configuration
-            globPattern: "**/.ansible-lint",
-          },
-          {
-            // watch role meta-configuration
-            globPattern: "**/meta/main.{yml,yaml}",
-          },
-        ],
-      });
+      this.connection.client
+        .register(DidChangeWatchedFilesNotification.type, {
+          watchers: [
+            {
+              // watch ansible configuration
+              globPattern: "**/ansible.cfg",
+            },
+            {
+              // watch ansible-lint configuration
+              globPattern: "**/.ansible-lint",
+            },
+            {
+              // watch role meta-configuration
+              globPattern: "**/meta/main.{yml,yaml}",
+            },
+          ],
+        })
+        .catch(() => {
+          this.connection.console.warn(
+            "Client does not support dynamic file watcher registration. " +
+              "Changes to ansible.cfg, .ansible-lint, and role meta files " +
+              "will require a server restart to take effect.",
+          );
+        });
     });
   }
 
@@ -142,6 +162,26 @@ export class AnsibleLanguageService {
         this.handleError(error, "onDidChangeConfiguration");
       }
     });
+
+    // Custom request handler for configuration refresh with immediate cache clearing
+    this.connection.onRequest(
+      "ansible/refreshConfiguration",
+      async (): Promise<{ success: boolean }> => {
+        try {
+          // Clear caches immediately instead of waiting for debounced timer
+          await this.workspaceManager.forEachContext(async (context) => {
+            await context.documentSettings.handleConfigurationChanged({
+              settings: null,
+            });
+            context.clearCachedServices();
+          });
+          return { success: true };
+        } catch (error) {
+          this.handleError(error, "ansible/refreshConfiguration");
+          return { success: false };
+        }
+      },
+    );
 
     this.documents.onDidOpen(async (e) => {
       try {
@@ -176,7 +216,7 @@ export class AnsibleLanguageService {
 
     this.connection.onDidChangeWatchedFiles((params) => {
       try {
-        this.workspaceManager.forEachContext((context) => {
+        void this.workspaceManager.forEachContext((context) => {
           context.handleWatchedDocumentChange(params);
         });
       } catch (error) {
@@ -293,9 +333,9 @@ export class AnsibleLanguageService {
 
     this.connection.onCompletionResolve(async (completionItem) => {
       try {
-        if (completionItem.data?.documentUri) {
+        if (hasCompletionDocumentUri(completionItem.data)) {
           const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri,
+            completionItem.data.documentUri,
           );
           if (context) {
             return await doCompletionResolve(completionItem, context);
@@ -331,7 +371,7 @@ export class AnsibleLanguageService {
     // Custom actions that are performed on receiving special notifications from the client
     // Resync ansible inventory service by clearing the cached items
     this.connection.onNotification("resync/ansible-inventory", async () => {
-      this.workspaceManager.forEachContext((e) => {
+      await this.workspaceManager.forEachContext((e) => {
         // Invalidate ansible inventory cache
         e.clearAnsibleInventory();
         this.connection.window.showInformationMessage(
@@ -350,14 +390,14 @@ export class AnsibleLanguageService {
     // Send ansible info to client on receive of notification
     this.connection.onNotification(
       "update/ansible-metadata",
-      async (activeFileUri) => {
+      async (activeFileUri: string) => {
         const ctx = this.workspaceManager.getContext(activeFileUri);
         if (ctx !== undefined) {
           const ansibleMetaData = await getAnsibleMetaData(
             ctx,
             this.connection,
           );
-          this.connection.sendNotification("update/ansible-metadata", [
+          void this.connection.sendNotification("update/ansible-metadata", [
             ansibleMetaData,
           ]);
         }

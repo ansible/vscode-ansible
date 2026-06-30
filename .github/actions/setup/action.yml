@@ -2,9 +2,9 @@ name: setup
 description: Runs steps to setup build environment
 
 inputs:
-  job_name:
-    description: The name of the job
-    default: preflight
+  prek:
+    description: If it should include prek setup
+    default: "0"
 runs:
   using: "composite"
   steps:
@@ -12,7 +12,7 @@ runs:
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.3.13
+        version: 2026.5.15
         reshim: true
 
     - name: Runner image version
@@ -20,8 +20,9 @@ runs:
       shell: bash
 
     - name: Enable caching for python
+      if: runner.os != 'Windows'
       # left out due to having their own caching: pnpm, node_modules, mise
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         # we cache only wheels because http cache cannot be cleaned well
         path: |
@@ -29,24 +30,13 @@ runs:
           ${{ github.workspace }}/.cache/uv
         key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.id }}-${{ hashFiles('uv.lock', '.python-version') }}
 
-    - name: Enable caching for prek
-      if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
-      with:
-        path: |
-          ~/.cache/pre-commit/
-          ~/.cache/prek/
-          ~/.npm
-        # ~/.npm is needed for the prek hooks using 'npx'
-        key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
-
     - name: Get pnpm store directory
       id: pnpm-cache-dir-path
       run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Enable cache for pnpm
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       id: pnpm-cache # use this to check for `cache-hit` (`steps.pnpm-cache.outputs.cache-hit != 'true'`)
       with:
         path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
@@ -57,7 +47,7 @@ runs:
     - name: Enable caching for vscode resources
       if: "${{ contains(matrix.name, 'test') }}"
       # left out due to having their own caching: pnpm, node_modules, mise
-      uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
           .vscode-test/extensions
@@ -74,6 +64,7 @@ runs:
     #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
     - name: Remove preinstalled pipx packages that can cause conflicts
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         pipx list

@@ -63,7 +63,7 @@ export function watchRolesDirectory(
     if (stats.isFile()) {
       dirPath = path.dirname(dirPath);
     }
-    if (dirPath in StandardRolePaths) {
+    if (StandardRolePaths.includes(dirPath)) {
       Reflect.deleteProperty(ansibleRolesCache["common"], dirPath);
     } else {
       const workspaceFolders = vscode.workspace.workspaceFolders;

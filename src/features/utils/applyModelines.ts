@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as vscode from "vscode";
 
 export async function configureModelines(
@@ -64,11 +63,15 @@ async function applyModeLines(
   }
 
   try {
-    const modelineOptions: any = searchModelines(editor.document);
+    const modelineOptions = searchModelines(editor.document);
+    const language =
+      typeof modelineOptions === "object" &&
+      modelineOptions !== null &&
+      "language" in modelineOptions
+        ? modelineOptions.language
+        : undefined;
 
-    const language = modelineOptions.language;
-
-    if (language && language.length > 0) {
+    if (typeof language === "string" && language.length > 0) {
       if (language === "ansible" || language === "yaml") {
         console.log("[modelines] language set by modelines");
         await vscode.languages.setTextDocumentLanguage(
@@ -91,17 +94,17 @@ export function searchModelines(textDoc: vscode.TextDocument) {
   const vscodeModelineRegex = /^.{0,8}code:(.*)/;
   const vscodeModelineOptsRegex = /(\w+)=([^\s]+)/g;
 
-  const parseOption = (name: string, value: string): any => {
-    const parsedVal = _parseGenericValue(value);
+  const parseOption = (name: string, value: string): Record<string, string> => {
+    const parsedVal: string | number | boolean = _parseGenericValue(value);
     switch (name.toLowerCase()) {
       case "language":
       case "lang":
-        return { language: parsedVal };
+        return { language: String(parsedVal) };
       default:
         return {};
     }
   };
-  let options = {};
+  let options: Record<string, string> = {};
 
   const searchLines = getLinesToSearch(textDoc);
   searchLines.forEach((line) => {
@@ -133,12 +136,12 @@ function getLinesToSearch(document: vscode.TextDocument): string[] {
     .filter((line) => line.length <= MAX_LINE_LENGTH);
 }
 
-function _parseGenericValue(value: string): any {
+function _parseGenericValue(value: string): string | number | boolean {
   if (typeof value != "string") return value;
   value = value.trim();
   if (/^(true|false)$/i.test(value)) {
     return value.toLowerCase() === "true";
-  } else if (/^[0-9]+$/.test(value)) {
+  } else if (/^\d+$/.test(value)) {
     return parseInt(value, 10);
   }
   return value.replace(/['"]/g, "");

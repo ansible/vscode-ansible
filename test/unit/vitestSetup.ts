@@ -28,7 +28,9 @@ vi.mock("vscode", () => {
 
     fire(value: T): void {
       if (this.listeners && this.listeners.length > 0) {
-        this.listeners.forEach((listener) => listener(value));
+        this.listeners.forEach((listener) => {
+          listener(value);
+        });
       }
     }
 
@@ -44,7 +46,7 @@ vi.mock("vscode", () => {
         dispose: vi.fn(() => {
           disposables.forEach((d) => d.dispose());
         }),
-      } as MockDisposable;
+      };
     }
   }
 
@@ -105,7 +107,10 @@ vi.mock("vscode", () => {
     },
     workspace: {
       workspaceFolders: [],
-      getConfiguration: vi.fn(),
+      getConfiguration: vi.fn().mockReturnValue({
+        get: vi.fn().mockReturnValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
+      }),
       openTextDocument: vi.fn(),
     },
     extensions: {
@@ -115,6 +120,10 @@ vi.mock("vscode", () => {
       Production: 1,
       Development: 2,
       Test: 3,
+    },
+    ExtensionKind: {
+      UI: 1,
+      Workspace: 2,
     },
     Uri: {
       file: vi.fn((path: string) => ({ fsPath: path, path })),
@@ -185,6 +194,28 @@ vi.mock("vscode", () => {
       })),
   };
 });
+
+// Mock @vscode/python-extension for PythonEnvironmentService fallback tests
+vi.mock("@vscode/python-extension", () => ({
+  PythonExtension: {
+    api: vi.fn().mockResolvedValue({
+      ready: Promise.resolve(),
+      environments: {
+        getActiveEnvironmentPath: vi.fn().mockReturnValue({
+          id: "mock-env",
+          path: "/usr/bin/python3",
+        }),
+        resolveEnvironment: vi.fn().mockResolvedValue(undefined),
+        onDidChangeActiveEnvironmentPath: vi.fn().mockReturnValue({
+          dispose: vi.fn(),
+        }),
+        known: [],
+        refreshEnvironments: vi.fn(),
+      },
+    }),
+  },
+  PVSC_EXTENSION_ID: "ms-python.python",
+}));
 
 // Mock vscode-languageclient packages to prevent them from trying to require vscode
 vi.mock("vscode-languageclient", () => ({
