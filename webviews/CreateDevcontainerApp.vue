@@ -22,6 +22,7 @@ const homeDir = ref("");
 const destinationPath = ref("");
 const selectedImage = ref("upstream");
 const isOverwritten = ref(false);
+const pullNewer = ref(false);
 const projectUrl = ref("");
 const openDevcontainerButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
@@ -89,6 +90,7 @@ const handleCreate = createActionWrapper(
       destinationPath: path,
       image: selectedImage.value.trim(),
       isOverwritten: isOverwritten.value,
+      pullNewer: pullNewer.value,
     };
     vscodeApi.postMessage({
       type: "init-create-devcontainer",
@@ -102,6 +104,7 @@ const onClear = () => {
   destinationPath.value = defaultDestinationPath.value || homeDir.value;
   selectedImage.value = "upstream";
   isOverwritten.value = false;
+  pullNewer.value = false;
   logs.value = "";
   projectUrl.value = "";
 
@@ -222,6 +225,20 @@ const descriptionHtml = `Devcontainers are json files used for building containe
             Overwrite <br />
             <i>Overwrite an existing devcontainer.</i>
           </vscode-checkbox>
+        </div>
+
+        <div class="checkbox-div">
+            <vscode-checkbox
+              id="pull-newer-checkbox"
+              :checked="pullNewer"
+              @change="
+                pullNewer = ($event.target as HTMLInputElement).checked
+              "
+              form="devcontainer-form"
+            >
+              Pull image if registry has a newer version <br />
+              <i>Adds the --pull=newer option to podman to ensure the latest image is used.</i>
+            </vscode-checkbox>
         </div>
 
         <div class="group-buttons">

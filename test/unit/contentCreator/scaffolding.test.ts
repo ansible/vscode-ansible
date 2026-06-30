@@ -39,6 +39,15 @@ vi.mock("@src/features/lightspeed/vue/views/ansibleCreatorUtils", () => {
   };
 });
 
+vi.mock("@src/settings", () => {
+  class MockSettingsManager {
+    initialize = vi.fn().mockResolvedValue(undefined);
+  }
+  return {
+    SettingsManager: MockSettingsManager,
+  };
+});
+
 import * as vscode from "vscode";
 import { WebviewMessageHandlers } from "@src/features/lightspeed/vue/views/webviewMessageHandlers";
 
@@ -286,6 +295,110 @@ describe("Content Creator Scaffolding", () => {
       expect(parsed.customizations.vscode.extensions).toEqual([]);
     });
 
+    it("should add --pull=newer to podman runArgs when pullNewer is true", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--cap-add=SYS_ADMIN", "--userns=host"]
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        true,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).toContain("--pull=newer");
+      expect(parsed.runArgs).toContain("--cap-add=SYS_ADMIN");
+      expect(parsed.runArgs).toContain("--userns=host");
+    });
+
+    it("should not add --pull=newer to podman runArgs when pullNewer is false", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--cap-add=SYS_ADMIN"]
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        false,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).not.toContain("--pull=newer");
+    });
+
+    it("should not add --pull=newer to non-podman variants", async () => {
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        ["redhat.ansible"],
+        true,
+      );
+
+      const rootConfig = await fs.promises.readFile(
+        path.join(tempDir, "devcontainer.json"),
+        "utf8",
+      );
+      expect(rootConfig).not.toContain("--pull=newer");
+
+      const dockerConfig = await fs.promises.readFile(
+        path.join(tempDir, "docker", "devcontainer.json"),
+        "utf8",
+      );
+      expect(dockerConfig).not.toContain("--pull=newer");
+    });
+
+    it("should create runArgs array when pullNewer is true and podman template has no runArgs", async () => {
+      await fs.promises.writeFile(
+        path.join(templateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman variant",
+  "image": "{{ dev_container_image }}"
+}`,
+      );
+
+      await messageHandlers["scaffoldDevcontainerStructure"](
+        templateDir,
+        tempDir,
+        "quay.io/ansible/creator-ee:latest",
+        [],
+        true,
+      );
+
+      const podmanConfig = await fs.promises.readFile(
+        path.join(tempDir, "podman", "devcontainer.json"),
+        "utf8",
+      );
+      const parsed = JSON.parse(podmanConfig);
+
+      expect(parsed.runArgs).toEqual(["--pull=newer"]);
+    });
+
     it("should not create files for missing templates", async () => {
       await fs.promises.rm(path.join(templateDir, "podman"), {
         recursive: true,
@@ -306,6 +419,175 @@ describe("Content Creator Scaffolding", () => {
       expect(
         fs.existsSync(path.join(tempDir, "podman", "devcontainer.json")),
       ).toBe(false);
+    });
+  });
+
+  describe("createDevcontainer", () => {
+    beforeEach(async () => {
+      const devcontainerTemplateDir = path.join(
+        templateDir,
+        "resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await fs.promises.mkdir(path.join(devcontainerTemplateDir, "docker"), {
+        recursive: true,
+      });
+      await fs.promises.mkdir(path.join(devcontainerTemplateDir, "podman"), {
+        recursive: true,
+      });
+
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "devcontainer.json.j2"),
+        `{
+  "name": "Root",
+  "image": "{{ dev_container_image }}",
+  "customizations": { "vscode": { "extensions": {{ recommended_extensions | json }} } }
+}`,
+      );
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "docker", "devcontainer.json.j2"),
+        `{
+  "name": "Docker",
+  "image": "{{ dev_container_image }}"
+}`,
+      );
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--userns=host"]
+}`,
+      );
+    });
+
+    it("should pass pullNewer through to scaffolding and add --pull=newer", async () => {
+      const result = await messageHandlers["createDevcontainer"](
+        tempDir,
+        ["redhat.ansible"],
+        "ghcr.io/ansible/community-ansible-dev-tools:latest",
+        mockContext.extensionUri,
+        true,
+      );
+
+      expect(result).toBe("passed");
+
+      const podmanConfig = JSON.parse(
+        await fs.promises.readFile(
+          path.join(tempDir, ".devcontainer", "podman", "devcontainer.json"),
+          "utf8",
+        ),
+      );
+      expect(podmanConfig.runArgs).toContain("--pull=newer");
+    });
+
+    it("should not add --pull=newer when pullNewer is false", async () => {
+      const result = await messageHandlers["createDevcontainer"](
+        tempDir,
+        ["redhat.ansible"],
+        "ghcr.io/ansible/community-ansible-dev-tools:latest",
+        mockContext.extensionUri,
+        false,
+      );
+
+      expect(result).toBe("passed");
+
+      const podmanConfig = JSON.parse(
+        await fs.promises.readFile(
+          path.join(tempDir, ".devcontainer", "podman", "devcontainer.json"),
+          "utf8",
+        ),
+      );
+      expect(podmanConfig.runArgs).not.toContain("--pull=newer");
+    });
+  });
+
+  describe("runDevcontainerCreateProcess", () => {
+    let mockWebview: vscode.Webview;
+
+    beforeEach(async () => {
+      mockWebview = {
+        postMessage: vi.fn().mockResolvedValue(true),
+      } as unknown as vscode.Webview;
+
+      const devcontainerTemplateDir = path.join(
+        templateDir,
+        "resources/contentCreator/createDevcontainer/.devcontainer",
+      );
+      await fs.promises.mkdir(path.join(devcontainerTemplateDir, "docker"), {
+        recursive: true,
+      });
+      await fs.promises.mkdir(path.join(devcontainerTemplateDir, "podman"), {
+        recursive: true,
+      });
+
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "devcontainer.json.j2"),
+        `{
+  "name": "Root",
+  "image": "{{ dev_container_image }}",
+  "customizations": { "vscode": { "extensions": {{ recommended_extensions | json }} } }
+}`,
+      );
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "docker", "devcontainer.json.j2"),
+        `{
+  "name": "Docker",
+  "image": "{{ dev_container_image }}"
+}`,
+      );
+      await fs.promises.writeFile(
+        path.join(devcontainerTemplateDir, "podman", "devcontainer.json.j2"),
+        `{
+  "name": "Podman",
+  "image": "{{ dev_container_image }}",
+  "runArgs": ["--userns=host"]
+}`,
+      );
+    });
+
+    it("should pass pullNewer from payload to generated podman config", async () => {
+      await messageHandlers.runDevcontainerCreateProcess(
+        {
+          destinationPath: tempDir,
+          image: "upstream",
+          isOverwritten: false,
+          pullNewer: true,
+        },
+        mockWebview,
+        mockContext.extensionUri,
+      );
+
+      const podmanConfig = JSON.parse(
+        await fs.promises.readFile(
+          path.join(tempDir, ".devcontainer", "podman", "devcontainer.json"),
+          "utf8",
+        ),
+      );
+      expect(podmanConfig.runArgs).toContain("--pull=newer");
+      expect(mockWebview.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ command: "execution-log" }),
+      );
+    });
+
+    it("should not add --pull=newer when pullNewer is false in payload", async () => {
+      await messageHandlers.runDevcontainerCreateProcess(
+        {
+          destinationPath: tempDir,
+          image: "upstream",
+          isOverwritten: false,
+          pullNewer: false,
+        },
+        mockWebview,
+        mockContext.extensionUri,
+      );
+
+      const podmanConfig = JSON.parse(
+        await fs.promises.readFile(
+          path.join(tempDir, ".devcontainer", "podman", "devcontainer.json"),
+          "utf8",
+        ),
+      );
+      expect(podmanConfig.runArgs).not.toContain("--pull=newer");
     });
   });
 

@@ -120,6 +120,8 @@ towerhost
 tsdown
 typedarrays
 unrs
+unsubed
+userns
 uuidv
 vite
 vitest
