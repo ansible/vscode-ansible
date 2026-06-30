@@ -1,0 +1,12 @@
+[project]
+name = "next"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pyyaml>=6.0.3",
+]

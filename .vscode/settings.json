@@ -2,5 +2,9 @@
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "python-envs.pythonProjects": [],
     "python.terminal.useEnvFile": true,
-    "python.useEnvironmentsExtension": true
+    "python.useEnvironmentsExtension": true,
+    "sonarlint.connectedMode.project": {
+        "connectionId": "ansible",
+        "projectKey": "ansible_vscode-ansible"
+    }
 }

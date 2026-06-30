@@ -1,0 +1,27 @@
+# See https://docs.readthedocs.com/platform/stable/intro/zensical.html
+---
+# Required
+version: 2
+
+# Optionally build your docs in additional formats
+# such as PDF and ePub
+formats: []
+
+submodules:
+  include: all # []
+  exclude: []
+  recursive: true
+
+build:
+  os: ubuntu-26.04
+  tools:
+    nodejs: "24"
+  jobs:
+    install:
+      - npm ci
+    build:
+      html:
+        - npm run docs:build
+    post_build:
+      - mkdir -p $READTHEDOCS_OUTPUT/html/
+      - cp --recursive docs/dist/* $READTHEDOCS_OUTPUT/html/

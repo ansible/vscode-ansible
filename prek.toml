@@ -4,11 +4,14 @@ fail_fast = true
 [[repos]]
 repo = "builtin"
 hooks = [
-    { id = "end-of-file-fixer", exclude = '\.svg$' },
-    { id = "trailing-whitespace", exclude = '\.svg$' },
-    { id = "mixed-line-ending" },
-    { id = "check-merge-conflict" },
-    { id = "check-json", exclude = '(ansible|jinja)-language-configuration\.json' },
+  { id = "end-of-file-fixer", exclude = '\.svg$' },
+  { id = "trailing-whitespace", exclude = '\.svg$' },
+  { id = "mixed-line-ending" },
+  { id = "check-merge-conflict" },
+  {
+    id = "check-json",
+    exclude = '(ansible|jinja)-language-configuration\.json'
+  },
 ]
 
 # ── Skillmark — agentskills.io spec validation ─────────────────────────
@@ -16,7 +19,12 @@ hooks = [
 repo = "https://github.com/michellepellon/skillmark"
 rev = "v0.1.0"
 hooks = [
-    { id = "skillmark", language = "rust", args = ["--config", ".skillmark.toml"] },
+  {
+    id = "skillmark",
+    language = "rust",
+    priority = 0,
+    args = ["--config", ".skillmark.toml"]
+  },
 ]
 
 # ── Markdownlint ───────────────────────────────────────────────────────
@@ -24,7 +32,12 @@ hooks = [
 repo = "https://github.com/DavidAnson/markdownlint-cli2"
 rev = "v0.13.0"
 hooks = [
-    { id = "markdownlint-cli2", args = ["--config", ".markdownlint.json"], exclude = '(^|/)node_modules/' },
+  {
+    id = "markdownlint-cli2",
+    args = ["--config", ".markdownlint.json"],
+    exclude = "(^|/)node_modules/",
+    priority = 0
+  },
 ]
 
 # ── Actionlint — GitHub Actions workflow validation ────────────────────
@@ -32,7 +45,7 @@ hooks = [
 repo = "https://github.com/rhysd/actionlint"
 rev = "v1.7.7"
 hooks = [
-    { id = "actionlint" },
+  { id = "actionlint" },
 ]
 
 # ── pre-commit-hooks (additional checks) ───────────────────────────────
@@ -40,8 +53,8 @@ hooks = [
 repo = "https://github.com/pre-commit/pre-commit-hooks"
 rev = "v6.0.0"
 hooks = [
-    { id = "check-executables-have-shebangs" },
-    { id = "fix-byte-order-marker" },
+  { id = "check-executables-have-shebangs", priority = 0 },
+  { id = "fix-byte-order-marker", priority = 0 },
 ]
 
 # ── Commitlint — conventional commit enforcement ──────────────────────
@@ -49,7 +62,7 @@ hooks = [
 repo = "https://github.com/alessandrojcm/commitlint-pre-commit-hook"
 rev = "v9.25.0"
 hooks = [
-    { id = "commitlint", stages = ["commit-msg"] },
+  { id = "commitlint", stages = ["commit-msg"] },
 ]
 
 # ── Local hooks ────────────────────────────────────────────────────────
@@ -62,6 +75,7 @@ name = "eslint"
 entry = "npm exec eslint -- . --no-warn-ignored --color --fix --max-warnings=0"
 language = "system"
 pass_filenames = false
+priority = 0
 always_run = true
 
 [[repos.hooks]]
@@ -71,11 +85,13 @@ entry = "npm exec cspell -- --no-progress --no-summary --color"
 language = "system"
 types = ["markdown"]
 exclude = '(node_modules/|dist/|out/|\.wdio-vscode/)'
+priority = 0
 
 [[repos.hooks]]
 id = "check-skill-frontmatter"
 name = "check-skill-frontmatter"
-entry = "uvx --with pyyaml python3 scripts/check_skill_frontmatter.py"
+entry = "uv run scripts/check_skill_frontmatter.py"
 language = "system"
 pass_filenames = false
 always_run = true
+priority = 0
