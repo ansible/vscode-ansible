@@ -152,4 +152,31 @@ describe('doHover', () => {
         const result = await doHover(d, { line: 3, character: 10 }, svc);
         expect(result).toBeTruthy();
     });
+
+    it('returns hover for role-level keywords', async () => {
+        const content = [
+            '- hosts: all',
+            '  roles:',
+            '    - role: myrole',
+            '      tags: [web]',
+        ].join('\n');
+        const d = doc(content);
+        const svc = mockCollectionsService();
+
+        const result = await doHover(d, { line: 3, character: 6 }, svc);
+        expect(result).toBeTruthy();
+        if (result) {
+            const contents = result.contents as { kind: string; value: string };
+            expect(contents.kind).toBe(MarkupKind.Markdown);
+        }
+    });
+
+    it('returns null for non-keyword keys in task context', async () => {
+        const content = '- hosts: all\n  tasks:\n    - name: test\n      custom_key: val';
+        const d = doc(content);
+        const svc = mockCollectionsService();
+
+        const result = await doHover(d, { line: 3, character: 6 }, svc);
+        expect(result).toBeNull();
+    });
 });

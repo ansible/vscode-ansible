@@ -84,6 +84,32 @@ describe('getYamlValidation', () => {
             expect(diag.source).toBe('Ansible [YAML]');
         }
     });
+
+    it('reports duplicate key errors with Error severity', () => {
+        const d = doc('key: value\nkey: duplicate');
+        const result = getYamlValidation(d);
+        const dupKeyDiag = result.find((diag) => diag.message.includes('Map keys must be unique'));
+        expect(dupKeyDiag).toBeDefined();
+        expect(dupKeyDiag?.severity).toBe(DiagnosticSeverity.Error);
+    });
+
+    it('handles errors with linePos information', () => {
+        const d = doc('key: [unclosed\nmore: data');
+        const result = getYamlValidation(d);
+        expect(result.length).toBeGreaterThan(0);
+        for (const diag of result) {
+            expect(diag.range).toBeDefined();
+            expect(diag.range.start.line).toBeGreaterThanOrEqual(0);
+        }
+    });
+
+    it('handles multi-line errors with start and end linePos', () => {
+        const d = doc('a: {\n  b: 1\n  c: 2');
+        const result = getYamlValidation(d);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].range.start).toBeDefined();
+        expect(result[0].range.end).toBeDefined();
+    });
 });
 
 describe('doValidate', () => {
@@ -228,6 +254,93 @@ describe('doValidate', () => {
 
         const result = await doValidate(d, vm, false, context as never, conn as never);
         expect(context.ansiblePlaybook.doValidate).not.toHaveBeenCalled();
+        expect(result.has(d.uri)).toBe(true);
+    });
+
+    it('appends YAML diagnostics when validation is enabled and URI matches', async () => {
+        const yamlContent = '- hosts: all\n  tasks: [invalid\n    broken: yaml';
+        const d = doc(yamlContent);
+        const lintDiags = new Map([[d.uri, []]]);
+        const context = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    validation: {
+                        enabled: true,
+                        lint: { enabled: true, path: 'ansible-lint' },
+                    },
+                }),
+            },
+            ansibleLint: { doValidate: vi.fn().mockResolvedValue(lintDiags) },
+            ansiblePlaybook: { doValidate: vi.fn() },
+        };
+        getToolPathMock.mockResolvedValue('/usr/bin/ansible-lint');
+
+        const result = await doValidate(d, vm, false, context as never, conn as never);
+        const diags = result.get(d.uri) ?? [];
+        const yamlDiags = diags.filter((diag) => diag.source === 'Ansible [YAML]');
+        expect(yamlDiags.length).toBeGreaterThan(0);
+    });
+
+    it('does not append YAML diagnostics when validation is disabled', async () => {
+        const yamlContent = '- hosts: all\n  tasks: [invalid';
+        const d = doc(yamlContent);
+        const context = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    validation: { enabled: false, lint: { enabled: false } },
+                }),
+            },
+            ansibleLint: { doValidate: vi.fn() },
+            ansiblePlaybook: { doValidate: vi.fn() },
+        };
+
+        const result = await doValidate(d, vm, false, context as never, conn as never);
+        const diags = result.get(d.uri) ?? [];
+        const yamlDiags = diags.filter((diag) => diag.source === 'Ansible [YAML]');
+        expect(yamlDiags).toEqual([]);
+    });
+
+    it('sets empty diagnostics for document URI when not already present', async () => {
+        const d = doc('- hosts: all\n  tasks:\n    - name: test');
+        const otherUri = 'file:///other.yml';
+        const lintDiags = new Map([[otherUri, []]]);
+        const context = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    validation: {
+                        enabled: true,
+                        lint: { enabled: true, path: 'ansible-lint' },
+                    },
+                }),
+            },
+            ansibleLint: { doValidate: vi.fn().mockResolvedValue(lintDiags) },
+            ansiblePlaybook: { doValidate: vi.fn() },
+        };
+        getToolPathMock.mockResolvedValue('/usr/bin/ansible-lint');
+
+        const result = await doValidate(d, vm, false, context as never, conn as never);
+        expect(result.has(d.uri)).toBe(true);
+        expect(result.get(d.uri)).toEqual([]);
+    });
+
+    it('works without connection parameter', async () => {
+        const d = doc('- hosts: all\n  tasks:\n    - name: test');
+        const lintDiags = new Map([[d.uri, []]]);
+        const context = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    validation: {
+                        enabled: true,
+                        lint: { enabled: true, path: 'ansible-lint' },
+                    },
+                }),
+            },
+            ansibleLint: { doValidate: vi.fn().mockResolvedValue(lintDiags) },
+            ansiblePlaybook: { doValidate: vi.fn() },
+        };
+        getToolPathMock.mockResolvedValue('/usr/bin/ansible-lint');
+
+        const result = await doValidate(d, vm, false, context as never);
         expect(result.has(d.uri)).toBe(true);
     });
 });
