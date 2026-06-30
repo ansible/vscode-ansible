@@ -124,11 +124,28 @@ jobs:
         shell: powershell
         run: |
           wsl --set-default-version 2
-          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
-          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          $maxAttempts = 3
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            Write-Host "::group::Import attempt $i of $maxAttempts"
+            try {
+              if (Test-Path C:\WSL\Fedora) { Remove-Item -Recurse -Force C:\WSL\Fedora }
+              New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+              wsl --unregister ${{ env.WSL_DISTRO }} 2>$null
+              wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+              if ($LASTEXITCODE -ne 0) { throw "wsl --import exited with code $LASTEXITCODE" }
+              wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+              if ($LASTEXITCODE -ne 0) { throw "wsl distro not responding" }
+              Write-Host "::endgroup::"
+              break
+            } catch {
+              Write-Host "::endgroup::"
+              Write-Host "::warning::Import attempt $i failed: $_"
+              if ($i -eq $maxAttempts) { throw "WSL import failed after $maxAttempts attempts" }
+              Start-Sleep -Seconds (10 * $i)
+            }
+          }
           Write-Host "Listing registered distros:"
           wsl --list --verbose
-          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
           wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
 
       - name: Provision Fedora WSL2
@@ -218,11 +235,28 @@ jobs:
         shell: powershell
         run: |
           wsl --set-default-version 2
-          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
-          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          $maxAttempts = 3
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            Write-Host "::group::Import attempt $i of $maxAttempts"
+            try {
+              if (Test-Path C:\WSL\Fedora) { Remove-Item -Recurse -Force C:\WSL\Fedora }
+              New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+              wsl --unregister ${{ env.WSL_DISTRO }} 2>$null
+              wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+              if ($LASTEXITCODE -ne 0) { throw "wsl --import exited with code $LASTEXITCODE" }
+              wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+              if ($LASTEXITCODE -ne 0) { throw "wsl distro not responding" }
+              Write-Host "::endgroup::"
+              break
+            } catch {
+              Write-Host "::endgroup::"
+              Write-Host "::warning::Import attempt $i failed: $_"
+              if ($i -eq $maxAttempts) { throw "WSL import failed after $maxAttempts attempts" }
+              Start-Sleep -Seconds (10 * $i)
+            }
+          }
           Write-Host "Listing registered distros:"
           wsl --list --verbose
-          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
           wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
 
       - name: Provision Fedora WSL2
