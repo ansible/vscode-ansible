@@ -10,8 +10,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { log } from '@src/extension';
-import type { ProgressEvent } from '@ansible/services';
-import { buildTaskAnalysisPrompt } from '@ansible/services';
+import type { ProgressEvent } from '@ansible/developer-services';
+import { buildTaskAnalysisPrompt } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 
 export interface PlaybookRunOptions {

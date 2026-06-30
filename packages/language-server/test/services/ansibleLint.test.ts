@@ -3,7 +3,7 @@ import { DiagnosticSeverity } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 const runToolMock = vi.hoisted(() => vi.fn());
-vi.mock('@ansible/services', () => ({
+vi.mock('@ansible/developer-services', () => ({
     getCommandService: () => ({ runTool: runToolMock }),
 }));
 

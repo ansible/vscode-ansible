@@ -12,7 +12,7 @@ Monorepo using pnpm workspaces (`packages/*`, `docs`):
 
 - **Root (`src/`)** — VS Code extension entry point, panels, views, and editor features
 - **`packages/common/`** — `@ansible/common` — browser-safe types, prompts, utils, parsers (zero Node.js deps)
-- **`packages/services/`** — `@ansible/services` — Node.js service implementations (fs, child_process, https)
+- **`packages/services/`** — `@ansible/developer-services` — Node.js service implementations (fs, child_process, https)
 - **`packages/language-server/`** — `@ansible/language-server` — LSP server
 - **`packages/mcp-server/`** — `@ansible/mcp-server` — standalone MCP server for AI assistants
 - **`packages/lightspeed/`** — `@ansible/lightspeed` — Lightspeed AI features
@@ -55,7 +55,7 @@ pnpm run ci              # compile + lint + test:coverage + build (pre-commit ga
 # Specific test projects (vitest)
 pnpm exec vitest run --project=ext        # Extension tests
 pnpm exec vitest run --project=common     # @ansible/common tests
-pnpm exec vitest run --project=services   # @ansible/services tests
+pnpm exec vitest run --project=services   # @ansible/developer-services tests
 pnpm exec vitest run --project=mcp        # MCP server tests
 pnpm exec vitest run --project=ls         # Language server tests
 pnpm exec vitest run --project=lightspeed # Lightspeed tests
@@ -143,5 +143,5 @@ GitHub Actions (`.github/workflows/ci.yml`):
 - Use `pnpm` (the repo uses pnpm workspaces with `pnpm-lock.yaml`)
 - Conventional commits with scopes
 - TypeScript strict mode; ES2022 target
-- Import aliases: `@src`, `@ansible/common`, `@ansible/services`, etc. (esbuild aliases in `scripts/build.mjs`)
+- Import aliases: `@src`, `@ansible/common`, `@ansible/developer-services`, etc. (esbuild aliases in `scripts/build.mjs`)
 - All packages bundled by esbuild into `dist/` for distribution

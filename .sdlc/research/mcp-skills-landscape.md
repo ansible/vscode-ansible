@@ -363,7 +363,7 @@ skill instructions, even when preloaded in context.
   tools plus dynamic `ac_*` (creator) and `skill_*` tools. Tools are named
   after outcomes (`generate_ansible_task`, `search_ansible_plugins`) not API
   endpoints.
-- **Skills infrastructure.** `SkillRegistry` in `@ansible/services` loads
+- **Skills infrastructure.** `SkillRegistry` in `@ansible/developer-services` loads
   skills from multiple sources (builtin, GitHub, local). `SkillToolGenerator`
   in `@ansible/mcp-server` dynamically generates `skill_*` MCP tools. Prompt
   builders (`buildSkillLoadPrompt`, `buildSkillClipboardPrompt`) in

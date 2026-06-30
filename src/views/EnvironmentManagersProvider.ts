@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { PythonEnvironment } from '@ansible/services';
+import type { PythonEnvironment } from '@ansible/developer-services';
 import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 
 type TreeNode = ManagerNode | EnvironmentNode;

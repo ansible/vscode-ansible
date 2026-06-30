@@ -5,7 +5,7 @@ import {
     type PlaybookConfig,
 } from '@src/services/PlaybooksService';
 import { PlaybookProgressPanel, type PlaybookRunOptions } from '@src/panels/PlaybookProgressPanel';
-import { buildPlaybookCommand } from '@ansible/services';
+import { buildPlaybookCommand } from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 /** Thin webview host for the playbook configuration form. Delegates UI to @ansible/ui PlaybookConfigView. */

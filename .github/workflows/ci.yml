@@ -204,6 +204,14 @@ jobs:
       - name: Build plugin
         run: ./scripts/build-plugin.sh
 
+      - name: Pack npm tarballs
+        run: |
+          pnpm run compile
+          pnpm --filter @ansible/common pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/developer-services pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/mcp-server pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/language-server pack --pack-destination "$GITHUB_WORKSPACE"
+
       - parallel:
           - name: Upload VSIX
             uses: actions/upload-artifact@v7
@@ -228,4 +236,10 @@ jobs:
             with:
               name: language-server
               path: dist/language-server.js
+              retention-days: 14
+          - name: Upload npm tarballs
+            uses: actions/upload-artifact@v7
+            with:
+              name: npm-tarballs
+              path: "*.tgz"
               retention-days: 14

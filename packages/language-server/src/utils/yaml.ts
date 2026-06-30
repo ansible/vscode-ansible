@@ -18,7 +18,7 @@ import {
 } from 'yaml';
 import { isTaskKeyword, playExclusiveKeywords, playKeywords, taskKeywords } from './ansible';
 import { Range, Position } from 'vscode-languageserver';
-import type { CollectionsService, PluginData, PluginOption } from '@ansible/services';
+import type { CollectionsService, PluginData, PluginOption } from '@ansible/developer-services';
 
 type Options = ParseOptions & DocumentOptions & SchemaOptions;
 

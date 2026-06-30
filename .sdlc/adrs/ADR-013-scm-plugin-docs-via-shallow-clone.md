@@ -217,7 +217,7 @@ Clone, run `ansible-doc`, save JSON, `rm -rf` the temp dir.
 - [ADR-005](ADR-005-architectural-invariants.md): Architectural
   invariants — invariants 7 (tool discovery) and 11 (MCP parity)
 - [ADR-011](ADR-011-package-architecture.md): Package architecture —
-  `SCMDocsCache` belongs in `@ansible/services`
+  `SCMDocsCache` belongs in `@ansible/developer-services`
 - [ADR-012](ADR-012-mcp-tool-parity.md): MCP tool parity — requires
   corresponding `get_scm_plugin_doc` MCP tool
 

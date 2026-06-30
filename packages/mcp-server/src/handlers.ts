@@ -22,8 +22,8 @@ import {
     GalaxyDocsCache,
     GitHubCollectionCache,
     SCMDocsCache,
-} from '@ansible/services';
-import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/services';
+} from '@ansible/developer-services';
+import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/developer-services';
 
 /**
  * Normalizes ansible-doc fields that may be a single string or string array.

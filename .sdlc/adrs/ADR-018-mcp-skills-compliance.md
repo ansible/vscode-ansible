@@ -12,7 +12,7 @@ Accepted
 
 The `@ansible/mcp-server` package exposes 15 static MCP tools plus
 dynamic `ac_*` (creator) and `skill_*` tools. The `SkillRegistry` in
-`@ansible/services` loads skills from multiple sources (builtin,
+`@ansible/developer-services` loads skills from multiple sources (builtin,
 GitHub, local) and the `SkillToolGenerator` in `@ansible/mcp-server`
 dynamically generates `skill_*` MCP tools. This infrastructure was
 built before the MCP community codified best practices at scale:

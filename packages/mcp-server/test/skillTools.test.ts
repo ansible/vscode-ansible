@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SkillRegistry, _resetGitHubToken } from '@ansible/services';
+import { SkillRegistry, _resetGitHubToken } from '@ansible/developer-services';
 import { SkillToolGenerator } from '../src/skillTools';
 
 let tempDir: string;

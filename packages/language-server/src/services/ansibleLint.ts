@@ -3,7 +3,7 @@ import { URI } from 'vscode-uri';
 import { Connection, Diagnostic, DiagnosticSeverity, integer, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { fileExists } from '../utils/misc';
-import { getCommandService } from '@ansible/services';
+import { getCommandService } from '@ansible/developer-services';
 import type { WorkspaceFolderContext } from './workspaceManager';
 
 interface CodeClimatePosition {

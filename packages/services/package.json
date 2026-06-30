@@ -1,13 +1,17 @@
 {
-  "name": "@ansible/services",
+  "name": "@ansible/developer-services",
   "version": "0.0.1",
-  "description": "Node.js Ansible service implementations - command execution, caching, discovery",
+  "description": "Ansible developer services - command execution, collection discovery, caching, and environment management",
   "main": "./out/index.js",
   "types": "./out/index.d.ts",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
   },
+  "files": [
+    "out/",
+    "src/data/"
+  ],
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",

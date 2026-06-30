@@ -107,10 +107,10 @@ for full details):
                   └──────────┬──────────┘
                              │
                              ▼
-                  ┌─────────────────────┐
-                  │  @ansible/services   │  ← SkillRegistry, CommandService,
-                  │                     │     CollectionsService, etc.
-                  └──────┬───┬───┬──────┘
+                  ┌──────────────────────────────┐
+                  │  @ansible/developer-services  │  ← SkillRegistry, CommandService,
+                  │                              │     CollectionsService, etc.
+                  └──────────┬───┬───┬───────────┘
                          │   │   │
             ┌────────────┘   │   └────────────┐
             ▼                ▼                 ▼
@@ -147,12 +147,12 @@ The critical linkages:
 | Layer                      | What it provides                                                           | Who consumes it                                                                                                            |
 | -------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `skills/*/SKILL.md`        | Prompt instructions, behavioral contracts                                  | All five formats (compiled into servers via `@ansible/common`, copied raw into plugin, consumed directly via `npx skills`) |
-| `@ansible/common`          | Types, skill content embeds, prompt builders, parsers                      | `@ansible/services`, `@ansible/ui`, extension                                                                              |
-| `@ansible/services`        | `SkillRegistry`, `CommandService`, collection discovery, container runtime | MCP server, language server, extension                                                                                     |
+| `@ansible/common`          | Types, skill content embeds, prompt builders, parsers                      | `@ansible/developer-services`, `@ansible/ui`, extension                                                                              |
+| `@ansible/developer-services`        | `SkillRegistry`, `CommandService`, collection discovery, container runtime | MCP server, language server, extension                                                                                     |
 | `@ansible/mcp-server`      | MCP tool handlers (skill_search, playbook_run, etc.)                       | Plugin zip, standalone MCP artifact, VSIX                                                                                  |
 | `@ansible/language-server` | LSP handlers (completion, diagnostics, hover)                              | Plugin zip, standalone LSP artifact, VSIX                                                                                  |
 
-This means a bug fix in `@ansible/services` (e.g., improving
+This means a bug fix in `@ansible/developer-services` (e.g., improving
 collection discovery) automatically propagates to **all five
 distribution formats** in the next build — no separate PRs, no
 cross-repo sync, no version coordination. Similarly, adding a new
@@ -319,7 +319,7 @@ skills/*/SKILL.md  ──┐
 ## Related Decisions
 
 - [ADR-011](ADR-011-package-architecture.md): Package Architecture —
-  defines the `@ansible/common` → `@ansible/services` → server/extension
+  defines the `@ansible/common` → `@ansible/developer-services` → server/extension
   dependency graph that makes multi-distribution possible from shared code
 - [ADR-012](ADR-012-mcp-tool-parity.md): MCP Tool Parity — ensures
   the MCP server distribution is functionally equivalent to the UI

@@ -52,8 +52,13 @@ import {
     buildEEDetailPrompt,
     buildCreatorOverviewPrompt,
     buildCreatorCommandWalkthroughPrompt,
-} from '@ansible/services';
-import type { PythonEnvironment, SchemaNode, SkillSource, SkillEntry } from '@ansible/services';
+} from '@ansible/developer-services';
+import type {
+    PythonEnvironment,
+    SchemaNode,
+    SkillSource,
+    SkillEntry,
+} from '@ansible/developer-services';
 import { SkillsProvider, openChatWithSkill, copySkillPrompt } from '@src/views/SkillsProvider';
 import {
     registerMcpServerProvider,

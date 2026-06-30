@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const runToolMock = vi.hoisted(() => vi.fn());
-vi.mock('@ansible/services', () => ({
+vi.mock('@ansible/developer-services', () => ({
     getCommandService: () => ({ runTool: runToolMock }),
 }));
 

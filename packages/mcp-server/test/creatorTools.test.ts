@@ -5,7 +5,7 @@ const mockGetPositionalArgs = vi.fn();
 const mockBuildCommandString = vi.fn();
 const mockRunCommand = vi.fn();
 
-vi.mock('@ansible/services', () => ({
+vi.mock('@ansible/developer-services', () => ({
     CreatorService: {
         getInstance: vi.fn(() => ({
             loadSchema: mockLoadSchema,
