@@ -179,8 +179,8 @@ importers:
         specifier: ^3.1.1
         version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.32.0)(supports-color@8.1.1)(tsx@4.22.4)(yaml@2.9.0)
       wdio-vscode-service:
-        specifier: github:cidrblock/wdio-vscode-service#f8f4d79
-        version: https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb(webdriverio@9.29.1)
+        specifier: github:cidrblock/wdio-vscode-service#0884a30
+        version: https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/0884a30386b46519006e4ae9f90a8e6177b0869a(webdriverio@9.29.1)
 
   docs:
     dependencies:
@@ -7783,8 +7783,8 @@ packages:
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
 
-  wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb:
-    resolution: {gitHosted: true, integrity: sha512-MvrFdyrGnChf5fiCrf+J1x+2HJErm7uADudOd08ufd8owps2kYd6bJmWDeCWmVPI52Xvr9paYDVooyMlDatHQg==, tarball: https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb}
+  wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/0884a30386b46519006e4ae9f90a8e6177b0869a:
+    resolution: {gitHosted: true, integrity: sha512-LjDxNBm2FIg8Z/Hyq/xzL1RKbzKDeTesWXJR1Jm+2PTKH4kY1QHFJeyc5xObplnGOCnsI69HG06X3E6gSfN4Yg==, tarball: https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/0884a30386b46519006e4ae9f90a8e6177b0869a}
     version: 8.0.0
     engines: {node: '>=18'}
     peerDependencies:
@@ -10128,7 +10128,7 @@ snapshots:
 
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 24.13.2
+      '@types/node': 20.19.43
 
   '@types/send@1.2.1':
     dependencies:
@@ -10155,7 +10155,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.13.2
+      '@types/node': 20.19.43
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -10165,7 +10165,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 24.13.2
+      '@types/node': 20.19.43
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.62.1(@typescript-eslint/parser@8.62.1(eslint@10.6.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3))(eslint@10.6.0(jiti@2.7.0)(supports-color@8.1.1))(supports-color@8.1.1)(typescript@6.0.3)':
@@ -16564,7 +16564,7 @@ snapshots:
       defaults: 1.0.4
     optional: true
 
-  wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/f8f4d79acb797cc32c436d61af83f661a854decb(webdriverio@9.29.1):
+  wdio-vscode-service@https://codeload.github.com/cidrblock/wdio-vscode-service/tar.gz/0884a30386b46519006e4ae9f90a8e6177b0869a(webdriverio@9.29.1):
     dependencies:
       '@fastify/cors': 10.1.0
       '@fastify/static': 9.1.3
