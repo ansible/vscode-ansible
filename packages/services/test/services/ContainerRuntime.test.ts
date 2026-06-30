@@ -1,11 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => {
     const mockRunCommand = vi.fn();
+    const mockRunCommandArgs = vi.fn();
     return {
         mockRunCommand,
+        mockRunCommandArgs,
         getCommandService: vi.fn(() => ({
             runCommand: mockRunCommand,
+            runCommandArgs: mockRunCommandArgs,
         })),
     };
 });
@@ -14,7 +20,15 @@ vi.mock('../../src/CommandService', () => ({
     getCommandService: mocks.getCommandService,
 }));
 
-import { detectEngine, listImages, inspectImage, classifyEE } from '../../src/ContainerRuntime';
+import {
+    detectEngine,
+    listImages,
+    inspectImage,
+    classifyEE,
+    runInContainer,
+    getScriptCacheDir,
+    deployScripts,
+} from '../../src/ContainerRuntime';
 
 // ── Sample data ─────────────────────────────────────────────────────
 
@@ -70,6 +84,7 @@ const INSPECT_NON_EE_JSON = JSON.stringify([
 describe('ContainerRuntime', () => {
     beforeEach(() => {
         mocks.mockRunCommand.mockReset();
+        mocks.mockRunCommandArgs.mockReset();
     });
 
     describe('detectEngine', () => {
@@ -216,6 +231,356 @@ describe('ContainerRuntime', () => {
 
         it('returns false when label is not "true"', () => {
             expect(classifyEE({ 'ansible-execution-environment': 'false' }, '/app')).toBe(false);
+        });
+    });
+
+    describe('inspectImage edge cases', () => {
+        it('handles malformed JSON in inspect output', async () => {
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: 'not valid json {{{',
+                stderr: '',
+            });
+            const image = {
+                id: 'sha256:fff666',
+                repository: 'myimage',
+                tag: 'v1',
+                created: '2026-01-01',
+                size: '100 MB',
+                names: ['myimage:v1'],
+            };
+            const result = await inspectImage('podman', image);
+            expect(result.executionEnvironment).toBe(false);
+            expect(result.inspect.config.labels).toEqual({});
+        });
+
+        it('handles inspect command failure', async () => {
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 1,
+                stdout: '',
+                stderr: 'no such image',
+            });
+            const image = {
+                id: 'sha256:gone',
+                repository: 'deleted',
+                tag: 'latest',
+                created: '',
+                size: '',
+                names: ['deleted:latest'],
+            };
+            const result = await inspectImage('docker', image);
+            expect(result.executionEnvironment).toBe(false);
+            expect(result.inspect.config.workingDir).toBe('');
+        });
+
+        it('handles non-array inspect JSON', async () => {
+            const singleObj = JSON.stringify({
+                Id: 'sha256:single',
+                Config: {
+                    Labels: { 'ansible-execution-environment': 'true' },
+                    WorkingDir: '/runner',
+                },
+            });
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: singleObj,
+                stderr: '',
+            });
+            const image = {
+                id: 'sha256:single',
+                repository: 'ee-image',
+                tag: '1.0',
+                created: '',
+                size: '',
+                names: ['ee-image:1.0'],
+            };
+            const result = await inspectImage('podman', image);
+            expect(result.executionEnvironment).toBe(true);
+        });
+
+        it('handles inspect JSON with missing Config', async () => {
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: JSON.stringify([{ Id: 'sha256:noconfig' }]),
+                stderr: '',
+            });
+            const image = {
+                id: 'sha256:noconfig',
+                repository: 'bare',
+                tag: 'latest',
+                created: '',
+                size: '',
+                names: ['bare:latest'],
+            };
+            const result = await inspectImage('docker', image);
+            expect(result.executionEnvironment).toBe(false);
+            expect(result.inspect.config.labels).toEqual({});
+            expect(result.inspect.config.workingDir).toBe('');
+        });
+    });
+
+    describe('listImages edge cases', () => {
+        it('returns empty on empty stdout', async () => {
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: '',
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images).toEqual([]);
+        });
+
+        it('handles malformed podman JSON gracefully', async () => {
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: 'not json at all',
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images).toEqual([]);
+        });
+
+        it('handles malformed docker line gracefully', async () => {
+            const lines = [
+                '{"ID":"sha256:good","Repository":"img","Tag":"v1","CreatedAt":"now","Size":"1MB"}',
+                'not json line',
+                '{"ID":"sha256:good2","Repository":"img2","Tag":"v2","CreatedAt":"now","Size":"2MB"}',
+            ].join('\n');
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: lines,
+                stderr: '',
+            });
+            const images = await listImages('docker');
+            expect(images).toHaveLength(2);
+        });
+
+        it('skips podman images with <none> tag', async () => {
+            const data = JSON.stringify([
+                {
+                    Id: 'sha256:none-tag',
+                    Names: ['myimage:<none>'],
+                    CreatedAt: '2026-01-01T00:00:00Z',
+                    Size: 0,
+                },
+            ]);
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: data,
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images).toHaveLength(0);
+        });
+
+        it('formats podman image size as human-readable', async () => {
+            const data = JSON.stringify([
+                {
+                    Id: 'sha256:sized',
+                    Names: ['img:v1'],
+                    CreatedAt: '2026-01-01',
+                    Size: 1073741824,
+                },
+            ]);
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: data,
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images[0].size).toBe('1.0 GB');
+        });
+
+        it('handles podman image with Created instead of CreatedAt', async () => {
+            const data = JSON.stringify([
+                {
+                    Id: 'sha256:old-format',
+                    Names: ['old:v1'],
+                    Created: '2025-01-01T00:00:00Z',
+                    Size: 512,
+                },
+            ]);
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: data,
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images[0].created).toBe('2025-01-01T00:00:00Z');
+        });
+
+        it('handles podman image name without colon (no tag)', async () => {
+            const data = JSON.stringify([
+                {
+                    Id: 'sha256:notag',
+                    Names: ['localhost/myimage'],
+                    CreatedAt: '2026-01-01',
+                    Size: 1024,
+                },
+            ]);
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: data,
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images[0].repository).toBe('localhost/myimage');
+            expect(images[0].tag).toBe('latest');
+        });
+
+        it('handles podman image size of zero', async () => {
+            const data = JSON.stringify([
+                { Id: 'sha256:zero', Names: ['zero:v1'], CreatedAt: '2026-01-01', Size: 0 },
+            ]);
+            mocks.mockRunCommand.mockResolvedValue({
+                exitCode: 0,
+                stdout: data,
+                stderr: '',
+            });
+            const images = await listImages('podman');
+            expect(images[0].size).toBe('0 B');
+        });
+    });
+
+    describe('runInContainer', () => {
+        it('runs introspection script with podman (includes --user=root)', async () => {
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 0,
+                stdout: '{"collections": []}',
+                stderr: '',
+            });
+            const result = await runInContainer('podman', 'ee:latest', '/cache/scripts');
+            expect(result).toBe('{"collections": []}');
+            expect(mocks.mockRunCommandArgs).toHaveBeenCalledWith(
+                'podman',
+                expect.arrayContaining(['--user=root', 'ee:latest']),
+                { timeout: 120_000 },
+            );
+        });
+
+        it('runs introspection script with docker (no --user=root)', async () => {
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 0,
+                stdout: '{"python": "/usr/bin/python3"}',
+                stderr: '',
+            });
+            const result = await runInContainer('docker', 'ee:v2', '/tmp/cache');
+            expect(result).toBe('{"python": "/usr/bin/python3"}');
+            const lastCall = mocks.mockRunCommandArgs.mock.calls.at(-1);
+            expect(lastCall).toBeDefined();
+            const args = (lastCall as unknown[])[1] as string[];
+            expect(args).not.toContain('--user=root');
+        });
+
+        it('passes sections argument when provided', async () => {
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 0,
+                stdout: '{}',
+                stderr: '',
+            });
+            await runInContainer('podman', 'ee:v1', '/cache', ['collections', 'python']);
+            const lastCall = mocks.mockRunCommandArgs.mock.calls.at(-1);
+            expect(lastCall).toBeDefined();
+            const args = (lastCall as unknown[])[1] as string[];
+            expect(args).toContain('--sections');
+            expect(args).toContain('collections');
+            expect(args).toContain('python');
+        });
+
+        it('throws when introspection fails', async () => {
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 1,
+                stdout: '',
+                stderr: 'container not found',
+            });
+            await expect(runInContainer('podman', 'missing:latest', '/cache')).rejects.toThrow(
+                'Introspection failed for missing:latest: container not found',
+            );
+        });
+    });
+
+    describe('getScriptCacheDir', () => {
+        it('uses XDG_CACHE_HOME when set', () => {
+            const prev = process.env.XDG_CACHE_HOME;
+            process.env.XDG_CACHE_HOME = '/custom/cache';
+            try {
+                expect(getScriptCacheDir()).toBe('/custom/cache/ansible-tools');
+            } finally {
+                if (prev === undefined) delete process.env.XDG_CACHE_HOME;
+                else process.env.XDG_CACHE_HOME = prev;
+            }
+        });
+
+        it('falls back to ~/.cache when XDG_CACHE_HOME is unset', () => {
+            const prev = process.env.XDG_CACHE_HOME;
+            delete process.env.XDG_CACHE_HOME;
+            try {
+                expect(getScriptCacheDir()).toBe(
+                    path.join(os.homedir(), '.cache', 'ansible-tools'),
+                );
+            } finally {
+                if (prev !== undefined) process.env.XDG_CACHE_HOME = prev;
+            }
+        });
+    });
+
+    describe('deployScripts', () => {
+        let tmpDir: string;
+        let dataDir: string;
+
+        beforeEach(() => {
+            tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cr-deploy-'));
+            dataDir = path.join(tmpDir, 'data');
+            fs.mkdirSync(dataDir);
+            fs.writeFileSync(path.join(dataDir, 'image_introspect.py'), '#!/usr/bin/env python3\n');
+            fs.writeFileSync(path.join(dataDir, 'python_latest.sh'), '#!/bin/bash\n');
+            process.env.XDG_CACHE_HOME = path.join(tmpDir, 'cache');
+        });
+
+        afterEach(() => {
+            fs.rmSync(tmpDir, { recursive: true, force: true });
+            delete process.env.XDG_CACHE_HOME;
+        });
+
+        it('copies scripts to cache directory', () => {
+            const cacheDir = deployScripts(dataDir);
+            expect(fs.existsSync(path.join(cacheDir, 'image_introspect.py'))).toBe(true);
+            expect(fs.existsSync(path.join(cacheDir, 'python_latest.sh'))).toBe(true);
+        });
+
+        it('makes scripts executable', () => {
+            const cacheDir = deployScripts(dataDir);
+            const stat = fs.statSync(path.join(cacheDir, 'image_introspect.py'));
+            expect(stat.mode & 0o755).toBe(0o755);
+        });
+
+        it('does not re-copy when destination is newer', () => {
+            const cacheDir = deployScripts(dataDir);
+
+            // Make destination newer than source
+            const future = new Date(Date.now() + 100000);
+            fs.utimesSync(path.join(cacheDir, 'image_introspect.py'), future, future);
+            const beforeSecondDeploy = fs.statSync(
+                path.join(cacheDir, 'image_introspect.py'),
+            ).mtimeMs;
+
+            deployScripts(dataDir);
+            const afterSecondDeploy = fs.statSync(
+                path.join(cacheDir, 'image_introspect.py'),
+            ).mtimeMs;
+            expect(afterSecondDeploy).toBe(beforeSecondDeploy);
+        });
+
+        it('re-copies when source is newer than destination', () => {
+            deployScripts(dataDir);
+
+            // Update source file
+            const future = new Date(Date.now() + 200000);
+            fs.utimesSync(path.join(dataDir, 'image_introspect.py'), future, future);
+
+            const cacheDir = deployScripts(dataDir);
+            const stat = fs.statSync(path.join(cacheDir, 'image_introspect.py'));
+            expect(stat.mode & 0o755).toBe(0o755);
         });
     });
 });

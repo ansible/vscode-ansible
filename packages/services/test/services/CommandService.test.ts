@@ -290,4 +290,245 @@ describe('CommandService', () => {
         const svc = CommandService.getInstance();
         expect(svc.getWorkspaceRoot()).toBe(tmpDir);
     });
+
+    it('getWorkspaceRoot falls back to cwd when ANSIBLE_ENV_WORKSPACE is unset', async () => {
+        delete process.env.ANSIBLE_ENV_WORKSPACE;
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        expect(svc.getWorkspaceRoot()).toBe(process.cwd());
+    });
+
+    it('getCommandService returns the singleton', async () => {
+        const { getCommandService, CommandService } = await import('../../src/CommandService');
+        const svc = getCommandService();
+        expect(svc).toBe(CommandService.getInstance());
+    });
+
+    it('setBinDirResolver injects a resolver used by getBinDir', async () => {
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const resolver = vi.fn().mockResolvedValue('/custom/bin');
+        svc.setBinDirResolver(resolver);
+        const binDir = await svc.getBinDir();
+        expect(binDir).toBe('/custom/bin');
+        expect(resolver).toHaveBeenCalled();
+    });
+
+    it('getBinDir falls through to cache when resolver returns null', async () => {
+        const binDir = path.join(tmpDir, 'cached-venv', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        svc.setBinDirResolver(vi.fn().mockResolvedValue(null));
+        const result = await svc.getBinDir();
+        expect(result).toBe(binDir);
+    });
+
+    it('getBinDir handles resolver that throws an error', async () => {
+        const binDir = path.join(tmpDir, 'fallback-venv', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        svc.setBinDirResolver(vi.fn().mockRejectedValue(new Error('resolver boom')));
+        const result = await svc.getBinDir();
+        expect(result).toBe(binDir);
+    });
+
+    it('getBinDir handles resolver that throws a non-Error value', async () => {
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        svc.setBinDirResolver(vi.fn().mockRejectedValue('string error'));
+        const result = await svc.getBinDir();
+        // Falls through to cache; since no cache is set, returns null
+        expect(result).toBeNull();
+    });
+
+    it('runCommandArgs executes via execFile and returns stdout', async () => {
+        execFileImpl.mockReset();
+        execFileImpl.mockImplementation(
+            (
+                _file: string,
+                _args: string[],
+                _opts: Record<string, unknown>,
+                cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                cb(null, 'args-out\n', '');
+            },
+        );
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runCommandArgs('echo', ['hello'], { cwd: tmpDir });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('args-out');
+        expect(execFileImpl).toHaveBeenCalled();
+    });
+
+    it('runCommandArgs maps execFile failures to exitCode and stderr', async () => {
+        execFileImpl.mockReset();
+        execFileImpl.mockImplementation(
+            (
+                _file: string,
+                _args: string[],
+                _opts: Record<string, unknown>,
+                cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const err = Object.assign(new Error('exec failed'), {
+                    code: 2,
+                    stdout: 'partial-out\n',
+                    stderr: 'err-msg\n',
+                });
+                cb(err, 'partial-out\n', 'err-msg\n');
+            },
+        );
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runCommandArgs('bad-cmd', ['--flag'], { cwd: tmpDir });
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toBe('partial-out');
+        expect(result.stderr).toBe('err-msg');
+    });
+
+    it('runCommandArgs falls back to error message when stderr is missing', async () => {
+        execFileImpl.mockReset();
+        execFileImpl.mockImplementation(
+            (
+                _file: string,
+                _args: string[],
+                _opts: Record<string, unknown>,
+                cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const err = Object.assign(new Error('spawn failed'), { code: 1 });
+                cb(err);
+            },
+        );
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runCommandArgs('missing', [], { cwd: tmpDir });
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toBe('spawn failed');
+        expect(result.stdout).toBe('');
+    });
+
+    it('runCommand falls back to error message when stderr is undefined', async () => {
+        execImpl.mockImplementation((_cmd: string, arg2: unknown, arg3?: unknown) => {
+            const err = Object.assign(new Error('exec boom'), { code: 1 });
+            asExecCallback(arg2, arg3)(err);
+        });
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runCommand('bad', { cwd: tmpDir });
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toBe('exec boom');
+        expect(result.stdout).toBe('');
+    });
+
+    it('runCommand merges custom env options', async () => {
+        execImpl.mockImplementation((_cmd: string, arg2: unknown, arg3?: unknown) => {
+            const opts = arg2 as { env?: Record<string, string> };
+            expect(opts.env?.MY_VAR).toBe('hello');
+            asExecCallback(arg2, arg3)(null, 'ok\n', '');
+        });
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runCommand('test', { cwd: tmpDir, env: { MY_VAR: 'hello' } });
+        expect(result.exitCode).toBe(0);
+    });
+
+    it('runCommand prepends binDir to PATH in env', async () => {
+        const binDir = path.join(tmpDir, 'path-venv', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execImpl.mockImplementation((_cmd: string, arg2: unknown, arg3?: unknown) => {
+            const opts = arg2 as { env: Record<string, string> };
+            expect(opts.env.PATH.startsWith(binDir + path.delimiter)).toBe(true);
+            asExecCallback(arg2, arg3)(null, 'ok\n', '');
+        });
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        await svc.runCommand('test', { cwd: tmpDir });
+    });
+
+    it('runAnsibleNavigator delegates to runTool', async () => {
+        const binDir = path.join(tmpDir, 'venv-nav', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        fs.writeFileSync(path.join(binDir, 'ansible-navigator'), '');
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
+            expect(cmd).toContain('ansible-navigator');
+            expect(cmd).toContain('run');
+            asExecCallback(arg2, arg3)(null, 'nav-ok\n', '');
+        });
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runAnsibleNavigator(['run', 'site.yml']);
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('nav-ok');
+    });
+
+    it('getToolPath falls through to PATH when not in binDir or cache', async () => {
+        const binDir = path.join(tmpDir, 'empty-venv', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        fs.writeFileSync(path.join(binDir, 'python'), '');
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
+            if (cmd.includes('which') || cmd.includes('where')) {
+                asExecCallback(arg2, arg3)(null, '/usr/bin/some-tool\n', '');
+                return;
+            }
+            asExecCallback(arg2, arg3)(null, 'out\n', '');
+        });
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.getToolPath('some-tool');
+        expect(result).toBe('/usr/bin/some-tool');
+    });
+
+    it('runCommandArgs prepends binDir to PATH', async () => {
+        const binDir = path.join(tmpDir, 'args-path-venv', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execFileImpl.mockReset();
+        execFileImpl.mockImplementation(
+            (
+                _file: string,
+                _args: string[],
+                opts: Record<string, unknown>,
+                cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const env = opts.env as Record<string, string>;
+                expect(env.PATH).toContain(binDir);
+                cb(null, 'ok\n', '');
+            },
+        );
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        await svc.runCommandArgs('test', [], { cwd: tmpDir });
+    });
+
+    it('runCommand uses maxBuffer option', async () => {
+        execImpl.mockImplementation((_cmd: string, arg2: unknown, arg3?: unknown) => {
+            const opts = arg2 as { maxBuffer?: number };
+            expect(opts.maxBuffer).toBe(1024);
+            asExecCallback(arg2, arg3)(null, 'ok\n', '');
+        });
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        await svc.runCommand('test', { cwd: tmpDir, maxBuffer: 1024 });
+    });
 });
