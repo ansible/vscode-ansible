@@ -1,0 +1,16 @@
+# Actionlint configuration
+# https://github.com/rhysd/actionlint/blob/main/docs/config.md
+#
+# Suppress errors for the `parallel` step keyword (added June 2026).
+# Remove these ignores once actionlint ships support.
+# Tracking: https://github.com/rhysd/actionlint/issues/693
+
+paths:
+  .github/workflows/ci.yml:
+    ignore:
+      - 'unexpected key "parallel"'
+      - 'step must run script with "run" section'
+  .github/workflows/wsl2-ui.yml:
+    ignore:
+      - 'unexpected key "parallel"'
+      - 'step must run script with "run" section'

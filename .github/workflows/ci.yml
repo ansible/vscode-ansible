@@ -62,14 +62,19 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install prek and uv
-        run: |
-          pipx install prek
-          pipx install uv
+      - parallel:
+          - name: Install Node dependencies
+            run: pnpm install --frozen-lockfile
+          - name: Install prek and uv
+            run: |
+              pipx install prek
+              pipx install uv
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run lint
-      - run: pnpm run lint:knip
+      - parallel:
+          - name: Lint (prek)
+            run: pnpm run lint
+          - name: Lint (knip)
+            run: pnpm run lint:knip
 
   integration:
     runs-on: ubuntu-latest
@@ -111,14 +116,13 @@ jobs:
       - run: pnpm run compile
       - run: pnpm run build
 
-      - name: Pre-install Chromedriver
-        run: pnpm exec tsx tools/ensure-chromedriver.mts
-
-      - name: Install test dependency extensions
-        run: pnpm run pretest:ui
-
-      - name: Build Lightspeed webviews
-        run: pnpm run build:lightspeed:webviews
+      - parallel:
+          - name: Pre-install Chromedriver
+            run: pnpm exec tsx tools/ensure-chromedriver.mts
+          - name: Install test dependency extensions
+            run: pnpm run pretest:ui
+          - name: Build Lightspeed webviews
+            run: pnpm run build:lightspeed:webviews
 
       - name: Run UI tests
         run: xvfb-run --auto-servernum pnpm run test:ui
@@ -180,30 +184,28 @@ jobs:
       - name: Build plugin
         run: ./scripts/build-plugin.sh
 
-      - name: Upload VSIX
-        uses: actions/upload-artifact@v7
-        with:
-          name: vsix
-          path: "*.vsix"
-          retention-days: 14
-
-      - name: Upload plugin
-        uses: actions/upload-artifact@v7
-        with:
-          name: plugin
-          path: dist/ansible-devtools-plugin.zip
-          retention-days: 14
-
-      - name: Upload MCP server
-        uses: actions/upload-artifact@v7
-        with:
-          name: mcp-server
-          path: dist/mcp-server.js
-          retention-days: 14
-
-      - name: Upload language server
-        uses: actions/upload-artifact@v7
-        with:
-          name: language-server
-          path: dist/language-server.js
-          retention-days: 14
+      - parallel:
+          - name: Upload VSIX
+            uses: actions/upload-artifact@v7
+            with:
+              name: vsix
+              path: "*.vsix"
+              retention-days: 14
+          - name: Upload plugin
+            uses: actions/upload-artifact@v7
+            with:
+              name: plugin
+              path: dist/ansible-devtools-plugin.zip
+              retention-days: 14
+          - name: Upload MCP server
+            uses: actions/upload-artifact@v7
+            with:
+              name: mcp-server
+              path: dist/mcp-server.js
+              retention-days: 14
+          - name: Upload language server
+            uses: actions/upload-artifact@v7
+            with:
+              name: language-server
+              path: dist/language-server.js
+              retention-days: 14

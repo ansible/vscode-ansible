@@ -68,12 +68,12 @@ jobs:
       - name: Bundle
         run: pnpm run build
 
-      - name: Pre-install Chromedriver
-        shell: bash
-        run: pnpm exec tsx tools/ensure-chromedriver.mts
-
-      - name: Install test dependency extensions
-        run: pnpm run pretest:ui
+      - parallel:
+          - name: Pre-install Chromedriver
+            shell: bash
+            run: pnpm exec tsx tools/ensure-chromedriver.mts
+          - name: Install test dependency extensions
+            run: pnpm run pretest:ui
 
       - name: WDIO smoke tests
         run: pnpm exec wdio run wdio.conf.wsl.ts
@@ -157,15 +157,15 @@ jobs:
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run build"
 
-      - name: Pre-install Chromedriver
-        shell: powershell
-        run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm exec tsx tools/ensure-chromedriver.mts"
-
-      - name: Install test dependency extensions
-        shell: powershell
-        run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run pretest:ui"
+      - parallel:
+          - name: Pre-install Chromedriver
+            shell: powershell
+            run: |
+              wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm exec tsx tools/ensure-chromedriver.mts"
+          - name: Install test dependency extensions
+            shell: powershell
+            run: |
+              wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run pretest:ui"
 
       - name: WDIO full test suite
         shell: powershell
