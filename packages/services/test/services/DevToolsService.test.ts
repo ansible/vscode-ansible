@@ -301,4 +301,90 @@ describe('DevToolsService', () => {
         const svc = DevToolsService.getInstance();
         await expect(svc.upgrade()).rejects.toThrow('upgrade is only available in VS Code');
     });
+
+    it('refresh sets packages with no location when getToolPath returns null', async () => {
+        mocks.mockGetToolPath.mockResolvedValue(null);
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: 'ansible-lint 6.0.0\nansible-navigator 3.0.0\n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        await svc.refresh();
+        const packages = svc.getPackages();
+        expect(packages).toHaveLength(2);
+        expect(packages[0].location).toBeUndefined();
+        expect(packages[1].location).toBeUndefined();
+    });
+
+    it('onDidChange fires during refresh lifecycle', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: 'ansible-lint 6.0.0\n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        const listener = vi.fn();
+        const disposable = (svc.onDidChange as (cb: () => void) => { dispose: () => void })(
+            listener,
+        );
+        await svc.refresh();
+        // fire() is called twice: once at start (loading=true), once at end (loading=false)
+        expect(listener).toHaveBeenCalledTimes(2);
+        disposable.dispose();
+    });
+
+    it('refresh handles output with only whitespace lines', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: '   \n\n  \n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        await svc.refresh();
+        expect(svc.getPackages()).toHaveLength(0);
+        expect(svc.isLoaded()).toBe(true);
+    });
+
+    it('refresh handles output with mixed valid and header lines', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: 'ansible-dev-tools version 24.2.0:\nansible-lint 24.2.0\nansible-core 2.16.1\n---\n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        await svc.refresh();
+        const packages = svc.getPackages();
+        expect(packages).toHaveLength(2);
+        expect(packages[0].name).toBe('ansible-lint');
+        expect(packages[1].name).toBe('ansible-core');
+    });
+
+    it('refresh produces correct locations on non-win32', async () => {
+        mocks.mockGetToolPath.mockResolvedValue('/usr/local/bin/adt');
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: 'ansible-lint 6.0.0\n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        await svc.refresh();
+        const pkg = svc.getPackage('ansible-lint');
+        expect(pkg?.location).toBe('/usr/local/bin/ansible-lint');
+    });
+
+    it('setPackageInstaller and install calls installer then refresh', async () => {
+        const installer = vi.fn().mockResolvedValue(undefined);
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: 'ansible-lint 7.0.0\n',
+            stderr: '',
+        });
+        const svc = DevToolsService.getInstance();
+        svc.setPackageInstaller(installer);
+        await svc.install();
+        expect(installer).toHaveBeenCalledOnce();
+        expect(svc.isLoaded()).toBe(true);
+        expect(svc.getPackages()).toHaveLength(1);
+    });
 });

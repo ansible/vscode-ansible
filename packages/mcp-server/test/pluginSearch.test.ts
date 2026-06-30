@@ -284,4 +284,175 @@ describe('PluginSearchIndex', () => {
         expect(single.length).toBeGreaterThan(0);
         expect(multi[0].name).toBe('copy');
     });
+
+    it('search respects limit option', async () => {
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        const results = index.search('file', { limit: 1 });
+        expect(results).toHaveLength(1);
+    });
+
+    it('search caps limit at 50', async () => {
+        // Build a fixture with >50 matching entries to verify the cap
+        const plugins = Array.from({ length: 60 }, (_, i) => ({
+            name: `file_mod_${String(i)}`,
+            fullName: `big.col.file_mod_${String(i)}`,
+            shortDescription: 'A file module',
+        }));
+        const m = new Map();
+        m.set('big.col', {
+            info: { name: 'big.col', version: '1', description: '', authors: [] },
+            pluginTypes: new Map([['module', plugins]]),
+        });
+        hoisted.getCollections.mockReturnValue(m);
+
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        const results = index.search('file', { limit: 100 });
+        expect(results).toHaveLength(50);
+    });
+
+    it('search returns empty for whitespace-only query', async () => {
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        expect(index.search('   ')).toEqual([]);
+    });
+
+    it('search returns empty for punctuation-only query', async () => {
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        expect(index.search('---')).toEqual([]);
+    });
+
+    it('scores name-starts-with higher than name-contains', async () => {
+        const m = new Map();
+        m.set('test.col', {
+            info: { name: 'test.col', version: '1', description: '', authors: [] },
+            pluginTypes: new Map([
+                [
+                    'module',
+                    [
+                        {
+                            name: 'file_manager',
+                            fullName: 'test.col.file_manager',
+                            shortDescription: 'Manages files',
+                        },
+                        {
+                            name: 'profile',
+                            fullName: 'test.col.profile',
+                            shortDescription: 'User profile settings',
+                        },
+                    ],
+                ],
+            ]),
+        });
+        hoisted.getCollections.mockReturnValue(m);
+
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        // "file" starts "file_manager" (70pts) and is contained in "profile" (50pts via name-contains)
+        // file_manager ranks first because startsWith > includes
+        const results = index.search('file');
+        expect(results[0].name).toBe('file_manager');
+    });
+
+    it('scores name-contains match', async () => {
+        const m = new Map();
+        m.set('test.col', {
+            info: { name: 'test.col', version: '1', description: '', authors: [] },
+            pluginTypes: new Map([
+                [
+                    'module',
+                    [
+                        {
+                            name: 'myprofile',
+                            fullName: 'test.col.myprofile',
+                            shortDescription: 'Something else entirely',
+                        },
+                    ],
+                ],
+            ]),
+        });
+        hoisted.getCollections.mockReturnValue(m);
+
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        // "prof" is contained in "myprofile" → name-contains (50pts)
+        const results = index.search('prof');
+        expect(results).toHaveLength(1);
+        expect(results[0].name).toBe('myprofile');
+    });
+
+    it('rebuild handles refresh error gracefully', async () => {
+        hoisted.isLoaded.mockReturnValue(false);
+        hoisted.refresh.mockRejectedValue(new Error('network error'));
+
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        expect(index.isBuilt()).toBe(true);
+        expect(index.getCount()).toBe(3); // still indexes whatever getCollections returns
+    });
+
+    it('search with collection filter is case-insensitive', async () => {
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        const results = index.search('copy', { collection: 'ANSIBLE.BUILTIN' });
+        expect(results.length).toBeGreaterThan(0);
+        expect(results[0].collection).toBe('ansible.builtin');
+    });
+
+    it('search with pluginType filter excludes non-matching types', async () => {
+        const m = new Map();
+        m.set('ns.col', {
+            info: { name: 'ns.col', version: '1', description: '', authors: [] },
+            pluginTypes: new Map([
+                [
+                    'module',
+                    [{ name: 'mymod', fullName: 'ns.col.mymod', shortDescription: 'A module' }],
+                ],
+                [
+                    'lookup',
+                    [
+                        {
+                            name: 'mymod_lookup',
+                            fullName: 'ns.col.mymod_lookup',
+                            shortDescription: 'A lookup',
+                        },
+                    ],
+                ],
+            ]),
+        });
+        hoisted.getCollections.mockReturnValue(m);
+
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        await index.rebuild();
+
+        const lookups = index.search('mymod', { pluginType: 'lookup' });
+        expect(lookups).toHaveLength(1);
+        expect(lookups[0].pluginType).toBe('lookup');
+    });
+
+    it('getCount returns 0 before any rebuild', async () => {
+        hoisted.getCollections.mockReturnValue(new Map());
+        const { PluginSearchIndex } = await import('../src/pluginSearch');
+        const index = PluginSearchIndex.getInstance();
+        expect(index.getCount()).toBe(0);
+    });
 });
