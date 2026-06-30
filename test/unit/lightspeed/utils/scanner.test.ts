@@ -30,7 +30,7 @@ describe("CollectionFinder", () => {
       await finder.refreshCache();
 
       const names = finder.cache.map((c) => c.fqcn);
-      expect(names).toEqual([...names].sort());
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
     });
   });
 

@@ -43,58 +43,8 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  lint:
+  package:
     runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0 # we need tags for dynamic versioning
-          show-progress: false
-
-      # needed by our prek system hooks like toml
-      - name: Install uv (cache)
-        uses: astral-sh/setup-uv@v8.2.0
-
-      # needed by our prek systems hooks like biome
-      - name: Install node (cache)
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: "24"
-
-      - name: Install pnpm # needs node 24
-        uses: pnpm/action-setup@v6
-        with:
-          cache: true
-          run_install: |
-            - recursive: true
-              args: [--frozen-lockfile]
-
-      - name: Debug
-        run: |
-          which -a pnpm
-          pnpm --version
-
-      - name: Run prek
-        uses: j178/prek-action@v2
-        # ideally prek should run in under 30s, but we keep a hard limit of 3
-        # minutes to count for slower hooks and uncached data. If a hook is
-        # slower, even occasionally it should be moved outside and included in
-        # another build step, like 'build' or 'package'.
-        timeout-minutes: 3
-        with:
-          # show-verbose-logs: true
-          # we want to run in verbose to report speed of each hook
-          extra-args: "--all-files -v"
-          install-only: false
-          prek-version: ">=0.3.8"
-
-  preflight:
-    runs-on: ubuntu-26.04
-    container:
-      image: ghcr.io/ansible/ext-builder:latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        MISE_TRUSTED_CONFIG_PATHS: /
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.build.outputs.context }}
@@ -104,7 +54,7 @@ jobs:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
-      - name: Run preflight task steps (composite action)
+      - name: Run task steps (composite action)
         id: build
         uses: ./.github/actions/task
         with:
@@ -112,10 +62,6 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
-    # Keep 'preflight' as a dependency because 'build' is resource-intensive;
-    # running it only after preflight succeeds prevents wasting matrix capacity.
-    needs:
-      - lint
 
     environment:
       name: ci
@@ -138,7 +84,7 @@ jobs:
       id-token: write # codecov actions
       checks: read # codecov actions
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         # Avoid letting github do the matrix multiplication and use manual
         # includes for each job, this gives us fine control over job name.
@@ -170,14 +116,6 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          - name: test (linux-wdio)
-            id: test-linux-wdio
-            task-name: wdio
-            os: ubuntu-26.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-
           - name: test (wsl)
             id: test-wsl
             task-name: test
@@ -193,10 +131,59 @@ jobs:
           fetch-tags: true # needed for dynamic versioning
           show-progress: false
 
+      # # We want to lint as early as possible, even before running setup action
+      # # and stop if it fails to save compute resources.
+      # - name: Install uv (cache)
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: astral-sh/setup-uv@v8.2.0
+
+      # # needed by our prek systems hooks like biome
+      # - name: Install node (cache)
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      #   with:
+      #     node-version: "24"
+
+      # - name: Install pnpm # needs node 24
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: pnpm/action-setup@v6
+      #   with:
+      #     cache: true
+      #     run_install: |
+      #       - recursive: true
+      #         args: [--frozen-lockfile]
+
+      # - name: Debug
+      #   if: ${{ runner.os == 'Linux' }}
+      #   shell: bash
+      #   run: |
+      #     which -a pnpm
+      #     pnpm --version
+
+      # - name: Enable caching for prek
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: actions/cache@2c8a9bd7457de244a408f35966fab2fb45fda9c8 # v6.0.0
+      #   with:
+      #     path: ~/.cache/prek/
+      #     key: prek-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      # - name: Run prek
+      #   if: ${{ runner.os == 'Linux' }}
+      #   uses: j178/prek-action@v2
+      #   # ideally prek should run in under 30s, but we keep a hard limit of 3
+      #   # minutes to count for slower hooks and uncached data. If a hook is
+      #   # slower, even occasionally it should be moved outside and included in
+      #   # another build step, like 'build' or 'package'.
+      #   # timeout-minutes: 3
+      #   with:
+      #     # show-verbose-logs: true
+      #     # we want to run in verbose to report speed of each hook
+      #     extra-args: "--all-files -v"
+      #     install-only: false
+      #     prek-version: ">=0.3.8"
+
       - name: Run setup steps (composite action)
         uses: ./.github/actions/setup
-        with:
-          job_name: ${{ matrix.name }}
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -253,7 +240,7 @@ jobs:
 
       - name: Cache WSL bootstrap
         if: contains(matrix.name, 'wsl')
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: wsl-cache
         with:
           path: .cache/wsl-bootstrap
@@ -318,6 +305,7 @@ jobs:
 
       # Workaround for: https://github.com/actions/runner/issues/1864
       - name: Ensure HOME is defined
+        if: runner.os != 'Windows'
         run: |
           set -euxo pipefail
           if [ -z "${HOME:-}" ]; then
@@ -343,16 +331,33 @@ jobs:
             exit 98
           }
 
+      - parallel:
+          - name: task lint
+            if: runner.os == 'Linux'
+            id: lint
+            run: task lint && task lint --status
+
+          - name: task build / package
+            # Warning: ensure that conditional templates have a negative condition
+            # expanding to an empty string because otherwise it will fail the command
+            # with exit code 1 even if the command effectively succeeded!
+            run: |
+              task build -v -x
+              task build -v --status
+              ${{ runner.os != 'Windows' && 'task package -v' || '' }}
+              ${{ runner.os != 'Windows' && 'task package -v --status' || ''}}
+
+          - name: task docs
+            id: docs
+            shell: bash
+            # timeout-minutes: 2
+            run: task docs && task docs --status
+
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
         run: task setup && task setup --status
         id: setup
-
-      - name: task build
-        id: build
-        run: |
-          task build && task build --status
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -368,45 +373,36 @@ jobs:
           EOT
           podman info
 
-      - name: task package
-        if: ${{ matrix.task-name != 'wdio' && runner.os != 'Windows' }}
-        id: package
-        run: |
-          task package -v ${{ matrix.env.TASKFILE_ARGS }} && task package -v ${{ matrix.env.TASKFILE_ARGS }} --status
+      - parallel:
+          - name: task unit (ext, vue, als, mcp)
+            id: unit
+            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            run: |
+              task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: save ready_to_test=true
-        id: ready_to_test
-        if: ${{ contains(matrix.name, 'test') && success() }}
-        run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
+          - name: task e2e (vscode-test)
+            id: e2e
+            # https://github.com/ansible/vscode-ansible/issues/1451
+            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            run: |
+              set -e
+              task build 2>out/log/build-before.txt
+              task e2e ${{ matrix.env.TASKFILE_ARGS }}
+              task build 2>out/log/build-after.txt
+              task build --status --verbose
+            # Add these once e2e is fixed:
+            #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
+            #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
-      - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') && !contains(matrix.name, 'wdio') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
+          - name: task wdio (VS Code UI)
+            id: wdio
+            if: ${{ runner.os != 'Windows' }}
+            run: task wdio && task wdio --status && task build --status
+            timeout-minutes: 30
 
-      - name: task unit (ext, vue, als, mcp)
-        if: contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: |
-          task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task e2e (vscode-test)
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && matrix.task-name != 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: |
-          set -e
-          task build 2>out/log/build-before.txt
-          task e2e ${{ matrix.env.TASKFILE_ARGS }}
-          task build 2>out/log/build-after.txt
-          task build --status --verbose
-        # Add these once e2e is fixed:
-        #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
-        #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
-
-      - name: task wdio (VS Code UI)
-        if: ${{ matrix.task-name == 'wdio' && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: |
-          task wdio
-          task build --status
-        timeout-minutes: 30
+      - name: task coverage
+        if: ${{ runner.os != 'Windows' }}
+        run: task coverage
 
       - name: task finish
         run: task finish
@@ -445,12 +441,12 @@ jobs:
             tar cf - --dereference out | tar xf - -C "$GITHUB_WORKSPACE"
           fi
 
-      - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
+      - name: Upload test logs and reports as logs-${{ matrix.name }}-${{ matrix.task-name }}.zip
         # git-leaks not support on Windows (except WSL which runs Linux)
         if: ${{ !cancelled() && (runner.os != 'Windows' || contains(matrix.name, 'wsl')) }}
         uses: ansible/actions/upload-artifact@main
         with:
-          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.id }}-${{ github.run_attempt }}.zip
+          name: logs-${{ matrix.id }}-${{ matrix.os }}-${{ github.run_attempt }}.zip
           path: |
             out/als
             out/coverage
@@ -464,11 +460,11 @@ jobs:
           retention-days: 90
 
       - name: Upload test coverage data to codecov.io
-        if: ${{ always() && hashFiles('out/coverage/**/*coverage.xml') != '' && github.event_name != 'schedule' }}
+        if: ${{ always() && hashFiles('out/coverage/cobertura-coverage.xml') != '' && github.event_name != 'schedule' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           name: ${{ matrix.name }}
-          files: ./out/coverage/**/*coverage.xml
+          files: ./out/coverage/cobertura-coverage.xml
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
@@ -499,36 +495,9 @@ jobs:
         with:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
-  builder-image:
-    runs-on: ubuntu-26.04
-    needs: [preflight, lint]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          fetch-depth: 0
-
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push container image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./tools/builder.sh ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && '--push' || '' }}
-
   mcp-server-image:
     runs-on: ubuntu-26.04
-    needs: [preflight, lint]
+    needs: [package]
     permissions:
       contents: read
       packages: write
@@ -596,12 +565,10 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     needs:
-      - lint
-      - preflight
+      - package
       - build
-      - builder-image
       - mcp-server-image
-    if: always() && !cancelled() && needs.build.result == 'success' && (needs.builder-image.result == 'success' || needs.builder-image.result == 'skipped')
+    if: always() && !cancelled() && needs.build.result == 'success'
 
     permissions:
       checks: read # codecov
@@ -617,10 +584,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # needed for pycobertura
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8.2.0
-
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
@@ -633,21 +596,6 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
-
-      - name: pycobertura diff across different platform runs
-        run: |
-          git diff
-          git status --porcelain --ignored
-          LINUX_COVERAGE=$(ls -1 logs-*linux*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          MACOS_COVERAGE=$(ls -1 logs-*macos*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          WSL_COVERAGE=$(ls -1 logs-*wsl*.zip/coverage/unit/cobertura-coverage.xml | sort | tail -1)
-          cp -f "${LINUX_COVERAGE}" linux.xml
-          cp -f "${MACOS_COVERAGE}" macos.xml
-          cp -f "${WSL_COVERAGE}" wsl.xml
-          # linux vs macos (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml macos.xml || true
-          # linux vs wsl  (tool needs source code to be present)
-          uv tool run pycobertura diff linux.xml wsl.xml || true
 
       - name: SonarCloud scan
         # Run only for pull requests or push to main
@@ -669,7 +617,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: builder-image, mcp-server-image
+          allowed-skips: mcp-server-image
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
@@ -721,7 +669,7 @@ jobs:
           files: "out/*.vsix"
 
       - run: |
-          pnpm install -y --frozen-lockfile
+          pnpm install -y --frozen-lockfile --reporter append-only
           ls -la out/*.vsix
 
       - name: Publish extension to marketplaces

@@ -52,7 +52,6 @@ export default defineConfig({
     ],
   },
   coverage: {
-    includeAll: true,
-    exclude: ["**/node_modules", "out/server/external"],
+    // options here not working due https://github.com/microsoft/vscode-test-cli/issues/40#issuecomment-3622010158
   },
 });

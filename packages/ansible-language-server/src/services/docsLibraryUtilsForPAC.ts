@@ -33,14 +33,12 @@ export async function findModulesUtils(
   documentUri?: string,
 ): Promise<[IModuleMetadata | undefined, string | undefined]> {
   const playbookAdjacentModules = new Map<string, IModuleMetadata>();
-  const playbookAdjacentModuleFqcns = new Set<string>();
   const playbookAdjacentDocFragments = new Map<string, IModuleMetadata>();
 
   // find documentation for PAC
   findDocumentation(playbookAdjacentCollectionsPath, "collection").forEach(
     (doc) => {
       playbookAdjacentModules.set(doc.fqcn, doc);
-      playbookAdjacentModuleFqcns.add(doc.fqcn);
     },
   );
 
@@ -56,15 +54,6 @@ export async function findModulesUtils(
   ).forEach((r, collection) =>
     playbookAdjacentPluginRouting.set(collection, r),
   );
-
-  // add all valid redirect routes as possible FQCNs
-  for (const [collection, routesByType] of playbookAdjacentPluginRouting) {
-    for (const [name, route] of routesByType.get("modules") || []) {
-      if (route.redirect && !route.tombstone) {
-        playbookAdjacentModuleFqcns.add(`${collection}.${name}`);
-      }
-    }
-  }
 
   // Now, start finding the module
   let hitFqcn;
@@ -120,23 +109,13 @@ export async function findModulesUtils(
 export async function getModuleFqcnsUtils(
   playbookAdjacentCollectionsPath: string,
 ): Promise<Set<string>> {
-  const playbookAdjacentModules = new Map<string, IModuleMetadata>();
   const playbookAdjacentModuleFqcns = new Set<string>();
-  const playbookAdjacentDocFragments = new Map<string, IModuleMetadata>();
 
   findDocumentation(playbookAdjacentCollectionsPath, "collection").forEach(
     (doc) => {
-      playbookAdjacentModules.set(doc.fqcn, doc);
       playbookAdjacentModuleFqcns.add(doc.fqcn);
     },
   );
-
-  findDocumentation(
-    playbookAdjacentCollectionsPath,
-    "collection_doc_fragment",
-  ).forEach((doc) => {
-    playbookAdjacentDocFragments.set(doc.fqcn, doc);
-  });
 
   (
     await findPluginRouting(playbookAdjacentCollectionsPath, "collection")

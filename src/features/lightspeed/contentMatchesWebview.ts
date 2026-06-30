@@ -4,8 +4,6 @@ import { SettingsManager } from "@src/settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
 } from "@src/interfaces/lightspeed";

@@ -20,6 +20,14 @@ coverage:
       default:
         target: auto
         threshold: 0.5%
+      tests:
+        target: 100%
+        threshold: 0%
+        flags:
+          - test
+        paths:
+          - test/
+          - packages/*/test/
     # Enforce coverage only on lines changed in the pull request.
     patch:
       default:
@@ -36,3 +44,4 @@ github_checks:
   annotations: true
 ignore:
   - ".agents/**"  # Exclude agent skill documentation from coverage
+  - "wdio.conf.ts"

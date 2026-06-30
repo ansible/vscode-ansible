@@ -1,5 +1,5 @@
 export function textIsOnlyLineNumber(input: string): boolean {
-  return /^\d*[.]?[ ]?$/.test(input);
+  return /^\d*\.? ?$/.test(input);
 }
 
 export function digitsInNumber(number: number): number {
@@ -46,7 +46,7 @@ export function removeLine(
 export function reapplyLineNumbers(textField: HTMLTextAreaElement): void {
   textField.value = textField.value
     .split("\n")
-    .map((line, idx) => `${idx + 1}. ${line.replace(/^\d+[.]?[\s]?/, "")}`)
+    .map((line, idx) => `${idx + 1}. ${line.replace(/^\d+\.?\s?/, "")}`)
     .join("\n");
 }
 

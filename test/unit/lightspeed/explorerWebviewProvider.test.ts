@@ -33,14 +33,10 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     };
 
     // Setup mock webview view
-    const onDidDisposeCallbacks: Array<() => void> = [];
     mockWebviewView = {
       webview: mockWebview,
       visible: true,
-      onDidDispose: vi.fn((callback: () => void) => {
-        onDidDisposeCallbacks.push(callback);
-        return { dispose: vi.fn() };
-      }),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
       onDidChangeVisibility: vi.fn(),
     } as unknown as vscode.WebviewView;
 

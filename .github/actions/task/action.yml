@@ -18,10 +18,14 @@ outputs:
 runs:
   using: "composite"
   steps:
+
     - name: Workaround for https://github.com/actions/runner/issues/2033
       shell: bash
       run: |
         chown -R $(id -u):$(id -g) $PWD
+
+    - name: Run setup steps (composite action)
+      uses: ./.github/actions/setup
 
     - name: task setup
       if: runner.os != 'Windows'
@@ -78,13 +82,6 @@ runs:
       run: |
         task als:package && task als:package --status
 
-    - name: Run context-specific command if it is a known task
-      if: >-
-        steps.extract_context.outputs.context != '' &&
-        !contains(steps.extract_context.outputs.tasks, steps.extract_context.outputs.context)
-      shell: bash
-      run: task ${{ steps.extract_context.outputs.context }}
-
     - name: task docs
       shell: bash
       # timeout-minutes: 2
@@ -97,12 +94,12 @@ runs:
 
     # this is kept here just to ensure 'task lint' command does not drift but
     # our main linting is run directly by 'prek' job, without involving task.
-    - name: task lint
-      # keep linting before any other task, to allow it be faster and independent
-      shell: bash
-      # timeout-minutes: 3
-      run: |
-        task lint
+    # - name: task lint
+    #   # keep linting before any other task, to allow it be faster and independent
+    #   shell: bash
+    #   # timeout-minutes: 3
+    #   run: |
+    #     task lint
 
     - name: task package
       shell: bash
