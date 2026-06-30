@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { YAMLMap } from 'yaml';
 import {
@@ -14,6 +14,8 @@ import {
     parseAllDocuments,
     isPlaybook,
     isCursorInsideJinjaBrackets,
+    findProvidedModule,
+    getPossibleOptionsForPath,
 } from '../../src/utils/yaml';
 
 /**
@@ -289,5 +291,107 @@ describe('AncestryBuilder', () => {
             const builder = new AncestryBuilder(path);
             expect(builder.get()).toBeTruthy();
         }
+    });
+});
+
+/**
+ * Builds a stub CollectionsService that resolves plugin docs from the map.
+ *
+ * @param pluginMap - Map of FQCN to plugin data stubs.
+ * @returns A mock CollectionsService.
+ */
+function mockCollectionsService(pluginMap: Record<string, unknown> = {}) {
+    return {
+        getPluginDocumentation: vi.fn((fqcn: string) => {
+            return Promise.resolve(pluginMap[fqcn] ?? null);
+        }),
+    } as never;
+}
+
+describe('findProvidedModule', () => {
+    it('returns plugin data when task uses a known module', async () => {
+        const content =
+            '- hosts: all\n  tasks:\n    - ansible.builtin.copy:\n        src: a\n        dest: b';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 2, character: 6 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const pluginData = { doc: { options: { src: {}, dest: {} } } };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        const result = await findProvidedModule(path, d, svc);
+        expect(result).toEqual(pluginData);
+    });
+
+    it('returns null when no module matches', async () => {
+        const content = '- hosts: all\n  tasks:\n    - name: test task\n      register: out';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 2, character: 6 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const svc = mockCollectionsService();
+        const result = await findProvidedModule(path, d, svc);
+        expect(result).toBeNull();
+    });
+
+    it('resolves short module names via ansible.builtin prefix', async () => {
+        const content = '- hosts: all\n  tasks:\n    - copy:\n        src: a';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 2, character: 6 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const pluginData = { doc: { options: { src: {} } } };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        const result = await findProvidedModule(path, d, svc);
+        expect(result).toEqual(pluginData);
+    });
+});
+
+describe('getPossibleOptionsForPath', () => {
+    it('returns options for a module parameter position', async () => {
+        const content = '- hosts: all\n  tasks:\n    - ansible.builtin.copy:\n        src: a';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 3, character: 10 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const pluginData = {
+            doc: { options: { src: { type: 'str' }, dest: { type: 'str' } } },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        const result = await getPossibleOptionsForPath(path, d, svc);
+        expect(result).toEqual({ src: { type: 'str' }, dest: { type: 'str' } });
+    });
+
+    it('returns null for play-level paths', async () => {
+        const content = '- hosts: all\n  tasks: []';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 0, character: 2 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const svc = mockCollectionsService();
+        const result = await getPossibleOptionsForPath(path, d, svc);
+        expect(result).toBeNull();
+    });
+
+    it('returns null when module has no documentation', async () => {
+        const content = '- hosts: all\n  tasks:\n    - unknown_module:\n        opt: val';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 3, character: 10 }, docs, true);
+        expect(path).toBeTruthy();
+        if (!path) return;
+
+        const svc = mockCollectionsService();
+        const result = await getPossibleOptionsForPath(path, d, svc);
+        expect(result).toBeNull();
     });
 });
