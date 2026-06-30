@@ -50,6 +50,16 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
+      - name: Upload coverage for SonarCloud
+        if: ${{ !cancelled() && hashFiles('coverage/**/lcov.info') != '' }}
+        uses: ansible/actions/upload-artifact@b2b0657c2e1d083cf979eba2fd04ae79e5ab3900 # v1.1.2
+        with:
+          name: sonar-coverage-node${{ matrix.node-version }}-${{ github.run_attempt }}
+          path: |
+            coverage/**/lcov.info
+          if-no-files-found: ignore
+          retention-days: 7
+
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -143,6 +153,16 @@ jobs:
           disable_search: true
           fail_ci_if_error: false
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+
+      - name: Upload WDIO coverage for SonarCloud
+        if: ${{ !cancelled() && hashFiles('coverage/wdio/lcov.info') != '' }}
+        uses: ansible/actions/upload-artifact@b2b0657c2e1d083cf979eba2fd04ae79e5ab3900 # v1.1.2
+        with:
+          name: sonar-coverage-wdio-${{ github.run_attempt }}
+          path: |
+            coverage/**/lcov.info
+          if-no-files-found: ignore
+          retention-days: 7
 
   docs:
     runs-on: ubuntu-latest
