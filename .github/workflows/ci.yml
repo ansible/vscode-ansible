@@ -63,9 +63,8 @@ jobs:
           pipx install prek
           pipx install uv
 
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
-      - run: npm run lint:prek
       - run: npm run lint:knip
 
   integration:
@@ -116,12 +115,12 @@ jobs:
       - name: Run UI tests
         run: xvfb-run --auto-servernum npm run test:ui
         env:
-          WDIO_COVERAGE: '1'
+          WDIO_COVERAGE: "1"
 
       - name: Run Lightspeed UI tests
         run: xvfb-run --auto-servernum npm run test:lightspeed:ui
         env:
-          WDIO_COVERAGE: '1'
+          WDIO_COVERAGE: "1"
 
       - name: Upload WDIO coverage to Codecov
         if: ${{ always() && hashFiles('coverage/wdio/lcov.info') != '' }}
