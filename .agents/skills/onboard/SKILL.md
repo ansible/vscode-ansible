@@ -52,7 +52,7 @@ Read and present `AGENTS.md`, focusing on:
 1. **Package architecture** — explain the five packages and their
    dependency rules:
     - `@ansible/common` — browser-safe, zero Node.js dependencies
-    - `@ansible/services` — Node.js services, conditional `vscode` require
+    - `@ansible/developer-services` — Node.js services, conditional `vscode` require
     - `@ansible/language-server` — LSP server
     - `@ansible/mcp-server` — standalone MCP server for AI agents
     - `@ansible/ui` — shared React webview components
@@ -73,7 +73,7 @@ ones in this order:
 | ADR     | Why it matters for onboarding                                   |
 | ------- | --------------------------------------------------------------- |
 | ADR-001 | Foundational: why we have a service layer separate from VS Code |
-| ADR-011 | Package split: `@ansible/common` vs `@ansible/services`         |
+| ADR-011 | Package split: `@ansible/common` vs `@ansible/developer-services`         |
 | ADR-005 | The invariants — explains _why_ each rule exists                |
 | ADR-006 | esbuild bundler — how the build works                           |
 | ADR-014 | Internal skills — how AI prompts are managed                    |

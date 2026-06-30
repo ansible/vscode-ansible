@@ -59,12 +59,12 @@ own disposables onto `context.subscriptions` for clean lifecycle management.
 
 The extension uses esbuild for bundling. `@ansible/lightspeed` is integrated
 via the esbuild `alias` map in `scripts/build.mjs`, the same pattern used
-for `@ansible/services` and `@ansible/common`:
+for `@ansible/developer-services` and `@ansible/common`:
 
 ```javascript
 alias: {
     '@ansible/lightspeed': path.join(ROOT, 'packages', 'lightspeed', 'src'),
-    '@ansible/services': path.join(ROOT, 'packages', 'services', 'src'),
+    '@ansible/developer-services': path.join(ROOT, 'packages', 'services', 'src'),
     '@ansible/common': path.join(ROOT, 'packages', 'common', 'src'),
 },
 ```
@@ -114,7 +114,7 @@ VS Code behavior and does not represent runtime cost.
 ### Package dependencies
 
 ```text
-@ansible/lightspeed → @ansible/services → @ansible/common
+@ansible/lightspeed → @ansible/developer-services → @ansible/common
 ```
 
 No dependency on `@ansible/ui` — Vue webviews are self-contained.
@@ -215,7 +215,7 @@ the package is deleted.
   40+ error scenarios, `ErrorRegistry`, `mapError()`
 - **Root build graph**: tsconfig references and package.json workspace
   wiring already include `@ansible/lightspeed`
-- **`@ansible/services`**: shared CLI discovery, caching — reused by
+- **`@ansible/developer-services`**: shared CLI discovery, caching — reused by
   lightspeed, not rebuilt
 - **ADR-015**: architectural decision documented and approved
 

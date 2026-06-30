@@ -116,6 +116,6 @@ Click shows/focuses the Ansible output channel.
 ## Related Decisions
 
 - [ADR-001](ADR-001-service-based-architecture.md) — Status bar is VS Code
-  UI code in `src/`, consuming data from services in `@ansible/services`.
+  UI code in `src/`, consuming data from services in `@ansible/developer-services`.
 - [ADR-005](ADR-005-architectural-invariants.md) — No `vscode` dependency
   in core packages; status bar stays in `src/`.

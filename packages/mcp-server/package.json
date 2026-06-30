@@ -11,13 +11,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "files": [
+    "out/"
+  ],
   "scripts": {
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@ansible/services": "workspace:*",
+    "@ansible/developer-services": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
     "zod": "^4.3.5",
     "zod-to-json-schema": "^3.25.1"

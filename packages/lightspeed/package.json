@@ -19,7 +19,7 @@
     "dev:webviews": "vite"
   },
   "dependencies": {
-    "@ansible/services": "workspace:*",
+    "@ansible/developer-services": "workspace:*",
     "vue": "^3.5.31",
     "primevue": "4.5.5",
     "@primeuix/themes": "^2.0.3",

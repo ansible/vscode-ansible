@@ -6,8 +6,12 @@
  */
 
 import * as vscode from 'vscode';
-import { SkillRegistry, buildSkillLoadPrompt, buildSkillClipboardPrompt } from '@ansible/services';
-import type { SkillEntry, SkillSource } from '@ansible/services';
+import {
+    SkillRegistry,
+    buildSkillLoadPrompt,
+    buildSkillClipboardPrompt,
+} from '@ansible/developer-services';
+import type { SkillEntry, SkillSource } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 import { log } from '@src/extension';
 

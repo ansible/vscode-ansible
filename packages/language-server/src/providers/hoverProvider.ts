@@ -21,7 +21,7 @@ import {
     isTaskParam,
     parseAllDocuments,
 } from '../utils/yaml';
-import { CollectionsService } from '@ansible/services';
+import { CollectionsService } from '@ansible/developer-services';
 
 /**
  * Resolves hover documentation for Ansible keywords, modules, and options.

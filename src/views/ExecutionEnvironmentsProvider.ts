@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ExecutionEnvService } from '@ansible/services';
-import type { ExecutionEnvironment } from '@ansible/services';
+import { ExecutionEnvService } from '@ansible/developer-services';
+import type { ExecutionEnvironment } from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 type TreeNode = EENode | EEDetailCategoryNode | EEDetailItemNode | MessageNode;

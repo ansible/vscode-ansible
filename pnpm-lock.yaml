@@ -15,15 +15,15 @@ importers:
       '@ansible/common':
         specifier: workspace:*
         version: link:packages/common
+      '@ansible/developer-services':
+        specifier: workspace:*
+        version: link:packages/services
       '@ansible/lightspeed':
         specifier: workspace:*
         version: link:packages/lightspeed
       '@ansible/mcp-server':
         specifier: workspace:*
         version: link:packages/mcp-server
-      '@ansible/services':
-        specifier: workspace:*
-        version: link:packages/services
       '@ansible/ui':
         specifier: workspace:*
         version: link:packages/ui
@@ -207,7 +207,7 @@ importers:
 
   packages/language-server:
     dependencies:
-      '@ansible/services':
+      '@ansible/developer-services':
         specifier: workspace:*
         version: link:../services
       '@flatten-js/interval-tree':
@@ -243,7 +243,7 @@ importers:
 
   packages/lightspeed:
     dependencies:
-      '@ansible/services':
+      '@ansible/developer-services':
         specifier: workspace:*
         version: link:../services
       '@highlightjs/vue-plugin':
@@ -289,7 +289,7 @@ importers:
 
   packages/mcp-server:
     dependencies:
-      '@ansible/services':
+      '@ansible/developer-services':
         specifier: workspace:*
         version: link:../services
       '@modelcontextprotocol/sdk':

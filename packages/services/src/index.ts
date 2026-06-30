@@ -1,5 +1,5 @@
 /**
- * @ansible/services — Node.js service implementations.
+ * @ansible/developer-services — Node.js service implementations.
  * Depends on @ansible/common for types. Re-exports all common types for convenience.
  */
 

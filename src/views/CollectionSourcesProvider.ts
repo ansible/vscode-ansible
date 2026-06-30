@@ -7,8 +7,8 @@ import {
     buildCollectionSourcesOverviewPrompt,
     buildGalaxySourceSummaryPrompt,
     buildGithubOrgSourceSummaryPrompt,
-} from '@ansible/services';
-import type { GalaxyCollection, GitHubCollection, PluginInfo } from '@ansible/services';
+} from '@ansible/developer-services';
+import type { GalaxyCollection, GitHubCollection, PluginInfo } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 
 let extensionLog: (msg: string) => void = console.log;
@@ -743,7 +743,7 @@ export class CollectionSourcesProvider implements vscode.TreeDataProvider<TreeNo
                 cancellable: false,
             },
             async () => {
-                const { getCommandService } = await import('@ansible/services');
+                const { getCommandService } = await import('@ansible/developer-services');
                 const commandService = getCommandService();
 
                 const result = await commandService.runTool('ade', ['install', installUrl]);

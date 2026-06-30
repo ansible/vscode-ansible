@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { DevToolsService } from '@ansible/services';
-import type { DevToolPackage } from '@ansible/services';
+import { DevToolsService } from '@ansible/developer-services';
+import type { DevToolPackage } from '@ansible/developer-services';
 import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 import { log } from '@src/extension';
 

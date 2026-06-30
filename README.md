@@ -9,7 +9,7 @@ The extension uses a multi-package architecture with pnpm workspaces:
 ```text
 packages/
   common/           # @ansible/common — browser-safe types, prompts, utils, parsers
-  services/         # @ansible/services — Node.js service implementations
+  services/         # @ansible/developer-services — Node.js service implementations
   language-server/  # @ansible/language-server — LSP server
   mcp-server/       # @ansible/mcp-server — standalone MCP server
   lightspeed/       # @ansible/lightspeed — Lightspeed AI features
@@ -18,7 +18,7 @@ docs/               # Project documentation (Starlight site)
 src/                # Extension host (views, panels, commands)
 ```
 
-`@ansible/common` contains browser-safe types, prompts, and utilities with no Node.js or VS Code dependency. `@ansible/services` contains Node.js service implementations. The MCP server and extension host both consume these packages, so the same logic runs in VS Code and as a standalone CLI tool.
+`@ansible/common` contains browser-safe types, prompts, and utilities with no Node.js or VS Code dependency. `@ansible/developer-services` contains Node.js service implementations. The MCP server and extension host both consume these packages, so the same logic runs in VS Code and as a standalone CLI tool.
 
 ## Features
 

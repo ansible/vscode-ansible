@@ -193,7 +193,7 @@ workflow skills).
 ### Alternative 2: Keep prompts as TypeScript, expose via SkillRegistry adapter
 
 **Description**: Keep prompt text in TypeScript template strings.
-Create an adapter in `@ansible/services` that registers each prompt
+Create an adapter in `@ansible/developer-services` that registers each prompt
 builder's output as a synthetic skill in SkillRegistry.
 
 **Pros**:
