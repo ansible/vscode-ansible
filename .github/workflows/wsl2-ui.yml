@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -68,12 +68,12 @@ jobs:
       - name: Bundle
         run: pnpm run build
 
-      - name: Pre-install Chromedriver
-        shell: bash
-        run: pnpm exec tsx tools/ensure-chromedriver.mts
-
-      - name: Install test dependency extensions
-        run: pnpm run pretest:ui
+      - parallel:
+          - name: Pre-install Chromedriver
+            shell: bash
+            run: pnpm exec tsx tools/ensure-chromedriver.mts
+          - name: Install test dependency extensions
+            run: pnpm run pretest:ui
 
       - name: WDIO smoke tests
         run: pnpm exec wdio run wdio.conf.wsl.ts
@@ -124,11 +124,28 @@ jobs:
         shell: powershell
         run: |
           wsl --set-default-version 2
-          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
-          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          $maxAttempts = 3
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            Write-Host "::group::Import attempt $i of $maxAttempts"
+            try {
+              if (Test-Path C:\WSL\Fedora) { Remove-Item -Recurse -Force C:\WSL\Fedora }
+              New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+              wsl --unregister ${{ env.WSL_DISTRO }} 2>$null
+              wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+              if ($LASTEXITCODE -ne 0) { throw "wsl --import exited with code $LASTEXITCODE" }
+              wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+              if ($LASTEXITCODE -ne 0) { throw "wsl distro not responding" }
+              Write-Host "::endgroup::"
+              break
+            } catch {
+              Write-Host "::endgroup::"
+              Write-Host "::warning::Import attempt $i failed: $_"
+              if ($i -eq $maxAttempts) { throw "WSL import failed after $maxAttempts attempts" }
+              Start-Sleep -Seconds (10 * $i)
+            }
+          }
           Write-Host "Listing registered distros:"
           wsl --list --verbose
-          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
           wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
 
       - name: Provision Fedora WSL2
@@ -157,15 +174,15 @@ jobs:
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm run build"
 
-      - name: Pre-install Chromedriver
-        shell: powershell
-        run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm exec tsx tools/ensure-chromedriver.mts"
-
-      - name: Install test dependency extensions
-        shell: powershell
-        run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run pretest:ui"
+      - parallel:
+          - name: Pre-install Chromedriver
+            shell: powershell
+            run: |
+              wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && pnpm exec tsx tools/ensure-chromedriver.mts"
+          - name: Install test dependency extensions
+            shell: powershell
+            run: |
+              wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run pretest:ui"
 
       - name: WDIO full test suite
         shell: powershell
@@ -218,11 +235,28 @@ jobs:
         shell: powershell
         run: |
           wsl --set-default-version 2
-          New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
-          wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+          $maxAttempts = 3
+          for ($i = 1; $i -le $maxAttempts; $i++) {
+            Write-Host "::group::Import attempt $i of $maxAttempts"
+            try {
+              if (Test-Path C:\WSL\Fedora) { Remove-Item -Recurse -Force C:\WSL\Fedora }
+              New-Item -ItemType Directory -Force -Path C:\WSL\Fedora | Out-Null
+              wsl --unregister ${{ env.WSL_DISTRO }} 2>$null
+              wsl --import ${{ env.WSL_DISTRO }} C:\WSL\Fedora C:\wsl-cache\fedora.wsl --version 2
+              if ($LASTEXITCODE -ne 0) { throw "wsl --import exited with code $LASTEXITCODE" }
+              wsl -d ${{ env.WSL_DISTRO }} -- uname -a
+              if ($LASTEXITCODE -ne 0) { throw "wsl distro not responding" }
+              Write-Host "::endgroup::"
+              break
+            } catch {
+              Write-Host "::endgroup::"
+              Write-Host "::warning::Import attempt $i failed: $_"
+              if ($i -eq $maxAttempts) { throw "WSL import failed after $maxAttempts attempts" }
+              Start-Sleep -Seconds (10 * $i)
+            }
+          }
           Write-Host "Listing registered distros:"
           wsl --list --verbose
-          wsl -d ${{ env.WSL_DISTRO }} -- uname -a
           wsl -d ${{ env.WSL_DISTRO }} -- cat /etc/fedora-release
 
       - name: Provision Fedora WSL2
