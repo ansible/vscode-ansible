@@ -1,8 +1,8 @@
 /* Inspired by https://github.com/The-Compiler/vscode-python-tox */
 
 import * as vscode from "vscode";
-import * as path from "path";
-import * as util from "util";
+import * as path from "node:path";
+import * as util from "node:util";
 import { runTox, getToxEnvs } from "@src/features/ansibleTox/runner";
 import {
   getTerminal,
@@ -120,37 +120,13 @@ export class AnsibleToxController {
     const toxTests = await getToxEnvs(path.dirname(file.uri.path));
 
     if (toxTests) {
-      for (let lineNo = 0; lineNo < lines.length; lineNo++) {
-        const line = lines[lineNo];
-        const regexResult = testRegex.exec(line);
-        if (!regexResult) {
-          continue;
-        }
-
-        const envName = regexResult[2];
-        if (envName.includes("{")) {
-          continue;
-        }
-
-        for (let testNo = 0; testNo < toxTests.length; testNo++) {
-          const toxTest = toxTests[testNo];
-
-          if (toxTest === envName) {
-            const newTestItem = this.controller.createTestItem(
-              envName,
-              envName,
-              file.uri,
-            );
-            newTestItem.range = new vscode.Range(
-              new vscode.Position(lineNo, 0),
-              new vscode.Position(lineNo, regexResult[0].length),
-            );
-            listOfChildren.push(newTestItem);
-            toxTests.splice(testNo, 1);
-            break;
-          }
-        }
-      }
+      this.matchToxEnvsToLines(
+        lines,
+        testRegex,
+        toxTests,
+        file.uri,
+        listOfChildren,
+      );
 
       for (const toxTest of toxTests) {
         const newTestItem = this.controller.createTestItem(
@@ -169,6 +145,43 @@ export class AnsibleToxController {
     return listOfChildren;
   }
 
+  private matchToxEnvsToLines(
+    lines: string[],
+    testRegex: RegExp,
+    toxTests: string[],
+    uri: vscode.Uri,
+    listOfChildren: vscode.TestItem[],
+  ): void {
+    for (let lineNo = 0; lineNo < lines.length; lineNo++) {
+      const line = lines[lineNo];
+      testRegex.lastIndex = 0;
+      const regexResult = testRegex.exec(line);
+      if (!regexResult) {
+        continue;
+      }
+
+      const envName = regexResult[2];
+      if (envName.includes("{")) {
+        continue;
+      }
+
+      const testIndex = toxTests.indexOf(envName);
+      if (testIndex !== -1) {
+        const newTestItem = this.controller.createTestItem(
+          envName,
+          envName,
+          uri,
+        );
+        newTestItem.range = new vscode.Range(
+          new vscode.Position(lineNo, 0),
+          new vscode.Position(lineNo, regexResult[0].length),
+        );
+        listOfChildren.push(newTestItem);
+        toxTests.splice(testIndex, 1);
+      }
+    }
+  }
+
   parseTestsInAnsibleToxFile = async (
     document: vscode.TextDocument,
     filename: string = ANSIBLE_TOX_FILE_NAME,
@@ -185,6 +198,25 @@ export class AnsibleToxController {
     }
   };
 
+  private async executeTest(
+    test: vscode.TestItem,
+    run: vscode.TestRun,
+  ): Promise<void> {
+    const start = Date.now();
+    try {
+      const uri = test.uri;
+      const cwd = uri
+        ? vscode.workspace.getWorkspaceFolder(uri)?.uri.path
+        : undefined;
+      const terminal = await getTerminal(cwd, getRootParentLabelDesc(test));
+      await runTox([test.label.split("->")[0].trim()], "", terminal);
+      run.passed(test, Date.now() - start);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
+    }
+  }
+
   async runHandler(
     request: vscode.TestRunRequest,
     token: vscode.CancellationToken,
@@ -194,29 +226,10 @@ export class AnsibleToxController {
 
     while (queue.length > 0 && !token.isCancellationRequested) {
       const test = queue.pop();
-      if (test === undefined || test.uri === undefined) {
+      if (!test?.uri || request.exclude?.includes(test)) {
         continue;
       }
-
-      if (request.exclude?.includes(test)) {
-        continue;
-      }
-
-      const start = Date.now();
-      try {
-        const cwd = vscode.workspace.getWorkspaceFolder(test.uri)?.uri.path;
-        const terminal = await getTerminal(cwd, getRootParentLabelDesc(test));
-        await runTox([test.label.split("->")[0].trim()], "", terminal);
-        run.passed(test, Date.now() - start);
-      } catch (e: unknown) {
-        let msg;
-        if (e instanceof Error) {
-          msg = e.message;
-        } else {
-          msg = e instanceof Error ? e.message : String(e);
-        }
-        run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
-      }
+      await this.executeTest(test, run);
     }
 
     run.end();

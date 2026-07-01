@@ -17,12 +17,10 @@ env:
   # Overridden by some specific jobs
   CODE_VERSION: max
 vars:
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
     # keep the space after log filename as it is needed.
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log "; fi'
+    sh: node ./tools/xvfb-prefix.mts
 tasks:
   default:
     desc: Run most commands
@@ -44,6 +42,7 @@ tasks:
       - git clean -dxf
   finish:
     desc: Commands to run at the end of build and test processes
+    platforms: [linux, darwin]
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       # clean up uv cache, important for CI especially for caching size reduction
@@ -141,21 +140,21 @@ tasks:
     sources:
       - docs/**/*
       - media/**/*
-      - mkdocs.yml
+      - zensical.toml
       - pyproject.toml
     generates:
-      - out/html/**/*
+      - site/**/*
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags || git fetch --tags --force
-      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
+      - uvx zensical build --strict
       - defer: { task: finish }
   lint:
     desc: Lint the project
     interactive: true
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/prek run -a -v --color=always"
+      - uv run prek run -a -v --color=always
       - defer: { task: finish }
     silent: true
     sources:
@@ -190,6 +189,7 @@ tasks:
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
+      - defer: { task: coverage }
       - defer: { task: finish }
     interactive: true
   e2e:
@@ -206,7 +206,6 @@ tasks:
       TMP: "{{ .TASKFILE_DIR }}/out/e2e/tmp"
     generates:
       - out/junit/e2e-test-results.xml
-      - out/coverage/e2e/cobertura-coverage.xml
       - out/coverage/e2e/lcov.info
       - out/log/e2e/e2e.log
     sources:
@@ -219,8 +218,10 @@ tasks:
     cmds:
       - rimraf .vscode-test/user-data/logs/*
       - mkdir -p out/e2e/tmp
+      - ansible-lint --version --offline
       # cannot put coverage option inside .vscode-test.mjs
       - "{{.XVFB}}vscode-test --install-extensions out/ansible-*.vsix --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcovonly"
+      - defer: { task: coverage }
       - defer: { task: collect-logs, vars: { TEST_PREFIX: "{{.TEST_PREFIX}}" } }
     interactive: true
   wdio:
@@ -229,13 +230,17 @@ tasks:
       - build
     env:
       TS_NODE_PROJECT: test/wdio/tsconfig.json
+    generates:
+      - out/coverage/wdio/lcov.info
     sources:
       - "{src,test}/**/*"
       - wdio.conf.ts
+      - tools/wdio-coverage.mts
     cmds:
       - "pnpm pretest:wdio"
       - "node tools/ensure-chromedriver.mts"
       - "{{.XVFB}}pnpm test:wdio"
+      - defer: { task: coverage }
     interactive: true
   unit:
     desc: Run unit tests with coverage report
@@ -297,10 +302,6 @@ tasks:
     cmds:
       - ./tools/release.sh
     interactive: true
-  builder:
-    desc: Build container image used for building the extension
-    cmds:
-      - ./tools/builder.sh
   ci_clean_cache:
     desc: Clean up caches (only runs when CI=true)
     status:
@@ -327,3 +328,12 @@ tasks:
     cmds:
       - find .vscode-test/user-data/logs -name "*.log" -type f -exec cp -v {} out/{{.TEST_PREFIX}}/ \; 2>/dev/null || true
       - defer: tools/sanitize-logs.py out/{{.TEST_PREFIX}}/*.log
+  coverage:
+    desc: Consolidate and filter coverage reports
+    platforms: [linux, darwin]
+    sources:
+      - out/coverage/*/lcov.info
+    generates:
+      - out/coverage/cobertura-coverage.xml
+    cmds:
+      - node tools/mk-cobertura.mts -o out/coverage/cobertura-coverage.xml -e "node_modules" -e "dist" -e ".*\/dist" out/coverage/*/lcov.info

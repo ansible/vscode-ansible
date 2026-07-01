@@ -188,7 +188,7 @@ function parseInventoryHosts(hostObj: inventoryType): HostType[] {
   let allHosts = [localhostObj, allHostObj, ...ungroupedHostsObjList];
 
   for (const group of allGroups) {
-    if (hostObj[group.host] && hostObj[group.host].hosts) {
+    if (hostObj[group.host]?.hosts) {
       const hostsObj = hostObj[group.host].hosts.map((item) => {
         return { host: item, priority: 4 };
       });

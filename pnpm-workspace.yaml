@@ -1,3 +1,4 @@
+# cspell: ignore fastify undici
 minimumReleaseAge: 1000 # 4320 # minutes (3 days)
 packages:
   - "packages/*"
@@ -14,9 +15,19 @@ allowBuilds:
 
 overrides:
   rollup: "npm:@rollup/wasm-node@*"
+  # Security overrides
+  "fast-uri@3": ">=3.1.1"
+  "fastify@5": ">=5.7.2"
+  "form-data@4": ">=4.0.6"
+  "js-yaml@4": ">=4.2.0"
+  "protobufjs@7": ">=7.6.3"
+  "serialize-javascript@7": ">=7.0.3"
+  "tar-fs@3": ">=3.1.2"
+  "ws@8": ">=8.17.1"
+
 patchedDependencies:
-  "@vscode/test-cli@0.0.12": "patches/@vscode__test-cli@0.0.12.patch"
-  wdio-vscode-service@6.1.4: patches/wdio-vscode-service@6.1.4.patch
+  # See: https://github.com/microsoft/vscode-test-cli/issues/106
+  "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
 packageExtensions:
   "cypress-multi-reporters@*":
     "dependencies":

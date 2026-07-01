@@ -4,8 +4,8 @@ import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 /* v8 ignore start */
 export class ImagePuller {
-  private connection: Connection;
-  private context: WorkspaceFolderContext;
+  private readonly connection: Connection;
+  private readonly context: WorkspaceFolderContext;
   private useProgressTracker = false;
   private _containerEngine: string;
   private _containerImage: string;

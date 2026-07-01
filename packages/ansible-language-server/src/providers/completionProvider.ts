@@ -1,4 +1,4 @@
-import { EOL } from "os";
+import { EOL } from "node:os";
 import {
   CompletionItem,
   CompletionItemKind,
@@ -454,7 +454,10 @@ export async function doCompletion(
               } else {
                 priority = priorityMap.choice;
               }
-              const insertValue = new String(choice).toString();
+              const insertValue =
+                typeof choice === "string"
+                  ? choice
+                  : String(choice as boolean | number);
               const completionItem: CompletionItem = {
                 label: insertValue,
                 detail: choice === defaultChoice ? "default" : undefined,

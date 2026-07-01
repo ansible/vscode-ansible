@@ -10,7 +10,7 @@ import type { Workbench } from "wdio-vscode-service";
 
 /** Dismiss the "Don't Save" dialog if it appears after closing a dirty editor. */
 async function dismissDontSaveIfPresent(): Promise<void> {
-  const dontSave = await browser.$('[aria-label="Don\'t Save"]');
+  const dontSave = browser.$('[aria-label="Don\'t Save"]');
   try {
     await dontSave.waitForDisplayed({ timeout: 2500 });
     await dontSave.click();

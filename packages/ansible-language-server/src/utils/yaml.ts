@@ -54,7 +54,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
   ): AncestryBuilder<X> {
     this._index--;
     if (isPair(this.get())) {
-      if (!type || !(type === Pair.prototype.constructor)) {
+      if (!type || type !== Pair.prototype.constructor) {
         this._index--;
       }
     }
@@ -185,7 +185,7 @@ function getPathAtOffset(
   doc: Document,
 ): Node[] | null {
   if (path) {
-    const currentNode = path[path.length - 1];
+    const currentNode = path.at(-1);
     if (isMap(currentNode)) {
       let pair = _.find(currentNode.items, (p) =>
         contains(p.key as Node, offset, inclusive),
@@ -287,7 +287,7 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     // traverse the YAML up through the Ansible blocks
     const builder = new AncestryBuilder(path).parent(YAMLSeq).parent(YAMLMap);
     const key = builder.getStringKey();
-    if (key && /^block|rescue|always$/.test(key)) {
+    if (key && /^(?:block|rescue|always)$/.test(key)) {
       declaredCollections.push(...getDeclaredCollectionsForMap(builder.get()));
       path = builder.getPath();
     } else {
@@ -585,16 +585,11 @@ export function isPlaybook(textDocument: TextDocument): boolean {
   const taskKeywordsList = [...taskKeywords.keys()];
 
   //   Filters out all play keywords that are task keywords
-  const filteredList = playKeywordsList.filter(
-    (value) => !taskKeywordsList.includes(value),
+  const filteredSet = new Set(
+    playKeywordsList.filter((value) => !taskKeywordsList.includes(value)),
   );
 
-  //   Check if any top-level key of the ansible file is a part of filtered list
-  //    If it is: The file is a playbook
-  //    Else: The file is not a playbook
-  const isPlaybookValue = playbookKeys.some((r: string) =>
-    filteredList.includes(r),
-  );
+  const isPlaybookValue = playbookKeys.some((r: string) => filteredSet.has(r));
 
   return isPlaybookValue;
 }

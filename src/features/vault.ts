@@ -61,6 +61,154 @@ export class Vault {
     );
   }
 
+  private async resolveVaultId(
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<string | undefined> {
+    if (!useVaultIDs) return undefined;
+    const vaultId = await askForVaultId(ansibleConfig);
+    if (!vaultId) {
+      displayInvalidConfigError();
+    }
+    return vaultId;
+  }
+
+  private async encryptInlineSelection(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<void> {
+    console.log("Encrypt selected text");
+    const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
+    if (useVaultIDs && !vaultId) return;
+
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const rawTabSize = Number(editor.options.tabSize);
+    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
+
+    let encryptedText: string;
+    try {
+      encryptedText = await this.encryptInline(
+        text,
+        rootPath,
+        vaultId,
+        indentationLevel,
+        tabSize,
+      );
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      return;
+    }
+    const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
+    editor.edit((editBuilder) => {
+      editBuilder.replace(
+        selection,
+        encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
+      );
+    });
+  }
+
+  private async decryptInlineSelection(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+  ): Promise<void> {
+    console.log("Decrypt selected text");
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const rawTabSize = Number(editor.options.tabSize);
+    const tabSize = Number.isFinite(rawTabSize) ? rawTabSize : 4;
+
+    let decryptedText: string;
+    try {
+      decryptedText = await this.decryptInline(
+        text,
+        rootPath,
+        indentationLevel,
+        tabSize,
+      );
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      return;
+    }
+    editor.edit((editBuilder) => {
+      editBuilder.replace(selection, decryptedText);
+    });
+  }
+
+  private async toggleInlineText(
+    editor: vscode.TextEditor,
+    selection: vscode.Selection,
+    text: string,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<void> {
+    const type = this.getInlineTextType(text);
+
+    if (type === "plaintext") {
+      await this.encryptInlineSelection(
+        editor,
+        selection,
+        text,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+      );
+    } else if (type === "encrypted") {
+      await this.decryptInlineSelection(editor, selection, text, rootPath);
+    }
+  }
+
+  private async toggleFileEncryption(
+    doc: vscode.TextDocument,
+    rootPath: string | undefined,
+    useVaultIDs: boolean,
+    ansibleConfig: AnsibleVaultConfig,
+  ): Promise<void> {
+    const document = await vscode.workspace.openTextDocument(doc.fileName);
+    const type = this.getTextType(document.getText());
+
+    if (type === "plaintext") {
+      console.log("Encrypt entire file");
+      const vaultId = await this.resolveVaultId(useVaultIDs, ansibleConfig);
+      if (useVaultIDs && !vaultId) return;
+
+      vscode.window.activeTextEditor?.document.save();
+      try {
+        await this.encryptFile(doc.fileName, rootPath, vaultId);
+        vscode.window.showInformationMessage(
+          `File encrypted: '${doc.fileName}'`,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Encryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    } else if (type === "encrypted") {
+      console.log("Decrypt entire file");
+      vscode.window.activeTextEditor?.document.save();
+      try {
+        await this.decryptFile(doc.fileName, rootPath);
+        vscode.window.showInformationMessage(
+          `File decrypted: '${doc.fileName}'`,
+        );
+      } catch (e) {
+        vscode.window.showErrorMessage(
+          `Decryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+    vscode.commands.executeCommand("workbench.action.files.revert");
+  }
+
   async toggleEncrypt(): Promise<void> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -72,9 +220,6 @@ export class Vault {
       return;
     }
 
-    const doc = editor.document;
-
-    // Read `ansible.cfg` or environment variable
     const rootPath: string | undefined = getRootPath(editor.document.uri);
     const ansibleConfig = await getAnsibleCfg(rootPath);
 
@@ -83,114 +228,30 @@ export class Vault {
       return;
     }
 
-    // Extract `ansible-vault` password
-
     console.log(`Getting vault keyfile from ${ansibleConfig.path}`);
     vscode.window.showInformationMessage(
       `Getting vault keyfile from ${ansibleConfig.path}`,
     );
 
     const text = editor.document.getText(selection);
-
     const useVaultIDs = !!ansibleConfig.defaults.vault_identity_list;
 
-    // Go encrypt / decrypt
     if (text) {
-      const type = this.getInlineTextType(text);
-      const indentationLevel = getIndentationLevel(editor, selection);
-      const tabSize = Number(editor.options.tabSize);
-      if (type === "plaintext") {
-        console.log("Encrypt selected text");
-
-        const vaultId: string | undefined = useVaultIDs
-          ? await askForVaultId(ansibleConfig)
-          : undefined;
-        if (useVaultIDs && !vaultId) {
-          displayInvalidConfigError();
-          return;
-        }
-
-        let encryptedText: string;
-        try {
-          encryptedText = await this.encryptInline(
-            text,
-            rootPath,
-            vaultId,
-            indentationLevel,
-            tabSize,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Inline encryption failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          return;
-        }
-        const leadingSpaces = " ".repeat((indentationLevel + 1) * tabSize);
-        editor.edit((editBuilder) => {
-          editBuilder.replace(
-            selection,
-            encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
-          );
-        });
-      } else if (type === "encrypted") {
-        console.log("Decrypt selected text");
-        let decryptedText: string;
-        try {
-          decryptedText = await this.decryptInline(
-            text,
-            rootPath,
-            indentationLevel,
-            tabSize, // tabSize is always defined
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Inline decryption failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-          return;
-        }
-        editor.edit((editBuilder) => {
-          editBuilder.replace(selection, decryptedText);
-        });
-      }
+      await this.toggleInlineText(
+        editor,
+        selection,
+        text,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+      );
     } else {
-      const document = await vscode.workspace.openTextDocument(doc.fileName);
-      const type = this.getTextType(document.getText());
-
-      if (type === "plaintext") {
-        console.log("Encrypt entire file");
-        const vaultId: string | undefined = useVaultIDs
-          ? await askForVaultId(ansibleConfig)
-          : undefined;
-        if (useVaultIDs && !vaultId) {
-          displayInvalidConfigError();
-          return;
-        }
-        vscode.window.activeTextEditor?.document.save();
-        try {
-          await this.encryptFile(doc.fileName, rootPath, vaultId);
-          vscode.window.showInformationMessage(
-            `File encrypted: '${doc.fileName}'`,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Encryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-        }
-      } else if (type === "encrypted") {
-        console.log("Decrypt entire file");
-        vscode.window.activeTextEditor?.document.save();
-        try {
-          await this.decryptFile(doc.fileName, rootPath);
-          vscode.window.showInformationMessage(
-            `File decrypted: '${doc.fileName}'`,
-          );
-        } catch (e) {
-          vscode.window.showErrorMessage(
-            `Decryption of ${doc.fileName} failed: ${e instanceof Error ? e.message : String(e)}`,
-          );
-        }
-      }
-      vscode.commands.executeCommand("workbench.action.files.revert");
+      await this.toggleFileEncryption(
+        editor.document,
+        rootPath,
+        useVaultIDs,
+        ansibleConfig,
+      );
     }
   }
 
@@ -396,6 +457,7 @@ const handleLiteralMultiline = (
 const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
   const text = prepareMultiline(lines, leadingSpacesCount).reduce(
     foldedMultilineReducer,
+    "",
   );
   const chompingStyle = getChompingStyle(lines);
   if (chompingStyle === ChompingStyle.Strip) {
@@ -435,20 +497,18 @@ const reindentText = (
   const leadingSpacesCount = (indentationLevel + 1) * tabSize;
   const lines = text.split("\n");
   let trailingNewlines = 0;
-  for (const line of lines.reverse()) {
-    if (line === "") {
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i] === "") {
       trailingNewlines++;
     } else {
       break;
     }
   }
-  lines.reverse();
   if (lines.length > 1) {
     const leadingWhitespaces = " ".repeat(leadingSpacesCount);
     const rejoinedLines = lines
       .map((line) => `${leadingWhitespaces}${line}`)
       .join("\n");
-    rejoinedLines.replace(/\n$/, "");
     if (trailingNewlines > 1) {
       return `${MultilineStyle.Literal}${ChompingStyle.Keep}\n${rejoinedLines}`;
     } else if (trailingNewlines === 0) {

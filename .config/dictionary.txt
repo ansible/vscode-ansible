@@ -33,6 +33,7 @@ RHSSO
 Rhcustom
 SSOT
 Towncrier
+Vitest
 WDIO
 WSLENV
 Wdio
@@ -57,6 +58,7 @@ esbuild
 eslintcache
 ffdx
 fqcn
+fqcns
 geckodriver
 genai
 haaaad
@@ -69,8 +71,14 @@ keytar
 knip
 lcovonly
 lextudio
+libasound
+libatk
 libgbm
+libnspr
+libnss
 libonig
+libxkbcommon
+libxshmfence
 libyaml
 lightspeed
 lineinfile
@@ -113,6 +121,7 @@ towerhost
 tsdown
 typedarrays
 unrs
+unstub
 uuidv
 vite
 vitest
@@ -123,3 +132,4 @@ watsonx
 wdio
 whereis
 xunit
+zstd

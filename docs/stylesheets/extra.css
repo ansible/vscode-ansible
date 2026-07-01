@@ -1,0 +1,23 @@
+:root > * {
+  --md-primary-fg-color: #5bbdbf;
+  --md-typeset-a-color: #2980b9;
+  --md-primary-fg-color--light: #ECB7B7;
+  --md-primary-fg-color--dark:  #90030C;
+  --md-header-bg-color:  #5bbdbf;
+  .md-typeset a {
+    text-decoration: none;
+  }
+  /* --md-text-link-color: #2980b9; */
+  /* --md-primary-fg-color--light: #ECB7B7; */
+  /* --md-primary-fg-color--dark:  #FF5850; */
+}
+
+
+[data-md-color-scheme="default"] .md-header {
+  background-color: #5bbdbf;
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #5bbdbf;
+  --md-default-fg-color: #FFFFFF;
+}
