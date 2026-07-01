@@ -68,7 +68,18 @@ pnpm run test:integration
 pnpm run pretest:ui                  # Install chromedriver + test extensions (first time)
 pnpm run test:ui                     # Run WDIO smoke + language server tests
 pnpm run test:lightspeed:ui          # Run WDIO lightspeed tests
+
+# User story coverage (WDIO feature coverage)
+node scripts/story-coverage.mjs --threshold 0   # Report coverage
+node scripts/story-coverage.mjs --threshold 20   # CI gate (exits non-zero if below)
 ```
+
+### User Story Coverage
+
+WDIO tests track coverage against user stories in `.sdlc/user-stories.yaml`.
+Tag `describe` blocks with `@covers STORY-ID` (e.g., `@covers XC-002`).
+New user-facing functionality should have a user story added — use the
+`define-user-story` agent skill or add manually. See ADR-023.
 
 ### Linting
 
@@ -95,7 +106,7 @@ pnpm run docs:preview    # Preview built docs
 ## Testing Framework
 
 - **Vitest** for unit/integration tests — configured with projects: `ext`, `common`, `services`, `mcp`, `ls`, `lightspeed`, `ui`
-- **WebDriverIO** for UI/browser tests (`test/ui/`)
+- **WebDriverIO** for UI/browser tests (`test/ui/`), tracked against user stories in `.sdlc/user-stories.yaml`
 - **VS Code Test CLI** for extension integration tests (`test/integration/`)
 - Path aliases in tests: `@src/*` → `src/*`
 

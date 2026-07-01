@@ -149,6 +149,7 @@ src/
   adrs/             → Architecture Decision Records
   todos/            → Project work items (pending/complete)
   templates/        → ADR and todo templates
+  user-stories.yaml → User-facing feature catalog (WDIO coverage source of truth)
 .agents/
   skills/           → Agent skills for common workflows
 ```
@@ -216,3 +217,5 @@ the closing `---` is the instruction text. Prompt builders call
 | `manage-todos`          | Project work item tracking              |
 | `branching-strategy`    | Understanding next vs main              |
 | `review-contributor-pr` | Reviewing external contributions        |
+| `define-user-story`     | New user-facing functionality needs a story |
+| `ux-walkthrough`        | Team dogfooding — UX report for Jira    |

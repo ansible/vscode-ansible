@@ -4,6 +4,12 @@ import type * as VsCode from 'vscode';
 
 const PLAYBOOK_FILENAME = 'playbook.ansible.yml';
 
+/**
+ * @covers LSP-001
+ * @covers LSP-002
+ * @covers LSP-003
+ * @covers XC-001
+ */
 describe('Ansible Language Server e2e', () => {
     it('should detect .ansible.yml file as ansible language', async () => {
         const workbench = await browser.getWorkbench();

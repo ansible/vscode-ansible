@@ -10,7 +10,13 @@ comment:
 coverage:
   status:
     patch: false
-    project: true
+    project:
+      default:
+        flags: [unit-node22, unit-node24, unit-node26, wsl-fedora]
+      stories:
+        target: 20%
+        threshold: 0%
+        flags: [stories]
 flag_management:
   default_rules:
     carryforward: false
@@ -23,6 +29,8 @@ flag_management:
       carryforward: false
     - name: wsl-fedora
       carryforward: false
+    - name: stories
+      carryforward: true
 github_checks:
   annotations: true
 ignore:

@@ -1,0 +1,754 @@
+# User stories for WDIO feature coverage tracking.
+# See ADR-023 for rationale and CI enforcement model.
+version: 1
+parent_prd: docs/src/content/docs/roadmap/feature-ansible-ide-experience.md
+
+# Commands that are mechanical (refresh, internal tree-item handlers) and
+# do not need a dedicated user story. They are exercised as part of
+# higher-level workflows.
+excluded_commands:
+  - ansibleDevToolsEnvManagers.refresh
+  - ansibleDevToolsPackages.refresh
+  - ansibleDevToolsCollections.refresh
+  - ansibleCollectionSources.refresh
+  - ansibleExecutionEnvironments.refresh
+  - ansibleCreator.refresh
+  - ansiblePlaybooks.refresh
+  - ansibleMcpTools.refresh
+  - ansibleSkills.refresh
+  - ansiblePlaybooks.goToPlay # navigation helper, covered by PLB-001
+  - ansiblePlaybooks.editDefaults # settings form, covered by PLB-002
+  - ansible.statusBar.ansibleClick # status bar detail, covered by ENV-004
+
+stories:
+  # ---------------------------------------------------------------------------
+  # ENV — Environment Management
+  # PRD: Section 1 (Environment and Tool Management), US-1, US-2, AC-1
+  # ---------------------------------------------------------------------------
+  - id: ENV-001
+    title: Discover Python environments
+    story: >
+      As an Ansible developer, I want to see all available Python
+      environments grouped by manager (venv, global, conda) so that
+      I can choose the right one for my project without inspecting
+      paths or running pip list.
+    prd_refs: [US-1, AC-1]
+    requires_ai: false
+    criteria:
+      - Environment Managers tree view populates with discovered environments
+      - Environments are grouped under their manager type
+      - Each environment shows its Python path or version
+
+  - id: ENV-002
+    title: Create virtual environment
+    story: >
+      As an Ansible developer, I want to create a new Python virtual
+      environment from the sidebar so that I can isolate my Ansible
+      tooling per project.
+    prd_refs: [US-1, AC-1]
+    requires_ai: false
+    criteria:
+      - Clicking create in Environment Managers creates a venv
+      - The new environment is auto-selected after creation
+      - The Python status bar updates to reflect the new environment
+
+  - id: ENV-003
+    title: Select Python environment
+    story: >
+      As an Ansible developer, I want to click an environment to
+      select it and have all Ansible tool paths resolve from that
+      environment automatically, so that I don't have to configure
+      tool paths individually.
+    prd_refs: [US-1, AC-1]
+    requires_ai: false
+    criteria:
+      - Clicking an environment in the tree selects it
+      - The Python status bar updates
+      - Subsequent Ansible tool invocations use the selected env's bin directory
+
+  - id: ENV-004
+    title: View installed dev tools and versions
+    story: >
+      As an Ansible developer, I want to see which ansible-dev-tools
+      packages are installed and their versions, so that I know whether
+      my toolchain is current.
+    prd_refs: [US-2, AC-1]
+    requires_ai: false
+    criteria:
+      - Dev Tools tree view shows installed packages with version numbers
+      - Packages include ansible-lint, ansible-navigator, ansible-creator, etc.
+
+  - id: ENV-005
+    title: Install ansible-dev-tools
+    story: >
+      As an Ansible developer, I want to install the ansible-dev-tools
+      meta-package with one click so that I get all required tools
+      without running pip commands.
+    prd_refs: [US-2, AC-1]
+    requires_ai: false
+    criteria:
+      - One-click install from the Dev Tools view
+      - The tree populates with package versions after install
+
+  - id: ENV-006
+    title: Upgrade dev tools
+    story: >
+      As an Ansible developer, I want to upgrade my Ansible
+      development tools when new versions are available, so that I
+      stay on supported versions.
+    prd_refs: [US-2, AC-1]
+    requires_ai: false
+    criteria:
+      - Upgrade action is available in Dev Tools view
+      - After upgrade, version numbers update in the tree
+
+  - id: ENV-007
+    title: Python environment status bar
+    story: >
+      As an Ansible developer, I want to see which Python environment
+      is active in the status bar and click it to see details or
+      switch environments, so that I always know my current context.
+    prd_refs: [US-1, AC-1]
+    requires_ai: false
+    criteria:
+      - Status bar shows the active Python environment
+      - Clicking it opens a QuickPick with environment info
+
+  # ---------------------------------------------------------------------------
+  # LSP — Editor & Language Server
+  # PRD: Assumption 1 (LSP baseline), AC-8; Walkthrough Module 2
+  # ---------------------------------------------------------------------------
+  - id: LSP-001
+    title: Ansible file detection
+    story: >
+      As an Ansible developer, I want my YAML files to be
+      automatically recognized as Ansible when they contain playbook
+      or task content, so that I get language features without manual
+      configuration.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Opening a .ansible.yml file sets languageId to ansible
+      - Playbook heuristic detects ansible content in plain .yml files
+
+  - id: LSP-002
+    title: Syntax highlighting
+    story: >
+      As an Ansible developer, I want Ansible keywords, module names,
+      and Jinja2 template expressions to be syntax-highlighted, so
+      that I can visually parse playbook structure at a glance.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Ansible files show keyword-aware syntax highlighting
+      - Jinja2 expressions are highlighted distinctly
+      - Semantic token provider activates for ansible documents
+
+  - id: LSP-003
+    title: Auto-completion for module names
+    story: >
+      As an Ansible developer, I want auto-completion to suggest
+      module names when I'm writing a task, so that I can find the
+      right module without memorizing FQCNs.
+    prd_refs: [US-3, US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Triggering completion at a task position offers module names
+      - Task keywords (name, register, when, become) also appear
+
+  - id: LSP-004
+    title: Auto-completion for module options
+    story: >
+      As an Ansible developer, I want auto-completion to suggest a
+      module's parameters after I specify the module name, so that I
+      can use correct parameter names and types without checking docs.
+    prd_refs: [US-3, US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Requesting completions under a module key returns its options
+      - Options come from ansible-doc (real schema, not training data)
+
+  - id: LSP-005
+    title: Hover documentation
+    story: >
+      As an Ansible developer, I want to hover over a module name or
+      keyword and see its documentation inline, so that I can
+      understand usage without leaving the editor.
+    prd_refs: [US-3, US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Hovering over an FQCN shows plugin synopsis and description
+      - Hovering over a keyword shows keyword documentation
+
+  - id: LSP-006
+    title: Diagnostics and linting
+    story: >
+      As an Ansible developer, I want to see YAML parse errors and
+      ansible-lint violations as squiggles in the editor as I type,
+      so that I catch problems before running the playbook.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - YAML syntax errors produce diagnostic squiggles
+      - ansible-lint findings appear as warnings or errors
+      - Syntax-check fallback works when lint is disabled
+
+  - id: LSP-007
+    title: Vault encrypt and decrypt
+    story: >
+      As an Ansible developer, I want to encrypt and decrypt
+      vault-encrypted content directly from the editor, so that I can
+      manage secrets without switching to the terminal.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Vault command is available via command palette or context menu
+      - Encrypting selected text produces vault-encrypted output
+      - Decrypting vault-encrypted text reveals the original
+
+  - id: LSP-008
+    title: YAML and JSON schema validation
+    story: >
+      As an Ansible developer, I want schema validation for Ansible
+      config files (galaxy.yml, molecule.yml, execution-environment.yml,
+      requirements.yml), so that I get completion and error checking
+      in those files automatically.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - galaxy.yml files get schema-driven completion
+      - Invalid keys or values in config files produce diagnostics
+
+  # ---------------------------------------------------------------------------
+  # COL — Collections (Installed + Remote)
+  # PRD: Section 2 (Collection Discovery and Documentation), US-3, US-4, AC-2
+  # ---------------------------------------------------------------------------
+  - id: COL-001
+    title: Browse installed collections
+    story: >
+      As an Ansible developer, I want to browse my installed
+      collections in a tree organized by Collection, Plugin Type, and
+      Plugin, so that I can explore what's available in my environment.
+    prd_refs: [US-3, AC-2]
+    requires_ai: false
+    criteria:
+      - Collections tree view shows installed collections
+      - Each collection expands to show plugin types, then individual plugins
+      - Counts, versions, and descriptions are visible
+
+  - id: COL-002
+    title: Search plugins by keyword
+    story: >
+      As an Ansible developer, I want to search for plugins by
+      keyword across all my installed collections, so that I can find
+      the right module without knowing which collection it belongs to.
+    prd_refs: [US-3, AC-2]
+    requires_ai: false
+    criteria:
+      - Keyword search returns matching plugins across all collections
+      - Results show the plugin FQCN and a brief description
+
+  - id: COL-003
+    title: View plugin documentation
+    story: >
+      As an Ansible developer, I want to view rich, interactive
+      documentation for any installed plugin — including parameters,
+      examples, and return values — without leaving the editor.
+    prd_refs: [US-3, AC-2]
+    requires_ai: false
+    criteria:
+      - Clicking a plugin opens a documentation panel
+      - Panel shows synopsis, parameters with types and defaults, and examples
+      - Return values are documented
+
+  - id: COL-004
+    title: Generate sample tasks from plugin docs
+    story: >
+      As an Ansible developer, I want to generate a sample task from
+      a plugin's documentation with selectable detail levels (minimal,
+      documented, full), so that I can quickly scaffold a correct task
+      without typing it from scratch.
+    prd_refs: [US-3, US-10, AC-2]
+    requires_ai: false
+    criteria:
+      - Plugin Doc panel has a Sample Task tab
+      - Three detail levels are available
+      - Generated YAML uses correct parameter names and types
+
+  - id: COL-005
+    title: Search remote collections
+    story: >
+      As an Ansible developer, I want to search for collections on
+      Ansible Galaxy and my configured GitHub organizations so that I
+      can discover collections I haven't installed yet.
+    prd_refs: [US-4, AC-2]
+    requires_ai: false
+    criteria:
+      - Collection Sources view shows Galaxy and GitHub sources
+      - Search returns matching collections from remote sources
+
+  - id: COL-006
+    title: Browse uninstalled plugin documentation
+    story: >
+      As an Ansible developer, I want to read documentation for
+      plugins in collections I haven't installed yet, so that I can
+      evaluate whether a collection meets my needs before installing.
+    prd_refs: [US-4, AC-2]
+    requires_ai: false
+    criteria:
+      - Clicking a remote plugin opens its documentation panel
+      - Documentation is fetched from Galaxy or GitHub metadata
+
+  - id: COL-007
+    title: Install collection from sidebar
+    story: >
+      As an Ansible developer, I want to install a collection from
+      Galaxy or GitHub with one click from the sidebar, so that I can
+      add dependencies without using the command line.
+    prd_refs: [US-4, AC-2]
+    requires_ai: false
+    criteria:
+      - Install action is available on remote collection items
+      - After install, the collection appears in the installed collections tree
+
+  - id: COL-008
+    title: Manage collection sources
+    story: >
+      As an Ansible developer, I want to add and remove GitHub
+      organizations as collection sources, so that I can discover
+      internal or third-party collections alongside Galaxy.
+    prd_refs: [US-4, AC-2]
+    requires_ai: false
+    criteria:
+      - Add Source action prompts for a GitHub organization
+      - Added sources appear in the Collection Sources tree
+      - Sources can be removed
+
+  # ---------------------------------------------------------------------------
+  # SCF — Content Scaffolding
+  # PRD: Section 3 (Content Scaffolding), US-5, AC-3
+  # ---------------------------------------------------------------------------
+  - id: SCF-001
+    title: Scaffold new Ansible content
+    story: >
+      As an Ansible developer, I want to scaffold new collections,
+      playbook projects, roles, and plugins through an interactive
+      form, so that I always get the correct project structure without
+      memorizing CLI flags.
+    prd_refs: [US-5, AC-3]
+    requires_ai: false
+    criteria:
+      - Creator view shows available ansible-creator subcommands
+      - Opening a form presents fields for the selected scaffold type
+      - Submitting the form creates the correct directory structure
+
+  - id: SCF-002
+    title: Live CLI command preview
+    story: >
+      As an Ansible developer, I want to see the exact
+      ansible-creator command that will be run as I fill out the
+      scaffolding form, so that I can learn the CLI and verify what
+      will happen.
+    prd_refs: [US-5, AC-3]
+    requires_ai: false
+    criteria:
+      - The creator form shows a live command preview
+      - Changing form fields updates the preview in real time
+
+  - id: SCF-003
+    title: Auto-adapt to creator schema
+    story: >
+      As an Ansible developer, I want the scaffolding form to
+      automatically adapt when ansible-creator adds new subcommands,
+      so that I can use new scaffolding capabilities without waiting
+      for an extension update.
+    prd_refs: [US-5, AC-3]
+    requires_ai: false
+    criteria:
+      - Schema is read at runtime from the installed ansible-creator
+      - New subcommands appear in the Creator view automatically
+
+  # ---------------------------------------------------------------------------
+  # PLB — Playbook Execution & Visualization
+  # PRD: Section 4 (Playbook Execution), US-6, AC-4
+  # ---------------------------------------------------------------------------
+  - id: PLB-001
+    title: Discover playbooks in workspace
+    story: >
+      As an Ansible developer, I want to see all playbooks in my
+      workspace organized in a tree with folder structure, play names,
+      and host targets, so that I can quickly navigate my automation.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Playbooks tree view discovers and displays workspace playbooks
+      - Tree shows folder hierarchy, play names, and target hosts
+
+  - id: PLB-002
+    title: Configure playbook execution parameters
+    story: >
+      As an Ansible developer, I want to configure execution
+      parameters (inventory, connection, privilege escalation, vault
+      password, verbosity) through a visual form, so that I can run
+      playbooks without constructing command lines.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Edit Config opens a form with execution parameters
+      - Parameters include inventory, connection, vault, verbosity
+      - Configuration is saved per playbook
+
+  - id: PLB-003
+    title: Run playbook in terminal
+    story: >
+      As an Ansible developer, I want to run a playbook from the
+      sidebar and see its output in an integrated terminal, so that I
+      can execute automation without switching to an external terminal.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Run action launches the playbook in an integrated terminal
+      - Terminal shows ansible-playbook output
+
+  - id: PLB-004
+    title: Real-time playbook progress visualization
+    story: >
+      As an Ansible developer, I want to see real-time progress
+      during playbook execution — which play, task, and host is
+      running, with live ok/changed/failed/skipped counts — so that I
+      can monitor execution without parsing terminal output.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Progress viewer shows a tree of plays, tasks, and hosts
+      - Status updates in real time as tasks complete
+      - Summary stats (ok/changed/failed/skipped) update live
+
+  - id: PLB-005
+    title: AI explanation of playbook failure
+    story: >
+      As an Ansible developer, I want to get an AI-powered
+      explanation of why a playbook task failed, so that I can
+      understand the root cause without manually parsing error output.
+    prd_refs: [US-6, US-8, AC-4]
+    requires_ai: true
+    criteria:
+      - Failed tasks are highlighted in the progress viewer
+      - An analyze action invokes AI to explain the failure
+      - The explanation provides actionable root-cause information
+
+  - id: PLB-006
+    title: AI playbook summary
+    story: >
+      As an Ansible developer, I want to generate a natural-language
+      summary of what a playbook does with one click, so that I can
+      quickly understand unfamiliar automation.
+    prd_refs: [US-11, AC-4]
+    requires_ai: true
+    criteria:
+      - AI summary action is available on playbook tree items
+      - Summary describes the playbook's purpose and structure
+
+  # ---------------------------------------------------------------------------
+  # EE — Execution Environment Inspection
+  # PRD: Section 5 (Execution Environment Inspection), US-7, AC-5
+  # ---------------------------------------------------------------------------
+  - id: EE-001
+    title: Discover execution environment images
+    story: >
+      As an Ansible developer, I want to see which Execution
+      Environment container images are available, so that I can choose
+      the right environment for my automation.
+    prd_refs: [US-7, AC-5]
+    requires_ai: false
+    criteria:
+      - EE tree view discovers and lists available container images
+      - Images are discovered via ansible-navigator
+
+  - id: EE-002
+    title: Inspect EE contents
+    story: >
+      As an Ansible developer, I want to drill into an EE image to
+      see its installed collections, Python packages, and system
+      metadata, so that I understand what's available inside without
+      running the container.
+    prd_refs: [US-7, AC-5]
+    requires_ai: false
+    criteria:
+      - Expanding an EE shows its Ansible info, collections, and packages
+      - Detail panel shows Python and system package lists
+
+  - id: EE-003
+    title: AI EE summary
+    story: >
+      As an Ansible developer, I want an AI-generated summary of
+      what an Execution Environment is suited for, so that I can
+      quickly evaluate whether it fits my use case.
+    prd_refs: [US-7, US-11, AC-5]
+    requires_ai: true
+    criteria:
+      - AI summary action is available on EE tree items
+      - Summary describes the EE's capabilities and intended use
+
+  # ---------------------------------------------------------------------------
+  # AI — AI-Assisted Authoring, MCP, and Skills
+  # PRD: Section 6 (AI Content Authoring), Section 8 (MCP), US-8–11, AC-6
+  # ---------------------------------------------------------------------------
+  - id: AI-001
+    title: AI collection summary
+    story: >
+      As an Ansible developer, I want to generate a natural-language
+      summary of a collection with one click, so that I can quickly
+      understand what it provides without reading every plugin doc.
+    prd_refs: [US-11, AC-6]
+    requires_ai: true
+    criteria:
+      - AI summary action is available on collection tree items
+      - Summary describes the collection's purpose and key plugins
+
+  - id: AI-002
+    title: AI plugin explanation
+    story: >
+      As an Ansible developer, I want an AI-powered explanation of
+      a plugin with practical examples, so that I can understand how
+      to use it effectively beyond the raw documentation.
+    prd_refs: [US-9, US-11, AC-6]
+    requires_ai: true
+    criteria:
+      - AI explanation action is available on plugin tree items
+      - Explanation includes practical usage examples
+
+  - id: AI-003
+    title: Schema-driven task generation
+    story: >
+      As an Ansible developer, I want to generate Ansible tasks from
+      real plugin schemas through a guided, interactive conversation,
+      so that I produce valid YAML with correct parameter names and
+      types.
+    prd_refs: [US-10, AC-6]
+    requires_ai: true
+    criteria:
+      - AI builds tasks using the plugin's actual schema from ansible-doc
+      - Generated task uses correct parameter names, types, and defaults
+      - User can refine the task through conversational feedback
+
+  - id: AI-004
+    title: Natural language playbook generation
+    story: >
+      As an Ansible developer, I want to describe what I need in
+      natural language and have the AI generate a complete playbook
+      using my installed collections and real schemas, so that I go
+      from intent to working code in minutes.
+    prd_refs: [US-8, AC-6]
+    requires_ai: true
+    criteria:
+      - User describes desired outcome in natural language
+      - AI generates a playbook using real plugin schemas
+      - Generated content follows Ansible best practices (FQCN, etc.)
+
+  - id: AI-005
+    title: Natural language role generation
+    story: >
+      As an Ansible developer, I want to describe what I need and
+      have the AI scaffold and populate a complete role, so that I
+      get a properly structured role with validated task files.
+    prd_refs: [US-8, AC-6]
+    requires_ai: true
+    criteria:
+      - User describes role intent in natural language
+      - AI scaffolds role structure via ansible-creator
+      - Task files are populated with schema-validated content
+
+  - id: AI-006
+    title: AI plugin discovery
+    story: >
+      As an Ansible developer, I want to ask the AI "what module
+      should I use for X?" and get a recommendation based on my
+      installed plugins with full parameter guidance, so that I find
+      the right module without browsing docs manually.
+    prd_refs: [US-9, AC-6]
+    requires_ai: true
+    criteria:
+      - AI searches installed plugins based on the user's description
+      - Recommendation includes the plugin FQCN and key parameters
+      - Recommendation is based on the user's actual environment
+
+  - id: AI-007
+    title: Select LLM model and provider
+    story: >
+      As an Ansible developer, I want to choose which LLM model and
+      provider to use for AI features, so that I can use my preferred
+      or organization-approved AI service.
+    prd_refs: [US-18, AC-6]
+    requires_ai: true
+    criteria:
+      - Model selection offers available providers and models
+      - Selected model is used for subsequent AI operations
+
+  - id: AI-008
+    title: Browse and use MCP tools
+    story: >
+      As an Ansible developer, I want to browse the available
+      Ansible MCP tools and invoke them directly in my chat
+      conversation, so that my AI assistant has access to my real
+      Ansible environment.
+    prd_refs: [US-18, AC-8]
+    requires_ai: true
+    criteria:
+      - AI Tools tree view shows available MCP tools by category
+      - Use in Chat action sends the tool prompt to the active chat
+
+  - id: AI-009
+    title: Configure MCP for external AI clients
+    story: >
+      As an Ansible developer, I want to configure MCP integration
+      for my AI client (Cursor, etc.) through a guided setup, so that
+      external AI tools can access my Ansible environment context.
+    prd_refs: [US-18, AC-8]
+    requires_ai: true
+    criteria:
+      - MCP configuration action provides a guided setup flow
+      - Configuration is written for the target AI client
+      - MCP status view shows connection state
+
+  - id: AI-010
+    title: Browse AI skills
+    story: >
+      As an Ansible developer, I want to see what AI skills are
+      available (builtin and external) and understand what each one
+      does, so that I can leverage specialized AI capabilities for
+      different Ansible tasks.
+    prd_refs: [US-18, AC-8]
+    requires_ai: true
+    criteria:
+      - AI Skills tree view shows available skills
+      - Skills are categorized by source (builtin, external)
+      - Each skill shows a description of what it does
+
+  # ---------------------------------------------------------------------------
+  # LS — Ansible Lightspeed
+  # PRD: referenced in Section 6; Walkthrough Module 10
+  # ---------------------------------------------------------------------------
+  - id: LS-001
+    title: Sign in to Ansible Lightspeed
+    story: >
+      As an Ansible developer, I want to sign in to Ansible
+      Lightspeed through an OAuth flow, so that I can access
+      Lightspeed-powered features.
+    prd_refs: [AC-6]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - OAuth sign-in flow completes successfully
+      - Lightspeed commands become available after sign-in
+
+  - id: LS-002
+    title: Generate playbook via Lightspeed
+    story: >
+      As an Ansible developer, I want to generate a playbook using
+      Lightspeed's natural language interface, so that I can quickly
+      produce automation from a text description.
+    prd_refs: [US-8, AC-6]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Playbook Generation command opens a webview panel
+      - User can enter a natural language description
+
+  - id: LS-003
+    title: Generate role via Lightspeed
+    story: >
+      As an Ansible developer, I want to generate a role using
+      Lightspeed so that I can scaffold a complete role from a text
+      description.
+    prd_refs: [US-8, AC-6]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Role Generation command opens a webview panel
+
+  - id: LS-004
+    title: Explain playbook via Lightspeed
+    story: >
+      As an Ansible developer, I want to get a Lightspeed-powered
+      explanation of an existing playbook, so that I can understand
+      unfamiliar automation.
+    prd_refs: [US-11, AC-6]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Playbook Explanation command opens a webview panel
+      - Explanation describes the playbook's structure and purpose
+
+  - id: LS-005
+    title: Inline code suggestions
+    story: >
+      As an Ansible developer, I want to see inline ghost-text
+      suggestions as I type in Ansible files, so that I can accept
+      AI-powered completions without opening a separate panel.
+    prd_refs: [US-8, AC-6]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Ghost-text suggestions appear while typing in a task context
+      - Accepting a suggestion inserts the completed content
+
+  - id: LS-006
+    title: Lightspeed error resilience
+    story: >
+      As an Ansible developer, I want Lightspeed features to handle
+      API errors and timeouts gracefully without crashing the
+      extension, so that temporary service issues don't disrupt my
+      work.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - API 401/403 errors are handled without extension crash
+      - Server timeouts are handled gracefully
+      - Extension remains functional after error conditions
+
+  # ---------------------------------------------------------------------------
+  # XC — Cross-Cutting UX
+  # PRD: US-18, US-19, AC-8; Walkthrough Module 11
+  # ---------------------------------------------------------------------------
+  - id: XC-001
+    title: Extension activation and sidebar
+    story: >
+      As an Ansible developer, I want the extension to activate
+      cleanly and show the Ansible sidebar with all expected views,
+      so that I can start working immediately after opening a project.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Extension activates without errors
+      - Ansible icon appears in the activity bar
+      - Clicking the icon opens the sidebar with tree views
+
+  - id: XC-002
+    title: Graceful degradation without AI
+    story: >
+      As an Ansible developer, I want all core features (environment
+      management, collections, scaffolding, playbooks, editor) to
+      work fully without any AI provider configured, so that the
+      extension is valuable from the moment I install it.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Core views populate and function without AI
+      - AI-only actions are hidden or show graceful fallback
+      - No errors when enableAiFeatures is false
+
+  - id: XC-003
+    title: Helpful empty and error states
+    story: >
+      As an Ansible developer, I want helpful guidance when tools are
+      missing, data is unavailable, or something goes wrong, so that
+      I know what to do next instead of seeing a blank view or
+      cryptic error.
+    prd_refs: [US-19, AC-8]
+    requires_ai: false
+    criteria:
+      - Empty tree views show a helpful message with next-step actions
+      - Missing tool warnings explain what to install
+      - Error states show actionable recovery guidance

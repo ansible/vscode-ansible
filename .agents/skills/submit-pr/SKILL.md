@@ -162,6 +162,19 @@ translate it:
    needs dispose, EventEmitter needs cleanup). TypeScript enforces
    structure; runtime contracts include semantics.
 
+10. **Does this PR add user-facing functionality without a user
+    story?** Scan the diff for signals of new user-facing
+    capabilities: new entries in `contributes.commands`,
+    `contributes.views`, or `contributes.configuration`; new `Panel`
+    or `Provider` classes in `src/panels/` or `src/views/`; new skill
+    `.md` files in `packages/common/src/skills/`; new
+    `registerCommand()` calls; or new MCP tools in
+    `packages/mcp-server/`. If any are found, check whether a
+    corresponding user story exists in `.sdlc/user-stories.yaml`.
+    If not, prompt the developer to define one via the
+    `define-user-story` skill. The developer can decline — the CI
+    story-coverage check will flag the gap.
+
 Only proceed to Step 3b after completing this review.
 
 ### Step 3b: Cold subagent review

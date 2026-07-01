@@ -106,7 +106,7 @@ export default defineConfig(
             'jsdoc/require-returns': 'error',
             'jsdoc/require-returns-description': 'error',
             'jsdoc/check-param-names': 'error',
-            'jsdoc/check-tag-names': 'error',
+            'jsdoc/check-tag-names': ['error', { definedTags: ['covers'] }],
             'jsdoc/no-types': 'error',
         },
         settings: {
