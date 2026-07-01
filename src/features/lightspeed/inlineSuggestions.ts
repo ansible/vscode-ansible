@@ -1,4 +1,4 @@
-import * as pathUri from "path";
+import * as pathUri from "node:path";
 import crypto from "crypto";
 import { URI } from "vscode-uri";
 import * as vscode from "vscode";
