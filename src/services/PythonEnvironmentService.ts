@@ -243,12 +243,14 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // ---------------------------------------------------------------------------
 
   private _showPetWarning(): void {
-    const alreadyShown = this._context
-      ? this._context.globalState.get<boolean>("ansible.petWarningShown") ===
-        true
-      : this._petWarningShown;
+    if (this._petWarningShown) {
+      return;
+    }
 
-    if (alreadyShown) {
+    if (
+      this._context?.globalState.get<boolean>("ansible.petWarningShown") ===
+      true
+    ) {
       return;
     }
 
@@ -258,7 +260,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       .getConfiguration("python")
       .get<boolean>("useEnvironmentsExtension");
 
-    vscode.window
+    void vscode.window
       .showWarningMessage(
         "Python environment discovery is degraded (PET binary missing). " +
           "This commonly occurs in OpenVSX-based editors (Dev Spaces, VSCodium)." +
