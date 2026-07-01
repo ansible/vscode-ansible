@@ -10,7 +10,7 @@ import { checkContentCreatorRequirements } from "@src/features/contentCreator/ut
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
   private readonly _panel: WebviewPanel;
-  private _disposables: Disposable[] = [];
+  private readonly _disposables: Disposable[] = [];
 
   private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
