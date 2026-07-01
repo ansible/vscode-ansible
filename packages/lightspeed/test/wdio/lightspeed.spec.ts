@@ -72,6 +72,13 @@ async function closeAllEditors(): Promise<void> {
     });
 }
 
+/**
+ * @covers LS-001
+ * @covers LS-002
+ * @covers LS-003
+ * @covers LS-004
+ * @covers LS-006
+ */
 describe('Lightspeed with mock server', () => {
     before(async function () {
 

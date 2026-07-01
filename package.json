@@ -1171,7 +1171,8 @@
     "build:lightspeed:webviews": "pnpm --filter @ansible/lightspeed run build:webviews",
     "pretest:wdio": "pnpm exec tsx tools/ensure-chromedriver.mts && node scripts/install-test-extensions.mjs",
     "help": "node scripts/help.mjs",
-    "deps:check": "echo '=== Outdated ===' && pnpm outdated || true && echo '\n=== Audit ===' && pnpm audit || true"
+    "deps:check": "echo '=== Outdated ===' && pnpm outdated || true && echo '\n=== Audit ===' && pnpm audit || true",
+    "test:story-coverage": "node scripts/story-coverage.mjs --threshold 20"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",

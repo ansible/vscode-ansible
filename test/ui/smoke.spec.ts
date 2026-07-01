@@ -1,6 +1,9 @@
 import { browser } from '@wdio/globals';
 import type * as VsCode from 'vscode';
 
+/**
+ * @covers XC-001
+ */
 describe('VS Code UI smoke test', () => {
     it('should launch a VS Code session', () => {
         expect(browser.sessionId).toBeDefined();

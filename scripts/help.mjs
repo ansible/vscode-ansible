@@ -28,6 +28,7 @@ const catalog = [
     "test:lightspeed": "Lightspeed unit tests",
     "test:lightspeed:ui": "Lightspeed WebDriverIO UI tests",
     "pretest:wdio": "Install Chromedriver and test dependency extensions",
+    "test:story-coverage": "User story WDIO coverage report (threshold gate)",
   }],
   ["Linting", {
     lint: "All linters via prek (eslint, cspell, markdownlint, etc.)",

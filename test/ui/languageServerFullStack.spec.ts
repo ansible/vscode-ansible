@@ -25,6 +25,13 @@ function shell(cmd: string, opts: Record<string, unknown> = {}): string {
     }).trim();
 }
 
+/**
+ * @covers ENV-002
+ * @covers ENV-005
+ * @covers COL-007
+ * @covers LSP-003
+ * @covers LSP-004
+ */
 describe('Language Server full stack e2e', function () {
     before(function () {
         this.timeout(600_000);

@@ -81,6 +81,30 @@ src/                # VS Code extension host (views, panels, commands)
 | `pnpm run package`         | Package VSIX (no install)              | Verify extension packaging works           |
 | `pnpm run package:install` | Package VSIX and install into VS Code  | Test the extension in your local VS Code   |
 | `pnpm run test:ui`         | WebDriverIO e2e tests                  | After UI/panel changes                     |
+| `pnpm run test:story-coverage` | User story WDIO coverage report    | After adding/modifying WDIO tests          |
+
+## User story coverage
+
+WDIO E2E tests are tracked against user stories defined in
+`.sdlc/user-stories.yaml`. Each story describes a user-facing
+outcome (not a command or view).
+
+When adding a new WDIO test, tag the `describe` block with the
+stories it covers:
+
+```typescript
+/**
+ * @covers PLB-005
+ */
+describe('Playbook failure analysis', () => { ... });
+```
+
+When adding new user-facing functionality, add a user story to
+`.sdlc/user-stories.yaml` (or use the `define-user-story` agent
+skill). CI runs `node scripts/story-coverage.mjs` after WDIO tests
+and will fail if coverage drops below the configured threshold.
+
+Check current coverage: `node scripts/story-coverage.mjs --threshold 0`
 
 ## PR process
 

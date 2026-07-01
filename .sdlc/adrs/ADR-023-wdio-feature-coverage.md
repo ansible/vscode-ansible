@@ -77,25 +77,23 @@ not in uncovered lines.
   capabilities lack any automated E2E validation.
 - **Effort**: Building a custom feature-coverage system costs
   engineering time; the value depends on it being maintainable.
-- **Existing assets**: The `ux-walkthrough` skill already maintains a
-  curated workflow catalog with 12 modules and ~50 steps in
-  `walkthrough-modules.json`.
+- **Existing assets**: The PRD defines 19 user stories across 8
+  capability areas. The `ux-walkthrough` skill maintains a curated
+  workflow catalog. Both describe user-facing functionality from
+  different angles.
 
 ## Decision
 
 **We will retire V8 line coverage for WDIO tests and adopt a
-workflow-level feature coverage model that measures the percentage
-of user-facing workflows with E2E validation.**
+user-story-driven feature coverage model that measures the percentage
+of user-facing stories with E2E validation.**
 
 ### 1. Retire V8 line coverage upload
 
 Remove the WDIO coverage upload to Codecov from CI. Remove the
-`wdio` flag from `codecov.yml`. Remove the `WDIO_COVERAGE`
-environment variable from CI and the `coverage` blocks from
-`wdio.conf.ts` / `wdio.conf.wsl.ts` — the upstream
-`wdio-vscode-service@8` package does not support this option.
-V8 line-coverage data from bundled E2E tests must not be merged
-into aggregate coverage metrics.
+`wdio` flag from `codecov.yml`. Revert `wdio-vscode-service` from
+the fork to upstream v8 (which removes the coverage feature). This
+data must not be merged into aggregate coverage metrics.
 
 ### 2. Three-tier coverage model
 
@@ -110,47 +108,60 @@ exercises the primary user journey for that capability. Smoke
 coverage (from integration tests like `activation.test.ts`) confirms
 structural correctness but not behavioral quality.
 
-### 3. Workflow-grain feature catalog
+### 3. User-story-grain feature catalog
 
-The canonical catalog of user-facing workflows lives in
-`.agents/skills/ux-walkthrough/walkthrough-modules.json`. Each
-module represents a user journey — not an individual command:
+The canonical catalog of user-facing capabilities lives in
+`.sdlc/user-stories.yaml`. Each entry is a user story written
+from the user's perspective — not a command or view, but an
+outcome the user can achieve:
 
-| Module ID | Workflow | Example commands involved |
-|-----------|----------|--------------------------|
-| `setup` | Setup & first impressions | Activity bar, output channel |
-| `environment` | Environment & tool management | `create`, `select`, `install` |
-| `editor-lsp` | Editor & language server | Completion, hover, diagnostics, vault |
-| `collections-installed` | Installed collections & plugin docs | `search`, `showPluginDoc` |
-| `collections-remote` | Collection sources & installation | `filterGalaxy`, `install` |
-| `creator` | Content scaffolding | `openForm`, scaffold submit |
-| `playbooks` | Playbook execution & visualization | `run`, `runWithProgress`, `editConfig` |
-| `execution-envs` | Execution environment inspection | `showDetail`, `showPackageDetail` |
-| `ai-authoring` | AI-assisted content authoring | AI summary commands |
-| `mcp-skills` | MCP tools & AI skills | `useInChat`, `showMcpStatus` |
-| `lightspeed` | Ansible Lightspeed | Generation, explanation, inline suggest |
-| `cross-cutting` | Cross-cutting UX | Non-AI path, empty states, settings |
+| Prefix | Area | Example story |
+|--------|------|---------------|
+| `ENV-` | Environment management | "I want to create a virtual environment from the sidebar" |
+| `LSP-` | Editor & language server | "I want auto-completion for module options" |
+| `COL-` | Collections | "I want to install a collection from Galaxy with one click" |
+| `SCF-` | Content scaffolding | "I want to see the exact CLI command before scaffolding" |
+| `PLB-` | Playbook execution | "I want an AI explanation of why a task failed" |
+| `EE-`  | Execution environments | "I want to drill into an EE to see its contents" |
+| `AI-`  | AI authoring & MCP | "I want to describe what I need and get a generated role" |
+| `LS-`  | Lightspeed | "I want to generate a playbook via Lightspeed" |
+| `XC-`  | Cross-cutting UX | "I want helpful guidance when tools are missing" |
 
-This is approximately 12 modules with ~50 testable steps. The
-catalog already exists — this ADR promotes it from a dogfooding
-guide to the source of truth for E2E coverage measurement.
+Each story includes acceptance criteria that map directly to
+WDIO `it()` blocks, PRD traceability (`prd_refs`), and an
+`requires_ai` flag. The initial catalog contains ~54 stories
+derived from the PRD capability tables, the `ux-walkthrough`
+catalog, and existing WDIO tests.
+
+The `ux-walkthrough` catalog remains useful for dogfooding
+sessions but is no longer the coverage source of truth.
 
 ### 4. Traceability via test tags
 
-WDIO spec files declare which workflows they cover. The mechanism
-is a `@covers` annotation or equivalent metadata that maps each
-`describe`/`it` block to one or more module IDs from the catalog.
+WDIO spec files declare which stories they cover via `@covers`
+JSDoc annotations on `describe` blocks:
 
-A CI script (future implementation) loads the catalog, scans WDIO
-specs for coverage tags, and reports:
+```typescript
+/**
+ * @covers LSP-001
+ * @covers LSP-002
+ */
+describe('Ansible Language Server e2e', () => { ... });
+```
+
+The CI script `scripts/story-coverage.mjs` loads the story
+catalog, scans WDIO specs for `@covers` tags, cross-references
+them, and reports:
 
 ```text
-Feature coverage: 4/12 modules (33%)
-  E2E:       setup, editor-lsp, lightspeed, cross-cutting
-  Smoke:     environment, collections-installed
-  Uncovered: collections-remote, creator, playbooks, execution-envs,
-             ai-authoring, mcp-skills
+Coverage: 13/54 stories (24%)
+  Covered:   ENV-002, ENV-005, COL-007, LSP-001, LSP-002, LSP-003,
+             LSP-004, LS-001, LS-002, LS-003, LS-004, LS-006, XC-001
+  Uncovered: ENV-001, ENV-003, ..., PLB-005 (AI failure analysis), ...
 ```
+
+The script exits non-zero if coverage drops below a configurable
+threshold (initially 20%, ratcheted up as tests are added).
 
 ### 5. Registration parity as a separate concern
 
@@ -233,9 +244,10 @@ identifiers.
   when the test audience is developers, not product managers
 - Introduces a framework migration in the E2E test layer
 
-**Why not chosen**: The catalog already exists in
-`walkthrough-modules.json`. A Mocha tag helper achieves the same
-traceability with less migration effort.
+**Why not chosen**: The user-story catalog in
+`.sdlc/user-stories.yaml` combined with `@covers` JSDoc tags on
+Mocha `describe` blocks achieves the same traceability with less
+migration effort.
 
 ## Consequences
 
@@ -244,11 +256,13 @@ traceability with less migration effort.
 - Codecov reports honest aggregate coverage based solely on unit
   tests — no inflation from incidental code loading
 - Feature coverage becomes a visible, actionable metric — the team
-  can prioritize which workflows to add WDIO tests for
-- The `ux-walkthrough` catalog gains a dual purpose: dogfooding
-  guide and E2E coverage manifest
-- The three-tier model makes coverage gaps explicit rather than
-  hidden behind a misleading line percentage
+  can prioritize which user stories to add WDIO tests for
+- User stories are the natural language developers use for planning
+  work; adding a story is lower friction than updating a walkthrough
+- The `define-user-story` skill and submit-pr integration ensure
+  new functionality is tracked automatically
+- The coverage model makes gaps explicit rather than hidden behind
+  a misleading line percentage
 
 ### Negative
 
@@ -257,57 +271,72 @@ traceability with less migration effort.
   badge without context.
 - The feature coverage metric requires a custom CI script — there
   is no off-the-shelf WDIO plugin for this
-- Maintaining the catalog requires discipline: new features must
-  add a walkthrough module or step, or they will appear as
-  "uncovered" even if WDIO tests exist
+- Maintaining the story catalog requires discipline: new features
+  must add a user story, or they will appear as "uncovered" even
+  if WDIO tests exist. The submit-pr skill mitigates this by
+  detecting new user-facing functionality and prompting for a story
 
 ### Neutral
 
-- The `WDIO_COVERAGE` local debugging capability is preserved — a
-  developer can still run `WDIO_COVERAGE=1` to see which extension
-  code paths a test hits, for investigative purposes
-- The `wdio-vscode-service` fork's coverage feature
+- The `wdio-vscode-service` dependency reverted to upstream v8;
+  the fork's coverage feature
   ([PR #164](https://github.com/webdriverio-community/wdio-vscode-service/pull/164))
-  remains useful for projects that don't bundle their extensions,
-  where V8 coverage on source files would be accurate
+  was closed as the V8 coverage approach is fundamentally unsuitable
+  for bundled extensions
 
 ## Implementation Notes
 
-### Phase 1: Retire V8 upload (immediate)
+### Phase 1: Retire V8 upload (done)
 
-1. Remove the "Upload WDIO coverage to Codecov" step from the
-   `unit` job in `.github/workflows/ci.yml`
-2. Remove the `wdio` flag from `codecov.yml` flag_management
-3. Update `codecov.yml` `after_n_builds` from 5 to 4 (three
-   unit-node runs + one wsl-fedora)
-4. Comment on wdio-vscode-service
+1. Removed WDIO coverage upload steps from `.github/workflows/ci.yml`
+2. Removed the `wdio` flag from `codecov.yml` flag_management
+3. Removed `coverage/wdio/lcov.info` from `sonar-project.properties`
+4. Reverted `wdio-vscode-service` from the fork to upstream v8
+5. Removed `coverage` config from `wdio.conf.ts` and `wdio.conf.wsl.ts`
+6. Closed wdio-vscode-service
    [PR #164](https://github.com/webdriverio-community/wdio-vscode-service/pull/164)
-   explaining that V8 coverage on bundled code produces unreliable
-   results and linking to this ADR
+   with an explanation of why V8 coverage on bundled code is unsuitable
 
-### Phase 2: Feature coverage infrastructure (future)
+### Phase 2: User-story coverage infrastructure (done)
 
-1. Add a stable `coverage` field to each module in
-   `walkthrough-modules.json` with possible values: `e2e`, `smoke`,
-   `none`
-2. Add `@covers('module-id')` metadata to WDIO spec `describe`
-   blocks
-3. Create `scripts/feature-coverage.mjs` that:
-   - Loads `walkthrough-modules.json`
-   - Scans `test/ui/**/*.spec.ts` for `@covers` tags
-   - Cross-references integration tests for smoke tier
-   - Emits a markdown summary and exits non-zero if coverage drops
-     below a configured threshold
-4. Add a CI step that runs the feature coverage script and posts
-   the summary as a PR comment
+1. Derived ~54 user stories from the PRD capability tables, the
+   `ux-walkthrough` catalog, and existing WDIO tests. Stories live
+   in `.sdlc/user-stories.yaml`
+2. Added `@covers` JSDoc tags to all 4 existing WDIO spec files,
+   mapping each `describe` block to the stories it validates
+3. Created `scripts/story-coverage.mjs` that:
+   - Loads `.sdlc/user-stories.yaml`
+   - Scans `test/ui/**/*.spec.ts` and `packages/*/test/wdio/**/*.spec.ts`
+     for `@covers` tags
+   - Cross-references to compute coverage per story
+   - Emits a markdown summary table
+   - Exits non-zero if coverage drops below a configurable threshold
+4. Added a CI step in the `ui` job that runs the story coverage
+   script after WDIO tests complete
 
-### Catalog maintenance rule
+### Phase 3: Developer workflow integration (done)
+
+1. Created the `define-user-story` agent skill
+   (`.agents/skills/define-user-story/SKILL.md`) that walks
+   developers through defining a user story and optionally
+   scaffolding a WDIO test skeleton
+2. Added question 10 to the `submit-pr` skill's self-review
+   checklist: detects new user-facing functionality in the PR diff
+   and prompts the developer to define a story if none exists
+
+### Story maintenance rule
 
 When adding a new user-facing feature (command, view, panel, editor
-capability), add a corresponding module or step to
-`walkthrough-modules.json`. This is analogous to ADR-012's
+capability), add a corresponding user story to
+`.sdlc/user-stories.yaml`. This is analogous to ADR-012's
 requirement that every UI capability has an MCP tool equivalent —
-every UI capability must also have a catalog entry.
+every UI capability must also have a user story.
+
+The `submit-pr` skill's self-review (question 10) detects new
+user-facing functionality in the diff and prompts the developer to
+define a story via the `define-user-story` skill. The CI story
+coverage script flags any `@covers` tags that reference unknown
+story IDs.
 
 ## Related Decisions
 
@@ -317,9 +346,8 @@ every UI capability must also have a catalog entry.
   extension capabilities — this ADR applies the same "catalog
   completeness" principle to E2E test coverage
 - [ADR-014](ADR-014-internal-skills-as-prompt-source.md): Internal
-  skills as AI prompt source of truth — the `ux-walkthrough` skill
-  was built under this framework and is now promoted to E2E
-  coverage manifest
+  skills as AI prompt source of truth — the `define-user-story`
+  skill follows this framework
 
 ## References
 
@@ -327,7 +355,9 @@ every UI capability must also have a catalog entry.
 - [V8 code coverage documentation](https://v8.dev/blog/javascript-code-coverage)
 - [c8 — V8-to-Istanbul](https://github.com/bcoe/c8)
 - [Codecov flag management](https://docs.codecov.com/docs/flags)
-- [ux-walkthrough skill catalog](.agents/skills/ux-walkthrough/walkthrough-modules.json)
+- [User story catalog](../user-stories.yaml)
+- [Story coverage script](../../scripts/story-coverage.mjs)
+- [define-user-story skill](../../.agents/skills/define-user-story/SKILL.md)
 
 ---
 
@@ -336,3 +366,4 @@ every UI capability must also have a catalog entry.
 | Date       | Author          | Change           |
 | ---------- | --------------- | ---------------- |
 | 2026-06-30 | Bradley Thornton | Initial proposal |
+| 2026-06-30 | Bradley Thornton | Replace walkthrough-based model with user-story-based model |
