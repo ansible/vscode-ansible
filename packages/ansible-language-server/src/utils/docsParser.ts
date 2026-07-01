@@ -227,7 +227,7 @@ function parseRawDeprecationOrTombstone(
 
 export class LazyModuleDocumentation implements IModuleMetadata {
   public static docsRegex =
-    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/gs;
+    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
 
   source: string;
   sourceLineRange: [number, number] = [0, 0];

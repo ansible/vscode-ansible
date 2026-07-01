@@ -23,7 +23,8 @@ import { AnsibleInventory } from "@src/services/ansibleInventory.js";
 export class WorkspaceManager {
   public connection: Connection;
   private sortedWorkspaceFolders: WorkspaceFolder[] = [];
-  private folderContexts: Map<string, WorkspaceFolderContext> = new Map();
+  private readonly folderContexts: Map<string, WorkspaceFolderContext> =
+    new Map();
   public clientCapabilities: ClientCapabilities = {};
 
   constructor(connection: Connection) {
