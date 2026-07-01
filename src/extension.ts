@@ -109,7 +109,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize Python Environment Service early
   const pythonEnvService = PythonEnvironmentService.getInstance();
-  await pythonEnvService.initialize();
+  await pythonEnvService.initialize(context);
   context.subscriptions.push(pythonEnvService);
 
   // Initialize Terminal Service

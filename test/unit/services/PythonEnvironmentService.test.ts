@@ -19,6 +19,23 @@ describe("PythonEnvironmentService", function () {
   let mockExistsSync: ReturnType<typeof vi.fn>;
   let mockPythonExtApi: ReturnType<typeof vi.fn>;
 
+  const makeMockContext = (
+    globalStateOverrides: Record<string, unknown> = {},
+  ) => {
+    const store = new Map<string, unknown>(
+      Object.entries(globalStateOverrides),
+    );
+    return {
+      globalState: {
+        get: vi.fn((key: string) => store.get(key)),
+        update: vi.fn((key: string, value: unknown) => {
+          store.set(key, value);
+          return Promise.resolve();
+        }),
+      },
+    } as unknown as import("vscode").ExtensionContext;
+  };
+
   const resetSingleton = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (PythonEnvironmentService as any)._instance = undefined;
@@ -175,9 +192,11 @@ describe("PythonEnvironmentService", function () {
       mockExistsSync.mockReturnValue(true);
 
       await service.initialize();
+      const callsAfterFirst = mockGetExtension.mock.calls.length;
       await service.initialize();
 
-      expect(mockGetExtension).toHaveBeenCalledTimes(1);
+      // Second call must not trigger any additional extension lookups
+      expect(mockGetExtension.mock.calls.length).toBe(callsAfterFirst);
     });
   });
 
@@ -234,6 +253,7 @@ describe("PythonEnvironmentService", function () {
 
       expect(mockShowWarningMessage).toHaveBeenCalledWith(
         expect.stringContaining("PET binary missing"),
+        "Don't show again",
         "Learn More",
       );
     });
@@ -263,6 +283,79 @@ describe("PythonEnvironmentService", function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockOpenExternal).toHaveBeenCalled();
+    });
+  });
+
+  describe("initialize — PET warning globalState persistence", function () {
+    const makePetMissingEnv = () =>
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/envs/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+
+    it("should persist suppression to globalState when Don't show again clicked", async function () {
+      makePetMissingEnv();
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue("Don't show again");
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext();
+      await service.initialize(ctx);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
+      ).toHaveBeenCalledWith("ansible.petWarningShown", true);
+    });
+
+    it("should not persist to globalState when warning dismissed without action", async function () {
+      makePetMissingEnv();
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext();
+      await service.initialize(ctx);
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should not show warning when globalState already set", async function () {
+      makePetMissingEnv();
+      mockExistsSync.mockReturnValue(false);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext({ "ansible.petWarningShown": true });
+      await service.initialize(ctx);
+
+      expect(mockShowWarningMessage).not.toHaveBeenCalled();
+    });
+
+    it("should still fall back to Python extension even when warning suppressed", async function () {
+      makePetMissingEnv();
+      mockExistsSync.mockReturnValue(false);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext({ "ansible.petWarningShown": true });
+      const result = await service.initialize(ctx);
+
+      expect(result).toBe(true);
+      expect(service.hasFullApi()).toBe(false);
     });
   });
 
