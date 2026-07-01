@@ -231,6 +231,146 @@ describe('doCompletion', () => {
         expect(labels).not.toContain('src');
         expect(labels).toContain('dest');
     });
+
+    it('provides host completions for hosts keyword value', async () => {
+        const content = '- hosts: ';
+        const d = doc(content);
+        const svc = mockCollectionsService();
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
+                    validation: { enabled: true, lint: { enabled: true } },
+                }),
+            },
+            ansibleInventory: Promise.resolve({
+                hostList: [
+                    { host: 'webserver1', priority: 1 },
+                    { host: 'dbserver', priority: 2 },
+                    { host: 'all', priority: 3 },
+                ],
+            }),
+        };
+
+        const items = await doCompletion(d, { line: 0, character: 9 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('webserver1');
+        expect(labels).toContain('dbserver');
+        expect(labels).toContain('all');
+    });
+
+    it('host completions use Variable kind for priority 1 and 2', async () => {
+        const content = '- hosts: ';
+        const d = doc(content);
+        const svc = mockCollectionsService();
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = {
+            documentSettings: {
+                get: vi.fn().mockResolvedValue({
+                    ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
+                    validation: { enabled: true, lint: { enabled: true } },
+                }),
+            },
+            ansibleInventory: Promise.resolve({
+                hostList: [
+                    { host: 'host1', priority: 1 },
+                    { host: 'group1', priority: 2 },
+                    { host: 'other', priority: 3 },
+                ],
+            }),
+        };
+
+        const items = await doCompletion(d, { line: 0, character: 9 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('host1');
+        expect(labels).toContain('group1');
+        expect(labels).toContain('other');
+        const host1 = items.find((i) => i.label === 'host1');
+        const group1 = items.find((i) => i.label === 'group1');
+        const other = items.find((i) => i.label === 'other');
+        expect(host1).toBeDefined();
+        expect(group1).toBeDefined();
+        expect(other).toBeDefined();
+        expect(host1?.kind).toBe(CompletionItemKind.Variable);
+        expect(group1?.kind).toBe(CompletionItemKind.Variable);
+        expect(other?.kind).toBe(CompletionItemKind.Value);
+    });
+
+    it('provides value completions for module options with choices', async () => {
+        const content = [
+            '- hosts: all',
+            '  tasks:',
+            '    - ansible.builtin.copy:',
+            '        mode: ',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'copy',
+                options: {
+                    mode: {
+                        type: 'str',
+                        choices: ['preserve', '0644', '0755'],
+                        default: 'preserve',
+                        description: ['File mode'],
+                    },
+                },
+            },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 3, character: 14 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('preserve');
+        expect(labels).toContain('0644');
+        expect(labels).toContain('0755');
+    });
+
+    it('provides bool value completions when option type is bool', async () => {
+        const content = [
+            '- hosts: all',
+            '  tasks:',
+            '    - ansible.builtin.copy:',
+            '        remote_src: ',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'copy',
+                options: {
+                    remote_src: {
+                        type: 'bool',
+                        default: false,
+                        description: ['Use remote source'],
+                    },
+                },
+            },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 3, character: 20 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('true');
+        expect(labels).toContain('false');
+    });
+
+    it('includes role keyword completions for role context', async () => {
+        const content = ['- hosts: all', '  roles:', '    - role: myrole', '      '].join('\n');
+        const d = doc(content);
+        const svc = mockCollectionsService();
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 3, character: 6 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('tags');
+        expect(labels).toContain('when');
+    });
 });
 
 describe('doCompletionResolve', () => {
