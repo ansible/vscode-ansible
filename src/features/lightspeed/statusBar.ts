@@ -48,7 +48,7 @@ export function generateStatusBarTooltipMarkdown(
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
   private lightspeedAuthenticatedUser: LightspeedUser;
-  private context;
+  private readonly context;
   public settingsManager: SettingsManager;
   public statusBar: vscode.StatusBarItem;
 

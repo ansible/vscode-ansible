@@ -287,10 +287,9 @@ ERRORS.addError(
         (err.response?.headers.get("server") ?? "").toLowerCase() ===
         "cloudfront";
       if (typeof body === "string") {
-        bodyContainsCloudFront =
-          (body.toLowerCase().match("cloudfront")?.length || 0) > 0;
-        bodyContainsCloudFrontBlocked =
-          (body.toLowerCase().match("blocked")?.length || 0) > 0;
+        const lowerBody = body.toLowerCase();
+        bodyContainsCloudFront = lowerBody.includes("cloudfront");
+        bodyContainsCloudFrontBlocked = lowerBody.includes("blocked");
       }
       return (
         bodyContainsCloudFront &&
