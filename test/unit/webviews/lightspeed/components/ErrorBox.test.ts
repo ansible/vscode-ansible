@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
 import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
@@ -81,5 +81,28 @@ describe("ErrorBox", () => {
       },
     });
     expect(wrapper.find("ul#errorContainer").exists()).toBe(true);
+  });
+
+  it("renders an entry and container when a message arrives from vscode", async () => {
+    const wrapper = mount(ErrorBox, { props: { errorMessages: [] } });
+
+    const handler = vi
+      .mocked(vscodeApi.on)
+      .mock.calls.find((call) => call[0] === "errorMessage")?.[1];
+    void handler?.("boom");
+    await flushPromises();
+
+    expect(wrapper.find("#errorContainer").exists()).toBe(true);
+    const entries = wrapper.findAllComponents({ name: "ErrorBoxEntry" });
+    expect(entries).toHaveLength(1);
+    expect(entries[0].props("message")).toBe("boom");
+  });
+
+  it("renders one entry per item in a non-empty model", () => {
+    const messages = ["a", "b", "c", "d"];
+    const wrapper = mount(ErrorBox, { props: { errorMessages: messages } });
+    expect(wrapper.findAllComponents({ name: "ErrorBoxEntry" })).toHaveLength(
+      messages.length,
+    );
   });
 });
