@@ -4,6 +4,7 @@ import type { ProviderType } from "@src/definitions/lightspeed";
 import {
   PROVIDER_TYPES,
   TEST_LIGHTSPEED_SETTINGS,
+  TEST_API_KEYS,
   API_ENDPOINTS,
 } from "@test/unit/lightspeed/testConstants.js";
 
@@ -65,7 +66,11 @@ describe("LLMProviderFactory", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_FULL;
 
-        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
@@ -84,7 +89,11 @@ describe("LLMProviderFactory", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_CUSTOM_ENDPOINT;
 
-        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
+        const provider = factory.createProvider(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
@@ -110,6 +119,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -123,6 +133,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -131,10 +142,7 @@ describe("LLMProviderFactory", () => {
 
       it("should throw error when API key is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
@@ -149,7 +157,11 @@ describe("LLMProviderFactory", () => {
         };
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(
+            PROVIDER_TYPES.RHCUSTOM,
+            config,
+            TEST_API_KEYS.RHCUSTOM,
+          );
         }).toThrow("Model name is required for Red Hat AI");
       });
 
@@ -161,19 +173,20 @@ describe("LLMProviderFactory", () => {
         };
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(
+            PROVIDER_TYPES.RHCUSTOM,
+            config,
+            TEST_API_KEYS.RHCUSTOM,
+          );
         }).toThrow("API endpoint is required for Red Hat AI");
       });
 
       it("should throw error when API key is only whitespace", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "   ",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         expect(() => {
-          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config);
+          factory.createProvider(PROVIDER_TYPES.RHCUSTOM, config, "   ");
         }).toThrow("API Key is required for Red Hat AI");
       });
 
@@ -187,6 +200,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
       });
@@ -201,6 +215,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
       });
@@ -215,6 +230,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
         expect(provider).toBeDefined();
         expect(provider.name).toBe("rhcustom");
@@ -229,6 +245,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -245,6 +262,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -261,6 +279,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -277,6 +296,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -293,6 +313,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -309,6 +330,7 @@ describe("LLMProviderFactory", () => {
         const provider = factory.createProvider(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(provider).toBeDefined();
@@ -447,6 +469,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.GOOGLE,
           config,
+          TEST_API_KEYS.GOOGLE,
         );
 
         expect(isValid).toBe(true);
@@ -487,6 +510,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(true);
@@ -494,10 +518,7 @@ describe("LLMProviderFactory", () => {
 
       it("should return false when required apiKey is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config = {
-          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
-          apiKey: "",
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
 
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
@@ -517,6 +538,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(false);
@@ -532,6 +554,7 @@ describe("LLMProviderFactory", () => {
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.RHCUSTOM,
           config,
+          TEST_API_KEYS.RHCUSTOM,
         );
 
         expect(isValid).toBe(false);
@@ -550,6 +573,460 @@ describe("LLMProviderFactory", () => {
 
         expect(isValid).toBe(false);
       });
+    });
+
+    describe("areRequiredFieldsSatisfied edge cases", () => {
+      it("should accept numeric 0 as a valid required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: 0,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should not reject falsy non-null values for non-string fields", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          enabled: false as unknown as boolean,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should reject null as a required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: null as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject undefined as a required field value", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: undefined as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject whitespace-only string for required field", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: "   ",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject empty string for required password field (apiKey)", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          "",
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should reject whitespace-only apiKey for password field", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          "   ",
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should skip non-required fields in validation", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          maxTokens: undefined as unknown as number,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+    });
+
+    describe("Google provider areRequiredFieldsSatisfied paths", () => {
+      it("should validate Google config exercising password and non-required branches", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
+
+        // Google schema: apiEndpoint (not required), apiKey (required, password), modelName (not required)
+        // This exercises: skip non-required → check password → skip non-required
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          TEST_API_KEYS.GOOGLE,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should fail Google validation when password field is whitespace", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.GOOGLE,
+          config,
+          "   ",
+        );
+
+        expect(isValid).toBe(false);
+      });
+    });
+
+    describe("RHCustom provider full iteration", () => {
+      it("should validate RHCustom by iterating all schema fields", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL;
+
+        // RHCustom schema: apiEndpoint (required, string), apiKey (required, password),
+        // modelName (required, string), maxTokens (not required)
+        // This exercises: check string value → check password → check string value → skip non-required
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(true);
+      });
+
+      it("should fail when first required string field is null", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          apiEndpoint: null as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should fail when a middle required string field is undefined", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.RHCUSTOM_MINIMAL,
+          modelName: undefined as unknown as string,
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.RHCUSTOM,
+          config,
+          TEST_API_KEYS.RHCUSTOM,
+        );
+
+        expect(isValid).toBe(false);
+      });
+    });
+
+    describe("WCA-specific apiEndpoint validation", () => {
+      it("should return false when WCA apiEndpoint is empty", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.WCA,
+          apiEndpoint: "",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return false when WCA apiEndpoint is whitespace only", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = {
+          ...TEST_LIGHTSPEED_SETTINGS.WCA,
+          apiEndpoint: "   ",
+        };
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(false);
+      });
+
+      it("should return true when WCA apiEndpoint is valid", () => {
+        const factory = LLMProviderFactory.getInstance();
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
+
+        const isValid = factory.validateProviderConfig(
+          PROVIDER_TYPES.WCA,
+          config,
+        );
+
+        expect(isValid).toBe(true);
+      });
+    });
+  });
+
+  describe("areRequiredFieldsSatisfied (private method)", () => {
+    // Access private method via casting
+    interface PrivateFactory {
+      areRequiredFieldsSatisfied(
+        configSchema: Array<{ key: string; type: string; required: boolean }>,
+        config: Record<string, unknown>,
+        apiKey?: string,
+      ): boolean;
+    }
+    const priv = (factory: LLMProviderFactory) =>
+      factory as unknown as PrivateFactory;
+    const factory = LLMProviderFactory.getInstance();
+
+    it("should return true when all required fields are satisfied", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        modelName: "my-model",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "valid-api-key",
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false when required password field has empty apiKey", () => {
+      const schema = [{ key: "apiKey", type: "password", required: true }];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required password field has undefined apiKey", () => {
+      const schema = [{ key: "apiKey", type: "password", required: true }];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        undefined,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required password field has whitespace-only apiKey", () => {
+      const schema = [{ key: "apiKey", type: "password", required: true }];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "   ",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is undefined", () => {
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
+      const config = {
+        apiEndpoint: undefined,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is null", () => {
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
+      const config = {
+        apiEndpoint: null,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field is empty string", () => {
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
+      const config = {
+        apiEndpoint: "",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when required non-password field has whitespace only", () => {
+      const schema = [{ key: "apiEndpoint", type: "string", required: true }];
+      const config = {
+        apiEndpoint: "   ",
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true when required non-password field is numeric zero", () => {
+      const schema = [{ key: "maxTokens", type: "number", required: true }];
+      const config = {
+        maxTokens: 0,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(true);
+    });
+
+    it("should return true when required non-password field is boolean false", () => {
+      const schema = [{ key: "enabled", type: "boolean", required: true }];
+      const config = {
+        enabled: false,
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(true);
+    });
+
+    it("should skip validation for optional fields", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: false },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // modelName is missing but optional
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(true);
+    });
+
+    it("should handle mixed required and optional fields correctly", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+        { key: "modelName", type: "string", required: false },
+        { key: "timeout", type: "number", required: false },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // apiKey provided separately
+        // modelName and timeout are optional and missing
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "my-api-key",
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("should return false when any one required field is missing", () => {
+      const schema = [
+        { key: "apiEndpoint", type: "string", required: true },
+        { key: "modelName", type: "string", required: true },
+        { key: "apiKey", type: "password", required: true },
+      ];
+      const config = {
+        apiEndpoint: "https://api.example.com",
+        // modelName is missing
+      };
+
+      const result = priv(factory).areRequiredFieldsSatisfied(
+        schema,
+        config,
+        "valid-api-key",
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true for empty schema", () => {
+      const schema: Array<{ key: string; type: string; required: boolean }> =
+        [];
+      const config = {};
+
+      const result = priv(factory).areRequiredFieldsSatisfied(schema, config);
+
+      expect(result).toBe(true);
     });
   });
 });

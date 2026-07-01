@@ -7,7 +7,6 @@ import {
   AnsibleProjectFormInterface,
   RoleFormInterface,
   PluginFormInterface,
-  PostMessageEvent,
 } from "@src/features/contentCreator/types";
 import {
   getADEVersion,
@@ -112,7 +111,7 @@ export class AnsibleCreatorOperations {
           projectUrl: destinationPathUrl,
           status: commandResult,
         },
-      } as PostMessageEvent);
+      });
       return;
     }
     const minRequiredCreatorVersion: Record<string, string> = {
@@ -150,7 +149,7 @@ export class AnsibleCreatorOperations {
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
-    } as PostMessageEvent);
+    });
   }
 
   public async runPluginAddCommand(
@@ -211,7 +210,7 @@ export class AnsibleCreatorOperations {
           projectUrl: destinationPathUrl,
           status: commandResult,
         },
-      } as PostMessageEvent);
+      });
       return;
     }
     const minRequiredCreatorVersion: Record<string, string> = {
@@ -252,7 +251,7 @@ export class AnsibleCreatorOperations {
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
-    } as PostMessageEvent);
+    });
   }
 
   public async runInitCommand(
@@ -312,7 +311,7 @@ export class AnsibleCreatorOperations {
           projectUrl: isCollection ? undefined : destinationUrl,
           status: "failed",
         },
-      } as PostMessageEvent);
+      });
       return;
     }
     let commandOutput = "";
@@ -405,7 +404,7 @@ export class AnsibleCreatorOperations {
           collectionUrl: destinationUrl,
           status: "in-progress",
         },
-      } as PostMessageEvent);
+      });
       const adeVersion = await getADEVersion();
       const adeVersionCheck = this.checkVersionWithError(
         adeVersion,
@@ -441,7 +440,7 @@ export class AnsibleCreatorOperations {
         projectUrl: isCollection ? undefined : destinationUrl,
         status: ansibleCreatorCommandPassed,
       },
-    } as PostMessageEvent);
+    });
   }
 
   public async isADEPresent(webView: vscode.Webview) {
@@ -450,7 +449,7 @@ export class AnsibleCreatorOperations {
       webView.postMessage({
         command: "ADEPresence",
         arguments: false,
-      } as PostMessageEvent);
+      });
       console.debug(
         "ADE not found in the environment. Disabling ADE features.",
       );
@@ -459,7 +458,7 @@ export class AnsibleCreatorOperations {
     webView.postMessage({
       command: "ADEPresence",
       arguments: true,
-    } as PostMessageEvent);
+    });
     console.debug("ADE found in the environment. Enabling ADE features.");
     return;
   }

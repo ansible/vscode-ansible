@@ -1,14 +1,18 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parsePlays(plays: any[]): any[] {
+export function parsePlays(plays: unknown[]): unknown[] {
   if (!plays || !Array.isArray(plays) || plays.length === 0) {
     return [];
   }
-  let tasks: string[] = [];
+  const tasks: unknown[] = [];
   for (let i = 0; i < plays.length; i++) {
     const play = plays[i];
-    const tasksInAPlay = play.tasks;
-    if (tasksInAPlay) {
-      tasks = tasks.concat(tasksInAPlay);
+    if (typeof play !== "object" || play === null) {
+      continue;
+    }
+    const tasksInAPlay = (play as Record<string, unknown>).tasks;
+    if (Array.isArray(tasksInAPlay)) {
+      for (const task of tasksInAPlay) {
+        tasks.push(task);
+      }
     } else {
       // If tasks are not found in the play,
       // add the play itself to the tasks list

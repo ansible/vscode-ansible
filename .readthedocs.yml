@@ -1,15 +1,8 @@
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html
-# for details
-
+# See https://docs.readthedocs.com/platform/stable/intro/zensical.html
 ---
 
 # Required
 version: 2
-
-mkdocs:
-  fail_on_warning: true
-  configuration: mkdocs.yml
 
 # Optionally build your docs in additional formats
 # such as PDF and ePub
@@ -21,46 +14,22 @@ submodules:
   recursive: true
 
 build:
-  os: ubuntu-24.04
+  os: ubuntu-26.04
   tools:
     python: "3.13"
-  apt_packages:
-    - curl
-    - file
-    - git
-    - libgbm-dev
-    - libonig-dev
-    - libssh-dev
-    - python3-pip
-    - python3-venv
-    - qemu-user-static
-    - x11-xserver-utils
-    - xvfb
   jobs:
+    pre_create_environment:
+      # mise not supported yet
+      - asdf plugin add uv
+      - asdf install uv latest
+      - asdf global uv latest
+    create_environment:
+      - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+    install:
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --group docs
     build:
       html:
-        - >
-          CI=true
-          FORCE_COLOR=0
-          PATH=~/.local/bin:$PATH
-          SKIP_DOCKER=1
-          SKIP_PODMAN=1
-          UV_CONCURRENT_BUILDS=1
-          UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
-          ~/.local/bin/mise exec -- task docs
-    create_environment:
-      - curl https://mise.run | sh
-      - ~/.local/bin/mise settings experimental=true
-      - ~/.local/bin/mise settings python.compile=false
-      - ~/.local/bin/mise settings python.uv_venv_auto=true
-      - ~/.local/bin/mise trust
-      - ~/.local/bin/mise install -v
-      - ~/.local/bin/mise exec -- uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
-      - ~/.local/bin/mise exec -- task --version
-
-    install:
-      # Custom docs dependencies installation, based on uv.lock
-      - >
-        VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH
-        UV_CACHE_DIR=$READTHEDOCS_VIRTUALENV_PATH/../../uv_cache
-        ~/.local/bin/mise exec -- uv sync --active --locked
+        - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv run zensical build --strict
+    post_build:
+      - mkdir -p $READTHEDOCS_OUTPUT/html/
+      - cp --recursive site/* $READTHEDOCS_OUTPUT/html/

@@ -4,8 +4,6 @@ import { SettingsManager } from "@src/settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
 } from "@src/interfaces/lightspeed";
@@ -16,6 +14,15 @@ import {
   formatErrorDetail,
   IError,
 } from "@src/features/lightspeed/utils/errors";
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
@@ -199,19 +206,21 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let suggestedTasks: any[];
+    interface SuggestedTask {
+      name?: string;
+    }
+    let suggestedTasks: SuggestedTask[];
     try {
       suggestedTasks = yaml.parse(suggestion, {
         keepSourceTokens: true,
-      });
+      }) as SuggestedTask[];
     } catch (err) {
       this.log(err);
       return noContentMatchesFoundHtml;
     }
     if (isPlaybook) {
       // Note: When isPlaybook is True, suggestedTasks contains plays in a playbook instead of tasks.
-      suggestedTasks = parsePlays(suggestedTasks);
+      suggestedTasks = parsePlays(suggestedTasks) as SuggestedTask[];
     }
     if (
       !suggestedTasks ||
@@ -228,9 +237,13 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       }
 
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
+      const taskDescription =
+        typeof taskNameDescription === "string"
+          ? escapeHtml(taskNameDescription)
+          : "";
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
         contentMatchValue.contentmatch,
-        taskNameDescription || "",
+        taskDescription,
       );
     }
     const html = `

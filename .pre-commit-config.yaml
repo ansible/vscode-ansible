@@ -1,7 +1,8 @@
 ---
 exclude: >
   (?x)^(
-    .*.svg
+    .*.svg|
+    .agents/.*
   )$
 fail_fast: true
 minimum_prek_version: "0.3.4"
@@ -12,7 +13,7 @@ repos:
       - id: check-useless-excludes
         priority: 0
   - repo: https://github.com/ansible/actions
-    rev: v0.5.1
+    rev: v1.1.2
     hooks:
       - id: toml
         priority: 1
@@ -28,6 +29,7 @@ repos:
         priority: 1
       - id: md
         priority: 1
+        entry: npm exec -- markdownlint-cli2 --fix "**/*.md" "#node_modules" "#.agents"
       # - id: codecov
       #   priority: 1
       - id: shellcheck
@@ -40,7 +42,7 @@ repos:
         priority: 0
         name: pnpm-install
         alias: pnpm
-        entry: pnpm install --frozen-lockfile --silent
+        entry: npm exec -- pnpm install --frozen-lockfile --silent
         language: system
         pass_filenames: false
         always_run: true
@@ -51,10 +53,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        entry: npx biome check --write --unsafe
+        entry: npm exec -- biome check --write --unsafe
       - id: eslint
         name: eslint
-        entry: pnpm exec eslint --no-warn-ignored --color --format=gha --fix --max-warnings=0 --concurrency=2
+        entry: npm exec -- eslint --no-warn-ignored --color --format=gha --fix --max-warnings=0 --concurrency=2
         language: system
         pass_filenames: false
         priority: 1
@@ -86,7 +88,7 @@ repos:
       - id: check-merge-conflict
         priority: 0
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.24.0
+    rev: v9.25.0
     hooks:
       - id: commitlint
         stages: [commit-msg]

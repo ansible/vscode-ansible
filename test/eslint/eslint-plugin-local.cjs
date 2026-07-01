@@ -36,7 +36,7 @@ const rule = {
     }
 
     function hasShellTrue(optionsNode) {
-      if (!optionsNode || optionsNode.type !== "ObjectExpression") return false;
+      if (optionsNode?.type !== "ObjectExpression") return false;
       return optionsNode.properties.some(
         (prop) =>
           prop.type === "Property" &&

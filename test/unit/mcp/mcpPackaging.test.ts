@@ -74,7 +74,7 @@ describe("MCP server packaging", function () {
       for (const file of resourceDataFiles) {
         expect(
           fs.existsSync(path.join(distDataDir, file)),
-          `dist/data/${file} missing — tsup onSuccess copy may have failed`,
+          `dist/data/${file} missing — tsdown build:done copy may have failed`,
         ).toBe(true);
       }
     });

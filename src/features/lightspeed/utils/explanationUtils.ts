@@ -17,10 +17,17 @@ function directoryContainsSomeRoleDirectories(files: string[]): boolean {
 
 export function getObjectKeys(content: string): string[] {
   try {
-    const parsedAnsibleDocument = yaml.parse(content);
-    const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+    const parsedAnsibleDocument = yaml.parse(content) as unknown;
+    if (
+      !Array.isArray(parsedAnsibleDocument) ||
+      parsedAnsibleDocument.length === 0
+    ) {
+      return [];
+    }
+    const lastObject: unknown =
+      parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
     if (typeof lastObject === "object") {
-      return Object.keys(lastObject);
+      return Object.keys(lastObject as object);
     }
   } catch {
     return [];

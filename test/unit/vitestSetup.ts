@@ -28,7 +28,9 @@ vi.mock("vscode", () => {
 
     fire(value: T): void {
       if (this.listeners && this.listeners.length > 0) {
-        this.listeners.forEach((listener) => listener(value));
+        this.listeners.forEach((listener) => {
+          listener(value);
+        });
       }
     }
 
@@ -44,7 +46,7 @@ vi.mock("vscode", () => {
         dispose: vi.fn(() => {
           disposables.forEach((d) => d.dispose());
         }),
-      } as MockDisposable;
+      };
     }
   }
 
@@ -118,6 +120,10 @@ vi.mock("vscode", () => {
       Production: 1,
       Development: 2,
       Test: 3,
+    },
+    ExtensionKind: {
+      UI: 1,
+      Workspace: 2,
     },
     Uri: {
       file: vi.fn((path: string) => ({ fsPath: path, path })),

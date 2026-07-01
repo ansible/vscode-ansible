@@ -7,7 +7,15 @@ import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
 import { AnsibleConfig } from "@src/services/ansibleConfig.js";
 import { ImagePuller } from "@src/utils/imagePuller.js";
-import { asyncExec } from "@src/utils/misc.js";
+import {
+  formatVolumeMountSpec,
+  parseContainerOptions,
+  splitCommandString,
+  UnsafeContainerSettingError,
+  validateContainerEngineSetting,
+  validateExecutionEnvironmentSettings,
+} from "@src/utils/containerCommandSafety.js";
+import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type {
   ExtensionSettings,
@@ -68,6 +76,12 @@ export class ExecutionEnvironment {
         return;
       }
 
+      validateExecutionEnvironmentSettings(
+        this.settings.executionEnvironment.containerOptions,
+        this._container_volume_mounts || [],
+        this._container_image,
+      );
+
       /* v8 ignore next 3 */
       this.updateContainerVolumeMountFromSettings();
       this.settingsContainerOptions =
@@ -81,7 +95,9 @@ export class ExecutionEnvironment {
       }
     } catch (error) {
       /* v8 ignore next 3 */
-      if (error instanceof Error) {
+      if (error instanceof UnsafeContainerSettingError) {
+        this.connection.window.showErrorMessage(error.message);
+      } else if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
       } else {
         /* v8 ignore next 3 */
@@ -98,24 +114,32 @@ export class ExecutionEnvironment {
 
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
     /* v8 ignore next 6 */
-    if (!this.isServiceInitialized || !this._container_image) {
+    if (
+      !this.isServiceInitialized ||
+      !this._container_image ||
+      !this._container_engine
+    ) {
       this.connection.console.error(
         `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
       );
       return;
     }
+    const containerEngine = this._container_engine;
     const containerName = this._container_image.replace(/[^a-z0-9]/gi, "_");
     let progressTracker;
 
     try {
       /* v8 ignore next 11 */
-      const containerImageIdCommand = `${this._container_engine} images ${this._container_image} --format="{{.ID}}" | head -n 1`;
-      this.connection.console.log(containerImageIdCommand);
-      this._container_image_id = child_process
-        .execSync(containerImageIdCommand, {
-          encoding: "utf-8",
-        })
-        .trim();
+      const imageIdArgv = ["images", this._container_image, "--format={{.ID}}"];
+      this.connection.console.log(
+        `${containerEngine} ${imageIdArgv.join(" ")}`,
+      );
+      const imageIdResult = spawnSyncWithResult(containerEngine, imageIdArgv);
+      this._container_image_id =
+        imageIdResult.stdout
+          .split("\n")
+          .map((line) => line.trim())
+          .find((line) => line !== "") ?? "";
       const cacheBase =
         process.env.XDG_CACHE_HOME ||
         `${process.env.HOME || os.homedir()}/.cache`;
@@ -141,7 +165,7 @@ export class ExecutionEnvironment {
         );
 
         this.connection.console.log(
-          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
       } else {
         /* v8 ignore next 4 */
@@ -160,7 +184,7 @@ export class ExecutionEnvironment {
         }
         /* v8 ignore next 38 */
         this.connection.console.log(
-          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
         );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
@@ -199,7 +223,7 @@ export class ExecutionEnvironment {
       }
       /* v8 ignore next 6 */
       this.connection.console.log(
-        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
+        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths.join(", ")} \n module_locations: ${ansibleConfig.module_locations.join(", ")}`,
       );
       // plugin cache successfully created
       fs.closeSync(
@@ -225,7 +249,7 @@ export class ExecutionEnvironment {
   public wrapContainerArgs(
     command: string,
     mountPaths?: Set<string>,
-  ): string | undefined {
+  ): string[] | undefined {
     /* v8 ignore next 10 */
     if (
       !this.isServiceInitialized ||
@@ -264,11 +288,11 @@ export class ExecutionEnvironment {
 
     // handle container volume mounts setting from client
     if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
-      this.settingsVolumeMounts.forEach((volumeMount) => {
-        if (containerCommand.includes(volumeMount)) {
+      this.settingsVolumeMounts.forEach((volumeMountSpec) => {
+        if (containerCommand.includes(volumeMountSpec)) {
           return;
         }
-        containerCommand.push("-v", volumeMount);
+        containerCommand.push("-v", volumeMountSpec);
       });
     }
 
@@ -295,25 +319,23 @@ export class ExecutionEnvironment {
 
     // handle container options setting from client
     if (this.settingsContainerOptions && this.settingsContainerOptions !== "") {
-      const containerOptions = this.settingsContainerOptions.split(" ");
+      const containerOptions = parseContainerOptions(
+        this.settingsContainerOptions,
+      );
       containerOptions.forEach((containerOption) => {
-        if (
-          containerOption === "" ||
-          containerCommand.includes(containerOption)
-        ) {
+        if (containerCommand.includes(containerOption)) {
           return;
         }
         containerCommand.push(containerOption);
       });
     }
-    containerCommand.push(`--name als_${uuidv4()}`);
+    containerCommand.push("--name", `als_${uuidv4()}`);
     containerCommand.push(this._container_image);
-    containerCommand.push(command);
-    const generatedCommand = containerCommand.join(" ");
+    containerCommand.push(...splitCommandString(command));
     this.connection.console.log(
-      `container engine invocation: ${generatedCommand}`,
+      `container engine invocation: ${containerCommand.join(" ")}`,
     );
-    return generatedCommand;
+    return containerCommand;
   }
 
   private async pullContainerImage(): Promise<boolean> {
@@ -343,8 +365,36 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  private isExecutableAvailable(command: string): boolean {
+    const result = child_process.spawnSync("which", [command], {
+      encoding: "utf-8",
+      shell: false,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return result.status === 0;
+  }
+
+  private validateManualEngine(engine: string): boolean {
+    /* v8 ignore next 14 */
+    try {
+      validateContainerEngineSetting(engine);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.connection.window.showErrorMessage(error.message);
+      }
+      return false;
+    }
+    if (!this.isExecutableAvailable(engine)) {
+      this.connection.window.showErrorMessage(
+        `Container engine '${engine}' not found.`,
+      );
+      return false;
+    }
+    return true;
+  }
+
   private setContainerEngine(): boolean {
-    /* v8 ignore next 41 */
+    /* v8 ignore next 24 */
     if (!this._container_engine) {
       this.connection.window.showErrorMessage(
         "Unable to setContainerEngine with incompletely initialized settings.",
@@ -354,11 +404,7 @@ export class ExecutionEnvironment {
 
     if (this._container_engine === "auto") {
       for (const ce of ["podman", "docker"]) {
-        try {
-          child_process.execSync(`command -v ${ce}`, {
-            encoding: "utf-8",
-          });
-        } catch {
+        if (!this.isExecutableAvailable(ce)) {
           this.connection.console.info(`Container engine '${ce}' not found`);
           continue;
         }
@@ -366,17 +412,8 @@ export class ExecutionEnvironment {
         this.connection.console.log(`Container engine set to: '${ce}'`);
         break;
       }
-    } else {
-      try {
-        child_process.execSync(`command -v ${this._container_engine}`, {
-          encoding: "utf-8",
-        });
-      } catch (error) {
-        this.connection.window.showErrorMessage(
-          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`,
-        );
-        return false;
-      }
+    } else if (!this.validateManualEngine(this._container_engine)) {
+      return false;
     }
     if (!["podman", "docker"].includes(this._container_engine)) {
       this.connection.window.showErrorMessage(
@@ -387,81 +424,73 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  private getContainerIds(engine: string, args: string[]): string[] {
+    /* v8 ignore next 10 */
+    try {
+      const result = child_process.spawnSync(engine, args, {
+        encoding: "utf-8",
+        shell: false,
+      });
+      return result.stdout
+        .trim()
+        .split("\n")
+        .filter((id) => id.trim() !== "");
+    } catch {
+      return [];
+    }
+  }
+
+  private runContainerCommand(
+    engine: string,
+    action: string,
+    ids: string[],
+    containerName: string,
+    cwd: string,
+  ): void {
+    /* v8 ignore next 8 */
+    try {
+      child_process.spawnSync(engine, [action, ...ids], {
+        cwd,
+        shell: false,
+      });
+    } catch (error) {
+      console.error(
+        `Error detected while trying to ${action} the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   private cleanUpContainer(containerName: string): void {
-    /* v8 ignore next 75 */
+    /* v8 ignore next 18 */
     if (!this._container_engine) {
       return;
     }
-
     if (!this.doesContainerNameExist(containerName)) {
       return;
     }
 
+    const engine = this._container_engine;
     const cwd = URI.parse(this.context.workspaceFolder.uri).path;
 
-    let runningContainers: string;
-    try {
-      const result = child_process.spawnSync(
-        this._container_engine,
-        ["ps", "-q", "--filter", `name=${containerName}`],
-        { encoding: "utf-8", shell: false },
-      );
-      runningContainers = result.stdout.trim();
-    } catch {
-      runningContainers = "";
+    const running = this.getContainerIds(engine, [
+      "ps",
+      "-q",
+      "--filter",
+      `name=${containerName}`,
+    ]);
+    if (running.length > 0) {
+      this.runContainerCommand(engine, "stop", running, containerName, cwd);
     }
 
-    // Stop running containers if any exist
-    if (runningContainers) {
-      try {
-        const containerIds = runningContainers
-          .split("\n")
-          .filter((id) => id.trim() !== "");
-        if (containerIds.length > 0) {
-          child_process.spawnSync(
-            this._container_engine,
-            ["stop", ...containerIds],
-            { cwd, shell: false },
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Error detected while trying to stop the container ${containerName}: ${error}`,
-        );
-      }
-    }
-
-    // Get all containers (including stopped ones) with the specified name
-    let allContainers: string;
-    try {
-      const result = child_process.spawnSync(
-        this._container_engine,
-        ["container", "ls", "-aq", "-f", `name=${containerName}`],
-        { encoding: "utf-8", shell: false },
-      );
-      allContainers = result.stdout.trim();
-    } catch {
-      allContainers = "";
-    }
-
-    // Remove containers if any exist
-    if (allContainers) {
-      try {
-        const containerIds = allContainers
-          .split("\n")
-          .filter((id) => id.trim() !== "");
-        if (containerIds.length > 0) {
-          child_process.spawnSync(
-            this._container_engine,
-            ["rm", ...containerIds],
-            { cwd, shell: false },
-          );
-        }
-      } catch (error) {
-        console.error(
-          `Error detected while trying to remove the container ${containerName}: ${error}`,
-        );
-      }
+    const all = this.getContainerIds(engine, [
+      "container",
+      "ls",
+      "-aq",
+      "-f",
+      `name=${containerName}`,
+    ]);
+    if (all.length > 0) {
+      this.runContainerCommand(engine, "rm", all, containerName, cwd);
     }
   }
 
@@ -488,19 +517,11 @@ export class ExecutionEnvironment {
   private updateContainerVolumeMountFromSettings(): void {
     /* v8 ignore next 16 */
     for (const volumeMounts of this._container_volume_mounts || []) {
-      const fsSrcPath = volumeMounts.src;
-      const fsDestPath = volumeMounts.dest;
-      const options = volumeMounts.options;
-
-      let mountPath = `${fsSrcPath}:${fsDestPath}`;
-      if (options && options !== "") {
-        mountPath += `:${options}`;
-      }
+      const mountPath = formatVolumeMountSpec(volumeMounts);
       if (this.settingsVolumeMounts.includes(mountPath)) {
         continue;
-      } else {
-        this.settingsVolumeMounts.push("-v", mountPath);
       }
+      this.settingsVolumeMounts.push(mountPath);
     }
   }
 
@@ -546,39 +567,47 @@ export class ExecutionEnvironment {
 
   private runContainer(containerName: string): boolean {
     /* v8 ignore next 38 */
+    if (!this._container_engine || !this._container_image) {
+      return false;
+    }
+    const containerEngine = this._container_engine;
+    const containerImage = this._container_image;
+
     // ensure container is not running
     this.cleanUpContainer(containerName);
 
     try {
       // Do not add '-t' option when running the containers as this causes stderr noise, such:
       // The input device is not a TTY. The --tty and--interactive flags might not work properly
-      let command = `${this._container_engine} run -i --rm -d `;
+      const runArgv: string[] = ["run", "-i", "--rm", "-d"];
       if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
-        command += this.settingsVolumeMounts.join(" ");
+        this.settingsVolumeMounts.forEach((volumeMountSpec) => {
+          runArgv.push("-v", volumeMountSpec);
+        });
       }
 
       // handle Ansible environment variables
       for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
         if (envVarKey.startsWith("ANSIBLE_")) {
-          command += ` -e ${envVarKey}=${envVarValue} `;
+          runArgv.push("-e", `${envVarKey}=${envVarValue}`);
         }
       }
-      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parsable (no ANSI)
+      runArgv.push("-e", "ANSIBLE_FORCE_COLOR=0"); // ensure output is parsable (no ANSI)
       if (
         this.settingsContainerOptions &&
         this.settingsContainerOptions !== ""
       ) {
-        command += ` ${this.settingsContainerOptions} `;
+        runArgv.push(...parseContainerOptions(this.settingsContainerOptions));
       }
-      command += ` --name ${containerName} ${this._container_image} bash`;
+      runArgv.push("--name", containerName, containerImage, "bash");
 
-      this.connection.console.log(`run container with command '${command}'`);
-      child_process.execSync(command, {
-        encoding: "utf-8",
-      });
+      this.connection.console.log(
+        `run container with command '${containerEngine} ${runArgv.join(" ")}'`,
+      );
+      spawnSyncWithResult(containerEngine, runArgv);
     } catch (error) {
       this.connection.window.showErrorMessage(
-        `Failed to initialize execution environment '${this._container_image}': ${error}`,
+        `Failed to initialize execution environment '${this._container_image}': ${error instanceof Error ? error.message : String(error)}`,
       );
       return false;
     }
@@ -593,6 +622,10 @@ export class ExecutionEnvironment {
   ): Promise<string[]> {
     /* v8 ignore next 33 */
     const updatedHostDocPath: string[] = [];
+    const containerEngine = this._container_engine;
+    if (!containerEngine) {
+      return updatedHostDocPath;
+    }
 
     for (const srcPath of containerPluginPaths) {
       const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
@@ -610,13 +643,11 @@ export class ExecutionEnvironment {
           .slice(0, -1)
           .join(path.sep);
         fs.mkdirSync(destPath, { recursive: true });
-        const copyCommand = `${this._container_engine} cp ${containerName}:${srcPath} ${destPathFolder}`;
+        const copyArgv = ["cp", `${containerName}:${srcPath}`, destPathFolder];
         this.connection.console.log(
-          `Copying plugins from container to local cache path ${copyCommand}`,
+          `Copying plugins from container to local cache path ${containerEngine} ${copyArgv.join(" ")}`,
         );
-        await asyncExec(copyCommand, {
-          encoding: "utf-8",
-        });
+        await asyncSpawn(containerEngine, copyArgv);
 
         updatedHostDocPath.push(destPath);
       }

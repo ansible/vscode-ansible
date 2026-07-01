@@ -1,5 +1,6 @@
 import * as child_process from "child_process";
 import * as path from "path";
+import { quote } from "shell-quote";
 import { URI } from "vscode-uri";
 import {
   Connection,
@@ -12,6 +13,7 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { CommandRunner } from "@src/utils/commandRunner.js";
+import { validatePlaybookPath } from "@src/utils/misc.js";
 
 /**
  * Acts as an interface to ansible-playbook command.
@@ -71,11 +73,19 @@ export class AnsiblePlaybook {
       this.context,
       settings,
     );
+    const pathError = validatePlaybookPath(docPath);
+    if (pathError) {
+      this.connection.console.error(`[ansible syntax-check] ${pathError}`);
+      progressTracker.done();
+      return diagnostics;
+    }
+
     try {
       // run ansible playbook syntax-check
+      const quotedPath = quote([docPath]);
       await commandRunner.runCommand(
         "ansible-playbook",
-        `${docPath} --syntax-check`,
+        `${quotedPath} --syntax-check`,
         workingDirectory,
         mountPaths,
       );

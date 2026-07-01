@@ -1,8 +1,120 @@
 import { spawn, execSync } from "node:child_process";
 import { access, stat } from "node:fs/promises";
-import { resolve, isAbsolute, join } from "node:path";
+import { resolve, relative, isAbsolute, join } from "node:path";
 import { existsSync } from "node:fs";
 import { quote } from "shell-quote";
+
+const COMMON_VENV_NAMES = [
+  "ansible-dev",
+  "venv",
+  ".venv",
+  "virtualenv",
+  ".virtualenv",
+  "env",
+  ".env",
+];
+
+/**
+ * Check if ansible-navigator is in the system PATH.
+ */
+function checkSystemPath(): { available: boolean; path?: string } {
+  try {
+    // SECURITY: Safe - hardcoded command name with no user input
+    const result = execSync("command -v ansible-navigator", {
+      encoding: "utf-8",
+      stdio: "pipe",
+    });
+    return { available: true, path: result.trim() };
+  } catch {
+    return { available: false };
+  }
+}
+
+/**
+ * Search for ansible-navigator in a specific venv (absolute or relative).
+ */
+function findNavigatorInSpecificVenv(
+  specificVenv: string,
+  workspaceRoot: string,
+): string | undefined {
+  if (isAbsolute(specificVenv)) {
+    const navPath = join(specificVenv, "bin", "ansible-navigator");
+    return existsSync(navPath) ? navPath : undefined;
+  }
+
+  const workspaceNavPath = join(
+    workspaceRoot,
+    specificVenv,
+    "bin",
+    "ansible-navigator",
+  );
+  if (existsSync(workspaceNavPath)) {
+    return workspaceNavPath;
+  }
+
+  const parentDirs = workspaceRoot.split("/");
+  for (let i = parentDirs.length; i > 0; i--) {
+    const navPath = join(
+      parentDirs.slice(0, i).join("/"),
+      specificVenv,
+      "bin",
+      "ansible-navigator",
+    );
+    if (existsSync(navPath)) {
+      return navPath;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Search common venv locations for ansible-navigator.
+ */
+function findNavigatorInCommonVenvs(workspaceRoot: string): string | undefined {
+  for (const venvName of COMMON_VENV_NAMES) {
+    const venvPath = join(workspaceRoot, venvName);
+    const navPath = join(venvPath, "bin", "ansible-navigator");
+    if (existsSync(venvPath) && existsSync(navPath)) {
+      return navPath;
+    }
+  }
+
+  const parentDirs = workspaceRoot.split("/");
+  for (let i = parentDirs.length; i > 0; i--) {
+    const checkPath = parentDirs.slice(0, i).join("/");
+    for (const venvName of COMMON_VENV_NAMES) {
+      const navPath = join(checkPath, venvName, "bin", "ansible-navigator");
+      if (existsSync(navPath)) {
+        return navPath;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Search virtual environments for ansible-navigator.
+ */
+function checkVenv(
+  workspaceRoot?: string,
+  specificVenv?: string,
+): { available: boolean; path?: string } {
+  if (!workspaceRoot) {
+    return { available: false };
+  }
+
+  if (specificVenv) {
+    const found = findNavigatorInSpecificVenv(specificVenv, workspaceRoot);
+    if (found) {
+      return { available: true, path: found };
+    }
+  }
+
+  const found = findNavigatorInCommonVenvs(workspaceRoot);
+  return found ? { available: true, path: found } : { available: false };
+}
 
 /**
  * Check if ansible-navigator is available in PATH or virtual environments
@@ -17,146 +129,49 @@ function checkAnsibleNavigatorAvailable(
   path?: string;
   error?: string;
 } {
-  const commonVenvNames = [
-    "ansible-dev",
-    "venv",
-    ".venv",
-    "virtualenv",
-    ".virtualenv",
-    "env",
-    ".env",
-  ];
-
-  // Helper function to check PATH
-  const checkSystemPath = (): { available: boolean; path?: string } => {
-    try {
-      // SECURITY: Safe - hardcoded command name with no user input
-      // 'command -v' is a POSIX shell builtin that only checks if a command exists in PATH
-      // No variables, no user data, no string interpolation - purely static command
-      // PATH variable is managed by the operating system, not user-controllable in this context
-      const result = execSync("command -v ansible-navigator", {
-        encoding: "utf-8",
-        stdio: "pipe",
-      });
-      const path = result.trim();
-      return { available: true, path };
-    } catch {
-      return { available: false };
-    }
-  };
-
-  // Helper function to check virtual environments
-  const checkVenv = (
-    specificVenv?: string,
-  ): { available: boolean; path?: string } => {
-    if (!workspaceRoot) {
-      return { available: false };
-    }
-
-    // If specific venv is provided, check that first
-    if (specificVenv) {
-      // Check if it's an absolute path
-      if (isAbsolute(specificVenv)) {
-        const navPath = join(specificVenv, "bin", "ansible-navigator");
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-      } else {
-        // Check in workspace root
-        const venvPath = join(workspaceRoot, specificVenv);
-        const navPath = join(venvPath, "bin", "ansible-navigator");
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-
-        // Check in parent directories
-        const parentDirs = workspaceRoot.split("/");
-        for (let i = parentDirs.length; i > 0; i--) {
-          const checkPath = parentDirs.slice(0, i).join("/");
-          const venvPath = join(checkPath, specificVenv);
-          const navPath = join(venvPath, "bin", "ansible-navigator");
-          if (existsSync(navPath)) {
-            return { available: true, path: navPath };
-          }
-        }
-      }
-    }
-
-    // Check common venv names in workspace root
-    for (const venvName of commonVenvNames) {
-      const venvPath = join(workspaceRoot, venvName);
-      const navPath = join(venvPath, "bin", "ansible-navigator");
-
-      if (existsSync(venvPath) && existsSync(navPath)) {
-        return { available: true, path: navPath };
-      }
-    }
-
-    // Check in parent directories (like examples/ansible-dev)
-    const parentDirs = workspaceRoot.split("/");
-    for (let i = parentDirs.length; i > 0; i--) {
-      const checkPath = parentDirs.slice(0, i).join("/");
-      for (const venvName of commonVenvNames) {
-        const venvPath = join(checkPath, venvName);
-        const navPath = join(venvPath, "bin", "ansible-navigator");
-
-        if (existsSync(navPath)) {
-          return { available: true, path: navPath };
-        }
-      }
-    }
-
-    return { available: false };
-  };
-
-  // Handle different environment preferences
   if (environment === "system") {
-    // Only check PATH
     const result = checkSystemPath();
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: "ansible-navigator not found in PATH/system",
-    };
-  } else if (environment === "venv") {
-    // Only check virtual environments
-    const result = checkVenv();
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: "ansible-navigator not found in virtual environments",
-    };
-  } else if (environment && environment !== "auto") {
-    // Specific venv name/path provided
-    const result = checkVenv(environment);
-    if (result.available) {
-      return { available: true, path: result.path };
-    }
-    return {
-      available: false,
-      error: `ansible-navigator not found in virtual environment: ${environment}`,
-    };
-  } else {
-    // "auto" - check PATH first, then venv
-    const systemResult = checkSystemPath();
-    if (systemResult.available) {
-      return { available: true, path: systemResult.path };
-    }
-
-    const venvResult = checkVenv();
-    if (venvResult.available) {
-      return { available: true, path: venvResult.path };
-    }
-
-    return {
-      available: false,
-      error: "ansible-navigator not found in PATH or virtual environments",
-    };
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: "ansible-navigator not found in PATH/system",
+        };
   }
+
+  if (environment === "venv") {
+    const result = checkVenv(workspaceRoot);
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: "ansible-navigator not found in virtual environments",
+        };
+  }
+
+  if (environment !== "auto") {
+    const result = checkVenv(workspaceRoot, environment);
+    return result.available
+      ? { available: true, path: result.path }
+      : {
+          available: false,
+          error: `ansible-navigator not found in virtual environment: ${environment}`,
+        };
+  }
+
+  // "auto" - check PATH first, then venv
+  const systemResult = checkSystemPath();
+  if (systemResult.available) {
+    return { available: true, path: systemResult.path };
+  }
+
+  const venvResult = checkVenv(workspaceRoot);
+  return venvResult.available
+    ? { available: true, path: venvResult.path }
+    : {
+        available: false,
+        error: "ansible-navigator not found in PATH or virtual environments",
+      };
 }
 
 /**
@@ -260,48 +275,57 @@ function buildContainerErrorMessage(
   return errorMessage;
 }
 
-export async function runAnsibleNavigator(
-  filePath: string,
-  mode?: string,
-  workspaceRoot?: string,
-  disableExecutionEnvironment?: boolean,
-  environment?: string,
-): Promise<{
+interface NavigatorResult {
   output: string;
   debugOutput?: string;
   navigatorPath?: string;
   executionEnvironmentDisabled?: boolean;
-}> {
-  if (!filePath || !filePath.trim()) {
-    throw new Error("No file path was provided for ansible-navigator.");
-  }
+}
 
-  // Normalize and validate mode
+/**
+ * Validate the mode string and return the normalized value.
+ * Throws on invalid modes.
+ */
+function validateMode(mode?: string): string | undefined {
   const normalizedMode = mode?.trim().toLowerCase();
   if (normalizedMode && !VALID_MODES.includes(normalizedMode)) {
     throw new Error(
       `Invalid mode "${mode}". Valid modes are: ${VALID_MODES.join(", ")}`,
     );
   }
+  return normalizedMode;
+}
 
-  // Resolve the file path to absolute path
-  const absolutePath = isAbsolute(filePath)
-    ? resolve(filePath)
-    : workspaceRoot
-      ? resolve(workspaceRoot, filePath)
-      : resolve(filePath);
+/**
+ * Resolve and validate the target file path.
+ * Ensures the path exists, is a regular file, and is inside the workspace.
+ */
+async function resolveAndValidateFilePath(
+  filePath: string,
+  workspaceRoot?: string,
+): Promise<string> {
+  if (!filePath?.trim()) {
+    throw new Error("No file path was provided for ansible-navigator.");
+  }
 
-  // Validate path is within workspace (security check)
+  let absolutePath: string;
+  if (isAbsolute(filePath)) {
+    absolutePath = resolve(filePath);
+  } else if (workspaceRoot) {
+    absolutePath = resolve(workspaceRoot, filePath);
+  } else {
+    absolutePath = resolve(filePath);
+  }
+
   if (workspaceRoot) {
-    const workspacePath = resolve(workspaceRoot);
-    if (!absolutePath.startsWith(workspacePath)) {
+    const rel = relative(resolve(workspaceRoot), absolutePath);
+    if (rel.startsWith("..") || isAbsolute(rel)) {
       throw new Error(
         `File path must be within the workspace. Attempted to access: ${absolutePath}`,
       );
     }
   }
 
-  // Check if file exists and is accessible
   try {
     await access(absolutePath);
   } catch (error) {
@@ -311,7 +335,14 @@ export async function runAnsibleNavigator(
     );
   }
 
-  // Check if it's actually a file, not a directory
+  await validateFileType(absolutePath);
+  return absolutePath;
+}
+
+/**
+ * Ensure the path points to a regular file (not a directory or other type).
+ */
+async function validateFileType(absolutePath: string): Promise<void> {
   try {
     const fileStats = await stat(absolutePath);
     if (fileStats.isDirectory()) {
@@ -329,21 +360,24 @@ export async function runAnsibleNavigator(
       { cause: error },
     );
   }
+}
 
-  // Check if ansible-navigator is available before attempting to run
-  // This will check based on the environment preference
-  const environmentToUse = environment || "auto";
-  const navCheck = checkAnsibleNavigatorAvailable(
-    workspaceRoot,
-    environmentToUse,
-  );
+/**
+ * Locate ansible-navigator (PATH / venv) and return its resolved path.
+ * Throws when not found.
+ */
+function resolveNavigatorPath(
+  workspaceRoot?: string,
+  environment: string = "auto",
+): { navigatorPath: string; shouldDisableEE: boolean } {
+  const navCheck = checkAnsibleNavigatorAvailable(workspaceRoot, environment);
   if (!navCheck.available) {
     const pathEnv = process.env.PATH || "not set";
     let errorMsg = `ansible-navigator is not available in PATH or virtual environments.\n\n`;
     errorMsg += `PATH: ${pathEnv}\n\n`;
     if (workspaceRoot) {
       errorMsg += `Checked virtual environments in: ${workspaceRoot}\n`;
-      errorMsg += `Common venv names checked: ansible-dev, venv, .venv, virtualenv, .virtualenv, env, .env\n\n`;
+      errorMsg += `Common venv names checked: ${COMMON_VENV_NAMES.join(", ")}\n\n`;
     }
     errorMsg += `Please install ansible-navigator:\n`;
     errorMsg += `  pip install ansible-navigator\n\n`;
@@ -351,30 +385,97 @@ export async function runAnsibleNavigator(
     throw new Error(errorMsg);
   }
 
-  // Use the found path (could be from PATH or virtual environment)
   const navigatorPath = navCheck.path || "ansible-navigator";
   const isVenvPath = navigatorPath.includes("/bin/ansible-navigator");
+  return { navigatorPath, shouldDisableEE: isVenvPath };
+}
 
-  // If using a venv version, automatically disable execution environment
-  // Venv versions typically use local Ansible and don't have Podman configured
-  const shouldDisableEE = disableExecutionEnvironment || isVenvPath;
+/**
+ * Interpret the exit result of an ansible-navigator process.
+ * Returns a NavigatorResult on success / playbook failure, or throws on
+ * infrastructure errors.
+ */
+function interpretProcessExit(
+  code: number | null,
+  stdoutData: string,
+  stderrData: string,
+  navigatorPath: string,
+  shouldDisableEE: boolean,
+): NavigatorResult {
+  // stderr-only output is a real infrastructure error
+  if (stderrData && !stdoutData.trim()) {
+    if (isContainerEngineError(stderrData, "")) {
+      throw new Error(
+        buildContainerErrorMessage(stderrData, "", code ?? undefined),
+      );
+    }
+    throw new Error(
+      `ansible-navigator failed with exit code ${code}\n\nError output:\n${stderrData}`,
+    );
+  }
+
+  if (code !== 0) {
+    if (isContainerEngineError(stderrData, stdoutData)) {
+      throw new Error(
+        buildContainerErrorMessage(stderrData, stdoutData, code ?? undefined),
+      );
+    }
+
+    // stdout present → playbook execution failure (not a navigator error)
+    if (stdoutData.trim()) {
+      return {
+        output: `Note: Playbook execution completed with exit code ${code} (playbook may have failed, but ansible-navigator executed successfully).\n\n${stdoutData}`,
+        debugOutput: stderrData || undefined,
+        navigatorPath,
+        executionEnvironmentDisabled: shouldDisableEE,
+      };
+    }
+
+    const debugInfo = stderrData || "No output available";
+    throw new Error(
+      `ansible-navigator exited with code ${code}\n\nDebug output:\n${debugInfo}`,
+    );
+  }
+
+  return {
+    output: stdoutData || "ansible-navigator completed successfully",
+    debugOutput: stderrData || undefined,
+    navigatorPath,
+    executionEnvironmentDisabled: shouldDisableEE,
+  };
+}
+
+export async function runAnsibleNavigator(
+  filePath: string,
+  mode?: string,
+  workspaceRoot?: string,
+  disableExecutionEnvironment?: boolean,
+  environment?: string,
+): Promise<NavigatorResult> {
+  const normalizedMode = validateMode(mode);
+  const absolutePath = await resolveAndValidateFilePath(
+    filePath,
+    workspaceRoot,
+  );
+
+  const environmentToUse = environment || "auto";
+  const { navigatorPath, shouldDisableEE: venvDisableEE } =
+    resolveNavigatorPath(workspaceRoot, environmentToUse);
+  const shouldDisableEE = disableExecutionEnvironment || venvDisableEE;
 
   return new Promise((resolve, reject) => {
     const args = ["run", absolutePath];
-    // Add mode if specified (default is stdout for non-interactive execution)
     const modeToUse = normalizedMode || "stdout";
     args.push("--mode", modeToUse);
 
-    // Automatically disable execution environment if using venv or explicitly requested
     if (shouldDisableEE) {
       args.push("--ee", "false");
     }
 
     args.push("--log-file", "/dev/null");
 
-    // Use the found path (could be from venv)
     const navProcess = spawn(quote([navigatorPath, ...args]), {
-      shell: true, // keep it
+      shell: true,
       env: process.env,
     });
 
@@ -384,7 +485,6 @@ export async function runAnsibleNavigator(
     let outputSize = 0;
     let timeoutCleared = false;
 
-    // Helper function to clear timeout safely
     const clearTimeoutSafely = () => {
       if (!timeoutCleared) {
         clearTimeout(timeout);
@@ -392,14 +492,35 @@ export async function runAnsibleNavigator(
       }
     };
 
-    // Set a timeout for the process (5 minutes)
+    const killAndReject = (error: Error) => {
+      if (!navProcess.killed) {
+        navProcess.kill();
+      }
+      clearTimeoutSafely();
+      reject(error);
+    };
+
+    const handleData = (chunk: Buffer | string, target: "out" | "err") => {
+      const dataStr = chunk.toString();
+      outputSize += Buffer.byteLength(dataStr);
+      if (outputSize > MAX_OUTPUT_SIZE) {
+        killAndReject(
+          new Error(
+            `Output exceeded maximum size limit of ${MAX_OUTPUT_SIZE / 1024 / 1024}MB. Process terminated.`,
+          ),
+        );
+        return;
+      }
+      if (target === "out") {
+        stdoutData += dataStr;
+      } else {
+        stderrData += dataStr;
+      }
+    };
+
     const timeout = setTimeout(
       () => {
-        if (!navProcess.killed) {
-          navProcess.kill();
-        }
-        clearTimeoutSafely();
-        reject(
+        killAndReject(
           new Error(
             "ansible-navigator process timed out after 5 minutes. The process was terminated.",
           ),
@@ -408,45 +529,13 @@ export async function runAnsibleNavigator(
       5 * 60 * 1000,
     );
 
-    // Capture standard output with size limit
-    navProcess.stdout.on("data", (data) => {
-      const dataStr = data.toString();
-      outputSize += Buffer.byteLength(dataStr);
-      if (outputSize > MAX_OUTPUT_SIZE) {
-        if (!navProcess.killed) {
-          navProcess.kill();
-        }
-        clearTimeoutSafely();
-        reject(
-          new Error(
-            `Output exceeded maximum size limit of ${MAX_OUTPUT_SIZE / 1024 / 1024}MB. Process terminated.`,
-          ),
-        );
-        return;
-      }
-      stdoutData += dataStr;
-    });
+    navProcess.stdout.on("data", (data: Buffer | string) =>
+      handleData(data, "out"),
+    );
+    navProcess.stderr.on("data", (data: Buffer | string) =>
+      handleData(data, "err"),
+    );
 
-    // Capture standard error (for debug output) with size limit
-    navProcess.stderr.on("data", (data) => {
-      const dataStr = data.toString();
-      outputSize += Buffer.byteLength(dataStr);
-      if (outputSize > MAX_OUTPUT_SIZE) {
-        if (!navProcess.killed) {
-          navProcess.kill();
-        }
-        clearTimeoutSafely();
-        reject(
-          new Error(
-            `Output exceeded maximum size limit of ${MAX_OUTPUT_SIZE / 1024 / 1024}MB. Process terminated.`,
-          ),
-        );
-        return;
-      }
-      stderrData += dataStr;
-    });
-
-    // Handle errors during process spawning (e.g., 'ansible-navigator' not found)
     navProcess.on("error", (err) => {
       clearTimeoutSafely();
       reject(
@@ -456,78 +545,102 @@ export async function runAnsibleNavigator(
       );
     });
 
-    // Handle process exit
     navProcess.on("close", (code) => {
       clearTimeoutSafely();
-
-      // Check for stderr-only errors (real error indicator)
-      if (stderrData && !stdoutData.trim()) {
-        if (isContainerEngineError(stderrData, "")) {
-          reject(
-            new Error(
-              buildContainerErrorMessage(stderrData, "", code ?? undefined),
-            ),
-          );
-          return;
-        }
-        reject(
-          new Error(
-            `ansible-navigator failed with exit code ${code}\n\nError output:\n${stderrData}`,
+      try {
+        resolve(
+          interpretProcessExit(
+            code,
+            stdoutData,
+            stderrData,
+            navigatorPath,
+            shouldDisableEE,
           ),
         );
-        return;
+      } catch (error) {
+        reject(error);
       }
-
-      // If process exits with non-zero code, check if it's container engine error vs playbook failure
-      if (code !== 0) {
-        if (isContainerEngineError(stderrData, stdoutData)) {
-          reject(
-            new Error(
-              buildContainerErrorMessage(
-                stderrData,
-                stdoutData,
-                code ?? undefined,
-              ),
-            ),
-          );
-          return;
-        }
-
-        // If we have stdout content, it's likely a playbook execution failure
-        // (e.g., unreachable hosts, task failures) - this is valid output from ansible-navigator
-        // We should return it as output, not reject it as an error
-        if (stdoutData.trim()) {
-          // Playbook execution failed, but ansible-navigator ran successfully
-          // Return the output with a note about the playbook failure
-          const outputWithNote = `Note: Playbook execution completed with exit code ${code} (playbook may have failed, but ansible-navigator executed successfully).\n\n${stdoutData}`;
-          resolve({
-            output: outputWithNote,
-            debugOutput: stderrData || undefined,
-            navigatorPath: navigatorPath,
-            executionEnvironmentDisabled: shouldDisableEE,
-          });
-          return;
-        }
-
-        // No stdout, but we already handled stderr-only case above
-        // This is a fallback for edge cases
-        const debugInfo = stderrData || "No output available";
-        const errorMessage = `ansible-navigator exited with code ${code}`;
-        const fullError = `${errorMessage}\n\nDebug output:\n${debugInfo}`;
-        reject(new Error(fullError));
-        return;
-      }
-
-      // Success case (exit code 0) - return output
-      // Even with exit code 0, include stderr as debug output if present
-      resolve({
-        output: stdoutData || "ansible-navigator completed successfully",
-        debugOutput: stderrData || undefined,
-        navigatorPath: navigatorPath,
-        executionEnvironmentDisabled: shouldDisableEE,
-      });
     });
   });
+}
+
+/**
+ * Formats the ansible-navigator output into a user-friendly message
+ */
+interface NavigatorDisplayMeta {
+  fileInfo: string;
+  isVenvPath: boolean;
+  venvPath: string | undefined;
+  actualEnvironment: string;
+  actualMode: string;
+  isDefaultMode: boolean;
+  eeDisabled: boolean;
+  eeStatus: string;
+}
+
+/**
+ * Derive display metadata from raw navigator parameters.
+ */
+function buildNavigatorDisplayMeta(
+  filePath?: string,
+  mode?: string,
+  disableExecutionEnvironment?: boolean,
+  navigatorPath?: string,
+  environment?: string,
+): NavigatorDisplayMeta {
+  const fileInfo = filePath ? ` for file: ${filePath}` : "";
+  const isVenvPath = Boolean(navigatorPath?.includes("/bin/ansible-navigator"));
+  const venvPath =
+    isVenvPath && navigatorPath ? navigatorPath.split("/bin/")[0] : undefined;
+
+  let actualEnvironment: string;
+  if (environment && environment !== "auto") {
+    actualEnvironment = environment;
+  } else {
+    actualEnvironment = isVenvPath
+      ? "venv (auto-detected)"
+      : "system (auto-detected)";
+  }
+
+  const actualMode = mode || "stdout";
+  const isDefaultMode = !mode || mode === "stdout";
+  const eeDisabled = Boolean(disableExecutionEnvironment || isVenvPath);
+  const eeStatus = eeDisabled
+    ? "disabled (using local Ansible)"
+    : "enabled (using Podman/Docker)";
+
+  return {
+    fileInfo,
+    isVenvPath,
+    venvPath,
+    actualEnvironment,
+    actualMode,
+    isDefaultMode,
+    eeDisabled,
+    eeStatus,
+  };
+}
+
+/**
+ * Build the "What This Means" explanation section.
+ */
+function buildExplanationSection(meta: NavigatorDisplayMeta): string {
+  let section = `\n**ℹ️  What This Means:**\n`;
+  if (meta.isDefaultMode) {
+    section += `- **By default**, ansible-navigator uses 'stdout' mode (full output)\n`;
+    section += `- You can use 'stdout-minimal' for less output or 'interactive' for a text UI\n`;
+  }
+  if (!meta.eeDisabled) {
+    section += `- **By default**, ansible-navigator runs in an execution environment (VM/Podman)\n`;
+    section += `- This provides isolated, containerized execution\n`;
+    section += `- **If Podman errors occur**, the tool automatically retries with local Ansible\n`;
+  } else if (meta.isVenvPath) {
+    section += `- Detected virtual environment, so execution environment was automatically disabled\n`;
+    section += `- Using your local Ansible installation from the venv\n`;
+  } else {
+    section += `- Execution environment is disabled, using your local Ansible installation\n`;
+  }
+  return section;
 }
 
 /**
@@ -542,61 +655,25 @@ export function formatNavigatorResult(
   navigatorPath?: string,
   environment?: string,
 ): string {
-  const fileInfo = filePath ? ` for file: ${filePath}` : "";
+  const meta = buildNavigatorDisplayMeta(
+    filePath,
+    mode,
+    disableExecutionEnvironment,
+    navigatorPath,
+    environment,
+  );
 
-  // Check if we're using a virtual environment version
-  const isVenvPath =
-    navigatorPath && navigatorPath.includes("/bin/ansible-navigator");
-  const venvPath = isVenvPath ? navigatorPath.split("/bin/")[0] : undefined;
+  const envSuffix = meta.venvPath ? ` → ${meta.venvPath}` : "";
+  const modeSuffix = meta.isDefaultMode ? " (default - shows full output)" : "";
 
-  // Determine actual environment used
-  const actualEnvironment =
-    environment && environment !== "auto"
-      ? environment
-      : isVenvPath
-        ? "venv (auto-detected)"
-        : "system (auto-detected)";
-
-  // Determine actual mode used
-  const actualMode = mode || "stdout";
-  const isDefaultMode = !mode || mode === "stdout";
-
-  // Determine execution environment status
-  const eeDisabled = disableExecutionEnvironment || isVenvPath;
-  const eeStatus = eeDisabled
-    ? "disabled (using local Ansible)"
-    : "enabled (using Podman/Docker)";
-
-  let formattedOutput = `ansible-navigator run completed${fileInfo}:\n\n`;
-
-  // User-friendly explanation section
+  let formattedOutput = `ansible-navigator run completed${meta.fileInfo}:\n\n`;
   formattedOutput += `✅ **Playbook executed successfully!**\n\n`;
-
   formattedOutput += `**📋 Configuration Used:**\n`;
-  formattedOutput += `- **Output Mode:** ${actualMode}${isDefaultMode ? " (default - shows full output)" : ""}\n`;
-  formattedOutput += `- **Environment:** ${actualEnvironment}`;
-  if (venvPath) {
-    formattedOutput += ` → ${venvPath}`;
-  }
-  formattedOutput += `\n`;
-  formattedOutput += `- **Execution Environment:** ${eeStatus}\n`;
+  formattedOutput += `- **Output Mode:** ${meta.actualMode}${modeSuffix}\n`;
+  formattedOutput += `- **Environment:** ${meta.actualEnvironment}${envSuffix}\n`;
+  formattedOutput += `- **Execution Environment:** ${meta.eeStatus}\n`;
 
-  // Explain defaults and what happened
-  formattedOutput += `\n**ℹ️  What This Means:**\n`;
-  if (isDefaultMode) {
-    formattedOutput += `- **By default**, ansible-navigator uses 'stdout' mode (full output)\n`;
-    formattedOutput += `- You can use 'stdout-minimal' for less output or 'interactive' for a text UI\n`;
-  }
-  if (!eeDisabled) {
-    formattedOutput += `- **By default**, ansible-navigator runs in an execution environment (VM/Podman)\n`;
-    formattedOutput += `- This provides isolated, containerized execution\n`;
-    formattedOutput += `- **If Podman errors occur**, the tool automatically retries with local Ansible\n`;
-  } else if (isVenvPath) {
-    formattedOutput += `- Detected virtual environment, so execution environment was automatically disabled\n`;
-    formattedOutput += `- Using your local Ansible installation from the venv\n`;
-  } else {
-    formattedOutput += `- Execution environment is disabled, using your local Ansible installation\n`;
-  }
+  formattedOutput += buildExplanationSection(meta);
 
   formattedOutput += `\n**🔧 Want to customize? Just ask me to:**\n`;
   formattedOutput += `- "Run with minimal output" → Uses stdout-minimal mode\n`;
@@ -615,3 +692,12 @@ export function formatNavigatorResult(
 
   return formattedOutput;
 }
+
+/** @internal Exposed only for unit tests; not part of the public API. */
+export const _testing = {
+  findNavigatorInSpecificVenv,
+  findNavigatorInCommonVenvs,
+  checkVenv,
+  checkAnsibleNavigatorAvailable,
+  resolveNavigatorPath,
+};

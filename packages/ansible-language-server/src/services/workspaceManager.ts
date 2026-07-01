@@ -63,7 +63,7 @@ export class WorkspaceManager {
   ): Promise<void> {
     await Promise.all(
       _.map(Array.from(this.folderContexts.values()), (folder) =>
-        callbackfn(folder),
+        Promise.resolve(callbackfn(folder)),
       ),
     );
   }

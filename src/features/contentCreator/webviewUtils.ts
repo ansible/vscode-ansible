@@ -40,10 +40,18 @@ interface MessageHandlerConfig {
 interface Message {
   type?: string;
   command?: string;
-  data?: any;
+  data?: unknown;
   homedir?: string;
   tempdir?: string;
-  arguments?: any;
+  arguments?: unknown;
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
 }
 
 class MessageRouter {
@@ -55,20 +63,50 @@ class MessageRouter {
     private commonState?: Partial<CommonWebviewState>,
   ) {
     this.typeHandlers = {
-      homeDirectory: (message) => this.onHomeDirectory(message.data),
-      folderSelected: (message) => this.onFolderSelected(message.data),
-      fileSelected: (message) => this.onFileSelected(message.data),
-      logs: (message) => this.onLogs(message.data),
+      homeDirectory: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onHomeDirectory(data);
+        }
+      },
+      folderSelected: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onFolderSelected(data);
+        }
+      },
+      fileSelected: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onFileSelected(data);
+        }
+      },
+      logs: (message) => {
+        const data = asString(message.data);
+        if (data !== undefined) {
+          this.onLogs(data);
+        }
+      },
     };
 
     this.commandHandlers = {
       homedirAndTempdir: (message) => {
-        if (message.homedir && message.tempdir) {
-          this.onHomedirAndTempdir(message.homedir, message.tempdir);
+        const homedir = asString(message.homedir);
+        const tempdir = asString(message.tempdir);
+        if (homedir && tempdir) {
+          this.onHomedirAndTempdir(homedir, tempdir);
         }
       },
-      "execution-log": (message) => this.onExecutionLog(message.arguments),
-      ADEPresence: (message) => this.onADEPresence(message.arguments),
+      "execution-log": (message) => {
+        if (isRecord(message.arguments)) {
+          this.onExecutionLog(message.arguments);
+        }
+      },
+      ADEPresence: (message) => {
+        if (typeof message.arguments === "boolean") {
+          this.onADEPresence(message.arguments);
+        }
+      },
     };
   }
 
@@ -114,24 +152,31 @@ class MessageRouter {
     }
   }
 
-  private onExecutionLog(args: any): void {
+  private onExecutionLog(args: unknown): void {
     this.config?.onExecutionLog?.(args);
 
     if (
-      this.commonState?.logs &&
-      this.commonState?.logFileUrl &&
-      this.commonState?.openLogFileButtonDisabled &&
-      this.commonState?.createButtonDisabled &&
-      this.commonState?.isCreating
+      !isRecord(args) ||
+      !this.commonState?.logs ||
+      !this.commonState?.logFileUrl ||
+      !this.commonState?.openLogFileButtonDisabled ||
+      !this.commonState?.createButtonDisabled ||
+      !this.commonState?.isCreating
     ) {
-      this.commonState.logs.value = args.commandOutput;
-      this.commonState.logFileUrl.value = args.logFileUrl;
-      this.commonState.openLogFileButtonDisabled.value = !args.logFileUrl;
-      this.commonState.createButtonDisabled.value = false;
+      return;
+    }
 
-      if (args.status === "passed" || args.status === "failed") {
-        this.commonState.isCreating.value = false;
-      }
+    const commandOutput = asString(args.commandOutput) ?? "";
+    const logFileUrl = asString(args.logFileUrl) ?? "";
+    const status = asString(args.status);
+
+    this.commonState.logs.value = commandOutput;
+    this.commonState.logFileUrl.value = logFileUrl;
+    this.commonState.openLogFileButtonDisabled.value = !logFileUrl;
+    this.commonState.createButtonDisabled.value = false;
+
+    if (status === "passed" || status === "failed") {
+      this.commonState.isCreating.value = false;
     }
   }
 
@@ -147,7 +192,18 @@ export function setupMessageHandler(
   const router = new MessageRouter(config, commonState);
 
   const messageHandler = (event: MessageEvent) => {
-    router.handle(event.data);
+    const payload: unknown = event.data;
+    if (!isRecord(payload)) {
+      return;
+    }
+    const msg = payload as Message;
+    if (msg.type !== undefined && typeof msg.type !== "string") {
+      return;
+    }
+    if (msg.command !== undefined && typeof msg.command !== "string") {
+      return;
+    }
+    router.handle(msg);
   };
 
   window.addEventListener("message", messageHandler);
@@ -237,14 +293,14 @@ export function initializeUI() {
 }
 
 export function clearAllFields(
-  fields: Record<string, Ref>,
-  defaults: Record<string, any> = {},
+  fields: Record<string, Ref<unknown>>,
+  defaults: Record<string, unknown> = {},
 ) {
   Object.keys(fields).forEach((key) => {
     if (defaults[key] !== undefined) {
       fields[key].value = defaults[key];
     } else {
-      const currentValue = fields[key].value;
+      const currentValue: unknown = fields[key].value;
       if (typeof currentValue === "string") {
         fields[key].value = "";
       } else if (typeof currentValue === "boolean") {

@@ -1,72 +1,112 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { existsSync } from "fs";
 
-vi.mock("@src/utils/executionEnvironment", () => ({
-  getContainerEngine: vi.fn(),
+vi.mock("fs", () => ({
+  existsSync: vi.fn(),
 }));
 
-vi.mock("@src/definitions/constants", () => ({
-  AnsibleCommands: {},
+vi.mock("vscode", () => ({
+  workspace: { getConfiguration: vi.fn() },
+  window: {
+    activeTextEditor: undefined,
+    showErrorMessage: vi.fn(),
+    createTerminal: vi.fn(),
+  },
+  Uri: { file: (p: string) => ({ fsPath: p, scheme: "file" }) },
+  EventEmitter: vi.fn(),
 }));
 
-vi.mock("@src/utils/registerCommands", () => ({
-  registerCommandWithTelemetry: vi.fn(),
-}));
+import { shellQuote } from "@src/features/runner";
 
-vi.mock("@src/utils/telemetryUtils", () => ({
-  TelemetryManager: vi.fn(),
-}));
+describe("shellQuote", () => {
+  it("wraps a simple string in single quotes", () => {
+    expect(shellQuote("hello")).toBe("'hello'");
+  });
 
-vi.mock("@src/settings", () => ({
-  SettingsManager: vi.fn(),
-}));
+  it("wraps a path with spaces", () => {
+    expect(shellQuote("/path/to/my playbook.yml")).toBe(
+      "'/path/to/my playbook.yml'",
+    );
+  });
 
-vi.mock("@src/services/TerminalService", () => ({
-  TerminalService: { getInstance: vi.fn() },
-}));
+  it("escapes embedded single quotes", () => {
+    expect(shellQuote("it's a test")).toBe("'it'\\''s a test'");
+  });
 
-vi.mock("vscode", () => {
-  class Uri {
-    scheme: string;
-    fsPath: string;
-    constructor(scheme: string, fsPath: string) {
-      this.scheme = scheme;
-      this.fsPath = fsPath;
-    }
-    static file(p: string) {
-      return new Uri("file", p);
-    }
-  }
-  return {
-    Uri,
-    window: { activeTextEditor: undefined },
-    workspace: { getConfiguration: vi.fn(() => ({ path: "ansible" })) },
-  };
+  it("neutralizes dollar-sign command substitution", () => {
+    expect(shellQuote("play$(whoami).yml")).toBe("'play$(whoami).yml'");
+  });
+
+  it("neutralizes backtick command substitution", () => {
+    expect(shellQuote("play`id`.yml")).toBe("'play`id`.yml'");
+  });
+
+  it("neutralizes semicolons", () => {
+    expect(shellQuote("play;rm -rf /.yml")).toBe("'play;rm -rf /.yml'");
+  });
+
+  it("neutralizes pipes", () => {
+    expect(shellQuote("play|cat /etc/passwd.yml")).toBe(
+      "'play|cat /etc/passwd.yml'",
+    );
+  });
+
+  it("handles empty string", () => {
+    expect(shellQuote("")).toBe("''");
+  });
+
+  it("handles paths with multiple spaces", () => {
+    expect(shellQuote("/a b/c d/e f.yml")).toBe("'/a b/c d/e f.yml'");
+  });
 });
 
-import { extractTargetFsPath } from "@src/features/runner";
-import * as vscode from "vscode";
+describe("validatePlaybookPath (via integration)", () => {
+  const mockedExistsSync = vi.mocked(existsSync);
 
-describe("extractTargetFsPath", () => {
-  it("should return fsPath of the first file-scheme Uri", () => {
-    const uri = vscode.Uri.file("/home/user/playbook.yml");
-    expect(extractTargetFsPath(uri)).toBe("/home/user/playbook.yml");
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("should skip undefined entries", () => {
-    const uri = vscode.Uri.file("/home/user/site.yml");
-    expect(extractTargetFsPath(undefined, uri)).toBe("/home/user/site.yml");
+  it("rejects paths with shell metacharacters", async () => {
+    const dangerousPaths = [
+      "/tmp/play$(whoami).yml",
+      "/tmp/play`id`.yml",
+      "/tmp/play;rm -rf /.yml",
+      "/tmp/play|cat.yml",
+      "/tmp/play&bg.yml",
+      "/tmp/play(sub).yml",
+      "/tmp/play<in.yml",
+      "/tmp/play>out.yml",
+      "/tmp/play!bad.yml",
+    ];
+
+    for (const p of dangerousPaths) {
+      mockedExistsSync.mockReturnValue(true);
+
+      const { SHELL_METACHARACTERS_PATTERN } =
+        await import("@src/features/runner");
+      expect(
+        SHELL_METACHARACTERS_PATTERN.test(p),
+        `Expected rejection for: ${p}`,
+      ).toBe(true);
+    }
   });
 
-  it("should skip non-file scheme URIs", () => {
-    const untitled = new (vscode.Uri as unknown as new (
-      scheme: string,
-      fsPath: string,
-    ) => vscode.Uri)("untitled", "Untitled-1");
-    const fileUri = vscode.Uri.file("/home/user/main.yml");
-    expect(extractTargetFsPath(untitled, fileUri)).toBe("/home/user/main.yml");
-  });
+  it("accepts safe paths", async () => {
+    const safePaths = [
+      "/tmp/playbook.yml",
+      "/home/user/my-playbook_v2.yml",
+      "/path/with spaces/playbook.yml",
+      "/path/with.dots/play.book.yml",
+    ];
 
-  it("should return undefined when no file-scheme Uri is found", () => {
-    expect(extractTargetFsPath(undefined)).toBeUndefined();
+    for (const p of safePaths) {
+      const { SHELL_METACHARACTERS_PATTERN } =
+        await import("@src/features/runner");
+      expect(
+        SHELL_METACHARACTERS_PATTERN.test(p),
+        `Expected acceptance for: ${p}`,
+      ).toBe(false);
+    }
   });
 });

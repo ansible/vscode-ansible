@@ -24,7 +24,7 @@ export class SchemaValidator {
       return []; // YAML errors handled elsewhere
     }
 
-    const data = yamlDoc.toJSON();
+    const data: unknown = yamlDoc.toJSON();
     if (data == null) {
       return [];
     }

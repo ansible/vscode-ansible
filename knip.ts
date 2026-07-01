@@ -17,6 +17,11 @@ const config: KnipConfig = {
     ],
   },
   includeEntryExports: true,
+  ignoreBinaries: [
+    "adt", // Ansible Development Tools CLI; on $PATH in CI/test env, not an npm bin
+    "ansible-creator", // external pip-installed CLI invoked via spawnSync
+    "which", // POSIX system utility for resolving executables on $PATH
+  ],
   ignoreDependencies: [
     "@biomejs/biome",
     "@types/vscode",
@@ -27,9 +32,11 @@ const config: KnipConfig = {
     "cypress-multi-reporters",
     "eslint-formatter-gha",
     "eslint-formatter-unix",
+    "markdownlint-cli2",
     "mocha-multi-reporters",
     "mocha-junit-reporter",
     "ovsx",
+    "pnpm",
     "ts-node", // used by wdio autoCompileOpts, not directly imported
     // The following genuine runtime deps are only added in --production mode
     // because knip cannot trace them there:
@@ -126,6 +133,7 @@ const config: KnipConfig = {
     // These helpers are exported for test access only; test files are excluded
     // in production mode. They live in package.json#exports entry files so
     // includeEntryExports:false should suppress them, but the global true wins.
+    "packages/ansible-language-server/test/globalSetup.ts": ["exports"],
     "packages/ansible-language-server/src/providers/completionProvider.ts": [
       "exports",
     ],
@@ -145,6 +153,7 @@ const config: KnipConfig = {
     "packages/ansible-mcp-server/src/server.ts": ["exports"],
     "packages/ansible-mcp-server/src/tools/adeTools.ts": ["types", "exports"],
     "packages/ansible-mcp-server/src/tools/executionEnv.ts": ["types"],
+    "packages/ansible-mcp-server/src/utils/pathValidation.ts": ["exports"],
   },
 };
 

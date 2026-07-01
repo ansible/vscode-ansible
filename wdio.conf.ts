@@ -1,16 +1,23 @@
 /// <reference types="wdio-vscode-service" />
+import { execFileSync } from "node:child_process";
+import { mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const testRoot = path.resolve(process.cwd(), ".wdio-vscode");
 const extensionsDir = path.join(testRoot, "extensions");
+const coverageTempDir = path.resolve(
+  process.cwd(),
+  "out/tmp/.v8-coverage-wdio",
+);
+
+function prepareCoverageCollection(): void {
+  rmSync(coverageTempDir, { recursive: true, force: true });
+  mkdirSync(coverageTempDir, { recursive: true });
+  process.env.NODE_V8_COVERAGE = coverageTempDir;
+}
 
 export const config: WebdriverIO.Config = {
   runner: "local",
-  autoCompileOpts: {
-    tsNodeOpts: {
-      project: "./test/wdio/tsconfig.json",
-    },
-  },
   specs: ["./test/wdio/**/*.spec.ts"],
   maxInstances: 1,
 
@@ -30,6 +37,7 @@ export const config: WebdriverIO.Config = {
           "extensions-dir": extensionsDir,
           "disable-extensions": false,
           "disable-gpu": true,
+          "no-sandbox": true,
         },
       },
     },
@@ -53,5 +61,12 @@ export const config: WebdriverIO.Config = {
   mochaOpts: {
     ui: "bdd",
     timeout: 120000,
+  },
+  onPrepare: prepareCoverageCollection,
+  onComplete: () => {
+    execFileSync("node", ["tools/wdio-coverage.mts"], {
+      cwd: process.cwd(),
+      stdio: "inherit",
+    });
   },
 };

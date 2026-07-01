@@ -83,7 +83,9 @@ class EventEmitter<T> {
   };
 
   fire(data: T) {
-    this.listeners.forEach((listener) => listener(data));
+    this.listeners.forEach((listener) => {
+      listener(data);
+    });
   }
 
   dispose() {

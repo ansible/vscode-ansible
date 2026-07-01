@@ -10,17 +10,21 @@ import vue from "@vitejs/plugin-vue";
 // current project.
 const als_root = resolve(__dirname, "packages", "ansible-language-server");
 const mcp_root = resolve(__dirname, "packages", "ansible-mcp-server");
+// ALS unit tests use podman/docker and a Linux-oriented toolchain; skip on Windows
+// (matches packages/ansible-language-server/Taskfile.yml test platforms).
+const skipAlsTests = process.platform === "win32";
 // Save real HOME before any globalSetup overrides it.
 // ALS @ee tests need the original HOME — rootless podman is ~60x slower
 // with a redirected HOME directory.
-process.env._ALS_ORIGINAL_HOME =
-  process.env.HOME || process.env.USERPROFILE || "";
+if (!skipAlsTests) {
+  process.env._ALS_ORIGINAL_HOME =
+    process.env.HOME || process.env.USERPROFILE || "";
+}
 
 const reporters = ["default", "junit"]; // text-summary shows only overall coverage stats, skipping per-file details
 if (process.env.GITHUB_ACTIONS) {
   reporters.push("github-actions");
 }
-const coverage_reporters = ["cobertura", "lcovonly", "text-summary", "text"];
 
 // Disable coverage when the user is running a targeted subset of tests, e.g.:
 //   vitest -t "my test name"
@@ -40,6 +44,35 @@ const isFiltered = process.argv.slice(2).some((arg) => {
   // A positional arg that is not a flag and not a vitest subcommand is a file filter
   return !arg.startsWith("-") && !vitestSubcommands.has(arg);
 });
+
+const alsVitestProject = {
+  extends: true as const,
+  resolve: {
+    alias: {
+      "@src": path.resolve(als_root, "src"),
+      "@test": path.resolve(als_root, "test"),
+    },
+  },
+  test: {
+    name: "als",
+    globals: true,
+    globalSetup: [`${als_root}/test/globalSetup.ts`],
+    environment: "node",
+    exclude: ["node_modules", "out"],
+    fileParallelism: false,
+    include: ["test/**/*.test.ts"],
+    isolate: true, // required or will produce MaxListenersExceededWarning warnings
+    root: als_root, // ensure reports have valid paths
+    testTimeout: 60000, // same as mocha timeout (60 seconds)
+    hookTimeout: 30000, // self-hosted WSL runner needs more than the 10s default
+    setupFiles: [`${als_root}/test/vitestSetup.ts`],
+    sequence: {
+      concurrent: false,
+      groupOrder: 2,
+    },
+    //slowTestThreshold: 8000, // tests with >8s will show duration in yellow/red
+  },
+};
 
 export default defineConfig({
   test: {
@@ -78,33 +111,7 @@ export default defineConfig({
           exclude: [],
         },
       },
-      {
-        extends: true,
-        resolve: {
-          alias: {
-            "@src": path.resolve(als_root, "src"),
-            "@test": path.resolve(als_root, "test"),
-          },
-        },
-        test: {
-          name: "als",
-          globals: true,
-          globalSetup: [`${als_root}/test/globalSetup.ts`],
-          environment: "node",
-          exclude: ["node_modules", "out"],
-          fileParallelism: false,
-          include: ["test/**/*.test.ts"],
-          isolate: true, // required or will produce MaxListenersExceededWarning warnings
-          root: als_root, // ensure reports have valid paths
-          testTimeout: 60000, // same as mocha timeout (60 seconds)
-          setupFiles: [`${als_root}/test/vitestSetup.ts`],
-          sequence: {
-            concurrent: false,
-            groupOrder: 2,
-          },
-          //slowTestThreshold: 8000, // tests with >8s will show duration in yellow/red
-        },
-      },
+      ...(skipAlsTests ? [] : [alsVitestProject]),
       {
         extends: true,
         resolve: {
@@ -140,14 +147,20 @@ export default defineConfig({
       exclude: [],
       include: [
         "src/**/**.{js,jsx,ts,tsx}",
-        "packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}",
+        ...(skipAlsTests
+          ? []
+          : ["packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}"]),
         "packages/ansible-mcp-server/src/**/*.{js,jsx,ts,tsx}",
         "webviews/**/*.{ts,vue}",
       ], // Include source files, workspace packages, and webviews for coverage
       provider: "v8",
       reportOnFailure: false,
       reportsDirectory: `${__dirname}/out/coverage/unit`,
-      reporter: coverage_reporters,
+      reporter: [
+        ["lcovonly", { file: "lcov.info", projectRoot: __dirname }],
+        "text-summary",
+        "text",
+      ],
       skipFull: true,
       thresholds: {
         // We cannot enable until we normalize the results across all platforms.

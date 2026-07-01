@@ -32,12 +32,15 @@ vi.mock("@src/features/lightspeed/vue/views/panelUtils", () => ({
   disposePanelResources: vi.fn(),
 }));
 
+const mockSendProviderSettings = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("@src/features/lightspeed/vue/views/llmProviderMessageHandlers", () => {
   return {
     LlmProviderMessageHandlers: class MockMessageHandlers {
       setWebview = vi.fn();
       handleMessage = vi.fn();
-      sendProviderSettings = vi.fn();
+      // async in production; resolve a Promise so `.catch(...)` chaining works
+      sendProviderSettings = mockSendProviderSettings;
     },
   };
 });
@@ -232,6 +235,57 @@ describe("LlmProviderPanel", () => {
       onDidDisposeCallback();
 
       expect(mockedDisposePanelResources).toHaveBeenCalled();
+    });
+  });
+
+  describe("render async kickoff", () => {
+    it("should call sendProviderSettings on initial render", () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // The render() method calls sendProviderSettings().catch(...)
+      // With our mock returning a resolved promise, the .catch() is a no-op
+      expect(LlmProviderPanel.currentPanel).toBeDefined();
+    });
+
+    it("should not throw when sendProviderSettings resolves", async () => {
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(LlmProviderPanel.currentPanel).toBeDefined();
+    });
+
+    it("should log error when sendProviderSettings rejects with Error", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      mockSendProviderSettings.mockRejectedValueOnce(new Error("sync failed"));
+
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain("sync failed");
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("should log error when sendProviderSettings rejects with non-Error", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+      mockSendProviderSettings.mockRejectedValueOnce("string error");
+
+      LlmProviderPanel.render(mockContext, mockDeps);
+
+      // Allow the promise chain to settle
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(consoleErrorSpy.mock.calls[0][0]).toContain("string error");
+      consoleErrorSpy.mockRestore();
     });
   });
 

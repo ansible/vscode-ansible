@@ -34,8 +34,6 @@ Please visit
 for any instructions about installation, configuration and usage, including on
 how to contribute to it.
 
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
-
 ## Features
 
 - Ansible language server support with: [syntax highlighting], [validation],
@@ -61,3 +59,8 @@ how to contribute to it.
   https://docs.ansible.com/projects/vscode-ansible/#content-creation-tools
 [LightSpeed]:
   https://docs.ansible.com/projects/vscode-ansible/#ansible-lightspeed
+
+## Contribution hints
+
+- Do not use `env FOO=BAR command` as this does not work on Windows. When
+  adding new code prefer portable one that works on all platforms.

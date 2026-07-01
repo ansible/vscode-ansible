@@ -405,7 +405,9 @@ describe("TerminalService", function () {
   describe("dispose", function () {
     it("should dispose all subscriptions", function () {
       service.dispose();
-      expect(() => service.dispose()).not.toThrow();
+      expect(() => {
+        service.dispose();
+      }).not.toThrow();
     });
   });
 

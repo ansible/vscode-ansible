@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { expect, beforeAll, afterAll } from "vitest";
-import { Diagnostic, Position, integer } from "vscode-languageserver";
+import { Diagnostic, integer } from "vscode-languageserver";
 import {
   doValidate,
   getYamlValidation,
@@ -92,11 +92,11 @@ function testAnsibleLintErrors(
           severity: 1,
           message: "Variables names",
           range: {
-            start: { line: 4, character: 4 } as Position,
+            start: { line: 4, character: 4 },
             end: {
               line: 4,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -104,11 +104,11 @@ function testAnsibleLintErrors(
           severity: 1,
           message: "All tasks should be named",
           range: {
-            start: { line: 6, character: 0 } as Position,
+            start: { line: 6, character: 0 },
             end: {
               line: 6,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -117,11 +117,11 @@ function testAnsibleLintErrors(
           message:
             "Command module does not accept setting environment variables inline.",
           range: {
-            start: { line: 14, character: 0 } as Position,
+            start: { line: 14, character: 0 },
             end: {
               line: 14,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -129,11 +129,11 @@ function testAnsibleLintErrors(
           severity: 1,
           message: "Commands should not change things if nothing needs doing.",
           range: {
-            start: { line: 14, character: 0 } as Position,
+            start: { line: 14, character: 0 },
             end: {
               line: 14,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -141,11 +141,11 @@ function testAnsibleLintErrors(
           severity: 1,
           message: "Use FQCN for builtin module actions (command).",
           range: {
-            start: { line: 15, character: 6 } as Position,
+            start: { line: 15, character: 6 },
             end: {
               line: 15,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -153,11 +153,11 @@ function testAnsibleLintErrors(
           severity: 2,
           message: "should not use a relative path",
           range: {
-            start: { line: 18, character: 0 } as Position,
+            start: { line: 18, character: 0 },
             end: {
               line: 18,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "ansible-lint",
         },
@@ -187,11 +187,11 @@ function testAnsibleSyntaxCheckErrorsInAnsibleLint(
           severity: 1,
           message: "--syntax-check",
           range: {
-            start: { line: 0, character: 0 } as Position,
+            start: { line: 0, character: 0 },
             end: {
               line: 0,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "Ansible",
         },
@@ -270,11 +270,11 @@ function testAnsibleSyntaxCheckNoHost(
 
           message: "field 'hosts' is required but was not set",
           range: {
-            start: { line: 0, character: 0 } as Position,
+            start: { line: 0, character: 0 },
             end: {
               line: 0,
               character: integer.MAX_VALUE,
-            } as Position,
+            },
           },
           source: "Ansible",
         },
@@ -300,11 +300,11 @@ function testInvalidYamlFile(textDoc: TextDocument) {
           severity: 1,
           message: "Nested mappings are not allowed",
           range: {
-            start: { line: 6, character: 13 } as Position,
+            start: { line: 6, character: 13 },
             end: {
               line: 6,
               character: 14,
-            } as Position,
+            },
           },
           source: "Ansible [YAML]",
         },
@@ -312,11 +312,11 @@ function testInvalidYamlFile(textDoc: TextDocument) {
           severity: 1,
           message: "Unexpected scalar at node end",
           range: {
-            start: { line: 7, character: 0 } as Position,
+            start: { line: 7, character: 0 },
             end: {
               line: 7,
               character: 6,
-            } as Position,
+            },
           },
           source: "Ansible [YAML]",
         },
@@ -324,11 +324,11 @@ function testInvalidYamlFile(textDoc: TextDocument) {
           severity: 1,
           message: "Unexpected map-value-ind",
           range: {
-            start: { line: 7, character: 6 } as Position,
+            start: { line: 7, character: 6 },
             end: {
               line: 7,
               character: 7,
-            } as Position,
+            },
           },
           source: "Ansible [YAML]",
         },
@@ -336,11 +336,11 @@ function testInvalidYamlFile(textDoc: TextDocument) {
           severity: 1,
           message: "Unexpected scalar token in YAML stream",
           range: {
-            start: { line: 7, character: 8 } as Position,
+            start: { line: 7, character: 8 },
             end: {
               line: 7,
               character: 12,
-            } as Position,
+            },
           },
           source: "Ansible [YAML]",
         },

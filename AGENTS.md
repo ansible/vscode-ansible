@@ -8,6 +8,7 @@ This document provides guidelines for AI agents working on this codebase.
 
 - **Always validate changes**: Run `task lint` and `task test` and resolve any reported build issues.
 - **Avoid `__dirname`**: Do not use `__dirname` in new code. It doesn't work well with transpiled code as relative paths differ when files are transpiled. Use `PROJECT_ROOT` from `test/setup.ts` instead.
+- Always use `npm exec --` instead of `npx` because it can cause accidental installation of unversioned packages from `npmjs.com` when this is not desired, also they can prevent unattended usage occasionally.
 
 ## Pull Request Checklist
 

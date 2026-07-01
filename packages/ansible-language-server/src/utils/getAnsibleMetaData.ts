@@ -22,7 +22,7 @@ export interface ansibleMetaDataType {
   "ansible information"?: ansibleMetaDataEntryType;
   "python information"?: ansibleMetaDataEntryType;
   "ansible-lint information"?: ansibleMetaDataEntryType;
-  "execution environment information"?: ansibleMetaDataEntryType | undefined;
+  "execution environment information"?: ansibleMetaDataEntryType;
 }
 
 export async function getAnsibleMetaData(
@@ -215,7 +215,7 @@ async function getExecutionEnvironmentInfo() {
           encoding: "utf-8",
         },
       ),
-    );
+    ) as Record<string, unknown>;
     eeServiceWorking = true;
   } catch (error) {
     eeServiceWorking = false;

@@ -13,13 +13,15 @@ dev = [
   "ansible-navigator>=25.5.0",
   "cython>=3.0.5 ; python_full_version >= '3.12'",
   "ipdb>=0.13.13",
-  "mkdocs-ansible>=25.6.2",
   "mypy>=1.17.1",
   "pip>26.0.0",  # security reasons
   "pipx>=1.8.0",
   "pygithub>=2.8.1",
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
+]
+docs = [
+  "zensical>=0.0.45",
 ]
 lint = [
   "codespell[toml]>=2.4.1",
@@ -35,6 +37,7 @@ check-filenames = true
 check-hidden = true
 ignore-words-list = [
   "als",
+  "falsy",
   "ro",
   "stdio",
   "isPlay",
@@ -84,6 +87,7 @@ ignore = [
   "B005",
   "PERF203",
   "PLR2004",
+  "PLW0717",
   "ARG001",
 ]
 select = ["ALL"]
@@ -100,8 +104,12 @@ sort_inline_tables = true
 sort_table_keys = true
 
 [tool.uv]
+# Enable once https://github.com/astral-sh/uv/issues/18708 is fixed
+# exclude-newer = "3 days"
 package = false
 default-groups = "all"
+# exclude-newer-package = { ansible-dev-tools = "0 seconds", ansible-navigator = "0 seconds", ansible-creator = "0 seconds", ansible-lint = "0 seconds", ansible-core = "0 seconds", ansible-dev-environment = "0 seconds", tox-ansible = "0 seconds", pytest-ansible = "0 seconds", molecule = "0 seconds", ansible-builder = "0 seconds", ansible-sign = "0 seconds" }
+python-downloads = "automatic"
 
 [tool.uv.pip]
 annotation-style = "line"

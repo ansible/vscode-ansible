@@ -12,30 +12,30 @@ import {
 } from "@src/interfaces/pluginRouting.js";
 import { globArray } from "@src/utils/pathUtils.js";
 
-export async function findDocumentation(
+export function findDocumentation(
   dir: string,
   kind:
     | "builtin"
     | "collection"
     | "builtin_doc_fragment"
     | "collection_doc_fragment",
-): Promise<IModuleMetadata[]> {
+): IModuleMetadata[] {
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
   }
   let files;
   switch (kind) {
     case "builtin":
-      files = await globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
+      files = globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
       break;
     case "builtin_doc_fragment":
-      files = await globArray([
+      files = globArray([
         `${path.resolve(dir, "../")}/plugins/doc_fragments/*.py`,
         "!/**/_*.py",
       ]);
       break;
     case "collection":
-      files = await globArray([
+      files = globArray([
         `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
         `${dir}/ansible_collections/*/*/plugins/modules/**/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
@@ -43,7 +43,7 @@ export async function findDocumentation(
       ]).filter((item) => !fs.lstatSync(item).isSymbolicLink());
       break;
     case "collection_doc_fragment":
-      files = await globArray([
+      files = globArray([
         `${dir}/ansible_collections/*/*/plugins/doc_fragments/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/doc_fragments/_*.py`,
       ]);
@@ -97,12 +97,10 @@ export async function findPluginRouting(
   let files;
   switch (kind) {
     case "builtin":
-      files = await globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
+      files = globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
       break;
     case "collection":
-      files = await globArray([
-        `${dir}/ansible_collections/*/*/meta/runtime.yml`,
-      ]);
+      files = globArray([`${dir}/ansible_collections/*/*/meta/runtime.yml`]);
       break;
   }
   for (const file of files) {
@@ -123,7 +121,7 @@ export async function findPluginRouting(
     const runtimeContent = await fs.promises.readFile(file, {
       encoding: "utf8",
     });
-    const document = parseDocument(runtimeContent).toJSON();
+    const document: unknown = parseDocument(runtimeContent).toJSON();
     pluginRouting.set(collection, parseRawRouting(document));
   }
 

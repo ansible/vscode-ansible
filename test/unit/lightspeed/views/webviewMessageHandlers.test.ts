@@ -301,16 +301,15 @@ describe("WebviewMessageHandlers", () => {
 
   describe("System handlers", () => {
     it("should handle getHomeDirectory with workspace folders", () => {
-      const mockWorkspaceFolders = [
+      const mockWorkspaceFolders: readonly vscode.WorkspaceFolder[] = [
         {
-          uri: { fsPath: "/workspace/path" },
+          uri: { fsPath: "/workspace/path" } as vscode.Uri,
           name: "workspace",
           index: 0,
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockWorkspaceFolders as any,
+        mockWorkspaceFolders,
       );
 
       const message = { type: "getHomeDirectory", data: {} };
@@ -323,16 +322,15 @@ describe("WebviewMessageHandlers", () => {
     });
 
     it("should handle ui-mounted with workspace folders", () => {
-      const mockWorkspaceFolders = [
+      const mockWorkspaceFolders: readonly vscode.WorkspaceFolder[] = [
         {
-          uri: { fsPath: "/workspace/path" },
+          uri: { fsPath: "/workspace/path" } as vscode.Uri,
           name: "workspace",
           index: 0,
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockWorkspaceFolders as any,
+        mockWorkspaceFolders,
       );
 
       const message = { type: "ui-mounted", data: {} };
@@ -370,7 +368,7 @@ describe("WebviewMessageHandlers", () => {
         data: { content: "test playbook" },
       };
 
-      messageHandlers["handleSetPlaybookData"](message, mockWebview);
+      messageHandlers["handleSetData"](message, mockWebview);
 
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "setPlaybookData",
@@ -384,7 +382,7 @@ describe("WebviewMessageHandlers", () => {
         data: { content: "test role" },
       };
 
-      messageHandlers["handleSetRoleData"](message, mockWebview);
+      messageHandlers["handleSetData"](message, mockWebview);
 
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "setRoleData",
@@ -965,16 +963,15 @@ describe("WebviewMessageHandlers", () => {
 
   describe("Helper methods", () => {
     it("should get workspace folder when it exists", () => {
-      const mockWorkspaceFolders = [
+      const mockWorkspaceFolders: readonly vscode.WorkspaceFolder[] = [
         {
-          uri: { path: "/workspace/path" },
+          uri: { path: "/workspace/path" } as vscode.Uri,
           name: "workspace",
           index: 0,
         },
       ];
       vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockWorkspaceFolders as any,
+        mockWorkspaceFolders,
       );
 
       const result = messageHandlers["getWorkspaceFolder"]();

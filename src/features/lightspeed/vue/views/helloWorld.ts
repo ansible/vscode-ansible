@@ -18,7 +18,9 @@ export class MainPanel {
       context,
       "hello-world",
       this._disposables,
-      () => this.dispose(),
+      () => {
+        this.dispose();
+      },
     );
   }
 

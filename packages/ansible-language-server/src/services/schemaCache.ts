@@ -43,7 +43,9 @@ export class SchemaCache {
       this.connection.console.info(`Fetched schema: ${url}`);
       return schema;
     } catch (err) {
-      this.connection.console.warn(`Failed to fetch schema ${url}: ${err}`);
+      this.connection.console.warn(
+        `Failed to fetch schema ${url}: ${err instanceof Error ? err.message : String(err)}`,
+      );
       // Return stale cache if available
       return cached?.schema;
     }

@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "vitest";
 import sinon from "sinon";
+import { Connection } from "vscode-languageserver";
 import { ExecutionEnvironment } from "@src/services/executionEnvironment.js";
+import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 const mockConnection = {
   window: {
@@ -42,12 +44,12 @@ describe("@ee", () => {
   beforeEach(() => {
     sandbox = sinon.createSandbox();
     mockContext.documentSettings.get.reset();
-    Object.values(mockConnection.console).forEach(
-      (fn) => fn.reset && fn.reset(),
-    );
-    Object.values(mockConnection.window).forEach(
-      (fn) => fn.reset && fn.reset(),
-    );
+    Object.values(mockConnection.console).forEach((fn) => {
+      fn.reset?.();
+    });
+    Object.values(mockConnection.window).forEach((fn) => {
+      fn.reset?.();
+    });
   });
 
   afterEach(() => {
@@ -57,8 +59,8 @@ describe("@ee", () => {
   describe("constructor", () => {
     it("should initialize properties", () => {
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       expect(ee.isServiceInitialized).toBe(false);
     });
@@ -70,8 +72,8 @@ describe("@ee", () => {
         executionEnvironment: { enabled: false },
       });
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       await ee.initialize();
       expect(ee.isServiceInitialized).toBe(true);
@@ -80,8 +82,8 @@ describe("@ee", () => {
     it("should set isServiceInitialized false if setContainerEngine fails", async () => {
       mockContext.documentSettings.get.resolves(mockSettings);
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       sandbox.stub(ee as any, "setContainerEngine").returns(false);
       await ee.initialize();
@@ -91,8 +93,8 @@ describe("@ee", () => {
     it("should set isServiceInitialized false if pullContainerImage fails", async () => {
       mockContext.documentSettings.get.resolves(mockSettings);
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       sandbox.stub(ee as any, "setContainerEngine").returns(true);
       sandbox.stub(ee as any, "pullContainerImage").resolves(false);
@@ -103,8 +105,8 @@ describe("@ee", () => {
     it("should set isServiceInitialized true if all steps succeed", async () => {
       mockContext.documentSettings.get.resolves(mockSettings);
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       sandbox.stub(ee as any, "setContainerEngine").returns(true);
       sandbox.stub(ee as any, "pullContainerImage").resolves(true);
@@ -115,9 +117,27 @@ describe("@ee", () => {
     it("should handle errors and set isServiceInitialized false", async () => {
       mockContext.documentSettings.get.rejects(new Error("fail"));
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
+      await ee.initialize();
+      expect(ee.isServiceInitialized).toBe(false);
+      expect(mockConnection.window.showErrorMessage.called).toBe(true);
+    });
+
+    it("should reject unsafe containerOptions during initialize", async () => {
+      mockContext.documentSettings.get.resolves({
+        ...mockSettings,
+        executionEnvironment: {
+          ...mockSettings.executionEnvironment,
+          containerOptions: "; touch /tmp/cve-44191",
+        },
+      });
+      const ee = new ExecutionEnvironment(
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
+      );
+      sandbox.stub(ee as any, "setContainerEngine").returns(true);
       await ee.initialize();
       expect(ee.isServiceInitialized).toBe(false);
       expect(mockConnection.window.showErrorMessage.called).toBe(true);
@@ -127,8 +147,8 @@ describe("@ee", () => {
   describe("wrapContainerArgs", () => {
     it("should return undefined if not initialized", () => {
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       const result = ee.wrapContainerArgs("echo hello");
       expect(result).toBeUndefined();
@@ -136,8 +156,8 @@ describe("@ee", () => {
 
     it("should generate a container command string", () => {
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       ee.isServiceInitialized = true;
       (ee as any)._container_engine = "docker";
@@ -145,17 +165,19 @@ describe("@ee", () => {
       (ee as any).settingsVolumeMounts = [];
       (ee as any).settingsContainerOptions = "";
       const result = ee.wrapContainerArgs("echo hello", new Set(["/tmp"]));
-      expect(result).toContain("docker run --rm");
+      expect(result).toBeDefined();
+      expect(result?.join(" ")).toContain("docker run --rm");
       expect(result).toContain("test-image");
-      expect(result).toContain("echo hello");
+      expect(result).toContain("echo");
+      expect(result).toContain("hello");
     });
   });
 
   describe("getBasicContainerAndImageDetails", () => {
     it("should return basic details", () => {
       const ee = new ExecutionEnvironment(
-        mockConnection as any,
-        mockContext as any,
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
       );
       (ee as any)._container_engine = "docker";
       (ee as any)._container_image = "test-image";

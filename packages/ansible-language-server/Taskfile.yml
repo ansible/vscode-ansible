@@ -31,16 +31,17 @@ tasks:
       - setup
     cmds:
       - pnpm run compile
-      - pnpm exec ansible-language-server --generate-docs ../../docs/als/settings.md
+      - node dist/cli.cjs --generate-docs ../../docs/als/settings.md
     generates:
       - lib/**/*.*
     sources:
+      - ../../.config/mise.toml
       - ../../pnpm-lock.yaml
       - package.json
       - src/**/*.*
       - test/**/*.*
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
       - ../../tsconfig*.json
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
@@ -51,7 +52,9 @@ tasks:
       TMPDIR: "{{ .TASKFILE_DIR }}/../../out/als/tmp"
     deps:
       - build
+    platforms: [linux, darwin]
     sources:
+      - ../../.config/mise.toml
       - ../../pyproject.toml
       - ../../uv.lock
       - ../../vitest.config.ts
@@ -76,6 +79,7 @@ tasks:
       - |
         . {{.VIRTUAL_ENV}}/bin/activate && bash -c 'pnpm run test-with-ee'
     interactive: true
+    platforms: [linux, darwin]
   test-without-ee:
     desc: Run only non-ee tests
     dir: '{{ .TASKFILE_DIR }}'
@@ -84,25 +88,26 @@ tasks:
     cmds:
       - bash -c '. {{.VIRTUAL_ENV}}/bin/activate && pnpm run test-without-ee'
     interactive: true
+    platforms: [linux, darwin]
   package:
     desc: Package {{ .PROJECT }}
     deps:
       - build
     dir: "{{ .TASKFILE_DIR }}"
     sources:
-      - ../../docs/als/changelog.md
       - README.md
       - package*.json
       - tsconfig.json
-      - tsup.config.ts
+      - tsdown.config.ts
     generates:
       - dist/**/*
       - '{{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-{{ .VERSION }}.tgz'
     cmds:
       - rm -f {{ .GIT_ROOT }}/out/ansible-{{ .PROJECT }}-*.tgz
-      - npm version {{ .VERSION }} --no-git-tag-version
-      - npm pack --silent --pack-destination '{{ .GIT_ROOT }}/out'
-      - defer: npm version 0.0.0 --no-git-tag-version
+      - npm pkg set version={{ .VERSION }}
+      - pnpm run compile
+      - npm pack --silent --ignore-scripts --pack-destination '{{ .GIT_ROOT }}/out'
+      - defer: npm pkg set version=0.0.0
     silent: false
   release:
     desc: Create a new release (used by CI)
