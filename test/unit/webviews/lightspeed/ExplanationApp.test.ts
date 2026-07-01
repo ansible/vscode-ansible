@@ -3,6 +3,12 @@ import { mount, flushPromises } from "@vue/test-utils";
 import ExplanationApp from "@webviews/lightspeed/src/ExplanationApp.vue";
 import { vscodeApi } from "@webviews/lightspeed/src/utils/vscode";
 
+function getHandler(name: string) {
+  return vi
+    .mocked(vscodeApi.on)
+    .mock.calls.find((call) => call[0] === name)?.[1];
+}
+
 describe("ExplanationApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -266,6 +272,91 @@ describe("ExplanationApp", () => {
 
       const feedbackBox = wrapper.findComponent({ name: "FeedbackBox" });
       expect(feedbackBox.props("telemetryEnabled")).toBe(false);
+    });
+  });
+
+  describe("role explanation - empty content fallback", () => {
+    it("shows the no-explanation fallback when explainRole returns empty content", async () => {
+      const wrapper = mount(ExplanationApp);
+
+      void getHandler("setRoleData")?.({
+        files: [{ path: "tasks/main.yml", content: "- debug: msg=hello" }],
+        roleName: "my_role",
+      });
+      await flushPromises();
+
+      void getHandler("explainRole")?.({ content: "" });
+      await flushPromises();
+
+      expect(wrapper.html()).toContain("No explanation provided");
+    });
+  });
+
+  describe("watcher guard branches (no fetch triggered)", () => {
+    it("does not fetch a playbook explanation when fileName is missing", async () => {
+      mount(ExplanationApp);
+      vi.mocked(vscodeApi.post).mockClear();
+
+      // content truthy but fileName falsy -> watch short-circuits, no fetch.
+      void getHandler("setPlaybookData")?.({
+        content: "- hosts: all\n  tasks: []",
+        fileName: "",
+      });
+      await flushPromises();
+
+      expect(vscodeApi.post).not.toHaveBeenCalledWith(
+        "explainPlaybook",
+        expect.anything(),
+      );
+    });
+
+    it("does not fetch a playbook explanation when content is empty", async () => {
+      const wrapper = mount(ExplanationApp);
+      vi.mocked(vscodeApi.post).mockClear();
+
+      void getHandler("setPlaybookData")?.({
+        content: "",
+        fileName: "/path/to/playbook.yml",
+      });
+      await flushPromises();
+
+      expect(vscodeApi.post).not.toHaveBeenCalledWith(
+        "explainPlaybook",
+        expect.anything(),
+      );
+      // Still in the initial loading state (fetch never ran).
+      expect(wrapper.find(".codicon-loading").exists()).toBe(true);
+    });
+
+    it("does not fetch a role explanation when files is empty", async () => {
+      mount(ExplanationApp);
+      vi.mocked(vscodeApi.post).mockClear();
+
+      // files.length === 0 -> watch short-circuits.
+      void getHandler("setRoleData")?.({ files: [], roleName: "my_role" });
+      await flushPromises();
+
+      expect(vscodeApi.post).not.toHaveBeenCalledWith(
+        "explainRole",
+        expect.anything(),
+      );
+    });
+
+    it("does not fetch a role explanation when roleName is missing", async () => {
+      mount(ExplanationApp);
+      vi.mocked(vscodeApi.post).mockClear();
+
+      // files present but roleName falsy -> watch short-circuits.
+      void getHandler("setRoleData")?.({
+        files: [{ path: "tasks/main.yml", content: "- debug: msg=hi" }],
+        roleName: "",
+      });
+      await flushPromises();
+
+      expect(vscodeApi.post).not.toHaveBeenCalledWith(
+        "explainRole",
+        expect.anything(),
+      );
     });
   });
 });

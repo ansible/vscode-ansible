@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { LightSpeedManager } from "@src/features/lightspeed/base";
 import { getRoleNamePathFromFilePath } from "@src/features/lightspeed/utils/getRoleNamePathFromFilePath";
 import {
@@ -69,7 +69,7 @@ export function watchRolesDirectory(
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (workspaceFolders) {
         const workspaceFolder = workspaceFolders[0].uri.fsPath;
-        if (dirPath in ansibleRolesCache[workspaceFolder]) {
+        if (dirPath in (ansibleRolesCache[workspaceFolder] ?? {})) {
           Reflect.deleteProperty(ansibleRolesCache[workspaceFolder], dirPath);
         }
       }
