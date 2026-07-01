@@ -274,7 +274,7 @@ export const COMMON_DEPENDENCIES = {
     minVersion: "3.8.0",
     versionCommand: "python3 --version",
     versionParser: (output: string) => {
-      const match = output.match(/Python (\d+\.\d+\.\d+)/);
+      const match = /Python (\d+\.\d+\.\d+)/.exec(output);
       return match ? match[1] : null;
     },
   },

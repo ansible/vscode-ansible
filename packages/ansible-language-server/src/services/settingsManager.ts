@@ -10,7 +10,7 @@ import type {
 export class SettingsManager {
   private connection: Connection | null;
   private clientSupportsConfigRequests;
-  private configurationChangeHandlers: Map<string, { (): void }> = new Map();
+  private configurationChangeHandlers: Map<string, () => void> = new Map();
 
   // cache of document settings per workspace file
   private documentSettings: Map<string, Thenable<ExtensionSettings>> =

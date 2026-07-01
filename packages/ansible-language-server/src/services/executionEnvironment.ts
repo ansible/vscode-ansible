@@ -29,7 +29,7 @@ export class ExecutionEnvironment {
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
-  private successFileMarker = "SUCCESS";
+  private readonly successFileMarker = "SUCCESS";
   private settingsVolumeMounts: string[] = [];
   private settingsContainerOptions: string | undefined = undefined;
   private _container_engine: IContainerEngine | undefined = undefined;
@@ -283,8 +283,7 @@ export class ExecutionEnvironment {
 
     if (this._container_engine === "podman") {
       // container namespace stuff
-      containerCommand.push("--group-add=root");
-      containerCommand.push("--ipc=host");
+      containerCommand.push("--group-add=root", "--ipc=host");
 
       // docker does not support this option
       containerCommand.push("--quiet");

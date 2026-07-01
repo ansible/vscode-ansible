@@ -1,9 +1,9 @@
-import * as child_process from "child_process";
+import * as child_process from "node:child_process";
 import { existsSync, promises as fs } from "node:fs";
-import { promisify } from "util";
+import { promisify } from "node:util";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
-import * as path from "path";
+import * as path from "node:path";
 
 export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));

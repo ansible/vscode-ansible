@@ -303,9 +303,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
       inlineSuggestionCommitHandler,
     ),
-  );
-
-  context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
       async (
@@ -316,16 +313,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await inlineSuggestionHideHandler(userAction);
       },
     ),
-  );
-
-  context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
       inlineSuggestionTriggerHandler,
     ),
-  );
-
-  context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
       (

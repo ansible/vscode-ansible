@@ -185,7 +185,7 @@ function getPathAtOffset(
   doc: Document,
 ): Node[] | null {
   if (path) {
-    const currentNode = path[path.length - 1];
+    const currentNode = path.at(-1);
     if (isMap(currentNode)) {
       let pair = _.find(currentNode.items, (p) =>
         contains(p.key as Node, offset, inclusive),
@@ -585,16 +585,11 @@ export function isPlaybook(textDocument: TextDocument): boolean {
   const taskKeywordsList = [...taskKeywords.keys()];
 
   //   Filters out all play keywords that are task keywords
-  const filteredList = playKeywordsList.filter(
-    (value) => !taskKeywordsList.includes(value),
+  const filteredSet = new Set(
+    playKeywordsList.filter((value) => !taskKeywordsList.includes(value)),
   );
 
-  //   Check if any top-level key of the ansible file is a part of filtered list
-  //    If it is: The file is a playbook
-  //    Else: The file is not a playbook
-  const isPlaybookValue = playbookKeys.some((r: string) =>
-    filteredList.includes(r),
-  );
+  const isPlaybookValue = playbookKeys.some((r: string) => filteredSet.has(r));
 
   return isPlaybookValue;
 }

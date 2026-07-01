@@ -181,15 +181,14 @@ export class AnsiblePlaybookRunProvider {
  * @param priorityPathObjs - Target file path candidates.
  * @returns A path to the currently selected file.
  */
-function extractTargetFsPath(
+export function extractTargetFsPath(
   ...priorityPathObjs: vscode.Uri[] | undefined[]
 ): string | undefined {
-  const pathCandidates: vscode.Uri[] = [
+  const firstFilePath = [
     ...priorityPathObjs,
     vscode.window.activeTextEditor?.document.uri,
   ]
-    .filter((p) => p instanceof vscode.Uri)
-    .map((p) => p)
-    .filter((p) => p.scheme === "file");
-  return pathCandidates[0]?.fsPath;
+    .filter((p): p is vscode.Uri => p instanceof vscode.Uri)
+    .find((p) => p.scheme === "file");
+  return firstFilePath?.fsPath;
 }

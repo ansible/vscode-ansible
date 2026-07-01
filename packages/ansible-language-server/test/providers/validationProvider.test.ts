@@ -406,6 +406,7 @@ describe("doValidate()", function () {
 
     describe("Ansible diagnostics", function () {
       describe("Diagnostics using ansible-lint", function () {
+        // EE tests require a container runtime (podman/docker) unavailable in standard CI
         describe.skip("@ee", function () {
           beforeAll(async () => {
             setFixtureAnsibleCollectionPathEnv(
@@ -444,6 +445,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
+            // EE tests require a container runtime (podman/docker) unavailable in standard CI
             describe.skip("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
