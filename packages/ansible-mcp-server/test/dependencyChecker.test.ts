@@ -323,5 +323,15 @@ describe("Dependency Checker", () => {
       expect(COMMON_DEPENDENCIES.python.name).toBe("python3");
       expect(COMMON_DEPENDENCIES.python.command).toBe("python3");
     });
+
+    it("should parse python version from output", () => {
+      const parser = COMMON_DEPENDENCIES.python.versionParser;
+      expect(parser).toBeDefined();
+      if (parser) {
+        expect(parser("Python 3.11.4")).toBe("3.11.4");
+        expect(parser("Python 3.8.0")).toBe("3.8.0");
+        expect(parser("no version here")).toBeNull();
+      }
+    });
   });
 });

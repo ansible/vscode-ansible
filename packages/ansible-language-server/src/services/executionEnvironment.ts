@@ -55,7 +55,7 @@ export class ExecutionEnvironment {
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
-  private successFileMarker = "SUCCESS";
+  private readonly successFileMarker = "SUCCESS";
   private settingsVolumeMounts: string[] = [];
   private settingsContainerOptions: string | undefined = undefined;
   private _container_engine: IContainerEngine | undefined = undefined;
@@ -319,7 +319,9 @@ export class ExecutionEnvironment {
     containerCommand.push("exec");
     containerCommand.push("--workdir", shellQuote(workspaceFolderPath));
 
-    containerCommand.push(...ansibleEnvArgs());
+    if (this._container_engine === "podman") {
+      // container namespace stuff
+      containerCommand.push("--group-add=root", "--ipc=host");
 
     containerCommand.push(this._persistentContainerName);
     containerCommand.push(command);
