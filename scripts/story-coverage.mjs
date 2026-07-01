@@ -235,8 +235,7 @@ if (lcovPath) {
     const sourceLines = sortedStories.map(([id, meta]) => `${id}: ${meta.title}`);
     writeFileSync(sourcePath, sourceLines.join('\n') + '\n', 'utf-8');
 
-    const sfRelative = '.sdlc/user-stories.coverage.txt';
-    const lcovLines = [`TN:user-story-coverage`, `SF:${sfRelative}`];
+    const lcovLines = [`TN:user-story-coverage`, `SF:${relative(ROOT, sourcePath)}`];
     let linesHit = 0;
     for (let i = 0; i < sortedStories.length; i++) {
         const hit = coverageMap.has(sortedStories[i][0]) ? 1 : 0;
