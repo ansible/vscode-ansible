@@ -108,16 +108,19 @@ describe("OutlineReview", () => {
       props: { outline: "1. a\n2. b", type: "playbook" as const },
       attachTo: document.body,
     });
-    const textarea = wrapper.find("#outline-field");
-    const el = textarea.element as HTMLTextAreaElement;
-    el.value = "1. Install nginx\nConfigure";
-    el.selectionStart = el.value.length;
-    await textarea.trigger("input");
+    try {
+      const textarea = wrapper.find("#outline-field");
+      const el = textarea.element as HTMLTextAreaElement;
+      el.value = "1. Install nginx\nConfigure";
+      el.selectionStart = el.value.length;
+      await textarea.trigger("input");
 
-    const emitted = wrapper.emitted("outlineUpdate");
-    expect(emitted).toBeTruthy();
-    expect(emitted?.[0]?.[0]).toBe("1. Install nginx\n2. Configure");
-    wrapper.unmount();
+      const emitted = wrapper.emitted("outlineUpdate");
+      expect(emitted).toBeTruthy();
+      expect(emitted?.[0]?.[0]).toBe("1. Install nginx\n2. Configure");
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   it("removes a line that is only a bare line number", async () => {
@@ -125,15 +128,18 @@ describe("OutlineReview", () => {
       props: { outline: "1. a\n2.\n3. c", type: "playbook" as const },
       attachTo: document.body,
     });
-    const textarea = wrapper.find("#outline-field");
-    const el = textarea.element as HTMLTextAreaElement;
-    el.value = "1. a\n2.\n3. c";
-    el.selectionStart = 7; // end of the bare "2."
-    await textarea.trigger("input");
+    try {
+      const textarea = wrapper.find("#outline-field");
+      const el = textarea.element as HTMLTextAreaElement;
+      el.value = "1. a\n2.\n3. c";
+      el.selectionStart = 7; // end of the bare "2."
+      await textarea.trigger("input");
 
-    const emitted = wrapper.emitted("outlineUpdate");
-    expect(emitted?.[0]?.[0]).toBe("1. a\n2. c");
-    wrapper.unmount();
+      const emitted = wrapper.emitted("outlineUpdate");
+      expect(emitted?.[0]?.[0]).toBe("1. a\n2. c");
+    } finally {
+      wrapper.unmount();
+    }
   });
 
   it("handles the cursor sitting right after a newline", async () => {
@@ -141,13 +147,16 @@ describe("OutlineReview", () => {
       props: { outline: "1. a\n2. b", type: "playbook" as const },
       attachTo: document.body,
     });
-    const textarea = wrapper.find("#outline-field");
-    const el = textarea.element as HTMLTextAreaElement;
-    el.value = "1. a\n2. b";
-    el.selectionStart = 5; // char before is "\n"
-    await textarea.trigger("input");
+    try {
+      const textarea = wrapper.find("#outline-field");
+      const el = textarea.element as HTMLTextAreaElement;
+      el.value = "1. a\n2. b";
+      el.selectionStart = 5; // char before is "\n"
+      await textarea.trigger("input");
 
-    expect(wrapper.emitted("outlineUpdate")).toBeTruthy();
-    wrapper.unmount();
+      expect(wrapper.emitted("outlineUpdate")).toBeTruthy();
+    } finally {
+      wrapper.unmount();
+    }
   });
 });

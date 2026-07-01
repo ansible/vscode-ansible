@@ -83,14 +83,14 @@ describe("vscodeApi (real WebviewApi)", () => {
     expect(fake.postMessage).toHaveBeenCalledWith({ command: "ping" });
   });
 
-  it("on() registers a success listener fired by a window 'message' event", async () => {
+  it("on() registers a success listener fired by a globalThis 'message' event", async () => {
     const fake = makeFakeApi();
     const api = await loadFresh(() => fake);
 
     const success = vi.fn();
     api.on("evt", success);
 
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new MessageEvent("message", { data: { type: "evt", data: "payload" } }),
     );
 
@@ -105,7 +105,7 @@ describe("vscodeApi (real WebviewApi)", () => {
     api.on("evt", success);
     api.off("evt");
 
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new MessageEvent("message", { data: { type: "evt", data: "payload" } }),
     );
 
@@ -120,7 +120,7 @@ describe("vscodeApi (real WebviewApi)", () => {
     api.on("evt", success);
 
     // No type key at all -> _runListener early returns
-    window.dispatchEvent(
+    globalThis.dispatchEvent(
       new MessageEvent("message", { data: { data: "payload" } }),
     );
 
@@ -134,22 +134,23 @@ describe("vscodeApi (real WebviewApi)", () => {
 
     const promise = api.postAndReceive<string>("evt", { q: 1 });
 
-    // wrong origin is ignored ...
-    window.dispatchEvent(
+    // postAndReceive's receive handler checks e.origin.startsWith("vscode-webview://"),
+    // so a non-vscode-webview origin with matching type is ignored.
+    globalThis.dispatchEvent(
       new MessageEvent("message", {
         origin: "https://evil.example",
         data: { type: "evt", data: "nope" },
       }),
     );
-    // ... wrong type is ignored ...
-    window.dispatchEvent(
+    // wrong type is also ignored by the receive handler's type check.
+    globalThis.dispatchEvent(
       new MessageEvent("message", {
         origin: "vscode-webview://abc",
         data: { type: "other", data: "nope" },
       }),
     );
-    // ... correct origin + type resolves.
-    window.dispatchEvent(
+    // correct origin + type resolves.
+    globalThis.dispatchEvent(
       new MessageEvent("message", {
         origin: "vscode-webview://abc",
         data: { type: "evt", data: "result" },
