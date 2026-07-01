@@ -136,33 +136,9 @@ jobs:
 
       - name: Run UI tests
         run: xvfb-run --auto-servernum pnpm run test:ui
-        env:
-          WDIO_COVERAGE: "1"
 
       - name: Run Lightspeed UI tests
         run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
-        env:
-          WDIO_COVERAGE: "1"
-
-      - name: Upload WDIO coverage to Codecov
-        if: ${{ always() && hashFiles('coverage/wdio/lcov.info') != '' }}
-        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
-        with:
-          files: ./coverage/wdio/lcov.info
-          flags: wdio
-          disable_search: true
-          fail_ci_if_error: false
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
-
-      - name: Upload WDIO coverage for SonarCloud
-        if: ${{ !cancelled() && hashFiles('coverage/wdio/lcov.info') != '' }}
-        uses: ansible/actions/upload-artifact@b2b0657c2e1d083cf979eba2fd04ae79e5ab3900 # v1.1.2
-        with:
-          name: sonar-coverage-wdio-${{ github.run_attempt }}
-          path: |
-            coverage/**/lcov.info
-          if-no-files-found: ignore
-          retention-days: 7
 
   docs:
     runs-on: ubuntu-latest

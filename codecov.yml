@@ -1,12 +1,12 @@
 codecov:
   require_ci_to_pass: false
   notify:
-    after_n_builds: 5
+    after_n_builds: 4
     wait_for_ci: true
 comment:
   layout: "condensed_header, condensed_files, condensed_footer"
   require_changes: "coverage_drop OR uncovered_patch"
-  after_n_builds: 5
+  after_n_builds: 4
 coverage:
   status:
     patch: false
@@ -20,8 +20,6 @@ flag_management:
     - name: unit-node24
       carryforward: false
     - name: unit-node26
-      carryforward: false
-    - name: wdio
       carryforward: false
     - name: wsl-fedora
       carryforward: false

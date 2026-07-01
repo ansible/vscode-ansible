@@ -100,7 +100,7 @@
     "overrides": [
         {
             "filename": ".sdlc/**",
-            "words": ["BYOLLM", "GSTACK", "PKCE", "bunfig", "cooldown", "edgedriver", "elicitations", "kiro", "Mondoo", "Palo", "taskfile", "unrs"]
+            "words": ["BYOLLM", "GSTACK", "PKCE", "bunfig", "cooldown", "edgedriver", "elicitations", "kiro", "monocart", "Mondoo", "Palo", "taskfile", "unrs"]
         }
     ]
 }
