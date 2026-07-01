@@ -1,0 +1,54 @@
+AI-001: AI collection summary
+AI-002: AI plugin explanation
+AI-003: Schema-driven task generation
+AI-004: Natural language playbook generation
+AI-005: Natural language role generation
+AI-006: AI plugin discovery
+AI-007: Select LLM model and provider
+AI-008: Browse and use MCP tools
+AI-009: Configure MCP for external AI clients
+AI-010: Browse AI skills
+COL-001: Browse installed collections
+COL-002: Search plugins by keyword
+COL-003: View plugin documentation
+COL-004: Generate sample tasks from plugin docs
+COL-005: Search remote collections
+COL-006: Browse uninstalled plugin documentation
+COL-007: Install collection from sidebar
+COL-008: Manage collection sources
+EE-001: Discover execution environment images
+EE-002: Inspect EE contents
+EE-003: AI EE summary
+ENV-001: Discover Python environments
+ENV-002: Create virtual environment
+ENV-003: Select Python environment
+ENV-004: View installed dev tools and versions
+ENV-005: Install ansible-dev-tools
+ENV-006: Upgrade dev tools
+ENV-007: Python environment status bar
+LS-001: Sign in to Ansible Lightspeed
+LS-002: Generate playbook via Lightspeed
+LS-003: Generate role via Lightspeed
+LS-004: Explain playbook via Lightspeed
+LS-005: Inline code suggestions
+LS-006: Lightspeed error resilience
+LSP-001: Ansible file detection
+LSP-002: Syntax highlighting
+LSP-003: Auto-completion for module names
+LSP-004: Auto-completion for module options
+LSP-005: Hover documentation
+LSP-006: Diagnostics and linting
+LSP-007: Vault encrypt and decrypt
+LSP-008: YAML and JSON schema validation
+PLB-001: Discover playbooks in workspace
+PLB-002: Configure playbook execution parameters
+PLB-003: Run playbook in terminal
+PLB-004: Real-time playbook progress visualization
+PLB-005: AI explanation of playbook failure
+PLB-006: AI playbook summary
+SCF-001: Scaffold new Ansible content
+SCF-002: Live CLI command preview
+SCF-003: Auto-adapt to creator schema
+XC-001: Extension activation and sidebar
+XC-002: Graceful degradation without AI
+XC-003: Helpful empty and error states
