@@ -15,3 +15,4 @@ docs/.astro/
 docs/dist/
 packages/common/src/skills/*.content.ts
 **/*.tgz
+.cursor/hooks/state/continual-learning.json

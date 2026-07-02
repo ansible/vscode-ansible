@@ -1,4 +1,4 @@
-name: CI
+name: next
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        id: [linux]
+        id: [linux, macos]
         node-version: [24]
         runs-on:
           - ubuntu-latest
