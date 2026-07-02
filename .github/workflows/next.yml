@@ -19,11 +19,15 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        id: [linux, macos]
+        id: [linux]
         node-version: [24]
         runs-on:
-          - ubuntu-latest
+          [ubuntu-latest]
           # - windows-2022
+        include:
+          - id: macos
+            node-version: 24
+            runs-on: macos-latest
     timeout-minutes: 20
 
     steps:
@@ -64,7 +68,7 @@ jobs:
 
           - name: Run integration tests
             if: runner.os != 'Windows'
-            run: xvfb-run --auto-servernum pnpm run test:integration
+            run: pnpm run test:integration
 
       - parallel:
           - name: Pre-install Chromedriver
@@ -79,13 +83,13 @@ jobs:
 
       - name: Run UI tests
         if: runner.os != 'Windows'
-        run: xvfb-run --auto-servernum pnpm run test:ui
+        run: pnpm run test:ui
         env:
           WDIO_COVERAGE: "1"
 
       - name: Run Lightspeed UI tests
         if: runner.os != 'Windows'
-        run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
+        run: pnpm run test:lightspeed:ui
         env:
           WDIO_COVERAGE: "1"
 
