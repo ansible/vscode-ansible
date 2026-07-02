@@ -71,7 +71,7 @@ src/                # VS Code extension host (views, panels, commands)
 | -------------------------- | -------------------------------------- | ------------------------------------------ |
 | `pnpm run compile`         | Skill codegen + `tsc -b`               | After any code change                      |
 | `pnpm run build`           | esbuild bundling                       | Before testing the extension or MCP server |
-| `pnpm run lint`            | All linters via prek (eslint, cspell, markdownlint, etc.) | Check for lint violations |
+| `pnpm run lint`            | All linters via prek (eslint, knip, cspell, markdownlint, etc.) | Check for lint violations |
 | `pnpm test`                | Vitest (no coverage)                   | Quick test run                             |
 | `pnpm run test:coverage`   | Vitest with coverage thresholds        | Match CI thresholds (85/75/85/85)          |
 | `pnpm run check`           | compile + lint + test                  | Iterative development                      |

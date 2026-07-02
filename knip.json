@@ -28,7 +28,7 @@
         "ts-node",
         "@wdio/globals"
       ],
-      "ignoreBinaries": ["prek", "code", "gh", "powershell"]
+      "ignoreBinaries": ["code", "gh", "powershell"]
     },
     "packages/language-server": {
       "project": ["src/**/*.ts", "test/**/*.ts"]
