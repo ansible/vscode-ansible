@@ -96,7 +96,6 @@ See the `branching-strategy` skill for full details.
 
 `pnpm run ci` requires two tools that are **not** pnpm dependencies:
 
-- **prek** — pre-commit hook runner (`pipx install prek`)
 - **uv** — Python package runner, provides `uvx` (`pipx install uv`)
 
 Both are installed automatically in CI. Contributors must install them
