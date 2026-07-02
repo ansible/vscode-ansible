@@ -49,7 +49,6 @@ jobs:
             run: |
               pipx install uv
               pnpm run lint
-              pnpm run lint:knip
 
           - name: package
             if: runner.os != 'Windows'

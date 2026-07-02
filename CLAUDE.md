@@ -84,9 +84,9 @@ New user-facing functionality should have a user story added — use the
 ### Linting
 
 ```bash
-pnpm run lint            # All linters via prek (eslint, skillmark, cspell, markdownlint, actionlint, file hygiene)
+pnpm run lint            # All linters via prek (eslint, knip, cspell, markdownlint, actionlint, file hygiene)
 pnpm run lint:eslint     # ESLint only (via prek hook)
-pnpm run lint:knip       # Find unused files, deps, and exports (knip)
+pnpm run lint:knip       # Unused files, deps, and exports (via prek hook)
 ```
 
 ### Packaging & Release
@@ -113,7 +113,7 @@ pnpm run docs:preview    # Preview built docs
 ## Code Quality
 
 - **ESLint** — TypeScript/JavaScript linting (`eslint.config.mjs`)
-- **prek** — Git hook manager (`prek.toml`); runs skillmark, cspell, markdownlint, actionlint, file hygiene, commitlint, and the custom skill frontmatter checker
+- **prek** — Git hook manager (`prek.toml`); runs eslint, knip, cspell, markdownlint, actionlint, file hygiene, commitlint, and the custom skill frontmatter checker
 - **cspell** — Spell checking for markdown, TypeScript, docs (`.cspell.json`)
 - **markdownlint** — Markdown linting (`.markdownlint.json`)
 - **actionlint** — GitHub Actions workflow validation
@@ -127,7 +127,7 @@ pnpm run docs:preview    # Preview built docs
 
 Before committing:
 
-1. `pnpm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, ESLint, prek hooks, knip (unused deps/exports), vitest with coverage thresholds, and esbuild bundling.
+1. `pnpm run ci` — required before every commit/push. Runs skill codegen, TypeScript compilation, prek hooks (eslint, knip, cspell, markdownlint, actionlint, file hygiene), vitest with coverage thresholds, and esbuild bundling.
 2. After any code change, run `pnpm run compile && pnpm run build` — the extension loads from `dist/` (esbuild bundles) and stale bundles mask bugs.
 3. Optionally run `prek install` to activate git hooks for commit-time validation.
 

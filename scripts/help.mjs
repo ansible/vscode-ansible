@@ -31,13 +31,13 @@ const catalog = [
     "test:story-coverage": "User story WDIO coverage report (threshold gate)",
   }],
   ["Linting", {
-    lint: "All linters via prek (eslint, cspell, markdownlint, etc.)",
+    lint: "All linters via prek (eslint, knip, cspell, markdownlint, etc.)",
     "lint:eslint": "Run ESLint via prek hook",
-    "lint:knip": "Find unused files, deps, and exports (knip)",
+    "lint:knip": "Find unused files, deps, and exports (via prek hook)",
   }],
   ["Quality Gates", {
     check: "compile + lint + test (iterative development)",
-    ci: "Full CI: compile + lint (prek) + knip + test:coverage + build",
+    ci: "Full CI: compile + lint (prek) + test:coverage + build",
   }],
   ["Packaging", {
     package: "Create .vsix package",

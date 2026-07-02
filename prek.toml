@@ -106,3 +106,12 @@ language = "system"
 pass_filenames = false
 always_run = true
 priority = 0
+
+[[repos.hooks]]
+id = "knip"
+name = "knip"
+entry = "pnpm exec knip"
+language = "system"
+pass_filenames = false
+always_run = true
+priority = 0
