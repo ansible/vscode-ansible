@@ -1127,7 +1127,7 @@
     "jsdom": "^29.1.1",
     "knip": "^6.20.0",
     "lodash": "^4.18.1",
-    "markdownlint-cli2": "^0.22.1",
+    "markdownlint-cli2": "^0.23.0",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "ovsx": "^1.0.2",

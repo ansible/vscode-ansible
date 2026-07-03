@@ -9,7 +9,7 @@ creator_resources_path="$(uv run python -c "from pathlib import Path; import ans
 mkdir -p resources/contentCreator/createDevcontainer
 mkdir -p resources/contentCreator/createDevfile
 ln -fs "$creator_resources_path/common/devfile/devfile.yaml.j2" "resources/contentCreator/createDevfile/devfile-template.txt"
-ln -fs "$creator_resources_path/common/devcontainer/.devcontainer" "resources/contentCreator/createDevcontainer/"
+ln -sfn "$creator_resources_path/common/devcontainer/.devcontainer" "resources/contentCreator/createDevcontainer/.devcontainer"
 
 log notice "Using $(python3 --version) from $(uv run which python3)"
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
