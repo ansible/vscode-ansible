@@ -9,9 +9,9 @@ overrides:
   fast-uri@3: '>=3.1.2'
   fastify: '>=5.8.3'
   form-data@4: '>=4.0.6'
-  js-yaml@4: '>=4.2.0 <5'
-  protobufjs@7: '>=7.6.3'
+  js-yaml@4: '>=4.2.0'
   markdown-it: '>=14.2.0'
+  protobufjs@7: '>=7.6.3'
   serialize-javascript: '>=7.0.5'
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
@@ -12436,8 +12436,8 @@ snapshots:
       jsonc-parser: 3.3.1
       jsonpointer: 5.0.1
       markdown-it: 14.2.0
-      markdownlint: 0.40.0
-      markdownlint-cli2-formatter-default: 0.0.6(markdownlint-cli2@0.22.1)
+      markdownlint: 0.41.0
+      markdownlint-cli2-formatter-default: 0.0.6(markdownlint-cli2@0.23.0)
       micromatch: 4.0.8
       smol-toml: 1.7.0
     transitivePeerDependencies:
@@ -12770,7 +12770,7 @@ snapshots:
       glob: 10.5.0
       he: 1.2.0
       is-path-inside: 3.0.3
-      js-yaml: 4.3.0
+      js-yaml: 5.2.0
       log-symbols: 4.1.0
       minimatch: 9.0.9
       ms: 2.1.3
