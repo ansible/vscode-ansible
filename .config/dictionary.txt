@@ -58,6 +58,7 @@ esbuild
 eslintcache
 ffdx
 fqcn
+fqcns
 geckodriver
 genai
 haaaad
@@ -120,6 +121,7 @@ towerhost
 tsdown
 typedarrays
 unrs
+unstub
 uuidv
 vite
 vitest

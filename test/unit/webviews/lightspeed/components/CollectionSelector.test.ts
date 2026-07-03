@@ -152,4 +152,31 @@ describe("CollectionSelector", () => {
 
     expect(wrapper.emitted("update:collectionName")).toBeTruthy();
   });
+
+  it("filters fqcns on complete", async () => {
+    const wrapper = mount(CollectionSelector, {
+      props: { collectionName: "" },
+    });
+
+    const handler = vi
+      .mocked(vscodeApi.on)
+      .mock.calls.find((call) => call[0] === "getCollectionList")?.[1];
+    void handler?.([
+      { fqcn: "my.one", path: "/a" },
+      { fqcn: "other.two", path: "/b" },
+    ]);
+    await flushPromises();
+
+    const ac = wrapper.findComponent({ name: "AutoComplete" });
+
+    // empty query -> all fqcns
+    ac.vm.$emit("complete", { query: "" });
+    await flushPromises();
+    expect(ac.props("suggestions")).toEqual(["my.one", "other.two"]);
+
+    // prefix query -> filtered to fqcns starting with "my"
+    ac.vm.$emit("complete", { query: "my" });
+    await flushPromises();
+    expect(ac.props("suggestions")).toEqual(["my.one"]);
+  });
 });
