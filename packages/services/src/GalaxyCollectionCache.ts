@@ -470,12 +470,13 @@ export class GalaxyCollectionCache {
             // Show dismissable error message with details (only in extension mode)
             const errorMessage = error instanceof Error ? error.message : String(error);
             if (vscode) {
-                vscode.window
-                    .showErrorMessage(
+                void Promise.resolve(
+                    vscode.window.showErrorMessage(
                         `Failed to load Galaxy collections: ${errorMessage}`,
                         { modal: false },
                         'Retry',
-                    )
+                    ),
+                )
                     .then((selection) => {
                         if (selection === 'Retry') {
                             this._loaded = false;
@@ -483,6 +484,9 @@ export class GalaxyCollectionCache {
                             this._loadPromise = undefined;
                             this.startBackgroundLoad();
                         }
+                    })
+                    .catch(() => {
+                        // UI interaction rejected — safe to ignore
                     });
             } else {
                 log(`Failed to load Galaxy collections: ${errorMessage}`);
