@@ -365,7 +365,7 @@ export class AnsibleCreatorOperations {
     const projectPayload = payload as AnsibleProjectFormInterface;
     const { destinationPath, namespaceName, collectionName } = projectPayload;
 
-    const destinationUrl = destinationPath ? destinationPath : os.homedir();
+    const destinationUrl = destinationPath || os.homedir();
 
     const command = await this.getPlaybookCreatorCommand(
       namespaceName,
