@@ -1023,205 +1023,63 @@ export class WebviewMessageHandlers {
 
       const {
         destinationPath,
-        verbosity,
-        isOverwritten,
         isCreateContextEnabled,
         isBuildImageEnabled,
         isInitEEProjectEnabled,
-        baseImage,
-        customBaseImage,
-        collections,
-        systemPackages,
-        pythonPackages,
-        tag,
       } = payload;
 
-      let commandResult: string;
-      let message: string;
       let commandOutput = "";
-
       commandOutput += `---------------------------------------- Execution environment generation logs ---------------------------------------\n`;
 
       const destinationPathUrl = destinationPath || this.getWorkspaceFolder();
       const filePath = `${destinationPathUrl}/execution-environment.yml`;
       const fileExists = fs.existsSync(expandPath(filePath));
-      let executionFileCreated = false;
 
-      if (fileExists && !isOverwritten) {
-        message = `Error: Execution environment file already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
-        commandOutput += `${message}\n`;
-        commandResult = "failed";
-      } else {
-        const jsonData: ExecutionEnvironmentDefinition = {
-          version: 3,
-          images: {
-            base_image: {
-              name: baseImage || customBaseImage,
-            },
-          },
-          dependencies: {
-            ansible_core: { package_pip: "ansible-core" },
-            ansible_runner: { package_pip: "ansible-runner" },
-          },
-          options: {
-            tags: [tag],
-          },
-        };
-
-        const collectionsArray = collections
-          .split(",")
-          .map((col) => col.trim())
-          .filter((col) => col !== "");
-
-        if (collectionsArray.length > 0) {
-          jsonData.dependencies.galaxy = {
-            collections: collectionsArray.map((col) => ({ name: col })),
-          };
-        }
-
-        const systemPackagesArray = systemPackages
-          .split(",")
-          .map((pkg) => pkg.trim())
-          .filter((pkg) => pkg !== "");
-        if (systemPackagesArray.length > 0) {
-          jsonData.dependencies.system = systemPackagesArray;
-        }
-
-        const pythonPackagesArray = pythonPackages
-          .split(",")
-          .map((pkg) => pkg.trim())
-          .filter((pkg) => pkg !== "");
-        if (pythonPackagesArray.length > 0) {
-          jsonData.dependencies.python = pythonPackagesArray;
-        }
-
-        if (baseImage?.toLowerCase().includes("fedora")) {
-          jsonData.additional_build_steps = {
-            prepend_base: ["RUN $PKGMGR -y -q install python3-devel"],
-          };
-          jsonData.options.package_manager_path = "/usr/bin/dnf5";
-        } else if (
-          baseImage?.toLowerCase().includes("rhel") ||
-          baseImage?.toLowerCase().includes("redhat")
-        ) {
-          jsonData.options.package_manager_path = "/usr/bin/microdnf";
-        }
-
-        const isSuccess = this.generateYAMLFromJSON(
-          jsonData,
-          destinationPathUrl,
-        );
-
-        if (isSuccess) {
-          commandOutput += `Execution environment file created at ${destinationPathUrl}/execution-environment.yml\n`;
-          commandResult = "passed";
-          executionFileCreated = true;
-        } else {
-          commandOutput += `ERROR: Could not create execution environment file. Please check that your destination path exists and write permissions are configured for it.\n`;
-          commandResult = "failed";
-        }
-      }
+      const fileResult = this.createExecutionEnvFile(
+        payload,
+        destinationPathUrl,
+        fileExists,
+      );
+      commandOutput += fileResult.commandOutput;
+      let commandResult = fileResult.commandResult;
+      const executionFileCreated = fileResult.executionFileCreated;
 
       if (
         isCreateContextEnabled &&
         (executionFileCreated || isInitEEProjectEnabled)
       ) {
-        const createContextCommand = `ansible-builder create --file ${filePath} --context ${destinationPathUrl}/context`;
-        const createContextResult =
-          await this.runAnsibleBuilderCommand(createContextCommand);
-        if (createContextResult.success) {
-          commandOutput += `${createContextResult.output}\n`;
-          commandResult = "passed";
-        } else {
-          commandOutput += `${createContextResult.output}\n`;
-          commandResult = "failed";
-        }
+        const contextResult = await this.runCreateContext(
+          filePath,
+          destinationPathUrl,
+        );
+        commandOutput += contextResult.output;
+        commandResult = contextResult.result;
       }
 
       if (
         isBuildImageEnabled &&
         (executionFileCreated || isInitEEProjectEnabled)
       ) {
-        await webView.postMessage({
-          command: "execution-log",
-          arguments: {
-            commandOutput:
-              commandOutput +
-              "Building execution environment, this may take a few minutes....\n",
-            projectUrl: destinationPathUrl,
-            status: "in-progress",
-          },
-        });
-        await webView.postMessage({ command: "disable-build-button" });
-        await webView.postMessage({ command: "enable-open-file-button" });
-
-        let buildImageCommand = `ansible-builder build --file ${filePath} --context ${destinationPathUrl}/context`;
-
-        switch (verbosity) {
-          case "Off":
-            break;
-          case "Low":
-            buildImageCommand += " -v";
-            break;
-          case "Medium":
-            buildImageCommand += " -vv";
-            break;
-          case "High":
-            buildImageCommand += " -vvv";
-            break;
-          default:
-            break;
-        }
-
-        const buildImageResult =
-          await this.runAnsibleBuilderCommand(buildImageCommand);
-        if (buildImageResult.success) {
-          commandOutput += `${buildImageResult.output}\n`;
-          commandResult = "passed";
-        } else {
-          commandOutput += `${buildImageResult.output}\n`;
-          commandResult = "failed";
-        }
+        const buildResult = await this.runBuildImage(
+          payload,
+          filePath,
+          destinationPathUrl,
+          commandOutput,
+          webView,
+        );
+        commandOutput += buildResult.output;
+        commandResult = buildResult.result;
       }
 
       if (isInitEEProjectEnabled) {
-        await webView.postMessage({
-          command: "execution-log",
-          arguments: {
-            commandOutput:
-              commandOutput + "Building execution environment project....\n",
-            projectUrl: destinationPathUrl,
-            status: "in-progress",
-          },
-        });
-        await webView.postMessage({ command: "disable-build-button" });
-        await webView.postMessage({ command: "enable-open-file-button" });
-
-        let initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
-
-        if (isOverwritten) {
-          initEEProjectCommand += " --overwrite";
-        } else if (!isOverwritten) {
-          initEEProjectCommand += " --no-overwrite";
-        }
-
-        console.debug("[ansible-creator] command: ", initEEProjectCommand);
-
-        const extSettings = new SettingsManager();
-        await extSettings.initialize();
-
-        const { command, env } = await withInterpreter(
-          extSettings.settings,
-          initEEProjectCommand,
-          "",
+        const initResult = await this.runInitEEProject(
+          payload,
+          destinationPathUrl,
+          commandOutput,
+          webView,
         );
-
-        commandOutput = "";
-        commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
-
-        const ansibleCreatorExecutionResult = await runCommand(command, env);
-        commandOutput += ansibleCreatorExecutionResult.output;
-        commandResult = ansibleCreatorExecutionResult.status;
+        commandOutput = initResult.output;
+        commandResult = initResult.result;
       }
 
       console.debug(commandOutput);
@@ -1266,6 +1124,222 @@ export class WebviewMessageHandlers {
         command: "enable-build-button",
       });
     }
+  }
+
+  // Builds the execution-environment.yml definition object from the form
+  // payload (base image, dependency groups, and package-manager tweaks).
+  private buildExecutionEnvDefinition(
+    payload: AnsibleExecutionEnvInterface,
+  ): ExecutionEnvironmentDefinition {
+    const {
+      baseImage,
+      customBaseImage,
+      collections,
+      systemPackages,
+      pythonPackages,
+      tag,
+    } = payload;
+
+    const jsonData: ExecutionEnvironmentDefinition = {
+      version: 3,
+      images: {
+        base_image: {
+          name: baseImage || customBaseImage,
+        },
+      },
+      dependencies: {
+        ansible_core: { package_pip: "ansible-core" },
+        ansible_runner: { package_pip: "ansible-runner" },
+      },
+      options: {
+        tags: [tag],
+      },
+    };
+
+    const collectionsArray = collections
+      .split(",")
+      .map((col) => col.trim())
+      .filter((col) => col !== "");
+    if (collectionsArray.length > 0) {
+      jsonData.dependencies.galaxy = {
+        collections: collectionsArray.map((col) => ({ name: col })),
+      };
+    }
+
+    const systemPackagesArray = systemPackages
+      .split(",")
+      .map((pkg) => pkg.trim())
+      .filter((pkg) => pkg !== "");
+    if (systemPackagesArray.length > 0) {
+      jsonData.dependencies.system = systemPackagesArray;
+    }
+
+    const pythonPackagesArray = pythonPackages
+      .split(",")
+      .map((pkg) => pkg.trim())
+      .filter((pkg) => pkg !== "");
+    if (pythonPackagesArray.length > 0) {
+      jsonData.dependencies.python = pythonPackagesArray;
+    }
+
+    if (baseImage?.toLowerCase().includes("fedora")) {
+      jsonData.additional_build_steps = {
+        prepend_base: ["RUN $PKGMGR -y -q install python3-devel"],
+      };
+      jsonData.options.package_manager_path = "/usr/bin/dnf5";
+    } else if (
+      baseImage?.toLowerCase().includes("rhel") ||
+      baseImage?.toLowerCase().includes("redhat")
+    ) {
+      jsonData.options.package_manager_path = "/usr/bin/microdnf";
+    }
+
+    return jsonData;
+  }
+
+  // Creates the execution-environment.yml file (unless it already exists and
+  // overwrite is off) and reports the resulting log output and status.
+  private createExecutionEnvFile(
+    payload: AnsibleExecutionEnvInterface,
+    destinationPathUrl: string,
+    fileExists: boolean,
+  ): {
+    commandOutput: string;
+    commandResult: string;
+    executionFileCreated: boolean;
+  } {
+    if (fileExists && !payload.isOverwritten) {
+      const message = `Error: Execution environment file already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
+      return {
+        commandOutput: `${message}\n`,
+        commandResult: "failed",
+        executionFileCreated: false,
+      };
+    }
+
+    const jsonData = this.buildExecutionEnvDefinition(payload);
+    const isSuccess = this.generateYAMLFromJSON(jsonData, destinationPathUrl);
+
+    if (isSuccess) {
+      return {
+        commandOutput: `Execution environment file created at ${destinationPathUrl}/execution-environment.yml\n`,
+        commandResult: "passed",
+        executionFileCreated: true,
+      };
+    }
+    return {
+      commandOutput: `ERROR: Could not create execution environment file. Please check that your destination path exists and write permissions are configured for it.\n`,
+      commandResult: "failed",
+      executionFileCreated: false,
+    };
+  }
+
+  // Runs the ansible-builder "create context" step and reports its outcome.
+  private async runCreateContext(
+    filePath: string,
+    destinationPathUrl: string,
+  ): Promise<{ output: string; result: string }> {
+    const createContextCommand = `ansible-builder create --file ${filePath} --context ${destinationPathUrl}/context`;
+    const createContextResult =
+      await this.runAnsibleBuilderCommand(createContextCommand);
+    return {
+      output: `${createContextResult.output}\n`,
+      result: createContextResult.success ? "passed" : "failed",
+    };
+  }
+
+  // Maps a verbosity level to its ansible-builder flag.
+  private getBuildVerbosityFlag(verbosity: string): string {
+    switch (verbosity) {
+      case "Low":
+        return " -v";
+      case "Medium":
+        return " -vv";
+      case "High":
+        return " -vvv";
+      default:
+        return "";
+    }
+  }
+
+  // Runs the ansible-builder "build image" step, emitting the in-progress UI
+  // updates before the (potentially long-running) build.
+  private async runBuildImage(
+    payload: AnsibleExecutionEnvInterface,
+    filePath: string,
+    destinationPathUrl: string,
+    commandOutput: string,
+    webView: vscode.Webview,
+  ): Promise<{ output: string; result: string }> {
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput:
+          commandOutput +
+          "Building execution environment, this may take a few minutes....\n",
+        projectUrl: destinationPathUrl,
+        status: "in-progress",
+      },
+    });
+    await webView.postMessage({ command: "disable-build-button" });
+    await webView.postMessage({ command: "enable-open-file-button" });
+
+    let buildImageCommand = `ansible-builder build --file ${filePath} --context ${destinationPathUrl}/context`;
+    buildImageCommand += this.getBuildVerbosityFlag(payload.verbosity);
+
+    const buildImageResult =
+      await this.runAnsibleBuilderCommand(buildImageCommand);
+    return {
+      output: `${buildImageResult.output}\n`,
+      result: buildImageResult.success ? "passed" : "failed",
+    };
+  }
+
+  // Runs the ansible-creator "init execution_env" step. Replaces the running
+  // command output with the creator logs (matching the original behavior).
+  private async runInitEEProject(
+    payload: AnsibleExecutionEnvInterface,
+    destinationPathUrl: string,
+    commandOutput: string,
+    webView: vscode.Webview,
+  ): Promise<{ output: string; result: string }> {
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput:
+          commandOutput + "Building execution environment project....\n",
+        projectUrl: destinationPathUrl,
+        status: "in-progress",
+      },
+    });
+    await webView.postMessage({ command: "disable-build-button" });
+    await webView.postMessage({ command: "enable-open-file-button" });
+
+    let initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
+
+    if (payload.isOverwritten) {
+      initEEProjectCommand += " --overwrite";
+    } else if (!payload.isOverwritten) {
+      initEEProjectCommand += " --no-overwrite";
+    }
+
+    console.debug("[ansible-creator] command: ", initEEProjectCommand);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = await withInterpreter(
+      extSettings.settings,
+      initEEProjectCommand,
+      "",
+    );
+
+    let output = "";
+    output += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+    const ansibleCreatorExecutionResult = await runCommand(command, env);
+    output += ansibleCreatorExecutionResult.output;
+    return { output, result: ansibleCreatorExecutionResult.status };
   }
 
   private generateYAMLFromJSON(
