@@ -162,8 +162,7 @@ export class CommandService {
             };
         }
 
-        const command = `"${toolPath}" ${args.join(' ')}`;
-        return this.runCommand(command, options);
+        return this.runCommandArgs(toolPath, args, options);
     }
 
     /**

@@ -32,7 +32,7 @@ function createPasswordFifo(password: string): {
     cleanup: () => void;
 } {
     const fifo = fifoPath();
-    cp.execSync(`mkfifo -m 0600 "${fifo}"`);
+    cp.execFileSync('mkfifo', ['-m', '0600', fifo]);
 
     // createWriteStream opens the FIFO asynchronously — the underlying open()
     // blocks in the background until a reader (ansible-vault) connects. This

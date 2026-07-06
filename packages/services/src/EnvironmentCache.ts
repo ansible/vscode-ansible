@@ -231,12 +231,12 @@ export async function findExecutableWithCache(name: string): Promise<string | nu
  * @returns Absolute path to the first match, or null when not found.
  */
 async function findInPath(name: string): Promise<string | null> {
-    const { exec } = await import('child_process');
+    const { execFile } = await import('child_process');
     const isWindows = process.platform === 'win32';
-    const cmd = isWindows ? `where ${name}` : `which ${name}`;
+    const cmd = isWindows ? 'where' : 'which';
 
     return new Promise((resolve) => {
-        exec(cmd, (error, stdout) => {
+        execFile(cmd, [name], (error, stdout) => {
             if (error) {
                 resolve(null);
             } else {

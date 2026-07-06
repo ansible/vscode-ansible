@@ -14,6 +14,15 @@ import type { ProgressEvent } from '@ansible/developer-services';
 import { buildTaskAnalysisPrompt } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 
+/**
+ * Single-quote a value for safe interpolation into a POSIX shell command.
+ * @param value - The string to quote.
+ * @returns Shell-safe single-quoted string.
+ */
+function shellQuote(value: string): string {
+    return `'${value.replace(/'/g, "'\\''")}'`;
+}
+
 export interface PlaybookRunOptions {
     playbookPath: string;
     playbookName: string;
@@ -194,9 +203,9 @@ export class PlaybookProgressPanel {
         this._terminal = managed.terminal;
 
         managed.terminal.sendText(
-            `ANSIBLE_CALLBACK_PLUGINS="${callbackPath}" ` +
+            `ANSIBLE_CALLBACK_PLUGINS=${shellQuote(callbackPath)} ` +
                 `ANSIBLE_CALLBACKS_ENABLED=vscode_progress ` +
-                `ANSIBLE_ENV_SOCKET="${this._socketPath ?? ''}" ` +
+                `ANSIBLE_ENV_SOCKET=${shellQuote(this._socketPath ?? '')} ` +
                 options.command,
         );
     }

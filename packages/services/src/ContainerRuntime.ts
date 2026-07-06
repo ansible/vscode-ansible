@@ -81,7 +81,7 @@ interface InspectJson {
 export async function detectEngine(): Promise<ContainerEngine | null> {
     const cmd = getCommandService();
     for (const engine of ['podman', 'docker'] as const) {
-        const result = await cmd.runCommand(`${engine} --version`);
+        const result = await cmd.runCommandArgs(engine, ['--version']);
         if (result.exitCode === 0) {
             log(`ContainerRuntime: detected ${engine}`);
             return engine;
@@ -103,9 +103,14 @@ export async function listImages(engine: ContainerEngine): Promise<ContainerImag
     let result: ExecResult;
 
     if (engine === 'podman') {
-        result = await cmd.runCommand(`${engine} images --format json`);
+        result = await cmd.runCommandArgs(engine, ['images', '--format', 'json']);
     } else {
-        result = await cmd.runCommand(`${engine} images --format "{{json .}}" --no-trunc`);
+        result = await cmd.runCommandArgs(engine, [
+            'images',
+            '--format',
+            '{{json .}}',
+            '--no-trunc',
+        ]);
     }
 
     if (result.exitCode !== 0 || !result.stdout) {
@@ -130,7 +135,7 @@ export async function inspectImage(
     image: ContainerImage,
 ): Promise<InspectedImage> {
     const cmd = getCommandService();
-    const result = await cmd.runCommand(`${engine} inspect ${image.id}`);
+    const result = await cmd.runCommandArgs(engine, ['inspect', image.id]);
 
     let inspectData: InspectJson = {};
     if (result.exitCode === 0 && result.stdout) {

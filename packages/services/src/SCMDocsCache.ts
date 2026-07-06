@@ -468,7 +468,8 @@ export class SCMDocsCache {
      */
     private _writeAskPassScript(token: string, tmpDir: string): string {
         const scriptPath = path.join(tmpDir, 'git-askpass.sh');
-        fs.writeFileSync(scriptPath, `#!/bin/sh\necho "${token}"\n`, { mode: 0o700 });
+        const escapedToken = token.replace(/'/g, "'\\''");
+        fs.writeFileSync(scriptPath, `#!/bin/sh\necho '${escapedToken}'\n`, { mode: 0o700 });
         return scriptPath;
     }
 

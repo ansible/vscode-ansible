@@ -177,7 +177,7 @@ function _resolveGitHubToken(): string | undefined {
     }
 
     try {
-        const result = childProcess.execSync('gh auth token', {
+        const result = childProcess.execFileSync('gh', ['auth', 'token'], {
             encoding: 'utf-8',
             timeout: 5000,
             stdio: ['pipe', 'pipe', 'pipe'],

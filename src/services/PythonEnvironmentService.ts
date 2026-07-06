@@ -669,7 +669,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
             if (overwrite !== 'Overwrite') return undefined;
         }
 
-        const cmd = `${pythonExe} -m venv ${venvName}`;
+        const cmd =
+            process.platform === 'win32'
+                ? `"${pythonExe}" -m venv "${venvName}"`
+                : `'${pythonExe.replace(/'/g, "'\\''")}' -m venv '${venvName.replace(/'/g, "'\\''")}'`;
         log(`Creating venv via terminal: ${cmd} in ${workspaceUri.fsPath}`);
 
         const terminal = vscode.window.createTerminal({
