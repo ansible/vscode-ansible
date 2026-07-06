@@ -274,7 +274,7 @@ Generate Ansible inventory content with:
   } {
     const errors: string[] = [];
 
-    if (!content || !content.trim()) {
+    if (!content?.trim()) {
       errors.push("Content is empty or invalid YAML");
       return { valid: false, errors };
     }
