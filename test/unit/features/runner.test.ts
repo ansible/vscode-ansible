@@ -124,4 +124,7 @@ describe("AnsiblePlaybookRunProvider", () => {
     provider.dispose();
   });
 });
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7ba7e529 (refactor(vault): change handleFoldedMultiline to a function and improve return type)
