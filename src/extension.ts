@@ -172,7 +172,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   notifyAboutConflicts();
 
-  new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
+  const playbookRunProvider = new AnsiblePlaybookRunProvider(
+    context,
+    extSettings,
+    telemetry,
+  );
+  context.subscriptions.push(playbookRunProvider);
 
   // handle metadata status bar
   const metaData = new MetadataManager(context, client, telemetry, extSettings);
