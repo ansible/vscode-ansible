@@ -32,7 +32,7 @@ function validatePlaybookPath(fsPath: string): string | undefined {
  * A set of commands and context menu items for running Ansible playbooks using
  * `ansible-navigator run` and `ansible-playbook` commands.
  */
-export class AnsiblePlaybookRunProvider {
+export class AnsiblePlaybookRunProvider implements vscode.Disposable {
   private extensionSettings: SettingsManager;
   private telemetry: TelemetryManager;
 
@@ -44,6 +44,10 @@ export class AnsiblePlaybookRunProvider {
     this.extensionSettings = extensionSettings;
     this.telemetry = telemetry;
     this.configureCommands();
+  }
+
+  dispose(): void {
+    // Registered commands are disposed via context.subscriptions
   }
 
   /**

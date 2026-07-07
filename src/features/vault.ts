@@ -456,7 +456,7 @@ const handleLiteralMultiline = (
 
 const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
   const text = prepareMultiline(lines, leadingSpacesCount).reduce(
-    foldedMultilineReducer,
+    (acc, val, idx, arr) => foldedMultilineReducer(acc, val, idx, arr),
     "",
   );
   const chompingStyle = getChompingStyle(lines);

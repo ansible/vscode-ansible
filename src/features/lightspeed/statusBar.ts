@@ -107,12 +107,10 @@ export class LightspeedStatusBar {
     return `Lightspeed (${userTypeLabel})`;
   }
 
-  private handleStatusBar() {
+  private async handleStatusBar() {
     try {
-      void this.getLightSpeedStatusBarText().then((text) => {
-        this.statusBar.text = text;
-        void this.setLightSpeedStatusBarTooltip();
-      });
+      const text = await this.getLightSpeedStatusBarText();
+      this.statusBar.text = text;
     } catch (error) {
       console.log(
         `an error occurred updating status bar and tooltip: ${error instanceof Error ? error.message : String(error)}`,
@@ -144,7 +142,7 @@ export class LightspeedStatusBar {
       return;
     }
 
-    this.handleStatusBar();
+    await this.handleStatusBar();
   }
 
   public async lightSpeedStatusBarClickHandler() {
