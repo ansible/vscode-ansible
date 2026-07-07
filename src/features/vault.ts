@@ -420,12 +420,13 @@ const getIndentationLevel = (
   return leadingWhitespaces / Number(editor.options.tabSize);
 };
 
-const foldedMultilineReducer = (
+export const foldedMultilineReducer = (
   accumulator: string,
   currentValue: string,
   currentIndex: number,
   array: string[],
 ): string => {
+  if (currentIndex === 0) return currentValue;
   if (
     currentValue === "" ||
     currentValue.match(/^\s/) ||
@@ -454,7 +455,10 @@ const handleLiteralMultiline = (
   }
 };
 
-const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
+export function handleFoldedMultiline(
+  lines: string[],
+  leadingSpacesCount: number,
+): string {
   const text = prepareMultiline(lines, leadingSpacesCount).reduce(
     (acc, val, idx, arr) => foldedMultilineReducer(acc, val, idx, arr),
     "",
@@ -467,7 +471,7 @@ const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
   } else {
     return `${text.replace(/\n$/gm, "")}\n`;
   }
-};
+}
 
 const handleMultiline = (
   text: string,
