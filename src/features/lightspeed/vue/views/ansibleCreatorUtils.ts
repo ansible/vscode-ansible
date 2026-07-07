@@ -263,100 +263,37 @@ export class AnsibleCreatorOperations {
     const isCollection =
       "initPath" in payload && !("destinationPath" in payload);
 
-    let ansibleCreatorInitCommand: string;
-    let destinationUrl: string;
-
-    if (isCollection) {
-      // Collection-specific logic
-      const collectionPayload = payload;
-      const { namespaceName, collectionName, initPath } = collectionPayload;
-
-      const initPathUrl =
-        initPath || `${os.homedir()}/.ansible/collections/ansible_collections`;
-
-      ansibleCreatorInitCommand = await this.getCollectionCreatorCommand(
-        namespaceName,
-        collectionName,
-        initPathUrl,
-      );
-
-      destinationUrl = initPathUrl.endsWith("/collections/ansible_collections")
-        ? Uri.joinPath(Uri.parse(initPathUrl), namespaceName, collectionName)
-            .fsPath
-        : initPathUrl;
-    } else {
-      // Project-specific logic
-      const projectPayload = payload;
-      const { destinationPath, namespaceName, collectionName } = projectPayload;
-
-      destinationUrl = destinationPath ? destinationPath : os.homedir();
-
-      ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
-        namespaceName,
-        collectionName,
-        destinationUrl,
-      );
-    }
+    const built = await this.buildCreatorInitCommand(payload, isCollection);
+    const destinationUrl = built.destinationUrl;
+    let ansibleCreatorInitCommand = built.command;
 
     const creatorVersion = await getCreatorVersion();
     if (!creatorVersion || creatorVersion === "failed") {
-      let commandOutput =
-        "ansible-creator is not installed or not found in PATH.\n";
-      commandOutput += "Please install ansible-creator and try again.\n";
-      await webView.postMessage({
-        command: "execution-log",
-        arguments: {
-          commandOutput: commandOutput,
-          collectionUrl: isCollection ? destinationUrl : undefined,
-          projectUrl: isCollection ? undefined : destinationUrl,
-          status: "failed",
-        },
-      });
+      await this.postCreatorMissing(webView, isCollection, destinationUrl);
       return;
     }
-    let commandOutput = "";
+
     const versionCheck = this.checkVersionWithError(
       creatorVersion,
       ANSIBLE_CREATOR_VERSION_MIN,
     );
     const exceedMinVersion = versionCheck.isGte;
-    if (versionCheck.userMessage) {
-      commandOutput += versionCheck.userMessage;
-    }
+    let commandOutput = versionCheck.userMessage ?? "";
 
-    if (exceedMinVersion && payload.isOverwritten) {
-      ansibleCreatorInitCommand += " --overwrite";
-    } else if (!exceedMinVersion && payload.isOverwritten) {
-      ansibleCreatorInitCommand += " --force";
-    } else if (exceedMinVersion && !payload.isOverwritten) {
-      ansibleCreatorInitCommand += " --no-overwrite";
-    }
+    ansibleCreatorInitCommand = this.applyOverwriteFlag(
+      ansibleCreatorInitCommand,
+      exceedMinVersion,
+      payload.isOverwritten,
+    );
+    ansibleCreatorInitCommand += this.getVerbosityFlag(payload.verbosity);
 
-    const verbosityMap: Record<string, string> = {
-      off: "",
-      low: " -v",
-      medium: " -vv",
-      high: " -vvv",
-    };
-
-    const normalizedVerbosity = payload.verbosity.toLowerCase();
-    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
-    ansibleCreatorInitCommand += verbosityFlag;
-
-    let logFilePathUrl = "";
-
-    if (payload.logToFile) {
-      logFilePathUrl =
-        payload.logFilePath || `${os.tmpdir()}/ansible-creator.log`;
-      ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
-      ansibleCreatorInitCommand += ` --ll=${payload.logLevel.toLowerCase()}`;
-
-      if (isCollection) {
-        ansibleCreatorInitCommand += ` --la=${payload.logFileAppend}`;
-      } else {
-        ansibleCreatorInitCommand += ` --la=${payload.logFileAppend ? "true" : "false"}`;
-      }
-    }
+    const logFlags = this.applyLogFileFlags(
+      ansibleCreatorInitCommand,
+      payload,
+      isCollection,
+    );
+    ansibleCreatorInitCommand = logFlags.command;
+    const logFilePathUrl = logFlags.logFilePathUrl;
 
     const extSettings = new SettingsManager();
     await extSettings.initialize();
@@ -375,60 +312,13 @@ export class AnsibleCreatorOperations {
 
     // Execute ADE command for collections if needed
     if (isCollection && payload.isEditableModeInstall) {
-      const collectionPayload = payload;
-      const venvPathUrl = Uri.joinPath(
-        Uri.parse(destinationUrl),
-        ".venv",
-      ).fsPath;
-      let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
-
-      const verbosityMap: Record<string, string> = {
-        off: "",
-        low: " -v",
-        medium: " -vv",
-        high: " -vvv",
-      };
-
-      const normalizedVerbosity = collectionPayload.verbosity.toLowerCase();
-      const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
-      adeCommand += verbosityFlag;
-
-      commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
-
-      await webView.postMessage({
-        command: "execution-log",
-        arguments: {
-          commandOutput:
-            "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
-          logFileUrl: logFilePathUrl,
-          collectionUrl: destinationUrl,
-          status: "in-progress",
-        },
-      });
-      const adeVersion = await getADEVersion();
-      const adeVersionCheck = this.checkVersionWithError(
-        adeVersion,
-        ADE_ISOLATION_MODE_MIN,
+      commandOutput += await this.runAdeEditableInstall(
+        payload,
+        destinationUrl,
+        logFilePathUrl,
+        extSettings,
+        webView,
       );
-      const exceedADEImVersion = adeVersionCheck.isGte;
-
-      if (exceedADEImVersion) {
-        adeCommand += " --im=cfg";
-        const { command, env } = await withInterpreter(
-          extSettings.settings,
-          adeCommand,
-          "",
-        );
-        const adeExecutionResult = await runCommand(command, env);
-        commandOutput += adeExecutionResult.output;
-      } else {
-        commandOutput += `Collection could not be installed in editable mode.\n`;
-        commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
-        commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
-        commandOutput += `Please upgrade to the latest version of ade for this feature.`;
-      }
-
-      console.debug("[ade] command: ", adeCommand);
     }
 
     await webView.postMessage({
@@ -441,6 +331,176 @@ export class AnsibleCreatorOperations {
         status: ansibleCreatorCommandPassed,
       },
     });
+  }
+
+  // Builds the base ansible-creator init command and resolves the destination
+  // URL for either a collection or a project payload.
+  private async buildCreatorInitCommand(
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    isCollection: boolean,
+  ): Promise<{ command: string; destinationUrl: string }> {
+    if (isCollection) {
+      const collectionPayload = payload as AnsibleCollectionFormInterface;
+      const { namespaceName, collectionName, initPath } = collectionPayload;
+
+      const initPathUrl =
+        initPath || `${os.homedir()}/.ansible/collections/ansible_collections`;
+
+      const command = await this.getCollectionCreatorCommand(
+        namespaceName,
+        collectionName,
+        initPathUrl,
+      );
+
+      const destinationUrl = initPathUrl.endsWith(
+        "/collections/ansible_collections",
+      )
+        ? Uri.joinPath(Uri.parse(initPathUrl), namespaceName, collectionName)
+            .fsPath
+        : initPathUrl;
+
+      return { command, destinationUrl };
+    }
+
+    const projectPayload = payload as AnsibleProjectFormInterface;
+    const { destinationPath, namespaceName, collectionName } = projectPayload;
+
+    const destinationUrl = destinationPath || os.homedir();
+
+    const command = await this.getPlaybookCreatorCommand(
+      namespaceName,
+      collectionName,
+      destinationUrl,
+    );
+
+    return { command, destinationUrl };
+  }
+
+  // Posts the "ansible-creator not installed" execution log and stops.
+  private async postCreatorMissing(
+    webView: vscode.Webview,
+    isCollection: boolean,
+    destinationUrl: string,
+  ) {
+    let commandOutput =
+      "ansible-creator is not installed or not found in PATH.\n";
+    commandOutput += "Please install ansible-creator and try again.\n";
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        collectionUrl: isCollection ? destinationUrl : undefined,
+        projectUrl: isCollection ? undefined : destinationUrl,
+        status: "failed",
+      },
+    });
+  }
+
+  // Appends the overwrite/force/no-overwrite flag based on the creator version
+  // gate and the user's overwrite choice.
+  private applyOverwriteFlag(
+    command: string,
+    exceedMinVersion: boolean,
+    isOverwritten: boolean,
+  ): string {
+    if (exceedMinVersion && isOverwritten) {
+      return command + " --overwrite";
+    } else if (!exceedMinVersion && isOverwritten) {
+      return command + " --force";
+    } else if (exceedMinVersion && !isOverwritten) {
+      return command + " --no-overwrite";
+    }
+    return command;
+  }
+
+  // Maps a verbosity level to its ansible-creator flag.
+  private getVerbosityFlag(verbosity: string): string {
+    const verbosityMap: Record<string, string> = {
+      off: "",
+      low: " -v",
+      medium: " -vv",
+      high: " -vvv",
+    };
+    return verbosityMap[verbosity.toLowerCase()] || "";
+  }
+
+  // Appends the log-file flags when logging to file is enabled and returns the
+  // resolved log file path (empty when logging is disabled).
+  private applyLogFileFlags(
+    command: string,
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    isCollection: boolean,
+  ): { command: string; logFilePathUrl: string } {
+    if (!payload.logToFile) {
+      return { command, logFilePathUrl: "" };
+    }
+
+    const logFilePathUrl =
+      payload.logFilePath || `${os.tmpdir()}/ansible-creator.log`;
+    let updated = command;
+    updated += ` --lf=${logFilePathUrl}`;
+    updated += ` --ll=${payload.logLevel.toLowerCase()}`;
+
+    if (isCollection) {
+      updated += ` --la=${payload.logFileAppend}`;
+    } else {
+      updated += ` --la=${payload.logFileAppend ? "true" : "false"}`;
+    }
+
+    return { command: updated, logFilePathUrl };
+  }
+
+  // Runs the ansible-dev-environment editable-mode install for a collection and
+  // returns the log output to append to the overall command output.
+  private async runAdeEditableInstall(
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    destinationUrl: string,
+    logFilePathUrl: string,
+    extSettings: SettingsManager,
+    webView: vscode.Webview,
+  ): Promise<string> {
+    let commandOutput = "";
+    const venvPathUrl = Uri.joinPath(Uri.parse(destinationUrl), ".venv").fsPath;
+    let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
+    adeCommand += this.getVerbosityFlag(payload.verbosity);
+
+    commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput:
+          "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
+        logFileUrl: logFilePathUrl,
+        collectionUrl: destinationUrl,
+        status: "in-progress",
+      },
+    });
+    const adeVersion = await getADEVersion();
+    const adeVersionCheck = this.checkVersionWithError(
+      adeVersion,
+      ADE_ISOLATION_MODE_MIN,
+    );
+    const exceedADEImVersion = adeVersionCheck.isGte;
+
+    if (exceedADEImVersion) {
+      adeCommand += " --im=cfg";
+      const { command, env } = await withInterpreter(
+        extSettings.settings,
+        adeCommand,
+        "",
+      );
+      const adeExecutionResult = await runCommand(command, env);
+      commandOutput += adeExecutionResult.output;
+    } else {
+      commandOutput += `Collection could not be installed in editable mode.\n`;
+      commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
+      commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ade for this feature.`;
+    }
+
+    console.debug("[ade] command: ", adeCommand);
+    return commandOutput;
   }
 
   public async isADEPresent(webView: vscode.Webview) {
