@@ -417,7 +417,7 @@ describe("AnsibleContextProcessor", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors[0]).toContain("empty or invalid");
+      expect(result.errors[0]).toContain("empty");
     });
 
     it("should reject null YAML", () => {

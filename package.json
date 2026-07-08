@@ -1084,7 +1084,6 @@
     "@splicemood/lcov-to-cobertura": "^0.1.1",
     "@types/express": "^5.0.6",
     "@types/ini": "^4.1.1",
-    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^28.0.1",
     "@types/lodash": "^4.17.24",
     "@types/mocha": "^10.0.10",
