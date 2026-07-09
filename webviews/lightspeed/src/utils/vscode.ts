@@ -20,8 +20,7 @@ const TIMEOUT = 10_000;
 
 class WebviewApi<StateType = unknown> {
   private readonly webviewApi:
-    | ReturnType<typeof acquireVsCodeApi<StateType>>
-    | undefined;
+    ReturnType<typeof acquireVsCodeApi<StateType>> | undefined;
   private _options: Required<PostMessageOptions>;
   private listeners = new Map<
     string | number,

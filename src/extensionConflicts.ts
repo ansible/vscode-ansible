@@ -45,9 +45,9 @@ function isExtensionPresent(obj: unknown): obj is Extension<unknown> {
 export function getConflictingExtensions(): Extension<unknown>[] {
   return conflictingIDs
     .map((x) => extensions.getExtension(x))
-    .filter<
-      Extension<unknown>
-    >((ext): ext is Extension<unknown> => isExtensionPresent(ext));
+    .filter<Extension<unknown>>((ext): ext is Extension<unknown> =>
+      isExtensionPresent(ext),
+    );
 }
 
 /**

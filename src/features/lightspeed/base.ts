@@ -43,8 +43,7 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public lightspeedExplorerProvider:
-    | LightspeedExplorerWebviewViewProvider
-    | undefined;
+    LightspeedExplorerWebviewViewProvider | undefined;
   public providerManager: ProviderManager;
   private logger: Log;
 
