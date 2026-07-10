@@ -454,16 +454,6 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "ansible.extension-settings.open",
-        "title": "Open Ansible Extension Settings",
-        "category": "Ansible"
-      },
-      {
-        "command": "ansible.python-settings.open",
-        "title": "Open Python Settings",
-        "category": "Ansible"
-      },
-      {
         "command": "ansible-environments.configureCursorMcp",
         "title": "Ansible: Configure Cursor MCP"
       },
