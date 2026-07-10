@@ -268,6 +268,18 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ansible.statusBar.refresh', () => {
             ansibleStatusBar.forceRefresh();
         }),
+        vscode.commands.registerCommand('ansible.extension-settings.open', async () => {
+            await vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:redhat.ansible',
+            );
+        }),
+        vscode.commands.registerCommand('ansible.python-settings.open', async () => {
+            await vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:ms-python.python',
+            );
+        }),
     );
 
     context.subscriptions.push(
