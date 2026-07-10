@@ -51,7 +51,9 @@ const execFileImpl = vi.hoisted(() =>
         (
             file: string,
             args: string[],
-            optsOrCb: Record<string, unknown> | ((err: Error | null, stdout?: string, stderr?: string) => void),
+            optsOrCb:
+                | Record<string, unknown>
+                | ((err: Error | null, stdout?: string, stderr?: string) => void),
             maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
         ) => {
             const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
@@ -340,10 +342,7 @@ describe('CommandService', () => {
                 maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
             ) => {
                 const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
-                if (
-                    (file === 'which' || file === 'where') &&
-                    args.includes('missing-binary-xyz')
-                ) {
+                if ((file === 'which' || file === 'where') && args.includes('missing-binary-xyz')) {
                     cb?.(new Error('not found'), '', '');
                     return;
                 }
