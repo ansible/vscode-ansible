@@ -51,10 +51,11 @@ const execFileImpl = vi.hoisted(() =>
         (
             file: string,
             args: string[],
-            opts: Record<string, unknown>,
-            cb: (err: Error | null, stdout?: string, stderr?: string) => void,
+            optsOrCb: Record<string, unknown> | ((err: Error | null, stdout?: string, stderr?: string) => void),
+            maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
         ) => {
-            cb(null, 'out\n', '');
+            const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+            cb?.(null, 'out\n', '');
         },
     ),
 );
@@ -98,6 +99,20 @@ describe('CommandService', () => {
         execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
             asExecCallback(arg2, arg3)(null, 'out\n', '');
         });
+        execFileImpl.mockReset();
+        execFileImpl.mockImplementation(
+            (
+                _file: string,
+                _args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'out\n', '');
+            },
+        );
     });
 
     afterEach(() => {
@@ -167,11 +182,21 @@ describe('CommandService', () => {
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toContain('mycli');
-            expect(cmd).toContain('--flag');
-            asExecCallback(arg2, arg3)(null, 'cli-out\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['--flag', 'v']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'cli-out\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -181,13 +206,23 @@ describe('CommandService', () => {
     });
 
     it('runTool returns structured failure when the tool cannot be resolved', async () => {
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            if (/^(which|where)\s+/i.test(cmd.trim())) {
-                asExecCallback(arg2, arg3)(new Error('not in path'), '', '');
-                return;
-            }
-            asExecCallback(arg2, arg3)(null, 'out\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                _args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                if (file === 'which' || file === 'where') {
+                    cb?.(new Error('not in path'), '', '');
+                    return;
+                }
+                cb?.(null, 'out\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -199,15 +234,26 @@ describe('CommandService', () => {
     it('runAnsibleCreator delegates to runTool with ansible-creator name', async () => {
         const binDir = path.join(tmpDir, 'venv3', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
-        fs.writeFileSync(path.join(binDir, 'ansible-creator'), '');
+        const tool = path.join(binDir, 'ansible-creator');
+        fs.writeFileSync(tool, '');
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toContain('ansible-creator');
-            expect(cmd).toContain('init');
-            asExecCallback(arg2, arg3)(null, 'creator-ok\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['init', 'playbook']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'creator-ok\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -219,14 +265,26 @@ describe('CommandService', () => {
     it('runAnsibleDoc delegates to runTool', async () => {
         const binDir = path.join(tmpDir, 'venv4', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
-        fs.writeFileSync(path.join(binDir, 'ansible-doc'), '');
+        const tool = path.join(binDir, 'ansible-doc');
+        fs.writeFileSync(tool, '');
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toContain('ansible-doc');
-            asExecCallback(arg2, arg3)(null, 'doc-json\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['-l']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'doc-json\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -237,14 +295,26 @@ describe('CommandService', () => {
     it('installCollection runs ade install', async () => {
         const binDir = path.join(tmpDir, 'venv5', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
-        fs.writeFileSync(path.join(binDir, 'ade'), '');
+        const tool = path.join(binDir, 'ade');
+        fs.writeFileSync(tool, '');
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toMatch(/ade.*install.*ns\.coll/);
-            asExecCallback(arg2, arg3)(null, 'installed\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['install', 'ns.coll']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'installed\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -260,13 +330,26 @@ describe('CommandService', () => {
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            if (/^(which|where)\s+/i.test(cmd.trim()) && cmd.includes('missing-binary-xyz')) {
-                asExecCallback(arg2, arg3)(new Error('not found'), '', '');
-                return;
-            }
-            asExecCallback(arg2, arg3)(null, 'out\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                if (
+                    (file === 'which' || file === 'where') &&
+                    args.includes('missing-binary-xyz')
+                ) {
+                    cb?.(new Error('not found'), '', '');
+                    return;
+                }
+                cb?.(null, 'out\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -459,15 +542,26 @@ describe('CommandService', () => {
     it('runAnsibleNavigator delegates to runTool', async () => {
         const binDir = path.join(tmpDir, 'venv-nav', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
-        fs.writeFileSync(path.join(binDir, 'ansible-navigator'), '');
+        const tool = path.join(binDir, 'ansible-navigator');
+        fs.writeFileSync(tool, '');
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toContain('ansible-navigator');
-            expect(cmd).toContain('run');
-            asExecCallback(arg2, arg3)(null, 'nav-ok\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['run', 'site.yml']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'nav-ok\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
@@ -483,13 +577,23 @@ describe('CommandService', () => {
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
 
-        execImpl.mockImplementation((cmd: string, arg2: unknown, arg3?: unknown) => {
-            if (cmd.includes('which') || cmd.includes('where')) {
-                asExecCallback(arg2, arg3)(null, '/usr/bin/some-tool\n', '');
-                return;
-            }
-            asExecCallback(arg2, arg3)(null, 'out\n', '');
-        });
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                if ((file === 'which' || file === 'where') && args.includes('some-tool')) {
+                    cb?.(null, '/usr/bin/some-tool\n', '');
+                    return;
+                }
+                cb?.(null, 'out\n', '');
+            },
+        );
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
