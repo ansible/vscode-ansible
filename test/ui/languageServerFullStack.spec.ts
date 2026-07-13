@@ -155,31 +155,44 @@ describe('Language Server full stack e2e', function () {
         // column 8 should trigger the LS to call ansible-doc for module
         // options.  If ansible-doc is reachable, we'll get options like
         // "msg", "var", "verbosity".
-        const labels: string[] = await browser.executeWorkbench(
-            async (vscode: typeof VsCode, uri: string) => {
-                const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
-                await vscode.window.showTextDocument(doc);
+        //
+        // ansible-doc can take a while to respond in CI, so poll with retries
+        // instead of a single fixed wait.
+        const debugOptions = ['msg', 'var', 'verbosity'];
+        const maxAttempts = 10;
+        const pollInterval = 3000;
+        let foundOptions: string[] = [];
 
-                await new Promise((r) => setTimeout(r, 5000));
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const labels: string[] = await browser.executeWorkbench(
+                async (vscode: typeof VsCode, uri: string, waitMs: number) => {
+                    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
+                    await vscode.window.showTextDocument(doc);
 
-                const pos = new vscode.Position(7, 8);
-                const result: { items?: { label: string | { label: string } }[] } | undefined =
-                    await vscode.commands.executeCommand(
+                    await new Promise((r) => setTimeout(r, waitMs));
+
+                    const pos = new vscode.Position(7, 8);
+                    const result: {
+                        items?: { label: string | { label: string } }[];
+                    } | undefined = await vscode.commands.executeCommand(
                         'vscode.executeCompletionItemProvider',
                         doc.uri,
                         pos,
                     );
 
-                if (!result?.items) return [];
-                return result.items.map((i) =>
-                    typeof i.label === 'string' ? i.label : i.label.label,
-                );
-            },
-            fixtureUri,
-        );
+                    if (!result?.items) return [];
+                    return result.items.map((i) =>
+                        typeof i.label === 'string' ? i.label : i.label.label,
+                    );
+                },
+                fixtureUri,
+                attempt === 0 ? 5000 : pollInterval,
+            );
 
-        const debugOptions = ['msg', 'var', 'verbosity'];
-        const foundOptions = debugOptions.filter((opt) => labels.includes(opt));
+            foundOptions = debugOptions.filter((opt) => labels.includes(opt));
+            if (foundOptions.length > 0) break;
+        }
+
         expect(foundOptions.length).toBeGreaterThan(0);
     });
 });
