@@ -656,7 +656,7 @@ export class CollectionsService {
         }
 
         this._log(`Cache miss for ${docKey}, falling back to ansible-doc subprocess`);
-        const typeFlag = this._getTypeFlag(pluginType);
+        const typeArgs = this._getTypeArgs(pluginType);
 
         const { getCommandService } = await import('./CommandService');
         const commandService = getCommandService();
@@ -664,7 +664,7 @@ export class CollectionsService {
         try {
             const result = await commandService.runTool(
                 'ansible-doc',
-                [typeFlag, `"${pluginFullName}"`, '--json'],
+                [...typeArgs, pluginFullName, '--json'],
                 {
                     env: { ANSIBLE_NOCOLOR: '1' },
                 },
@@ -830,27 +830,27 @@ export class CollectionsService {
      * @param pluginType - Plugin category such as module or lookup.
      * @returns ansible-doc type flag string, or empty when the type is unknown.
      */
-    private _getTypeFlag(pluginType: string): string {
-        const typeMap: Record<string, string> = {
-            module: '-t module',
-            become: '-t become',
-            cache: '-t cache',
-            callback: '-t callback',
-            cliconf: '-t cliconf',
-            connection: '-t connection',
-            filter: '-t filter',
-            httpapi: '-t httpapi',
-            inventory: '-t inventory',
-            lookup: '-t lookup',
-            netconf: '-t netconf',
-            shell: '-t shell',
-            strategy: '-t strategy',
-            test: '-t test',
-            vars: '-t vars',
-            role: '-t role',
-            keyword: '-t keyword',
-        };
-        return typeMap[pluginType] || '';
+    private _getTypeArgs(pluginType: string): string[] {
+        const validTypes = new Set([
+            'module',
+            'become',
+            'cache',
+            'callback',
+            'cliconf',
+            'connection',
+            'filter',
+            'httpapi',
+            'inventory',
+            'lookup',
+            'netconf',
+            'shell',
+            'strategy',
+            'test',
+            'vars',
+            'role',
+            'keyword',
+        ]);
+        return validTypes.has(pluginType) ? ['-t', pluginType] : [];
     }
 
     /**
