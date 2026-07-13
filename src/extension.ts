@@ -146,15 +146,15 @@ export function getLogFilePath(): string | undefined {
  * Activate the Ansible extension and register providers and commands.
  * @param context - VS Code extension activation context
  */
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // Initialize file-based logging (before anything else so all messages are captured)
     const logFile = _ensureLogFile(context);
     log(`Log file: ${logFile}`);
 
     outputChannel.show(true);
 
-    // Initialize telemetry (respects VS Code global + extension-level opt-in)
-    const telemetry = TelemetryService.getInstance();
+    // Initialize telemetry (respects redhat.telemetry.enabled + VS Code global consent)
+    const telemetry = await TelemetryService.create(context);
     context.subscriptions.push(telemetry);
     telemetry.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
 

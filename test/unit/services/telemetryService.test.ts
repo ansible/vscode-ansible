@@ -1,31 +1,41 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TelemetryEvents } from '@ansible/common';
 
-const mockLogUsage = vi.fn();
-const mockLogError = vi.fn();
+const mockSend = vi.fn();
+const mockSendStartup = vi.fn();
 const mockDispose = vi.fn();
-let mockIsUsageEnabled = true;
-let mockTelemetryConfig: Record<string, unknown> = { enabled: true };
+let mockIsTelemetryEnabled = true;
+let mockTelemetryConfig: { enabled: boolean | null } = { enabled: true };
 type ConfigChangeHandler = (e: { affectsConfiguration: (s: string) => boolean }) => void;
 let configChangeListener: ConfigChangeHandler | undefined;
 
+vi.mock('@redhat-developer/vscode-redhat-telemetry/lib', () => ({
+    getRedHatService: vi.fn(() =>
+        Promise.resolve({
+            getTelemetryService: vi.fn(() =>
+                Promise.resolve({
+                    send: mockSend,
+                    sendStartupEvent: mockSendStartup,
+                    sendShutdownEvent: vi.fn(),
+                    flushQueue: vi.fn(),
+                    dispose: mockDispose,
+                }),
+            ),
+        }),
+    ),
+}));
+
 vi.mock('vscode', () => ({
     env: {
-        createTelemetryLogger: vi.fn(() => ({
-            logUsage: mockLogUsage,
-            logError: mockLogError,
-            get isUsageEnabled() {
-                return mockIsUsageEnabled;
-            },
-            onDidChangeEnableStates: vi.fn(),
-            dispose: mockDispose,
-        })),
+        get isTelemetryEnabled() {
+            return mockIsTelemetryEnabled;
+        },
     },
     workspace: {
         getConfiguration: vi.fn(() => ({
-            get: vi.fn((_key: string, defaultValue: unknown) => {
+            get: vi.fn((_key: string, _defaultValue?: unknown) => {
                 if (_key === 'enabled') return mockTelemetryConfig.enabled;
-                return defaultValue;
+                return _defaultValue;
             }),
         })),
         onDidChangeConfiguration: vi.fn((cb: typeof configChangeListener) => {
@@ -35,11 +45,10 @@ vi.mock('vscode', () => ({
     },
 }));
 
-vi.mock('@src/extension', () => ({
-    log: vi.fn(),
-}));
-
+import type * as vscode from 'vscode';
 import { TelemetryService } from '../../../src/services/TelemetryService';
+
+const mockContext = {} as vscode.ExtensionContext;
 
 describe('TelemetryService', () => {
     let service: TelemetryService;
@@ -48,82 +57,100 @@ describe('TelemetryService', () => {
      * Recreate the singleton with current mock config.
      * @returns Fresh TelemetryService instance.
      */
-    function recreateService(): TelemetryService {
+    async function recreateService(): Promise<TelemetryService> {
         service.dispose();
-        service = TelemetryService.getInstance();
-        return service;
+        return TelemetryService.create(mockContext);
     }
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
-        mockIsUsageEnabled = true;
+        mockIsTelemetryEnabled = true;
         mockTelemetryConfig = { enabled: true };
         configChangeListener = undefined;
-        service = TelemetryService.getInstance();
+        service = await TelemetryService.create(mockContext);
     });
 
     afterEach(() => {
         service.dispose();
     });
 
-    describe('getInstance', () => {
-        it('returns a singleton instance', () => {
-            const instance1 = TelemetryService.getInstance();
-            const instance2 = TelemetryService.getInstance();
+    describe('create', () => {
+        it('returns a singleton instance', async () => {
+            const instance1 = await TelemetryService.create(mockContext);
+            const instance2 = await TelemetryService.create(mockContext);
             expect(instance1).toBe(instance2);
+        });
+
+        it('sends a startup event when telemetry is enabled', () => {
+            expect(mockSendStartup).toHaveBeenCalled();
         });
     });
 
     describe('isEnabled', () => {
-        it('returns true when both VS Code and extension telemetry are enabled', () => {
+        it('returns true when both Red Hat and VS Code telemetry are enabled', () => {
             expect(service.isEnabled).toBe(true);
         });
 
         it('returns false when VS Code telemetry is disabled', () => {
-            mockIsUsageEnabled = false;
+            mockIsTelemetryEnabled = false;
             expect(service.isEnabled).toBe(false);
         });
 
-        it('returns false when extension telemetry is disabled', () => {
+        it('returns false when Red Hat telemetry is disabled', async () => {
             mockTelemetryConfig = { enabled: false };
-            recreateService();
+            service = await recreateService();
+            expect(service.isEnabled).toBe(false);
+        });
+
+        it('returns false when Red Hat telemetry has not been opted in', async () => {
+            mockTelemetryConfig = { enabled: null };
+            service = await recreateService();
             expect(service.isEnabled).toBe(false);
         });
     });
 
     describe('sendEvent', () => {
-        it('delegates to TelemetryLogger.logUsage when enabled', () => {
+        it('delegates to Red Hat telemetry when enabled', () => {
             service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
-            expect(mockLogUsage).toHaveBeenCalledWith('extension.activated', undefined);
-        });
-
-        it('passes properties to logUsage', () => {
-            service.sendEvent(TelemetryEvents.COMMAND_EXECUTED, { commandId: 'ansible.test' });
-            expect(mockLogUsage).toHaveBeenCalledWith('command.executed', {
-                commandId: 'ansible.test',
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'extension.activated',
+                properties: undefined,
             });
         });
 
-        it('no-ops when extension telemetry is disabled', () => {
+        it('passes properties to send', () => {
+            service.sendEvent(TelemetryEvents.COMMAND_EXECUTED, { commandId: 'ansible.test' });
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'command.executed',
+                properties: { commandId: 'ansible.test' },
+            });
+        });
+
+        it('no-ops when Red Hat telemetry is disabled', async () => {
             mockTelemetryConfig = { enabled: false };
-            recreateService();
+            service = await recreateService();
+            mockSend.mockClear();
             service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
-            expect(mockLogUsage).not.toHaveBeenCalled();
+            expect(mockSend).not.toHaveBeenCalled();
         });
     });
 
     describe('sendError', () => {
-        it('delegates to TelemetryLogger.logError when enabled', () => {
+        it('delegates to Red Hat telemetry when enabled', () => {
             const error = new Error('test error');
             service.sendError('test.error', error);
-            expect(mockLogError).toHaveBeenCalledWith('test.error', error);
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'test.error',
+                properties: { error: 'test error' },
+            });
         });
 
-        it('no-ops when extension telemetry is disabled', () => {
+        it('no-ops when Red Hat telemetry is disabled', async () => {
             mockTelemetryConfig = { enabled: false };
-            recreateService();
+            service = await recreateService();
+            mockSend.mockClear();
             service.sendError('test.error', new Error('should not send'));
-            expect(mockLogError).not.toHaveBeenCalled();
+            expect(mockSend).not.toHaveBeenCalled();
         });
     });
 
@@ -136,17 +163,19 @@ describe('TelemetryService', () => {
         it('delegates sendEvent calls to the telemetry service', () => {
             const reporter = service.asLightspeedReporter();
             reporter.sendEvent('lightspeed.suggestion.accepted', { suggestionId: 'abc' });
-            expect(mockLogUsage).toHaveBeenCalledWith('lightspeed.suggestion.accepted', {
-                suggestionId: 'abc',
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'lightspeed.suggestion.accepted',
+                properties: { suggestionId: 'abc' },
             });
         });
 
-        it('no-ops when extension telemetry is disabled', () => {
+        it('no-ops when Red Hat telemetry is disabled', async () => {
             mockTelemetryConfig = { enabled: false };
-            recreateService();
+            service = await recreateService();
+            mockSend.mockClear();
             const reporter = service.asLightspeedReporter();
             reporter.sendEvent('lightspeed.suggestion.accepted');
-            expect(mockLogUsage).not.toHaveBeenCalled();
+            expect(mockSend).not.toHaveBeenCalled();
         });
     });
 
@@ -157,8 +186,9 @@ describe('TelemetryService', () => {
 
             const result = tracked();
 
-            expect(mockLogUsage).toHaveBeenCalledWith('command.executed', {
-                commandId: 'ansible.test',
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'command.executed',
+                properties: { commandId: 'ansible.test' },
             });
             expect(handler).toHaveBeenCalled();
             expect(result).toBe(42);
@@ -181,33 +211,33 @@ describe('TelemetryService', () => {
 
             mockTelemetryConfig = { enabled: false };
             configChangeListener?.({
-                affectsConfiguration: (s: string) => s === 'ansibleEnvironments.telemetry.enabled',
+                affectsConfiguration: (s: string) => s === 'redhat.telemetry.enabled',
             });
             expect(service.isEnabled).toBe(false);
         });
 
         it('ignores unrelated configuration changes', () => {
             service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
-            mockLogUsage.mockClear();
+            mockSend.mockClear();
 
             configChangeListener?.({
                 affectsConfiguration: () => false,
             });
             service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
-            expect(mockLogUsage).toHaveBeenCalled();
+            expect(mockSend).toHaveBeenCalled();
         });
     });
 
     describe('dispose', () => {
-        it('disposes the telemetry logger', () => {
+        it('disposes the Red Hat telemetry service', () => {
             service.dispose();
             expect(mockDispose).toHaveBeenCalled();
         });
 
-        it('clears the singleton so getInstance creates a new one', () => {
-            const before = TelemetryService.getInstance();
+        it('clears the singleton so create returns a new one', async () => {
+            const before = await TelemetryService.create(mockContext);
             before.dispose();
-            const after = TelemetryService.getInstance();
+            const after = await TelemetryService.create(mockContext);
             expect(after).not.toBe(before);
         });
     });

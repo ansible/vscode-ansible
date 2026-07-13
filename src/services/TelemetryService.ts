@@ -1,111 +1,92 @@
 /**
  * Telemetry Service
  *
- * Singleton service for collecting anonymous usage telemetry.
- * Uses VS Code's native TelemetryLogger API, which automatically
- * respects the user's global telemetry consent setting
- * (`telemetry.telemetryLevel`).
- *
- * Events are only recorded when both the VS Code global setting and the
- * extension-specific `ansibleEnvironments.telemetry.enabled` opt-in are
- * true. No PII is collected.
+ * Wraps @redhat-developer/vscode-redhat-telemetry for anonymous usage
+ * collection. Respects the user's `redhat.telemetry.enabled` opt-in and
+ * VS Code's global `telemetry.telemetryLevel` setting.
  */
 
 import * as vscode from 'vscode';
+import {
+    getRedHatService,
+    type TelemetryService as RedHatTelemetryService,
+} from '@redhat-developer/vscode-redhat-telemetry/lib';
 import { TelemetryEvents } from '@ansible/common';
 import type { TelemetryEventName } from '@ansible/common';
 import type { TelemetryReporter } from '@ansible/lightspeed';
-import { log } from '@src/extension';
 
-const CONFIG_SECTION = 'ansibleEnvironments.telemetry';
+const CONFIG_SECTION = 'redhat.telemetry';
 const CONFIG_ENABLED = 'enabled';
 
 /**
- * Custom TelemetrySender that writes events to the extension's output channel.
- * A real backend (Segment, etc.) can replace the body of sendEventData later
- * without changing any call sites.
- */
-class OutputChannelSender implements vscode.TelemetrySender {
-    /**
-     * @param eventName - The telemetry event name.
-     * @param data - Optional event properties.
-     */
-    sendEventData(eventName: string, data?: Record<string, unknown>): void {
-        log(`[telemetry] ${eventName} ${data ? JSON.stringify(data) : ''}`);
-    }
-
-    /**
-     * @param error - The error to report.
-     * @param data - Optional error properties.
-     */
-    sendErrorData(error: Error, data?: Record<string, unknown>): void {
-        log(`[telemetry:error] ${error.message} ${data ? JSON.stringify(data) : ''}`);
-    }
-}
-
-/**
  * Centralized telemetry service for the Ansible extension.
- * Wraps VS Code's TelemetryLogger API with an extension-level opt-in gate.
+ * Delegates to Red Hat's shared telemetry library after opt-in.
  */
 export class TelemetryService implements vscode.Disposable {
     private static _instance: TelemetryService | undefined;
 
-    private _logger: vscode.TelemetryLogger;
+    private _service: RedHatTelemetryService | undefined;
+    private readonly _ready: Promise<void>;
     private _extensionEnabled: boolean;
-    private _disposables: vscode.Disposable[] = [];
+    private readonly _disposables: vscode.Disposable[] = [];
 
-    /** Private constructor — use getInstance(). */
-    private constructor() {
-        const sender = new OutputChannelSender();
-        this._logger = vscode.env.createTelemetryLogger(sender, {
-            ignoreBuiltInCommonProperties: false,
-            ignoreUnhandledErrors: true,
-        });
-
-        this._extensionEnabled = vscode.workspace
-            .getConfiguration(CONFIG_SECTION)
-            .get<boolean>(CONFIG_ENABLED, false);
-
+    /**
+     * Private constructor — use create().
+     * @param _context - VS Code extension context for Red Hat telemetry initialization.
+     */
+    private constructor(private readonly _context: vscode.ExtensionContext) {
+        this._extensionEnabled = this._readExtensionEnabled();
+        this._ready = this._initialize();
         this._disposables.push(
-            this._logger,
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration(`${CONFIG_SECTION}.${CONFIG_ENABLED}`)) {
-                    this._extensionEnabled = vscode.workspace
-                        .getConfiguration(CONFIG_SECTION)
-                        .get<boolean>(CONFIG_ENABLED, false);
+                    this._extensionEnabled = this._readExtensionEnabled();
                 }
             }),
         );
     }
 
     /**
-     * Get the singleton TelemetryService instance.
-     * @returns The shared TelemetryService instance.
+     * Initialize the singleton telemetry service.
+     * @param context - VS Code extension context used to obtain the Red Hat service.
+     * @returns The initialized TelemetryService instance.
      */
-    public static getInstance(): TelemetryService {
-        TelemetryService._instance ??= new TelemetryService();
+    public static async create(context: vscode.ExtensionContext): Promise<TelemetryService> {
+        TelemetryService._instance ??= new TelemetryService(context);
+        await TelemetryService._instance._ready;
         return TelemetryService._instance;
     }
 
     /**
-     * Whether telemetry is currently active (both VS Code global and
-     * extension opt-in must be true).
+     * Get the singleton instance after create() has resolved.
+     * @returns The shared TelemetryService instance.
+     */
+    public static getInstance(): TelemetryService {
+        if (!TelemetryService._instance) {
+            throw new Error('TelemetryService not initialized — call create() first');
+        }
+        return TelemetryService._instance;
+    }
+
+    /**
+     * Whether telemetry is currently active (Red Hat opt-in and VS Code global
+     * telemetry must both be enabled).
      * @returns True when telemetry collection is enabled.
      */
     public get isEnabled(): boolean {
-        return this._extensionEnabled && this._logger.isUsageEnabled;
+        return this._extensionEnabled && vscode.env.isTelemetryEnabled;
     }
 
     /**
      * Record a telemetry event.
-     * No-ops when either the VS Code global or extension-level setting is off.
+     * No-ops when telemetry is disabled.
      *
      * @param name - Event name from TelemetryEvents or a custom string.
      * @param properties - Optional string key/value pairs.
      */
     public sendEvent(name: TelemetryEventName, properties?: Record<string, string>): void {
-        if (!this._extensionEnabled) return;
-        this._logger.logUsage(name, properties);
+        if (!this.isEnabled || !this._service) return;
+        void this._service.send({ name, properties });
     }
 
     /**
@@ -114,8 +95,11 @@ export class TelemetryService implements vscode.Disposable {
      * @param error - The error to report.
      */
     public sendError(name: string, error: Error): void {
-        if (!this._extensionEnabled) return;
-        this._logger.logError(name, error);
+        if (!this.isEnabled || !this._service) return;
+        void this._service.send({
+            name,
+            properties: { error: error.message },
+        });
     }
 
     /**
@@ -126,8 +110,8 @@ export class TelemetryService implements vscode.Disposable {
     public asLightspeedReporter(): TelemetryReporter {
         return {
             sendEvent: (name: string, properties?: Record<string, string>) => {
-                if (!this._extensionEnabled) return;
-                this._logger.logUsage(name, properties);
+                if (!this.isEnabled || !this._service) return;
+                void this._service.send({ name, properties });
             },
         };
     }
@@ -154,7 +138,32 @@ export class TelemetryService implements vscode.Disposable {
         for (const d of this._disposables) {
             d.dispose();
         }
-        this._disposables = [];
+        this._disposables.length = 0;
+        if (this._service) {
+            void this._service.dispose();
+            this._service = undefined;
+        }
         TelemetryService._instance = undefined;
+    }
+
+    /**
+     * Read whether the user has opted in to Red Hat telemetry.
+     * @returns True when `redhat.telemetry.enabled` is explicitly true.
+     */
+    private _readExtensionEnabled(): boolean {
+        return (
+            vscode.workspace
+                .getConfiguration(CONFIG_SECTION)
+                .get<boolean | null>(CONFIG_ENABLED) === true
+        );
+    }
+
+    /** Initialize the Red Hat telemetry backend and send startup when enabled. */
+    private async _initialize(): Promise<void> {
+        const redhatService = await getRedHatService(this._context);
+        this._service = await redhatService.getTelemetryService();
+        if (this.isEnabled) {
+            await this._service.sendStartupEvent();
+        }
     }
 }
