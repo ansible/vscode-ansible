@@ -1,7 +1,7 @@
 ---
 title: Python environment capability parity
 created: 2026-06-24
-status: pending
+status: complete
 priority: high
 scope: extension, mcp
 related:
@@ -37,12 +37,27 @@ VS Code installs.
 
 ## Remaining work
 
-- [ ] Unit tests for `getCapability()` matrix across all four tiers
-- [ ] Unit test for `DevToolsService.install()` terminal fallback path
-- [ ] E2E test profile that runs without python-envs installed
-- [ ] PRD assumption #3 clarification (recommended primary, not blocker)
-- [ ] Update ux-walkthrough skill to use sidebar commands instead of manual
-      venv steps as default path (follow-up, low priority)
+- [x] Unit tests for `getCapability()` matrix across all four tiers
+      (test/unit/services/pythonEnvCapability.test.ts — covers all tiers
+      with parameterized describe/it blocks, plus edge cases for hint
+      content and priority when both APIs are present)
+- [x] Unit test for `DevToolsService.install()` terminal fallback path
+      (packages/services/test/services/DevToolsService.terminal.test.ts —
+      covers terminal pip install, Layer 2 priority, polling when shell
+      integration is unavailable, and upgrade via terminal)
+- [x] Run no-python-envs integration profile in CI
+      (`pnpm test:integration` runs both default and no-python-envs profiles
+      via a single `vscode-test` invocation; test/integration/no-envs/activation.test.ts
+      covers activation, commands, views, and refresh without python-envs)
+- [x] PRD assumption #3 clarification (recommended primary, not blocker)
+      python-envs is listed in `extensionRecommendations` (soft), not
+      `extensionDependencies` (hard). ADR-019 documents this explicitly:
+      Layer 2 is preferred, Layer 3 terminal fallback is best-effort
+      (available when terminal services are present).
+- [x] Update ux-walkthrough skill to use sidebar commands instead of manual
+      venv steps as default path (already addressed — SKILL.md directs
+      reviewers to use sidebar, walkthrough-modules.json uses
+      ansibleDevToolsEnvManagers.create command)
 
 ## Acceptance criteria
 

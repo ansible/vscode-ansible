@@ -183,7 +183,7 @@ export class DevToolsService {
             return;
         }
 
-        if (!vscode) {
+        if (!this.isInVSCode()) {
             throw new Error('install is only available in VS Code');
         }
 
@@ -224,12 +224,12 @@ export class DevToolsService {
      * Upgrade ansible-dev-tools package with eager strategy (VS Code only)
      */
     public async upgrade(): Promise<void> {
-        if (!vscode) {
+        if (!this.isInVSCode()) {
             throw new Error('upgrade is only available in VS Code');
         }
 
         if (!DevToolsService.terminalServiceFactory) {
-            void vscode.window.showInformationMessage('Upgrade is only available in VS Code.');
+            void vscode?.window.showInformationMessage('Upgrade is only available in VS Code.');
             return;
         }
 
