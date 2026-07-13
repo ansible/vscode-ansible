@@ -172,9 +172,11 @@ describe('Language Server full stack e2e', function () {
                     await new Promise((r) => setTimeout(r, waitMs));
 
                     const pos = new vscode.Position(7, 8);
-                    const result: {
-                        items?: { label: string | { label: string } }[];
-                    } | undefined = await vscode.commands.executeCommand(
+                    const result:
+                        | {
+                              items?: { label: string | { label: string } }[];
+                          }
+                        | undefined = await vscode.commands.executeCommand(
                         'vscode.executeCompletionItemProvider',
                         doc.uri,
                         pos,
