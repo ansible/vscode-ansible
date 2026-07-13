@@ -1485,10 +1485,15 @@ export class McpToolHandler {
             });
 
             if (result.exitCode !== 0) {
+                const failureOutput = (result.stderr || result.stdout || '').trim();
+                const truncatedFailure =
+                    failureOutput.length > 2000
+                        ? `${failureOutput.substring(0, 2000)}\n... (truncated)`
+                        : failureOutput;
                 return mcpError({
                     code: 'OPERATION_FAILED',
                     recoverability: 'retry',
-                    message: `ansible-builder failed (exit code ${String(result.exitCode)}): ${result.stderr || result.stdout}`,
+                    message: `ansible-builder failed (exit code ${String(result.exitCode)}): ${truncatedFailure}`,
                     suggestion:
                         'Check the definition file, container runtime status, and ansible-builder output.',
                 });
@@ -1497,6 +1502,8 @@ export class McpToolHandler {
             ExecutionEnvService.getInstance().forceRefresh();
 
             const output = [result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+            const truncatedOutput =
+                output.length > 2000 ? `${output.substring(0, 2000)}\n... (truncated)` : output;
             return {
                 content: [
                     {
@@ -1505,7 +1512,7 @@ export class McpToolHandler {
                             `Successfully built execution environment from ${plan.filePath}.\n\n` +
                             `Command: ansible-builder ${plan.args.join(' ')}\n` +
                             `Working directory: ${plan.cwd}\n\n` +
-                            (output ? `Output:\n${output}\n\n` : '') +
+                            (truncatedOutput ? `Output:\n${truncatedOutput}\n\n` : '') +
                             'Use `list_execution_environments` to see the updated image list.',
                     },
                 ],
