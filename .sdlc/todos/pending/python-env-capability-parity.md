@@ -45,11 +45,9 @@ VS Code installs.
       (packages/services/test/services/DevToolsService.terminal.test.ts —
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
-- [ ] Add a dedicated CI step to run the no-python-envs integration profile
-      (test/integration/activation-no-envs.test.ts exists and validates
-      activation, commands, views, and refresh without crash; needs a
-      separate `vscode-test` invocation since the default run includes
-      all profiles)
+- [ ] Add a dedicated CI step to run `pnpm test:integration:no-envs`
+      (profile and script exist; test/integration/activation-no-envs.test.ts
+      validates activation, commands, views, and refresh without crash)
 - [x] PRD assumption #3 clarification (recommended primary, not blocker)
       python-envs is listed in `extensionRecommendations` (soft), not
       `extensionDependencies` (hard). ADR-019 documents this explicitly:
