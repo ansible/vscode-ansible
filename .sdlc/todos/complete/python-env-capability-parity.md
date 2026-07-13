@@ -45,8 +45,9 @@ VS Code installs.
       (packages/services/test/services/DevToolsService.terminal.test.ts —
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
-- [x] Add a dedicated CI step to run `pnpm test:integration:no-envs`
-      (added to next.yml and wsl2-ui.yml; test/integration/no-envs/activation.test.ts
+- [x] Run no-python-envs integration profile in CI
+      (`pnpm test:integration` runs both default and no-python-envs profiles
+      via a single `vscode-test` invocation; test/integration/no-envs/activation.test.ts
       covers activation, commands, views, and refresh without python-envs)
 - [x] PRD assumption #3 clarification (recommended primary, not blocker)
       python-envs is listed in `extensionRecommendations` (soft), not

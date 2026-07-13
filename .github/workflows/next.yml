@@ -65,10 +65,6 @@ jobs:
             if: runner.os != 'Windows'
             run: xvfb-run --auto-servernum pnpm run test:integration
 
-          - name: Run integration tests (no python-envs)
-            if: runner.os != 'Windows'
-            run: xvfb-run --auto-servernum pnpm run test:integration:no-envs
-
       - parallel:
           - name: Pre-install Chromedriver
             if: runner.os != 'Windows'

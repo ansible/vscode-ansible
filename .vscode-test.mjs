@@ -1,4 +1,8 @@
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from '@vscode/test-cli';
+
+const rootDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig([
     {
@@ -10,7 +14,7 @@ export default defineConfig([
     {
         label: 'no-python-envs',
         files: 'out/test/integration/no-envs/*.test.js',
-        launchArgs: ['--extensions-dir=.vscode-test/no-envs-extensions'],
+        launchArgs: [`--extensions-dir=${resolve(rootDir, '.vscode-test/no-envs-extensions')}`],
         mocha: { timeout: 60000 },
     },
 ]);
