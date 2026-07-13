@@ -89,18 +89,18 @@ describe('ContainerRuntime', () => {
 
     describe('detectEngine', () => {
         it('returns podman when available', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: 'podman 5.0',
                 stderr: '',
             });
             const engine = await detectEngine();
             expect(engine).toBe('podman');
-            expect(mocks.mockRunCommand).toHaveBeenCalledWith('podman --version');
+            expect(mocks.mockRunCommandArgs).toHaveBeenCalledWith('podman', ['--version']);
         });
 
         it('falls back to docker when podman is not found', async () => {
-            mocks.mockRunCommand
+            mocks.mockRunCommandArgs
                 .mockResolvedValueOnce({ exitCode: 127, stdout: '', stderr: 'not found' })
                 .mockResolvedValueOnce({ exitCode: 0, stdout: 'Docker version 24.0', stderr: '' });
             const engine = await detectEngine();
@@ -108,7 +108,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('returns null when neither is found', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 127,
                 stdout: '',
                 stderr: 'not found',
@@ -120,7 +120,7 @@ describe('ContainerRuntime', () => {
 
     describe('listImages (podman)', () => {
         it('parses podman JSON format', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: PODMAN_IMAGES_JSON,
                 stderr: '',
@@ -148,7 +148,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('returns empty array on failure', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 1,
                 stdout: '',
                 stderr: 'error',
@@ -160,7 +160,7 @@ describe('ContainerRuntime', () => {
 
     describe('listImages (docker)', () => {
         it('parses docker line-delimited JSON format', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: DOCKER_IMAGES_LINES,
                 stderr: '',
@@ -179,7 +179,7 @@ describe('ContainerRuntime', () => {
 
     describe('inspectImage', () => {
         it('classifies EE image correctly', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: INSPECT_EE_JSON,
                 stderr: '',
@@ -198,7 +198,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('classifies non-EE image correctly', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: INSPECT_NON_EE_JSON,
                 stderr: '',
@@ -236,7 +236,7 @@ describe('ContainerRuntime', () => {
 
     describe('inspectImage edge cases', () => {
         it('handles malformed JSON in inspect output', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: 'not valid json {{{',
                 stderr: '',
@@ -255,7 +255,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('handles inspect command failure', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 1,
                 stdout: '',
                 stderr: 'no such image',
@@ -281,7 +281,7 @@ describe('ContainerRuntime', () => {
                     WorkingDir: '/runner',
                 },
             });
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: singleObj,
                 stderr: '',
@@ -299,7 +299,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('handles inspect JSON with missing Config', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: JSON.stringify([{ Id: 'sha256:noconfig' }]),
                 stderr: '',
@@ -321,7 +321,7 @@ describe('ContainerRuntime', () => {
 
     describe('listImages edge cases', () => {
         it('returns empty on empty stdout', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: '',
                 stderr: '',
@@ -331,7 +331,7 @@ describe('ContainerRuntime', () => {
         });
 
         it('handles malformed podman JSON gracefully', async () => {
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: 'not json at all',
                 stderr: '',
@@ -346,7 +346,7 @@ describe('ContainerRuntime', () => {
                 'not json line',
                 '{"ID":"sha256:good2","Repository":"img2","Tag":"v2","CreatedAt":"now","Size":"2MB"}',
             ].join('\n');
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: lines,
                 stderr: '',
@@ -364,7 +364,7 @@ describe('ContainerRuntime', () => {
                     Size: 0,
                 },
             ]);
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: data,
                 stderr: '',
@@ -382,7 +382,7 @@ describe('ContainerRuntime', () => {
                     Size: 1073741824,
                 },
             ]);
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: data,
                 stderr: '',
@@ -400,7 +400,7 @@ describe('ContainerRuntime', () => {
                     Size: 512,
                 },
             ]);
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: data,
                 stderr: '',
@@ -418,7 +418,7 @@ describe('ContainerRuntime', () => {
                     Size: 1024,
                 },
             ]);
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: data,
                 stderr: '',
@@ -432,7 +432,7 @@ describe('ContainerRuntime', () => {
             const data = JSON.stringify([
                 { Id: 'sha256:zero', Names: ['zero:v1'], CreatedAt: '2026-01-01', Size: 0 },
             ]);
-            mocks.mockRunCommand.mockResolvedValue({
+            mocks.mockRunCommandArgs.mockResolvedValue({
                 exitCode: 0,
                 stdout: data,
                 stderr: '',
