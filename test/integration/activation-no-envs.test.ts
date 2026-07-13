@@ -71,14 +71,13 @@ suite('Ansible Extension — without python-envs', () => {
 
     test('refresh commands do not crash without python-envs', async () => {
         const commands = await vscode.commands.getCommands(true);
-        const refreshCmd = commands.find((c) => c === 'ansibleDevToolsPackages.refresh');
+        const refreshCmd = 'ansibleDevToolsPackages.refresh';
+        assert.ok(commands.includes(refreshCmd), 'Should register the package refresh command');
 
-        if (refreshCmd) {
-            try {
-                await vscode.commands.executeCommand(refreshCmd);
-            } catch {
-                // Failure is acceptable; crashing is not
-            }
+        try {
+            await vscode.commands.executeCommand(refreshCmd);
+        } catch {
+            // Failure is acceptable; crashing is not
         }
 
         const ext = vscode.extensions.getExtension(EXTENSION_ID);

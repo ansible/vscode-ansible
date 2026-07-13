@@ -1,7 +1,7 @@
 ---
 title: Python environment capability parity
 created: 2026-06-24
-status: complete
+status: pending
 priority: high
 scope: extension, mcp
 related:
@@ -45,7 +45,7 @@ VS Code installs.
       (packages/services/test/services/DevToolsService.terminal.test.ts —
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
-- [x] E2E test profile that runs without python-envs installed
+- [ ] Run the E2E test profile without python-envs installed in CI
       (.vscode-test.mjs `no-python-envs` label +
       test/integration/activation-no-envs.test.ts — validates activation,
       commands, views, and refresh without crash)
