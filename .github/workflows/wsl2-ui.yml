@@ -81,6 +81,9 @@ jobs:
       - name: Integration tests
         run: pnpm run test:integration
 
+      - name: Integration tests (no python-envs)
+        run: pnpm run test:integration:no-envs
+
   # ╔═══════════════════════════════════════════════════════════════════╗
   # ║  Job 2 — Fedora WSL: full WDIO test suite                      ║
   # ╚═══════════════════════════════════════════════════════════════════╝
@@ -310,3 +313,8 @@ jobs:
         shell: powershell
         run: |
           wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:integration"
+
+      - name: Integration tests (no python-envs)
+        shell: powershell
+        run: |
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:integration:no-envs"

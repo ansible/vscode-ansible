@@ -1,7 +1,7 @@
 ---
 title: Python environment capability parity
 created: 2026-06-24
-status: pending
+status: complete
 priority: high
 scope: extension, mcp
 related:
@@ -45,9 +45,9 @@ VS Code installs.
       (packages/services/test/services/DevToolsService.terminal.test.ts —
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
-- [ ] Add a dedicated CI step to run `pnpm test:integration:no-envs`
-      (profile and script exist; test/integration/no-envs/activation.test.ts
-      validates activation, commands, views, and refresh without crash)
+- [x] Add a dedicated CI step to run `pnpm test:integration:no-envs`
+      (added to next.yml and wsl2-ui.yml; test/integration/no-envs/activation.test.ts
+      covers activation, commands, views, and refresh without python-envs)
 - [x] PRD assumption #3 clarification (recommended primary, not blocker)
       python-envs is listed in `extensionRecommendations` (soft), not
       `extensionDependencies` (hard). ADR-019 documents this explicitly:
