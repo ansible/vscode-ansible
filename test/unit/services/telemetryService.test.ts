@@ -46,6 +46,7 @@ vi.mock('vscode', () => ({
 }));
 
 import type * as vscode from 'vscode';
+import { getRedHatService } from '@redhat-developer/vscode-redhat-telemetry/lib';
 import { TelemetryService } from '../../../src/services/TelemetryService';
 
 const mockContext = {} as vscode.ExtensionContext;
@@ -83,6 +84,29 @@ describe('TelemetryService', () => {
 
         it('sends a startup event when telemetry is enabled', () => {
             expect(mockSendStartup).toHaveBeenCalled();
+        });
+
+        it('does not throw when initialization fails', async () => {
+            vi.mocked(getRedHatService).mockRejectedValueOnce(new Error('init failed'));
+            service.dispose();
+            await expect(TelemetryService.create(mockContext)).resolves.toBeDefined();
+        });
+
+        it('clears the singleton on initialization failure so create can retry', async () => {
+            vi.mocked(getRedHatService).mockRejectedValueOnce(new Error('init failed'));
+            service.dispose();
+            const failed = await TelemetryService.create(mockContext);
+
+            failed.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+            expect(mockSend).not.toHaveBeenCalled();
+
+            service = await TelemetryService.create(mockContext);
+            service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+            expect(mockSend).toHaveBeenCalledWith({
+                name: 'extension.activated',
+                properties: undefined,
+            });
+            expect(service).not.toBe(failed);
         });
     });
 

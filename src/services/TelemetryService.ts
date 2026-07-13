@@ -52,9 +52,15 @@ export class TelemetryService implements vscode.Disposable {
      * @returns The initialized TelemetryService instance.
      */
     public static async create(context: vscode.ExtensionContext): Promise<TelemetryService> {
-        TelemetryService._instance ??= new TelemetryService(context);
-        await TelemetryService._instance._ready;
-        return TelemetryService._instance;
+        if (TelemetryService._instance) {
+            await TelemetryService._instance._ready;
+            return TelemetryService._instance;
+        }
+
+        const instance = new TelemetryService(context);
+        TelemetryService._instance = instance;
+        await instance._ready;
+        return instance;
     }
 
     /**
@@ -160,10 +166,16 @@ export class TelemetryService implements vscode.Disposable {
 
     /** Initialize the Red Hat telemetry backend and send startup when enabled. */
     private async _initialize(): Promise<void> {
-        const redhatService = await getRedHatService(this._context);
-        this._service = await redhatService.getTelemetryService();
-        if (this.isEnabled) {
-            await this._service.sendStartupEvent();
+        try {
+            const redhatService = await getRedHatService(this._context);
+            this._service = await redhatService.getTelemetryService();
+            if (this.isEnabled) {
+                await this._service.sendStartupEvent();
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`[telemetry] Initialization failed: ${message}`);
+            TelemetryService._instance = undefined;
         }
     }
 }
