@@ -45,14 +45,16 @@ VS Code installs.
       (packages/services/test/services/DevToolsService.terminal.test.ts —
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
-- [ ] Run the E2E test profile without python-envs installed in CI
-      (.vscode-test.mjs `no-python-envs` label +
-      test/integration/activation-no-envs.test.ts — validates activation,
-      commands, views, and refresh without crash)
+- [ ] Add a dedicated CI step to run the no-python-envs integration profile
+      (test/integration/activation-no-envs.test.ts exists and validates
+      activation, commands, views, and refresh without crash; needs a
+      separate `vscode-test` invocation since the default run includes
+      all profiles)
 - [x] PRD assumption #3 clarification (recommended primary, not blocker)
       python-envs is listed in `extensionRecommendations` (soft), not
       `extensionDependencies` (hard). ADR-019 documents this explicitly:
-      Layer 2 is preferred, Layer 3 terminal fallback is always available.
+      Layer 2 is preferred, Layer 3 terminal fallback is best-effort
+      (available when terminal services are present).
 - [x] Update ux-walkthrough skill to use sidebar commands instead of manual
       venv steps as default path (already addressed — SKILL.md directs
       reviewers to use sidebar, walkthrough-modules.json uses
