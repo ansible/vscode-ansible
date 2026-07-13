@@ -2,7 +2,7 @@
  * Integration test that validates extension activation and degraded-mode
  * behavior when ms-python.vscode-python-envs is NOT installed.
  *
- * Run via:  pnpm test:integration -- --label no-python-envs
+ * Run via:  pnpm test:integration:no-envs
  */
 import * as assert from 'assert';
 import * as vscode from 'vscode';

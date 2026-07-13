@@ -46,7 +46,7 @@ VS Code installs.
       covers terminal pip install, Layer 2 priority, polling when shell
       integration is unavailable, and upgrade via terminal)
 - [ ] Add a dedicated CI step to run `pnpm test:integration:no-envs`
-      (profile and script exist; test/integration/activation-no-envs.test.ts
+      (profile and script exist; test/integration/no-envs/activation.test.ts
       validates activation, commands, views, and refresh without crash)
 - [x] PRD assumption #3 clarification (recommended primary, not blocker)
       python-envs is listed in `extensionRecommendations` (soft), not
