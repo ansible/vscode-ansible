@@ -42,7 +42,9 @@ export type {
     ProgressEventType,
     AiAnalyzeData,
     PlaybookRunOptions,
+    TelemetryEventName,
 } from './types';
+export { TelemetryEvents } from './types';
 
 // --- Utils ---
 export {
