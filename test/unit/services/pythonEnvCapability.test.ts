@@ -217,4 +217,53 @@ describe('PythonEnvCapability model', () => {
         });
         expect(noPet.hasFullApi()).toBe(false);
     });
+
+    it('getCapability() returns full when both envs API and python ext are present with PET', () => {
+        const svc = createServiceWithState({
+            hasEnvsApi: true,
+            hasPythonExt: true,
+            petAvailable: true,
+        });
+        expect(svc.getCapability()).toBe('full');
+        expect(svc.prefersEnvsExtension()).toBe(true);
+        expect(svc.getActiveWritePath()).toBe('api');
+    });
+
+    it('getMissingExtensionHint() returns python-envs recommendation for python-only tier', () => {
+        const svc = createServiceWithState({
+            hasEnvsApi: false,
+            hasPythonExt: true,
+            petAvailable: false,
+        });
+        expect(svc.getMissingExtensionHint()).toBe(
+            'Install the Python Environments extension (ms-python.vscode-python-envs) for the best experience.',
+        );
+    });
+
+    it('getMissingExtensionHint() returns python install guidance for unavailable tier', () => {
+        const svc = createServiceWithState({
+            hasEnvsApi: false,
+            hasPythonExt: false,
+            petAvailable: false,
+        });
+        expect(svc.getMissingExtensionHint()).toBe(
+            'Install the Python extension (ms-python.python) to enable environment management.',
+        );
+    });
+
+    it('getMissingExtensionHint() returns undefined for full and envs-no-pet tiers', () => {
+        const full = createServiceWithState({
+            hasEnvsApi: true,
+            hasPythonExt: false,
+            petAvailable: true,
+        });
+        expect(full.getMissingExtensionHint()).toBeUndefined();
+
+        const hybrid = createServiceWithState({
+            hasEnvsApi: true,
+            hasPythonExt: true,
+            petAvailable: false,
+        });
+        expect(hybrid.getMissingExtensionHint()).toBeUndefined();
+    });
 });
