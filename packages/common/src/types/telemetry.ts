@@ -11,43 +11,43 @@ export const TelemetryEvents = {
     COMMAND_EXECUTED: 'command.executed',
 
     // Environments
-    ENV_CREATED: 'env.created',
-    ENV_SELECTED: 'env.selected',
+    ENV_CREATE: 'env.create',
+    ENV_SELECT: 'env.select',
 
     // Collections
-    COLLECTION_INSTALLED: 'collection.installed',
-    COLLECTION_SEARCHED: 'collection.searched',
+    COLLECTION_INSTALL: 'collection.install',
+    COLLECTION_SEARCH: 'collection.search',
 
     // Playbooks
     PLAYBOOK_RUN: 'playbook.run',
     PLAYBOOK_RUN_WITH_PROGRESS: 'playbook.runWithProgress',
 
     // Creator
-    CREATOR_FORM_OPENED: 'creator.formOpened',
+    CREATOR_FORM_OPEN: 'creator.formOpen',
 
     // Vault
-    VAULT_USED: 'vault.used',
+    VAULT_USE: 'vault.use',
 
     // Plugin Docs
-    PLUGIN_DOC_VIEWED: 'pluginDoc.viewed',
+    PLUGIN_DOC_VIEW: 'pluginDoc.view',
 
     // AI Features
-    AI_SUMMARY_REQUESTED: 'ai.summaryRequested',
+    AI_SUMMARY_REQUEST: 'ai.summaryRequest',
 
     // MCP
-    MCP_TOOL_USED_IN_CHAT: 'mcp.toolUsedInChat',
-    MCP_CONFIGURED: 'mcp.configured',
+    MCP_TOOL_USE_IN_CHAT: 'mcp.toolUseInChat',
+    MCP_CONFIGURE: 'mcp.configure',
 
     // Skills
-    SKILL_USED_IN_CHAT: 'skill.usedInChat',
-    SKILL_PROMPT_COPIED: 'skill.promptCopied',
+    SKILL_USE_IN_CHAT: 'skill.useInChat',
+    SKILL_PROMPT_COPY: 'skill.promptCopy',
 
     // LLM
-    LLM_MODEL_SELECTED: 'llm.modelSelected',
-    LLM_PROVIDER_CONFIGURED: 'llm.providerConfigured',
+    LLM_MODEL_SELECT: 'llm.modelSelect',
+    LLM_PROVIDER_CONFIGURE: 'llm.providerConfigure',
 
     // Execution Environments
-    EE_DETAIL_VIEWED: 'ee.detailViewed',
+    EE_DETAIL_VIEW: 'ee.detailView',
 } as const;
 
 export type TelemetryEventName = (typeof TelemetryEvents)[keyof typeof TelemetryEvents];

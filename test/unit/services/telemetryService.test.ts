@@ -140,12 +140,12 @@ describe('TelemetryEvents', () => {
         expect(TelemetryEvents.EXTENSION_ACTIVATED).toBe('extension.activated');
         expect(TelemetryEvents.COMMAND_EXECUTED).toBe('command.executed');
         expect(TelemetryEvents.PLAYBOOK_RUN).toBe('playbook.run');
-        expect(TelemetryEvents.CREATOR_FORM_OPENED).toBe('creator.formOpened');
-        expect(TelemetryEvents.COLLECTION_INSTALLED).toBe('collection.installed');
-        expect(TelemetryEvents.AI_SUMMARY_REQUESTED).toBe('ai.summaryRequested');
-        expect(TelemetryEvents.MCP_TOOL_USED_IN_CHAT).toBe('mcp.toolUsedInChat');
-        expect(TelemetryEvents.SKILL_USED_IN_CHAT).toBe('skill.usedInChat');
-        expect(TelemetryEvents.LLM_MODEL_SELECTED).toBe('llm.modelSelected');
+        expect(TelemetryEvents.CREATOR_FORM_OPEN).toBe('creator.formOpen');
+        expect(TelemetryEvents.COLLECTION_INSTALL).toBe('collection.install');
+        expect(TelemetryEvents.AI_SUMMARY_REQUEST).toBe('ai.summaryRequest');
+        expect(TelemetryEvents.MCP_TOOL_USE_IN_CHAT).toBe('mcp.toolUseInChat');
+        expect(TelemetryEvents.SKILL_USE_IN_CHAT).toBe('skill.useInChat');
+        expect(TelemetryEvents.LLM_MODEL_SELECT).toBe('llm.modelSelect');
     });
 
     it('all event values follow category.action naming pattern', () => {

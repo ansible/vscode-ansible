@@ -507,7 +507,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'ansibleSkills.useInChat',
             (arg: SkillEntry | { skill: SkillEntry }) => {
-                telemetry.sendEvent(TelemetryEvents.SKILL_USED_IN_CHAT);
+                telemetry.sendEvent(TelemetryEvents.SKILL_USE_IN_CHAT);
                 const skill = 'skill' in arg ? arg.skill : arg;
                 void openChatWithSkill(skill);
             },
@@ -584,7 +584,7 @@ export function activate(context: vscode.ExtensionContext) {
     const envManagersCreateCommand = vscode.commands.registerCommand(
         'ansibleDevToolsEnvManagers.create',
         async () => {
-            telemetry.sendEvent(TelemetryEvents.ENV_CREATED);
+            telemetry.sendEvent(TelemetryEvents.ENV_CREATE);
             try {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 if (!workspaceFolder) {
@@ -777,7 +777,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsAiSummaryCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.aiSummary',
         async () => {
-            telemetry.sendEvent(TelemetryEvents.AI_SUMMARY_REQUESTED, { domain: 'collections' });
+            telemetry.sendEvent(TelemetryEvents.AI_SUMMARY_REQUEST, { domain: 'collections' });
             await openChatWithPrompt(buildCollectionsSummaryPrompt());
         },
     );
@@ -874,7 +874,7 @@ export function activate(context: vscode.ExtensionContext) {
         'ansibleCreator.openForm',
         (arg1: string[] | { commandPath: string[]; schema: unknown }, arg2?: unknown) => {
             const commandPath = Array.isArray(arg1) ? arg1 : arg1.commandPath;
-            telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPENED, {
+            telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
                 commandPath: commandPath.join('/'),
             });
             if (Array.isArray(arg1)) {
@@ -1029,7 +1029,7 @@ export function activate(context: vscode.ExtensionContext) {
     const mcpToolsUseInChatCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.useInChat',
         async (toolInfo: ToolInfo) => {
-            telemetry.sendEvent(TelemetryEvents.MCP_TOOL_USED_IN_CHAT, {
+            telemetry.sendEvent(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, {
                 tool: toolInfo.tool.name,
             });
             await injectToolPromptIntoChat(toolInfo);
@@ -1265,7 +1265,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsInstallCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.install',
         () => {
-            telemetry.sendEvent(TelemetryEvents.COLLECTION_INSTALLED);
+            telemetry.sendEvent(TelemetryEvents.COLLECTION_INSTALL);
             try {
                 const collectionsService = CollectionsService.getInstance();
 
@@ -1403,7 +1403,7 @@ export function activate(context: vscode.ExtensionContext) {
     const selectLlmModelCommand = vscode.commands.registerCommand(
         'ansibleEnvironments.selectLlmModel',
         async () => {
-            telemetry.sendEvent(TelemetryEvents.LLM_MODEL_SELECTED);
+            telemetry.sendEvent(TelemetryEvents.LLM_MODEL_SELECT);
             const llmService = getLlmService();
             await llmService.showModelPicker();
         },
