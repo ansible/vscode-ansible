@@ -672,6 +672,35 @@ Use the ee_name exactly as returned by list_execution_environments.`,
     },
 };
 
+export const BUILD_EE_TOOL: McpToolDefinition = {
+    name: 'build_execution_environment',
+    description: `Build a container image from an execution-environment.yml definition using ansible-builder.
+
+Runs \`ansible-builder build -f <file> -c <dir>/context\` in the active Python environment.
+Requires ansible-builder (via ansible-dev-tools) and a container runtime (Podman or Docker).
+After a successful build, local EE image inventories are refreshed.`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            file_path: {
+                type: 'string',
+                description: 'Absolute path to execution-environment.yml (or .yaml)',
+            },
+            tag: {
+                type: 'string',
+                description: 'Optional image tag passed to ansible-builder --tag',
+            },
+            context_dir: {
+                type: 'string',
+                description:
+                    'Optional build context directory (defaults to <definition-dir>/context)',
+            },
+        },
+        required: ['file_path'],
+    },
+};
+
 // === Dev Tools ===
 
 export const LIST_DEV_TOOLS_TOOL: McpToolDefinition = {
@@ -831,6 +860,7 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     // Execution environments
     LIST_EE_TOOL,
     GET_EE_DETAILS_TOOL,
+    BUILD_EE_TOOL,
 
     // Dev tools
     LIST_DEV_TOOLS_TOOL,

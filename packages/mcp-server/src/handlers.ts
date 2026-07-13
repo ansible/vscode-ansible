@@ -22,6 +22,9 @@ import {
     GalaxyDocsCache,
     GitHubCollectionCache,
     SCMDocsCache,
+    getCommandService,
+    isExecutionEnvironmentDefinition,
+    planAnsibleBuilderBuild,
 } from '@ansible/developer-services';
 import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/developer-services';
 
@@ -148,6 +151,8 @@ export class McpToolHandler {
                     return await this._handleListEEs();
                 case 'get_ee_details':
                     return await this._handleGetEEDetails(args);
+                case 'build_execution_environment':
+                    return await this._handleBuildEE(args);
 
                 // Dev tools
                 case 'list_ansible_dev_tools':
@@ -1421,6 +1426,99 @@ export class McpToolHandler {
         }
     }
 
+    /**
+     * Handles `build_execution_environment` by running ansible-builder against a definition file.
+     *
+     * @param args - Tool args: `file_path` (required), optional `tag` and `context_dir`
+     * @returns Build output summary or a structured error
+     */
+    private async _handleBuildEE(args: Record<string, unknown>): Promise<McpToolResult> {
+        const filePath = args.file_path as string | undefined;
+        if (!filePath) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: file_path',
+                suggestion:
+                    'Provide the absolute path to an execution-environment.yml definition file.',
+            });
+        }
+
+        if (!isExecutionEnvironmentDefinition(filePath)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Not an execution environment definition: ${filePath}`,
+                suggestion:
+                    'file_path must end with execution-environment.yml or execution-environment.yaml.',
+            });
+        }
+
+        if (!fs.existsSync(filePath)) {
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Execution environment definition not found: ${filePath}`,
+            });
+        }
+
+        const commandService = getCommandService();
+        const available = await commandService.isToolAvailable('ansible-builder');
+        if (!available) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'ansible-builder was not found in the active Python environment or PATH.',
+                suggestion:
+                    'Install ansible-dev-tools (`install_ansible_dev_tools`) and ensure Podman or Docker is available.',
+            });
+        }
+
+        const tag = typeof args.tag === 'string' ? args.tag : undefined;
+        const contextDir = typeof args.context_dir === 'string' ? args.context_dir : undefined;
+        const plan = planAnsibleBuilderBuild({ filePath, tag, contextDir });
+
+        try {
+            const result = await commandService.runAnsibleBuilder(plan.args, {
+                cwd: plan.cwd,
+                timeout: 30 * 60 * 1000,
+            });
+
+            if (result.exitCode !== 0) {
+                return mcpError({
+                    code: 'OPERATION_FAILED',
+                    recoverability: 'retry',
+                    message: `ansible-builder failed (exit code ${String(result.exitCode)}): ${result.stderr || result.stdout}`,
+                    suggestion:
+                        'Check the definition file, container runtime status, and ansible-builder output.',
+                });
+            }
+
+            ExecutionEnvService.getInstance().forceRefresh();
+
+            const output = [result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text:
+                            `Successfully built execution environment from ${plan.filePath}.\n\n` +
+                            `Command: ansible-builder ${plan.args.join(' ')}\n` +
+                            `Working directory: ${plan.cwd}\n\n` +
+                            (output ? `Output:\n${output}\n\n` : '') +
+                            'Use `list_execution_environments` to see the updated image list.',
+                    },
+                ],
+            };
+        } catch (error) {
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'escalate',
+                message: `Failed to build execution environment: ${error instanceof Error ? error.message : String(error)}`,
+            });
+        }
+    }
+
     // === Dev Tools Handlers ===
 
     /**
@@ -1706,8 +1804,9 @@ export class McpToolHandler {
 - Dynamically generated from ansible-creator schema
 - Use \`get_ansible_creator_schema\` to see available commands
 
-### Execution Environments (read-only)
-- \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs
+### Execution Environments
+- \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs (read-only)
+- \`build_execution_environment\` -- build an EE image from execution-environment.yml via ansible-builder
 
 ### Skills (read-only)
 - \`skill_search\` -- find skills by keyword
