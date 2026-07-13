@@ -34,8 +34,12 @@ interface TerminalMockResult {
 }
 
 /**
- * Build a mock terminal service factory that returns a managed terminal
- * with a pre-configured sendCommand result.
+ * Builds a mock terminal service factory with a pre-configured sendCommand result.
+ *
+ * @param sendCommandResult - The result to return from sendCommand
+ * @param sendCommandResult.exitCode - Process exit code (undefined when shell integration is absent)
+ * @param sendCommandResult.success - Whether the command succeeded
+ * @returns Mock terminal factory, createActivatedTerminal spy, and sendCommand spy
  */
 function createTerminalMock(sendCommandResult: {
     exitCode: number | undefined;
@@ -192,7 +196,7 @@ describe('DevToolsService terminal fallback (Layer 3)', () => {
             DevToolsService.setTerminalServiceFactory(factory);
 
             let refreshCount = 0;
-            mocks.mockRunTool.mockImplementation(async () => {
+            mocks.mockRunTool.mockImplementation(() => {
                 refreshCount++;
                 if (refreshCount >= 2) {
                     return { exitCode: 0, stdout: ADT_OUTPUT, stderr: '' };
@@ -221,7 +225,7 @@ describe('DevToolsService terminal fallback (Layer 3)', () => {
             DevToolsService.setTerminalServiceFactory(factory);
 
             let refreshCount = 0;
-            mocks.mockRunTool.mockImplementation(async () => {
+            mocks.mockRunTool.mockImplementation(() => {
                 refreshCount++;
                 if (refreshCount >= 3) {
                     return { exitCode: 0, stdout: ADT_OUTPUT, stderr: '' };

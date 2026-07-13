@@ -55,13 +55,10 @@ suite('Ansible Extension — without python-envs', () => {
             contributes?: { views?: Record<string, { id: string }[]> };
         };
 
-        const views = pkg?.contributes?.views?.['ansible-environments'];
+        const views = pkg.contributes?.views?.['ansible-environments'];
         assert.ok(views, 'Should contribute views under ansible-environments');
 
-        const expectedViewIds = [
-            'ansibleDevToolsEnvManagers',
-            'ansibleDevToolsPackages',
-        ];
+        const expectedViewIds = ['ansibleDevToolsEnvManagers', 'ansibleDevToolsPackages'];
 
         for (const viewId of expectedViewIds) {
             const found = views.some((v: { id: string }) => v.id === viewId);
