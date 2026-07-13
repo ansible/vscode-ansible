@@ -420,6 +420,15 @@ describe("AnsibleContextProcessor", () => {
       expect(result.errors[0]).toContain("empty or invalid");
     });
 
+    it("should reject whitespace-only content", () => {
+      const result =
+        AnsibleContextProcessor.validateAnsibleContent("   \n\t  \n  ");
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]).toContain("empty or invalid");
+    });
+
     it("should reject null YAML", () => {
       const content = ANSIBLE_CONTENT.NULL_YAML;
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
