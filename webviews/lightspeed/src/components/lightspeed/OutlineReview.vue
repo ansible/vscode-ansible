@@ -57,6 +57,7 @@ function outlineWithLineNumber(): void {
     <h4>
       Review the suggested steps for your {{ type }} and modify as needed.
     </h4>
+    <label for="outline-field" class="sr-only">Outline steps</label>
     <textarea
       id="outline-field"
       :rows="outline.split('\n').length + 2"
@@ -67,4 +68,16 @@ function outlineWithLineNumber(): void {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>

@@ -12,6 +12,7 @@ vi.mock("vscode", () => ({
     showErrorMessage: vi.fn(),
     createTerminal: vi.fn(),
   },
+  commands: { registerCommand: vi.fn() },
   Uri: { file: (p: string) => ({ fsPath: p, scheme: "file" }) },
   EventEmitter: vi.fn(),
 }));
@@ -110,3 +111,20 @@ describe("validatePlaybookPath (via integration)", () => {
     }
   });
 });
+
+describe("AnsiblePlaybookRunProvider", () => {
+  it("implements Disposable", async () => {
+    const { AnsiblePlaybookRunProvider } = await import("@src/features/runner");
+    const provider = new AnsiblePlaybookRunProvider(
+      { subscriptions: [] } as never,
+      {} as never,
+      {} as never,
+    );
+    expect(provider.dispose).toBeDefined();
+    provider.dispose();
+  });
+});
+<<<<<<< HEAD
+
+=======
+>>>>>>> 7ba7e529 (refactor(vault): change handleFoldedMultiline to a function and improve return type)
