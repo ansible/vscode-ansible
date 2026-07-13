@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TelemetryEvents } from '@ansible/common';
 
 const mockLogUsage = vi.fn();
@@ -6,6 +6,8 @@ const mockLogError = vi.fn();
 const mockDispose = vi.fn();
 let mockIsUsageEnabled = true;
 let mockTelemetryConfig: Record<string, unknown> = { enabled: true };
+type ConfigChangeHandler = (e: { affectsConfiguration: (s: string) => boolean }) => void;
+let configChangeListener: ConfigChangeHandler | undefined;
 
 vi.mock('vscode', () => ({
     env: {
@@ -26,7 +28,10 @@ vi.mock('vscode', () => ({
                 return defaultValue;
             }),
         })),
-        onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
+        onDidChangeConfiguration: vi.fn((cb: typeof configChangeListener) => {
+            configChangeListener = cb;
+            return { dispose: vi.fn() };
+        }),
     },
 }));
 
@@ -39,11 +44,26 @@ import { TelemetryService } from '../../../src/services/TelemetryService';
 describe('TelemetryService', () => {
     let service: TelemetryService;
 
+    /**
+     * Recreate the singleton with current mock config.
+     * @returns Fresh TelemetryService instance.
+     */
+    function recreateService(): TelemetryService {
+        service.dispose();
+        service = TelemetryService.getInstance();
+        return service;
+    }
+
     beforeEach(() => {
         vi.clearAllMocks();
         mockIsUsageEnabled = true;
         mockTelemetryConfig = { enabled: true };
+        configChangeListener = undefined;
         service = TelemetryService.getInstance();
+    });
+
+    afterEach(() => {
+        service.dispose();
     });
 
     describe('getInstance', () => {
@@ -63,6 +83,12 @@ describe('TelemetryService', () => {
             mockIsUsageEnabled = false;
             expect(service.isEnabled).toBe(false);
         });
+
+        it('returns false when extension telemetry is disabled', () => {
+            mockTelemetryConfig = { enabled: false };
+            recreateService();
+            expect(service.isEnabled).toBe(false);
+        });
     });
 
     describe('sendEvent', () => {
@@ -77,6 +103,13 @@ describe('TelemetryService', () => {
                 commandId: 'ansible.test',
             });
         });
+
+        it('no-ops when extension telemetry is disabled', () => {
+            mockTelemetryConfig = { enabled: false };
+            recreateService();
+            service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+            expect(mockLogUsage).not.toHaveBeenCalled();
+        });
     });
 
     describe('sendError', () => {
@@ -84,6 +117,13 @@ describe('TelemetryService', () => {
             const error = new Error('test error');
             service.sendError('test.error', error);
             expect(mockLogError).toHaveBeenCalledWith('test.error', error);
+        });
+
+        it('no-ops when extension telemetry is disabled', () => {
+            mockTelemetryConfig = { enabled: false };
+            recreateService();
+            service.sendError('test.error', new Error('should not send'));
+            expect(mockLogError).not.toHaveBeenCalled();
         });
     });
 
@@ -99,6 +139,14 @@ describe('TelemetryService', () => {
             expect(mockLogUsage).toHaveBeenCalledWith('lightspeed.suggestion.accepted', {
                 suggestionId: 'abc',
             });
+        });
+
+        it('no-ops when extension telemetry is disabled', () => {
+            mockTelemetryConfig = { enabled: false };
+            recreateService();
+            const reporter = service.asLightspeedReporter();
+            reporter.sendEvent('lightspeed.suggestion.accepted');
+            expect(mockLogUsage).not.toHaveBeenCalled();
         });
     });
 
@@ -127,10 +175,40 @@ describe('TelemetryService', () => {
         });
     });
 
+    describe('configuration change', () => {
+        it('updates enabled state when config changes', () => {
+            expect(service.isEnabled).toBe(true);
+
+            mockTelemetryConfig = { enabled: false };
+            configChangeListener?.({
+                affectsConfiguration: (s: string) => s === 'ansibleEnvironments.telemetry.enabled',
+            });
+            expect(service.isEnabled).toBe(false);
+        });
+
+        it('ignores unrelated configuration changes', () => {
+            service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+            mockLogUsage.mockClear();
+
+            configChangeListener?.({
+                affectsConfiguration: () => false,
+            });
+            service.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+            expect(mockLogUsage).toHaveBeenCalled();
+        });
+    });
+
     describe('dispose', () => {
         it('disposes the telemetry logger', () => {
             service.dispose();
             expect(mockDispose).toHaveBeenCalled();
+        });
+
+        it('clears the singleton so getInstance creates a new one', () => {
+            const before = TelemetryService.getInstance();
+            before.dispose();
+            const after = TelemetryService.getInstance();
+            expect(after).not.toBe(before);
         });
     });
 });
