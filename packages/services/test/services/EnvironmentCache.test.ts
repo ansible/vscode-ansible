@@ -111,26 +111,25 @@ describe('EnvironmentCache', () => {
         expect(getCachedEnvironment()).toBeNull();
     });
 
-    it('findExecutableWithCache falls back to PATH via child_process.exec', async () => {
+    it('findExecutableWithCache falls back to PATH via child_process.execFile', async () => {
         vi.resetModules();
         process.env.ANSIBLE_ENV_WORKSPACE = tmpDir;
 
-        const execMock = vi.fn((cmd: string, arg2: unknown, arg3?: unknown) => {
-            expect(cmd).toMatch(/^(which|where)\s+/);
-            const cb =
-                typeof arg2 === 'function'
-                    ? (arg2 as (err: Error | null, stdout: string) => void)
-                    : (arg3 as (err: Error | null, stdout: string) => void);
-            cb(null, '/usr/bin/ansible-doc\n');
-        });
+        const execFileMock = vi.fn(
+            (file: string, args: string[], cb: (err: Error | null, stdout: string) => void) => {
+                expect(file).toMatch(/^(which|where)$/);
+                expect(args).toEqual(['ansible-doc']);
+                cb(null, '/usr/bin/ansible-doc\n');
+            },
+        );
 
         vi.doMock('child_process', () => ({
-            exec: execMock,
+            execFile: execFileMock,
         }));
 
         const { findExecutableWithCache } = await import('../../src/EnvironmentCache');
         const resolved = await findExecutableWithCache('ansible-doc');
         expect(resolved).toBe('/usr/bin/ansible-doc');
-        expect(execMock).toHaveBeenCalled();
+        expect(execFileMock).toHaveBeenCalled();
     });
 });

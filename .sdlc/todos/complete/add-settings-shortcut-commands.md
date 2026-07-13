@@ -1,7 +1,8 @@
 ---
 title: Add settings shortcut commands
 created: 2026-05-26
-status: pending
+completed: 2026-07-10
+status: done
 priority: low
 scope: extension
 ---
@@ -16,8 +17,8 @@ Python Settings". `next` has no such shortcuts.
 
 ## Acceptance criteria
 
-- [ ] Command palette entry to open settings filtered to extension config
-- [ ] Uses `vscode.commands.executeCommand('workbench.action.openSettings', '@ext:...')`
+- [x] Command palette entry to open settings filtered to extension config
+- [x] Uses `vscode.commands.executeCommand('workbench.action.openSettings', '@ext:...')`
 
 ## Notes
 

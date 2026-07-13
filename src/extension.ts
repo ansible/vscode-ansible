@@ -208,6 +208,22 @@ export function activate(context: vscode.ExtensionContext) {
         log('VS Code MCP API not available (requires VS Code 1.99+)');
     }
 
+    // Settings shortcuts do not require a workspace folder
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ansible.extension-settings.open', async () => {
+            await vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:redhat.ansible',
+            );
+        }),
+        vscode.commands.registerCommand('ansible.python-settings.open', async () => {
+            await vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                '@ext:ms-python.python',
+            );
+        }),
+    );
+
     // Check if workspace is open
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
