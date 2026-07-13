@@ -187,7 +187,7 @@ jobs:
       - name: WDIO full test suite
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:ui"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run test:ui"
 
   # ╔═══════════════════════════════════════════════════════════════════╗
   # ║  Job 3 — Fedora WSL: unit tests + integration tests             ║
@@ -309,4 +309,4 @@ jobs:
       - name: Integration tests
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 xvfb-run --auto-servernum pnpm run test:integration"
+          wsl -d ${{ env.WSL_DISTRO }} -u ci -- bash -c "cd ${{ env.WSL_CHECKOUT }} && DONT_PROMPT_WSL_INSTALL=1 pnpm run test:integration"
