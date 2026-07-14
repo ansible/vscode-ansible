@@ -156,8 +156,6 @@ Generate Ansible inventory content with:
         indent: 2,
         lineWidth: 120,
         noRefs: true,
-        quotingType: '"',
-        forceQuotes: false,
         sortKeys: false,
       });
 
@@ -234,8 +232,6 @@ Generate Ansible inventory content with:
             indent: 2,
             lineWidth: 120,
             noRefs: true,
-            quotingType: '"',
-            forceQuotes: false,
           })
           .trim();
       }
@@ -277,6 +273,11 @@ Generate Ansible inventory content with:
     errors: string[];
   } {
     const errors: string[] = [];
+
+    if (!content?.trim()) {
+      errors.push("Content is empty or invalid YAML");
+      return { valid: false, errors };
+    }
 
     try {
       const parsed = yaml.load(content);
