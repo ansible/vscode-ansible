@@ -39,10 +39,12 @@ export function getConflictingExtensions(): ConflictInfo[] {
 /**
  * Show a single warning listing all detected conflicts. Offers a
  * "Show Extensions" button that opens the Extensions view filtered
- * to the conflicting IDs so the user can disable or uninstall them.
+ * to the first conflicting ID (VS Code treats multiple @id: tokens
+ * as AND, so we show one at a time).
  * @param conflicts - Detected conflicting extensions to warn about
+ * @returns True if the user clicked "Dismiss", false otherwise
  */
-async function notifyConflicts(conflicts: ConflictInfo[]): Promise<void> {
+async function notifyConflicts(conflicts: ConflictInfo[]): Promise<boolean> {
     const names = conflicts.map((c) => c.displayName).join(', ');
     const selection = await vscode.window.showWarningMessage(
         `The following extensions may conflict with Ansible: ${names}. ` +
@@ -52,24 +54,47 @@ async function notifyConflicts(conflicts: ConflictInfo[]): Promise<void> {
     );
 
     if (selection === 'Show Extensions') {
-        const query = conflicts.map((c) => `@id:${c.id}`).join(' ');
-        await vscode.commands.executeCommand('workbench.extensions.search', query);
+        await vscode.commands.executeCommand(
+            'workbench.extensions.search',
+            `@id:${conflicts[0].id}`,
+        );
     }
-}
 
-function checkAndNotify(): void {
-    const conflicts = getConflictingExtensions();
-    if (conflicts.length > 0) {
-        void notifyConflicts(conflicts);
-    }
+    return selection === 'Dismiss';
 }
 
 /**
  * Register extension-conflict detection. Checks on activation and
  * whenever the set of installed extensions changes.
+ *
+ * Session-scoped state prevents redundant warnings: once the user
+ * dismisses the notification, it won't reappear until a *new*
+ * conflict is installed that wasn't part of the dismissed set.
  * @param context - Extension context for managing disposable subscriptions
  */
 export function registerExtensionConflictDetection(context: vscode.ExtensionContext): void {
+    const dismissedIds = new Set<string>();
+    let notifying = false;
+
+    const checkAndNotify = (): void => {
+        if (notifying) return;
+
+        const conflicts = getConflictingExtensions();
+        const unreported = conflicts.filter((c) => !dismissedIds.has(c.id));
+
+        if (unreported.length === 0) return;
+
+        notifying = true;
+        void notifyConflicts(unreported).then((dismissed) => {
+            notifying = false;
+            if (dismissed) {
+                for (const c of unreported) {
+                    dismissedIds.add(c.id);
+                }
+            }
+        });
+    };
+
     checkAndNotify();
 
     context.subscriptions.push(
