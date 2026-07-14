@@ -27,11 +27,11 @@
   },
   "extensionDependencies": [
     "ms-python.python",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "redhat.abbenay-provider"
   ],
   "extensionRecommendations": [
-    "ms-python.vscode-python-envs",
-    "redhat.abbenay-provider"
+    "ms-python.vscode-python-envs"
   ],
   "contributes": {
     "taskDefinitions": [
