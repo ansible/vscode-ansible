@@ -122,6 +122,16 @@ const hoisted = vi.hoisted(() => {
             }[],
         ),
         loadDetails: vi.fn().mockResolvedValue(null),
+        forceRefresh: vi.fn(),
+    };
+
+    const commandServiceInstance = {
+        isToolAvailable: vi.fn().mockResolvedValue(true),
+        runAnsibleBuilder: vi.fn().mockResolvedValue({
+            stdout: 'Complete! The build context can be found at: context',
+            stderr: '',
+            exitCode: 0,
+        }),
     };
 
     const devToolsInstance = {
@@ -158,6 +168,7 @@ const hoisted = vi.hoisted(() => {
         scmDocsInstance,
         githubInstance,
         eeInstance,
+        commandServiceInstance,
         devToolsInstance,
         creatorInstance,
         forceRefresh,
@@ -174,44 +185,49 @@ const hoisted = vi.hoisted(() => {
     };
 });
 
-vi.mock('@ansible/developer-services', () => ({
-    CollectionsService: {
-        getInstance: vi.fn(() => hoisted.collectionsInstance),
-    },
-    DevToolsService: {
-        getInstance: vi.fn(() => hoisted.devToolsInstance),
-    },
-    ExecutionEnvService: {
-        getInstance: vi.fn(() => hoisted.eeInstance),
-    },
-    CreatorService: {
-        getInstance: vi.fn(() => hoisted.creatorInstance),
-    },
-    GalaxyCollectionCache: {
-        getInstance: vi.fn(() => hoisted.galaxyInstance),
-    },
-    GalaxyDocsCache: {
-        getInstance: vi.fn(() => hoisted.galaxyDocsInstance),
-    },
-    GitHubCollectionCache: {
-        getInstance: vi.fn(() => hoisted.githubInstance),
-    },
-    SCMDocsCache: {
-        getInstance: vi.fn(() => hoisted.scmDocsInstance),
-    },
-    SkillRegistry: {
-        getInstance: vi.fn(() => ({
-            setSources: vi.fn(),
-            getSources: vi.fn(() => []),
-            ensureLoaded: vi.fn().mockResolvedValue(undefined),
-            getAllSkills: vi.fn(() => []),
-            getSkill: vi.fn(),
-            search: vi.fn(() => []),
-            loadSkillContent: vi.fn().mockResolvedValue(undefined),
-            isLoaded: vi.fn(() => true),
-        })),
-    },
-}));
+vi.mock('@ansible/developer-services', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@ansible/developer-services')>();
+    return {
+        ...actual,
+        CollectionsService: {
+            getInstance: vi.fn(() => hoisted.collectionsInstance),
+        },
+        DevToolsService: {
+            getInstance: vi.fn(() => hoisted.devToolsInstance),
+        },
+        ExecutionEnvService: {
+            getInstance: vi.fn(() => hoisted.eeInstance),
+        },
+        CreatorService: {
+            getInstance: vi.fn(() => hoisted.creatorInstance),
+        },
+        GalaxyCollectionCache: {
+            getInstance: vi.fn(() => hoisted.galaxyInstance),
+        },
+        GalaxyDocsCache: {
+            getInstance: vi.fn(() => hoisted.galaxyDocsInstance),
+        },
+        GitHubCollectionCache: {
+            getInstance: vi.fn(() => hoisted.githubInstance),
+        },
+        SCMDocsCache: {
+            getInstance: vi.fn(() => hoisted.scmDocsInstance),
+        },
+        getCommandService: vi.fn(() => hoisted.commandServiceInstance),
+        SkillRegistry: {
+            getInstance: vi.fn(() => ({
+                setSources: vi.fn(),
+                getSources: vi.fn(() => []),
+                ensureLoaded: vi.fn().mockResolvedValue(undefined),
+                getAllSkills: vi.fn(() => []),
+                getSkill: vi.fn(),
+                search: vi.fn(() => []),
+                loadSkillContent: vi.fn().mockResolvedValue(undefined),
+                isLoaded: vi.fn(() => true),
+            })),
+        },
+    };
+});
 
 import { McpToolHandler } from '../src/handlers';
 import type { McpToolResult, McpErrorDetail } from '../src/tools';
@@ -274,6 +290,13 @@ describe('McpToolHandler', () => {
         hoisted.githubInstance.getCollections.mockReturnValue([]);
         hoisted.eeInstance.loadExecutionEnvironments.mockResolvedValue([]);
         hoisted.eeInstance.loadDetails.mockResolvedValue(null);
+        hoisted.eeInstance.forceRefresh.mockClear();
+        hoisted.commandServiceInstance.isToolAvailable.mockResolvedValue(true);
+        hoisted.commandServiceInstance.runAnsibleBuilder.mockResolvedValue({
+            stdout: 'Complete! The build context can be found at: context',
+            stderr: '',
+            exitCode: 0,
+        });
         hoisted.devToolsInstance.isLoaded.mockReturnValue(true);
         hoisted.devToolsInstance.getPackages.mockReturnValue([
             { name: 'ansible-lint', version: '1.0.0' },
@@ -801,6 +824,94 @@ describe('McpToolHandler', () => {
 
             expect(err.code).toBe('SERVICE_UNAVAILABLE');
             expect(err.recoverability).toBe('retry');
+        });
+    });
+
+    describe('build_execution_environment', () => {
+        const definitionPath = '/workspace/execution-environment.yml';
+
+        it('returns structured error when file_path missing', async () => {
+            const result = await handler.handleTool('build_execution_environment', {});
+            const err = parseError(result);
+
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('file_path');
+        });
+
+        it('returns INVALID_INPUT for non-definition files', async () => {
+            const result = await handler.handleTool('build_execution_environment', {
+                file_path: '/workspace/playbook.yml',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+        });
+
+        it('returns NOT_FOUND when definition file is missing', async () => {
+            fsMock.existsSync.mockReturnValue(false);
+
+            const result = await handler.handleTool('build_execution_environment', {
+                file_path: definitionPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('NOT_FOUND');
+        });
+
+        it('returns SERVICE_UNAVAILABLE when ansible-builder is missing', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.isToolAvailable.mockResolvedValue(false);
+
+            const result = await handler.handleTool('build_execution_environment', {
+                file_path: definitionPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.message).toContain('ansible-builder');
+        });
+
+        it('runs ansible-builder and refreshes EE inventory on success', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+
+            const result = await handler.handleTool('build_execution_environment', {
+                file_path: definitionPath,
+                tag: 'my-ee:latest',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(hoisted.commandServiceInstance.runAnsibleBuilder).toHaveBeenCalledWith(
+                [
+                    'build',
+                    '-f',
+                    definitionPath,
+                    '-c',
+                    '/workspace/context',
+                    '--tag',
+                    'my-ee:latest',
+                ],
+                expect.objectContaining({ cwd: '/workspace' }),
+            );
+            expect(hoisted.eeInstance.forceRefresh).toHaveBeenCalled();
+            expect(result.content[0].text).toContain('Successfully built');
+            expect(result.content[0].text).toContain('list_execution_environments');
+        });
+
+        it('returns OPERATION_FAILED when ansible-builder exits non-zero', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.runAnsibleBuilder.mockResolvedValue({
+                stdout: '',
+                stderr: 'build failed',
+                exitCode: 1,
+            });
+
+            const result = await handler.handleTool('build_execution_environment', {
+                file_path: definitionPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('OPERATION_FAILED');
+            expect(hoisted.eeInstance.forceRefresh).not.toHaveBeenCalled();
         });
     });
 

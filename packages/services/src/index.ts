@@ -105,6 +105,14 @@ export {
 } from './EnvironmentCache';
 export { ExecutionEnvService } from './ExecutionEnvService';
 export {
+    EE_DEFINITION_BASENAMES,
+    isExecutionEnvironmentDefinition,
+    shellQuote,
+    planAnsibleBuilderBuild,
+    formatAnsibleBuilderShellCommand,
+} from './ExecutionEnvBuild';
+export type { AnsibleBuilderBuildOptions, AnsibleBuilderBuildPlan } from './ExecutionEnvBuild';
+export {
     detectEngine,
     listImages,
     inspectImage,

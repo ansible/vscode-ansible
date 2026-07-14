@@ -10,6 +10,7 @@ node_modules
 .venv/
 coverage/
 lib/
+.pnpm-store/
 .ansible/
 docs/.astro/
 docs/dist/

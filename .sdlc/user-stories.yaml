@@ -490,6 +490,20 @@ stories:
       - AI summary action is available on EE tree items
       - Summary describes the EE's capabilities and intended use
 
+  - id: EE-004
+    title: Build EE from definition
+    story: >
+      As an Ansible developer, I want to build a container image from
+      an execution-environment.yml definition from the editor,
+      explorer, or EE view, so that I can create or update EE images
+      without leaving the IDE.
+    prd_refs: [US-7, AC-5]
+    requires_ai: false
+    criteria:
+      - Context menu on execution-environment.yml runs ansible-builder build
+      - Build output appears in the integrated terminal
+      - EE tree refreshes after a successful build
+
   # ---------------------------------------------------------------------------
   # AI — AI-Assisted Authoring, MCP, and Skills
   # PRD: Section 6 (AI Content Authoring), Section 8 (MCP), US-8–11, AC-6
