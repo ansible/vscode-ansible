@@ -337,18 +337,17 @@ jobs:
             id: lint
             run: task lint && task lint --status
 
-          - name: task build / package
-            # Warning: ensure that conditional templates have a negative condition
-            # expanding to an empty string because otherwise it will fail the command
-            # with exit code 1 even if the command effectively succeeded!
+          # Match WSL: build only here. WSL already skipped package because
+          # runner.os == Windows. Package still runs via e2e Task deps and the
+          # dedicated package job — keeps unit/wdio from waiting on vsce/knip.
+          - name: task build
             run: |
               task build -v -x
               task build -v --status
-              ${{ runner.os != 'Windows' && 'task package -v' || '' }}
-              ${{ runner.os != 'Windows' && 'task package -v --status' || ''}}
 
           - name: task docs
             id: docs
+            if: runner.os == 'Linux'
             shell: bash
             # timeout-minutes: 2
             run: task docs && task docs --status
