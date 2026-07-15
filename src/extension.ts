@@ -76,6 +76,7 @@ import {
 } from '@src/mcp';
 import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
+import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
@@ -156,6 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel.show(true);
 
     registerFileAssociation(context);
+    registerExtensionConflictDetection(context);
     registerVaultCommand(context);
     registerLightspeed(context)
         .then((disposable) => {
