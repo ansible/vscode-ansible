@@ -91,8 +91,7 @@ export class TelemetryService implements vscode.Disposable {
      * @param properties - Optional string key/value pairs.
      */
     public sendEvent(name: TelemetryEventName, properties?: Record<string, string>): void {
-        if (!this.isEnabled || !this._service) return;
-        void this._service.send({ name, properties });
+        this._dispatch(name, properties);
     }
 
     /**
@@ -101,11 +100,7 @@ export class TelemetryService implements vscode.Disposable {
      * @param error - The error to report.
      */
     public sendError(name: string, error: Error): void {
-        if (!this.isEnabled || !this._service) return;
-        void this._service.send({
-            name,
-            properties: { error: error.message },
-        });
+        this._dispatch(name, { error: error.message });
     }
 
     /**
@@ -116,10 +111,16 @@ export class TelemetryService implements vscode.Disposable {
     public asLightspeedReporter(): TelemetryReporter {
         return {
             sendEvent: (name: string, properties?: Record<string, string>) => {
-                if (!this.isEnabled || !this._service) return;
-                void this._service.send({ name, properties });
+                this._dispatch(name, properties);
             },
         };
+    }
+
+    private _dispatch(name: string, properties?: Record<string, string>): void {
+        if (!this.isEnabled || !this._service) return;
+        this._service.send({ name, properties }).catch((error: unknown) => {
+            console.error('[telemetry] send failed:', error);
+        });
     }
 
     /**
@@ -149,7 +150,9 @@ export class TelemetryService implements vscode.Disposable {
             void this._service.dispose();
             this._service = undefined;
         }
-        TelemetryService._instance = undefined;
+        if (TelemetryService._instance === this) {
+            TelemetryService._instance = undefined;
+        }
     }
 
     /**
@@ -175,7 +178,7 @@ export class TelemetryService implements vscode.Disposable {
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(`[telemetry] Initialization failed: ${message}`);
-            TelemetryService._instance = undefined;
+            this.dispose();
         }
     }
 }

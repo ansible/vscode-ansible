@@ -997,7 +997,7 @@ export async function activate(context: vscode.ExtensionContext) {
         (arg1: string[] | { commandPath: string[]; schema: unknown }, arg2?: unknown) => {
             const commandPath = Array.isArray(arg1) ? arg1 : arg1.commandPath;
             telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
-                commandPath: commandPath.join('/'),
+                command: commandPath.join('/'),
             });
             if (Array.isArray(arg1)) {
                 CreatorFormPanel.show(context.extensionUri, arg1, arg2 as SchemaNode);
@@ -1152,7 +1152,7 @@ export async function activate(context: vscode.ExtensionContext) {
         'ansibleMcpTools.useInChat',
         async (toolInfo: ToolInfo) => {
             telemetry.sendEvent(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, {
-                tool: toolInfo.tool.name,
+                toolName: toolInfo.tool.name,
             });
             await injectToolPromptIntoChat(toolInfo);
         },

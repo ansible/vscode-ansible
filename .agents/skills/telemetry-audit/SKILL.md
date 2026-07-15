@@ -25,9 +25,10 @@ user story in `.sdlc/user-stories.yaml` and is documented in
 
 ### 1. Extract telemetry events from code
 
-Read `packages/lightspeed/src/telemetry.ts` and extract all event keys
-from the `LightspeedEvents` object. Also grep the codebase for any
-`sendEvent` calls that use string literals instead of the enum.
+Read `packages/common/src/types/telemetry.ts` and extract all event keys
+from the `TelemetryEvents` object. Read `packages/lightspeed/src/telemetry.ts`
+and extract all event keys from the `LightspeedEvents` object. Also grep the
+codebase for any `sendEvent` calls that use string literals instead of the enum.
 
 ### 2. Extract TEL stories from user-stories.yaml
 

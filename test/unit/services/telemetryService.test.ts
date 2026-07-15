@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TelemetryEvents } from '@ansible/common';
 
-const mockSend = vi.fn();
+const mockSend = vi.fn(() => Promise.resolve());
 const mockSendStartup = vi.fn();
 const mockDispose = vi.fn();
 let mockIsTelemetryEnabled = true;

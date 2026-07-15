@@ -229,6 +229,8 @@ it to Red Hat servers to help improve our products and services. Read our
 to learn more. This extension respects the `redhat.telemetry.enabled` setting
 which you can learn more about at
 [How to disable telemetry reporting](https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting).
+Telemetry is also gated by VS Code's global `telemetry.telemetryLevel` setting —
+both must allow collection for events to be sent.
 
 ## License
 
