@@ -116,6 +116,10 @@ export class TelemetryService implements vscode.Disposable {
         };
     }
 
+    /**
+     * @param name - Event name.
+     * @param properties - Optional string key/value pairs.
+     */
     private _dispatch(name: string, properties?: Record<string, string>): void {
         if (!this.isEnabled || !this._service) return;
         this._service.send({ name, properties }).catch((error: unknown) => {
