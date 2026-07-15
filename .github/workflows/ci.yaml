@@ -347,7 +347,6 @@ jobs:
 
           - name: task docs
             id: docs
-            if: runner.os == 'Linux'
             shell: bash
             # timeout-minutes: 2
             run: task docs && task docs --status
