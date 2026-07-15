@@ -384,11 +384,11 @@ jobs:
             id: e2e
             # https://github.com/ansible/vscode-ansible/issues/1451
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            # --status catches e2e side effects on build sources (AAP-64968);
+            # skip before/after rebuilds — they duplicated work without changing coverage.
             run: |
               set -e
-              task build 2>out/log/build-before.txt
               task e2e ${{ matrix.env.TASKFILE_ARGS }}
-              task build 2>out/log/build-after.txt
               task build --status --verbose
             # Add these once e2e is fixed:
             #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }

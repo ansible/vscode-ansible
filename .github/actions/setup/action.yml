@@ -52,8 +52,9 @@ runs:
         path: |
           .vscode-test/extensions
           .vscode-test/vscode-*
+          .wdio-vscode
           out/ext
-        key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}
+        key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-wdio1-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}
     # - name: Enable caching for podman-machine
     #   if: "contains(matrix.os, 'macos')"
     #   uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
