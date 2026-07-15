@@ -766,3 +766,94 @@ stories:
       - Empty tree views show a helpful message with next-step actions
       - Missing tool warnings explain what to install
       - Error states show actionable recovery guidance
+
+  # ---------------------------------------------------------------------------
+  # TEL — Telemetry
+  # Tracks anonymized, opt-in usage events to understand feature adoption.
+  # ---------------------------------------------------------------------------
+  - id: TEL-001
+    title: Track inline suggestion outcomes
+    story: >
+      As a product team member, I want to know how often inline code
+      suggestions are accepted, rejected, or ignored, so that I can
+      measure Lightspeed suggestion quality and relevance.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Events fire for suggestion accepted, rejected, and ignored
+      - Events respect VS Code telemetryLevel consent
+
+  - id: TEL-002
+    title: Track generation panel opens
+    story: >
+      As a product team member, I want to know when users open the
+      playbook or role generation panels, so that I can measure
+      adoption of Lightspeed generation features.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Event fires when playbook generation panel opens
+      - Event fires when role generation panel opens
+
+  - id: TEL-003
+    title: Track generation lifecycle
+    story: >
+      As a product team member, I want to know when users close,
+      transition between steps, or accept generated content, so that
+      I can understand the generation funnel and drop-off points.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Events fire for generation close, transition, and accept
+      - Events respect VS Code telemetryLevel consent
+
+  - id: TEL-004
+    title: Track explanation requests
+    story: >
+      As a product team member, I want to know how often the playbook
+      explanation feature is used, so that I can measure adoption of
+      AI-assisted learning.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Event fires when an explanation is requested
+
+  - id: TEL-005
+    title: Track user feedback signals
+    story: >
+      As a product team member, I want to know when users give
+      thumbs-up or thumbs-down feedback on AI outputs, so that I can
+      measure user satisfaction and identify areas for improvement.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Events fire for thumbs-up and thumbs-down feedback
+
+  - id: TEL-006
+    title: Track content matches fetched
+    story: >
+      As a product team member, I want to know when training content
+      matches are fetched for a suggestion, so that I can monitor
+      attribution and transparency feature usage.
+    prd_refs: []
+    requires_ai: false
+    requires_lightspeed: true
+    criteria:
+      - Event fires when content matches are fetched
+
+  - id: TEL-007
+    title: Track walkthrough opens
+    story: >
+      As a product team member, I want to know when users open
+      walkthroughs, so that I can measure onboarding engagement and
+      identify which walkthroughs drive activation.
+    prd_refs: []
+    requires_ai: false
+    criteria:
+      - Event fires when a walkthrough is opened
+      - Event includes which walkthrough was opened

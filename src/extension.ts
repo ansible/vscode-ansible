@@ -79,6 +79,7 @@ import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
+import { registerWalkthroughTelemetry, noopExtensionReporter } from '@src/telemetry';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 
@@ -159,6 +160,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerFileAssociation(context);
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
+    registerWalkthroughTelemetry(context, noopExtensionReporter);
     registerLightspeed(context)
         .then((disposable) => {
             if (disposable) context.subscriptions.push(disposable);
