@@ -416,6 +416,11 @@
         "icon": "$(sparkle)"
       },
       {
+        "command": "ansibleExecutionEnvironments.buildFromDefinition",
+        "title": "Build Ansible Execution Environment",
+        "icon": "$(package)"
+      },
+      {
         "command": "ansibleCreator.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
@@ -706,6 +711,11 @@
           "group": "1_ansible"
         },
         {
+          "command": "ansibleExecutionEnvironments.buildFromDefinition",
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
+          "group": "1_ansible@5"
+        },
+        {
           "command": "ansible.lightspeed.playbookExplanation",
           "when": "config.ansible.lightspeed.enabled && editorLangId == ansible",
           "group": "1_ansible@10"
@@ -714,6 +724,13 @@
           "command": "ansible.lightspeed.roleExplanation",
           "when": "config.ansible.lightspeed.enabled && editorLangId == ansible",
           "group": "1_ansible@11"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "ansibleExecutionEnvironments.buildFromDefinition",
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
+          "group": "1_ansible@5"
         }
       ],
       "commandPalette": [
@@ -784,14 +801,19 @@
           "group": "navigation@3"
         },
         {
+          "command": "ansibleExecutionEnvironments.buildFromDefinition",
+          "when": "view == ansibleExecutionEnvironments",
+          "group": "navigation@1"
+        },
+        {
           "command": "ansibleExecutionEnvironments.aiSummary",
           "when": "view == ansibleExecutionEnvironments && config.ansibleEnvironments.enableAiFeatures",
-          "group": "navigation@1"
+          "group": "navigation@2"
         },
         {
           "command": "ansibleExecutionEnvironments.refresh",
           "when": "view == ansibleExecutionEnvironments",
-          "group": "navigation@2"
+          "group": "navigation@3"
         },
         {
           "command": "ansibleCreator.aiSummary",
@@ -1181,6 +1203,7 @@
     "package": "npm run build && vsce package --no-dependencies && ./scripts/build-plugin.sh",
     "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
+    "test:integration:no-envs": "tsc -p test/integration/tsconfig.json && vscode-test --label no-python-envs",
     "pretest:ui": "node scripts/install-test-extensions.mjs",
     "test:ui": "wdio run wdio.conf.ts",
     "docs:dev": "pnpm --filter docs run dev",

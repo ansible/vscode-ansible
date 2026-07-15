@@ -40,9 +40,13 @@ import {
     CollectionsService,
     setLogFunction as setCollectionsLogFunction,
     DevToolsService,
+    ExecutionEnvService,
     cacheSelectedEnvironment,
     getCommandService,
     SkillRegistry,
+    isExecutionEnvironmentDefinition,
+    planAnsibleBuilderBuild,
+    formatAnsibleBuilderShellCommand,
     buildCollectionsSummaryPrompt,
     buildCollectionSummaryPrompt,
     buildPluginExplanationPrompt,
@@ -72,8 +76,10 @@ import {
 } from '@src/mcp';
 import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
+import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
+import { registerWalkthroughTelemetry } from '@src/telemetry';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 import { TelemetryService } from '@src/services/TelemetryService';
@@ -159,7 +165,9 @@ export async function activate(context: vscode.ExtensionContext) {
     telemetry.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
 
     registerFileAssociation(context);
+    registerExtensionConflictDetection(context);
     registerVaultCommand(context);
+    registerWalkthroughTelemetry(context, telemetry);
     registerLightspeed(context, telemetry)
         .then((disposable) => {
             if (disposable) context.subscriptions.push(disposable);
@@ -769,6 +777,104 @@ export async function activate(context: vscode.ExtensionContext) {
         'ansibleExecutionEnvironments.refresh',
         () => {
             eeProvider.refresh();
+        },
+    );
+
+    // Build an EE image from an execution-environment.yml definition
+    const eeBuildFromDefinitionCommand = vscode.commands.registerCommand(
+        'ansibleExecutionEnvironments.buildFromDefinition',
+        async (uri?: vscode.Uri) => {
+            try {
+                let definitionUri = uri;
+
+                if (!definitionUri?.fsPath) {
+                    const active = vscode.window.activeTextEditor?.document.uri;
+                    if (active && isExecutionEnvironmentDefinition(active.fsPath)) {
+                        definitionUri = active;
+                    } else {
+                        const picked = await vscode.window.showOpenDialog({
+                            canSelectFiles: true,
+                            canSelectFolders: false,
+                            canSelectMany: false,
+                            filters: {
+                                YAML: ['yml', 'yaml'],
+                            },
+                            openLabel: 'Build Execution Environment',
+                            title: 'Select execution-environment.yml',
+                        });
+                        definitionUri = picked?.[0];
+                    }
+                }
+
+                if (!definitionUri?.fsPath) {
+                    return;
+                }
+
+                if (!isExecutionEnvironmentDefinition(definitionUri.fsPath)) {
+                    void vscode.window.showErrorMessage(
+                        'Selected file is not an execution-environment.yml definition.',
+                    );
+                    return;
+                }
+
+                const commandService = getCommandService();
+                const builderAvailable = await commandService.isToolAvailable('ansible-builder');
+                if (!builderAvailable) {
+                    const action = await vscode.window.showErrorMessage(
+                        'ansible-builder was not found in the active Python environment or PATH.',
+                        'Install ansible-dev-tools',
+                    );
+                    if (action === 'Install ansible-dev-tools') {
+                        await vscode.commands.executeCommand('ansibleDevToolsPackages.install');
+                    }
+                    return;
+                }
+
+                const plan = planAnsibleBuilderBuild({ filePath: definitionUri.fsPath });
+                const shellCommand = formatAnsibleBuilderShellCommand(plan);
+                const cwd = vscode.Uri.file(plan.cwd);
+
+                log(`Building EE: ${shellCommand} in ${plan.cwd}`);
+                void vscode.window.showInformationMessage(`Running: ${shellCommand}`);
+
+                const terminalService = TerminalService.getInstance();
+                const managed = await terminalService.createActivatedTerminal({
+                    name: 'ansible-builder',
+                    cwd,
+                    show: true,
+                });
+
+                // EE builds can take a long time; wait up to 30 minutes for exit code
+                const result = await managed.sendCommand(shellCommand, {
+                    waitForCompletion: true,
+                    timeout: 30 * 60 * 1000,
+                });
+
+                if (result.exitCode === 0) {
+                    ExecutionEnvService.getInstance().forceRefresh();
+                    void vscode.window.showInformationMessage(
+                        'Execution environment build completed. Refreshing EE tree…',
+                    );
+                    return;
+                }
+
+                if (result.exitCode === undefined) {
+                    // Shell integration unavailable — build may still be running
+                    ExecutionEnvService.getInstance().forceRefresh();
+                    void vscode.window.showInformationMessage(
+                        'ansible-builder completion could not be tracked (shell integration unavailable). Check the terminal; refreshing EE tree in case the image is ready…',
+                    );
+                    return;
+                }
+
+                void vscode.window.showErrorMessage(
+                    `Execution environment build failed (exit code ${String(result.exitCode)}).`,
+                );
+            } catch (error) {
+                vscode.window.showErrorMessage(
+                    `Failed to build execution environment: ${formatError(error)}`,
+                );
+            }
         },
     );
 
@@ -1467,6 +1573,7 @@ export async function activate(context: vscode.ExtensionContext) {
         collectionsShowPluginDocCommand,
         showPluginDocCommand,
         eeRefreshCommand,
+        eeBuildFromDefinitionCommand,
         eeAiSummaryCommand,
         eeAiEESummaryCommand,
         galaxyCacheRefreshCommand,

@@ -86,6 +86,18 @@ async function openVscodeChat(prompt: string): Promise<void> {
  * @param prompt - Prompt text to copy to clipboard
  */
 async function openAbbenayChat(prompt: string): Promise<void> {
+    const allCommands = await vscode.commands.getCommands(true);
+
+    if (allCommands.includes('abbenay.chat.send')) {
+        try {
+            await vscode.commands.executeCommand('abbenay.chat.send', { message: prompt });
+            vscode.window.showInformationMessage('Prompt sent to Abbenay chat.');
+            return;
+        } catch {
+            /* fall through to focus+clipboard */
+        }
+    }
+
     try {
         await vscode.commands.executeCommand('abbenay.chatView.focus');
         await vscode.env.clipboard.writeText(prompt);

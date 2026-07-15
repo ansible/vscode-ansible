@@ -3,6 +3,20 @@
 `vscode-ansible` has opt-in telemetry collection, provided by
 [vscode-redhat-telemetry](https://github.com/redhat-developer/vscode-redhat-telemetry).
 
+## Dual-stream architecture
+
+The extension has two independent telemetry pipelines:
+
+| Pipeline | Route | Segment source | Amplitude destination |
+|---|---|---|---|
+| **Extension (client-side)** | VS Code extension -> Segment -> Amplitude | Extension-specific source | Extension-specific destination |
+| **Lightspeed (server-side)** | Lightspeed service -> Segment -> Amplitude | Lightspeed service source | Lightspeed service destination |
+
+These are separate Segment sources and Amplitude destinations. There is no
+data overlap. Schema coordination with the metrics team will be revisited
+if/when execution outcome events (success/failure, host count, collections
+used) are introduced on the client side.
+
 ## What's included in the vscode-ansible telemetry data
 
 The extension records anonymous usage events when `redhat.telemetry.enabled`
@@ -96,6 +110,12 @@ event properties are automatically sanitized by the Red Hat telemetry library.
 | ----- | ----------- | ---------- |
 | `ee.detailView` | User viewed execution environment details | — |
 
+### Walkthroughs
+
+| Event | Description | Properties |
+| ----- | ----------- | ---------- |
+| `walkthrough.open` | User opened a walkthrough | `walkthroughId` — walkthrough identifier |
+
 ### Ansible Lightspeed (when enabled)
 
 When `ansible.lightspeed.enabled` is `true`, Lightspeed events are also
@@ -114,6 +134,31 @@ reported through the same telemetry pipeline:
 | `lightspeed.feedback.thumbsUp` | Positive feedback submitted |
 | `lightspeed.feedback.thumbsDown` | Negative feedback submitted |
 | `lightspeed.contentMatches.fetched` | Content matches retrieved |
+
+## Story-to-event mapping
+
+Every telemetry event must map to a user story in
+`.sdlc/user-stories.yaml`. Orphan events (no matching story) are flagged
+below. Use the `telemetry-audit` agent skill to validate this mapping.
+
+| Event | Event key | User story | Status |
+|---|---|---|---|
+| Inline suggestion accepted | `lightspeed.suggestion.accepted` | [TEL-001] Track inline suggestion outcomes | Mapped |
+| Inline suggestion rejected | `lightspeed.suggestion.rejected` | [TEL-001] Track inline suggestion outcomes | Mapped |
+| Inline suggestion ignored | `lightspeed.suggestion.ignored` | [TEL-001] Track inline suggestion outcomes | Mapped |
+| Generation panel opened | `lightspeed.generation.open` | [TEL-002] Track generation panel opens | Mapped |
+| Generation panel closed | `lightspeed.generation.close` | [TEL-003] Track generation lifecycle | Mapped |
+| Generation step transition | `lightspeed.generation.transition` | [TEL-003] Track generation lifecycle | Mapped |
+| Generation content accepted | `lightspeed.generation.accept` | [TEL-003] Track generation lifecycle | Mapped |
+| Explanation requested | `lightspeed.explanation.requested` | [TEL-004] Track explanation requests | Mapped |
+| Feedback thumbs up | `lightspeed.feedback.thumbsUp` | [TEL-005] Track user feedback signals | Mapped |
+| Feedback thumbs down | `lightspeed.feedback.thumbsDown` | [TEL-005] Track user feedback signals | Mapped |
+| Content matches fetched | `lightspeed.contentMatches.fetched` | [TEL-006] Track content matches fetched | Mapped |
+| Walkthrough opened | `walkthrough.open` | [TEL-007] Track walkthrough opens | Mapped |
+
+### Orphan events
+
+No orphan events. All defined events map to a user story.
 
 ## What's included in the general telemetry data
 

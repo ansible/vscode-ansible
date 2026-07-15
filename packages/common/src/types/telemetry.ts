@@ -48,6 +48,9 @@ export const TelemetryEvents = {
 
     // Execution Environments
     EE_DETAIL_VIEW: 'ee.detailView',
+
+    // Walkthroughs
+    WALKTHROUGH_OPEN: 'walkthrough.open',
 } as const;
 
 export type TelemetryEventName = (typeof TelemetryEvents)[keyof typeof TelemetryEvents];

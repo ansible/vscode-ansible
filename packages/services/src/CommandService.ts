@@ -299,6 +299,20 @@ export class CommandService {
     }
 
     /**
+     * Run ansible-builder command.
+     *
+     * @param args - Arguments passed to ansible-builder.
+     * @param options - Optional cwd/timeout overrides for long builds.
+     * @returns Captured stdout, stderr, and exit code from ansible-builder.
+     */
+    public async runAnsibleBuilder(
+        args: string[],
+        options: CommandOptions = {},
+    ): Promise<ExecResult> {
+        return this.runTool('ansible-builder', args, options);
+    }
+
+    /**
      * Check if a tool is available in the active environment or PATH.
      *
      * @param toolName - Executable name to check.
