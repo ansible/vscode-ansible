@@ -83,7 +83,8 @@ import { registerWalkthroughTelemetry } from '@src/telemetry';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 import { TelemetryService } from '@src/services/TelemetryService';
-import { TelemetryEvents, buildOutcomeProperties } from '@ansible/common';
+import { emitJourneyOutcome } from '@src/services/journeyTelemetry';
+import { TelemetryEvents } from '@ansible/common';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible');
@@ -535,18 +536,14 @@ export async function activate(context: vscode.ExtensionContext) {
                 const skill = 'skill' in arg ? arg.skill : arg;
                 try {
                     await openChatWithSkill(skill);
-                    telemetry.sendEvent(
-                        TelemetryEvents.SKILL_USE_IN_CHAT,
-                        buildOutcomeProperties('success', { startedAt }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.SKILL_USE_IN_CHAT, 'success', {
+                        startedAt,
+                    });
                 } catch (error) {
-                    telemetry.sendEvent(
-                        TelemetryEvents.SKILL_USE_IN_CHAT,
-                        buildOutcomeProperties('error', {
-                            startedAt,
-                            errorCode: 'chat_inject_failed',
-                        }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.SKILL_USE_IN_CHAT, 'error', {
+                        startedAt,
+                        errorCode: 'chat_inject_failed',
+                    });
                     vscode.window.showErrorMessage(
                         `Failed to use skill in chat: ${formatError(error)}`,
                     );
@@ -561,18 +558,14 @@ export async function activate(context: vscode.ExtensionContext) {
                 const skill = 'skill' in arg ? arg.skill : arg;
                 try {
                     await copySkillPrompt(skill);
-                    telemetry.sendEvent(
-                        TelemetryEvents.SKILL_PROMPT_COPY,
-                        buildOutcomeProperties('success', { startedAt }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.SKILL_PROMPT_COPY, 'success', {
+                        startedAt,
+                    });
                 } catch (error) {
-                    telemetry.sendEvent(
-                        TelemetryEvents.SKILL_PROMPT_COPY,
-                        buildOutcomeProperties('error', {
-                            startedAt,
-                            errorCode: 'copy_failed',
-                        }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.SKILL_PROMPT_COPY, 'error', {
+                        startedAt,
+                        errorCode: 'copy_failed',
+                    });
                     vscode.window.showErrorMessage(
                         `Failed to copy skill prompt: ${formatError(error)}`,
                     );
@@ -650,13 +643,10 @@ export async function activate(context: vscode.ExtensionContext) {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 if (!workspaceFolder) {
                     vscode.window.showErrorMessage('No workspace folder open.');
-                    telemetry.sendEvent(
-                        TelemetryEvents.ENV_CREATE,
-                        buildOutcomeProperties('error', {
-                            startedAt,
-                            errorCode: 'no_workspace',
-                        }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'error', {
+                        startedAt,
+                        errorCode: 'no_workspace',
+                    });
                     return;
                 }
 
@@ -671,27 +661,18 @@ export async function activate(context: vscode.ExtensionContext) {
                     void envManagersProvider.refresh();
                     void devToolsProvider.refresh();
                     void collectionsProvider.refresh();
-                    telemetry.sendEvent(
-                        TelemetryEvents.ENV_CREATE,
-                        buildOutcomeProperties('success', { startedAt }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'success', { startedAt });
                 } else {
-                    telemetry.sendEvent(
-                        TelemetryEvents.ENV_CREATE,
-                        buildOutcomeProperties('cancel', { startedAt }),
-                    );
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'cancel', { startedAt });
                 }
             } catch (error) {
                 vscode.window.showErrorMessage(
                     `Failed to create environment: ${formatError(error)}`,
                 );
-                telemetry.sendEvent(
-                    TelemetryEvents.ENV_CREATE,
-                    buildOutcomeProperties('error', {
-                        startedAt,
-                        errorCode: 'create_failed',
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'error', {
+                    startedAt,
+                    errorCode: 'create_failed',
+                });
             }
         },
     );
@@ -1123,18 +1104,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 // Await dispatch only (waitForCompletion: false) so launch failures
                 // hit the catch; playbook exit is not tracked here.
                 await managed.sendCommand(command, { waitForCompletion: false });
-                telemetry.sendEvent(
-                    TelemetryEvents.PLAYBOOK_RUN,
-                    buildOutcomeProperties('success', { startedAt }),
-                );
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'success', { startedAt });
             } catch (error) {
-                telemetry.sendEvent(
-                    TelemetryEvents.PLAYBOOK_RUN,
-                    buildOutcomeProperties('error', {
-                        startedAt,
-                        errorCode: 'launch_failed',
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'error', {
+                    startedAt,
+                    errorCode: 'launch_failed',
+                });
                 vscode.window.showErrorMessage(`Failed to run playbook: ${formatError(error)}`);
                 throw error;
             }
@@ -1168,13 +1143,10 @@ export async function activate(context: vscode.ExtensionContext) {
                     telemetryStartedAt: startedAt,
                 });
             } catch (error) {
-                telemetry.sendEvent(
-                    TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS,
-                    buildOutcomeProperties('error', {
-                        startedAt,
-                        errorCode: 'launch_failed',
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS, 'error', {
+                    startedAt,
+                    errorCode: 'launch_failed',
+                });
                 vscode.window.showErrorMessage(
                     `Failed to run playbook with progress: ${formatError(error)}`,
                 );
@@ -1247,22 +1219,16 @@ export async function activate(context: vscode.ExtensionContext) {
             const startedAt = Date.now();
             try {
                 await injectToolPromptIntoChat(toolInfo);
-                telemetry.sendEvent(
-                    TelemetryEvents.MCP_TOOL_USE_IN_CHAT,
-                    buildOutcomeProperties('success', {
-                        startedAt,
-                        extra: { toolName: toolInfo.tool.name },
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, 'success', {
+                    startedAt,
+                    extra: { toolName: toolInfo.tool.name },
+                });
             } catch (error) {
-                telemetry.sendEvent(
-                    TelemetryEvents.MCP_TOOL_USE_IN_CHAT,
-                    buildOutcomeProperties('error', {
-                        startedAt,
-                        errorCode: 'chat_inject_failed',
-                        extra: { toolName: toolInfo.tool.name },
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, 'error', {
+                    startedAt,
+                    errorCode: 'chat_inject_failed',
+                    extra: { toolName: toolInfo.tool.name },
+                });
                 vscode.window.showErrorMessage(
                     `Failed to use MCP tool in chat: ${formatError(error)}`,
                 );
@@ -1596,21 +1562,17 @@ export async function activate(context: vscode.ExtensionContext) {
 
                                 // Refresh the collections view
                                 void collectionsProvider.refresh();
-                                telemetry.sendEvent(
-                                    TelemetryEvents.COLLECTION_INSTALL,
-                                    buildOutcomeProperties('success', { startedAt }),
-                                );
+                                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'success', {
+                                    startedAt,
+                                });
                             } catch (error) {
                                 vscode.window.showErrorMessage(
                                     `Failed to install collection: ${formatError(error)}`,
                                 );
-                                telemetry.sendEvent(
-                                    TelemetryEvents.COLLECTION_INSTALL,
-                                    buildOutcomeProperties('error', {
-                                        startedAt,
-                                        errorCode: 'install_failed',
-                                    }),
-                                );
+                                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'error', {
+                                    startedAt,
+                                    errorCode: 'install_failed',
+                                });
                             }
                         },
                     );
@@ -1618,10 +1580,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
                 quickPick.onDidHide(() => {
                     if (!accepted) {
-                        telemetry.sendEvent(
-                            TelemetryEvents.COLLECTION_INSTALL,
-                            buildOutcomeProperties('cancel', { startedAt }),
-                        );
+                        emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'cancel', {
+                            startedAt,
+                        });
                     }
                     loadListener.dispose();
                     progressListener.dispose();
@@ -1632,13 +1593,10 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(
                     `Failed to install collection: ${formatError(error)}`,
                 );
-                telemetry.sendEvent(
-                    TelemetryEvents.COLLECTION_INSTALL,
-                    buildOutcomeProperties('error', {
-                        startedAt,
-                        errorCode: 'picker_failed',
-                    }),
-                );
+                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'error', {
+                    startedAt,
+                    errorCode: 'picker_failed',
+                });
             }
         },
     );

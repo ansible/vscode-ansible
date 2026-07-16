@@ -1,16 +1,14 @@
 import * as vscode from 'vscode';
 import { log } from '@src/extension';
 import { buildCommandArgs, getCommandService, type SchemaNode } from '@ansible/developer-services';
-import { TelemetryEvents, buildOutcomeProperties } from '@ansible/common';
-import { TelemetryService } from '@src/services/TelemetryService';
+import { OnceJourneyEmitter, emitCreatorComplete } from '@src/services/journeyTelemetry';
 
 /** Thin webview host for the creator form. Delegates UI to @ansible/ui SchemaForm. */
 export class CreatorFormPanel {
     public static currentPanel: CreatorFormPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
-    /** True after a terminal creator.complete outcome was emitted for this panel. */
-    private _outcomeSent = false;
+    private readonly _outcome = new OnceJourneyEmitter();
 
     /**
      * Show or replace the creator form panel for a schema command.
@@ -179,7 +177,7 @@ export class CreatorFormPanel {
                         output: 'ansible-creator not found. Install ansible-dev-tools first.',
                     },
                 });
-                this._sendCreatorOutcome('error', {
+                emitCreatorComplete(this._outcome, 'error', {
                     startedAt,
                     errorCode: 'tool_missing',
                     command: commandKey,
@@ -199,53 +197,27 @@ export class CreatorFormPanel {
                 void vscode.window.showInformationMessage(
                     `ansible-creator ${commandPath.join(' ')} completed successfully`,
                 );
-                this._sendCreatorOutcome('success', { startedAt, command: commandKey });
+                emitCreatorComplete(this._outcome, 'success', {
+                    startedAt,
+                    command: commandKey,
+                });
             } else {
                 void vscode.window.showErrorMessage(
                     `ansible-creator ${commandPath.join(' ')} failed (exit code ${String(result.exitCode)})`,
                 );
-                this._sendCreatorOutcome('error', {
+                emitCreatorComplete(this._outcome, 'error', {
                     startedAt,
                     errorCode: 'exit_nonzero',
                     command: commandKey,
                 });
             }
         } catch (error) {
-            this._sendCreatorOutcome('error', {
+            emitCreatorComplete(this._outcome, 'error', {
                 startedAt,
                 errorCode: 'execute_failed',
                 command: commandKey,
             });
             throw error;
-        }
-    }
-
-    /**
-     * Emit creator.complete once for this panel.
-     *
-     * @param result - success | cancel | error
-     * @param options - Timing / command / error metadata
-     * @param options.startedAt - Epoch ms when execute began
-     * @param options.errorCode - Coarse non-PII failure category
-     * @param options.command - Creator command path key
-     */
-    private _sendCreatorOutcome(
-        result: 'success' | 'cancel' | 'error',
-        options: { startedAt?: number; errorCode?: string; command: string },
-    ): void {
-        if (this._outcomeSent) return;
-        this._outcomeSent = true;
-        try {
-            TelemetryService.getInstance().sendEvent(
-                TelemetryEvents.CREATOR_COMPLETE,
-                buildOutcomeProperties(result, {
-                    startedAt: options.startedAt,
-                    errorCode: options.errorCode,
-                    extra: { command: options.command },
-                }),
-            );
-        } catch {
-            // Telemetry optional if service not initialized
         }
     }
 
@@ -303,8 +275,10 @@ export class CreatorFormPanel {
 
     /** Dispose the panel, listeners, and static current-panel reference. */
     public dispose(): void {
-        if (!this._outcomeSent) {
-            this._sendCreatorOutcome('cancel', { command: this._commandPath.join('/') });
+        if (!this._outcome.sent) {
+            emitCreatorComplete(this._outcome, 'cancel', {
+                command: this._commandPath.join('/'),
+            });
         }
         CreatorFormPanel.currentPanel = undefined;
         this._panel.dispose();
