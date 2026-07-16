@@ -154,7 +154,10 @@ export class PlaybookProgressPanel {
                 break;
             case 'rerun':
                 if (this._lastOptions) {
-                    await this._startRun(this._lastOptions);
+                    await this._startRun({
+                        ...this._lastOptions,
+                        telemetryStartedAt: Date.now(),
+                    });
                 }
                 break;
             case 'editSource':
@@ -380,6 +383,12 @@ export class PlaybookProgressPanel {
 
     /** Dispose the panel, socket server, and static reference. */
     public dispose(): void {
+        if (this._isRunning) {
+            this._isRunning = false;
+            emitPlaybookProgressOutcome(this._outcome, 'cancel', {
+                startedAt: this._telemetryStartedAt,
+            });
+        }
         PlaybookProgressPanel._currentPanel = undefined;
 
         if (this._socketServer) {

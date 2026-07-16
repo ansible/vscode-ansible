@@ -36,10 +36,10 @@ export function isPlaybookStatsFailed(stats: unknown): boolean {
  * Convert ansible-reported duration seconds to a durationMs property value.
  *
  * @param durationSec - Seconds from playbook_complete, if present
- * @returns String milliseconds, or undefined when not a number
+ * @returns String milliseconds, or undefined when not a finite number
  */
 export function durationSecToMs(durationSec: unknown): string | undefined {
-    if (typeof durationSec !== 'number' || Number.isNaN(durationSec)) {
+    if (typeof durationSec !== 'number' || !Number.isFinite(durationSec)) {
         return undefined;
     }
     return String(Math.max(0, Math.round(durationSec * 1000)));

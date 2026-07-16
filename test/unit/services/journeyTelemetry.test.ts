@@ -76,10 +76,12 @@ describe('journeyTelemetry', () => {
             expect(durationSecToMs(-2)).toBe('0');
         });
 
-        it('returns undefined for non-numeric values', () => {
+        it('returns undefined for non-numeric or non-finite values', () => {
             expect(durationSecToMs(undefined)).toBeUndefined();
             expect(durationSecToMs('3')).toBeUndefined();
             expect(durationSecToMs(Number.NaN)).toBeUndefined();
+            expect(durationSecToMs(Number.POSITIVE_INFINITY)).toBeUndefined();
+            expect(durationSecToMs(Number.NEGATIVE_INFINITY)).toBeUndefined();
         });
     });
 
