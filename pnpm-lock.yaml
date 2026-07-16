@@ -6,6 +6,7 @@ settings:
 
 overrides:
   rollup: npm:@rollup/wasm-node@*
+  '@xhmikosr/decompress@10': 10.2.1
   fast-uri@3: '>=3.1.2'
   fastify: '>=5.8.3'
   form-data@4: '>=4.0.6'
@@ -2750,8 +2751,8 @@ packages:
     resolution: {integrity: sha512-oqTYAcObqTlg8owulxFTqiaJkfv2SHsxxxz9Wg4krJAHVzGWlZsU8tAB30R6ow+aHrfv4Kub6WQ8u04NWVPUpA==}
     engines: {node: '>=18'}
 
-  '@xhmikosr/decompress@10.2.0':
-    resolution: {integrity: sha512-MmDBvu0+GmADyQWHolcZuIWffgfnuTo4xpr2I/Qw5Ox0gt+e1Be7oYqJM4te5ylL6mzlcoicnHVDvP27zft8tg==}
+  '@xhmikosr/decompress@10.2.1':
+    resolution: {integrity: sha512-ceGT3K2JR73Usj5o+HM2RRZw0XPUes4rhb7uVTY9PefUQQMpuj8x+V29XVG09JnS7EOj9SIBhHn3K4bFNNb7hA==}
     engines: {node: '>=18'}
 
   '@xhmikosr/downloader@15.2.0':
@@ -7268,6 +7269,10 @@ packages:
     resolution: {integrity: sha512-RNPCUkiE/ZgO4w8i9U5yDQVHaFDdnzaFANElRvpJteCspvmv2VqrRb9lvS6odVD+jqI/zDsxAHJVsafpcheVQQ==}
     engines: {node: '>=12'}
 
+  yauzl@3.4.0:
+    resolution: {integrity: sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==}
+    engines: {node: '>=12'}
+
   yazl@2.5.1:
     resolution: {integrity: sha512-phENi2PLiHnHb6QBVot+dJnaAZ0xosj7p3fWl+znIjBDlnMI2PsZCJZ306BPTFOaHf5qdDEI8x5qFrSOBN5vrw==}
 
@@ -9698,11 +9703,11 @@ snapshots:
     dependencies:
       file-type: 20.5.0
       get-stream: 6.0.1
-      yauzl: 3.3.1
+      yauzl: 3.4.0
     transitivePeerDependencies:
       - supports-color
 
-  '@xhmikosr/decompress@10.2.0':
+  '@xhmikosr/decompress@10.2.1':
     dependencies:
       '@xhmikosr/decompress-tar': 8.1.0
       '@xhmikosr/decompress-tarbz2': 8.1.0
@@ -9719,7 +9724,7 @@ snapshots:
   '@xhmikosr/downloader@15.2.0':
     dependencies:
       '@xhmikosr/archive-type': 7.1.0
-      '@xhmikosr/decompress': 10.2.0
+      '@xhmikosr/decompress': 10.2.1
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
@@ -14878,6 +14883,10 @@ snapshots:
   yauzl@3.3.1:
     dependencies:
       buffer-crc32: 0.2.13
+      pend: 1.2.0
+
+  yauzl@3.4.0:
+    dependencies:
       pend: 1.2.0
 
   yazl@2.5.1:
