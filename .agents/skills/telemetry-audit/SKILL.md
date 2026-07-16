@@ -11,12 +11,20 @@ triggers: [audit telemetry, telemetry drift, telemetry mapping, usage data audit
 # Audit Telemetry Event Mapping
 
 Validate that every telemetry event defined in code has a corresponding
-user story in `.sdlc/user-stories.yaml` and is documented in
-`USAGE_DATA.md`.
+**functional** user story in `.sdlc/user-stories.yaml` (or is documented
+as platform baseline) and is documented in `USAGE_DATA.md`.
+
+The closed loop is:
+
+**functional user story (ENV/COL/LS/…)** → WDIO `@covers` →
+`USAGE_DATA.md` mapping row → emit event
+
+Do **not** mint meta `TEL-*` stories for telemetry orphans.
 
 ## When to Run
 
 - After adding or removing a telemetry event
+- After modifying `TelemetryEvents` in `packages/common/src/types/telemetry.ts`
 - After modifying `LightspeedEvents` in `packages/lightspeed/src/telemetry.ts`
 - As part of PR review for telemetry-related changes
 - Periodically to catch drift
@@ -30,45 +38,56 @@ from the `TelemetryEvents` object. Read `packages/lightspeed/src/telemetry.ts`
 and extract all event keys from the `LightspeedEvents` object. Also grep the
 codebase for any `sendEvent` calls that use string literals instead of the enum.
 
-### 2. Extract TEL stories from user-stories.yaml
+### 2. Extract functional stories from user-stories.yaml
 
-Read `.sdlc/user-stories.yaml` and extract all stories with `TEL-*` IDs.
-Build a map of story ID to the event keys it covers (from the story title
-and criteria).
+Read `.sdlc/user-stories.yaml` and extract all functional stories
+(`ENV-*`, `LSP-*`, `COL-*`, `SCF-*`, `PLB-*`, `EE-*`, `AI-*`, `LS-*`,
+`XC-*`, etc.). Build a map of story ID to title for mapping validation.
+
+Reject any remaining `TEL-*` stories — they are meta “track X” stories
+and must not be used as the mapping target.
 
 ### 3. Extract mapping table from USAGE_DATA.md
 
-Read `USAGE_DATA.md` and parse the story-to-event mapping table. Extract
-each row's event key and mapped story ID.
+Read `USAGE_DATA.md` and parse:
+
+- The **platform baseline** section (events that need no product story)
+- The **story-to-event mapping** tables (event key → functional story ID)
 
 ### 4. Cross-reference and report
 
 Check for:
 
 - **Orphan events** — event keys in code with no matching row in
-  `USAGE_DATA.md` or no mapped user story
+  `USAGE_DATA.md` and not listed under platform baseline
 - **Stale mappings** — rows in `USAGE_DATA.md` referencing event keys
   that no longer exist in code
-- **Missing stories** — `TEL-*` story IDs referenced in `USAGE_DATA.md`
+- **Missing stories** — functional story IDs referenced in `USAGE_DATA.md`
   that don't exist in `user-stories.yaml`
-- **Stale stories** — `TEL-*` stories in `user-stories.yaml` that no
-  event maps to
-- **Implementation gaps** — events defined in `LightspeedEvents` but
-  never called via `sendEvent` in the source (informational, not blocking)
+- **Meta TEL-* mappings** — any mapping or story that uses a `TEL-*` ID
+  (blocking; rewrite to a functional story)
+- **Implementation gaps** — events defined in code but never called via
+  `sendEvent` in the source (informational, not blocking)
 
 ### 5. Fix drift
 
-For each finding:
+For each finding, choose **one** of these paths — never “create a TEL-*
+story”:
 
-- **Orphan event**: Add a row to `USAGE_DATA.md` and create a `TEL-*`
-  story in `user-stories.yaml` if needed
+- **Orphan event**: Map to an existing functional story in
+  `USAGE_DATA.md`, **or** add a real UX story (developer persona) in
+  `user-stories.yaml` and map to it, **or** document as platform
+  baseline, **or** drop the unused event from code
 - **Stale mapping**: Remove the row from `USAGE_DATA.md`
-- **Missing story**: Add the story to `user-stories.yaml`
-- **Stale story**: Remove from `user-stories.yaml` or note as planned
+- **Missing story**: Add a functional UX story (developer persona) to
+  `user-stories.yaml`, then map the event to it
+- **Meta TEL-* mapping**: Replace with a functional story ID from the
+  product catalog
 
 ### 6. Verify
 
-Confirm zero orphan events and zero stale mappings after fixes.
+Confirm zero orphan events, zero stale mappings, and zero `TEL-*`
+references after fixes.
 
 ## Output Format
 
@@ -76,12 +95,13 @@ Report findings as a checklist:
 
 ```text
 telemetry audit:
-  [x] 12 events defined in code
-  [x] 12 events mapped in USAGE_DATA.md
-  [x] 7 TEL-* stories in user-stories.yaml
+  [x] N events defined in code (TelemetryEvents + LightspeedEvents)
+  [x] N product events mapped in USAGE_DATA.md to functional stories
+  [x] M platform baseline events documented (no product story)
+  [x] 0 TEL-* stories or mappings
   [x] 0 orphan events
   [x] 0 stale mappings
-  [ ] 8 events defined but not yet instrumented (sendEvent not called)
+  [ ] K events defined but not yet instrumented (sendEvent not called)
 
 Fixes applied:
   - (none needed)

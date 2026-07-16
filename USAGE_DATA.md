@@ -137,28 +137,70 @@ reported through the same telemetry pipeline:
 
 ## Story-to-event mapping
 
-Every telemetry event must map to a user story in
-`.sdlc/user-stories.yaml`. Orphan events (no matching story) are flagged
-below. Use the `telemetry-audit` agent skill to validate this mapping.
+Product telemetry events map to **functional** user stories in
+`.sdlc/user-stories.yaml` (`ENV-*`, `COL-*`, `LS-*`, etc.). The closed
+loop is: functional story → WDIO `@covers` → this mapping row → emit
+event. Use the `telemetry-audit` agent skill to validate this mapping.
+
+Do **not** invent meta `TEL-*` stories for telemetry. Orphans should be
+mapped to an existing product story, covered by a new developer-persona
+UX story, marked as platform baseline, or removed.
+
+### Platform baseline
+
+These events are infrastructure / library lifecycle and do **not** require
+a product story:
+
+| Event | Event key | Notes |
+| ----- | --------- | ----- |
+| Extension startup | `startup` | Sent by Red Hat telemetry library |
+| Extension shutdown | `shutdown` | Sent automatically with session duration |
+| Tracked command executed | `command.executed` | Generic command wrapper (`commandId` property) |
+
+### Extension `TelemetryEvents`
 
 | Event | Event key | User story | Status |
-|---|---|---|---|
-| Inline suggestion accepted | `lightspeed.suggestion.accepted` | [TEL-001] Track inline suggestion outcomes | Mapped |
-| Inline suggestion rejected | `lightspeed.suggestion.rejected` | [TEL-001] Track inline suggestion outcomes | Mapped |
-| Inline suggestion ignored | `lightspeed.suggestion.ignored` | [TEL-001] Track inline suggestion outcomes | Mapped |
-| Generation panel opened | `lightspeed.generation.open` | [TEL-002] Track generation panel opens | Mapped |
-| Generation panel closed | `lightspeed.generation.close` | [TEL-003] Track generation lifecycle | Mapped |
-| Generation step transition | `lightspeed.generation.transition` | [TEL-003] Track generation lifecycle | Mapped |
-| Generation content accepted | `lightspeed.generation.accept` | [TEL-003] Track generation lifecycle | Mapped |
-| Explanation requested | `lightspeed.explanation.requested` | [TEL-004] Track explanation requests | Mapped |
-| Feedback thumbs up | `lightspeed.feedback.thumbsUp` | [TEL-005] Track user feedback signals | Mapped |
-| Feedback thumbs down | `lightspeed.feedback.thumbsDown` | [TEL-005] Track user feedback signals | Mapped |
-| Content matches fetched | `lightspeed.contentMatches.fetched` | [TEL-006] Track content matches fetched | Mapped |
-| Walkthrough opened | `walkthrough.open` | [TEL-007] Track walkthrough opens | Mapped |
+| ----- | --------- | ---------- | ------ |
+| Extension activated | `extension.activated` | [XC-001] Extension activation and sidebar | Mapped |
+| Environment create | `env.create` | [ENV-002] Create virtual environment | Mapped |
+| Environment select | `env.select` | [ENV-003] Select Python environment | Mapped |
+| Collection install | `collection.install` | [COL-007] Install collection from sidebar | Mapped |
+| Collection search | `collection.search` | [COL-005] Search remote collections | Mapped |
+| Playbook run | `playbook.run` | [PLB-003] Run playbook in terminal | Mapped |
+| Playbook run with progress | `playbook.runWithProgress` | [PLB-004] Real-time playbook progress visualization | Mapped |
+| Creator form open | `creator.formOpen` | [SCF-001] Scaffold new Ansible content | Mapped |
+| Vault use | `vault.use` | [LSP-007] Vault encrypt and decrypt | Mapped |
+| Plugin doc view | `pluginDoc.view` | [COL-003] View plugin documentation | Mapped |
+| AI summary request | `ai.summaryRequest` | [AI-001] / [PLB-006] / [EE-003] (via `domain`) | Mapped |
+| MCP tool use in chat | `mcp.toolUseInChat` | [AI-008] Browse and use MCP tools | Mapped |
+| MCP configure | `mcp.configure` | [AI-009] Configure MCP for external AI clients | Mapped |
+| Skill use in chat | `skill.useInChat` | [AI-010] Browse AI skills | Mapped |
+| Skill prompt copy | `skill.promptCopy` | [AI-010] Browse AI skills | Mapped |
+| LLM model select | `llm.modelSelect` | [AI-007] Select LLM model and provider | Mapped |
+| LLM provider configure | `llm.providerConfigure` | [AI-007] Select LLM model and provider | Mapped |
+| EE detail view | `ee.detailView` | [EE-002] Inspect EE contents | Mapped |
+| Walkthrough open | `walkthrough.open` | [XC-004] Open guided walkthroughs | Mapped |
+
+### Lightspeed events
+
+| Event | Event key | User story | Status |
+| ----- | --------- | ---------- | ------ |
+| Inline suggestion accepted | `lightspeed.suggestion.accepted` | [LS-005] Inline code suggestions | Mapped |
+| Inline suggestion rejected | `lightspeed.suggestion.rejected` | [LS-005] Inline code suggestions | Mapped |
+| Inline suggestion ignored | `lightspeed.suggestion.ignored` | [LS-005] Inline code suggestions | Mapped |
+| Generation panel opened | `lightspeed.generation.open` | [LS-002] Generate playbook via Lightspeed | Mapped |
+| Generation panel closed | `lightspeed.generation.close` | [LS-002] / [LS-003] Generation lifecycle | Mapped |
+| Generation step transition | `lightspeed.generation.transition` | [LS-002] / [LS-003] Generation lifecycle | Mapped |
+| Generation content accepted | `lightspeed.generation.accept` | [LS-002] / [LS-003] Generation lifecycle | Mapped |
+| Explanation requested | `lightspeed.explanation.requested` | [LS-004] Explain playbook via Lightspeed | Mapped |
+| Feedback thumbs up | `lightspeed.feedback.thumbsUp` | [LS-005] Inline code suggestions | Mapped |
+| Feedback thumbs down | `lightspeed.feedback.thumbsDown` | [LS-005] Inline code suggestions | Mapped |
+| Content matches fetched | `lightspeed.contentMatches.fetched` | [LS-005] Inline code suggestions | Mapped |
 
 ### Orphan events
 
-No orphan events. All defined events map to a user story.
+No orphan events. All product events map to a functional user story;
+platform baseline events are documented separately above.
 
 ## What's included in the general telemetry data
 
