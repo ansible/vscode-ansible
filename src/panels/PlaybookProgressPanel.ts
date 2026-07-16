@@ -13,6 +13,8 @@ import { log } from '@src/extension';
 import type { ProgressEvent } from '@ansible/developer-services';
 import { buildTaskAnalysisPrompt } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
+import { TelemetryEvents, buildOutcomeProperties } from '@ansible/common';
+import { TelemetryService } from '@src/services/TelemetryService';
 
 /**
  * Single-quote a value for safe interpolation into a POSIX shell command.
@@ -29,6 +31,8 @@ export interface PlaybookRunOptions {
     workspaceFolder: vscode.Uri;
     command: string;
     extensionPath: string;
+    /** Epoch ms when the user invoked run-with-progress (for durationMs). */
+    telemetryStartedAt?: number;
 }
 
 /** Thin webview host that streams ansible-playbook events to PlaybookProgressView. */
@@ -42,6 +46,8 @@ export class PlaybookProgressPanel {
     private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
     private _lastOptions: PlaybookRunOptions | undefined;
+    private _telemetryStartedAt: number | undefined;
+    private _telemetrySent = false;
 
     /**
      * Show or reuse the playbook progress panel and start a new run.
@@ -137,6 +143,7 @@ export class PlaybookProgressPanel {
                 if (this._terminal && this._isRunning) {
                     this._terminal.sendText('\x03', false);
                     this._isRunning = false;
+                    this._sendPlaybookProgressOutcome('cancel');
                     void this._panel.webview.postMessage({ method: 'playbookStopped' });
                 }
                 break;
@@ -172,6 +179,8 @@ export class PlaybookProgressPanel {
     private async _startRun(options: PlaybookRunOptions): Promise<void> {
         this._lastOptions = options;
         this._isRunning = true;
+        this._telemetryStartedAt = options.telemetryStartedAt ?? Date.now();
+        this._telemetrySent = false;
         this._panel.title = `Playbook: ${options.playbookName}`;
 
         if (this._socketServer) {
@@ -277,12 +286,63 @@ export class PlaybookProgressPanel {
     private _handleEvent(event: ProgressEvent): void {
         if (event.type === 'playbook_complete') {
             this._isRunning = false;
+            const stats = event.data.stats;
+            let failed = false;
+            if (stats && typeof stats === 'object') {
+                for (const hostStats of Object.values(stats as Record<string, unknown>)) {
+                    if (!hostStats || typeof hostStats !== 'object') continue;
+                    const hs = hostStats as Record<string, unknown>;
+                    const failures = typeof hs.failures === 'number' ? hs.failures : 0;
+                    const unreachable = typeof hs.unreachable === 'number' ? hs.unreachable : 0;
+                    if (failures > 0 || unreachable > 0) {
+                        failed = true;
+                        break;
+                    }
+                }
+            }
+            const durationSec =
+                typeof event.data.duration === 'number' ? event.data.duration : undefined;
+            this._sendPlaybookProgressOutcome(failed ? 'error' : 'success', {
+                errorCode: failed ? 'playbook_failed' : undefined,
+                durationSec,
+            });
         }
 
         void this._panel.webview.postMessage({
             method: 'progressEvent',
             params: event,
         });
+    }
+
+    /**
+     * Emit playbook.runWithProgress once per run with journey outcome.
+     * @param result - success | cancel | error
+     * @param options - Optional error code / ansible-reported duration
+     * @param options.errorCode - Coarse non-PII failure category when result is error
+     * @param options.durationSec - Ansible-reported duration in seconds
+     */
+    private _sendPlaybookProgressOutcome(
+        result: 'success' | 'cancel' | 'error',
+        options?: { errorCode?: string; durationSec?: number },
+    ): void {
+        if (this._telemetrySent) return;
+        this._telemetrySent = true;
+        try {
+            const props = buildOutcomeProperties(result, {
+                startedAt: this._telemetryStartedAt,
+                errorCode: options?.errorCode,
+            });
+            // Prefer ansible-reported duration when available (seconds → ms)
+            if (options?.durationSec !== undefined) {
+                props.durationMs = String(Math.max(0, Math.round(options.durationSec * 1000)));
+            }
+            TelemetryService.getInstance().sendEvent(
+                TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS,
+                props,
+            );
+        } catch {
+            // Telemetry optional if service not initialized
+        }
     }
 
     /**

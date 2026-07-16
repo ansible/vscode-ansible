@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { log } from '@src/extension';
 import { buildCommandArgs, getCommandService, type SchemaNode } from '@ansible/developer-services';
+import { TelemetryEvents, buildOutcomeProperties } from '@ansible/common';
+import { TelemetryService } from '@src/services/TelemetryService';
 
 /** Thin webview host for the creator form. Delegates UI to @ansible/ui SchemaForm. */
 export class CreatorFormPanel {
@@ -95,6 +97,16 @@ export class CreatorFormPanel {
             return;
         }
         if (method === 'cancel') {
+            try {
+                TelemetryService.getInstance().sendEvent(
+                    TelemetryEvents.CREATOR_COMPLETE,
+                    buildOutcomeProperties('cancel', {
+                        extra: { command: this._commandPath.join('/') },
+                    }),
+                );
+            } catch {
+                // Telemetry optional if service not initialized
+            }
             this._panel.dispose();
             return;
         }
@@ -152,6 +164,8 @@ export class CreatorFormPanel {
         commandPath: string[],
         values: Record<string, unknown>,
     ): Promise<void> {
+        const startedAt = Date.now();
+        const commandKey = commandPath.join('/');
         const args = buildCommandArgs(commandPath, this._schema, values);
         log(`CreatorFormPanel: Executing: ansible-creator ${args.join(' ')}`);
 
@@ -159,6 +173,21 @@ export class CreatorFormPanel {
             method: 'executionStarted',
             params: { command: `ansible-creator ${args.join(' ')}` },
         });
+
+        const sendCreatorOutcome = (result: 'success' | 'error', errorCode?: string): void => {
+            try {
+                TelemetryService.getInstance().sendEvent(
+                    TelemetryEvents.CREATOR_COMPLETE,
+                    buildOutcomeProperties(result, {
+                        startedAt,
+                        errorCode,
+                        extra: { command: commandKey },
+                    }),
+                );
+            } catch {
+                // Telemetry optional if service not initialized
+            }
+        };
 
         const commandService = getCommandService();
         const toolPath = await commandService.getToolPath('ansible-creator');
@@ -170,6 +199,7 @@ export class CreatorFormPanel {
                     output: 'ansible-creator not found. Install ansible-dev-tools first.',
                 },
             });
+            sendCreatorOutcome('error', 'tool_missing');
             return;
         }
 
@@ -185,10 +215,12 @@ export class CreatorFormPanel {
             void vscode.window.showInformationMessage(
                 `ansible-creator ${commandPath.join(' ')} completed successfully`,
             );
+            sendCreatorOutcome('success');
         } else {
             void vscode.window.showErrorMessage(
                 `ansible-creator ${commandPath.join(' ')} failed (exit code ${String(result.exitCode)})`,
             );
+            sendCreatorOutcome('error', 'exit_nonzero');
         }
     }
 

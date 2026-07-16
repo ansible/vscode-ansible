@@ -1,5 +1,5 @@
 /**
- * Shared telemetry event name constants.
+ * Shared telemetry event name constants and outcome helpers.
  * Used by the extension and any subsystem that emits telemetry.
  */
 
@@ -24,6 +24,7 @@ export const TelemetryEvents = {
 
     // Creator
     CREATOR_FORM_OPEN: 'creator.formOpen',
+    CREATOR_COMPLETE: 'creator.complete',
 
     // Vault
     VAULT_USE: 'vault.use',
@@ -54,3 +55,39 @@ export const TelemetryEvents = {
 } as const;
 
 export type TelemetryEventName = (typeof TelemetryEvents)[keyof typeof TelemetryEvents];
+
+/** Journey outcome for completion-time telemetry events. */
+export type TelemetryResult = 'success' | 'cancel' | 'error';
+
+export interface TelemetryOutcomeOptions {
+    /** Epoch ms when the action started; used to compute `durationMs`. */
+    startedAt?: number;
+    /**
+     * Coarse, non-PII error category (e.g. `no_workspace`, `tool_missing`).
+     * Sanitized to `[a-zA-Z0-9_.-]` and truncated.
+     */
+    errorCode?: string;
+    /** Extra string properties to merge (must already be non-PII). */
+    extra?: Record<string, string>;
+}
+
+/**
+ * Build string properties for a journey outcome event.
+ *
+ * @param result - success | cancel | error
+ * @param options - Optional duration / errorCode / extra props
+ * @returns Properties suitable for TelemetryService.sendEvent
+ */
+export function buildOutcomeProperties(
+    result: TelemetryResult,
+    options?: TelemetryOutcomeOptions,
+): Record<string, string> {
+    const props: Record<string, string> = { result, ...(options?.extra ?? {}) };
+    if (options?.startedAt !== undefined) {
+        props.durationMs = String(Math.max(0, Date.now() - options.startedAt));
+    }
+    if (result === 'error' && options?.errorCode) {
+        props.errorCode = options.errorCode.replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64);
+    }
+    return props;
+}
