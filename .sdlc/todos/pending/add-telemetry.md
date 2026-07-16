@@ -23,17 +23,19 @@ added.
 
 ## Acceptance criteria
 
-- [ ] Story-to-event mapping table in `USAGE_DATA.md` — each telemetry
-      event references a user story ID from `.sdlc/user-stories.yaml`
-- [ ] Orphan events (events with no matching story) flagged in the table
-- [ ] Missing user stories backfilled in `.sdlc/user-stories.yaml`
-- [ ] Agent skill to audit that every telemetry event maps to a user story
+- [ ] Story-to-event mapping table in `USAGE_DATA.md` — each product
+      telemetry event references a **functional** user story ID
+      (`ENV-*`, `LS-*`, etc.) from `.sdlc/user-stories.yaml`
+- [ ] Platform baseline events (`startup`, `shutdown`, optionally
+      `command.executed`) documented separately without a product story
+- [ ] Orphan events flagged; fix path never mints meta `TEL-*` stories
+- [ ] Agent skill audits mapping against functional stories
 - [ ] Walkthrough open events captured (instrument
-      `workbench.action.openWalkthrough`)
+      `workbench.action.openWalkthrough`) and mapped to an XC story
 
 ## Notes
 
 - Phase 1 PR: #3009
 - Brad's review: story-mapped events required for phase 2
-- Tima's ask: walkthrough open event capture
+- Walkthrough open event capture requested by reviewer
 - Clay's concern: dual Segment streams acknowledged, no overlap today

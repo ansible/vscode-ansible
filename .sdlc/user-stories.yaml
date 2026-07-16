@@ -766,3 +766,16 @@ stories:
       - Empty tree views show a helpful message with next-step actions
       - Missing tool warnings explain what to install
       - Error states show actionable recovery guidance
+
+  - id: XC-004
+    title: Open guided walkthroughs
+    story: >
+      As an Ansible developer, I want to open guided walkthroughs from
+      the extension, so that I can learn key workflows with step-by-step
+      guidance without leaving the editor.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Walkthroughs are available from the extension
+      - Opening a walkthrough shows the guided steps
+      - The opened walkthrough is identified for usage tracking

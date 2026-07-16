@@ -1149,6 +1149,16 @@
           "description": "DEPRECATED: Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead.",
           "deprecationMessage": "Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead."
         },
+        "redhat.telemetry.enabled": {
+          "type": "boolean",
+          "default": null,
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ],
+          "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
+          "scope": "window"
+        },
         "ansible.lightspeed.enabled": {
           "type": "boolean",
           "default": false,
@@ -1256,6 +1266,7 @@
     "@ansible/mcp-server": "workspace:*",
     "@ansible/ui": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
+    "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@types/js-yaml": "^4.0.9",
     "@vscode-elements/elements": "^1.6.0",
     "@vscode/python-extension": "~1.0.5",
@@ -1267,5 +1278,7 @@
     "yaml": "^2.9.0",
     "zod": "^4.3.5",
     "zod-to-json-schema": "^3.25.1"
-  }
+  },
+  "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
+  "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
 }

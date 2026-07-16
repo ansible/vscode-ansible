@@ -1,0 +1,18 @@
+[[allowlists]]
+description = "Global Allowlist"
+paths = [
+  '''node_modules/\.pnpm''',
+]
+
+[[allowlists]]
+description = "Red Hat Segment telemetry write keys embedded in bundled extension output"
+condition = "AND"
+paths = [
+  '''dist/extension\.js''',
+]
+regexTarget = "match"
+regexes = [
+  '''segmentWriteKey''',
+  '''DEFAULT_SEGMENT_KEY''',
+  '''DEFAULT_SEGMENT_DEBUG_KEY''',
+]

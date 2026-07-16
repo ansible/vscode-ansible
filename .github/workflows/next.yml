@@ -135,6 +135,8 @@ jobs:
       - name: Upload logs and coverage reports
         if: ${{ !cancelled() && runner.os != 'Windows' }}
         uses: ansible/actions/upload-artifact@main
+        env:
+          GITLEAKS_CONFIG: .gitleaks.toml
         with:
           name: logs-${{ matrix.runs-on }}-${{ github.run_attempt }}.zip
           path: |

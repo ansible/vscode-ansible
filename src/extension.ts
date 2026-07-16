@@ -79,8 +79,11 @@ import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
+import { registerWalkthroughTelemetry } from '@src/telemetry';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
+import { TelemetryService } from '@src/services/TelemetryService';
+import { TelemetryEvents } from '@ansible/common';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible');
@@ -149,17 +152,23 @@ export function getLogFilePath(): string | undefined {
  * Activate the Ansible extension and register providers and commands.
  * @param context - VS Code extension activation context
  */
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // Initialize file-based logging (before anything else so all messages are captured)
     const logFile = _ensureLogFile(context);
     log(`Log file: ${logFile}`);
 
     outputChannel.show(true);
 
+    // Initialize telemetry (respects redhat.telemetry.enabled + VS Code global consent)
+    const telemetry = await TelemetryService.create(context);
+    context.subscriptions.push(telemetry);
+    telemetry.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+
     registerFileAssociation(context);
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
-    registerLightspeed(context)
+    registerWalkthroughTelemetry(context, telemetry);
+    registerLightspeed(context, telemetry)
         .then((disposable) => {
             if (disposable) context.subscriptions.push(disposable);
         })
@@ -522,6 +531,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand(
             'ansibleSkills.useInChat',
             (arg: SkillEntry | { skill: SkillEntry }) => {
+                telemetry.sendEvent(TelemetryEvents.SKILL_USE_IN_CHAT);
                 const skill = 'skill' in arg ? arg.skill : arg;
                 void openChatWithSkill(skill);
             },
@@ -598,6 +608,7 @@ export function activate(context: vscode.ExtensionContext) {
     const envManagersCreateCommand = vscode.commands.registerCommand(
         'ansibleDevToolsEnvManagers.create',
         async () => {
+            telemetry.sendEvent(TelemetryEvents.ENV_CREATE);
             try {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 if (!workspaceFolder) {
@@ -885,10 +896,10 @@ export function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(packageDetailCommand);
 
-    // AI Summary Commands - Collections
     const collectionsAiSummaryCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.aiSummary',
         async () => {
+            telemetry.sendEvent(TelemetryEvents.AI_SUMMARY_REQUEST, { domain: 'collections' });
             await openChatWithPrompt(buildCollectionsSummaryPrompt());
         },
     );
@@ -984,6 +995,10 @@ export function activate(context: vscode.ExtensionContext) {
     const creatorOpenFormCommand = vscode.commands.registerCommand(
         'ansibleCreator.openForm',
         (arg1: string[] | { commandPath: string[]; schema: unknown }, arg2?: unknown) => {
+            const commandPath = Array.isArray(arg1) ? arg1 : arg1.commandPath;
+            telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
+                command: commandPath.join('/'),
+            });
             if (Array.isArray(arg1)) {
                 CreatorFormPanel.show(context.extensionUri, arg1, arg2 as SchemaNode);
             } else {
@@ -1021,6 +1036,7 @@ export function activate(context: vscode.ExtensionContext) {
     const playbooksRunCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.run',
         async (node: { playbook: PlaybookInfo }) => {
+            telemetry.sendEvent(TelemetryEvents.PLAYBOOK_RUN);
             const playbooksService = PlaybooksService.getInstance();
             const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
@@ -1048,10 +1064,10 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
-    // Run playbook with progress viewer
     const playbooksRunWithProgressCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.runWithProgress',
         async (node: { playbook: PlaybookInfo }) => {
+            telemetry.sendEvent(TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS);
             const playbooksService = PlaybooksService.getInstance();
             const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
@@ -1135,6 +1151,9 @@ export function activate(context: vscode.ExtensionContext) {
     const mcpToolsUseInChatCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.useInChat',
         async (toolInfo: ToolInfo) => {
+            telemetry.sendEvent(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, {
+                toolName: toolInfo.tool.name,
+            });
             await injectToolPromptIntoChat(toolInfo);
         },
     );
@@ -1368,6 +1387,7 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsInstallCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.install',
         () => {
+            telemetry.sendEvent(TelemetryEvents.COLLECTION_INSTALL);
             try {
                 const collectionsService = CollectionsService.getInstance();
 
@@ -1505,6 +1525,7 @@ export function activate(context: vscode.ExtensionContext) {
     const selectLlmModelCommand = vscode.commands.registerCommand(
         'ansibleEnvironments.selectLlmModel',
         async () => {
+            telemetry.sendEvent(TelemetryEvents.LLM_MODEL_SELECT);
             const llmService = getLlmService();
             await llmService.showModelPicker();
         },

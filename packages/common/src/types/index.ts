@@ -34,3 +34,5 @@ export type {
     AiAnalyzeData,
     PlaybookRunOptions,
 } from './playbook';
+export { TelemetryEvents } from './telemetry';
+export type { TelemetryEventName } from './telemetry';
