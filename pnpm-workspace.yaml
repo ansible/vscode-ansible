@@ -1,4 +1,3 @@
-# cspell: ignore fastify undici xhmikosr
 minimumReleaseAge: 1000 # 4320 # minutes (3 days)
 packages:
   - "packages/*"
@@ -16,7 +15,7 @@ allowBuilds:
 overrides:
   rollup: "npm:@rollup/wasm-node@*"
   # Security overrides
-  "@xhmikosr/decompress@10": "10.2.1"
+  "@xhmikosr/decompress@10": "11.1.3"
   "fast-uri@3": ">=3.1.2"
   "fastify": ">=5.8.3"
   "form-data@4": ">=4.0.6"
