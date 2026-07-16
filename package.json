@@ -536,6 +536,11 @@
         "icon": "$(graph)"
       },
       {
+        "command": "ansiblePlaybooks.runWithNavigator",
+        "title": "Run via ansible-navigator",
+        "icon": "$(rocket)"
+      },
+      {
         "command": "ansiblePlaybooks.openPlaybook",
         "title": "Edit Playbook",
         "icon": "$(edit)"
@@ -913,19 +918,24 @@
           "group": "inline@2"
         },
         {
-          "command": "ansiblePlaybooks.openPlaybook",
-          "when": "view == ansiblePlaybooks && viewItem == playbook",
+          "command": "ansiblePlaybooks.runWithNavigator",
+          "when": "view == ansiblePlaybooks && viewItem == playbook && ansible.navigatorAvailable",
           "group": "inline@3"
         },
         {
-          "command": "ansiblePlaybooks.editConfig",
+          "command": "ansiblePlaybooks.openPlaybook",
           "when": "view == ansiblePlaybooks && viewItem == playbook",
           "group": "inline@4"
         },
         {
+          "command": "ansiblePlaybooks.editConfig",
+          "when": "view == ansiblePlaybooks && viewItem == playbook",
+          "group": "inline@5"
+        },
+        {
           "command": "ansiblePlaybooks.aiSummary",
           "when": "view == ansiblePlaybooks && viewItem == playbook && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@5"
+          "group": "inline@6"
         },
         {
           "command": "ansibleMcpTools.copyPrompt",
@@ -1070,6 +1080,19 @@
             }
           },
           "description": "AI skill sources. Each source points to a GitHub repo or local directory containing SKILL.md files."
+        },
+        "ansibleEnvironments.playbookExecutor": {
+          "type": "string",
+          "enum": [
+            "ansible-playbook",
+            "ansible-navigator"
+          ],
+          "default": "ansible-playbook",
+          "enumDescriptions": [
+            "Run playbooks directly with ansible-playbook",
+            "Run playbooks via ansible-navigator (supports execution environments and artifact collection)"
+          ],
+          "markdownDescription": "Default executor for running playbooks from the progress viewer and configuration panel."
         },
         "ansibleEnvironments.pluginDocZoom": {
           "type": "number",

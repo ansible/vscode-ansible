@@ -445,6 +445,19 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(packagesView);
 
+    // Track ansible-navigator availability for conditional menu items
+    const updateNavigatorAvailability = async () => {
+        const available = await commandService.isToolAvailable('ansible-navigator');
+        await vscode.commands.executeCommand('setContext', 'ansible.navigatorAvailable', available);
+    };
+    const navToolsService = DevToolsService.getInstance();
+    context.subscriptions.push(
+        (navToolsService.onDidChange as vscode.Event<void>)(() => {
+            void updateNavigatorAvailability();
+        }),
+    );
+    void updateNavigatorAvailability();
+
     // Register the Collections view
     const collectionsProvider = new CollectionsProvider(pythonEnvService);
     const collectionsView = vscode.window.createTreeView('ansibleDevToolsCollections', {
@@ -1048,29 +1061,55 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
-    // Run playbook with progress viewer
+    // Run playbook with progress viewer (respects configured executor)
     const playbooksRunWithProgressCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.runWithProgress',
         async (node: { playbook: PlaybookInfo }) => {
             const playbooksService = PlaybooksService.getInstance();
             const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-            // Calculate path relative to the playbook's workspace folder
             const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
             const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-            const command = playbooksService.buildCommand(playbookRelativePath, config);
+            const useNavigator = config.executor === 'ansible-navigator';
+            const command = useNavigator
+                ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                : playbooksService.buildCommand(playbookRelativePath, config);
 
             log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
 
-            // Show progress panel
             await PlaybookProgressPanel.show(context.extensionUri, {
                 playbookPath: node.playbook.path,
                 playbookName: node.playbook.name,
                 workspaceFolder: node.playbook.workspaceFolder,
                 command: command,
                 extensionPath: context.extensionPath,
+                executor: config.executor,
             });
+        },
+    );
+
+    const playbooksRunNavigatorCommand = vscode.commands.registerCommand(
+        'ansiblePlaybooks.runWithNavigator',
+        async (node: { playbook: PlaybookInfo }) => {
+            const playbooksService = PlaybooksService.getInstance();
+            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
+
+            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
+            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
+
+            const command = playbooksService.buildNavigatorCommand(playbookRelativePath, config);
+
+            log(`Running playbook via ansible-navigator: ${command} in ${workspaceFolderPath}`);
+
+            const terminalService = TerminalService.getInstance();
+            const managed = await terminalService.createActivatedTerminal({
+                name: `ansible-navigator: ${node.playbook.name}`,
+                cwd: node.playbook.workspaceFolder,
+                show: true,
+            });
+
+            void managed.sendCommand(command, { waitForCompletion: false });
         },
     );
 
@@ -1565,6 +1604,7 @@ export function activate(context: vscode.ExtensionContext) {
         playbooksEditDefaultsCommand,
         playbooksRunCommand,
         playbooksRunWithProgressCommand,
+        playbooksRunNavigatorCommand,
         playbooksOpenCommand,
         playbooksGoToPlayCommand,
         playbooksAiSummaryCommand,

@@ -36,6 +36,7 @@ export type {
     SkillCategory,
     TrustLevel,
     RepoFormat,
+    PlaybookExecutor,
     PlaybookConfig,
     PlaybookPlay,
     ProgressEvent,
@@ -62,11 +63,15 @@ export { BUILTIN_SKILLS } from './skills';
 
 // --- Parsers ---
 export {
+    buildPlaybookFlags,
     buildPlaybookCommand,
+    buildNavigatorCommand,
+    buildNavigatorEECommand,
     parsePlaybook,
     mergePlaybookConfig,
     DEFAULT_PLAYBOOK_CONFIG,
 } from './parsers/playbookParser';
+export type { NavigatorEEOptions } from './parsers/playbookParser';
 export { extractMetadataJson, parseMetadataDump } from './parsers/metadataDumpParser';
 export type {
     MetadataDump,

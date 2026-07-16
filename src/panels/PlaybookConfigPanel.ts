@@ -5,7 +5,7 @@ import {
     type PlaybookConfig,
 } from '@src/services/PlaybooksService';
 import { PlaybookProgressPanel, type PlaybookRunOptions } from '@src/panels/PlaybookProgressPanel';
-import { buildPlaybookCommand } from '@ansible/developer-services';
+import { buildPlaybookCommand, buildNavigatorCommand } from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 /** Thin webview host for the playbook configuration form. Delegates UI to @ansible/ui PlaybookConfigView. */
@@ -172,7 +172,12 @@ export class PlaybookConfigPanel {
      */
     private async _runPlaybook(config: PlaybookConfig): Promise<void> {
         if (!this._playbook) return;
-        const command = buildPlaybookCommand(this._playbook.relativePath, config);
+
+        const useNavigator = config.executor === 'ansible-navigator';
+        const command = useNavigator
+            ? buildNavigatorCommand(this._playbook.relativePath, config)
+            : buildPlaybookCommand(this._playbook.relativePath, config);
+
         log(`PlaybookConfigPanel: Running: ${command}`);
 
         const runOptions: PlaybookRunOptions = {
@@ -181,6 +186,7 @@ export class PlaybookConfigPanel {
             workspaceFolder: this._playbook.workspaceFolder,
             command,
             extensionPath: this._extensionUri.fsPath,
+            executor: config.executor ?? 'ansible-playbook',
         };
 
         await PlaybookProgressPanel.show(this._extensionUri, runOptions);

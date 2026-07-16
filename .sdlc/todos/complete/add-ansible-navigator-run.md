@@ -1,7 +1,8 @@
 ---
 title: Add ansible-navigator run support
 created: 2026-05-26
-status: pending
+status: done
+completed: 2026-07-16
 priority: medium
 scope: extension
 ---
@@ -18,9 +19,9 @@ execution, execution environment integration, and artifact collection.
 
 ## Acceptance criteria
 
-- [ ] "Run via ansible-navigator" option in Playbooks tree context menu
-- [ ] ansible-navigator discovered via CommandService from active venv
-- [ ] Runs in integrated terminal with venv activation
+- [x] "Run via ansible-navigator" option in Playbooks tree context menu
+- [x] ansible-navigator discovered via CommandService from active venv
+- [x] Runs in integrated terminal with venv activation
 
 ## Notes
 

@@ -16,7 +16,10 @@ export {
     valueToString,
     formatLabel,
     CREATOR_FILTERED_KEYS,
+    buildPlaybookFlags,
     buildPlaybookCommand,
+    buildNavigatorCommand,
+    buildNavigatorEECommand,
     parsePlaybook,
     mergePlaybookConfig,
     DEFAULT_PLAYBOOK_CONFIG,
@@ -75,6 +78,7 @@ export type {
     SkillCategory,
     TrustLevel,
     RepoFormat,
+    PlaybookExecutor,
     PlaybookConfig,
     PlaybookPlay,
     ProgressEvent,
@@ -87,6 +91,7 @@ export type {
     MetadataDump,
     ParsedCollection,
     MetadataDumpResult,
+    NavigatorEEOptions,
 } from '@ansible/common';
 
 // --- Services ---

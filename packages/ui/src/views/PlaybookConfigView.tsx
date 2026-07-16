@@ -241,6 +241,19 @@ export function PlaybookConfigView() {
                         <div style={styles.previewBox}>{preview}</div>
                     </div>
 
+                    <FormSection title="Executor">
+                        <FormSelect
+                            label="Run With"
+                            value={config.executor ?? 'ansible-playbook'}
+                            onChange={(v) => {
+                                updateField('executor', v);
+                            }}
+                            options={['ansible-playbook', 'ansible-navigator']}
+                            description="ansible-navigator provides execution environment integration and artifact collection"
+                            defaultValue="ansible-playbook"
+                        />
+                    </FormSection>
+
                     <FormSection title="Inventory & Targeting">
                         <FormListBuilder
                             label="Inventory"

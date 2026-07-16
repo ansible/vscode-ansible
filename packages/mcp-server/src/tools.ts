@@ -838,6 +838,100 @@ export const GET_EXTENSION_WALKTHROUGH_TOOL: McpToolDefinition = {
     },
 };
 
+// === Playbook Execution ===
+
+export const RUN_PLAYBOOK_NAVIGATOR_TOOL: McpToolDefinition = {
+    name: 'run_playbook_navigator',
+    description: `Run an Ansible playbook using ansible-navigator in stdout mode.
+
+Executes \`ansible-navigator run <playbook> --mode stdout\` in the active Python environment.
+Requires ansible-navigator (via ansible-dev-tools) to be installed.
+Supports the same playbook flags as ansible-playbook (inventory, limit, tags, check, diff,
+become, connection, vault, etc.) passed through via the \`--\` separator.`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            playbook_path: {
+                type: 'string',
+                description: 'Absolute path to the playbook YAML file',
+            },
+            inventory: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Inventory file paths (repeatable)',
+            },
+            limit: {
+                type: 'string',
+                description: 'Host pattern to limit execution',
+            },
+            tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Tags to select tasks',
+            },
+            skip_tags: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'Tags to skip',
+            },
+            check: {
+                type: 'boolean',
+                description: 'Run in check mode (dry run)',
+            },
+            diff: {
+                type: 'boolean',
+                description: 'Show change diffs',
+            },
+            extra_vars: {
+                type: 'string',
+                description: 'Extra variables (key=value or @file)',
+            },
+            verbose: {
+                type: 'number',
+                description: 'Verbosity level (0-6)',
+            },
+            forks: {
+                type: 'number',
+                description: 'Number of parallel processes (default: 5)',
+            },
+            connection: {
+                type: 'string',
+                description: 'Connection type (default: ssh)',
+            },
+            user: {
+                type: 'string',
+                description: 'Remote user for connection',
+            },
+            timeout: {
+                type: 'number',
+                description: 'Connection timeout in seconds',
+            },
+            private_key: {
+                type: 'string',
+                description: 'Path to SSH private key file',
+            },
+            become: {
+                type: 'boolean',
+                description: 'Enable privilege escalation',
+            },
+            become_method: {
+                type: 'string',
+                description: 'Privilege escalation method (default: sudo)',
+            },
+            become_user: {
+                type: 'string',
+                description: 'Privilege escalation target user (default: root)',
+            },
+            vault_password_file: {
+                type: 'string',
+                description: 'Path to vault password file',
+            },
+        },
+        required: ['playbook_path'],
+    },
+};
+
 // === Collection of all static tools ===
 
 export const STATIC_TOOLS: McpToolDefinition[] = [
@@ -861,6 +955,9 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     LIST_EE_TOOL,
     GET_EE_DETAILS_TOOL,
     BUILD_EE_TOOL,
+
+    // Playbook execution
+    RUN_PLAYBOOK_NAVIGATOR_TOOL,
 
     // Dev tools
     LIST_DEV_TOOLS_TOOL,

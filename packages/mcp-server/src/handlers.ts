@@ -25,8 +25,16 @@ import {
     getCommandService,
     isExecutionEnvironmentDefinition,
     planAnsibleBuilderBuild,
+    buildNavigatorCommand,
+    DEFAULT_PLAYBOOK_CONFIG,
 } from '@ansible/developer-services';
-import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/developer-services';
+import type {
+    PluginOption,
+    PluginInfo,
+    PluginData,
+    SchemaNode,
+    PlaybookConfig,
+} from '@ansible/developer-services';
 
 /**
  * Normalizes ansible-doc fields that may be a single string or string array.
@@ -153,6 +161,10 @@ export class McpToolHandler {
                     return await this._handleGetEEDetails(args);
                 case 'build_execution_environment':
                     return await this._handleBuildEE(args);
+
+                // Playbook execution
+                case 'run_playbook_navigator':
+                    return await this._handleRunPlaybookNavigator(args);
 
                 // Dev tools
                 case 'list_ansible_dev_tools':
@@ -1526,6 +1538,96 @@ export class McpToolHandler {
         }
     }
 
+    // === Playbook Execution Handlers ===
+
+    /**
+     * Handles `run_playbook_navigator` by running ansible-navigator in stdout mode.
+     *
+     * @param args - Tool args: `playbook_path` (required), optional inventory, limit, etc.
+     * @returns Navigator stdout/stderr output or a structured error
+     */
+    private async _handleRunPlaybookNavigator(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
+        const playbookPath = args.playbook_path as string | undefined;
+        if (!playbookPath) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: playbook_path',
+                suggestion: 'Provide the absolute path to a playbook YAML file.',
+            });
+        }
+
+        if (!fs.existsSync(playbookPath)) {
+            return mcpError({
+                code: 'NOT_FOUND',
+                recoverability: 'fail',
+                message: `Playbook not found: ${playbookPath}`,
+            });
+        }
+
+        const commandService = getCommandService();
+        const navigatorAvailable = await commandService.isToolAvailable('ansible-navigator');
+        if (!navigatorAvailable) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'ansible-navigator is not installed in the active Python environment',
+                suggestion:
+                    'Install ansible-dev-tools (which includes ansible-navigator) using the install_ansible_dev_tools tool.',
+            });
+        }
+
+        const config: PlaybookConfig = {
+            ...DEFAULT_PLAYBOOK_CONFIG,
+            inventory: (args.inventory as string[] | undefined) ?? [],
+            limit: (args.limit as string | undefined) ?? '',
+            tags: (args.tags as string[] | undefined) ?? [],
+            skipTags: (args.skip_tags as string[] | undefined) ?? [],
+            extraVars: (args.extra_vars as string | undefined) ?? '',
+            check: (args.check as boolean | undefined) ?? false,
+            diff: (args.diff as boolean | undefined) ?? false,
+            verbose: (args.verbose as number | undefined) ?? 0,
+            forks: (args.forks as number | undefined) ?? 5,
+            connection: (args.connection as string | undefined) ?? 'ssh',
+            user: (args.user as string | undefined) ?? '',
+            timeout: args.timeout as number | undefined,
+            privateKey: (args.private_key as string | undefined) ?? '',
+            become: (args.become as boolean | undefined) ?? false,
+            becomeMethod: (args.become_method as string | undefined) ?? 'sudo',
+            becomeUser: (args.become_user as string | undefined) ?? 'root',
+            vaultPasswordFile: (args.vault_password_file as string | undefined) ?? '',
+        };
+
+        const command = buildNavigatorCommand(path.basename(playbookPath), config);
+        const shellArgs = command.split(' ').slice(1);
+        const cwd = path.dirname(playbookPath);
+
+        try {
+            const result = await commandService.runAnsibleNavigator(shellArgs, {
+                cwd,
+                timeout: 30 * 60 * 1000,
+            });
+            const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `## ansible-navigator run (exit code: ${String(result.exitCode)})\n\n\`\`\`\n${output}\n\`\`\``,
+                    },
+                ],
+                isError: result.exitCode !== 0,
+            };
+        } catch (error) {
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'retry',
+                message: `ansible-navigator failed: ${error instanceof Error ? error.message : String(error)}`,
+            });
+        }
+    }
+
     // === Dev Tools Handlers ===
 
     /**
@@ -1810,6 +1912,9 @@ export class McpToolHandler {
 ### Scaffolding (destructive, \`ac_*\` tools)
 - Dynamically generated from ansible-creator schema
 - Use \`get_ansible_creator_schema\` to see available commands
+
+### Playbook Execution
+- \`run_playbook_navigator\` -- run a playbook via ansible-navigator in stdout mode
 
 ### Execution Environments
 - \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs (read-only)

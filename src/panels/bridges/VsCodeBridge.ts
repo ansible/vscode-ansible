@@ -17,7 +17,7 @@ import type {
     DiagnosticsData,
 } from '@ansible/ui';
 import type { PlaybookConfig, ProgressEvent, AiAnalyzeData } from '@ansible/common';
-import { buildPlaybookCommand } from '@ansible/common';
+import { buildPlaybookCommand, buildNavigatorCommand } from '@ansible/common';
 
 type VsCodeApi = {
     postMessage(message: unknown): void;
@@ -209,7 +209,10 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, P
     }
 
     buildPreview(config: PlaybookConfig): string {
-        return buildPlaybookCommand(this.playbookPath || '<playbook>', config);
+        const pb = this.playbookPath || '<playbook>';
+        return config.executor === 'ansible-navigator'
+            ? buildNavigatorCommand(pb, config)
+            : buildPlaybookCommand(pb, config);
     }
 
     // PlaybookProgressBridge
