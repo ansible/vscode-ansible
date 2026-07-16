@@ -46,7 +46,7 @@ ignore-words-list = [
   "ws"
 ]
 ignore-words = ".config/dictionary.txt"
-skip = ".cache,dist,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,pnpm-lock.yaml,package-lock.json,.vscode-test,.wdio-vscode,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible,lib"
+skip = ".cache,dist,out,node_modules,.pnpm-store,.mypy_cache,.ruff_cache,site,codicon.css,pnpm-lock.yaml,package-lock.json,.vscode-test,.wdio-vscode,.git,dictionary.txt,settings.md,.eslintcache,.venv,media,.ansible,lib"
 
 [tool.coverage.run]
 # branch is more reliable than lines, protects against false positives
