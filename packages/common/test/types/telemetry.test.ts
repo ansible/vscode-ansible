@@ -29,11 +29,21 @@ describe('buildOutcomeProperties', () => {
         expect(buildOutcomeProperties('success', { errorCode: 'ignored' })).toEqual({
             result: 'success',
         });
+        expect(buildOutcomeProperties('error', { errorCode: '!!!' })).toEqual({
+            result: 'error',
+        });
     });
 
-    it('merges extra non-PII props', () => {
+    it('merges extra non-PII props without overriding reserved keys', () => {
         expect(
-            buildOutcomeProperties('success', { extra: { command: 'init/collection' } }),
+            buildOutcomeProperties('success', {
+                extra: {
+                    command: 'init/collection',
+                    result: 'error',
+                    durationMs: '0',
+                    errorCode: 'evil',
+                },
+            }),
         ).toEqual({
             result: 'success',
             command: 'init/collection',

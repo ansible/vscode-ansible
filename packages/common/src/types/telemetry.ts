@@ -59,6 +59,9 @@ export type TelemetryEventName = (typeof TelemetryEvents)[keyof typeof Telemetry
 /** Journey outcome for completion-time telemetry events. */
 export type TelemetryResult = 'success' | 'cancel' | 'error';
 
+/** Keys owned by buildOutcomeProperties — never taken from `extra`. */
+const RESERVED_OUTCOME_KEYS = new Set(['result', 'durationMs', 'errorCode']);
+
 export interface TelemetryOutcomeOptions {
     /** Epoch ms when the action started; used to compute `durationMs`. */
     startedAt?: number;
@@ -72,7 +75,20 @@ export interface TelemetryOutcomeOptions {
 }
 
 /**
+ * Sanitize a coarse error category for telemetry.
+ *
+ * @param errorCode - Raw error code candidate
+ * @returns Sanitized non-empty string, or undefined if nothing remains
+ */
+function sanitizeErrorCode(errorCode: string): string | undefined {
+    const cleaned = errorCode.replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64);
+    return cleaned.length > 0 ? cleaned : undefined;
+}
+
+/**
  * Build string properties for a journey outcome event.
+ *
+ * Reserved keys (`result`, `durationMs`, `errorCode`) always win over `extra`.
  *
  * @param result - success | cancel | error
  * @param options - Optional duration / errorCode / extra props
@@ -82,12 +98,21 @@ export function buildOutcomeProperties(
     result: TelemetryResult,
     options?: TelemetryOutcomeOptions,
 ): Record<string, string> {
-    const props: Record<string, string> = { result, ...(options?.extra ?? {}) };
+    const props: Record<string, string> = {};
+    for (const [key, value] of Object.entries(options?.extra ?? {})) {
+        if (!RESERVED_OUTCOME_KEYS.has(key)) {
+            props[key] = value;
+        }
+    }
+    props.result = result;
     if (options?.startedAt !== undefined) {
         props.durationMs = String(Math.max(0, Date.now() - options.startedAt));
     }
     if (result === 'error' && options?.errorCode) {
-        props.errorCode = options.errorCode.replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64);
+        const sanitized = sanitizeErrorCode(options.errorCode);
+        if (sanitized) {
+            props.errorCode = sanitized;
+        }
     }
     return props;
 }

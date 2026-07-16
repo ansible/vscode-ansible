@@ -539,7 +539,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         TelemetryEvents.SKILL_USE_IN_CHAT,
                         buildOutcomeProperties('success', { startedAt }),
                     );
-                } catch {
+                } catch (error) {
                     telemetry.sendEvent(
                         TelemetryEvents.SKILL_USE_IN_CHAT,
                         buildOutcomeProperties('error', {
@@ -547,6 +547,10 @@ export async function activate(context: vscode.ExtensionContext) {
                             errorCode: 'chat_inject_failed',
                         }),
                     );
+                    vscode.window.showErrorMessage(
+                        `Failed to use skill in chat: ${formatError(error)}`,
+                    );
+                    throw error;
                 }
             },
         ),
@@ -561,7 +565,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         TelemetryEvents.SKILL_PROMPT_COPY,
                         buildOutcomeProperties('success', { startedAt }),
                     );
-                } catch {
+                } catch (error) {
                     telemetry.sendEvent(
                         TelemetryEvents.SKILL_PROMPT_COPY,
                         buildOutcomeProperties('error', {
@@ -569,6 +573,10 @@ export async function activate(context: vscode.ExtensionContext) {
                             errorCode: 'copy_failed',
                         }),
                     );
+                    vscode.window.showErrorMessage(
+                        `Failed to copy skill prompt: ${formatError(error)}`,
+                    );
+                    throw error;
                 }
             },
         ),
@@ -1112,14 +1120,14 @@ export async function activate(context: vscode.ExtensionContext) {
 
                 log('Terminal ready, sending command...');
 
-                // Fire and forget - user watches terminal output.
-                // result=success means launch succeeded (not ansible exit code).
-                void managed.sendCommand(command, { waitForCompletion: false });
+                // Await dispatch only (waitForCompletion: false) so launch failures
+                // hit the catch; playbook exit is not tracked here.
+                await managed.sendCommand(command, { waitForCompletion: false });
                 telemetry.sendEvent(
                     TelemetryEvents.PLAYBOOK_RUN,
                     buildOutcomeProperties('success', { startedAt }),
                 );
-            } catch {
+            } catch (error) {
                 telemetry.sendEvent(
                     TelemetryEvents.PLAYBOOK_RUN,
                     buildOutcomeProperties('error', {
@@ -1127,6 +1135,8 @@ export async function activate(context: vscode.ExtensionContext) {
                         errorCode: 'launch_failed',
                     }),
                 );
+                vscode.window.showErrorMessage(`Failed to run playbook: ${formatError(error)}`);
+                throw error;
             }
         },
     );
@@ -1157,7 +1167,7 @@ export async function activate(context: vscode.ExtensionContext) {
                     extensionPath: context.extensionPath,
                     telemetryStartedAt: startedAt,
                 });
-            } catch {
+            } catch (error) {
                 telemetry.sendEvent(
                     TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS,
                     buildOutcomeProperties('error', {
@@ -1165,6 +1175,10 @@ export async function activate(context: vscode.ExtensionContext) {
                         errorCode: 'launch_failed',
                     }),
                 );
+                vscode.window.showErrorMessage(
+                    `Failed to run playbook with progress: ${formatError(error)}`,
+                );
+                throw error;
             }
         },
     );
@@ -1240,7 +1254,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         extra: { toolName: toolInfo.tool.name },
                     }),
                 );
-            } catch {
+            } catch (error) {
                 telemetry.sendEvent(
                     TelemetryEvents.MCP_TOOL_USE_IN_CHAT,
                     buildOutcomeProperties('error', {
@@ -1249,6 +1263,10 @@ export async function activate(context: vscode.ExtensionContext) {
                         extra: { toolName: toolInfo.tool.name },
                     }),
                 );
+                vscode.window.showErrorMessage(
+                    `Failed to use MCP tool in chat: ${formatError(error)}`,
+                );
+                throw error;
             }
         },
     );
