@@ -1293,7 +1293,7 @@
     "check": "pnpm run compile && pnpm run lint && pnpm run test",
     "ci": "pnpm run compile && pnpm run lint && pnpm run test:coverage && pnpm run build",
     "test:watch": "vitest",
-    "package": "npm run build && vsce package --no-dependencies && ./scripts/build-plugin.sh",
+    "package": "pnpm run build && vsce package --no-dependencies && ./scripts/build-plugin.sh",
     "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "test:integration:no-envs": "tsc -p test/integration/tsconfig.json && vscode-test --label no-python-envs",

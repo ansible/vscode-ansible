@@ -6,7 +6,7 @@
 # Tracking: https://github.com/rhysd/actionlint/issues/693
 
 paths:
-  .github/workflows/ci.yml:
+  .github/workflows/next.yml:
     ignore:
       - 'unexpected key "parallel"'
       - 'step must run script with "run" section'
