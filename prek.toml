@@ -15,18 +15,20 @@ hooks = [
 ]
 
 # ── Skillmark — agentskills.io spec validation ─────────────────────────
-# Not mature enough, this repo has one github star.
-# [[repos]]
-# repo = "https://github.com/michellepellon/skillmark"
-# rev = "v0.1.0"
-# hooks = [
-#   {
-#     id = "skillmark",
-#     language = "rust",
-#     priority = 0,
-#     args = ["--config", ".skillmark.toml"]
-#   },
-# ]
+[[repos]]
+repo = "https://github.com/michellepellon/skillmark"
+rev = "v0.1.0"
+hooks = [
+  {
+    id = "skillmark",
+    language = "rust",
+    priority = 0,
+    # Scope to repo agent skills only. skillmark v0.1.0 auto-discovers
+    # third-party SKILL.md trees under .wdio-vscode/ and its --exclude /
+    # [paths].exclude handling does not filter those paths reliably.
+    args = ["--config", ".skillmark.toml", ".agents/skills", "skills"]
+  },
+]
 
 # ── Markdownlint ───────────────────────────────────────────────────────
 [[repos]]
@@ -42,13 +44,13 @@ hooks = [
 ]
 
 # ── Actionlint — GitHub Actions workflow validation ────────────────────
-# See: https://github.com/rhysd/actionlint/issues/693
-# [[repos]]
-# repo = "https://github.com/rhysd/actionlint"
-# rev = "v1.7.7"
-# hooks = [
-#   { id = "actionlint" },
-# ]
+# parallel-step ignores live in .github/actionlint.yaml (see actionlint#693).
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "v1.7.7"
+hooks = [
+  { id = "actionlint" },
+]
 
 # ── pre-commit-hooks (additional checks) ───────────────────────────────
 [[repos]]

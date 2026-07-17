@@ -22,4 +22,6 @@ script-quality = 0.10
 discoverability = 0.05
 
 [paths]
-exclude = ["node_modules/", "dist/", "out/", ".wdio-vscode/"]
+# Also pass --exclude .wdio-vscode/** in prek.toml (skillmark v0.1.0 does not
+# reliably apply this table to nested WDIO VS Code downloads).
+exclude = ["node_modules/", "dist/", "out/", ".wdio-vscode/", "**/.wdio-vscode/**"]

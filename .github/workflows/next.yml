@@ -12,27 +12,28 @@ concurrency:
 
 jobs:
   test:
-    name: test-${{ matrix.id }}
+    name: test-${{ matrix.id }}-node${{ matrix.node-version }}
     runs-on: ${{ matrix.runs-on }}
     permissions:
       contents: read
       id-token: write
     strategy:
+      fail-fast: false
       matrix:
-        id: [linux, macos]
-        node-version: [24]
+        id: [linux]
+        node-version: [22, 24, 26]
         runs-on:
           - ubuntu-latest
           # - windows-2022
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
@@ -94,7 +95,7 @@ jobs:
 
       - name: Upload story coverage to Codecov
         if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('coverage/stories.lcov') != '' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: ./coverage/stories.lcov
           flags: stories
@@ -114,7 +115,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: ${{ always() && hashFiles('coverage/cobertura-coverage.xml') != '' }}
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: ./coverage/cobertura-coverage.xml
           flags: unit-node${{ matrix.node-version }}
@@ -134,11 +135,11 @@ jobs:
 
       - name: Upload logs and coverage reports
         if: ${{ !cancelled() && runner.os != 'Windows' }}
-        uses: ansible/actions/upload-artifact@main
+        uses: ansible/actions/upload-artifact@b2b0657c2e1d083cf979eba2fd04ae79e5ab3900 # v1.1.2
         env:
           GITLEAKS_CONFIG: .gitleaks.toml
         with:
-          name: logs-${{ matrix.runs-on }}-${{ github.run_attempt }}.zip
+          name: logs-${{ matrix.runs-on }}-node${{ matrix.node-version }}-${{ github.run_attempt }}.zip
           path: |
             coverage/**/lcov.info
             dist
@@ -147,35 +148,49 @@ jobs:
           if-no-files-found: ignore
           retention-days: 90
 
-      - name: Upload VSIX
-        if: ${{ !cancelled() && matrix.id == 'linux' }}
-        uses: actions/upload-artifact@v7
-        with:
-          path: "*.vsix"
-          archive: false
-          retention-days: 14
+      - name: Pack npm tarballs
+        if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+        run: |
+          pnpm --filter @ansible/common pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/developer-services pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/mcp-server pack --pack-destination "$GITHUB_WORKSPACE"
+          pnpm --filter @ansible/language-server pack --pack-destination "$GITHUB_WORKSPACE"
 
-      - name: Upload plugin
-        if: ${{ !cancelled() && matrix.id == 'linux' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: plugin
-          path: dist/ansible-devtools-plugin.zip
-          archive: false
-          retention-days: 14
-
-      - name: Upload MCP server
-        if: ${{ !cancelled() && matrix.id == 'linux' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: mcp-server
-          path: dist/mcp-server.js
-          retention-days: 14
-
-      - name: Upload language server
-        if: ${{ !cancelled() && matrix.id == 'linux' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: language-server
-          path: dist/language-server.js
-          retention-days: 14
+      - parallel:
+          - name: Upload VSIX
+            if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+            with:
+              name: vsix
+              path: "*.vsix"
+              archive: false
+              retention-days: 14
+          - name: Upload plugin
+            if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+            with:
+              name: plugin
+              path: dist/ansible-devtools-plugin.zip
+              archive: false
+              retention-days: 14
+          - name: Upload MCP server
+            if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+            with:
+              name: mcp-server
+              path: dist/mcp-server.js
+              retention-days: 14
+          - name: Upload language server
+            if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+            with:
+              name: language-server
+              path: dist/language-server.js
+              retention-days: 14
+          - name: Upload npm tarballs
+            if: ${{ !cancelled() && matrix.id == 'linux' && matrix.node-version == 24 }}
+            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+            with:
+              name: npm-tarballs
+              path: "*.tgz"
+              retention-days: 14
