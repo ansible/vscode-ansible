@@ -13,6 +13,11 @@ import { log } from '@src/extension';
 import type { ProgressEvent } from '@ansible/developer-services';
 import { buildTaskAnalysisPrompt } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
+import {
+    OnceJourneyEmitter,
+    emitPlaybookProgressOutcome,
+    isPlaybookStatsFailed,
+} from '@src/services/journeyTelemetry';
 
 /**
  * Single-quote a value for safe interpolation into a POSIX shell command.
@@ -29,6 +34,8 @@ export interface PlaybookRunOptions {
     workspaceFolder: vscode.Uri;
     command: string;
     extensionPath: string;
+    /** Epoch ms when the user invoked run-with-progress (for durationMs). */
+    telemetryStartedAt?: number;
 }
 
 /** Thin webview host that streams ansible-playbook events to PlaybookProgressView. */
@@ -42,6 +49,8 @@ export class PlaybookProgressPanel {
     private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
     private _lastOptions: PlaybookRunOptions | undefined;
+    private _telemetryStartedAt: number | undefined;
+    private _outcome = new OnceJourneyEmitter();
 
     /**
      * Show or reuse the playbook progress panel and start a new run.
@@ -137,12 +146,18 @@ export class PlaybookProgressPanel {
                 if (this._terminal && this._isRunning) {
                     this._terminal.sendText('\x03', false);
                     this._isRunning = false;
+                    emitPlaybookProgressOutcome(this._outcome, 'cancel', {
+                        startedAt: this._telemetryStartedAt,
+                    });
                     void this._panel.webview.postMessage({ method: 'playbookStopped' });
                 }
                 break;
             case 'rerun':
                 if (this._lastOptions) {
-                    await this._startRun(this._lastOptions);
+                    await this._startRun({
+                        ...this._lastOptions,
+                        telemetryStartedAt: Date.now(),
+                    });
                 }
                 break;
             case 'editSource':
@@ -172,6 +187,8 @@ export class PlaybookProgressPanel {
     private async _startRun(options: PlaybookRunOptions): Promise<void> {
         this._lastOptions = options;
         this._isRunning = true;
+        this._telemetryStartedAt = options.telemetryStartedAt ?? Date.now();
+        this._outcome = new OnceJourneyEmitter();
         this._panel.title = `Playbook: ${options.playbookName}`;
 
         if (this._socketServer) {
@@ -277,6 +294,12 @@ export class PlaybookProgressPanel {
     private _handleEvent(event: ProgressEvent): void {
         if (event.type === 'playbook_complete') {
             this._isRunning = false;
+            const failed = isPlaybookStatsFailed(event.data.stats);
+            emitPlaybookProgressOutcome(this._outcome, failed ? 'error' : 'success', {
+                startedAt: this._telemetryStartedAt,
+                errorCode: failed ? 'playbook_failed' : undefined,
+                durationSec: event.data.duration,
+            });
         }
 
         void this._panel.webview.postMessage({
@@ -360,6 +383,12 @@ export class PlaybookProgressPanel {
 
     /** Dispose the panel, socket server, and static reference. */
     public dispose(): void {
+        if (this._isRunning) {
+            this._isRunning = false;
+            emitPlaybookProgressOutcome(this._outcome, 'cancel', {
+                startedAt: this._telemetryStartedAt,
+            });
+        }
         PlaybookProgressPanel._currentPanel = undefined;
 
         if (this._socketServer) {

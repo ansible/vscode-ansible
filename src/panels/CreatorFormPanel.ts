@@ -1,12 +1,14 @@
 import * as vscode from 'vscode';
 import { log } from '@src/extension';
 import { buildCommandArgs, getCommandService, type SchemaNode } from '@ansible/developer-services';
+import { OnceJourneyEmitter, emitCreatorComplete } from '@src/services/journeyTelemetry';
 
 /** Thin webview host for the creator form. Delegates UI to @ansible/ui SchemaForm. */
 export class CreatorFormPanel {
     public static currentPanel: CreatorFormPanel | undefined;
     private readonly _panel: vscode.WebviewPanel;
     private _disposables: vscode.Disposable[] = [];
+    private readonly _outcome = new OnceJourneyEmitter();
 
     /**
      * Show or replace the creator form panel for a schema command.
@@ -95,6 +97,8 @@ export class CreatorFormPanel {
             return;
         }
         if (method === 'cancel') {
+            // Cancellation telemetry is emitted once from dispose() if no
+            // success/error outcome was already recorded.
             this._panel.dispose();
             return;
         }
@@ -152,6 +156,8 @@ export class CreatorFormPanel {
         commandPath: string[],
         values: Record<string, unknown>,
     ): Promise<void> {
+        const startedAt = Date.now();
+        const commandKey = commandPath.join('/');
         const args = buildCommandArgs(commandPath, this._schema, values);
         log(`CreatorFormPanel: Executing: ansible-creator ${args.join(' ')}`);
 
@@ -160,35 +166,58 @@ export class CreatorFormPanel {
             params: { command: `ansible-creator ${args.join(' ')}` },
         });
 
-        const commandService = getCommandService();
-        const toolPath = await commandService.getToolPath('ansible-creator');
-        if (!toolPath) {
+        try {
+            const commandService = getCommandService();
+            const toolPath = await commandService.getToolPath('ansible-creator');
+            if (!toolPath) {
+                this._panel.webview.postMessage({
+                    method: 'executionFinished',
+                    params: {
+                        exitCode: 1,
+                        output: 'ansible-creator not found. Install ansible-dev-tools first.',
+                    },
+                });
+                emitCreatorComplete(this._outcome, 'error', {
+                    startedAt,
+                    errorCode: 'tool_missing',
+                    command: commandKey,
+                });
+                return;
+            }
+
+            const result = await commandService.runCommandArgs(toolPath, args);
+            const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+
             this._panel.webview.postMessage({
                 method: 'executionFinished',
-                params: {
-                    exitCode: 1,
-                    output: 'ansible-creator not found. Install ansible-dev-tools first.',
-                },
+                params: { exitCode: result.exitCode, output },
             });
-            return;
-        }
 
-        const result = await commandService.runCommandArgs(toolPath, args);
-        const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
-
-        this._panel.webview.postMessage({
-            method: 'executionFinished',
-            params: { exitCode: result.exitCode, output },
-        });
-
-        if (result.exitCode === 0) {
-            void vscode.window.showInformationMessage(
-                `ansible-creator ${commandPath.join(' ')} completed successfully`,
-            );
-        } else {
-            void vscode.window.showErrorMessage(
-                `ansible-creator ${commandPath.join(' ')} failed (exit code ${String(result.exitCode)})`,
-            );
+            if (result.exitCode === 0) {
+                void vscode.window.showInformationMessage(
+                    `ansible-creator ${commandPath.join(' ')} completed successfully`,
+                );
+                emitCreatorComplete(this._outcome, 'success', {
+                    startedAt,
+                    command: commandKey,
+                });
+            } else {
+                void vscode.window.showErrorMessage(
+                    `ansible-creator ${commandPath.join(' ')} failed (exit code ${String(result.exitCode)})`,
+                );
+                emitCreatorComplete(this._outcome, 'error', {
+                    startedAt,
+                    errorCode: 'exit_nonzero',
+                    command: commandKey,
+                });
+            }
+        } catch (error) {
+            emitCreatorComplete(this._outcome, 'error', {
+                startedAt,
+                errorCode: 'execute_failed',
+                command: commandKey,
+            });
+            throw error;
         }
     }
 
@@ -246,6 +275,11 @@ export class CreatorFormPanel {
 
     /** Dispose the panel, listeners, and static current-panel reference. */
     public dispose(): void {
+        if (!this._outcome.sent) {
+            emitCreatorComplete(this._outcome, 'cancel', {
+                command: this._commandPath.join('/'),
+            });
+        }
         CreatorFormPanel.currentPanel = undefined;
         this._panel.dispose();
         while (this._disposables.length) {

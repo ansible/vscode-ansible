@@ -273,6 +273,7 @@ describe('TelemetryEvents', () => {
         expect(TelemetryEvents.COMMAND_EXECUTED).toBe('command.executed');
         expect(TelemetryEvents.PLAYBOOK_RUN).toBe('playbook.run');
         expect(TelemetryEvents.CREATOR_FORM_OPEN).toBe('creator.formOpen');
+        expect(TelemetryEvents.CREATOR_COMPLETE).toBe('creator.complete');
         expect(TelemetryEvents.COLLECTION_INSTALL).toBe('collection.install');
         expect(TelemetryEvents.AI_SUMMARY_REQUEST).toBe('ai.summaryRequest');
         expect(TelemetryEvents.MCP_TOOL_USE_IN_CHAT).toBe('mcp.toolUseInChat');
