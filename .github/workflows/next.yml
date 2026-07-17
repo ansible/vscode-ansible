@@ -196,3 +196,14 @@ jobs:
               name: npm-tarballs
               path: "*.tgz"
               retention-days: 14
+
+  # Branch ruleset `next` requires a check named exactly `test-linux`
+  # (see ruleset 18317703). Matrix jobs report as test-linux-nodeNN.
+  test-linux:
+    name: test-linux
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all Node matrix cells to succeed
+        run: test "${{ needs.test.result }}" = "success"
