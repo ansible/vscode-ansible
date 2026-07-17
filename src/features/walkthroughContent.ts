@@ -109,18 +109,53 @@ export function escapeHtml(value: string): string {
 }
 
 /**
+ * Inline markdown → HTML (after the fragment has been HTML-escaped).
+ *
+ * @param escaped - Already-escaped text (may contain newlines)
+ * @returns HTML with links, code, and emphasis
+ */
+function formatInlineMarkdown(escaped: string): string {
+    return escaped
+        .replace(
+            /\[([^\]]+)\]\(command:([^)]+)\)/g,
+            (_m, label: string, command: string) => `<a href="command:${command}">${label}</a>`,
+        )
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+/**
  * Convert walkthrough markdown (including `command:` links) to simple HTML.
+ * Supports headings, paragraphs, inline code, bold, and command links —
+ * enough for our media/*.md files without a full markdown dependency.
  *
  * @param markdown - Markdown fragment
  * @returns HTML fragment safe for a trusted webview with command URIs enabled
  */
 export function walkthroughMarkdownToHtml(markdown: string): string {
-    const escaped = escapeHtml(markdown);
-    const withLinks = escaped.replace(
-        /\[([^\]]+)\]\(command:([^)]+)\)/g,
-        (_m, label: string, command: string) => `<a href="command:${command}">${label}</a>`,
-    );
-    return withLinks.replace(/\n/g, '<br/>\n');
+    const blocks = markdown
+        .replace(/\r\n/g, '\n')
+        .trim()
+        .split(/\n{2,}/);
+    const htmlBlocks: string[] = [];
+
+    for (const block of blocks) {
+        const trimmed = block.trim();
+        if (!trimmed) continue;
+
+        const heading = /^(#{1,3})\s+(.+)$/.exec(trimmed);
+        if (heading && !trimmed.includes('\n')) {
+            const level = heading[1].length;
+            const tag = level === 1 ? 'h3' : level === 2 ? 'h4' : 'h5';
+            htmlBlocks.push(`<${tag}>${formatInlineMarkdown(escapeHtml(heading[2]))}</${tag}>`);
+            continue;
+        }
+
+        const lines = trimmed.split('\n').map((line) => formatInlineMarkdown(escapeHtml(line)));
+        htmlBlocks.push(`<p>${lines.join('<br/>\n')}</p>`);
+    }
+
+    return htmlBlocks.join('\n');
 }
 
 /**
@@ -248,6 +283,16 @@ export function buildWalkthroughHtml(
     padding: 0.85rem 1rem;
     background: var(--vscode-textCodeBlock-background, rgba(128,128,128,0.12));
     border-radius: 4px;
+  }
+  .media h3, .media h4, .media h5 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; }
+  .media p { margin: 0 0 0.65rem; }
+  .media p:last-child { margin-bottom: 0; }
+  .media code, .step-body code {
+    font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    background: var(--vscode-textCodeBlock-background, rgba(128,128,128,0.18));
   }
   a { color: var(--vscode-textLink-foreground); }
   footer {

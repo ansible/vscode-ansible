@@ -60,13 +60,22 @@ describe('walkthroughContent', () => {
         expect(md).toContain('# Ansible activity bar');
     });
 
-    it('converts command markdown links to HTML anchors', () => {
+    it('renders command links, headings, and inline code (not raw markdown)', () => {
         const html = walkthroughMarkdownToHtml(
-            'Go [Open](command:workbench.view.extension.ansible-environments) now',
+            [
+                '# Python environments',
+                '',
+                'Install (`ansible-lint`, **ade**) then [Open](command:workbench.view.extension.ansible-environments).',
+            ].join('\n'),
         );
+        expect(html).toContain('<h3>Python environments</h3>');
+        expect(html).toContain('<code>ansible-lint</code>');
+        expect(html).toContain('<strong>ade</strong>');
         expect(html).toContain(
             '<a href="command:workbench.view.extension.ansible-environments">Open</a>',
         );
+        expect(html).not.toContain('# Python');
+        expect(html).not.toContain('`ansible-lint`');
         expect(html).not.toContain('<script');
     });
 
