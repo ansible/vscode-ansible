@@ -1176,6 +1176,45 @@
         }
       }
     },
+    "walkthroughs": [
+      {
+        "id": "ansible-getting-started",
+        "title": "Get started with Ansible",
+        "description": "Learn the Ansible sidebar workflows for environments, collections, and playbooks.",
+        "steps": [
+          {
+            "id": "open-ansible-sidebar",
+            "title": "Open the Ansible activity bar",
+            "description": "Click the Ansible icon in the Activity Bar to browse environments, collections, playbooks, and scaffolding tools.\n[Open Ansible view](command:workbench.view.extension.ansible-environments)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/sidebar.md"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.ansible-environments"
+            ]
+          },
+          {
+            "id": "create-environment",
+            "title": "Create a Python environment",
+            "description": "Create an isolated environment so Ansible development tools stay out of your system Python.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/environment.md"
+            },
+            "completionEvents": [
+              "onCommand:ansibleDevToolsEnvManagers.create"
+            ]
+          },
+          {
+            "id": "browse-collections",
+            "title": "Browse collections and plugin docs",
+            "description": "Use the Collections view to explore installed plugins and open documentation without leaving the editor.\n[Focus Collections](command:ansibleDevToolsCollections.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/collections.md"
+            }
+          }
+        ]
+      }
+    ],
     "authentication": [
       {
         "id": "auth-lightspeed",
