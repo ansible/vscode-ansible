@@ -80,6 +80,7 @@ import { registerExtensionConflictDetection } from '@src/features/extensionConfl
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
 import { registerWalkthroughTelemetry } from '@src/telemetry';
+import { registerGettingStarted } from '@src/features/gettingStarted';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 import { TelemetryService } from '@src/services/TelemetryService';
@@ -169,6 +170,7 @@ export async function activate(context: vscode.ExtensionContext) {
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
     registerWalkthroughTelemetry(context, telemetry);
+    registerGettingStarted(context, telemetry);
     registerLightspeed(context, telemetry)
         .then((disposable) => {
             if (disposable) context.subscriptions.push(disposable);

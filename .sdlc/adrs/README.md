@@ -19,6 +19,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-017](ADR-017-status-bar-click-to-quickpick.md)  | Status Bar Click-to-QuickPick Interaction                | 2026-06-22 |
 | [ADR-020](ADR-020-single-repo-multi-distribution.md) | Single Repository, Multiple Distribution Formats         | 2026-06-26 |
 | [ADR-022](ADR-022-pnpm-package-manager.md)           | Migrate to pnpm for Supply-Chain Security                | 2026-06-30 |
+| [ADR-024](ADR-024-host-agnostic-getting-started.md)  | Host-Agnostic Getting Started (Shared Walkthrough Content) | 2026-07-17 |
 
 ## Accepted
 
@@ -47,7 +48,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-024)
+2. Use the next available number (currently ADR-025)
 3. Include:
     - Status (Proposed → Accepted → Implemented)
     - Date
