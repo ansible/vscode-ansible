@@ -1186,7 +1186,7 @@
       {
         "id": "ansible-getting-started",
         "title": "Get started with Ansible",
-        "description": "Learn the Ansible sidebar workflows for environments, collections, and playbooks.",
+        "description": "A guided tour of Ansible Environments — sidebar workflows from setup through playbooks. Steps are drawn from the UX walkthrough catalog (end-user modules).",
         "steps": [
           {
             "id": "open-ansible-sidebar",
@@ -1202,7 +1202,7 @@
           {
             "id": "create-environment",
             "title": "Create a Python environment",
-            "description": "Create an isolated environment so Ansible development tools stay out of your system Python.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)",
+            "description": "Create an isolated environment so Ansible development tools stay out of your system Python, then install ansible-dev-tools from the Dev Tools view.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/environment.md"
             },
@@ -1211,11 +1211,59 @@
             ]
           },
           {
+            "id": "editor-language-server",
+            "title": "Edit playbooks with the language server",
+            "description": "Open a `.yml` playbook and try completions (Ctrl+Space), hover docs on keywords/FQCNs, and vault encrypt/decrypt when you need secrets.\n[Vault: Encrypt/Decrypt](command:ansibleEnvironments.vault)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/editor.md"
+            }
+          },
+          {
             "id": "browse-collections",
             "title": "Browse collections and plugin docs",
-            "description": "Use the Collections view to explore installed plugins and open documentation without leaving the editor.\n[Focus Collections](command:ansibleDevToolsCollections.refresh)",
+            "description": "Use Installed Collections to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Focus Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/collections.md"
+            }
+          },
+          {
+            "id": "collection-sources",
+            "title": "Find and install collections",
+            "description": "Search Galaxy or GitHub from Collection Sources, preview docs for content you have not installed yet, then install with ADE.\n[Focus Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/collection-sources.md"
+            }
+          },
+          {
+            "id": "scaffold-content",
+            "title": "Scaffold content with Creator",
+            "description": "Open the Creator view, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Focus Creator](command:ansibleCreator.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/creator.md"
+            }
+          },
+          {
+            "id": "run-playbooks",
+            "title": "Run playbooks with progress",
+            "description": "Discover playbooks in the workspace, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Focus Playbooks](command:ansiblePlaybooks.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/playbooks.md"
+            }
+          },
+          {
+            "id": "execution-environments",
+            "title": "Inspect execution environments",
+            "description": "Browse local EE images, open image details, and inspect packages when you develop against containers.\n[Focus Execution Environments](command:ansibleExecutionEnvironments.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/execution-environments.md"
+            }
+          },
+          {
+            "id": "diagnostics-status",
+            "title": "Check diagnostics and the status bar",
+            "description": "Hover the Ansible status bar for quick actions (including this walkthrough). Open Diagnostics when something looks wrong.\n[Show Diagnostics](command:ansible.showDiagnostics)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/diagnostics.md"
             }
           }
         ]

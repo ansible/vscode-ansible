@@ -70,7 +70,7 @@ describe('walkthroughContent', () => {
         expect(html).not.toContain('<script');
     });
 
-    it('builds CSP-safe HTML including steps and media', () => {
+    it('builds CSP-safe HTML with sidebar nav and one-step panels', () => {
         const walkthrough = getContributedWalkthrough(samplePackage, 'ansible-getting-started');
         expect(walkthrough).toBeDefined();
         if (!walkthrough) return;
@@ -82,8 +82,12 @@ describe('walkthroughContent', () => {
             'testnonce',
         );
         expect(html).toContain('nonce-testnonce');
+        expect(html).toContain("script-src 'nonce-testnonce'");
         expect(html).toContain('Get started with Ansible');
-        expect(html).toContain('Open the Ansible activity bar');
+        expect(html).toContain('class="nav-item active"');
+        expect(html).toContain('class="step-panel active"');
+        expect(html).toContain('aria-label="Walkthrough steps"');
+        expect(html).toContain('id="next"');
         expect(html).toContain('Sidebar help');
         expect(html).toContain('command:workbench.view.extension.ansible-environments');
     });

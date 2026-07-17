@@ -30,6 +30,14 @@ ported directly from `main`.
 ## Notes
 
 Starter walkthrough landed with #3029 / WDIO XC-004. Cursor-safe panel
-reads the same `contributes.walkthroughs` + media files (#3032). Expand
-content for Creator, playbook runner, MCP/AI, and richer media when core
-features stabilize further — edit package.json / media only (one source).
+reads the same `contributes.walkthroughs` + media files (#3032) with
+sidebar navigation.
+
+**Content source for expansion:** end-user modules in
+`.agents/skills/ux-walkthrough/walkthrough-modules.json` (environment,
+editor-lsp, collections, creator, playbooks, EE, cross-cutting). Do **not**
+copy dogfood-only `setup` steps (F5, build, scaffold review workspace).
+AI/MCP/Lightspeed modules can be separate walkthroughs or `when`-gated
+steps later.
+
+Edit `package.json` + `media/walkthroughs/` only — one runtime source.

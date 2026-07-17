@@ -107,6 +107,7 @@ class GettingStartedPanel {
             walkthrough.title,
             vscode.ViewColumn.One,
             {
+                enableScripts: true,
                 enableCommandUris: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [context.extensionUri],
