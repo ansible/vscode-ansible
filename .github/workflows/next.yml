@@ -66,35 +66,37 @@ jobs:
             if: runner.os != 'Windows'
             run: xvfb-run --auto-servernum pnpm run test:integration
 
+      # WDIO UI: Node 26 currently fails Chromedriver session create with
+      # UND_ERR_INVALID_ARG (undici/webdriver). Keep 26 for lint/unit/integration.
       - parallel:
           - name: Pre-install Chromedriver
-            if: runner.os != 'Windows'
+            if: runner.os != 'Windows' && matrix.node-version != 26
             run: pnpm exec tsx tools/ensure-chromedriver.mts
           - name: Install test dependency extensions
-            if: runner.os != 'Windows'
+            if: runner.os != 'Windows' && matrix.node-version != 26
             run: pnpm run pretest:ui
           - name: Build Lightspeed webviews
-            if: runner.os != 'Windows'
+            if: runner.os != 'Windows' && matrix.node-version != 26
             run: pnpm run build:lightspeed:webviews
 
       - name: Run UI tests
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.node-version != 26
         run: xvfb-run --auto-servernum pnpm run test:ui
         env:
           WDIO_COVERAGE: "1"
 
       - name: Run Lightspeed UI tests
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.node-version != 26
         run: xvfb-run --auto-servernum pnpm run test:lightspeed:ui
         env:
           WDIO_COVERAGE: "1"
 
       - name: Story coverage report
-        if: ${{ !cancelled() && runner.os != 'Windows' }}
+        if: ${{ !cancelled() && runner.os != 'Windows' && matrix.node-version != 26 }}
         run: node scripts/story-coverage.mjs --threshold 20 --lcov coverage/stories.lcov
 
       - name: Upload story coverage to Codecov
-        if: ${{ !cancelled() && runner.os != 'Windows' && hashFiles('coverage/stories.lcov') != '' }}
+        if: ${{ !cancelled() && runner.os != 'Windows' && matrix.node-version != 26 && hashFiles('coverage/stories.lcov') != '' }}
         uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: ./coverage/stories.lcov
@@ -104,7 +106,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload WDIO coverage to Codecov
-        if: ${{ always() && runner.os != 'Windows' && hashFiles('coverage/wdio/lcov.info') != '' }}
+        if: ${{ always() && runner.os != 'Windows' && matrix.node-version != 26 && hashFiles('coverage/wdio/lcov.info') != '' }}
         uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: ./coverage/wdio/lcov.info

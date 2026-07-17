@@ -23,10 +23,15 @@ hooks = [
     id = "skillmark",
     language = "rust",
     priority = 0,
-    # Scope to repo agent skills only. skillmark v0.1.0 auto-discovers
-    # third-party SKILL.md trees under .wdio-vscode/ and its --exclude /
-    # [paths].exclude handling does not filter those paths reliably.
-    args = ["--config", ".skillmark.toml", ".agents/skills", "skills"]
+    # Scope to repo skills; also exclude .wdio-vscode (WDIO VS Code downloads).
+    args = [
+      "--config",
+      ".skillmark.toml",
+      "--exclude",
+      ".wdio-vscode/**",
+      ".agents/skills",
+      "skills",
+    ]
   },
 ]
 

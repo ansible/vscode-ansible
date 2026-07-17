@@ -22,6 +22,7 @@ script-quality = 0.10
 discoverability = 0.05
 
 [paths]
-# Also pass --exclude .wdio-vscode/** in prek.toml (skillmark v0.1.0 does not
-# reliably apply this table to nested WDIO VS Code downloads).
+# Defense in depth: prek.toml also scopes skillmark to `.agents/skills` +
+# `skills` and passes `--exclude .wdio-vscode/**` so WDIO VS Code downloads
+# are not validated even if auto-discovery expands later.
 exclude = ["node_modules/", "dist/", "out/", ".wdio-vscode/", "**/.wdio-vscode/**"]

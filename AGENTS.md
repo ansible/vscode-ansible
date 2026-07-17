@@ -94,14 +94,13 @@ See the `branching-strategy` skill for full details.
 
 ### Prerequisites
 
-`pnpm run ci` requires tools beyond the workspace `node_modules` install:
+`pnpm run ci` requires one tool that is **not** a workspace dependency:
 
 - **uv** — Python package runner, provides `uvx` (`pipx install uv`)
-- **prek** — available via the `@j178/prek` dependency (`pnpm exec prek`)
-  or a global install (`pipx install prek`)
 
-`uv` is installed automatically in CI. Contributors must install `uv`
-locally before running `pnpm run ci` or `pnpm run lint`.
+`prek` comes from the `@j178/prek` workspace dependency (`pnpm exec prek` /
+`pnpm run lint`). `uv` is installed automatically in CI; contributors must
+install it locally before running `pnpm run ci` or `pnpm run lint`.
 
 ### Before committing
 

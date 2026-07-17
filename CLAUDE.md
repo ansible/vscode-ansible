@@ -142,9 +142,9 @@ Dynamic versioning from git tags via `tools/version.mts`:
 
 ## CI/CD
 
-GitHub Actions (`.github/workflows/ci.yml`):
+GitHub Actions (`.github/workflows/next.yml`):
 
-- **next** workflow — matrix Node 22/24/26 (lint, test, UI, package artifacts)
+- **next** workflow — matrix Node 22/24/26 (lint, test, UI on 22/24, package artifacts)
 - **Windows + WSL2** tests (`.github/workflows/wsl2-ui.yml`)
 - **docs** deployment (`.github/workflows/docs-deploy.yml`)
 - **release** — VS Code Marketplace + Open VSX (`.github/workflows/release-vsix.yml`)
