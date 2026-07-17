@@ -29,6 +29,7 @@ ported directly from `main`.
 
 ## Notes
 
-Starter walkthrough landed with #3029 / WDIO XC-004. Expand content for
-Creator, playbook runner, MCP/AI, and richer media when core features
-stabilize further.
+Starter walkthrough landed with #3029 / WDIO XC-004. Cursor-safe panel
+reads the same `contributes.walkthroughs` + media files (#3032). Expand
+content for Creator, playbook runner, MCP/AI, and richer media when core
+features stabilize further — edit package.json / media only (one source).

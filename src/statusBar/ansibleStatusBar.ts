@@ -33,8 +33,8 @@ interface AnsibleMetadata {
  * icon; background color reflects tool health (green when healthy,
  * warning when ansible-lint is missing, error when ansible is not
  * found). Hovering shows a Markdown tooltip with clickable command
- * links for quick actions (sidebar, diagnostics, LLM config, output
- * log, refresh).
+ * links for quick actions (get started, sidebar, diagnostics, LLM
+ * config, output log, refresh).
  *
  * Exposes {@link getMetadata} and {@link getEnvironmentInfo} for
  * telemetry and the diagnostics panel.
@@ -268,10 +268,12 @@ export class AnsibleStatusBar implements vscode.Disposable {
     private _buildTooltip(): vscode.MarkdownString {
         const llmCmd = 'ansibleEnvironments.configureLlmProvider';
         const sidebarCmd = 'workbench.view.extension.ansible-environments';
+        const getStartedCmd = 'ansible.walkthrough.openGettingStarted';
 
         const md = new vscode.MarkdownString('', true);
         md.isTrusted = {
             enabledCommands: [
+                getStartedCmd,
                 sidebarCmd,
                 'ansible.showDiagnostics',
                 llmCmd,
@@ -280,6 +282,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
             ],
         };
 
+        md.appendMarkdown(`$(rocket) [Get Started](command:${getStartedCmd})\n\n`);
         md.appendMarkdown(`$(list-tree) [Open Sidebar](command:${sidebarCmd})\n\n`);
         md.appendMarkdown(`$(pulse) [Diagnostics](command:ansible.showDiagnostics)\n\n`);
         md.appendMarkdown(`$(hubot) [Configure LLM](command:${llmCmd})\n\n`);

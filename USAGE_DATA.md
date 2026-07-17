@@ -116,7 +116,7 @@ event properties are automatically sanitized by the Red Hat telemetry library.
 
 | Event              | Description               | Properties                               |
 | ------------------ | ------------------------- | ---------------------------------------- |
-| `walkthrough.open` | User opened a walkthrough | `walkthroughId` — e.g. `redhat.ansible#ansible-getting-started` |
+| `walkthrough.open` | User opened a walkthrough (status bar **Get Started**, `Ansible: Get Started`, or telemetry open helper) | `walkthroughId` — e.g. `redhat.ansible#ansible-getting-started` |
 
 ### Ansible Lightspeed (when enabled)
 

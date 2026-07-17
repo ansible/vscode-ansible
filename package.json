@@ -441,6 +441,12 @@
         "icon": "$(window)"
       },
       {
+        "command": "ansible.walkthrough.openGettingStarted",
+        "title": "Ansible: Get Started",
+        "category": "Ansible",
+        "icon": "$(rocket)"
+      },
+      {
         "command": "ansible.showDiagnostics",
         "title": "Ansible: Show Diagnostics",
         "category": "Ansible",

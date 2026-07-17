@@ -2,7 +2,7 @@ import { browser } from '@wdio/globals';
 import type * as VsCode from 'vscode';
 
 const WALKTHROUGH_ID = 'ansible-getting-started';
-const WALKTHROUGH_FQN = `redhat.ansible#${WALKTHROUGH_ID}`;
+const GET_STARTED_COMMAND = 'ansible.walkthrough.openGettingStarted';
 
 interface WalkthroughStep {
     id: string;
@@ -39,14 +39,11 @@ describe('Guided walkthroughs', () => {
         expect(gettingStarted?.steps.map((s) => s.title).join(' ')).toMatch(/sidebar|environment/i);
     });
 
-    it('should open the walkthrough and show guided steps', async () => {
+    it('should open Getting Started from the shared command (Cursor-safe)', async () => {
         const opened: { ok: boolean; error?: string } = await browser.executeWorkbench(
-            async (vscode: typeof VsCode, walkthroughId: string) => {
+            async (vscode: typeof VsCode, commandId: string) => {
                 try {
-                    await vscode.commands.executeCommand(
-                        'ansible.telemetry.trackWalkthroughOpen',
-                        walkthroughId,
-                    );
+                    await vscode.commands.executeCommand(commandId);
                     return { ok: true };
                 } catch (error) {
                     return {
@@ -55,39 +52,32 @@ describe('Guided walkthroughs', () => {
                     };
                 }
             },
-            WALKTHROUGH_FQN,
+            GET_STARTED_COMMAND,
         );
 
         expect(opened.ok).toBe(true);
         expect(opened.error).toBeUndefined();
 
-        await browser.pause(2000);
+        await browser.pause(1500);
 
-        const workbench = await browser.getWorkbench();
-        const title: string = await workbench.getTitleBar().getTitle();
-
-        // Walkthrough UI may render in a Getting Started webview; assert either
-        // chrome title or step copy from the contributed walkthrough.
         const bodyText: string = await browser.execute(() => {
             return String(document.body?.innerText ?? '');
         });
 
-        const stepVisible =
-            /Open the Ansible activity bar/i.test(bodyText) ||
-            /Get started with Ansible/i.test(bodyText) ||
-            /Create a Python environment/i.test(bodyText);
-        const titleMatches = /ansible|getting started|walkthrough/i.test(title);
-        expect(stepVisible || titleMatches).toBe(true);
+        expect(bodyText).toMatch(
+            /Get started with Ansible|Open the Ansible activity bar|Create a Python environment/i,
+        );
     });
 
-    it('should expose the walkthrough open command for usage tracking', async () => {
-        const registered: boolean = await browser.executeWorkbench(
-            async (vscode: typeof VsCode) => {
+    it('should register get-started and telemetry open commands', async () => {
+        const registered: string[] = await browser.executeWorkbench(
+            async (vscode: typeof VsCode, commands: string[]) => {
                 const cmds = await vscode.commands.getCommands(true);
-                return cmds.includes('ansible.telemetry.trackWalkthroughOpen');
+                return commands.filter((c) => cmds.includes(c));
             },
+            [GET_STARTED_COMMAND, 'ansible.telemetry.trackWalkthroughOpen'],
         );
 
-        expect(registered).toBe(true);
+        expect(registered).toEqual([GET_STARTED_COMMAND, 'ansible.telemetry.trackWalkthroughOpen']);
     });
 });
