@@ -191,7 +191,7 @@ export function buildWalkthroughHtml(
                 : '';
             return `<article class="step-panel${index === 0 ? ' active' : ''}" data-step="${String(index)}" ${index === 0 ? '' : 'hidden'}>
   <h2>${escapeHtml(step.title)}</h2>
-  <p class="step-body">${walkthroughMarkdownToHtml(step.description)}</p>
+  <div class="step-body">${walkthroughMarkdownToHtml(step.description)}</div>
   ${mediaBlock}
 </article>`;
         })
@@ -278,6 +278,8 @@ export function buildWalkthroughHtml(
   .step-panel.active { display: block; }
   .step-panel h2 { font-size: 1.2rem; margin: 0 0 0.75rem; }
   .step-body { margin: 0 0 1rem; }
+  .step-body p, .lead p { margin: 0 0 0.65rem; }
+  .step-body p:last-child, .lead p:last-child { margin-bottom: 0; }
   .media {
     margin-top: 1rem;
     padding: 0.85rem 1rem;
@@ -327,7 +329,7 @@ export function buildWalkthroughHtml(
 <body>
   <header>
     <h1>${escapeHtml(walkthrough.title)}</h1>
-    <p class="lead">${walkthroughMarkdownToHtml(walkthrough.description)}</p>
+    <div class="lead">${walkthroughMarkdownToHtml(walkthrough.description)}</div>
   </header>
   <div class="layout">
     <nav aria-label="Walkthrough steps">${navItems}</nav>
@@ -349,10 +351,12 @@ export function buildWalkthroughHtml(
   var prev = document.getElementById('prev');
   var next = document.getElementById('next');
   var progress = document.getElementById('progress');
+  var main = document.getElementById('step-main');
 
   function show(index) {
     if (index < 0 || index >= steps) return;
     current = index;
+    if (main) { main.scrollTop = 0; }
     for (var i = 0; i < steps; i++) {
       var active = i === current;
       navItems[i].classList.toggle('active', active);

@@ -65,7 +65,7 @@ describe('walkthroughContent', () => {
             [
                 '# Python environments',
                 '',
-                'Install (`ansible-lint`, **ade**) then [Open](command:workbench.view.extension.ansible-environments).',
+                '<script>alert(1)</script> Install (`ansible-lint`, **ade**) then [Open](command:workbench.view.extension.ansible-environments).',
             ].join('\n'),
         );
         expect(html).toContain('<h3>Python environments</h3>');
@@ -74,6 +74,7 @@ describe('walkthroughContent', () => {
         expect(html).toContain(
             '<a href="command:workbench.view.extension.ansible-environments">Open</a>',
         );
+        expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
         expect(html).not.toContain('# Python');
         expect(html).not.toContain('`ansible-lint`');
         expect(html).not.toContain('<script');
@@ -97,6 +98,12 @@ describe('walkthroughContent', () => {
         expect(html).toContain('class="step-panel active"');
         expect(html).toContain('aria-label="Walkthrough steps"');
         expect(html).toContain('id="next"');
+        expect(html).toContain('main.scrollTop = 0');
+        expect(html).toContain('class="step-body"');
+        expect(html).toContain('<div class="step-body">');
+        expect(html).toContain('<div class="lead">');
+        expect(html).not.toContain('<p class="step-body">');
+        expect(html).not.toContain('<p class="lead">');
         expect(html).toContain('Sidebar help');
         expect(html).toContain('command:workbench.view.extension.ansible-environments');
     });

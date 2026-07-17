@@ -40,44 +40,56 @@ describe('Guided walkthroughs', () => {
     });
 
     it('should open Getting Started from the shared command (Cursor-safe)', async () => {
-        // Webview iframe content is not reliably reachable from the WDIO
-        // root session; assert the command succeeds and the shared
-        // contribution (same content the panel renders) is populated.
-        const opened: {
-            ok: boolean;
-            error?: string;
-            title?: string;
-            stepCount?: number;
-            firstStep?: string;
-        } = await browser.executeWorkbench(async (vscode: typeof VsCode, commandId: string) => {
-            try {
-                await vscode.commands.executeCommand(commandId);
-                const ext = vscode.extensions.getExtension('redhat.ansible');
-                const pkg = (ext?.packageJSON ?? {}) as {
-                    contributes?: { walkthroughs?: WalkthroughContribution[] };
-                };
-                const wt = (pkg.contributes?.walkthroughs ?? []).find(
-                    (w) => w.id === 'ansible-getting-started',
+        // Deterministic API signal (no fixed sleeps / DOM title polling):
+        // command succeeds and the shared contribution the panel renders is populated.
+        await browser.waitUntil(
+            async () => {
+                const opened: {
+                    ok: boolean;
+                    title: string;
+                    stepCount: number;
+                    firstStep: string;
+                } = await browser.executeWorkbench(
+                    async (vscode: typeof VsCode, commandId: string) => {
+                        try {
+                            await vscode.commands.executeCommand(commandId);
+                            const ext = vscode.extensions.getExtension('redhat.ansible');
+                            const pkg = (ext?.packageJSON ?? {}) as {
+                                contributes?: { walkthroughs?: WalkthroughContribution[] };
+                            };
+                            const wt = (pkg.contributes?.walkthroughs ?? []).find(
+                                (w) => w.id === 'ansible-getting-started',
+                            );
+                            return {
+                                ok: true,
+                                title: wt?.title ?? '',
+                                stepCount: wt?.steps.length ?? 0,
+                                firstStep: wt?.steps[0]?.title ?? '',
+                            };
+                        } catch {
+                            return {
+                                ok: false,
+                                title: '',
+                                stepCount: 0,
+                                firstStep: '',
+                            };
+                        }
+                    },
+                    GET_STARTED_COMMAND,
                 );
-                return {
-                    ok: true,
-                    title: wt?.title,
-                    stepCount: wt?.steps.length ?? 0,
-                    firstStep: wt?.steps[0]?.title,
-                };
-            } catch (error) {
-                return {
-                    ok: false,
-                    error: error instanceof Error ? error.message : String(error),
-                };
-            }
-        }, GET_STARTED_COMMAND);
-
-        expect(opened.ok).toBe(true);
-        expect(opened.error).toBeUndefined();
-        expect(opened.title).toMatch(/Ansible/i);
-        expect(opened.stepCount ?? 0).toBeGreaterThan(3);
-        expect(opened.firstStep).toMatch(/sidebar|activity bar/i);
+                return (
+                    opened.ok &&
+                    opened.stepCount > 3 &&
+                    /Ansible/i.test(opened.title) &&
+                    /sidebar|activity bar/i.test(opened.firstStep)
+                );
+            },
+            {
+                timeout: 15000,
+                interval: 500,
+                timeoutMsg: 'Getting Started command did not expose populated walkthrough content',
+            },
+        );
     });
 
     it('should register get-started and telemetry open commands', async () => {

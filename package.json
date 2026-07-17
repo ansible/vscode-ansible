@@ -1221,7 +1221,7 @@
           {
             "id": "browse-collections",
             "title": "Browse collections and plugin docs",
-            "description": "Use Installed Collections to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Focus Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
+            "description": "Use Installed Collections to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Refresh Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/collections.md"
             }
@@ -1229,7 +1229,7 @@
           {
             "id": "collection-sources",
             "title": "Find and install collections",
-            "description": "Search Galaxy or GitHub from Collection Sources, preview docs for content you have not installed yet, then install with ADE.\n[Focus Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
+            "description": "Search Galaxy or GitHub from Collection Sources, preview docs for content you have not installed yet, then install with ADE.\n[Refresh Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/collection-sources.md"
             }
@@ -1237,7 +1237,7 @@
           {
             "id": "scaffold-content",
             "title": "Scaffold content with Creator",
-            "description": "Open the Creator view, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Focus Creator](command:ansibleCreator.refresh)",
+            "description": "Open the Creator view, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Refresh Creator](command:ansibleCreator.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/creator.md"
             }
@@ -1245,7 +1245,7 @@
           {
             "id": "run-playbooks",
             "title": "Run playbooks with progress",
-            "description": "Discover playbooks in the workspace, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Focus Playbooks](command:ansiblePlaybooks.refresh)",
+            "description": "Discover playbooks in the workspace, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Refresh Playbooks](command:ansiblePlaybooks.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/playbooks.md"
             }
@@ -1253,7 +1253,7 @@
           {
             "id": "execution-environments",
             "title": "Inspect execution environments",
-            "description": "Browse local EE images, open image details, and inspect packages when you develop against containers.\n[Focus Execution Environments](command:ansibleExecutionEnvironments.refresh)",
+            "description": "Browse local EE images, open image details, and inspect packages when you develop against containers.\n[Refresh Execution Environments](command:ansibleExecutionEnvironments.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/execution-environments.md"
             }
