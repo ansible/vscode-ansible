@@ -150,7 +150,19 @@ describe('buildPlaybookCommand', () => {
             startAtTask: 'Install httpd',
         };
         const cmd = buildPlaybookCommand('site.yml', config);
-        expect(cmd).toContain('--start-at-task Install httpd');
+        expect(cmd).toContain('--start-at-task "Install httpd"');
+    });
+
+    it('quotes arguments that contain spaces', () => {
+        const config: PlaybookConfig = {
+            ...DEFAULT_PLAYBOOK_CONFIG,
+            extraVars: '{"msg": "hello world"}',
+            limit: 'web servers',
+        };
+        const cmd = buildPlaybookCommand('my playbook.yml', config);
+        expect(cmd).toContain('-e "{\\"msg\\": \\"hello world\\"}"');
+        expect(cmd).toContain('-l "web servers"');
+        expect(cmd).toMatch(/"my playbook\.yml"$/);
     });
 
     it('adds step flag', () => {
@@ -224,7 +236,13 @@ describe('buildPlaybookFlags', () => {
         };
         const flags = buildPlaybookFlags(config);
         const cmd = buildPlaybookCommand('site.yml', config);
-        expect(cmd).toBe(['ansible-playbook', ...flags, 'site.yml'].join(' '));
+        // Command builders quote args for shell safety; flags remain raw.
+        expect(cmd).toContain('-i hosts');
+        expect(cmd).toContain('--check');
+        expect(cmd).toContain('-f 10');
+        expect(cmd).toMatch(/^ansible-playbook /);
+        expect(cmd).toMatch(/ site\.yml$/);
+        expect(flags).toEqual(['-i', 'hosts', '--check', '-f', '10']);
     });
 });
 

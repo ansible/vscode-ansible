@@ -3,6 +3,7 @@
  * No VS Code dependency — suitable for MCP server and UI consumers.
  */
 import type { PlaybookConfig, PlaybookPlay } from '../types/playbook';
+import { quoteIfNeeded } from '../utils/creatorArgs';
 
 /** Default playbook run configuration. */
 export const DEFAULT_PLAYBOOK_CONFIG: PlaybookConfig = {
@@ -154,7 +155,8 @@ export function buildPlaybookFlags(config: PlaybookConfig): string[] {
  * @returns Space-joined ansible-playbook command.
  */
 export function buildPlaybookCommand(playbookPath: string, config: PlaybookConfig): string {
-    return ['ansible-playbook', ...buildPlaybookFlags(config), playbookPath].join(' ');
+    const args = ['ansible-playbook', ...buildPlaybookFlags(config), playbookPath];
+    return args.map(quoteIfNeeded).join(' ');
 }
 
 /**
@@ -176,7 +178,7 @@ export function buildNavigatorCommand(playbookPath: string, config: PlaybookConf
         args.push('--', ...passthroughFlags);
     }
 
-    return args.join(' ');
+    return args.map(quoteIfNeeded).join(' ');
 }
 
 /** Options for ansible-navigator execution environment integration. */
@@ -229,7 +231,7 @@ export function buildNavigatorEECommand(
         args.push('--', ...passthroughFlags);
     }
 
-    return args.join(' ');
+    return args.map(quoteIfNeeded).join(' ');
 }
 
 /**

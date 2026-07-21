@@ -25,7 +25,7 @@ import {
     getCommandService,
     isExecutionEnvironmentDefinition,
     planAnsibleBuilderBuild,
-    buildNavigatorCommand,
+    buildPlaybookFlags,
     DEFAULT_PLAYBOOK_CONFIG,
 } from '@ansible/developer-services';
 import type {
@@ -1600,8 +1600,11 @@ export class McpToolHandler {
             vaultPasswordFile: (args.vault_password_file as string | undefined) ?? '',
         };
 
-        const command = buildNavigatorCommand(path.basename(playbookPath), config);
-        const shellArgs = command.split(' ').slice(1);
+        const passthroughFlags = buildPlaybookFlags(config);
+        const shellArgs = ['run', path.basename(playbookPath), '--mode', 'stdout'];
+        if (passthroughFlags.length > 0) {
+            shellArgs.push('--', ...passthroughFlags);
+        }
         const cwd = path.dirname(playbookPath);
 
         try {
