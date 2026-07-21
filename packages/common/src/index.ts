@@ -46,6 +46,11 @@ export type {
     TelemetryEventName,
     TelemetryResult,
     TelemetryOutcomeOptions,
+    ToxTestCategory,
+    ToxEnvironment,
+    ToxRunResult,
+    ToxAvailability,
+    ToxGhMatrixEntry,
 } from './types';
 export { TelemetryEvents, buildOutcomeProperties } from './types';
 

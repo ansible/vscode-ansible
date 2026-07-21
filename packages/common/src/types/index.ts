@@ -37,3 +37,10 @@ export type {
 } from './playbook';
 export { TelemetryEvents, buildOutcomeProperties } from './telemetry';
 export type { TelemetryEventName, TelemetryResult, TelemetryOutcomeOptions } from './telemetry';
+export type {
+    ToxTestCategory,
+    ToxEnvironment,
+    ToxRunResult,
+    ToxAvailability,
+    ToxGhMatrixEntry,
+} from './toxAnsible';
