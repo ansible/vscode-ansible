@@ -165,41 +165,60 @@ export class ToxTestController implements vscode.Disposable {
         const run = this._controller.createTestRun(request);
         const items = this._collectTestItems(request);
 
-        for (const item of items) {
-            if (token.isCancellationRequested) {
-                run.skipped(item);
-                continue;
-            }
+        const abortController = new AbortController();
+        const cancelSub = token.onCancellationRequested(() => {
+            abortController.abort();
+        });
 
-            const envName = this._extractEnvName(item);
-            if (!envName) {
-                run.skipped(item);
-                continue;
-            }
+        try {
+            for (const item of items) {
+                if (token.isCancellationRequested) {
+                    run.skipped(item);
+                    continue;
+                }
 
-            const workspaceDir = this._resolveWorkspaceDir(item);
-            if (!workspaceDir) {
-                run.errored(item, new vscode.TestMessage('No workspace folder found'));
-                continue;
-            }
+                const envName = this._extractEnvName(item);
+                if (!envName) {
+                    run.skipped(item);
+                    continue;
+                }
 
-            run.started(item);
+                const workspaceDir = this._resolveWorkspaceDir(item);
+                if (!workspaceDir) {
+                    run.errored(item, new vscode.TestMessage('No workspace folder found'));
+                    continue;
+                }
 
-            const result = await this._service.runEnvironment(envName, workspaceDir);
+                run.started(item);
 
-            const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
-            if (output) {
-                run.appendOutput(output.replace(/\r?\n/g, '\r\n') + '\r\n', undefined, item);
-            }
-
-            if (result.success) {
-                run.passed(item, result.durationMs);
-            } else {
-                const message = new vscode.TestMessage(
-                    output || `Exit code: ${String(result.exitCode)}`,
+                const result = await this._service.runEnvironment(
+                    envName,
+                    workspaceDir,
+                    undefined,
+                    abortController.signal,
                 );
-                run.failed(item, message, result.durationMs);
+
+                if (abortController.signal.aborted) {
+                    run.skipped(item);
+                    continue;
+                }
+
+                const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+                if (output) {
+                    run.appendOutput(output.replace(/\r?\n/g, '\r\n') + '\r\n', undefined, item);
+                }
+
+                if (result.success) {
+                    run.passed(item, result.durationMs);
+                } else {
+                    const message = new vscode.TestMessage(
+                        output || `Exit code: ${String(result.exitCode)}`,
+                    );
+                    run.failed(item, message, result.durationMs);
+                }
             }
+        } finally {
+            cancelSub.dispose();
         }
 
         run.end();

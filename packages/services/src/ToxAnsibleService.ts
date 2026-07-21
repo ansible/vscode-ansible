@@ -251,12 +251,14 @@ export class ToxAnsibleService {
      * @param envName - Tox environment name to run
      * @param workspaceDir - Absolute path to the workspace root
      * @param timeoutMs - Maximum execution time in milliseconds
+     * @param signal - AbortSignal to cancel the running process
      * @returns Run result with exit code, output, and duration
      */
     async runEnvironment(
         envName: string,
         workspaceDir: string,
         timeoutMs: number = TOX_RUN_DEFAULT_TIMEOUT_MS,
+        signal?: AbortSignal,
     ): Promise<ToxRunResult> {
         const toxPath = await this._cmd.getToolPath('tox');
         if (!toxPath) {
@@ -278,19 +280,41 @@ export class ToxAnsibleService {
 
         const start = Date.now();
 
-        const result = await this._cmd.runCommandArgs(toxPath, args, {
+        if (signal?.aborted) {
+            return {
+                environment: envName,
+                success: false,
+                exitCode: 1,
+                stdout: '',
+                stderr: 'Cancelled',
+                durationMs: 0,
+            };
+        }
+
+        const r = await this._cmd.runCommandArgs(toxPath, args, {
             cwd: workspaceDir,
             timeout: timeoutMs,
         });
 
         const durationMs = Date.now() - start;
 
+        if (signal?.aborted) {
+            return {
+                environment: envName,
+                success: false,
+                exitCode: 1,
+                stdout: '',
+                stderr: 'Cancelled by user',
+                durationMs,
+            };
+        }
+
         return {
             environment: envName,
-            success: result.exitCode === 0,
-            exitCode: result.exitCode,
-            stdout: result.stdout,
-            stderr: result.stderr,
+            success: r.exitCode === 0,
+            exitCode: r.exitCode,
+            stdout: r.stdout,
+            stderr: r.stderr,
             durationMs,
         };
     }
