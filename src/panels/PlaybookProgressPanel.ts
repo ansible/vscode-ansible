@@ -47,6 +47,8 @@ export class PlaybookProgressPanel {
     private _disposables: vscode.Disposable[] = [];
     private _socketServer: net.Server | undefined;
     private _socketPath: string | undefined;
+    /** Per-run temp directory (mode 0o700) that owns `_socketPath`. */
+    private _socketDir: string | undefined;
     private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
     private _lastOptions: PlaybookRunOptions | undefined;
@@ -196,13 +198,7 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
             this._socketServer = undefined;
         }
-        if (this._socketPath) {
-            try {
-                fs.unlinkSync(this._socketPath);
-            } catch {
-                /* ignore */
-            }
-        }
+        this._cleanupSocketDir();
 
         await this._createSocketServer();
 
@@ -309,19 +305,9 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
         }
 
-        const socketDir = path.join(os.tmpdir(), 'vscode-ansible-progress');
-        if (!fs.existsSync(socketDir)) {
-            fs.mkdirSync(socketDir, { recursive: true });
-        }
-        this._socketPath = path.join(socketDir, `run-${String(Date.now())}.sock`);
-
-        try {
-            if (fs.existsSync(this._socketPath)) {
-                fs.unlinkSync(this._socketPath);
-            }
-        } catch {
-            /* ignore */
-        }
+        // Unique per-run directory with owner-only permissions (Node mkdtemp → 0o700).
+        this._socketDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vscode-ansible-progress-'));
+        this._socketPath = path.join(this._socketDir, 'run.sock');
 
         return new Promise((resolve, reject) => {
             this._socketServer = net.createServer((socket) => {
@@ -475,6 +461,17 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
             this._socketServer = undefined;
         }
+        this._cleanupSocketDir();
+
+        this._panel.dispose();
+        while (this._disposables.length) {
+            const x = this._disposables.pop();
+            x?.dispose();
+        }
+    }
+
+    /** Remove the per-run socket file and its owner-only temp directory. */
+    private _cleanupSocketDir(): void {
         if (this._socketPath) {
             try {
                 fs.unlinkSync(this._socketPath);
@@ -483,11 +480,13 @@ export class PlaybookProgressPanel {
             }
             this._socketPath = undefined;
         }
-
-        this._panel.dispose();
-        while (this._disposables.length) {
-            const x = this._disposables.pop();
-            x?.dispose();
+        if (this._socketDir) {
+            try {
+                fs.rmSync(this._socketDir, { recursive: true, force: true });
+            } catch {
+                /* ignore */
+            }
+            this._socketDir = undefined;
         }
     }
 }

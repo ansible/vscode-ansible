@@ -462,7 +462,7 @@ stories:
       - Executor dropdown in playbook configuration form
       - VS Code setting (ansibleEnvironments.playbookExecutor) for default executor
       - Run Playbook action uses configured executor
-      - Progress viewer uses configured executor with --execution-environment false
+      - Progress viewer uses the configured executor; ansible-navigator runs include --execution-environment false
       - Command preview in config form reflects selected executor
 
   # ---------------------------------------------------------------------------
