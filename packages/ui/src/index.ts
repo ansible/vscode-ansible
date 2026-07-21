@@ -58,3 +58,20 @@ export type {
 export { PlaybookConfigView } from './views/PlaybookConfigView';
 export { PlaybookProgressView } from './views/PlaybookProgressView';
 export { DiagnosticsView } from './views/DiagnosticsView';
+
+export { SidebarShell, SidebarTree } from './sidebar';
+export { SidebarNavTreeView } from './views/SidebarNavTreeView';
+export type { SidebarNavTreeViewProps, SidebarNavTreeHost } from './views/SidebarNavTreeView';
+export type {
+    SidebarShellProps,
+    SidebarTreeProps,
+    SidebarSectionId,
+    SidebarNodeAction,
+    SidebarNodeExpand,
+    SidebarTreeNode,
+    SidebarSectionSeverity,
+    SidebarWelcomeAction,
+    SidebarSection,
+    SidebarSnapshot,
+    SidebarEnvManagerInput,
+} from './sidebar';

@@ -1,17 +1,7 @@
 import { browser } from '@wdio/globals';
 import type * as VsCode from 'vscode';
 
-const CORE_VIEWS = [
-    'ansibleDevToolsEnvManagers',
-    'ansibleDevToolsPackages',
-    'ansibleDevToolsCollections',
-    'ansibleCollectionSources',
-    'ansibleExecutionEnvironments',
-    'ansibleCreator',
-    'ansiblePlaybooks',
-];
-
-const AI_GATED_VIEWS = ['ansibleMcpTools', 'ansibleSkills'];
+const NAV_TREE_VIEW = 'ansibleNavTree';
 
 /**
  * @covers XC-002
@@ -32,54 +22,39 @@ describe('Graceful degradation without AI', () => {
         });
     });
 
-    it('should register all core tree views when AI is disabled', async () => {
-        const contributed: string[] = await browser.executeWorkbench(
-            (vscode: typeof VsCode, viewIds: string[]) => {
-                const ext = vscode.extensions.getExtension('redhat.ansible');
-                if (!ext) return [];
-                const pkg = ext.packageJSON as {
-                    contributes?: { views?: Record<string, { id: string }[]> };
-                };
-                const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
-                const ids = new Set(allViews.map((v) => v.id));
-                return viewIds.filter((id) => ids.has(id));
-            },
-            CORE_VIEWS,
-        );
+    it('should contribute only Ansible NavTree when AI is disabled', async () => {
+        const viewIds: string[] = await browser.executeWorkbench((vscode: typeof VsCode) => {
+            const ext = vscode.extensions.getExtension('redhat.ansible');
+            if (!ext) return [];
+            const pkg = ext.packageJSON as {
+                contributes?: { views?: Record<string, { id: string }[]> };
+            };
+            return Object.values(pkg.contributes?.views ?? {})
+                .flat()
+                .map((v) => v.id);
+        });
 
-        expect(contributed).toEqual(CORE_VIEWS);
+        expect(viewIds).toEqual([NAV_TREE_VIEW]);
     });
 
-    it('should hide AI-gated views when enableAiFeatures is false', async () => {
+    it('should keep AI commands available when enableAiFeatures is false', async () => {
         const aiSetting: boolean = await browser.executeWorkbench((vscode: typeof VsCode) => {
             return vscode.workspace
                 .getConfiguration('ansibleEnvironments')
                 .get<boolean>('enableAiFeatures', true);
         });
-
         expect(aiSetting).toBe(false);
 
-        // AI Tools and AI Skills views have a "when" clause that hides them.
-        // Verify the when clause is present in the manifest.
-        const gatedCorrectly: boolean = await browser.executeWorkbench(
-            (vscode: typeof VsCode, viewIds: string[]) => {
-                const ext = vscode.extensions.getExtension('redhat.ansible');
-                if (!ext) return false;
-                const pkg = ext.packageJSON as {
-                    contributes?: {
-                        views?: Record<string, { id: string; when?: string }[]>;
-                    };
-                };
-                const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
-                return viewIds.every((id) => {
-                    const view = allViews.find((v) => v.id === id);
-                    return view?.when?.includes('enableAiFeatures') ?? false;
-                });
+        const hasAiCommands: boolean = await browser.executeWorkbench(
+            async (vscode: typeof VsCode) => {
+                const commands = await vscode.commands.getCommands(true);
+                return (
+                    commands.includes('ansibleMcpTools.refresh') &&
+                    commands.includes('ansibleSkills.refresh')
+                );
             },
-            AI_GATED_VIEWS,
         );
-
-        expect(gatedCorrectly).toBe(true);
+        expect(hasAiCommands).toBe(true);
     });
 
     it('should keep the extension active and error-free', async () => {

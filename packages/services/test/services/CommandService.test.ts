@@ -606,12 +606,40 @@ describe('CommandService', () => {
         expect(result.stdout).toBe('built');
     });
 
-    it('getToolPath falls through to PATH when not in binDir or cache', async () => {
+    it('getToolPath does not leak PATH when active binDir lacks the tool', async () => {
         const binDir = path.join(tmpDir, 'empty-venv', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
         fs.writeFileSync(path.join(binDir, 'python'), '');
         const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
         cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                if ((file === 'which' || file === 'where') && args.includes('some-tool')) {
+                    cb?.(null, '/home/user/.local/bin/some-tool\n', '');
+                    return;
+                }
+                cb?.(null, 'out\n', '');
+            },
+        );
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.getToolPath('some-tool');
+        expect(result).toBeNull();
+    });
+
+    it('getToolPath falls through to PATH when no binDir is available', async () => {
+        const { clearCachedEnvironment } = await import('../../src/EnvironmentCache');
+        clearCachedEnvironment();
 
         execFileImpl.mockImplementation(
             (
@@ -633,6 +661,8 @@ describe('CommandService', () => {
 
         const { CommandService } = await import('../../src/CommandService');
         const svc = CommandService.getInstance();
+        // Ensure no resolver injects a binDir
+        svc.setBinDirResolver(() => Promise.resolve(null));
         const result = await svc.getToolPath('some-tool');
         expect(result).toBe('/usr/bin/some-tool');
     });

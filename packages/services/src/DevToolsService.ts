@@ -170,19 +170,72 @@ export class DevToolsService {
     }
 
     /**
-     * Install ansible-dev-tools package.
+     * Install ansible-dev-tools package (ADR-019).
      *
-     * Uses the python-envs managePackages API when available (Layer 2).
-     * Falls back to `pip install ansible-dev-tools` in an activated
-     * terminal when only ms-python.python is present (Layer 3).
+     * Order:
+     * 1. Deterministic `{selectedPython} -m pip` via CommandService (works right
+     *    after a venv switch; does not hang on managePackages UI).
+     * 2. Layer 2 managePackages callback (with timeout).
+     * 3. Activated-terminal pip as last resort.
      */
     public async install(): Promise<void> {
-        if (this._packageInstaller) {
-            await this._packageInstaller();
-            await this.refresh();
+        const python = await this._resolveSelectedPython();
+        if (python) {
+            log(`DevToolsService: installing via pip exec: ${python}`);
+            await this._installViaPipExec(python);
             return;
         }
 
+        if (this._packageInstaller) {
+            try {
+                await Promise.race([
+                    this._packageInstaller(),
+                    new Promise<never>((_resolve, reject) => {
+                        setTimeout(() => {
+                            reject(new Error('Layer 2 install timed out after 30s'));
+                        }, 30_000);
+                    }),
+                ]);
+                await this.refresh();
+                return;
+            } catch (error) {
+                log(
+                    `DevToolsService: Layer 2 install failed, trying terminal fallback: ${error instanceof Error ? error.message : String(error)}`,
+                );
+            }
+        }
+
+        await this._installViaTerminal();
+    }
+
+    /**
+     * Non-interactive pip install into a known interpreter (preferred after env select).
+     * @param python - Absolute path to the selected environment's python
+     */
+    private async _installViaPipExec(python: string): Promise<void> {
+        const { getCommandService } = await import('./CommandService');
+        const result = await getCommandService().runCommandArgs(
+            python,
+            ['-m', 'pip', 'install', 'ansible-dev-tools'],
+            { timeout: 600_000 },
+        );
+        if (result.exitCode !== 0) {
+            throw new Error(
+                result.stderr ||
+                    result.stdout ||
+                    `pip install ansible-dev-tools failed (exit ${String(result.exitCode)})`,
+            );
+        }
+        log('DevToolsService: pip exec install complete, refreshing packages');
+        await this.refresh();
+    }
+
+    /**
+     * Layer 3: pip install ansible-dev-tools in an activated terminal.
+     * Prefers `{selectedPython} -m pip` so install targets the chosen venv
+     * even when the terminal is not yet activated.
+     */
+    private async _installViaTerminal(): Promise<void> {
         if (!this.isInVSCode()) {
             throw new Error('install is only available in VS Code');
         }
@@ -193,13 +246,16 @@ export class DevToolsService {
             );
         }
 
+        const pipCommand = await this._resolvePipInstallCommand();
+        log(`DevToolsService: terminal install via: ${pipCommand}`);
+
         const TerminalService = DevToolsService.terminalServiceFactory();
         const terminalService = TerminalService.getInstance();
         const managed = await terminalService.createActivatedTerminal({
             name: 'Install ansible-dev-tools',
             show: true,
         });
-        const result = await managed.sendCommand('pip install ansible-dev-tools', {
+        const result = await managed.sendCommand(pipCommand, {
             waitForCompletion: true,
         });
         log('DevToolsService: terminal install complete, refreshing packages');
@@ -218,6 +274,46 @@ export class DevToolsService {
                 }
             }
         }
+    }
+
+    /**
+     * Resolve the selected environment's Python executable.
+     * @returns Absolute python path, or undefined when none is known
+     */
+    private async _resolveSelectedPython(): Promise<string | undefined> {
+        const { getCommandService } = await import('./CommandService');
+        const { getCachedEnvironment } = await import('./EnvironmentCache');
+        const fs = await import('fs');
+        const binDir = await getCommandService().getBinDir();
+        if (binDir) {
+            const candidates =
+                process.platform === 'win32'
+                    ? [path.join(binDir, 'python.exe')]
+                    : [path.join(binDir, 'python3'), path.join(binDir, 'python')];
+            for (const candidate of candidates) {
+                if (fs.existsSync(candidate)) {
+                    return candidate;
+                }
+            }
+        }
+        const cached = getCachedEnvironment()?.pythonPath;
+        if (cached && fs.existsSync(cached)) {
+            return cached;
+        }
+        return undefined;
+    }
+
+    /**
+     * Build a pip install command pinned to the selected environment's Python.
+     * @returns Shell command string for ansible-dev-tools install
+     */
+    private async _resolvePipInstallCommand(): Promise<string> {
+        const python = await this._resolveSelectedPython();
+        if (python) {
+            const quoted = python.includes(' ') ? `"${python}"` : python;
+            return `${quoted} -m pip install ansible-dev-tools`;
+        }
+        return 'pip install ansible-dev-tools';
     }
 
     /**

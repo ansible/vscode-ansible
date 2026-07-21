@@ -746,14 +746,14 @@ stories:
     title: Extension activation and sidebar
     story: >
       As an Ansible developer, I want the extension to activate
-      cleanly and show the Ansible sidebar with all expected views,
+      cleanly and show Ansible in the Activity Bar,
       so that I can start working immediately after opening a project.
     prd_refs: [US-18, AC-8]
     requires_ai: false
     criteria:
       - Extension activates without errors
       - Ansible icon appears in the activity bar
-      - Clicking the icon opens the sidebar with tree views
+      - Clicking the icon opens Ansible (accordion sidebar)
 
   - id: XC-002
     title: Graceful degradation without AI
@@ -765,7 +765,7 @@ stories:
     prd_refs: [US-18, AC-8]
     requires_ai: false
     criteria:
-      - Core views populate and function without AI
+      - Core sidebar sections populate and function without AI
       - AI-only actions are hidden or show graceful fallback
       - No errors when enableAiFeatures is false
 
@@ -779,7 +779,7 @@ stories:
     prd_refs: [US-19, AC-8]
     requires_ai: false
     criteria:
-      - Empty tree views show a helpful message with next-step actions
+      - Empty sidebar sections show a helpful message with next-step actions
       - Missing tool warnings explain what to install
       - Error states show actionable recovery guidance
 

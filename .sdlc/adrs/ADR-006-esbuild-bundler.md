@@ -21,7 +21,7 @@ aliases during type checking but does **not** rewrite import paths in the
 emitted JavaScript. As a result:
 
 ```typescript
-// src/views/CollectionsProvider.ts
+// src/views/CollectionsController.ts
 import { CollectionsService } from '@src/services/CollectionsService';
 // Compiles to:
 const { CollectionsService } = require('@src/services/CollectionsService');

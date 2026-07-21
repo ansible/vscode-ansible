@@ -49,21 +49,16 @@ suite('Ansible Extension — without python-envs', () => {
         }
     });
 
-    test('contributes tree views regardless of python-envs presence', () => {
+    test('contributes Ansible NavTree webview regardless of python-envs presence', () => {
         const ext = vscode.extensions.getExtension(EXTENSION_ID);
         const pkg = ext?.packageJSON as {
-            contributes?: { views?: Record<string, { id: string }[]> };
+            contributes?: { views?: Record<string, { id: string; when?: string }[]> };
         };
 
         const views = pkg.contributes?.views?.['ansible-environments'];
         assert.ok(views, 'Should contribute views under ansible-environments');
-
-        const expectedViewIds = ['ansibleDevToolsEnvManagers', 'ansibleDevToolsPackages'];
-
-        for (const viewId of expectedViewIds) {
-            const found = views.some((v: { id: string }) => v.id === viewId);
-            assert.ok(found, `Should contribute view "${viewId}"`);
-        }
+        assert.strictEqual(views.length, 1);
+        assert.strictEqual(views[0]?.id, 'ansibleNavTree');
     });
 
     test('extension remains active after attempting refresh', async () => {

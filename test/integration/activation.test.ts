@@ -8,7 +8,7 @@ interface ExtensionManifest {
         viewsContainers?: {
             activitybar?: { id: string }[];
         };
-        views?: Record<string, { id: string }[]>;
+        views?: Record<string, { id: string; when?: string }[]>;
         languageModelTools?: { name: string }[];
     };
 }
@@ -39,6 +39,7 @@ suite('Ansible Extension', () => {
             'ansibleDevToolsCollections',
             'ansibleCreator',
             'ansiblePlaybooks',
+            'ansible.sidebar.navTree',
         ];
 
         for (const prefix of expectedPrefixes) {
@@ -58,27 +59,19 @@ suite('Ansible Extension', () => {
         assert.ok(container, 'Should contribute ansible-environments view container');
     });
 
-    test('contributes expected tree views', () => {
+    test('contributes only Ansible NavTree webview (no native trees)', () => {
         const ext = vscode.extensions.getExtension(EXTENSION_ID);
         const pkg = ext?.packageJSON as ExtensionManifest | undefined;
 
         const views = pkg?.contributes?.views?.['ansible-environments'];
         assert.ok(views, 'Should contribute views under ansible-environments');
-
-        const expectedViewIds = [
-            'ansibleDevToolsEnvManagers',
-            'ansibleDevToolsPackages',
-            'ansibleDevToolsCollections',
-            'ansibleCollectionSources',
-            'ansibleExecutionEnvironments',
-            'ansibleCreator',
-            'ansiblePlaybooks',
-        ];
-
-        for (const viewId of expectedViewIds) {
-            const found = views.some((v: { id: string }) => v.id === viewId);
-            assert.ok(found, `Should contribute view "${viewId}"`);
-        }
+        assert.strictEqual(views.length, 1, 'Should contribute exactly one view');
+        assert.strictEqual(views[0]?.id, 'ansibleNavTree');
+        assert.strictEqual(
+            views[0]?.when,
+            undefined,
+            'NavTree should not be gated by a when clause',
+        );
     });
 
     test('contributes extension settings', () => {

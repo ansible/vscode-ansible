@@ -12,7 +12,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 | Feature                | Trigger          | Description                                                                                        | Non-AI | Implementation                   |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------------------------- | ------ | -------------------------------- |
 | Activity bar container | Ansible icon     | Opens Ansible sidebar                                                                              | yes    | `package.json` `viewsContainers` |
-| Tree views (10)        | Sidebar scroll   | Env, Dev Tools, Collections, Sources, EEs, Creator, Playbooks, AI Tools*, AI Skills*, Lightspeed\* | yes\*  | `src/views/*Provider.ts`         |
+| Ansible                    | Activity Bar     | Accordion sections (Env, Dev Tools, Collections, Sources, EEs, Creator, Playbooks, AI Tools*, AI Skills*, Lightspeed\*) | yes\*  | `src/sidebar/` + `*Controller.ts` |
 | Output channel         | Output → Ansible | Extension logs                                                                                     | yes    | `src/extension.ts`               |
 
 \*AI views require `enableAiFeatures`; Lightspeed view requires `ansible.lightspeed.enabled`.
@@ -25,11 +25,11 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature              | Command / trigger                    | Description                    | Non-AI | Implementation                   |
 | -------------------- | ------------------------------------ | ------------------------------ | ------ | -------------------------------- |
-| Environment Managers | View: `ansibleDevToolsEnvManagers`   | Python managers → environments | yes    | `EnvironmentManagersProvider.ts` |
+| Environment Managers | Sidebar section: `envManagers`           | Python managers → environments | yes    | `EnvironmentManagersController.ts` |
 | Refresh environments | `ansibleDevToolsEnvManagers.refresh` | Reload env tree                | yes    |                                  |
 | Create environment   | `ansibleDevToolsEnvManagers.create`  | One-click venv creation        | yes    |                                  |
 | Select environment   | `ansibleDevTools.selectEnvironment`  | Active env for Ansible tools   | yes    |                                  |
-| Ansible Dev Tools    | View: `ansibleDevToolsPackages`      | ADT package versions           | yes    | `AnsibleDevToolsProvider.ts`     |
+| Ansible Dev Tools    | Sidebar section: `devTools`              | ADT package versions           | yes    | `AnsibleDevToolsController.ts`     |
 | Install ADT          | `ansibleDevToolsPackages.install`    | Install meta-package           | yes    |                                  |
 | Upgrade ADT          | `ansibleDevToolsPackages.upgrade`    | Upgrade packages               | yes    |                                  |
 | Python status bar    | `ansible.statusBar.pythonClick`      | Env details QuickPick          | yes    | `statusBar/pythonStatusBar.ts`   |
@@ -63,7 +63,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature               | Command / trigger                          | Description                 | Non-AI | Implementation              |
 | --------------------- | ------------------------------------------ | --------------------------- | ------ | --------------------------- |
-| Collections tree      | View: `ansibleDevToolsCollections`         | Collection → type → plugin  | yes    | `CollectionsProvider.ts`    |
+| Collections tree      | View: `ansibleDevToolsCollections`         | Collection → type → plugin  | yes    | `CollectionsController.ts`    |
 | Refresh               | `ansibleDevToolsCollections.refresh`       | Reload index                | yes    |                             |
 | Search plugins        | `ansibleDevToolsCollections.search`        | Keyword search              | yes    |                             |
 | Plugin documentation  | `ansibleDevToolsCollections.showPluginDoc` | Rich doc webview            | yes    | `PluginDocPanel.ts`         |
@@ -78,7 +78,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature             | Command / trigger                                  | Description          | Non-AI | Implementation                 |
 | ------------------- | -------------------------------------------------- | -------------------- | ------ | ------------------------------ |
-| Sources tree        | View: `ansibleCollectionSources`                   | Galaxy + GitHub orgs | yes    | `CollectionSourcesProvider.ts` |
+| Sources tree        | View: `ansibleCollectionSources`                   | Galaxy + GitHub orgs | yes    | `CollectionSourcesController.ts` |
 | Search collections  | `ansibleCollectionSources.search`                  | Unified search       | yes    |                                |
 | Filter Galaxy       | `ansibleCollectionSources.filterGalaxyCollections` | Filter list          | yes    |                                |
 | Galaxy plugin docs  | `ansibleCollectionSources.showGalaxyPluginDoc`     | Uninstalled docs     | yes    | `GalaxyDocsCache`              |
@@ -95,7 +95,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature          | Command / trigger          | Description              | Non-AI | Implementation           |
 | ---------------- | -------------------------- | ------------------------ | ------ | ------------------------ |
-| Creator tree     | View: `ansibleCreator`     | ansible-creator commands | yes    | `CreatorProvider.ts`     |
+| Creator tree     | View: `ansibleCreator`     | ansible-creator commands | yes    | `CreatorController.ts`     |
 | Open form        | `ansibleCreator.openForm`  | Schema-driven webview    | yes    | `CreatorFormPanel.ts`    |
 | Live CLI preview | Creator form               | Exact command preview    | yes    | `@ansible/ui` SchemaForm |
 | AI overview\*    | `ansibleCreator.aiSummary` | Chat prompt              | no     |                          |
@@ -108,7 +108,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature               | Command / trigger                  | Description                  | Non-AI | Implementation             |
 | --------------------- | ---------------------------------- | ---------------------------- | ------ | -------------------------- |
-| Playbooks tree        | View: `ansiblePlaybooks`           | Workspace playbook discovery | yes    | `PlaybooksProvider.ts`     |
+| Playbooks tree        | View: `ansiblePlaybooks`           | Workspace playbook discovery | yes    | `PlaybooksController.ts`     |
 | Go to play            | `ansiblePlaybooks.goToPlay`        | Editor navigation            | yes    |                            |
 | Edit config           | `ansiblePlaybooks.editConfig`      | Per-playbook run form        | yes    | `PlaybookConfigPanel.ts`   |
 | Edit defaults         | `ansiblePlaybooks.editDefaults`    | Global defaults form         | yes    |                            |
@@ -125,7 +125,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 
 | Feature        | Command / trigger                                | Description                  | Non-AI | Implementation                     |
 | -------------- | ------------------------------------------------ | ---------------------------- | ------ | ---------------------------------- |
-| EE tree        | View: `ansibleExecutionEnvironments`             | Images via ansible-navigator | yes    | `ExecutionEnvironmentsProvider.ts` |
+| EE tree        | View: `ansibleExecutionEnvironments`             | Images via ansible-navigator | yes    | `ExecutionEnvironmentsController.ts` |
 | EE detail      | `ansibleExecutionEnvironments.showDetail`        | Metadata webview             | yes    | `EEDetailPanel.ts`                 |
 | Package detail | `ansibleExecutionEnvironments.showPackageDetail` | Python/system packages       | yes    | `PackageDetailPanel.ts`            |
 | AI summary\*   | `ansibleExecutionEnvironments.aiSummary`         | Chat prompt                  | no     |                                    |
@@ -155,10 +155,10 @@ See `packages/common/src/skills/`.
 
 | Feature                | Command / trigger                         | Description                                            | Implementation         |
 | ---------------------- | ----------------------------------------- | ------------------------------------------------------ | ---------------------- |
-| AI Tools tree          | View: `ansibleMcpTools`                   | MCP tools by category                                  | `McpToolsProvider.ts`  |
+| AI Tools tree          | View: `ansibleMcpTools`                   | MCP tools by category                                  | `McpToolsController.ts`  |
 | Use in Chat            | `ansibleMcpTools.useInChat`               | Inject tool prompt                                     |                        |
 | Copy prompt            | `ansibleMcpTools.copyPrompt`              | Opens chat with pre-filled prompt (clipboard fallback) |                        |
-| AI Skills tree         | View: `ansibleSkills`                     | External + builtin skills                              | `SkillsProvider.ts`    |
+| AI Skills tree         | View: `ansibleSkills`                     | External + builtin skills                              | `SkillsController.ts`    |
 | MCP status             | `ansible-environments.showMcpStatus`      | Connection webview                                     | `mcp/cursorConfig.ts`  |
 | Configure Cursor MCP   | `ansible-environments.configureCursorMcp` | Guided setup                                           |                        |
 | MCP server (23+ tools) | External agent                            | Discovery, generation, EE, creator                     | `packages/mcp-server/` |

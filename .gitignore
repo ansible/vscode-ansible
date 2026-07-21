@@ -14,6 +14,7 @@ lib/
 .ansible/
 docs/.astro/
 docs/dist/
+packages/ui/dist-playground/
 packages/common/src/skills/*.content.ts
 **/*.tgz
 .cursor/hooks/state/continual-learning.json
