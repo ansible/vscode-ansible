@@ -6,7 +6,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-  "ansible-core>=2.13.0",
+  "ansible-core>=2.13.0,!=2.17.*",
   "ansible-creator>=25.11.0",
   "ansible-dev-tools>=25.11.0",
   "ansible-lint>=6.8.7",
