@@ -450,32 +450,20 @@ stories:
       - Summary describes the playbook's purpose and structure
 
   - id: PLB-007
-    title: Run playbook via ansible-navigator
-    story: >
-      As an Ansible developer, I want to run a playbook via
-      ansible-navigator from the sidebar, so that I can leverage
-      execution environments and artifact collection.
-    prd_refs: [US-6, AC-4]
-    requires_ai: false
-    criteria:
-      - Run via ansible-navigator action appears when navigator is installed
-      - Runs ansible-navigator run in an integrated terminal with venv activation
-      - Uses playbook configuration for flags via -- passthrough
-
-  - id: PLB-008
-    title: Configurable executor for playbook progress viewer
+    title: Configurable playbook executor
     story: >
       As an Ansible developer, I want to choose between ansible-playbook
-      and ansible-navigator as my playbook executor in the configuration
-      panel and progress viewer, so that I can use execution environments
-      with real-time progress visualization.
+      and ansible-navigator as my playbook executor, so that I can
+      leverage execution environments and artifact collection without
+      switching tools manually.
     prd_refs: [US-6, AC-4]
     requires_ai: false
     criteria:
       - Executor dropdown in playbook configuration form
-      - VS Code setting for default executor
-      - Progress viewer works with both ansible-playbook and ansible-navigator
-      - Callback plugin volume-mounted into EE containers for navigator runs
+      - VS Code setting (ansibleEnvironments.playbookExecutor) for default executor
+      - Run Playbook action uses configured executor
+      - Progress viewer uses configured executor with --execution-environment false
+      - Command preview in config form reflects selected executor
 
   # ---------------------------------------------------------------------------
   # EE — Execution Environment Inspection
@@ -794,3 +782,16 @@ stories:
       - Empty tree views show a helpful message with next-step actions
       - Missing tool warnings explain what to install
       - Error states show actionable recovery guidance
+
+  - id: XC-004
+    title: Open guided walkthroughs
+    story: >
+      As an Ansible developer, I want to open guided walkthroughs from
+      the extension, so that I can learn key workflows with step-by-step
+      guidance without leaving the editor.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Walkthroughs are available from the extension
+      - Opening a walkthrough shows the guided steps
+      - The opened walkthrough is identified for usage tracking

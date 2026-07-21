@@ -1,0 +1,110 @@
+import { describe, it, expect } from 'vitest';
+import {
+    buildWalkthroughHtml,
+    buildWalkthroughMarkdown,
+    getContributedWalkthrough,
+    walkthroughFqn,
+    walkthroughMarkdownToHtml,
+} from '../../../src/features/walkthroughContent';
+
+const samplePackage = {
+    name: 'ansible',
+    publisher: 'redhat',
+    contributes: {
+        walkthroughs: [
+            {
+                id: 'ansible-getting-started',
+                title: 'Get started with Ansible',
+                description: 'Learn the sidebar.',
+                steps: [
+                    {
+                        id: 'open-ansible-sidebar',
+                        title: 'Open the Ansible activity bar',
+                        description:
+                            'Click the icon.\n[Open Ansible view](command:workbench.view.extension.ansible-environments)',
+                        media: { markdown: 'media/walkthroughs/getting-started/sidebar.md' },
+                    },
+                ],
+            },
+        ],
+    },
+};
+
+describe('walkthroughContent', () => {
+    it('resolves short and FQN walkthrough ids from package.json', () => {
+        expect(getContributedWalkthrough(samplePackage, 'ansible-getting-started')?.title).toBe(
+            'Get started with Ansible',
+        );
+        expect(
+            getContributedWalkthrough(samplePackage, 'redhat.ansible#ansible-getting-started')?.id,
+        ).toBe('ansible-getting-started');
+        expect(getContributedWalkthrough(samplePackage, 'missing')).toBeUndefined();
+    });
+
+    it('builds telemetry FQN from publisher and name', () => {
+        expect(walkthroughFqn(samplePackage, 'ansible-getting-started')).toBe(
+            'redhat.ansible#ansible-getting-started',
+        );
+    });
+
+    it('builds markdown from contribution + media map (single content source)', () => {
+        const walkthrough = getContributedWalkthrough(samplePackage, 'ansible-getting-started');
+        expect(walkthrough).toBeDefined();
+        if (!walkthrough) return;
+        const md = buildWalkthroughMarkdown(walkthrough, {
+            'media/walkthroughs/getting-started/sidebar.md': '# Ansible activity bar\n\nDetails.',
+        });
+        expect(md).toContain('# Get started with Ansible');
+        expect(md).toContain('## Open the Ansible activity bar');
+        expect(md).toContain('Open Ansible view');
+        expect(md).toContain('# Ansible activity bar');
+    });
+
+    it('renders command links, headings, and inline code (not raw markdown)', () => {
+        const html = walkthroughMarkdownToHtml(
+            [
+                '# Python environments',
+                '',
+                '<script>alert(1)</script> Install (`ansible-lint`, **ade**) then [Open](command:workbench.view.extension.ansible-environments).',
+            ].join('\n'),
+        );
+        expect(html).toContain('<h3>Python environments</h3>');
+        expect(html).toContain('<code>ansible-lint</code>');
+        expect(html).toContain('<strong>ade</strong>');
+        expect(html).toContain(
+            '<a href="command:workbench.view.extension.ansible-environments">Open</a>',
+        );
+        expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+        expect(html).not.toContain('# Python');
+        expect(html).not.toContain('`ansible-lint`');
+        expect(html).not.toContain('<script');
+    });
+
+    it('builds CSP-safe HTML with sidebar nav and one-step panels', () => {
+        const walkthrough = getContributedWalkthrough(samplePackage, 'ansible-getting-started');
+        expect(walkthrough).toBeDefined();
+        if (!walkthrough) return;
+        const html = buildWalkthroughHtml(
+            walkthrough,
+            {
+                'media/walkthroughs/getting-started/sidebar.md': 'Sidebar help',
+            },
+            'testnonce',
+        );
+        expect(html).toContain('nonce-testnonce');
+        expect(html).toContain("script-src 'nonce-testnonce'");
+        expect(html).toContain('Get started with Ansible');
+        expect(html).toContain('class="nav-item active"');
+        expect(html).toContain('class="step-panel active"');
+        expect(html).toContain('aria-label="Walkthrough steps"');
+        expect(html).toContain('id="next"');
+        expect(html).toContain('main.scrollTop = 0');
+        expect(html).toContain('class="step-body"');
+        expect(html).toContain('<div class="step-body">');
+        expect(html).toContain('<div class="lead">');
+        expect(html).not.toContain('<p class="step-body">');
+        expect(html).not.toContain('<p class="lead">');
+        expect(html).toContain('Sidebar help');
+        expect(html).toContain('command:workbench.view.extension.ansible-environments');
+    });
+});

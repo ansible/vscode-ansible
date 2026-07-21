@@ -15,18 +15,25 @@ hooks = [
 ]
 
 # ── Skillmark — agentskills.io spec validation ─────────────────────────
-# Not mature enough, this repo has one github star.
-# [[repos]]
-# repo = "https://github.com/michellepellon/skillmark"
-# rev = "v0.1.0"
-# hooks = [
-#   {
-#     id = "skillmark",
-#     language = "rust",
-#     priority = 0,
-#     args = ["--config", ".skillmark.toml"]
-#   },
-# ]
+[[repos]]
+repo = "https://github.com/michellepellon/skillmark"
+rev = "v0.1.0"
+hooks = [
+  {
+    id = "skillmark",
+    language = "rust",
+    priority = 0,
+    # Scope to repo skills; also exclude .wdio-vscode (WDIO VS Code downloads).
+    args = [
+      "--config",
+      ".skillmark.toml",
+      "--exclude",
+      ".wdio-vscode/**",
+      ".agents/skills",
+      "skills",
+    ]
+  },
+]
 
 # ── Markdownlint ───────────────────────────────────────────────────────
 [[repos]]
@@ -42,13 +49,13 @@ hooks = [
 ]
 
 # ── Actionlint — GitHub Actions workflow validation ────────────────────
-# See: https://github.com/rhysd/actionlint/issues/693
-# [[repos]]
-# repo = "https://github.com/rhysd/actionlint"
-# rev = "v1.7.7"
-# hooks = [
-#   { id = "actionlint" },
-# ]
+# parallel-step ignores live in .github/actionlint.yaml (see actionlint#693).
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "v1.7.7"
+hooks = [
+  { id = "actionlint" },
+]
 
 # ── pre-commit-hooks (additional checks) ───────────────────────────────
 [[repos]]

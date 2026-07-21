@@ -79,8 +79,13 @@ import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
 import { registerLightspeed } from '@src/features/lightspeed/register';
+import { registerWalkthroughTelemetry } from '@src/telemetry';
+import { registerGettingStarted } from '@src/features/gettingStarted';
 import { AnsibleStatusBar } from '@src/statusBar/ansibleStatusBar';
 import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
+import { TelemetryService } from '@src/services/TelemetryService';
+import { emitJourneyOutcome } from '@src/services/journeyTelemetry';
+import { TelemetryEvents } from '@ansible/common';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible');
@@ -149,17 +154,24 @@ export function getLogFilePath(): string | undefined {
  * Activate the Ansible extension and register providers and commands.
  * @param context - VS Code extension activation context
  */
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // Initialize file-based logging (before anything else so all messages are captured)
     const logFile = _ensureLogFile(context);
     log(`Log file: ${logFile}`);
 
     outputChannel.show(true);
 
+    // Initialize telemetry (respects redhat.telemetry.enabled + VS Code global consent)
+    const telemetry = await TelemetryService.create(context);
+    context.subscriptions.push(telemetry);
+    telemetry.sendEvent(TelemetryEvents.EXTENSION_ACTIVATED);
+
     registerFileAssociation(context);
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
-    registerLightspeed(context)
+    registerWalkthroughTelemetry(context, telemetry);
+    registerGettingStarted(context, telemetry);
+    registerLightspeed(context, telemetry)
         .then((disposable) => {
             if (disposable) context.subscriptions.push(disposable);
         })
@@ -445,19 +457,6 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(packagesView);
 
-    // Track ansible-navigator availability for conditional menu items
-    const updateNavigatorAvailability = async () => {
-        const available = await commandService.isToolAvailable('ansible-navigator');
-        await vscode.commands.executeCommand('setContext', 'ansible.navigatorAvailable', available);
-    };
-    const navToolsService = DevToolsService.getInstance();
-    context.subscriptions.push(
-        (navToolsService.onDidChange as vscode.Event<void>)(() => {
-            void updateNavigatorAvailability();
-        }),
-    );
-    void updateNavigatorAvailability();
-
     // Register the Collections view
     const collectionsProvider = new CollectionsProvider(pythonEnvService);
     const collectionsView = vscode.window.createTreeView('ansibleDevToolsCollections', {
@@ -534,16 +533,46 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.commands.registerCommand(
             'ansibleSkills.useInChat',
-            (arg: SkillEntry | { skill: SkillEntry }) => {
+            async (arg: SkillEntry | { skill: SkillEntry }) => {
+                const startedAt = Date.now();
                 const skill = 'skill' in arg ? arg.skill : arg;
-                void openChatWithSkill(skill);
+                try {
+                    await openChatWithSkill(skill);
+                    emitJourneyOutcome(TelemetryEvents.SKILL_USE_IN_CHAT, 'success', {
+                        startedAt,
+                    });
+                } catch (error) {
+                    emitJourneyOutcome(TelemetryEvents.SKILL_USE_IN_CHAT, 'error', {
+                        startedAt,
+                        errorCode: 'chat_inject_failed',
+                    });
+                    vscode.window.showErrorMessage(
+                        `Failed to use skill in chat: ${formatError(error)}`,
+                    );
+                    throw error;
+                }
             },
         ),
         vscode.commands.registerCommand(
             'ansibleSkills.copyPrompt',
-            (arg: SkillEntry | { skill: SkillEntry }) => {
+            async (arg: SkillEntry | { skill: SkillEntry }) => {
+                const startedAt = Date.now();
                 const skill = 'skill' in arg ? arg.skill : arg;
-                void copySkillPrompt(skill);
+                try {
+                    await copySkillPrompt(skill);
+                    emitJourneyOutcome(TelemetryEvents.SKILL_PROMPT_COPY, 'success', {
+                        startedAt,
+                    });
+                } catch (error) {
+                    emitJourneyOutcome(TelemetryEvents.SKILL_PROMPT_COPY, 'error', {
+                        startedAt,
+                        errorCode: 'copy_failed',
+                    });
+                    vscode.window.showErrorMessage(
+                        `Failed to copy skill prompt: ${formatError(error)}`,
+                    );
+                    throw error;
+                }
             },
         ),
     );
@@ -611,10 +640,15 @@ export function activate(context: vscode.ExtensionContext) {
     const envManagersCreateCommand = vscode.commands.registerCommand(
         'ansibleDevToolsEnvManagers.create',
         async () => {
+            const startedAt = Date.now();
             try {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 if (!workspaceFolder) {
                     vscode.window.showErrorMessage('No workspace folder open.');
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'error', {
+                        startedAt,
+                        errorCode: 'no_workspace',
+                    });
                     return;
                 }
 
@@ -629,11 +663,18 @@ export function activate(context: vscode.ExtensionContext) {
                     void envManagersProvider.refresh();
                     void devToolsProvider.refresh();
                     void collectionsProvider.refresh();
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'success', { startedAt });
+                } else {
+                    emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'cancel', { startedAt });
                 }
             } catch (error) {
                 vscode.window.showErrorMessage(
                     `Failed to create environment: ${formatError(error)}`,
                 );
+                emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'error', {
+                    startedAt,
+                    errorCode: 'create_failed',
+                });
             }
         },
     );
@@ -898,10 +939,10 @@ export function activate(context: vscode.ExtensionContext) {
     );
     context.subscriptions.push(packageDetailCommand);
 
-    // AI Summary Commands - Collections
     const collectionsAiSummaryCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.aiSummary',
         async () => {
+            telemetry.sendEvent(TelemetryEvents.AI_SUMMARY_REQUEST, { domain: 'collections' });
             await openChatWithPrompt(buildCollectionsSummaryPrompt());
         },
     );
@@ -997,6 +1038,10 @@ export function activate(context: vscode.ExtensionContext) {
     const creatorOpenFormCommand = vscode.commands.registerCommand(
         'ansibleCreator.openForm',
         (arg1: string[] | { commandPath: string[]; schema: unknown }, arg2?: unknown) => {
+            const commandPath = Array.isArray(arg1) ? arg1 : arg1.commandPath;
+            telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
+                command: commandPath.join('/'),
+            });
             if (Array.isArray(arg1)) {
                 CreatorFormPanel.show(context.extensionUri, arg1, arg2 as SchemaNode);
             } else {
@@ -1031,33 +1076,45 @@ export function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Run playbook in terminal (respects configured executor)
     const playbooksRunCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.run',
         async (node: { playbook: PlaybookInfo }) => {
-            const playbooksService = PlaybooksService.getInstance();
-            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
+            const startedAt = Date.now();
+            try {
+                const playbooksService = PlaybooksService.getInstance();
+                const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-            // Calculate path relative to the playbook's workspace folder
-            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
-            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
+                const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
+                const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-            const command = playbooksService.buildCommand(playbookRelativePath, config);
+                const useNavigator = config.executor === 'ansible-navigator';
+                const command = useNavigator
+                    ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                    : playbooksService.buildCommand(playbookRelativePath, config);
+                const executorLabel = useNavigator ? 'ansible-navigator' : 'ansible-playbook';
 
-            log(`Running playbook: ${command} in ${workspaceFolderPath}`);
+                log(`Running playbook: ${command} in ${workspaceFolderPath}`);
 
-            // Use TerminalService for proper venv activation handling
-            // Use the playbook's workspace folder as cwd
-            const terminalService = TerminalService.getInstance();
-            const managed = await terminalService.createActivatedTerminal({
-                name: `ansible-playbook: ${node.playbook.name}`,
-                cwd: node.playbook.workspaceFolder,
-                show: true,
-            });
+                const terminalService = TerminalService.getInstance();
+                const managed = await terminalService.createActivatedTerminal({
+                    name: `${executorLabel}: ${node.playbook.name}`,
+                    cwd: node.playbook.workspaceFolder,
+                    show: true,
+                });
 
-            log('Terminal ready, sending command...');
+                log('Terminal ready, sending command...');
 
-            // Fire and forget - user watches terminal output
-            void managed.sendCommand(command, { waitForCompletion: false });
+                await managed.sendCommand(command, { waitForCompletion: false });
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'success', { startedAt });
+            } catch (error) {
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'error', {
+                    startedAt,
+                    errorCode: 'launch_failed',
+                });
+                vscode.window.showErrorMessage(`Failed to run playbook: ${formatError(error)}`);
+                throw error;
+            }
         },
     );
 
@@ -1065,51 +1122,40 @@ export function activate(context: vscode.ExtensionContext) {
     const playbooksRunWithProgressCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.runWithProgress',
         async (node: { playbook: PlaybookInfo }) => {
-            const playbooksService = PlaybooksService.getInstance();
-            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
+            const startedAt = Date.now();
+            try {
+                const playbooksService = PlaybooksService.getInstance();
+                const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
-            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
+                const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
+                const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-            const useNavigator = config.executor === 'ansible-navigator';
-            const command = useNavigator
-                ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
-                : playbooksService.buildCommand(playbookRelativePath, config);
+                const useNavigator = config.executor === 'ansible-navigator';
+                const command = useNavigator
+                    ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                    : playbooksService.buildCommand(playbookRelativePath, config);
 
-            log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
+                log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
 
-            await PlaybookProgressPanel.show(context.extensionUri, {
-                playbookPath: node.playbook.path,
-                playbookName: node.playbook.name,
-                workspaceFolder: node.playbook.workspaceFolder,
-                command: command,
-                extensionPath: context.extensionPath,
-                executor: config.executor,
-            });
-        },
-    );
-
-    const playbooksRunNavigatorCommand = vscode.commands.registerCommand(
-        'ansiblePlaybooks.runWithNavigator',
-        async (node: { playbook: PlaybookInfo }) => {
-            const playbooksService = PlaybooksService.getInstance();
-            const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
-
-            const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
-            const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
-
-            const command = playbooksService.buildNavigatorCommand(playbookRelativePath, config);
-
-            log(`Running playbook via ansible-navigator: ${command} in ${workspaceFolderPath}`);
-
-            const terminalService = TerminalService.getInstance();
-            const managed = await terminalService.createActivatedTerminal({
-                name: `ansible-navigator: ${node.playbook.name}`,
-                cwd: node.playbook.workspaceFolder,
-                show: true,
-            });
-
-            void managed.sendCommand(command, { waitForCompletion: false });
+                await PlaybookProgressPanel.show(context.extensionUri, {
+                    playbookPath: node.playbook.path,
+                    playbookName: node.playbook.name,
+                    workspaceFolder: node.playbook.workspaceFolder,
+                    command: command,
+                    extensionPath: context.extensionPath,
+                    executor: config.executor,
+                    telemetryStartedAt: startedAt,
+                });
+            } catch (error) {
+                emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN_WITH_PROGRESS, 'error', {
+                    startedAt,
+                    errorCode: 'launch_failed',
+                });
+                vscode.window.showErrorMessage(
+                    `Failed to run playbook with progress: ${formatError(error)}`,
+                );
+                throw error;
+            }
         },
     );
 
@@ -1174,7 +1220,24 @@ export function activate(context: vscode.ExtensionContext) {
     const mcpToolsUseInChatCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.useInChat',
         async (toolInfo: ToolInfo) => {
-            await injectToolPromptIntoChat(toolInfo);
+            const startedAt = Date.now();
+            try {
+                await injectToolPromptIntoChat(toolInfo);
+                emitJourneyOutcome(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, 'success', {
+                    startedAt,
+                    extra: { toolName: toolInfo.tool.name },
+                });
+            } catch (error) {
+                emitJourneyOutcome(TelemetryEvents.MCP_TOOL_USE_IN_CHAT, 'error', {
+                    startedAt,
+                    errorCode: 'chat_inject_failed',
+                    extra: { toolName: toolInfo.tool.name },
+                });
+                vscode.window.showErrorMessage(
+                    `Failed to use MCP tool in chat: ${formatError(error)}`,
+                );
+                throw error;
+            }
         },
     );
 
@@ -1407,6 +1470,8 @@ export function activate(context: vscode.ExtensionContext) {
     const collectionsInstallCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.install',
         () => {
+            const startedAt = Date.now();
+            let accepted = false;
             try {
                 const collectionsService = CollectionsService.getInstance();
 
@@ -1472,45 +1537,57 @@ export function activate(context: vscode.ExtensionContext) {
 
                 quickPick.onDidAccept(() => {
                     const selected = quickPick.selectedItems[0];
-                    // Skip if loading placeholder or no selection
+                    // Skip if loading placeholder
                     if (selected.label.startsWith('$(sync~spin)')) {
                         return;
                     }
 
+                    accepted = true;
                     quickPick.hide();
 
-                    const collectionName = selected.label;
-
-                    // Run installation with progress indicator
+                    // Run installation with progress indicator (no FQCN in telemetry)
                     void vscode.window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
-                            title: `Installing ${collectionName}`,
+                            title: `Installing ${selected.label}`,
                             cancellable: false,
                         },
                         async (progress) => {
                             progress.report({ message: 'Running ade install...' });
 
                             try {
-                                const output =
-                                    await collectionsService.installCollection(collectionName);
+                                const output = await collectionsService.installCollection(
+                                    selected.label,
+                                );
                                 vscode.window.showInformationMessage(
-                                    `Successfully installed ${collectionName}`,
+                                    `Successfully installed ${selected.label}`,
                                 );
                                 log(`Collection install output: ${output}`);
 
                                 // Refresh the collections view
                                 void collectionsProvider.refresh();
+                                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'success', {
+                                    startedAt,
+                                });
                             } catch (error) {
                                 vscode.window.showErrorMessage(
                                     `Failed to install collection: ${formatError(error)}`,
                                 );
+                                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'error', {
+                                    startedAt,
+                                    errorCode: 'install_failed',
+                                });
                             }
                         },
                     );
                 });
 
                 quickPick.onDidHide(() => {
+                    if (!accepted) {
+                        emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'cancel', {
+                            startedAt,
+                        });
+                    }
                     loadListener.dispose();
                     progressListener.dispose();
                     quickPick.dispose();
@@ -1520,6 +1597,10 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage(
                     `Failed to install collection: ${formatError(error)}`,
                 );
+                emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'error', {
+                    startedAt,
+                    errorCode: 'picker_failed',
+                });
             }
         },
     );
@@ -1544,6 +1625,7 @@ export function activate(context: vscode.ExtensionContext) {
     const selectLlmModelCommand = vscode.commands.registerCommand(
         'ansibleEnvironments.selectLlmModel',
         async () => {
+            telemetry.sendEvent(TelemetryEvents.LLM_MODEL_SELECT);
             const llmService = getLlmService();
             await llmService.showModelPicker();
         },
@@ -1604,7 +1686,6 @@ export function activate(context: vscode.ExtensionContext) {
         playbooksEditDefaultsCommand,
         playbooksRunCommand,
         playbooksRunWithProgressCommand,
-        playbooksRunNavigatorCommand,
         playbooksOpenCommand,
         playbooksGoToPlayCommand,
         playbooksAiSummaryCommand,

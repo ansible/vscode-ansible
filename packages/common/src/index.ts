@@ -43,7 +43,11 @@ export type {
     ProgressEventType,
     AiAnalyzeData,
     PlaybookRunOptions,
+    TelemetryEventName,
+    TelemetryResult,
+    TelemetryOutcomeOptions,
 } from './types';
+export { TelemetryEvents, buildOutcomeProperties } from './types';
 
 // --- Utils ---
 export {

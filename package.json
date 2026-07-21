@@ -441,6 +441,12 @@
         "icon": "$(window)"
       },
       {
+        "command": "ansible.walkthrough.openGettingStarted",
+        "title": "Ansible: Get Started",
+        "category": "Ansible",
+        "icon": "$(rocket)"
+      },
+      {
         "command": "ansible.showDiagnostics",
         "title": "Ansible: Show Diagnostics",
         "category": "Ansible",
@@ -534,11 +540,6 @@
         "command": "ansiblePlaybooks.runWithProgress",
         "title": "Run with Progress Viewer",
         "icon": "$(graph)"
-      },
-      {
-        "command": "ansiblePlaybooks.runWithNavigator",
-        "title": "Run via ansible-navigator",
-        "icon": "$(rocket)"
       },
       {
         "command": "ansiblePlaybooks.openPlaybook",
@@ -918,24 +919,19 @@
           "group": "inline@2"
         },
         {
-          "command": "ansiblePlaybooks.runWithNavigator",
-          "when": "view == ansiblePlaybooks && viewItem == playbook && ansible.navigatorAvailable",
-          "group": "inline@3"
-        },
-        {
           "command": "ansiblePlaybooks.openPlaybook",
           "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@4"
+          "group": "inline@3"
         },
         {
           "command": "ansiblePlaybooks.editConfig",
           "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@5"
+          "group": "inline@4"
         },
         {
           "command": "ansiblePlaybooks.aiSummary",
           "when": "view == ansiblePlaybooks && viewItem == playbook && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@6"
+          "group": "inline@5"
         },
         {
           "command": "ansibleMcpTools.copyPrompt",
@@ -1172,6 +1168,16 @@
           "description": "DEPRECATED: Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead.",
           "deprecationMessage": "Use 'ansibleEnvironments.llm.provider' and 'ansibleEnvironments.llm.model' instead."
         },
+        "redhat.telemetry.enabled": {
+          "type": "boolean",
+          "default": null,
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ],
+          "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
+          "scope": "window"
+        },
         "ansible.lightspeed.enabled": {
           "type": "boolean",
           "default": false,
@@ -1189,6 +1195,93 @@
         }
       }
     },
+    "walkthroughs": [
+      {
+        "id": "ansible-getting-started",
+        "title": "Get started with Ansible",
+        "description": "A guided tour of Ansible Environments — sidebar workflows from setup through playbooks. Steps are drawn from the UX walkthrough catalog (end-user modules).",
+        "steps": [
+          {
+            "id": "open-ansible-sidebar",
+            "title": "Open the Ansible activity bar",
+            "description": "Click the Ansible icon in the Activity Bar to browse environments, collections, playbooks, and scaffolding tools.\n[Open Ansible view](command:workbench.view.extension.ansible-environments)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/sidebar.md"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.ansible-environments"
+            ]
+          },
+          {
+            "id": "create-environment",
+            "title": "Create a Python environment",
+            "description": "Create an isolated environment so Ansible development tools stay out of your system Python, then install ansible-dev-tools from the Dev Tools view.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/environment.md"
+            },
+            "completionEvents": [
+              "onCommand:ansibleDevToolsEnvManagers.create"
+            ]
+          },
+          {
+            "id": "editor-language-server",
+            "title": "Edit playbooks with the language server",
+            "description": "Open a `.yml` playbook and try completions (Ctrl+Space), hover docs on keywords/FQCNs, and vault encrypt/decrypt when you need secrets.\n[Vault: Encrypt/Decrypt](command:ansibleEnvironments.vault)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/editor.md"
+            }
+          },
+          {
+            "id": "browse-collections",
+            "title": "Browse collections and plugin docs",
+            "description": "Use Installed Collections to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Refresh Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/collections.md"
+            }
+          },
+          {
+            "id": "collection-sources",
+            "title": "Find and install collections",
+            "description": "Search Galaxy or GitHub from Collection Sources, preview docs for content you have not installed yet, then install with ADE.\n[Refresh Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/collection-sources.md"
+            }
+          },
+          {
+            "id": "scaffold-content",
+            "title": "Scaffold content with Creator",
+            "description": "Open the Creator view, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Refresh Creator](command:ansibleCreator.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/creator.md"
+            }
+          },
+          {
+            "id": "run-playbooks",
+            "title": "Run playbooks with progress",
+            "description": "Discover playbooks in the workspace, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Refresh Playbooks](command:ansiblePlaybooks.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/playbooks.md"
+            }
+          },
+          {
+            "id": "execution-environments",
+            "title": "Inspect execution environments",
+            "description": "Browse local EE images, open image details, and inspect packages when you develop against containers.\n[Refresh Execution Environments](command:ansibleExecutionEnvironments.refresh)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/execution-environments.md"
+            }
+          },
+          {
+            "id": "diagnostics-status",
+            "title": "Check diagnostics and the status bar",
+            "description": "Hover the Ansible status bar for quick actions (including this walkthrough). Open Diagnostics when something looks wrong.\n[Show Diagnostics](command:ansible.showDiagnostics)",
+            "media": {
+              "markdown": "media/walkthroughs/getting-started/diagnostics.md"
+            }
+          }
+        ]
+      }
+    ],
     "authentication": [
       {
         "id": "auth-lightspeed",
@@ -1213,7 +1306,7 @@
     "check": "pnpm run compile && pnpm run lint && pnpm run test",
     "ci": "pnpm run compile && pnpm run lint && pnpm run test:coverage && pnpm run build",
     "test:watch": "vitest",
-    "package": "npm run build && vsce package --no-dependencies && ./scripts/build-plugin.sh",
+    "package": "pnpm run build && vsce package --no-dependencies && ./scripts/build-plugin.sh",
     "package:install": "vsce package --no-dependencies && code --install-extension *.vsix --force && rm -f *.vsix",
     "test:integration": "tsc -p test/integration/tsconfig.json && vscode-test",
     "test:integration:no-envs": "tsc -p test/integration/tsconfig.json && vscode-test --label no-python-envs",
@@ -1279,6 +1372,7 @@
     "@ansible/mcp-server": "workspace:*",
     "@ansible/ui": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.25.2",
+    "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@types/js-yaml": "^4.0.9",
     "@vscode-elements/elements": "^1.6.0",
     "@vscode/python-extension": "~1.0.5",
@@ -1290,5 +1384,7 @@
     "yaml": "^2.9.0",
     "zod": "^4.3.5",
     "zod-to-json-schema": "^3.25.1"
-  }
+  },
+  "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
+  "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
 }
