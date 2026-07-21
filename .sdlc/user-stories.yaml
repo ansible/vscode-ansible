@@ -795,3 +795,35 @@ stories:
       - Walkthroughs are available from the extension
       - Opening a walkthrough shows the guided steps
       - The opened walkthrough is identified for usage tracking
+
+  # ---------------------------------------------------------------------------
+  # TOX — Tox-Ansible Integration
+  # ---------------------------------------------------------------------------
+  - id: TOX-001
+    title: Discover tox-ansible test environments
+    story: >
+      As an Ansible collection developer, I want the extension to
+      automatically discover tox-ansible test environments in my
+      workspace so that I can see integration, sanity, and unit test
+      targets in the Test Explorer without running tox manually.
+    prd_refs: []
+    requires_ai: false
+    criteria:
+      - Test Explorer shows tox-ansible environments grouped by category
+      - Environments refresh when tox config files change
+      - Empty state is shown when tox or tox-ansible is not installed
+
+  - id: TOX-002
+    title: Run tox-ansible tests from Test Explorer
+    story: >
+      As an Ansible collection developer, I want to run individual or
+      grouped tox-ansible test environments from the Test Explorer and
+      see pass/fail results with output, so that I can validate my
+      collection without switching to a terminal.
+    prd_refs: []
+    requires_ai: false
+    criteria:
+      - Clicking Run on a test item executes the tox environment
+      - Pass/fail is determined by tox exit code
+      - Failed tests show stderr/stdout output
+      - Duration is reported for each test run

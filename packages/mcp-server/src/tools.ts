@@ -932,6 +932,58 @@ become, connection, vault, etc.) passed through via the \`--\` separator.`,
     },
 };
 
+// === Tox-Ansible Tools ===
+
+export const TOX_LIST_ENVIRONMENTS_TOOL: McpToolDefinition = {
+    name: 'tox_list_environments',
+    description: `List tox-ansible test environments discovered in the workspace.
+
+Returns environments grouped by category (integration, sanity, unit) with
+Python version and Ansible version factors.
+
+Requires tox and the tox-ansible plugin installed in the active Python environment.`,
+    annotations: READ_ONLY,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            workspace_dir: {
+                type: 'string',
+                description: 'Absolute path to the workspace directory containing tox config',
+            },
+        },
+        required: ['workspace_dir'],
+    },
+};
+
+export const TOX_RUN_ENVIRONMENT_TOOL: McpToolDefinition = {
+    name: 'tox_run_environment',
+    description: `Run a specific tox-ansible test environment and return the result.
+
+Executes the environment via \`tox -e <name> --ansible\` and captures exit code,
+stdout, and stderr. Returns pass/fail status with duration.
+
+Use tox_list_environments first to discover available environment names.`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            environment: {
+                type: 'string',
+                description: 'Tox environment name (e.g., "integration-py3.12-devel")',
+            },
+            workspace_dir: {
+                type: 'string',
+                description: 'Absolute path to the workspace directory containing tox config',
+            },
+            timeout_ms: {
+                type: 'number',
+                description: 'Maximum execution time in milliseconds (default: 600000 = 10 min)',
+            },
+        },
+        required: ['environment', 'workspace_dir'],
+    },
+};
+
 // === Collection of all static tools ===
 
 export const STATIC_TOOLS: McpToolDefinition[] = [
@@ -973,4 +1025,8 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     // Getting started
     GET_AGENT_ONBOARDING_TOOL,
     GET_EXTENSION_WALKTHROUGH_TOOL,
+
+    // Tox-Ansible
+    TOX_LIST_ENVIRONMENTS_TOOL,
+    TOX_RUN_ENVIRONMENT_TOOL,
 ];

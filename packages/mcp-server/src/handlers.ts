@@ -22,6 +22,7 @@ import {
     GalaxyDocsCache,
     GitHubCollectionCache,
     SCMDocsCache,
+    ToxAnsibleService,
     getCommandService,
     isExecutionEnvironmentDefinition,
     planAnsibleBuilderBuild,
@@ -186,6 +187,12 @@ export class McpToolHandler {
 
                 case 'get_extension_walkthrough':
                     return this._handleGetExtensionWalkthrough();
+
+                // Tox-Ansible
+                case 'tox_list_environments':
+                    return await this._handleToxListEnvironments(args);
+                case 'tox_run_environment':
+                    return await this._handleToxRunEnvironment(args);
 
                 default:
                     return mcpError({
@@ -2107,5 +2114,111 @@ their reactions. Keep explanations concise and practical.
         }
 
         return undefined;
+    }
+
+    // === Tox-Ansible Handlers ===
+
+    /**
+     * Get a ToxAnsibleService instance (lazily created).
+     * @returns ToxAnsibleService for tox discovery/execution
+     */
+    private _getToxService(): InstanceType<typeof ToxAnsibleService> {
+        return new ToxAnsibleService();
+    }
+
+    /**
+     * List tox-ansible test environments in a workspace directory.
+     * @param args - Tool args: `workspace_dir` (required)
+     * @returns JSON list of discovered environments grouped by category
+     */
+    private async _handleToxListEnvironments(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
+        const workspaceDir = args.workspace_dir as string | undefined;
+        if (!workspaceDir) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'workspace_dir is required',
+            });
+        }
+
+        const service = this._getToxService();
+        const availability = await service.checkAvailability();
+
+        if (!availability.toxInstalled) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'tox is not installed in the active Python environment',
+                suggestion: 'Install ansible-dev-tools: pip install ansible-dev-tools',
+            });
+        }
+
+        if (!availability.toxAnsibleInstalled) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'tox-ansible plugin is not installed',
+                suggestion: 'Install tox-ansible: pip install tox-ansible',
+            });
+        }
+
+        const envs = await service.listEnvironments(workspaceDir);
+
+        const grouped: Record<string, typeof envs> = {};
+        for (const env of envs) {
+            const cat = env.category;
+            grouped[cat] = [...(grouped[cat] ?? []), env];
+        }
+
+        const text =
+            envs.length === 0
+                ? 'No tox-ansible environments found. Ensure tox-ansible.ini or tox.ini exists in the workspace.'
+                : JSON.stringify(
+                      {
+                          total: envs.length,
+                          tox_version: availability.toxVersion,
+                          categories: grouped,
+                      },
+                      null,
+                      2,
+                  );
+
+        return { content: [{ type: 'text', text }] };
+    }
+
+    /**
+     * Run a specific tox-ansible environment and return results.
+     * @param args - Tool args: `environment` + `workspace_dir` (required), `timeout_ms` (optional)
+     * @returns JSON result with exit code, stdout, stderr, and duration
+     */
+    private async _handleToxRunEnvironment(args: Record<string, unknown>): Promise<McpToolResult> {
+        const environment = args.environment as string | undefined;
+        const workspaceDir = args.workspace_dir as string | undefined;
+
+        if (!environment) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'environment is required',
+            });
+        }
+
+        if (!workspaceDir) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'workspace_dir is required',
+            });
+        }
+
+        const timeoutMs = typeof args.timeout_ms === 'number' ? args.timeout_ms : undefined;
+        const service = this._getToxService();
+        const result = await service.runEnvironment(environment, workspaceDir, timeoutMs);
+
+        return {
+            content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+        };
     }
 }

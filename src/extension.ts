@@ -78,6 +78,7 @@ import { getLlmService } from '@src/services/LlmService';
 import { registerFileAssociation } from '@src/features/fileAssociation';
 import { registerExtensionConflictDetection } from '@src/features/extensionConflicts';
 import { registerVaultCommand } from '@src/features/vault';
+import { registerToxAnsible } from '@src/features/toxAnsible/register';
 import { registerLightspeed } from '@src/features/lightspeed/register';
 import { registerWalkthroughTelemetry } from '@src/telemetry';
 import { registerGettingStarted } from '@src/features/gettingStarted';
@@ -169,6 +170,7 @@ export async function activate(context: vscode.ExtensionContext) {
     registerFileAssociation(context);
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
+    registerToxAnsible(context);
     registerWalkthroughTelemetry(context, telemetry);
     registerGettingStarted(context, telemetry);
     registerLightspeed(context, telemetry)
