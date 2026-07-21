@@ -125,7 +125,7 @@ export function parseNoDescOutput(stdout: string): ToxEnvironment[] {
 }
 
 /**
- *
+ * Discovers and runs tox-ansible test environments via the tox CLI.
  */
 export class ToxAnsibleService {
     private readonly _cmd: CommandService;

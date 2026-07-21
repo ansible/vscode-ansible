@@ -186,10 +186,6 @@ describe('parseNoDescOutput', () => {
 // ---------------------------------------------------------------------------
 
 /**
- *
- * @param overrides
- */
-/**
  * Create a mock ExecResult with optional overrides.
  * @param overrides - Fields to override on the default result
  * @returns ExecResult with defaults merged

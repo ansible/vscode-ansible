@@ -20,7 +20,16 @@ const hoisted = vi.hoisted(() => {
     const forceRefresh = vi.fn().mockResolvedValue(undefined);
     const refresh = vi.fn().mockResolvedValue(undefined);
     const listCollectionNames = vi.fn(() => ['ansible.builtin']);
-    const getCollection = vi.fn((name: string) => ({
+    interface CollectionInfo {
+        info: {
+            name: string;
+            version: string;
+            description: string;
+            authors: string[];
+        };
+        pluginTypes: Map<string, { name: string; fullName: string; shortDescription: string }[]>;
+    }
+    const getCollection = vi.fn((name: string): CollectionInfo | undefined => ({
         info: {
             name,
             version: '1.0.0',
@@ -109,6 +118,7 @@ const hoisted = vi.hoisted(() => {
                     name: string;
                     version: string;
                     description: string;
+                    repository?: string;
                 }[],
         ),
     };
@@ -146,7 +156,7 @@ const hoisted = vi.hoisted(() => {
     const creatorInstance = {
         isLoaded: vi.fn(() => true),
         refresh: vi.fn().mockResolvedValue(undefined),
-        getSchema: vi.fn(() => null),
+        getSchema: vi.fn(() => null as Record<string, unknown> | null),
         loadSchema: vi.fn().mockResolvedValue(null),
     };
 
@@ -1754,6 +1764,53 @@ describe('McpToolHandler', () => {
                 '/workspace',
                 120000,
             );
+        });
+
+        it('returns failure data without isError when test fails', async () => {
+            hoisted.toxInstance.runEnvironment.mockResolvedValueOnce({
+                environment: 'unit-py3.12-devel',
+                success: false,
+                exitCode: 2,
+                stdout: 'FAILED test_foo.py',
+                stderr: '',
+                durationMs: 5000,
+            });
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBeUndefined();
+            const data = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            expect(data.success).toBe(false);
+            expect(data.exitCode).toBe(2);
+            expect(data.environment).toBe('unit-py3.12-devel');
+        });
+
+        it('rejects zero or negative timeout_ms', async () => {
+            await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+                timeout_ms: 0,
+            });
+            expect(hoisted.toxInstance.runEnvironment).toHaveBeenCalledWith(
+                'unit-py3.12-devel',
+                '/workspace',
+                undefined,
+            );
+        });
+
+        it('returns SERVICE_UNAVAILABLE when tox not installed', async () => {
+            hoisted.toxInstance.checkAvailability.mockResolvedValueOnce({
+                toxInstalled: false,
+                toxAnsibleInstalled: false,
+            });
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBe(true);
+            const err = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
         });
     });
 });

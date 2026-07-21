@@ -2213,8 +2213,31 @@ their reactions. Keep explanations concise and practical.
             });
         }
 
-        const timeoutMs = typeof args.timeout_ms === 'number' ? args.timeout_ms : undefined;
         const service = this._getToxService();
+        const availability = await service.checkAvailability();
+
+        if (!availability.toxInstalled) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'tox is not installed in the active Python environment',
+                suggestion: 'Install ansible-dev-tools: pip install ansible-dev-tools',
+            });
+        }
+
+        if (!availability.toxAnsibleInstalled) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'tox-ansible plugin is not installed',
+                suggestion: 'Install tox-ansible: pip install tox-ansible',
+            });
+        }
+
+        const timeoutMs =
+            typeof args.timeout_ms === 'number' && args.timeout_ms > 0
+                ? args.timeout_ms
+                : undefined;
         const result = await service.runEnvironment(environment, workspaceDir, timeoutMs);
 
         return {

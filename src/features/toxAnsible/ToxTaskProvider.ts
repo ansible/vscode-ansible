@@ -12,9 +12,7 @@ import { log } from '@src/extension';
 const TASK_TYPE = 'ansible-tox';
 const TASK_SOURCE = 'ansible-tox';
 
-/**
- *
- */
+/** VS Code Task Provider for tox-ansible environments. */
 export class ToxTaskProvider implements vscode.TaskProvider {
     private readonly _service: ToxAnsibleService;
 
@@ -67,12 +65,11 @@ export class ToxTaskProvider implements vscode.TaskProvider {
             return undefined;
         }
 
-        const folder = task.scope as vscode.WorkspaceFolder | undefined;
-        return this._createTask(
-            definition.environment,
-            undefined,
-            folder ?? vscode.workspace.workspaceFolders?.[0],
-        );
+        const folder =
+            task.scope && typeof task.scope === 'object' && 'uri' in task.scope
+                ? task.scope
+                : vscode.workspace.workspaceFolders?.[0];
+        return this._createTask(definition.environment, undefined, folder);
     }
 
     /**
@@ -92,7 +89,15 @@ export class ToxTaskProvider implements vscode.TaskProvider {
             environment: envName,
         };
 
-        const execution = new vscode.ShellExecution(`tox -e ${envName} --ansible`, {
+        let command = `tox -e ${envName} --ansible`;
+        if (folder?.uri.fsPath) {
+            const configFile = this._service.detectConfigFile(folder.uri.fsPath);
+            if (configFile && !configFile.endsWith('pyproject.toml')) {
+                command += ` --conf "${configFile}"`;
+            }
+        }
+
+        const execution = new vscode.ShellExecution(command, {
             cwd: folder?.uri.fsPath,
         });
 

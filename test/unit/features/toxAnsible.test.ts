@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type * as vscode from 'vscode';
 
 const mocks = vi.hoisted(() => {
     const createTestController = vi.fn();
@@ -112,6 +113,7 @@ vi.mock('@ansible/developer-services', () => ({
             stderr: '',
             durationMs: 5000,
         }),
+        detectConfigFile: vi.fn().mockReturnValue(undefined),
     })),
 }));
 
@@ -119,9 +121,9 @@ vi.mock('@src/extension', () => ({
     log: vi.fn(),
 }));
 
-import { ToxTestController } from '@src/features/toxAnsible/ToxTestController';
-import { ToxTaskProvider } from '@src/features/toxAnsible/ToxTaskProvider';
-import { registerToxAnsible } from '@src/features/toxAnsible/register';
+import { ToxTestController } from '../../../src/features/toxAnsible/ToxTestController';
+import { ToxTaskProvider } from '../../../src/features/toxAnsible/ToxTaskProvider';
+import { registerToxAnsible } from '../../../src/features/toxAnsible/register';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -191,8 +193,34 @@ describe('ToxTaskProvider', () => {
         const provider = new ToxTaskProvider();
         const result = provider.resolveTask({
             definition: { type: 'not-tox', environment: 'foo' },
-        });
+            scope: 1,
+        } as unknown as vscode.Task);
         expect(result).toBeUndefined();
+    });
+
+    it('resolves a task when scope is an enum value', () => {
+        const provider = new ToxTaskProvider();
+        const result = provider.resolveTask({
+            definition: { type: 'ansible-tox', environment: 'unit-py3.12-devel' },
+            scope: 1,
+        } as unknown as vscode.Task);
+        expect(result).toBeDefined();
+        expect((result as unknown as { name: string }).name).toBe('unit-py3.12-devel');
+    });
+
+    it('resolves a task when scope is a WorkspaceFolder', () => {
+        const provider = new ToxTaskProvider();
+        const folder = {
+            uri: { fsPath: '/workspace', toString: () => 'file:///workspace' },
+            name: 'workspace',
+            index: 0,
+        };
+        const result = provider.resolveTask({
+            definition: { type: 'ansible-tox', environment: 'unit-py3.12-devel' },
+            scope: folder,
+        } as unknown as vscode.Task);
+        expect(result).toBeDefined();
+        expect((result as unknown as { name: string }).name).toBe('unit-py3.12-devel');
     });
 });
 
@@ -201,7 +229,7 @@ describe('registerToxAnsible', () => {
         const context = {
             subscriptions: { push: vi.fn() },
         };
-        registerToxAnsible(context);
+        registerToxAnsible(context as unknown as vscode.ExtensionContext);
         expect(context.subscriptions.push).toHaveBeenCalledTimes(2);
     });
 });
