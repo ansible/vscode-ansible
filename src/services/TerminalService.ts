@@ -6,6 +6,8 @@
  */
 
 import * as vscode from 'vscode';
+import { getCachedEnvironment } from '@ansible/developer-services';
+import type { PythonEnvironment } from '@ansible/developer-services';
 import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 
 export interface CommandResult {
@@ -78,7 +80,7 @@ export class TerminalService {
         let expectActivation = false;
 
         if (this._pythonEnvService?.hasEnvsExtension() && workspaceFolder) {
-            const environment = await this._pythonEnvService.getEnvironment(workspaceFolder);
+            const environment = await this._resolveActiveEnvironment(workspaceFolder);
 
             if (environment) {
                 terminal = await this._pythonEnvService.createTerminal(environment, {
@@ -136,6 +138,30 @@ export class TerminalService {
         };
 
         return { terminal, sendCommand, dispose };
+    }
+
+    /**
+     * Resolve the active Python environment, falling back to the env cache
+     * when getEnvironment lags behind a recent selection.
+     * @param workspaceFolder - Workspace URI for API lookup
+     * @returns Active or cache-matched environment, if any
+     */
+    private async _resolveActiveEnvironment(
+        workspaceFolder: vscode.Uri,
+    ): Promise<PythonEnvironment | undefined> {
+        if (!this._pythonEnvService) {
+            return undefined;
+        }
+        const fromApi = await this._pythonEnvService.getEnvironment(workspaceFolder);
+        if (fromApi) {
+            return fromApi;
+        }
+        const cached = getCachedEnvironment();
+        if (!cached?.pythonPath) {
+            return undefined;
+        }
+        const all = await this._pythonEnvService.getEnvironments('all');
+        return all.find((e) => e.execInfo.run.executable === cached.pythonPath);
     }
 
     /**

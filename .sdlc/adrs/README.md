@@ -27,6 +27,7 @@ Decisions that have been accepted but are not yet fully implemented.
 
 | ADR                                                     | Title                                                        | Date       |
 | ------------------------------------------------------- | ------------------------------------------------------------ | ---------- |
+| [ADR-025](ADR-025-host-agnostic-sidebar-navtree.md)         | Host-Agnostic Accordion Sidebar NavTree                          | 2026-07-17 |
 | [ADR-004](ADR-004-intentional-exclusions-from-main.md)  | Intentional Feature Exclusions from main                     | 2026-05-26 |
 | [ADR-005](ADR-005-architectural-invariants.md)          | Architectural Invariants                                     | 2026-05-26 |
 | [ADR-006](ADR-006-esbuild-bundler.md)                   | esbuild Bundler for Extension and Packages                   | 2026-06-10 |
@@ -48,7 +49,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-025)
+2. Use the next available number (currently ADR-026)
 3. Include:
     - Status (Proposed → Accepted → Implemented)
     - Date

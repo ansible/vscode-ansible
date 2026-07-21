@@ -11,18 +11,31 @@ ansible-navigator 24.2.0
 const mocks = vi.hoisted(() => {
     const mockRunTool = vi.fn();
     const mockGetToolPath = vi.fn();
+    const mockGetBinDir = vi.fn().mockResolvedValue(null);
+    const mockRunCommandArgs = vi.fn();
     return {
         mockRunTool,
         mockGetToolPath,
+        mockGetBinDir,
+        mockRunCommandArgs,
         getCommandService: vi.fn(() => ({
             runTool: mockRunTool,
             getToolPath: mockGetToolPath,
+            getBinDir: mockGetBinDir,
+            runCommandArgs: mockRunCommandArgs,
         })),
     };
 });
 
 vi.mock('../../src/CommandService', () => ({
     getCommandService: mocks.getCommandService,
+}));
+
+vi.mock('../../src/EnvironmentCache', () => ({
+    getCachedEnvironment: vi.fn().mockReturnValue(null),
+    getCachedBinDir: vi.fn().mockReturnValue(null),
+    getCachedToolPath: vi.fn().mockReturnValue(null),
+    findExecutableWithCache: vi.fn().mockResolvedValue(null),
 }));
 
 import { DevToolsService } from '../../src/DevToolsService';
@@ -70,11 +83,16 @@ describe('DevToolsService terminal fallback (Layer 3)', () => {
         resetDevToolsSingleton();
         mocks.mockRunTool.mockReset();
         mocks.mockGetToolPath.mockReset();
+        mocks.mockGetBinDir.mockReset();
         mocks.getCommandService.mockClear();
         mocks.mockGetToolPath.mockResolvedValue('/mock/bin/adt');
+        mocks.mockGetBinDir.mockResolvedValue(null);
+        mocks.mockRunCommandArgs.mockReset();
         mocks.getCommandService.mockImplementation(() => ({
             runTool: mocks.mockRunTool,
             getToolPath: mocks.mockGetToolPath,
+            getBinDir: mocks.mockGetBinDir,
+            runCommandArgs: mocks.mockRunCommandArgs,
         }));
     });
 
@@ -115,9 +133,10 @@ describe('DevToolsService terminal fallback (Layer 3)', () => {
                 name: 'Install ansible-dev-tools',
                 show: true,
             });
-            expect(mockSendCommand).toHaveBeenCalledWith('pip install ansible-dev-tools', {
-                waitForCompletion: true,
-            });
+            expect(mockSendCommand).toHaveBeenCalledWith(
+                expect.stringContaining('pip install ansible-dev-tools'),
+                { waitForCompletion: true },
+            );
             expect(svc.hasPackages()).toBe(true);
             expect(svc.isLoaded()).toBe(true);
         });
@@ -147,6 +166,37 @@ describe('DevToolsService terminal fallback (Layer 3)', () => {
 
             expect(installer).toHaveBeenCalledOnce();
             expect(factory).not.toHaveBeenCalled();
+        });
+
+        it('falls back to terminal when Layer 2 packageInstaller throws', async () => {
+            simulateVSCode();
+            const { factory, mockSendCommand } = createTerminalMock({
+                exitCode: 0,
+                success: true,
+            });
+            DevToolsService.setTerminalServiceFactory(factory);
+
+            mocks.mockRunTool.mockResolvedValue({
+                exitCode: 0,
+                stdout: ADT_OUTPUT,
+                stderr: '',
+            });
+
+            const installer = vi
+                .fn()
+                .mockRejectedValue(new Error('No Python environment selected'));
+            const svc = DevToolsService.getInstance();
+            svc.setPackageInstaller(installer);
+
+            await svc.install();
+
+            expect(installer).toHaveBeenCalledOnce();
+            expect(factory).toHaveBeenCalledOnce();
+            expect(mockSendCommand).toHaveBeenCalledWith(
+                expect.stringContaining('pip install ansible-dev-tools'),
+                { waitForCompletion: true },
+            );
+            expect(svc.hasPackages()).toBe(true);
         });
 
         it('refreshes packages after terminal install completes', async () => {

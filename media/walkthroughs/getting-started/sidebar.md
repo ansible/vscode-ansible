@@ -1,6 +1,8 @@
-# Ansible activity bar
+# Ansible
 
-The **Ansible** icon in the Activity Bar opens the sidebar for environments,
-collections, playbooks, creator scaffolding, and related tools.
+The **Ansible** icon in the Activity Bar opens the **Ansible** sidebar — an
+accordion for environments, collections, playbooks, creator scaffolding, AI tools,
+and related workflows.
 
-Use it as the home base for day-to-day Ansible work in the editor.
+Open one section at a time; use it as the home base for day-to-day Ansible work
+in the editor.

@@ -93,14 +93,16 @@ export class CommandService {
 
     /**
      * Get the full path to a tool (e.g., 'ade', 'ansible-doc').
-     * Checks venv first, then cached environment, then PATH.
+     * Prefers the active environment bin dir (ADR-004). When a bin dir is
+     * known, missing tools return null — do not leak ~/.local/bin or a
+     * stale cache from a previously selected environment.
      *
      * @param toolName - Executable name to resolve.
      * @param workspaceUri - Optional workspace URI for bin dir resolution.
      * @returns Absolute tool path, or null when the executable is not found.
      */
     public async getToolPath(toolName: string, workspaceUri?: unknown): Promise<string | null> {
-        // Try to get from current venv
+        // Active / cached bin dir from the selected environment
         const binDir = await this.getBinDir(workspaceUri);
         if (binDir) {
             const toolPath = path.join(binDir, toolName);
@@ -108,17 +110,19 @@ export class CommandService {
                 log(`CommandService: ${toolName} found in binDir -> ${toolPath}`);
                 return toolPath;
             }
-            log(`CommandService: ${toolName} not in binDir ${binDir}`);
+            // Env is selected but tool is not installed there — do not fall
+            // through to PATH (e.g. ~/.local/bin) or another env's cache.
+            log(`CommandService: ${toolName} not in active binDir ${binDir}`);
+            return null;
         }
 
-        // Try cached environment
+        // No active bin dir — last resort for standalone / pre-init
         const cachedPath = getCachedToolPath(toolName);
         if (cachedPath) {
             log(`CommandService: ${toolName} found in cache -> ${cachedPath}`);
             return cachedPath;
         }
 
-        // Fall back to PATH search
         const pathResult = await findExecutableWithCache(toolName);
         log(`CommandService: ${toolName} PATH fallback -> ${pathResult ?? 'not found'}`);
         return pathResult;

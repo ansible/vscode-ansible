@@ -8,7 +8,6 @@ import {
 } from './definitions';
 import { getUserTypeLabel, ANSIBLE_LIGHTSPEED_AUTH_ID } from './utils/webUtils';
 import type { TelemetryReporter } from './telemetry';
-import { LightspeedViewProvider } from './views/lightspeedView';
 import { registerGenerationCommands } from './commands/generation';
 import { registerExplanationCommands } from './commands/explanation';
 import { registerInlineSuggestions } from './commands/inlineSuggestions';
@@ -75,7 +74,6 @@ export async function activate(
             log('error', `Session expired: ${e instanceof Error ? e.message : String(e)}`);
             const expiredSessionId = currentSession.id;
             currentSession = undefined;
-            viewProvider.refresh(false);
             updateStatusBar();
             await authProvider.removeSession(expiredSessionId);
             log('info', 'Expired session removed from storage');
@@ -97,10 +95,7 @@ export async function activate(
 
     const api = new LightspeedAPI(apiConfig);
 
-    const viewProvider = new LightspeedViewProvider();
-    context.subscriptions.push(
-        vscode.window.registerTreeDataProvider('ansibleLightspeed', viewProvider),
-    );
+    // Lightspeed Activity Bar tree removed — features live in the Ansible sidebar (ADR-025).
 
     const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     statusBar.command = LightspeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
@@ -136,7 +131,6 @@ export async function activate(
                     { createIfNone: true },
                 );
                 log('info', `Sign-in successful: ${currentSession.account.label}`);
-                viewProvider.refresh(!!currentSession);
                 updateStatusBar();
             } catch (e) {
                 vscode.window.showErrorMessage(
@@ -198,7 +192,6 @@ export async function activate(
             currentSession = undefined;
             log('debug', 'Session refresh: no session found');
         }
-        viewProvider.refresh(!!currentSession);
         updateStatusBar();
     }
 
@@ -214,7 +207,6 @@ export async function activate(
                         account: { label: session.accountLabel, id: session.accountId },
                         scopes: [],
                     };
-                    viewProvider.refresh(true);
                     updateStatusBar();
                 },
             ),
