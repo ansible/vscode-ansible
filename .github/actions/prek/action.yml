@@ -14,11 +14,11 @@ runs:
   steps:
     # needed by our prek system hooks like toml
     - name: Install uv (cache)
-      uses: astral-sh/setup-uv@v8.3.1
+      uses: astral-sh/setup-uv@v8.3.2
 
     # needed by our prek systems hooks like biome
     - name: Install node (cache)
-      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: "24"
 
