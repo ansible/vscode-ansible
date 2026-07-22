@@ -302,6 +302,9 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ansible.statusBar.refresh', () => {
             ansibleStatusBar.forceRefresh();
         }),
+        vscode.commands.registerCommand('ansible.resyncInventory', () => {
+            void ansibleStatusBar.resyncInventory();
+        }),
     );
 
     context.subscriptions.push(

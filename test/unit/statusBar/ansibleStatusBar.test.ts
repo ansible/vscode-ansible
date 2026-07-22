@@ -38,6 +38,7 @@ const { mockCreateStatusBarItem, mockRegisterCommand, mockWindow } = vi.hoisted(
             createStatusBarItem: _mockCreateStatusBarItem,
             activeTextEditor: undefined,
             showQuickPick: vi.fn(),
+            showWarningMessage: vi.fn(),
         },
     };
 });
@@ -411,6 +412,48 @@ describe('AnsibleStatusBar', () => {
         bar.forceRefresh();
 
         expect(client.sendNotification).toHaveBeenCalledTimes(2);
+    });
+
+    it('sends resync/ansible-inventory when language server is running', async () => {
+        mockWindow.activeTextEditor = undefined;
+        const ctx = createMockContext();
+        const client = createMockClient();
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        client.sendNotification.mockClear();
+
+        await bar.resyncInventory();
+
+        expect(client.sendNotification).toHaveBeenCalledTimes(1);
+        expect(client.sendNotification).toHaveBeenCalledWith(
+            expect.objectContaining({ method: 'resync/ansible-inventory' }),
+        );
+        expect(mockWindow.showWarningMessage).not.toHaveBeenCalled();
+    });
+
+    it('warns when resyncInventory is called while language server is stopped', async () => {
+        mockWindow.activeTextEditor = undefined;
+        const ctx = createMockContext();
+        const client = createMockClient();
+        client.isRunning.mockReturnValue(false);
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        client.sendNotification.mockClear();
+
+        await bar.resyncInventory();
+
+        expect(client.sendNotification).not.toHaveBeenCalled();
+        expect(mockWindow.showWarningMessage).toHaveBeenCalledWith(
+            expect.stringContaining('Language Server is not running'),
+        );
     });
 
     it('pushes disposables to context subscriptions', () => {
