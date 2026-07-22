@@ -3,7 +3,8 @@
  * `doCompletionResolve()` is called to resolve the selected completion item.
  */
 
-import { expect, beforeAll, afterAll } from "vitest";
+import { expect, beforeAll, afterAll, afterEach } from "vitest";
+import sinon from "sinon";
 import { EOL } from "os";
 import { doCompletionResolve } from "@src/providers/completionProvider.js";
 import {} from "@src/providers/validationProvider.js";
@@ -308,6 +309,100 @@ describe("doCompletionResolve()", function () {
         });
 
         testResolveModuleOptionCompletion(context);
+      });
+    });
+
+    describe("Resolve edge cases", function () {
+      afterEach(function () {
+        sinon.restore();
+      });
+
+      it("ignores invalid completion resolve data shapes", async function () {
+        for (const data of [
+          null,
+          undefined,
+          { documentUri: "file:///tmp/x.yml" },
+        ]) {
+          const item = await doCompletionResolve(
+            {
+              label: "x",
+              data,
+            },
+            context,
+          );
+          expect(item.label).toBe("x");
+        }
+      });
+
+      it("resolves module completion using textEdit when present", async function () {
+        const item = await doCompletionResolve(
+          {
+            label: "module_3",
+            textEdit: {
+              range: {
+                start: { line: 0, character: 0 },
+                end: { line: 0, character: 1 },
+              },
+              newText: "",
+            },
+            data: {
+              documentUri: fixtureFileUri,
+              moduleFqcn: "org_1.coll_3.module_3",
+              inlineCollections: [],
+              atEndOfLine: true,
+              firstElementOfList: false,
+            },
+          },
+          context,
+        );
+        expect(item.textEdit?.newText).toContain("org_1.coll_3.module_3");
+      });
+
+      it("resolves option completion using textEdit when present", async function () {
+        const item = await doCompletionResolve(
+          {
+            label: "opt_1",
+            textEdit: {
+              range: {
+                start: { line: 0, character: 0 },
+                end: { line: 0, character: 1 },
+              },
+              newText: "",
+            },
+            data: {
+              documentUri: fixtureFileUri,
+              type: "string",
+              atEndOfLine: true,
+            },
+          },
+          context,
+        );
+        expect(item.textEdit?.newText).toBe("opt_1: ");
+      });
+
+      it("uses metadata collections when resolving short module names", async function () {
+        const settings = await context.documentSettings.get(fixtureFileUri);
+        settings.ansible.useFullyQualifiedCollectionNames = false;
+
+        sinon.stub(context.documentMetadata, "get").resolves({
+          collections: ["org_1.coll_3"],
+        } as never);
+
+        const item = await doCompletionResolve(
+          {
+            label: "module_3",
+            data: {
+              documentUri: fixtureFileUri,
+              moduleFqcn: "org_1.coll_3.module_3",
+              inlineCollections: [],
+              atEndOfLine: false,
+              firstElementOfList: false,
+            },
+          },
+          context,
+        );
+        expect(item.insertText).toBe("module_3");
+        settings.ansible.useFullyQualifiedCollectionNames = true;
       });
     });
   }

@@ -61,6 +61,26 @@ options:
   opt_2:
     description: Option 2
     type: str
+    aliases:
+      - option_two
+  opt_dict:
+    description: Dict option
+    type: dict
+    suboptions:
+      nested_a:
+        description: Nested A
+        type: int
+      nested_b:
+        description: Nested B
+        type: dict
+        suboptions:
+          deeper:
+            description: Deeper
+            type: int
+  opt_bool:
+    description: Bool option
+    type: bool
+    default: "yes"
   opt_3:
     description:
       - Option 3
