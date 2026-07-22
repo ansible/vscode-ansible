@@ -48,7 +48,7 @@ function displayInvalidConfigError(): void {
 }
 
 export class Vault {
-  constructor(private extSettings: SettingsManager) {}
+  constructor(private readonly extSettings: SettingsManager) {}
 
   private async ansibleVaultCmd(args: string): Promise<{
     command: string;
@@ -288,7 +288,7 @@ export class Vault {
     return encryptedText.trim();
   }
 
-  private decryptInline = async (
+  private readonly decryptInline = async (
     text: string,
     rootPath: string | undefined,
     indentationLevel: number,
@@ -379,7 +379,10 @@ export class Vault {
     return execCwd(cmd, rootPath, env);
   }
 
-  private decryptFile = async (f: string, rootPath: string | undefined) => {
+  private readonly decryptFile = async (
+    f: string,
+    rootPath: string | undefined,
+  ) => {
     console.log(`Decrypt file: ${f}`);
     const args = `decrypt "${f}"`;
     const { command: cmd, env } = await this.ansibleVaultCmd(args);

@@ -202,7 +202,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     pythonEnvService.onDidChangeEnvironment(async () => {
       try {
-        if (client && client.isRunning()) {
+        if (client?.isRunning()) {
           const refreshResult = await client.sendRequest<{
             success: boolean;
           }>("ansible/refreshConfiguration", {});
@@ -1283,8 +1283,6 @@ const startClient = async (
           docsReady = newDocsReadyGate();
         }
       }),
-    );
-    context.subscriptions.push(
       vscode.commands.registerCommand("ansible.awaitDocsLibraryReady", () =>
         docsLibraryIsReady ? Promise.resolve() : docsReady.promise,
       ),
@@ -1473,8 +1471,12 @@ export function makeConfigurationMiddleware(
     }
 
     if (lastLoggedUserByScope.get(scopeUri) !== rawInterpreterPath) {
+      const resolvedSuffix =
+        resolvedUserPath !== rawInterpreterPath
+          ? ` (resolved: ${resolvedUserPath})`
+          : "";
       outputChannel.appendLine(
-        `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedUserPath !== rawInterpreterPath ? ` (resolved: ${resolvedUserPath})` : ""}`,
+        `[Ansible] Using user-configured interpreterPath: ${rawInterpreterPath}${resolvedSuffix}`,
       );
       lastLoggedUserByScope.set(scopeUri, rawInterpreterPath);
     }

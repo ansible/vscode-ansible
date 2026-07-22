@@ -1,5 +1,5 @@
 /* local */
-import * as path from "path";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings";
 import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
@@ -28,10 +28,11 @@ export async function withInterpreter(
   const command = `${runExecutable} ${cmdArgs}`;
 
   // Start with base environment and Ansible-specific vars
-  const env = Object.assign({}, process.env, {
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
     ANSIBLE_FORCE_COLOR: "0", // ensure output is parsable (no ANSI)
     PYTHONBREAKPOINT: "0", // prevent debugger from being triggered
-  });
+  };
 
   // Resolve Python environment and add venv bin to PATH
   const pythonEnvService = PythonEnvironmentService.getInstance();

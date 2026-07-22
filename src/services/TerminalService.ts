@@ -6,7 +6,7 @@
  * PET detection and fallback logic are handled in one place.
  */
 
-import * as path from "path";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { TerminalActivationStateEventArgs } from "@src/types/pythonEnvApi";
 import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
@@ -54,9 +54,7 @@ export class TerminalService implements vscode.Disposable {
   private constructor() {}
 
   public static getInstance(): TerminalService {
-    if (!TerminalService._instance) {
-      TerminalService._instance = new TerminalService();
-    }
+    TerminalService._instance ??= new TerminalService();
     return TerminalService._instance;
   }
 

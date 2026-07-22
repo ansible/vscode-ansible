@@ -1,9 +1,9 @@
-import * as child_process from "child_process";
+import * as child_process from "node:child_process";
 import { Buffer } from "node:buffer";
 import { existsSync, statSync, promises as fs } from "node:fs";
 import { homedir } from "node:os";
 import { promisify } from "util";
-import type { SpawnOptions } from "child_process";
+import type { SpawnOptions } from "node:child_process";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Range } from "vscode-languageserver-types";
 import * as path from "node:path";

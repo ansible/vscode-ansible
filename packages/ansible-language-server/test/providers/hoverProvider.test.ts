@@ -284,7 +284,10 @@ describe("doHover()", function () {
 
   const textDoc = getDoc(fixtureFilePath);
   const docSettings = context?.documentSettings.get(textDoc.uri);
-  expect(docSettings).toBeDefined();
+
+  beforeAll(() => {
+    expect(docSettings).toBeDefined();
+  });
 
   describe("Play keywords hover", function () {
     describe("@ee", function () {

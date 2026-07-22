@@ -85,11 +85,12 @@ export function getVarsCompletion(
         typeof parentKeyNode["value"] === "string"
       ) {
         path = parentKeyPath;
-        const scopedNode: Record<string, unknown> = path[
-          path.length - 3
-        ].toJSON() as Record<string, unknown>;
-        if (hasOwnProperty(scopedNode, "vars")) {
-          collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
+        const scopedPathNode = path.at(-3);
+        if (scopedPathNode) {
+          const scopedNode = scopedPathNode.toJSON() as Record<string, unknown>;
+          if (hasOwnProperty(scopedNode, "vars")) {
+            collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
+          }
         }
 
         continue;
@@ -109,11 +110,12 @@ export function getVarsCompletion(
         typeof parentKeyNode["value"] === "string"
       ) {
         path = parentKeyPath;
-        const scopedNode: Record<string, unknown> = path[
-          path.length - 3
-        ].toJSON() as Record<string, unknown>;
-        if (hasOwnProperty(scopedNode, "vars")) {
-          collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
+        const scopedPathNode = path.at(-3);
+        if (scopedPathNode) {
+          const scopedNode = scopedPathNode.toJSON() as Record<string, unknown>;
+          if (hasOwnProperty(scopedNode, "vars")) {
+            collectVarsKeys(scopedNode.vars, varPriority, varsCompletion);
+          }
         }
 
         continue;
@@ -128,10 +130,11 @@ export function getVarsCompletion(
 
   // handling vars_prompt
   varPriority = varPriority + 1;
-  const playNode: Record<string, unknown> = path[
-    path.length - 3
-  ].toJSON() as Record<string, unknown>;
-  if (hasOwnProperty(playNode, "vars_prompt")) {
+  const playPathNode = path.at(-3);
+  const playNode = playPathNode
+    ? (playPathNode.toJSON() as Record<string, unknown>)
+    : undefined;
+  if (playNode && hasOwnProperty(playNode, "vars_prompt")) {
     const varsPromptObject = playNode.vars_prompt;
     if (isVarsPromptArray(varsPromptObject)) {
       varsPromptObject.forEach((element) => {
@@ -142,7 +145,7 @@ export function getVarsCompletion(
 
   // handling vars_files
   varPriority = varPriority + 1;
-  if (hasOwnProperty(playNode, "vars_files")) {
+  if (playNode && hasOwnProperty(playNode, "vars_files")) {
     const varsFiles = playNode.vars_files;
     if (isVarsFilesArray(varsFiles)) {
       const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);

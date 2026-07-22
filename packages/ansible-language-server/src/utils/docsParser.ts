@@ -17,6 +17,40 @@ import {
 
 const DOCUMENTATION = "DOCUMENTATION";
 
+function resolveDocFragmentNames(rawFragments: unknown): string[] {
+  if (Array.isArray(rawFragments)) {
+    return rawFragments.filter(
+      (fragment): fragment is string => typeof fragment === "string",
+    );
+  }
+  if (typeof rawFragments === "string") {
+    return [rawFragments];
+  }
+  return [];
+}
+
+function resolveFragmentParts(docFragmentName: string): {
+  catalogueName: string;
+  partName: string;
+} {
+  const fragmentNameArray = docFragmentName.split(".");
+  let partName = DOCUMENTATION;
+  if (fragmentNameArray.length === 2 || fragmentNameArray.length === 4) {
+    partName = fragmentNameArray.pop()?.toUpperCase() as string;
+  }
+  return { catalogueName: fragmentNameArray.join("."), partName };
+}
+
+function lookupDocFragment(
+  docFragments: Map<string, IModuleMetadata>,
+  catalogueName: string,
+): IModuleMetadata | undefined {
+  return (
+    docFragments.get(catalogueName) ||
+    docFragments.get(`ansible.builtin.${catalogueName}`)
+  );
+}
+
 export function processDocumentationFragments(
   module: IModuleMetadata,
   docFragments: Map<string, IModuleMetadata>,
@@ -25,50 +59,35 @@ export function processDocumentationFragments(
   const mainDocumentationFragment =
     module.rawDocumentationFragments.get(DOCUMENTATION);
   if (
-    mainDocumentationFragment &&
-    hasOwnProperty(mainDocumentationFragment, "extends_documentation_fragment")
+    !mainDocumentationFragment ||
+    !hasOwnProperty(mainDocumentationFragment, "extends_documentation_fragment")
   ) {
-    const rawFragments =
-      mainDocumentationFragment.extends_documentation_fragment;
-    const docFragmentNames: string[] = Array.isArray(rawFragments)
-      ? rawFragments.filter(
-          (fragment): fragment is string => typeof fragment === "string",
-        )
-      : typeof rawFragments === "string"
-        ? [rawFragments]
-        : [];
-    const resultContents = {};
-    for (const docFragmentName of docFragmentNames) {
-      const fragmentNameArray = docFragmentName.split(".");
-      let fragmentPartName: string;
-      if (fragmentNameArray.length === 2 || fragmentNameArray.length === 4) {
-        fragmentPartName = fragmentNameArray.pop()?.toUpperCase() as string;
-      } else {
-        fragmentPartName = DOCUMENTATION;
-      }
-      const docFragmentCatalogueName = fragmentNameArray.join(".");
-      const docFragment =
-        docFragments.get(docFragmentCatalogueName) ||
-        docFragments.get(`ansible.builtin.${docFragmentCatalogueName}`);
-      if (
-        docFragment &&
-        docFragment.rawDocumentationFragments.has(fragmentPartName)
-      ) {
-        module.fragments.push(docFragment); // currently used only as indicator
-        _.mergeWith(
-          resultContents,
-          docFragment.rawDocumentationFragments.get(fragmentPartName),
-          docFragmentMergeCustomizer,
-        );
-      }
+    return;
+  }
+
+  const docFragmentNames = resolveDocFragmentNames(
+    mainDocumentationFragment.extends_documentation_fragment,
+  );
+  const resultContents = {};
+  for (const docFragmentName of docFragmentNames) {
+    const { catalogueName, partName } = resolveFragmentParts(docFragmentName);
+    const docFragment = lookupDocFragment(docFragments, catalogueName);
+    if (!docFragment?.rawDocumentationFragments.has(partName)) {
+      continue;
     }
+    module.fragments.push(docFragment); // currently used only as indicator
     _.mergeWith(
       resultContents,
-      mainDocumentationFragment,
+      docFragment.rawDocumentationFragments.get(partName),
       docFragmentMergeCustomizer,
     );
-    module.rawDocumentationFragments.set(DOCUMENTATION, resultContents);
   }
+  _.mergeWith(
+    resultContents,
+    mainDocumentationFragment,
+    docFragmentMergeCustomizer,
+  );
+  module.rawDocumentationFragments.set(DOCUMENTATION, resultContents);
 }
 
 function docFragmentMergeCustomizer(
@@ -226,8 +245,11 @@ function parseRawDeprecationOrTombstone(
 }
 
 export class LazyModuleDocumentation implements IModuleMetadata {
+  // Opening assignment only; closing quotes located with indexOf to avoid
+  // Sonar S8786 backtracking on tempered-greedy doc body matching.
+  // Consumers must clone before exec — see rawDocumentationFragments.
   public static docsRegex =
-    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
+    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)/g;
 
   source: string;
   sourceLineRange: [number, number] = [0, 0];
@@ -257,20 +279,38 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     if (!this._contents) {
       this._contents = new Map<string, Record<string, unknown>>();
       const contents = fs.readFileSync(this.source, { encoding: "utf8" });
+      // Per-parse instance so a stuck /g lastIndex cannot leak across modules.
+      const docsRegex = new RegExp(
+        LazyModuleDocumentation.docsRegex.source,
+        "g",
+      );
       let m;
-      while ((m = LazyModuleDocumentation.docsRegex.exec(contents)) !== null) {
-        if (m && m.groups && m.groups.name && m.groups.doc && m.groups.pre) {
+      while ((m = docsRegex.exec(contents)) !== null) {
+        if (m?.groups?.name && m.groups.pre && m.groups.quotes) {
+          const contentStart = m.index + m[0].length;
+          const closeIndex = contents.indexOf(m.groups.quotes, contentStart);
+          if (closeIndex === -1) {
+            // Unclosed opener: keep scanning from after this match (lastIndex).
+            continue;
+          }
+          const doc = contents.substring(contentStart, closeIndex);
+          docsRegex.lastIndex = closeIndex + m.groups.quotes.length;
+
+          // Preserve prior behavior: empty doc bodies were skipped.
+          if (!doc) {
+            continue;
+          }
+
           if (m.groups.name === DOCUMENTATION) {
             // determine documentation start/end lines for definition provider
             let startLine =
               contents.substring(0, m.index).match(/\n/g)?.length || 0;
             startLine += m.groups.pre.match(/\n/g)?.length || 0;
-            const endLine =
-              startLine + (m.groups.doc.match(/\n/g)?.length || 0);
+            const endLine = startLine + (doc.match(/\n/g)?.length || 0);
             this.sourceLineRange = [startLine, endLine];
           }
 
-          const document = parseDocument(m.groups.doc);
+          const document = parseDocument(doc);
           // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
           // Still, document.toJSON() works on them
           this._contents.set(

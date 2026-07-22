@@ -169,23 +169,29 @@ describe("withInterpreter", function () {
   });
 
   describe("activation script validation", function () {
-    it("should reject activation script with shell metacharacters", function () {
+    it.each([
+      {
+        name: "activation script with shell metacharacters",
+        activationScript: "/tmp/activate; rm -rf /",
+      },
+      {
+        name: "activation script that does not exist",
+        activationScript: "/nonexistent/path/to/activate",
+      },
+      {
+        name: "tilde path with shell metacharacters",
+        activationScript: "~/activate; rm -rf /",
+      },
+      {
+        name: "tilde path that does not exist after expansion",
+        activationScript: "~/nonexistent/venv/bin/activate",
+      },
+    ])("should reject $name", ({ activationScript }) => {
       const result = withInterpreter(
         "ansible-lint",
         "playbook.yml",
         "",
-        "/tmp/activate; rm -rf /",
-      );
-
-      expect(result.command).toBe("ansible-lint playbook.yml");
-    });
-
-    it("should reject activation script that does not exist", function () {
-      const result = withInterpreter(
-        "ansible-lint",
-        "playbook.yml",
-        "",
-        "/nonexistent/path/to/activate",
+        activationScript,
       );
 
       expect(result.command).toBe("ansible-lint playbook.yml");
@@ -274,28 +280,6 @@ describe("withInterpreter", function () {
         fs.unlinkSync(scriptPath);
         fs.rmdirSync(tmpDir);
       }
-    });
-
-    it("should reject tilde path with shell metacharacters", function () {
-      const result = withInterpreter(
-        "ansible-lint",
-        "playbook.yml",
-        "",
-        "~/activate; rm -rf /",
-      );
-
-      expect(result.command).toBe("ansible-lint playbook.yml");
-    });
-
-    it("should reject tilde path that does not exist after expansion", function () {
-      const result = withInterpreter(
-        "ansible-lint",
-        "playbook.yml",
-        "",
-        "~/nonexistent/venv/bin/activate",
-      );
-
-      expect(result.command).toBe("ansible-lint playbook.yml");
     });
   });
 });

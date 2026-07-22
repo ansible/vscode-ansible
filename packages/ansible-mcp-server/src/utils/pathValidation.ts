@@ -36,11 +36,11 @@ export function validatePathWithinWorkspace(
   inputPath: string,
   workspaceRoot: string,
 ): string {
-  if (!inputPath || !inputPath.trim()) {
+  if (!inputPath?.trim()) {
     throw new PathTraversalError("Path must not be empty");
   }
 
-  if (!workspaceRoot || !workspaceRoot.trim()) {
+  if (!workspaceRoot?.trim()) {
     throw new PathTraversalError("Workspace root must not be empty");
   }
 

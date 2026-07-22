@@ -30,7 +30,7 @@ function extensionDisplayName(ext: Extension<unknown>): string {
 
 function isExtensionPresent(obj: unknown): obj is Extension<unknown> {
   return (
-    typeof obj !== "undefined" &&
+    obj !== undefined &&
     typeof obj === "object" &&
     obj !== null &&
     "id" in obj &&

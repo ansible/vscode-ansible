@@ -1,4 +1,6 @@
-import _ from "lodash";
+import cloneDeep from "lodash/cloneDeep";
+import isEqual from "lodash/isEqual";
+import merge from "lodash/merge";
 import { Connection } from "vscode-languageserver";
 import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
 import type {
@@ -19,9 +21,10 @@ function hasLegacyAnsibleSettings(
 }
 
 export class SettingsManager {
-  private connection: Connection | null;
-  private clientSupportsConfigRequests;
-  private configurationChangeHandlers: Map<string, () => void> = new Map();
+  private readonly connection: Connection | null;
+  private readonly clientSupportsConfigRequests;
+  private readonly configurationChangeHandlers: Map<string, () => void> =
+    new Map();
 
   // cache of document settings per workspace file
   private documentSettings: Map<string, Thenable<ExtensionSettings>> =
@@ -131,9 +134,10 @@ export class SettingsManager {
   };
 
   // Structure the settings similar to the ExtensionSettings interface for usage in the code
-  private defaultSettings: ExtensionSettings = this._settingsAdjustment(
-    _.cloneDeep(this.defaultSettingsWithDescription),
-  ) as unknown as ExtensionSettings;
+  private readonly defaultSettings: ExtensionSettings =
+    this._settingsAdjustment(
+      cloneDeep(this.defaultSettingsWithDescription),
+    ) as unknown as ExtensionSettings;
 
   public globalSettings: ExtensionSettings = this.defaultSettings;
 
@@ -169,8 +173,8 @@ export class SettingsManager {
       // Recursively merge globalSettings with clientSettings to use:
       //  - setting from client when provided
       //  - default value of setting otherwise
-      const mergedSettings: ExtensionSettings = _.merge(
-        _.cloneDeep(this.globalSettings),
+      const mergedSettings: ExtensionSettings = merge(
+        cloneDeep(this.globalSettings),
         clientSettings,
       );
       result = Promise.resolve(mergedSettings);
@@ -204,7 +208,7 @@ export class SettingsManager {
         });
         newDocumentSettings.set(uri, newConfigPromise);
 
-        if (!_.isEqual(config, await newConfigPromise)) {
+        if (!isEqual(config, await newConfigPromise)) {
           handlersToFire.push(handler);
         }
       }

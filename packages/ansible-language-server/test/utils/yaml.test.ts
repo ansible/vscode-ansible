@@ -1,5 +1,5 @@
 // codespell:ignore isPlay
-import { expect, beforeEach } from "vitest";
+import { expect, beforeEach, describe, it } from "vitest";
 import { Position } from "vscode-languageserver";
 import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
 import {
@@ -155,70 +155,22 @@ describe("yaml", function () {
   });
 
   describe("getDeclaredCollections", function () {
-    it("canGetCollections", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 13, 7);
-      const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
-    });
+    const declaredCollections = [
+      "mynamespace.mycollection",
+      "mynamespace2.mycollection2",
+    ];
 
-    it("canGetCollectionsFromPreTasks", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 9, 7);
+    it.each([
+      { name: "canGetCollections", line: 13, character: 7 },
+      { name: "canGetCollectionsFromPreTasks", line: 9, character: 7 },
+      { name: "canGetCollectionsFromBlock", line: 12, character: 11 },
+      { name: "canGetCollectionsFromNestedBlock", line: 23, character: 15 },
+      { name: "canGetCollectionsFromRescue", line: 27, character: 11 },
+      { name: "canGetCollectionsFromAlways", line: 31, character: 11 },
+    ])("$name", async ({ line, character }) => {
+      const path = getPathInFile("getDeclaredCollections.yml", line, character);
       const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
-    });
-
-    it("canGetCollectionsFromBlock", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 12, 11);
-      const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
-    });
-
-    it("canGetCollectionsFromNestedBlock", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 23, 15);
-      const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
-    });
-
-    it("canGetCollectionsFromRescue", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 27, 11);
-      const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
-    });
-
-    it("canGetCollectionsFromAlways", async function () {
-      const path = getPathInFile("getDeclaredCollections.yml", 31, 11);
-      const collections = getDeclaredCollections(path);
-      expect(collections).toEqual(
-        expect.arrayContaining([
-          "mynamespace.mycollection",
-          "mynamespace2.mycollection2",
-        ]),
-      );
+      expect(collections).toEqual(expect.arrayContaining(declaredCollections));
     });
 
     it("canWorkWithoutCollections", async function () {
@@ -253,38 +205,49 @@ describe("yaml", function () {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateTaskParamForPlay", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 4, 3) as Node[];
+    it.each([
+      {
+        name: "canCorrectlyNegateTaskParamForPlay",
+        line: 4,
+        character: 3,
+        expected: false,
+      },
+      {
+        name: "canCorrectlyNegateTaskParamForBlock",
+        line: 14,
+        character: 7,
+        expected: false,
+      },
+      {
+        name: "canCorrectlyNegateTaskParamForRole",
+        line: 17,
+        character: 7,
+        expected: false,
+      },
+    ])("$name", async ({ line, character, expected }) => {
+      const path = getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        line,
+        character,
+      ) as Node[];
       const test = isTaskParam(path);
-      expect(test).to.be.eq(false);
+      expect(test).to.be.eq(expected);
     });
 
-    it("canCorrectlyNegateTaskParamForBlock", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 14, 7) as Node[];
-      const test = isTaskParam(path);
-      expect(test).to.be.eq(false);
-    });
-
-    it("canCorrectlyNegateTaskParamForRole", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 17, 7) as Node[];
-      const test = isTaskParam(path);
-      expect(test).to.be.eq(false);
-    });
-
-    it("canCorrectlyConfirmTaskParamInPreTasks", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 6, 7) as Node[];
-      const test = isTaskParam(path);
-      expect(test).to.be.eq(true);
-    });
-
-    it("canCorrectlyConfirmTaskParamInTasks", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 9, 7) as Node[];
-      const test = isTaskParam(path);
-      expect(test).to.be.eq(true);
-    });
-
-    it("canCorrectlyConfirmTaskParamInBlock", async function () {
-      const path = getPathInFile("isTaskParamInPlaybook.yml", 13, 11) as Node[];
+    it.each([
+      {
+        name: "canCorrectlyConfirmTaskParamInPreTasks",
+        line: 6,
+        character: 7,
+      },
+      { name: "canCorrectlyConfirmTaskParamInTasks", line: 9, character: 7 },
+      { name: "canCorrectlyConfirmTaskParamInBlock", line: 13, character: 11 },
+    ])("$name", async ({ line, character }) => {
+      const path = getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        line,
+        character,
+      ) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });

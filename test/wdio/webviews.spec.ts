@@ -126,28 +126,28 @@ describe("Webview tests", () => {
       await closeAllEditors();
     });
 
-    it("should display the welcome page header", async function () {
-      this.timeout(60_000);
-      const text = await waitForWebviewText(/Ansible Development Tools/, (t) =>
-        t.includes("Ansible Development Tools"),
-      );
-      assert.ok(text.includes("Ansible Development Tools"));
-    });
-
-    it("should display the welcome page subtitle", async function () {
-      this.timeout(60_000);
-      const text = await waitForWebviewText(/Ansible Development Tools/, (t) =>
-        t.includes("Create, test and deploy"),
-      );
-      assert.ok(text.includes("Create, test and deploy"));
-    });
-
-    it("should display the MCP Server section", async function () {
-      this.timeout(60_000);
-      const text = await waitForWebviewText(/Ansible Development Tools/, (t) =>
-        t.includes("MCP Server"),
-      );
-      assert.ok(text.includes("MCP Server"));
+    [
+      {
+        name: "welcome page header",
+        needle: "Ansible Development Tools",
+      },
+      {
+        name: "welcome page subtitle",
+        needle: "Create, test and deploy",
+      },
+      {
+        name: "MCP Server section",
+        needle: "MCP Server",
+      },
+    ].forEach(({ name, needle }) => {
+      it(`should display the ${name}`, async function () {
+        this.timeout(60_000);
+        const text = await waitForWebviewText(
+          /Ansible Development Tools/,
+          (t) => t.includes(needle),
+        );
+        assert.ok(text.includes(needle));
+      });
     });
   });
 

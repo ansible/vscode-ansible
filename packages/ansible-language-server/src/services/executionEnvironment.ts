@@ -329,9 +329,12 @@ export class ExecutionEnvironment {
         containerCommand.push(containerOption);
       });
     }
-    containerCommand.push("--name", `als_${uuidv4()}`);
-    containerCommand.push(this._container_image);
-    containerCommand.push(...splitCommandString(command));
+    containerCommand.push(
+      "--name",
+      `als_${uuidv4()}`,
+      this._container_image,
+      ...splitCommandString(command),
+    );
     this.connection.console.log(
       `container engine invocation: ${containerCommand.join(" ")}`,
     );

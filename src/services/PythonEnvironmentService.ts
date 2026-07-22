@@ -13,8 +13,8 @@
  * SettingsManager and the language server — this service does not read it.
  */
 
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import { PythonExtension, ResolvedEnvironment } from "@vscode/python-extension";
 import {
@@ -35,7 +35,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   private _petWarningShown: boolean = false;
   private _disposables: vscode.Disposable[] = [];
 
-  private _onDidChangeEnvironment =
+  private readonly _onDidChangeEnvironment =
     new vscode.EventEmitter<DidChangeEnvironmentEventArgs>();
   public readonly onDidChangeEnvironment = this._onDidChangeEnvironment.event;
 
@@ -43,9 +43,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   private constructor() {}
 
   public static getInstance(): PythonEnvironmentService {
-    if (!PythonEnvironmentService._instance) {
-      PythonEnvironmentService._instance = new PythonEnvironmentService();
-    }
+    PythonEnvironmentService._instance ??= new PythonEnvironmentService();
     return PythonEnvironmentService._instance;
   }
 
@@ -418,7 +416,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
     scope?: vscode.Uri,
   ): Promise<string | undefined> {
     // Priority 1: User-configured ansible.python.interpreterPath
-    if (userConfiguredPath && userConfiguredPath.trim()) {
+    if (userConfiguredPath?.trim()) {
       const { resolveInterpreterPath } =
         await import("@src/features/utils/interpreterPathResolver");
       const resolved = resolveInterpreterPath(userConfiguredPath, scope);

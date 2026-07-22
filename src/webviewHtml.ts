@@ -119,7 +119,7 @@ export function getWebviewHtml(options: WebviewHtmlOptions): string {
   html = html.replace("<head>", `<head>\n    ${csp}`);
 
   // Add nonce to all <script> tags
-  html = html.replace(/<script /g, `<script nonce="${nonce}" `);
+  html = html.replaceAll("<script ", `<script nonce="${nonce}" `);
 
   // Rewrite absolute /assets/ paths to webview URIs
   html = html.replace(

@@ -21,7 +21,7 @@ describe("CollectionFinder", () => {
       const finder = new CollectionFinder([SAMPLES_PATH]);
       await finder.refreshCache();
 
-      expect(finder.cache.length).toBe(4);
+      expect(finder.cache).toHaveLength(4);
       expect(finder.initialized).toBe(true);
     });
 
@@ -39,7 +39,7 @@ describe("CollectionFinder", () => {
       const finder = new CollectionFinder([SAMPLES_PATH]);
       const collections = await finder.searchNestedCollections();
 
-      expect(collections.length).toBe(4);
+      expect(collections).toHaveLength(4);
       expect(collections.every((c) => c instanceof AnsibleCollection)).toBe(
         true,
       );

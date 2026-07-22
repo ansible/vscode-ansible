@@ -1,5 +1,5 @@
 /* "stdlib" */
-import { existsSync } from "fs";
+import { existsSync } from "node:fs";
 import * as vscode from "vscode";
 
 /* local */
@@ -15,7 +15,7 @@ import { TerminalService } from "@src/services/TerminalService";
 export const SHELL_METACHARACTERS_PATTERN = /[\x00\n\r$`;&|(){}<>!]/;
 
 export function shellQuote(s: string): string {
-  return "'" + s.replace(/'/g, "'\\''") + "'";
+  return "'" + s.replaceAll("'", String.raw`'\''`) + "'";
 }
 
 function validatePlaybookPath(fsPath: string): string | undefined {
@@ -33,11 +33,11 @@ function validatePlaybookPath(fsPath: string): string | undefined {
  * `ansible-navigator run` and `ansible-playbook` commands.
  */
 export class AnsiblePlaybookRunProvider implements vscode.Disposable {
-  private extensionSettings: SettingsManager;
-  private telemetry: TelemetryManager;
+  private readonly extensionSettings: SettingsManager;
+  private readonly telemetry: TelemetryManager;
 
   constructor(
-    private vsCodeExtCtx: vscode.ExtensionContext,
+    private readonly vsCodeExtCtx: vscode.ExtensionContext,
     extensionSettings: SettingsManager,
     telemetry: TelemetryManager,
   ) {
@@ -95,12 +95,12 @@ export class AnsiblePlaybookRunProvider implements vscode.Disposable {
       vscode.window.showErrorMessage(message);
       return false;
     }
-    commandLineArgs.push("--ee true");
-    commandLineArgs.push("--pae false");
     commandLineArgs.push(
+      "--ee true",
+      "--pae false",
       `--ce ${getContainerEngine(eeSettings.containerEngine as string)}`,
+      `--eei ${shellQuote(eeSettings.image)}`,
     );
-    commandLineArgs.push(`--eei ${shellQuote(eeSettings.image)}`);
     if (eeSettings.containerOptions !== "") {
       commandLineArgs.push(`--co ${shellQuote(eeSettings.containerOptions)}`);
     }
@@ -181,8 +181,7 @@ export class AnsiblePlaybookRunProvider implements vscode.Disposable {
       return;
     }
 
-    commandLineArgs.push(playbookArguments);
-    commandLineArgs.push(shellQuote(playbookFsPath));
+    commandLineArgs.push(playbookArguments, shellQuote(playbookFsPath));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const command = `${runExecutable} ${cmdArgs}`;
 

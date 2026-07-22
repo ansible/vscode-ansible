@@ -81,35 +81,25 @@ describe("getDevServerUrl", () => {
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 
-  it("returns undefined for a non-http protocol", () => {
-    fs.writeFileSync(
-      path.join(tmpDir, "out", ".vite-dev-server-url"),
-      "https://localhost:5173",
-    );
-    expect(getDevServerUrl(tmpDir)).toBeUndefined();
-  });
-
-  it("returns undefined for a non-localhost hostname", () => {
-    fs.writeFileSync(
-      path.join(tmpDir, "out", ".vite-dev-server-url"),
-      "http://example.com:5173",
-    );
-    expect(getDevServerUrl(tmpDir)).toBeUndefined();
-  });
-
-  it("returns undefined when URL has no port", () => {
-    fs.writeFileSync(
-      path.join(tmpDir, "out", ".vite-dev-server-url"),
-      "http://localhost",
-    );
-    expect(getDevServerUrl(tmpDir)).toBeUndefined();
-  });
-
-  it("returns undefined for malformed content", () => {
-    fs.writeFileSync(
-      path.join(tmpDir, "out", ".vite-dev-server-url"),
-      "not-a-url",
-    );
+  it.each([
+    {
+      name: "a non-http protocol",
+      content: "https://localhost:5173",
+    },
+    {
+      name: "a non-localhost hostname",
+      content: "http://example.com:5173",
+    },
+    {
+      name: "a URL with no port",
+      content: "http://localhost",
+    },
+    {
+      name: "malformed content",
+      content: "not-a-url",
+    },
+  ])("returns undefined for $name", ({ content }) => {
+    fs.writeFileSync(path.join(tmpDir, "out", ".vite-dev-server-url"), content);
     expect(getDevServerUrl(tmpDir)).toBeUndefined();
   });
 });

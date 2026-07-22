@@ -37,8 +37,7 @@ export function getAnsibleFileType(
   ) {
     return "other";
   }
-  const lastObject: unknown =
-    parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+  const lastObject: unknown = parsedAnsibleDocument.at(-1);
   if (lastObject === null || typeof lastObject !== "object") {
     return "other";
   }

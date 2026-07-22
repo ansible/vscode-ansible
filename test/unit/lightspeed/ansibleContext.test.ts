@@ -437,17 +437,27 @@ describe("AnsibleContextProcessor", () => {
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it("should validate playbook with hosts", () => {
-      const content =
-        "---\n- hosts: all\n  tasks:\n    - name: Test\n      debug:\n        msg: test";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-    });
-
-    it("should validate role structure", () => {
-      const content = "---\nmain: []";
+    it.each([
+      {
+        name: "playbook with hosts",
+        content:
+          "---\n- hosts: all\n  tasks:\n    - name: Test\n      debug:\n        msg: test",
+      },
+      { name: "role structure", content: "---\nmain: []" },
+      {
+        name: "task with name field only",
+        content: "---\n- name: Simple task",
+      },
+      {
+        name: "task with module key (no name)",
+        content: "---\n- ansible.builtin.debug:\n    msg: 'hello'",
+      },
+      {
+        name: "task with non-underscore key but no name",
+        content:
+          "---\n- ansible.builtin.copy:\n    src: /tmp/a\n    dest: /tmp/b",
+      },
+    ])("should validate $name", ({ content }) => {
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(true);
@@ -471,60 +481,47 @@ describe("AnsibleContextProcessor", () => {
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it("should reject task missing name or module", () => {
-      const content = "---\n- _meta: {}\n  _some_other: value";
+    it.each([
+      {
+        name: "task missing name or module",
+        content: "---\n- _meta: {}\n  _some_other: value",
+        error: "Task missing name or module",
+      },
+      {
+        name: "invalid playbook or role structure",
+        content: "---\ninvalid_key: value\nanother_key: test",
+        error: "Invalid playbook or role structure",
+      },
+      {
+        name: "null items in task list",
+        content: "---\n- null\n- name: Valid task",
+        error: "Invalid task or play structure",
+      },
+      {
+        name: "numeric items in task list",
+        content: "---\n- 42\n- name: Valid task",
+        error: "Invalid task or play structure",
+      },
+      {
+        name: "task with only underscore-prefixed keys",
+        content: "---\n- _internal: data\n  _meta: info",
+        error: "Task missing name or module",
+      },
+      {
+        name: "empty object in task list as missing name/module",
+        content: "---\n- {}",
+        error: "Task missing name or module",
+      },
+      {
+        name: "boolean items in array as invalid structure",
+        content: "---\n- true\n- false",
+        error: "Invalid task or play structure",
+      },
+    ])("should reject $name", ({ content, error }) => {
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Task missing name or module");
-    });
-
-    it("should reject invalid playbook or role structure", () => {
-      const content = "---\ninvalid_key: value\nanother_key: test";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Invalid playbook or role structure");
-    });
-
-    it("should validate task with name field only", () => {
-      const content = "---\n- name: Simple task";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-    });
-
-    it("should validate task with module key (no name)", () => {
-      const content = "---\n- ansible.builtin.debug:\n    msg: 'hello'";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-    });
-
-    it("should reject null items in task list", () => {
-      const content = "---\n- null\n- name: Valid task";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Invalid task or play structure");
-    });
-
-    it("should reject numeric items in task list", () => {
-      const content = "---\n- 42\n- name: Valid task";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Invalid task or play structure");
-    });
-
-    it("should reject task with only underscore-prefixed keys", () => {
-      const content = "---\n- _internal: data\n  _meta: info";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Task missing name or module");
+      expect(result.errors).toContain(error);
     });
 
     it("should collect multiple errors from mixed invalid items", () => {
@@ -533,14 +530,6 @@ describe("AnsibleContextProcessor", () => {
 
       expect(result.valid).toBe(false);
       expect(result.errors).toContain("Invalid task or play structure");
-      expect(result.errors).toContain("Task missing name or module");
-    });
-
-    it("should validate empty object in task list as missing name/module", () => {
-      const content = "---\n- {}";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
       expect(result.errors).toContain("Task missing name or module");
     });
 
@@ -556,15 +545,6 @@ describe("AnsibleContextProcessor", () => {
       expect(invalidStructureCount).toBeGreaterThanOrEqual(2);
     });
 
-    it("should accept task with non-underscore key but no name", () => {
-      const content =
-        "---\n- ansible.builtin.copy:\n    src: /tmp/a\n    dest: /tmp/b";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
-    });
-
     it("should validate single object with hosts key as valid playbook", () => {
       const content =
         "---\nhosts: webservers\ntasks:\n  - name: Ping\n    ansible.builtin.ping:";
@@ -578,14 +558,6 @@ describe("AnsibleContextProcessor", () => {
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(true);
-    });
-
-    it("should reject boolean items in array as invalid structure", () => {
-      const content = "---\n- true\n- false";
-      const result = AnsibleContextProcessor.validateAnsibleContent(content);
-
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain("Invalid task or play structure");
     });
   });
 

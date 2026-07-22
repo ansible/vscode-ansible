@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import * as child_process from "child_process";
 import * as util from "util";
 import * as os from "os";
-import * as path from "path";
+import * as path from "node:path";
 import { getTerminal } from "@src/features/ansibleTox/utils";
 import {
   ANSIBLE_TOX_FILE_NAME,
@@ -76,23 +76,31 @@ export async function runTox(
   targetTerminal.sendText(terminalCommand);
 }
 
+function coerceProcessStream(
+  err: unknown,
+  stream: "stderr" | "stdout",
+): string {
+  if (!isExecProcessError(err)) {
+    return "";
+  }
+  const value = err[stream];
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value != null) {
+    return String(value);
+  }
+  return "";
+}
+
 function extractProcessOutput(err: unknown): {
   stderr: string;
   stdout: string;
 } {
-  const stderr =
-    isExecProcessError(err) && typeof err.stderr === "string"
-      ? err.stderr
-      : isExecProcessError(err) && err.stderr != null
-        ? String(err.stderr)
-        : "";
-  const stdout =
-    isExecProcessError(err) && typeof err.stdout === "string"
-      ? err.stdout
-      : isExecProcessError(err) && err.stdout != null
-        ? String(err.stdout)
-        : "";
-  return { stderr, stdout };
+  return {
+    stderr: coerceProcessStream(err, "stderr"),
+    stdout: coerceProcessStream(err, "stdout"),
+  };
 }
 
 function logToxError(err: unknown): void {
