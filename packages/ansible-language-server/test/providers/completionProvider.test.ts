@@ -1,12 +1,15 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect, beforeAll, afterAll } from "vitest";
+import { expect, beforeAll, afterAll, afterEach } from "vitest";
+import sinon from "sinon";
 import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 import {
   doCompletion,
   doCompletionResolve,
+  hasCompletionDocumentUri,
 } from "@src/providers/completionProvider.js";
 import {} from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import { SchemaService } from "@src/services/schemaService.js";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -1281,4 +1284,201 @@ describe("doCompletion()", function () {
       });
     });
   }
+
+  describe("Schema, aliases, and edge-case completions", function () {
+    afterEach(function () {
+      sinon.restore();
+    });
+
+    it("returns schema completions when available", async function () {
+      const textDoc = TextDocument.create(
+        resolveDocUri("roles/demo/meta/main.yml"),
+        "ansible",
+        1,
+        `galaxy_info:\n  `,
+      );
+      const context = workspaceManager.getContext(
+        resolveDocUri("completion/simple_tasks.yml"),
+      );
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const schemaCompleterMod =
+        await import("@src/services/schemaCompleter.js");
+      const completeStub = sinon
+        .stub(schemaCompleterMod.SchemaCompleter.prototype, "complete")
+        .returns([
+          {
+            label: "author",
+            kind: CompletionItemKind.Property,
+          },
+        ]);
+
+      const schemaService = {
+        shouldValidateWithSchema: () => true,
+        getSchemaForDocument: async () => ({
+          type: "object",
+          properties: {
+            galaxy_info: {
+              type: "object",
+              properties: {
+                author: { type: "string", description: "Author" },
+              },
+            },
+          },
+        }),
+      } as unknown as SchemaService;
+
+      const items = await doCompletion(
+        textDoc,
+        { line: 1, character: 2 },
+        context,
+        schemaService,
+      );
+      expect(items).toHaveLength(1);
+      expect(items[0].label).toBe("author");
+      completeStub.restore();
+    });
+
+    it("falls through when schema completions are empty", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const schemaService = {
+        shouldValidateWithSchema: () => true,
+        getSchemaForDocument: async () => undefined,
+      } as unknown as SchemaService;
+
+      // Cursor on a play-level key line so fall-through hits play keywords
+      const items = await doCompletion(
+        textDoc,
+        { line: 1, character: 2 },
+        context,
+        schemaService,
+      );
+      // Remaining play keywords (already-used keys like name/hosts are filtered)
+      expect(items.map((i) => i.label)).toEqual(
+        expect.arrayContaining(["roles", "handlers", "become"]),
+      );
+    });
+
+    it("offers alias options when aliases are enabled", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const content = `- hosts: localhost
+  tasks:
+    - org_1.coll_1.module_1:
+        `;
+      const doc = TextDocument.create(textDoc.uri, "ansible", 1, content);
+      const items = await doCompletion(doc, { line: 3, character: 8 }, context);
+      const alias = items.find((i) => i.label === "option_two");
+      expect(alias).toBeTruthy();
+      expect(alias?.kind).toBe(CompletionItemKind.Reference);
+    });
+
+    it("offers bool choice values including string default", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const content = `- hosts: localhost
+  tasks:
+    - org_1.coll_1.module_1:
+        opt_bool: `;
+      const doc = TextDocument.create(textDoc.uri, "ansible", 1, content);
+      const items = await doCompletion(
+        doc,
+        { line: 3, character: 18 },
+        context,
+      );
+      const labels = items.map((i) => i.label);
+      expect(labels).toEqual(expect.arrayContaining(["true", "false"]));
+    });
+
+    it("offers play keywords when play identity is still ambiguous", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const content = `- `;
+      const doc = TextDocument.create(textDoc.uri, "ansible", 1, content);
+      const items = await doCompletion(doc, { line: 0, character: 2 }, context);
+      const labels = items.map((i) => i.label);
+      expect(labels.includes("block") || labels.includes("hosts")).toBe(true);
+    });
+
+    it("hasCompletionDocumentUri type guard", function () {
+      expect(hasCompletionDocumentUri({ documentUri: "x" })).toBe(true);
+      expect(hasCompletionDocumentUri(null)).toBe(false);
+      expect(hasCompletionDocumentUri({})).toBe(false);
+      expect(hasCompletionDocumentUri({ documentUri: 1 })).toBe(false);
+    });
+
+    it("completes hosts value after typing characters", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      const content = `- hosts: loc`;
+      const doc = TextDocument.create(textDoc.uri, "ansible", 1, content);
+      const items = await doCompletion(
+        doc,
+        { line: 0, character: 11 },
+        context,
+      );
+      expect(items.length).toBeGreaterThan(0);
+      expect(items.map((i) => i.label)).toEqual(
+        expect.arrayContaining(["localhost"]),
+      );
+    });
+
+    it("completes hosts and option values on null value positions", async function () {
+      const textDoc = getDoc("completion/simple_tasks.yml");
+      const context = workspaceManager.getContext(textDoc.uri);
+      expect(context).toBeDefined();
+      if (!context) return;
+
+      // Same-line null hosts value (triggers inventory completion)
+      const hostsDoc = TextDocument.create(
+        textDoc.uri,
+        "ansible",
+        1,
+        `- hosts: `,
+      );
+      const hostItems = await doCompletion(
+        hostsDoc,
+        { line: 0, character: 9 },
+        context,
+      );
+      expect(hostItems.map((i) => i.label)).toEqual(
+        expect.arrayContaining(["localhost", "all"]),
+      );
+
+      const optionDoc = TextDocument.create(
+        textDoc.uri,
+        "ansible",
+        1,
+        `- hosts: localhost
+  tasks:
+    - org_1.coll_1.module_1:
+        opt_3: `,
+      );
+      const optionItems = await doCompletion(
+        optionDoc,
+        { line: 3, character: 15 },
+        context,
+      );
+      expect(optionItems.map((i) => i.label)).toEqual(
+        expect.arrayContaining(["choice_1", "choice_2"]),
+      );
+    });
+  });
 });
