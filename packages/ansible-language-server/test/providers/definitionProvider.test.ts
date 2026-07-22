@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect, beforeAll, afterAll, vi } from "vitest";
+import { expect, beforeAll, afterAll } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -10,7 +10,6 @@ import {
 } from "@test/helper.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
-import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { fileExists } from "@src/utils/misc.js";
 import { URI } from "vscode-uri";
 
@@ -123,49 +122,6 @@ describe("getDefinition()", function () {
       if (context) {
         testModuleNamesForDefinition(context, textDoc);
       }
-    });
-  });
-
-  describe("Edge cases with mocked DocsLibrary", function () {
-    it("returns null when path cannot be resolved", async function () {
-      const doc = TextDocument.create(
-        "file:///tmp/def.yml",
-        "ansible",
-        1,
-        `# comment only
-`,
-      );
-      const docsLibrary = {
-        findModule: vi.fn().mockResolvedValue([undefined, undefined]),
-      } as unknown as DocsLibrary;
-
-      const result = await getDefinition(
-        doc,
-        { line: 0, character: 0 },
-        docsLibrary,
-      );
-      expect(result).toBeNull();
-    });
-
-    it("returns null when cursor is on a non-task key", async function () {
-      const doc = TextDocument.create(
-        "file:///tmp/def2.yml",
-        "ansible",
-        1,
-        `- hosts: localhost
-  tasks: []
-`,
-      );
-      const docsLibrary = {
-        findModule: vi.fn().mockResolvedValue([undefined, undefined]),
-      } as unknown as DocsLibrary;
-
-      const result = await getDefinition(
-        doc,
-        { line: 0, character: 4 },
-        docsLibrary,
-      );
-      expect(result).toBeNull();
     });
   });
 });

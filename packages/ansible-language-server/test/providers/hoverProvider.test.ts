@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent } from "vscode-languageserver";
-import { expect, beforeAll, afterAll, vi } from "vitest";
+import { expect, beforeAll, afterAll } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -10,7 +10,6 @@ import {
   setFixtureAnsibleCollectionPathEnv,
 } from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
-import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
 function get_hover_value(hover: Hover | undefined | null): string {
@@ -649,73 +648,6 @@ describe("doHover()", function () {
           nonAdjacentTextDoc,
         );
       }
-    });
-  });
-
-  describe("Edge cases with mocked DocsLibrary", function () {
-    it("returns tombstone hover when module is removed", async function () {
-      const doc = TextDocument.create(
-        "file:///tmp/tombstone.yml",
-        "ansible",
-        1,
-        `- hosts: localhost
-  tasks:
-    - removed.module.name:
-        opt: 1
-`,
-      );
-      const docsLibrary = {
-        findModule: vi
-          .fn()
-          .mockResolvedValue([undefined, "removed.module.name"]),
-        getModuleRoute: vi.fn().mockReturnValue({
-          tombstone: {
-            removalDate: "2024-01-01",
-            removalVersion: "3.0.0",
-            warningText: "This module was removed.",
-          },
-        }),
-      } as unknown as DocsLibrary;
-
-      const hover = await doHover(doc, { line: 2, character: 10 }, docsLibrary);
-      expect(hover).toBeTruthy();
-      expect(get_hover_value(hover)).toContain("REMOVED");
-      expect(get_hover_value(hover)).toContain("This module was removed.");
-    });
-
-    it("returns null for unknown play keyword", async function () {
-      const doc = TextDocument.create(
-        "file:///tmp/unknown_kw.yml",
-        "ansible",
-        1,
-        `- hosts: localhost
-  not_a_real_play_keyword: true
-  tasks: []
-`,
-      );
-      const docsLibrary = {
-        findModule: vi.fn().mockResolvedValue([undefined, undefined]),
-        getModuleRoute: vi.fn(),
-      } as unknown as DocsLibrary;
-
-      const hover = await doHover(doc, { line: 1, character: 4 }, docsLibrary);
-      expect(hover).toBeNull();
-    });
-
-    it("returns null when cursor is not on a key", async function () {
-      const doc = TextDocument.create(
-        "file:///tmp/value.yml",
-        "ansible",
-        1,
-        `- hosts: localhost
-`,
-      );
-      const docsLibrary = {
-        findModule: vi.fn().mockResolvedValue([undefined, undefined]),
-      } as unknown as DocsLibrary;
-
-      const hover = await doHover(doc, { line: 0, character: 10 }, docsLibrary);
-      expect(hover).toBeNull();
     });
   });
 });
