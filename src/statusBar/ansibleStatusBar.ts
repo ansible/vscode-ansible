@@ -147,6 +147,13 @@ export class AnsibleStatusBar implements vscode.Disposable {
             return;
         }
 
+        if (!vscode.workspace.workspaceFolders?.length) {
+            void vscode.window.showWarningMessage(
+                'Open a workspace folder before resyncing Ansible inventory.',
+            );
+            return;
+        }
+
         try {
             await this._client.sendNotification(
                 new NotificationType(RESYNC_INVENTORY_NOTIFICATION),
