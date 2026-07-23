@@ -305,16 +305,16 @@ export class ToxAnsibleService {
         );
 
         const durationMs = Date.now() - start;
-        const abortedDuringExec = signal?.aborted && r.exitCode !== 0;
+        const cancelled = signal?.aborted && r.stderr === 'Cancelled';
 
         return {
             environment: envName,
-            success: !abortedDuringExec && r.exitCode === 0,
+            success: !cancelled && r.exitCode === 0,
             exitCode: r.exitCode,
-            stdout: abortedDuringExec ? '' : r.stdout,
-            stderr: abortedDuringExec ? 'Cancelled by user' : r.stderr,
+            stdout: cancelled ? '' : r.stdout,
+            stderr: cancelled ? 'Cancelled by user' : r.stderr,
             durationMs,
-            timedOut: !abortedDuringExec && r.exitCode !== 0 && durationMs >= timeoutMs,
+            timedOut: !cancelled && r.exitCode !== 0 && durationMs >= timeoutMs,
         };
     }
 

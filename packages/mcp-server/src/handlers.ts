@@ -2119,6 +2119,23 @@ their reactions. Keep explanations concise and practical.
     // === Tox-Ansible Handlers ===
 
     /**
+     * Validate that a workspace_dir is an absolute path without traversal.
+     * MCP inputs originate from AI assistants and may include untrusted values.
+     * @param dir - Raw workspace_dir from tool args
+     * @returns Error result if invalid, undefined if valid
+     */
+    private _validateWorkspaceDir(dir: string): McpToolResult | undefined {
+        if (!path.isAbsolute(dir) || dir.includes('..')) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: 'workspace_dir must be an absolute path without traversal sequences',
+            });
+        }
+        return undefined;
+    }
+
+    /**
      * Get a ToxAnsibleService instance (lazily created).
      * @returns ToxAnsibleService for tox discovery/execution
      */
@@ -2142,6 +2159,9 @@ their reactions. Keep explanations concise and practical.
                 message: 'workspace_dir is required',
             });
         }
+
+        const pathErr = this._validateWorkspaceDir(workspaceDir);
+        if (pathErr) return pathErr;
 
         const service = this._getToxService();
         const availability = await service.checkAvailability();
@@ -2212,6 +2232,9 @@ their reactions. Keep explanations concise and practical.
                 message: 'workspace_dir is required',
             });
         }
+
+        const pathErr = this._validateWorkspaceDir(workspaceDir);
+        if (pathErr) return pathErr;
 
         const service = this._getToxService();
         const availability = await service.checkAvailability();

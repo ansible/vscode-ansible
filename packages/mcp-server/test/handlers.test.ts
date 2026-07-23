@@ -1676,6 +1676,24 @@ describe('McpToolHandler', () => {
             expect(err.message).toContain('workspace_dir');
         });
 
+        it('rejects relative workspace_dir', async () => {
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: 'relative/path',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('absolute path');
+        });
+
+        it('rejects workspace_dir with traversal sequences', async () => {
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace/../etc/passwd',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('traversal');
+        });
+
         it('returns SERVICE_UNAVAILABLE when tox is not installed', async () => {
             hoisted.toxInstance.checkAvailability.mockResolvedValueOnce({
                 toxInstalled: false,
@@ -1739,6 +1757,26 @@ describe('McpToolHandler', () => {
             const err = parseError(result);
             expect(err.code).toBe('MISSING_PARAM');
             expect(err.message).toContain('workspace_dir');
+        });
+
+        it('rejects relative workspace_dir', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: 'relative/path',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('absolute path');
+        });
+
+        it('rejects workspace_dir with traversal sequences', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace/../etc/passwd',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('traversal');
         });
 
         it('returns run result on success', async () => {
