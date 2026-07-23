@@ -14,6 +14,8 @@ export default defineConfig([
     {
         label: 'no-python-envs',
         files: 'out/test/integration/no-envs/*.test.js',
+        // Satisfy package.json extensionDependencies without python-envs (ADR-019).
+        installExtensions: ['ms-python.python', 'redhat.vscode-yaml'],
         launchArgs: [`--extensions-dir=${resolve(rootDir, '.vscode-test/no-envs-extensions')}`],
         mocha: { timeout: 60000 },
     },
