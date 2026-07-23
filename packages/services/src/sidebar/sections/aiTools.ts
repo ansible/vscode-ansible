@@ -29,7 +29,7 @@ export function buildAiTools(input: SidebarModelInput): SidebarSection {
         ([category, catTools]) => ({
             id: `ai-cat-${category}`,
             label: catTools[0]?.categoryLabel ?? category,
-            description: `${String(catTools.length)} tools`,
+            description: `${String(catTools.length)} ${catTools.length === 1 ? 'tool' : 'tools'}`,
             icon: iconMap[category] ?? 'symbol-misc',
             children: catTools
                 .slice()
