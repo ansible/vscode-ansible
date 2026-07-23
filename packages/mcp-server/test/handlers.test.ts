@@ -1808,8 +1808,7 @@ describe('McpToolHandler', () => {
                 environment: 'unit-py3.12-devel',
                 workspace_dir: '/workspace',
             });
-            expect(result.isError).toBe(true);
-            const err = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            const err = parseError(result);
             expect(err.code).toBe('SERVICE_UNAVAILABLE');
         });
     });

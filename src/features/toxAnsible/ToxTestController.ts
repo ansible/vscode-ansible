@@ -8,7 +8,7 @@
 
 import * as vscode from 'vscode';
 import { ToxAnsibleService } from '@ansible/developer-services';
-import type { ToxEnvironment, ToxTestCategory } from '@ansible/developer-services';
+import type { ToxEnvironment, ToxTestCategory, ToxRunResult } from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 const CONTROLLER_ID = 'ansibleToxTests';
@@ -189,39 +189,74 @@ export class ToxTestController implements vscode.Disposable {
                     continue;
                 }
 
-                run.started(item);
-
-                const result = await this._service.runEnvironment(
-                    envName,
-                    workspaceDir,
-                    undefined,
-                    abortController.signal,
-                );
-
-                if (abortController.signal.aborted) {
-                    run.skipped(item);
-                    continue;
-                }
-
-                const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
-                if (output) {
-                    run.appendOutput(output.replace(/\r?\n/g, '\r\n') + '\r\n', undefined, item);
-                }
-
-                if (result.success) {
-                    run.passed(item, result.durationMs);
-                } else {
-                    const message = new vscode.TestMessage(
-                        output || `Exit code: ${String(result.exitCode)}`,
-                    );
-                    run.failed(item, message, result.durationMs);
-                }
+                await this._executeItem(run, item, envName, workspaceDir, abortController);
             }
         } finally {
             cancelSub.dispose();
+            run.end();
+        }
+    }
+
+    /**
+     * Execute a single test item and report the result.
+     * @param run - Active test run to report into
+     * @param item - Test item being executed
+     * @param envName - Tox environment name to run
+     * @param workspaceDir - Workspace root path
+     * @param abortController - Controller whose signal cancels the tox process
+     */
+    private async _executeItem(
+        run: vscode.TestRun,
+        item: vscode.TestItem,
+        envName: string,
+        workspaceDir: string,
+        abortController: AbortController,
+    ): Promise<void> {
+        run.started(item);
+
+        try {
+            const result = await this._service.runEnvironment(
+                envName,
+                workspaceDir,
+                undefined,
+                abortController.signal,
+            );
+
+            if (abortController.signal.aborted) {
+                run.skipped(item);
+                return;
+            }
+
+            this._reportResult(run, item, result);
+        } catch (err) {
+            run.errored(
+                item,
+                new vscode.TestMessage(err instanceof Error ? err.message : 'Unknown error'),
+            );
+        }
+    }
+
+    /**
+     * Report a ToxRunResult to the test run, appending output and setting verdict.
+     * @param run - Active test run to report into
+     * @param item - Test item the result belongs to
+     * @param result - Run result from ToxAnsibleService
+     */
+    private _reportResult(run: vscode.TestRun, item: vscode.TestItem, result: ToxRunResult): void {
+        const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+        if (output) {
+            run.appendOutput(output.replace(/\r?\n/g, '\r\n') + '\r\n', undefined, item);
         }
 
-        run.end();
+        if (result.success) {
+            run.passed(item, result.durationMs);
+        } else {
+            run.failed(
+                item,
+                new vscode.TestMessage(output || `Exit code: ${String(result.exitCode)}`),
+                result.durationMs,
+            );
+        }
     }
 
     /**
@@ -264,9 +299,8 @@ export class ToxTestController implements vscode.Disposable {
      * @returns Environment name or undefined for category nodes
      */
     private _extractEnvName(item: vscode.TestItem): string | undefined {
-        const parts = item.id.split('/');
-        const lastPart = parts[parts.length - 1];
-        if (lastPart.startsWith(CATEGORY_ID_PREFIX)) {
+        const lastPart = item.id.split('/').at(-1);
+        if (!lastPart || lastPart.startsWith(CATEGORY_ID_PREFIX)) {
             return undefined;
         }
         return lastPart;

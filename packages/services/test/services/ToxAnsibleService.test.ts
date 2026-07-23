@@ -386,6 +386,28 @@ describe('ToxAnsibleService', () => {
             expect(callArgs[1]).toContain('-e');
             expect(callArgs[1]).toContain('unit-py3.12-devel');
         });
+
+        it('forwards AbortSignal to CommandService', async () => {
+            const controller = new AbortController();
+            await service.runEnvironment('unit-py3.12-devel', tmpDir, undefined, controller.signal);
+
+            expect(runCommandArgsMock.mock.calls[0][3]).toBe(controller.signal);
+        });
+
+        it('returns cancelled result for pre-aborted signal', async () => {
+            const controller = new AbortController();
+            controller.abort();
+
+            const result = await service.runEnvironment(
+                'unit-py3.12-devel',
+                tmpDir,
+                undefined,
+                controller.signal,
+            );
+            expect(result.success).toBe(false);
+            expect(result.stderr).toBe('Cancelled');
+            expect(runCommandArgsMock).not.toHaveBeenCalled();
+        });
     });
 
     describe('runEnvironments', () => {

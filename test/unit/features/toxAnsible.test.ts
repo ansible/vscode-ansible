@@ -71,7 +71,11 @@ vi.mock('vscode', () => ({
     TaskGroup: { Test: { id: 'test' } },
     TaskRevealKind: { Always: 1 },
     TaskScope: { Workspace: 1 },
-    ShellExecution: vi.fn((cmd: string, opts?: unknown) => ({ commandLine: cmd, options: opts })),
+    ShellExecution: vi.fn((cmd: string, argsOrOpts?: unknown, opts?: unknown) =>
+        Array.isArray(argsOrOpts)
+            ? { command: cmd, args: argsOrOpts, options: opts }
+            : { commandLine: cmd, options: argsOrOpts },
+    ),
     Task: vi.fn((def: unknown, scope: unknown, name: string, source: string, exec: unknown) => ({
         definition: def,
         scope,

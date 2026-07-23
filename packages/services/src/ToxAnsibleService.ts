@@ -248,10 +248,12 @@ export class ToxAnsibleService {
 
     /**
      * Run a single tox-ansible environment and capture the result.
+     * The signal is forwarded to the child process so the tox run is
+     * actually killed when the user clicks "Stop" in Test Explorer.
      * @param envName - Tox environment name to run
      * @param workspaceDir - Absolute path to the workspace root
      * @param timeoutMs - Maximum execution time in milliseconds
-     * @param signal - AbortSignal to cancel the running process
+     * @param signal - AbortSignal to kill the tox child process on cancellation
      * @returns Run result with exit code, output, and duration
      */
     async runEnvironment(
@@ -291,10 +293,12 @@ export class ToxAnsibleService {
             };
         }
 
-        const r = await this._cmd.runCommandArgs(toxPath, args, {
-            cwd: workspaceDir,
-            timeout: timeoutMs,
-        });
+        const r = await this._cmd.runCommandArgs(
+            toxPath,
+            args,
+            { cwd: workspaceDir, timeout: timeoutMs },
+            signal,
+        );
 
         const durationMs = Date.now() - start;
 

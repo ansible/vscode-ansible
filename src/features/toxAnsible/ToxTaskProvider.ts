@@ -89,15 +89,15 @@ export class ToxTaskProvider implements vscode.TaskProvider {
             environment: envName,
         };
 
-        let command = `tox -e ${envName} --ansible`;
+        const args = ['-e', envName, '--ansible'];
         if (folder?.uri.fsPath) {
             const configFile = this._service.detectConfigFile(folder.uri.fsPath);
             if (configFile && !configFile.endsWith('pyproject.toml')) {
-                command += ` --conf "${configFile}"`;
+                args.push('--conf', configFile);
             }
         }
 
-        const execution = new vscode.ShellExecution(command, {
+        const execution = new vscode.ShellExecution('tox', args, {
             cwd: folder?.uri.fsPath,
         });
 
