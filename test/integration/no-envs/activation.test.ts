@@ -1,6 +1,6 @@
 /**
  * Integration test that validates extension activation and degraded-mode
- * behavior when ms-python.vscode-python-envs is NOT installed.
+ * behavior when ms-python.vscode-python-envs is NOT available.
  *
  * Run via:  pnpm test:integration:no-envs
  */
@@ -18,12 +18,13 @@ suite('Ansible Extension — without python-envs', () => {
         }
     });
 
-    test('python-envs extension is NOT installed in this profile', () => {
+    test('python-envs extension is not active in this profile', () => {
         const envsExt = vscode.extensions.getExtension(PYTHON_ENVS_ID);
-        assert.strictEqual(
-            envsExt,
-            undefined,
-            `${PYTHON_ENVS_ID} should not be installed in the no-python-envs test profile`,
+        // Profile may still have the extension on disk (shared install cache from
+        // the default suite) but launches with --disable-extension.
+        assert.ok(
+            !envsExt?.isActive,
+            `${PYTHON_ENVS_ID} should not be active in the no-python-envs test profile`,
         );
     });
 
@@ -35,11 +36,12 @@ suite('Ansible Extension — without python-envs', () => {
 
     test('registers expected commands even without python-envs', async () => {
         const ext = vscode.extensions.getExtension(EXTENSION_ID);
-        assert.ok(ext?.isActive, 'Extension should be active before checking commands');
+        assert.ok(ext, 'Extension should be installed');
+        assert.ok(ext.isActive, 'Extension should be active before checking commands');
 
         const contributed = (
-            (ext?.packageJSON as { contributes?: { commands?: { command: string }[] } } | undefined)
-                ?.contributes?.commands ?? []
+            (ext.packageJSON as { contributes?: { commands?: { command: string }[] } }).contributes
+                ?.commands ?? []
         ).map((c) => c.command);
 
         const commands = await vscode.commands.getCommands(true);
@@ -60,9 +62,15 @@ suite('Ansible Extension — without python-envs', () => {
             const found = commands.some((cmd) => cmd.startsWith(prefix));
             assert.ok(
                 found,
-                `Should register commands with prefix "${prefix}" (active=${String(ext?.isActive)}, sample=${commands
-                    .filter((c) => c.startsWith('ansible'))
-                    .slice(0, 12)
+                `Should register commands with prefix "${prefix}" (active=${String(ext.isActive)}, sample=${commands
+                    .filter(
+                        (c) =>
+                            c.startsWith('ansible') ||
+                            c.startsWith('ansibleDevTools') ||
+                            c.startsWith('ansibleCreator') ||
+                            c.startsWith('ansiblePlaybooks'),
+                    )
+                    .slice(0, 20)
                     .join(', ')})`,
             );
         }
