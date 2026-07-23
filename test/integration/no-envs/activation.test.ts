@@ -34,6 +34,14 @@ suite('Ansible Extension — without python-envs', () => {
     });
 
     test('registers expected commands even without python-envs', async () => {
+        const ext = vscode.extensions.getExtension(EXTENSION_ID);
+        assert.ok(ext?.isActive, 'Extension should be active before checking commands');
+
+        const contributed = (
+            (ext?.packageJSON as { contributes?: { commands?: { command: string }[] } } | undefined)
+                ?.contributes?.commands ?? []
+        ).map((c) => c.command);
+
         const commands = await vscode.commands.getCommands(true);
 
         const expectedPrefixes = [
@@ -44,8 +52,19 @@ suite('Ansible Extension — without python-envs', () => {
         ];
 
         for (const prefix of expectedPrefixes) {
+            const inPackageJson = contributed.some((cmd) => cmd.startsWith(prefix));
+            assert.ok(
+                inPackageJson,
+                `package.json should contribute commands with prefix "${prefix}"`,
+            );
             const found = commands.some((cmd) => cmd.startsWith(prefix));
-            assert.ok(found, `Should register commands with prefix "${prefix}"`);
+            assert.ok(
+                found,
+                `Should register commands with prefix "${prefix}" (active=${String(ext?.isActive)}, sample=${commands
+                    .filter((c) => c.startsWith('ansible'))
+                    .slice(0, 12)
+                    .join(', ')})`,
+            );
         }
     });
 
