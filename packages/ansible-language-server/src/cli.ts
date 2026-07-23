@@ -46,6 +46,7 @@ export async function run(argv: string[]): Promise<number> {
     console.error(err);
     return 1;
   }
+  // LSP server owns the process via connection listeners; do not exit.
   return 0;
 }
 
@@ -60,7 +61,19 @@ const isDirectRun =
 if (isDirectRun) {
   void run(process.argv.slice(2))
     .then((code) => {
-      process.exit(code);
+      // Failures always exit. Success exits only for short-lived flag handlers
+      // (--version / --generate-docs). After LSP server import, open handles
+      // keep the process alive — calling process.exit(0) would kill the server.
+      if (code !== 0) {
+        process.exit(code);
+        return;
+      }
+      const argv = process.argv.slice(2);
+      const startedServer =
+        !argv.includes("--version") && !argv.includes("--generate-docs");
+      if (!startedServer) {
+        process.exit(0);
+      }
     })
     .catch((err: unknown) => {
       console.error(err);
