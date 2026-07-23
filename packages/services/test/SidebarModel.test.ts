@@ -185,7 +185,7 @@ describe('SidebarModel', () => {
         ]);
         const aiNodes = snap.sections.find((s) => s.id === 'aiTools')?.nodes ?? [];
         const discovery = aiNodes.find((n) => n.label === 'Discovery');
-        expect(discovery?.description).toBe('1 tools');
+        expect(discovery?.description).toBe('1 tool');
     });
 
     it('appends Lightspeed when enabled', () => {
