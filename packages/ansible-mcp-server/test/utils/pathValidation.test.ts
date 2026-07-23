@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import {
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import fs, {
   mkdtempSync,
   mkdirSync,
   writeFileSync,
   symlinkSync,
   rmSync,
   realpathSync,
-} from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   validatePathWithinWorkspace,
   PathTraversalError,
@@ -124,5 +124,28 @@ describe("validatePathWithinWorkspace", () => {
   it("should handle paths with trailing slashes", () => {
     const result = validatePathWithinWorkspace("subdir/", workspaceRoot);
     expect(result).toBe(join(realWorkspaceRoot, "subdir"));
+  });
+
+  it("should reject whitespace-only workspace root", () => {
+    expect(() => validatePathWithinWorkspace("subdir", "   ")).toThrow(
+      PathTraversalError,
+    );
+  });
+
+  it("should accept nested paths when realpathSync is forced to fail", () => {
+    // Intentionally force realpathSync to throw so resolveWithSymlinks walks
+    // parents until parent === path (filesystem root) and uses the fallback.
+    // Expect workspaceRoot (not realWorkspaceRoot): resolution stays logical.
+    const spy = vi.spyOn(fs, "realpathSync").mockImplementation(() => {
+      throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+    });
+
+    try {
+      const result = validatePathWithinWorkspace("ghost/nested", workspaceRoot);
+      expect(spy).toHaveBeenCalled();
+      expect(result).toBe(join(workspaceRoot, "ghost", "nested"));
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
