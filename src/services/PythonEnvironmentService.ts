@@ -729,9 +729,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
         const extraPackages = options?.additionalPackages?.filter(Boolean) ?? [];
         if (extraPackages.length > 0) {
             const pkgList = extraPackages.map((p) => `'${p.replace(/'/g, "'\\''")}'`).join(' ');
+            const winPkgList = extraPackages.map((p) => `"${p.replace(/"/g, '""')}"`).join(' ');
             const pipCmd =
                 process.platform === 'win32'
-                    ? `"${pythonBin}" -m pip install ${extraPackages.join(' ')}`
+                    ? `"${pythonBin.replace(/"/g, '""')}" -m pip install ${winPkgList}`
                     : `'${pythonBin.replace(/'/g, "'\\''")}' -m pip install ${pkgList}`;
             log(`Installing packages into new venv: ${pipCmd}`);
             await new Promise<void>((resolve) => {

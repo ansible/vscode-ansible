@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { PythonEnvironment, SidebarEnvManagerInput } from '@ansible/developer-services';
 import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
+import { log } from '@src/extension';
 
 /** NavTree data source for Python environment managers and their environments. */
 export class EnvironmentManagersController {
@@ -94,7 +95,7 @@ export class EnvironmentManagersController {
                 managers.get(managerId)?.push(env);
             }
         } catch (error) {
-            console.error('Failed to load environments:', error);
+            log(`Failed to load environments: ${String(error)}`);
         }
 
         this._managers = managers;

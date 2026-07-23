@@ -35,12 +35,13 @@ import { MCP_CATEGORY_LABELS, mcpIdeDisplayName } from '@src/sidebar/mcpLabels';
  * WebviewView host for the accordion sidebar NavTree (ADR-025).
  * Sole Activity Bar UI — snapshot hydrate, command dispatch, lazy expand.
  */
-export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
+export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscode.Disposable {
     public static readonly viewType = 'ansibleNavTree';
 
     private _view?: vscode.WebviewView;
     private readonly _model = new SidebarModel();
-    private _disposables: vscode.Disposable[] = [];
+    private _viewDisposables: vscode.Disposable[] = [];
+    private _controllerDisposables: vscode.Disposable[] = [];
     private _mcpTools?: McpToolsController;
     private _collectionSources?: CollectionSourcesController;
     /** Bumps on each progressive push so a stale hydrate cannot overwrite a newer one. */
@@ -75,7 +76,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
      */
     setMcpToolsController(controller: McpToolsController): void {
         this._mcpTools = controller;
-        this._disposables.push(
+        this._controllerDisposables.push(
             controller.onDidChange(() => {
                 void this._pushSnapshot();
             }),
@@ -89,7 +90,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
      */
     setCollectionSourcesController(controller: CollectionSourcesController): void {
         this._collectionSources = controller;
-        this._disposables.push(
+        this._controllerDisposables.push(
             controller.onDidChange(() => {
                 void this._pushSnapshot();
             }),
@@ -114,7 +115,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.html = this._getHtml(webviewView.webview);
 
-        this._disposables.push(
+        this._viewDisposables.push(
             webviewView.webview.onDidReceiveMessage(
                 (msg: { method?: string; params?: unknown }) => {
                     void this._handleMessage(msg);
@@ -122,7 +123,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
             ),
         );
 
-        this._disposables.push(
+        this._viewDisposables.push(
             this._envManagers.onDidChange(() => {
                 void this._pushSnapshot();
             }),
@@ -132,7 +133,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
         const collections = CollectionsService.getInstance();
         const creator = CreatorService.getInstance();
         const ees = ExecutionEnvService.getInstance();
-        this._disposables.push(
+        this._viewDisposables.push(
             (devTools.onDidChange as vscode.Event<void>)(() => {
                 void this._pushSnapshot();
             }),
@@ -162,16 +163,28 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider {
         );
 
         webviewView.onDidDispose(() => {
-            for (const d of this._disposables) {
+            for (const d of this._viewDisposables) {
                 d.dispose();
             }
-            this._disposables = [];
+            this._viewDisposables = [];
             this._view = undefined;
             this._hasHydrated = false;
             this._lastSnapshot = undefined;
         });
 
         void this._pushSnapshot({ progressive: true });
+    }
+
+    /** Release view and controller subscriptions on extension deactivate. */
+    dispose(): void {
+        for (const d of this._viewDisposables) {
+            d.dispose();
+        }
+        this._viewDisposables = [];
+        for (const d of this._controllerDisposables) {
+            d.dispose();
+        }
+        this._controllerDisposables = [];
     }
 
     /**

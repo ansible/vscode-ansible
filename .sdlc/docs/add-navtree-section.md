@@ -39,4 +39,4 @@ Do **not** change `SidebarShell` / `SidebarTree` for ordinary sections.
 
 - UI only renders `SidebarSnapshot` — no Ansible discovery in the webview.
 - Host owns vscode config/auth/workspace; services own pure snapshot building.
-- Controllers under `src/views/` expose `onDidChange` for hub refresh (not TreeViews).
+- Controllers under `src/views/` expose `onDidChange` for NavTree refresh (not TreeViews).

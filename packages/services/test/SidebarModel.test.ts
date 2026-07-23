@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SidebarModel } from '../src/SidebarModel';
+import { assembleAiTools } from '../src/sidebar/assembleSidebarInput';
 
 describe('SidebarModel', () => {
     const model = new SidebarModel();
@@ -701,5 +702,20 @@ describe('SidebarModel', () => {
         const ee = patched.sections.find((s) => s.id === 'executionEnvironments')?.nodes[0];
         expect(ee?.lazyChildren).toBe(false);
         expect(ee?.children?.[0]?.label).toBe('modules');
+    });
+
+    it('falls back to tool name when MCP description is empty', () => {
+        const tools = assembleAiTools(
+            [
+                {
+                    category: 'discovery',
+                    tool: { name: 'list_collections', description: '' },
+                    examplePrompt: 'List collections',
+                    toolInfo: {},
+                },
+            ],
+            { discovery: 'Discovery' },
+        );
+        expect(tools?.[0]?.label).toBe('list_collections');
     });
 });

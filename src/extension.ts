@@ -237,53 +237,52 @@ export async function activate(context: vscode.ExtensionContext) {
         }),
     );
 
-    // Check if workspace is open
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
-        return;
-    }
-
-    // Start the Ansible Language Server
-    const serverModule = context.asAbsolutePath(path.join('dist', 'language-server.js'));
-    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const serverEnv: Record<string, string> = {};
-    if (workspaceRoot) {
-        serverEnv.ANSIBLE_ENV_WORKSPACE = workspaceRoot;
-    }
-    const serverOptions: ServerOptions = {
-        run: {
-            module: serverModule,
-            transport: TransportKind.ipc,
-            options: { cwd: workspaceRoot, env: serverEnv },
-        },
-        debug: {
-            module: serverModule,
-            transport: TransportKind.ipc,
-            options: {
-                execArgv: ['--nolazy', '--inspect=6009'],
-                cwd: workspaceRoot,
-                env: serverEnv,
+    let languageClient: LanguageClient | undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        void vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
+    } else {
+        const serverModule = context.asAbsolutePath(path.join('dist', 'language-server.js'));
+        const workspaceRoot = workspaceFolder.uri.fsPath;
+        const serverEnv: Record<string, string> = {};
+        if (workspaceRoot) {
+            serverEnv.ANSIBLE_ENV_WORKSPACE = workspaceRoot;
+        }
+        const serverOptions: ServerOptions = {
+            run: {
+                module: serverModule,
+                transport: TransportKind.ipc,
+                options: { cwd: workspaceRoot, env: serverEnv },
             },
-        },
-    };
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'ansible' }],
-        synchronize: {
-            fileEvents: [
-                vscode.workspace.createFileSystemWatcher('**/ansible.cfg'),
-                vscode.workspace.createFileSystemWatcher('**/.ansible-lint'),
-            ],
-        },
-    };
-    const languageClient = new LanguageClient(
-        'ansibleLanguageServer',
-        'Ansible Language Server',
-        serverOptions,
-        clientOptions,
-    );
-    void languageClient.start();
-    context.subscriptions.push(languageClient);
-    log('Ansible Language Server started');
+            debug: {
+                module: serverModule,
+                transport: TransportKind.ipc,
+                options: {
+                    execArgv: ['--nolazy', '--inspect=6009'],
+                    cwd: workspaceRoot,
+                    env: serverEnv,
+                },
+            },
+        };
+        const clientOptions: LanguageClientOptions = {
+            documentSelector: [{ scheme: 'file', language: 'ansible' }],
+            synchronize: {
+                fileEvents: [
+                    vscode.workspace.createFileSystemWatcher('**/ansible.cfg'),
+                    vscode.workspace.createFileSystemWatcher('**/.ansible-lint'),
+                ],
+            },
+        };
+        languageClient = new LanguageClient(
+            'ansibleLanguageServer',
+            'Ansible Language Server',
+            serverOptions,
+            clientOptions,
+        );
+        void languageClient.start();
+        context.subscriptions.push(languageClient);
+        log('Ansible Language Server started');
+    }
 
     // Initialize centralized Python environment service (handles PET detection,
     // ms-python.python fallback, and environment change events)
@@ -502,6 +501,19 @@ export async function activate(context: vscode.ExtensionContext) {
     skillRegistry.setSources(skillSources);
 
     const skillsController = new SkillsController();
+
+    context.subscriptions.push(
+        envManagersController,
+        navTreeProvider,
+        devToolsController,
+        collectionsController,
+        eeController,
+        creatorController,
+        playbooksController,
+        mcpToolsController,
+        collectionSourcesController,
+        skillsController,
+    );
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ansibleSkills.refresh', () => {

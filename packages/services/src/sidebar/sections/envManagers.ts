@@ -142,10 +142,6 @@ export function buildEnvManagers(input: SidebarModelInput): SidebarSection {
 }
 
 /**
- *
- * @param input
- */
-/**
  * Whether Environment Managers should auto-open (Python unavailable).
  * @param input - Snapshot inputs
  * @returns True when the section should be suggested open

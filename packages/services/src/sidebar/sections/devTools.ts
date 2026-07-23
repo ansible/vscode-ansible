@@ -42,6 +42,7 @@ export function buildDevTools(input: SidebarModelInput): SidebarSection {
                     id: 'install-python',
                     label: 'Install Python Extension',
                     command: 'workbench.extensions.search',
+                    args: ['ms-python.python'],
                 },
             ],
             nodes: [],
@@ -78,10 +79,6 @@ export function buildDevTools(input: SidebarModelInput): SidebarSection {
     };
 }
 
-/**
- *
- * @param input
- */
 /**
  * Whether Dev Tools should auto-open (Python ok but ADT missing).
  * @param input - Snapshot inputs

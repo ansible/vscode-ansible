@@ -1,7 +1,7 @@
-# Ansible NavTree vs Native Activity Bar — Parity Audit
+# NavTree Parity Audit
 
-Date: 2026-07-19 (post hard-remove cutover)  
-Method: Dogfood + package.json / SidebarModel / hub host  
+Date: 2026-07-19 (post hard-remove cutover)
+Method: Dogfood + package.json / SidebarModel / hub host
 Scope: ADR-025 accordion hub (native trees removed)
 
 ## Cutover status

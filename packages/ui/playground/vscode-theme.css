@@ -26,8 +26,10 @@ html.theme-dark {
     --vscode-testing-iconPassed: #4ec9b0;
     --vscode-editorWarning-foreground: #cca700;
     --vscode-editorError-foreground: #f44747;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
     --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --vscode-font-size: 13px;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
     --vscode-editor-font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
 }
 
@@ -54,8 +56,10 @@ html.theme-light {
     --vscode-testing-iconPassed: #388a34;
     --vscode-editorWarning-foreground: #bf8803;
     --vscode-editorError-foreground: #e51400;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
     --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --vscode-font-size: 13px;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
     --vscode-editor-font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
 }
 
