@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const fsMock = vi.hoisted(() => ({
     existsSync: vi.fn(),
     readFileSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    writeFileSync: vi.fn(),
 }));
 
 vi.mock('fs', async (importOriginal) => {
@@ -12,6 +14,9 @@ vi.mock('fs', async (importOriginal) => {
         existsSync: (...args: Parameters<typeof mod.existsSync>) => fsMock.existsSync(...args),
         readFileSync: (...args: Parameters<typeof mod.readFileSync>) =>
             fsMock.readFileSync(...args),
+        mkdirSync: (...args: Parameters<typeof mod.mkdirSync>) => fsMock.mkdirSync(...args),
+        writeFileSync: (...args: Parameters<typeof mod.writeFileSync>) =>
+            fsMock.writeFileSync(...args),
     };
 });
 
@@ -912,6 +917,143 @@ describe('McpToolHandler', () => {
 
             expect(err.code).toBe('OPERATION_FAILED');
             expect(hoisted.eeInstance.forceRefresh).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('generate_devcontainer_config', () => {
+        it('returns structured error when ee_name missing', async () => {
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                output_dir: '/workspace',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('ee_name');
+        });
+
+        it('returns structured error when output_dir missing', async () => {
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'my-ee:latest',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('output_dir');
+        });
+
+        it('returns NOT_FOUND when output_dir does not exist', async () => {
+            fsMock.existsSync.mockReturnValue(false);
+
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'my-ee:latest',
+                output_dir: '/nonexistent',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('NOT_FOUND');
+            expect(err.message).toContain('/nonexistent');
+        });
+
+        it('generates devcontainer.json with image reference', async () => {
+            fsMock.existsSync.mockImplementation((p: string) => {
+                if (p === '/workspace') return true;
+                return false;
+            });
+
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'quay.io/ansible/creator-ee:latest',
+                output_dir: '/workspace',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('quay.io/ansible/creator-ee:latest');
+            expect(result.content[0].text).toContain('devcontainer.json');
+            expect(result.content[0].text).toContain('Dev Containers');
+            expect(fsMock.writeFileSync).toHaveBeenCalled();
+
+            const writeCall = fsMock.writeFileSync.mock.calls[0];
+            const writtenContent = JSON.parse(writeCall[1] as string);
+            expect(writtenContent.image).toBe('quay.io/ansible/creator-ee:latest');
+            expect(writtenContent.customizations.vscode.extensions).toContain('redhat.ansible');
+        });
+
+        it('generates Containerfile when add_dev_tools_layer is true', async () => {
+            fsMock.existsSync.mockImplementation((p: string) => {
+                if (p === '/workspace') return true;
+                return false;
+            });
+
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'my-ee:1.0',
+                output_dir: '/workspace',
+                add_dev_tools_layer: true,
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('Containerfile');
+
+            // Should write Containerfile first, then devcontainer.json
+            expect(fsMock.writeFileSync).toHaveBeenCalledTimes(2);
+            const containerfileCall = fsMock.writeFileSync.mock.calls[0];
+            expect(containerfileCall[1]).toContain('FROM my-ee:1.0');
+            expect(containerfileCall[1]).toContain('ansible-dev-tools');
+
+            const devcontainerCall = fsMock.writeFileSync.mock.calls[1];
+            const config = JSON.parse(devcontainerCall[1] as string);
+            expect(config.build).toEqual({ dockerfile: 'Containerfile' });
+            expect(config.image).toBeUndefined();
+        });
+
+        it('notes when EE lacks ansible-dev-tools', async () => {
+            fsMock.existsSync.mockImplementation((p: string) => {
+                if (p === '/workspace') return true;
+                return false;
+            });
+
+            hoisted.eeInstance.loadDetails.mockResolvedValue({
+                python_packages: {
+                    details: [{ name: 'ansible-core', version: '2.15' }],
+                },
+            });
+
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'minimal-ee:latest',
+                output_dir: '/workspace',
+            });
+
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('ansible-dev-tools');
+            expect(result.content[0].text).toContain('add_dev_tools_layer');
+        });
+
+        it('returns ALREADY_EXISTS when devcontainer.json exists', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+
+            const result = await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'my-ee:latest',
+                output_dir: '/workspace',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('already exists');
+        });
+
+        it('creates .devcontainer directory when it does not exist', async () => {
+            fsMock.existsSync.mockImplementation((p: string) => {
+                if (p === '/workspace') return true;
+                return false;
+            });
+
+            await handler.handleTool('generate_devcontainer_config', {
+                ee_name: 'my-ee:latest',
+                output_dir: '/workspace',
+            });
+
+            expect(fsMock.mkdirSync).toHaveBeenCalledWith(
+                expect.stringContaining('.devcontainer'),
+                { recursive: true },
+            );
         });
     });
 

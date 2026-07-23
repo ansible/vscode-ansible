@@ -58,6 +58,16 @@ describe('STATIC_TOOLS', () => {
         }
     });
 
+    it('generate_devcontainer_config is marked destructive with required params', () => {
+        const tool = STATIC_TOOLS.find((t) => t.name === 'generate_devcontainer_config');
+        expect(tool).toBeDefined();
+        if (tool) {
+            expect(tool.annotations?.destructiveHint).toBe(true);
+            expect(tool.annotations?.readOnlyHint).toBe(false);
+            expect(tool.inputSchema.required).toEqual(['ee_name', 'output_dir']);
+        }
+    });
+
     it('read-only tools are not marked destructive', () => {
         const readOnlyNames = [
             'search_ansible_plugins',
