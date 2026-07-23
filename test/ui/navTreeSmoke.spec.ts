@@ -47,9 +47,9 @@ describe('Ansible NavTree smoke', () => {
             throw new Error('Ansible NavTree webview missing after wait');
         }
 
+        // Already switched into the webview frame during waitUntil — calling
+        // open() again looks for #active-frame from inside the frame and times out.
         try {
-            await navTree.open();
-
             const shell = await $('.ansible-sidebar-shell');
             await shell.waitForExist({ timeout: 30_000 });
 
