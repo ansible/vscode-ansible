@@ -91,20 +91,22 @@ export function parseGhMatrixJson(json: string): ToxEnvironment[] {
         return [];
     }
 
-    return entries.map((entry) => {
-        const categoryFactor = entry.factors.find((f) => KNOWN_CATEGORIES.has(f));
-        const ansibleFactor = entry.factors.find(
-            (f) => !KNOWN_CATEGORIES.has(f) && !f.startsWith('py'),
-        );
+    return entries
+        .filter((entry) => entry.name && Array.isArray(entry.factors))
+        .map((entry) => {
+            const categoryFactor = entry.factors.find((f) => KNOWN_CATEGORIES.has(f));
+            const ansibleFactor = entry.factors.find(
+                (f) => !KNOWN_CATEGORIES.has(f) && !f.startsWith('py'),
+            );
 
-        return {
-            name: entry.name,
-            category: (categoryFactor as ToxTestCategory | undefined) ?? 'unknown',
-            pythonVersion: entry.python,
-            ansibleVersion: ansibleFactor ?? '',
-            description: entry.description,
-        };
-    });
+            return {
+                name: entry.name,
+                category: (categoryFactor as ToxTestCategory | undefined) ?? 'unknown',
+                pythonVersion: entry.python,
+                ansibleVersion: ansibleFactor ?? '',
+                description: entry.description,
+            };
+        });
 }
 
 /**
@@ -325,10 +327,12 @@ export class ToxAnsibleService {
 
     /**
      * Run multiple tox-ansible environments sequentially, reporting progress.
+     * Stops early if the signal is aborted between environments.
      * @param envNames - List of environment names to run
      * @param workspaceDir - Absolute path to the workspace root
      * @param onProgress - Optional callback for progress updates
      * @param timeoutMs - Maximum execution time per environment in milliseconds
+     * @param signal - AbortSignal to cancel remaining runs
      * @returns Array of run results in execution order
      */
     async runEnvironments(
@@ -336,12 +340,14 @@ export class ToxAnsibleService {
         workspaceDir: string,
         onProgress?: (env: string, state: 'started' | 'passed' | 'failed') => void,
         timeoutMs?: number,
+        signal?: AbortSignal,
     ): Promise<ToxRunResult[]> {
         const results: ToxRunResult[] = [];
 
         for (const envName of envNames) {
+            if (signal?.aborted) break;
             onProgress?.(envName, 'started');
-            const result = await this.runEnvironment(envName, workspaceDir, timeoutMs);
+            const result = await this.runEnvironment(envName, workspaceDir, timeoutMs, signal);
             onProgress?.(envName, result.success ? 'passed' : 'failed');
             results.push(result);
         }
