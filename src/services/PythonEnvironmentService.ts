@@ -612,18 +612,22 @@ export class PythonEnvironmentService implements vscode.Disposable {
             return undefined;
         }
 
-        return this._createEnvironmentViaTerminal(scope);
+        return this._createEnvironmentViaTerminal(scope, options);
     }
 
     /**
      * Terminal fallback for venv creation when python-envs is not installed.
      * Resolves the active interpreter from ms-python.python and uses its
      * exact path (avoids `python` vs `python3` portability issues on macOS).
+     * When {@link CreateEnvironmentOptions.additionalPackages} is set, installs
+     * those packages into the new venv with `python -m pip` after creation.
      * @param scope - workspace URI(s) or 'global' indicating where to create the venv
+     * @param options - Optional create options (additional packages)
      * @returns the newly created Python environment, or undefined if cancelled/failed
      */
     private async _createEnvironmentViaTerminal(
         scope: vscode.Uri | vscode.Uri[] | 'global',
+        options?: CreateEnvironmentOptions,
     ): Promise<PythonEnvironment | undefined> {
         const workspaceUri = Array.isArray(scope)
             ? scope[0]
@@ -720,6 +724,45 @@ export class PythonEnvironmentService implements vscode.Disposable {
                 `Virtual environment creation failed — ${pythonBin} not found.`,
             );
             return undefined;
+        }
+
+        const extraPackages = options?.additionalPackages?.filter(Boolean) ?? [];
+        if (extraPackages.length > 0) {
+            const pkgList = extraPackages.map((p) => `'${p.replace(/'/g, "'\\''")}'`).join(' ');
+            const winPkgList = extraPackages.map((p) => `"${p.replace(/"/g, '""')}"`).join(' ');
+            const pipCmd =
+                process.platform === 'win32'
+                    ? `"${pythonBin.replace(/"/g, '""')}" -m pip install ${winPkgList}`
+                    : `'${pythonBin.replace(/'/g, "'\\''")}' -m pip install ${pkgList}`;
+            log(`Installing packages into new venv: ${pipCmd}`);
+            await new Promise<void>((resolve) => {
+                const shellIntegration = (
+                    terminal as {
+                        shellIntegration?: {
+                            onDidEndCommandExecution?: (
+                                cb: (e: { exitCode: number | undefined }) => void,
+                            ) => { dispose(): void };
+                        };
+                    }
+                ).shellIntegration;
+                const onEnd = shellIntegration?.onDidEndCommandExecution;
+                if (onEnd) {
+                    const listener = onEnd((e) => {
+                        listener.dispose();
+                        if (e.exitCode !== 0) {
+                            vscode.window.showWarningMessage(
+                                `Virtual environment created, but package install exited with code ${String(e.exitCode ?? 'unknown')}. Use Install ansible-dev-tools to retry.`,
+                            );
+                        }
+                        resolve();
+                    });
+                    terminal.sendText(pipCmd);
+                } else {
+                    terminal.sendText(pipCmd);
+                    // Best-effort wait when shell integration is unavailable
+                    setTimeout(resolve, 60_000);
+                }
+            });
         }
 
         log(`Venv created, selecting: ${pythonBin}`);

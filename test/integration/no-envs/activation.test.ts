@@ -1,6 +1,6 @@
 /**
  * Integration test that validates extension activation and degraded-mode
- * behavior when ms-python.vscode-python-envs is NOT installed.
+ * behavior when ms-python.vscode-python-envs is NOT available.
  *
  * Run via:  pnpm test:integration:no-envs
  */
@@ -18,12 +18,21 @@ suite('Ansible Extension — without python-envs', () => {
         }
     });
 
-    test('python-envs extension is NOT installed in this profile', () => {
+    test('python-envs extension is not active in this profile', () => {
         const envsExt = vscode.extensions.getExtension(PYTHON_ENVS_ID);
-        assert.strictEqual(
-            envsExt,
-            undefined,
-            `${PYTHON_ENVS_ID} should not be installed in the no-python-envs test profile`,
+        // Profile may still have the extension on disk (shared install cache from
+        // the default suite) but launches with --disable-extension.
+        assert.ok(
+            !envsExt?.isActive,
+            `${PYTHON_ENVS_ID} should not be active in the no-python-envs test profile`,
+        );
+        // ADR-019 python-only path: ms-python.python remains available for discovery.
+        const pythonExt = vscode.extensions.getExtension('ms-python.python');
+        assert.ok(pythonExt, 'ms-python.python should be available for python-only degraded mode');
+        const ansible = vscode.extensions.getExtension(EXTENSION_ID);
+        assert.ok(
+            ansible?.isActive,
+            'Ansible should activate in degraded mode without python-envs',
         );
     });
 
@@ -34,6 +43,15 @@ suite('Ansible Extension — without python-envs', () => {
     });
 
     test('registers expected commands even without python-envs', async () => {
+        const ext = vscode.extensions.getExtension(EXTENSION_ID);
+        assert.ok(ext, 'Extension should be installed');
+        assert.ok(ext.isActive, 'Extension should be active before checking commands');
+
+        const contributed = (
+            (ext.packageJSON as { contributes?: { commands?: { command: string }[] } }).contributes
+                ?.commands ?? []
+        ).map((c) => c.command);
+
         const commands = await vscode.commands.getCommands(true);
 
         const expectedPrefixes = [
@@ -44,26 +62,38 @@ suite('Ansible Extension — without python-envs', () => {
         ];
 
         for (const prefix of expectedPrefixes) {
+            const inPackageJson = contributed.some((cmd) => cmd.startsWith(prefix));
+            assert.ok(
+                inPackageJson,
+                `package.json should contribute commands with prefix "${prefix}"`,
+            );
             const found = commands.some((cmd) => cmd.startsWith(prefix));
-            assert.ok(found, `Should register commands with prefix "${prefix}"`);
+            assert.ok(
+                found,
+                `Should register commands with prefix "${prefix}" (active=${String(ext.isActive)}, sample=${commands
+                    .filter(
+                        (c) =>
+                            c.startsWith('ansible') ||
+                            c.startsWith('ansibleDevTools') ||
+                            c.startsWith('ansibleCreator') ||
+                            c.startsWith('ansiblePlaybooks'),
+                    )
+                    .slice(0, 20)
+                    .join(', ')})`,
+            );
         }
     });
 
-    test('contributes tree views regardless of python-envs presence', () => {
+    test('contributes Ansible NavTree webview regardless of python-envs presence', () => {
         const ext = vscode.extensions.getExtension(EXTENSION_ID);
         const pkg = ext?.packageJSON as {
-            contributes?: { views?: Record<string, { id: string }[]> };
+            contributes?: { views?: Record<string, { id: string; when?: string }[]> };
         };
 
         const views = pkg.contributes?.views?.['ansible-environments'];
         assert.ok(views, 'Should contribute views under ansible-environments');
-
-        const expectedViewIds = ['ansibleDevToolsEnvManagers', 'ansibleDevToolsPackages'];
-
-        for (const viewId of expectedViewIds) {
-            const found = views.some((v: { id: string }) => v.id === viewId);
-            assert.ok(found, `Should contribute view "${viewId}"`);
-        }
+        assert.strictEqual(views.length, 1);
+        assert.strictEqual(views[0]?.id, 'ansibleNavTree');
     });
 
     test('extension remains active after attempting refresh', async () => {

@@ -47,7 +47,7 @@ export type {
     TelemetryResult,
     TelemetryOutcomeOptions,
 } from './types';
-export { TelemetryEvents, buildOutcomeProperties } from './types';
+export { TelemetryEvents, buildOutcomeProperties, shortExecutionEnvironmentName } from './types';
 
 // --- Utils ---
 export {
@@ -105,3 +105,16 @@ export {
     buildPlaybookSummaryPrompt,
 } from './prompts';
 export type { CollectionSourcesInput, TaskAnalysisInput } from './prompts';
+
+// --- Sidebar NavTree (ADR-025) ---
+export type {
+    SidebarSectionId,
+    SidebarNodeAction,
+    SidebarNodeExpand,
+    SidebarTreeNode,
+    SidebarSectionSeverity,
+    SidebarWelcomeAction,
+    SidebarSection,
+    SidebarSnapshot,
+    SidebarEnvManagerInput,
+} from './sidebar';

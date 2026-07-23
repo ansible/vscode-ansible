@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const ADT_OUTPUT = `ansible-builder 24.2.0
@@ -11,18 +14,31 @@ ansible-navigator 24.2.0
 const mocks = vi.hoisted(() => {
     const mockRunTool = vi.fn();
     const mockGetToolPath = vi.fn();
+    const mockGetBinDir = vi.fn().mockResolvedValue(null);
+    const mockRunCommandArgs = vi.fn();
     return {
         mockRunTool,
         mockGetToolPath,
+        mockGetBinDir,
+        mockRunCommandArgs,
         getCommandService: vi.fn(() => ({
             runTool: mockRunTool,
             getToolPath: mockGetToolPath,
+            getBinDir: mockGetBinDir,
+            runCommandArgs: mockRunCommandArgs,
         })),
     };
 });
 
 vi.mock('../../src/CommandService', () => ({
     getCommandService: mocks.getCommandService,
+}));
+
+vi.mock('../../src/EnvironmentCache', () => ({
+    getCachedEnvironment: vi.fn().mockReturnValue(null),
+    getCachedBinDir: vi.fn().mockReturnValue(null),
+    getCachedToolPath: vi.fn().mockReturnValue(null),
+    findExecutableWithCache: vi.fn().mockResolvedValue(null),
 }));
 
 import { DevToolsService } from '../../src/DevToolsService';
@@ -40,11 +56,16 @@ describe('DevToolsService', () => {
         resetDevToolsSingleton();
         mocks.mockRunTool.mockReset();
         mocks.mockGetToolPath.mockReset();
+        mocks.mockGetBinDir.mockReset();
+        mocks.mockRunCommandArgs.mockReset();
         mocks.getCommandService.mockClear();
         mocks.mockGetToolPath.mockResolvedValue('/mock/bin/adt');
+        mocks.mockGetBinDir.mockResolvedValue(null);
         mocks.getCommandService.mockImplementation(() => ({
             runTool: mocks.mockRunTool,
             getToolPath: mocks.mockGetToolPath,
+            getBinDir: mocks.mockGetBinDir,
+            runCommandArgs: mocks.mockRunCommandArgs,
         }));
     });
 
@@ -174,7 +195,40 @@ describe('DevToolsService', () => {
         expect((DevToolsService as any).terminalServiceFactory).toBe(factory);
     });
 
-    it('install delegates to packageInstaller when set', async () => {
+    it('install prefers pip exec when selected python is known', async () => {
+        const binDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ansible-adt-venv-bin-'));
+        const python = path.join(binDir, 'python3');
+        try {
+            fs.writeFileSync(python, '');
+            mocks.mockGetBinDir.mockResolvedValue(binDir);
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 0,
+                stdout: 'Successfully installed ansible-dev-tools',
+                stderr: '',
+            });
+            mocks.mockRunTool.mockResolvedValue({
+                exitCode: 0,
+                stdout: ADT_OUTPUT,
+                stderr: '',
+            });
+            const installer = vi.fn().mockResolvedValue(undefined);
+            const svc = DevToolsService.getInstance();
+            svc.setPackageInstaller(installer);
+            await svc.install();
+            expect(mocks.mockRunCommandArgs).toHaveBeenCalledWith(
+                python,
+                ['-m', 'pip', 'install', 'ansible-dev-tools'],
+                { timeout: 600_000 },
+            );
+            expect(installer).not.toHaveBeenCalled();
+            expect(svc.hasPackages()).toBe(true);
+        } finally {
+            fs.rmSync(binDir, { recursive: true, force: true });
+        }
+    });
+
+    it('install delegates to packageInstaller when no python path is known', async () => {
+        mocks.mockGetBinDir.mockResolvedValue(null);
         mocks.mockRunTool.mockResolvedValue({
             exitCode: 0,
             stdout: ADT_OUTPUT,

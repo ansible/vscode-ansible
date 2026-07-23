@@ -241,83 +241,18 @@
     "views": {
       "ansible-environments": [
         {
-          "id": "ansibleDevToolsEnvManagers",
-          "name": "Environment Managers",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleDevToolsPackages",
-          "name": "Ansible Dev Tools",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleDevToolsCollections",
-          "name": "Installed Collections",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleCollectionSources",
-          "name": "Collection Sources",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleExecutionEnvironments",
-          "name": "Execution Environments",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleCreator",
-          "name": "Creator",
-          "type": "tree"
-        },
-        {
-          "id": "ansiblePlaybooks",
-          "name": "Playbooks",
-          "type": "tree"
-        },
-        {
-          "id": "ansibleMcpTools",
-          "name": "AI Tools",
-          "type": "tree",
-          "when": "config.ansibleEnvironments.enableAiFeatures"
-        },
-        {
-          "id": "ansibleSkills",
-          "name": "AI Skills",
-          "type": "tree",
-          "when": "config.ansibleEnvironments.enableAiFeatures"
-        },
-        {
-          "id": "ansibleLightspeed",
-          "name": "Lightspeed",
-          "type": "tree",
-          "when": "config.ansible.lightspeed.enabled"
+          "id": "ansibleNavTree",
+          "name": "Ansible",
+          "type": "webview"
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "ansibleDevToolsEnvManagers",
-        "contents": "No Python extension detected.\n[Install Python Extension](command:workbench.extensions.search?%22ms-python.python%22)",
-        "when": "!ansible.pythonEnvAvailable"
-      },
-      {
-        "view": "ansibleDevToolsEnvManagers",
-        "contents": "Environment management uses terminal fallbacks.\nFor the best experience, install the Python Environments extension.\n[Install Python Environments](command:workbench.extensions.search?%22ms-python.vscode-python-envs%22)\n[Create Virtual Environment](command:ansibleDevToolsEnvManagers.create)",
-        "when": "ansible.pythonEnvCapability == python-only"
-      },
-      {
-        "view": "ansibleDevToolsPackages",
-        "contents": "No ansible-dev-tools packages found.\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
-        "when": "!ansibleDevToolsPackages.hasPackages && ansible.pythonEnvAvailable"
-      },
-      {
-        "view": "ansibleDevToolsPackages",
-        "contents": "No Python extension detected.\n[Install Python Extension](command:workbench.extensions.search?%22ms-python.python%22)",
-        "when": "!ansible.pythonEnvAvailable"
-      }
-    ],
     "commands": [
+      {
+        "command": "ansible.sidebar.navTree.open",
+        "category": "Ansible",
+        "title": "Open Ansible"
+      },
       {
         "command": "ansibleEnvironments.vault",
         "category": "Ansible",
@@ -764,255 +699,6 @@
           "command": "ansible.lightspeed.statusBar.click",
           "when": "false"
         }
-      ],
-      "view/title": [
-        {
-          "command": "ansibleDevToolsEnvManagers.create",
-          "when": "view == ansibleDevToolsEnvManagers",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleDevToolsEnvManagers.refresh",
-          "when": "view == ansibleDevToolsEnvManagers",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleDevToolsPackages.install",
-          "when": "view == ansibleDevToolsPackages",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleDevToolsPackages.upgrade",
-          "when": "view == ansibleDevToolsPackages",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleDevToolsPackages.refresh",
-          "when": "view == ansibleDevToolsPackages",
-          "group": "navigation@3"
-        },
-        {
-          "command": "ansibleDevToolsCollections.search",
-          "when": "view == ansibleDevToolsCollections",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleDevToolsCollections.refresh",
-          "when": "view == ansibleDevToolsCollections",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleDevToolsCollections.aiSummary",
-          "when": "view == ansibleDevToolsCollections && config.ansibleEnvironments.enableAiFeatures",
-          "group": "navigation@3"
-        },
-        {
-          "command": "ansibleExecutionEnvironments.buildFromDefinition",
-          "when": "view == ansibleExecutionEnvironments",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleExecutionEnvironments.aiSummary",
-          "when": "view == ansibleExecutionEnvironments && config.ansibleEnvironments.enableAiFeatures",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleExecutionEnvironments.refresh",
-          "when": "view == ansibleExecutionEnvironments",
-          "group": "navigation@3"
-        },
-        {
-          "command": "ansibleCreator.aiSummary",
-          "when": "view == ansibleCreator && config.ansibleEnvironments.enableAiFeatures",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleCreator.refresh",
-          "when": "view == ansibleCreator",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleMcpTools.refresh",
-          "when": "view == ansibleMcpTools",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleSkills.refresh",
-          "when": "view == ansibleSkills",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansiblePlaybooks.editDefaults",
-          "when": "view == ansiblePlaybooks",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansiblePlaybooks.refresh",
-          "when": "view == ansiblePlaybooks",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleCollectionSources.search",
-          "when": "view == ansibleCollectionSources",
-          "group": "navigation@1"
-        },
-        {
-          "command": "ansibleCollectionSources.install",
-          "when": "view == ansibleCollectionSources",
-          "group": "navigation@2"
-        },
-        {
-          "command": "ansibleCollectionSources.addSource",
-          "when": "view == ansibleCollectionSources",
-          "group": "navigation@3"
-        },
-        {
-          "command": "ansibleCollectionSources.refresh",
-          "when": "view == ansibleCollectionSources",
-          "group": "navigation@4"
-        },
-        {
-          "command": "ansibleCollectionSources.aiSummary",
-          "when": "view == ansibleCollectionSources && config.ansibleEnvironments.enableAiFeatures",
-          "group": "navigation@5"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "ansibleDevToolsCollections.aiCollectionSummary",
-          "when": "view == ansibleDevToolsCollections && viewItem == collection && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline"
-        },
-        {
-          "command": "ansibleDevToolsCollections.showPluginDoc",
-          "when": "view == ansibleDevToolsCollections && viewItem == plugin",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleDevToolsCollections.aiPluginSummary",
-          "when": "view == ansibleDevToolsCollections && viewItem == plugin && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansibleExecutionEnvironments.aiEESummary",
-          "when": "view == ansibleExecutionEnvironments && viewItem == executionEnvironment && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline"
-        },
-        {
-          "command": "ansibleCreator.openForm",
-          "when": "view == ansibleCreator && viewItem == creatorCommand",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCreator.aiEntrySummary",
-          "when": "view == ansibleCreator && viewItem == creatorCommand && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansiblePlaybooks.run",
-          "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansiblePlaybooks.runWithProgress",
-          "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansiblePlaybooks.openPlaybook",
-          "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@3"
-        },
-        {
-          "command": "ansiblePlaybooks.editConfig",
-          "when": "view == ansiblePlaybooks && viewItem == playbook",
-          "group": "inline@4"
-        },
-        {
-          "command": "ansiblePlaybooks.aiSummary",
-          "when": "view == ansiblePlaybooks && viewItem == playbook && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@5"
-        },
-        {
-          "command": "ansibleMcpTools.copyPrompt",
-          "when": "view == ansibleMcpTools && viewItem == mcpTool",
-          "group": "inline"
-        },
-        {
-          "command": "ansibleSkills.useInChat",
-          "when": "view == ansibleSkills && viewItem == skill",
-          "group": "inline"
-        },
-        {
-          "command": "ansibleCollectionSources.filterGalaxyCollections",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxy",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.refreshSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxy",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansibleCollectionSources.aiSourceSummary",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxy && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@3"
-        },
-        {
-          "command": "ansibleCollectionSources.filterGalaxyCollections",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxyFiltered",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.clearGalaxyFilter",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxyFiltered",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansibleCollectionSources.refreshSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGalaxyFiltered",
-          "group": "inline@3"
-        },
-        {
-          "command": "ansibleCollectionSources.installFromSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.searchSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
-          "group": "inline@2"
-        },
-        {
-          "command": "ansibleCollectionSources.refreshSource",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub",
-          "group": "inline@3"
-        },
-        {
-          "command": "ansibleCollectionSources.aiSourceSummary",
-          "when": "view == ansibleCollectionSources && viewItem == collectionSourceGitHub && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@4"
-        },
-        {
-          "command": "ansibleCollectionSources.installGalaxyCollection",
-          "when": "view == ansibleCollectionSources && viewItem == galaxyCollection",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.refreshGitHubCollection",
-          "when": "view == ansibleCollectionSources && viewItem == githubCollection",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.galaxyPluginAiSummary",
-          "when": "view == ansibleCollectionSources && viewItem == galaxyPlugin && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@1"
-        },
-        {
-          "command": "ansibleCollectionSources.githubPluginAiSummary",
-          "when": "view == ansibleCollectionSources && viewItem == githubPlugin && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline@1"
-        }
       ]
     },
     "configuration": {
@@ -1021,7 +707,7 @@
         "ansibleEnvironments.enableAiFeatures": {
           "type": "boolean",
           "default": true,
-          "description": "Enable AI enhancements (AI Tools view, sparkle icons, AI prompt buttons)"
+          "description": "Enable AI enhancements (AI Tools accordion in the Ansible sidebar, sparkle icons, AI prompt buttons)"
         },
         "ansibleEnvironments.skillSources": {
           "type": "array",
@@ -1204,7 +890,7 @@
           {
             "id": "open-ansible-sidebar",
             "title": "Open the Ansible activity bar",
-            "description": "Click the Ansible icon in the Activity Bar to browse environments, collections, playbooks, and scaffolding tools.\n[Open Ansible view](command:workbench.view.extension.ansible-environments)",
+            "description": "Click the Ansible icon in the Activity Bar to open Ansible and browse environments, collections, playbooks, and scaffolding tools in the accordion.\n[Open Ansible](command:workbench.view.extension.ansible-environments)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/sidebar.md"
             },
@@ -1215,7 +901,7 @@
           {
             "id": "create-environment",
             "title": "Create a Python environment",
-            "description": "Create an isolated environment so Ansible development tools stay out of your system Python, then install ansible-dev-tools from the Dev Tools view.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
+            "description": "Create an isolated environment so Ansible development tools stay out of your system Python, then install ansible-dev-tools from the Ansible Dev Tools accordion in the Ansible sidebar.\n[Create Environment](command:ansibleDevToolsEnvManagers.create)\n[Install ansible-dev-tools](command:ansibleDevToolsPackages.install)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/environment.md"
             },
@@ -1234,7 +920,7 @@
           {
             "id": "browse-collections",
             "title": "Browse collections and plugin docs",
-            "description": "Use Installed Collections to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Refresh Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
+            "description": "Use the Installed Collections accordion in the Ansible sidebar to explore plugins and open documentation in the plugin doc panel without leaving the editor.\n[Refresh Collections](command:ansibleDevToolsCollections.refresh)\n[Search Plugins](command:ansibleDevToolsCollections.search)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/collections.md"
             }
@@ -1242,7 +928,7 @@
           {
             "id": "collection-sources",
             "title": "Find and install collections",
-            "description": "Search Galaxy or GitHub from Collection Sources, preview docs for content you have not installed yet, then install with ADE.\n[Refresh Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
+            "description": "Search Galaxy or GitHub from the Collection Sources accordion in the Ansible sidebar, preview docs for content you have not installed yet, then install with ADE.\n[Refresh Collection Sources](command:ansibleCollectionSources.refresh)\n[Install Collection](command:ansibleDevToolsCollections.install)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/collection-sources.md"
             }
@@ -1250,7 +936,7 @@
           {
             "id": "scaffold-content",
             "title": "Scaffold content with Creator",
-            "description": "Open the Creator view, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Refresh Creator](command:ansibleCreator.refresh)",
+            "description": "Open the Creator accordion in the Ansible sidebar, pick a schema-driven form, review the live CLI preview, and scaffold a project, collection, or role.\n[Refresh Creator](command:ansibleCreator.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/creator.md"
             }
@@ -1258,7 +944,7 @@
           {
             "id": "run-playbooks",
             "title": "Run playbooks with progress",
-            "description": "Discover playbooks in the workspace, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Refresh Playbooks](command:ansiblePlaybooks.refresh)",
+            "description": "Discover playbooks in the workspace from the Playbooks accordion in the Ansible sidebar, adjust run config, then run in a terminal or open the real-time progress viewer.\n[Refresh Playbooks](command:ansiblePlaybooks.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/playbooks.md"
             }
@@ -1266,7 +952,7 @@
           {
             "id": "execution-environments",
             "title": "Inspect execution environments",
-            "description": "Browse local EE images, open image details, and inspect packages when you develop against containers.\n[Refresh Execution Environments](command:ansibleExecutionEnvironments.refresh)",
+            "description": "Browse local EE images from the Execution Environments accordion in the Ansible sidebar, open image details, and inspect packages when you develop against containers.\n[Refresh Execution Environments](command:ansibleExecutionEnvironments.refresh)",
             "media": {
               "markdown": "media/walkthroughs/getting-started/execution-environments.md"
             }
@@ -1375,6 +1061,7 @@
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@types/js-yaml": "^4.0.9",
     "@vscode-elements/elements": "^1.6.0",
+    "@vscode/codicons": "^0.0.36",
     "@vscode/python-extension": "~1.0.5",
     "ini": "^6.0.0",
     "js-yaml": "^4.1.1",

@@ -22,64 +22,26 @@ src/                # Extension host (views, panels, commands)
 
 ## Features
 
-### Sidebar Views
+### Ansible (Activity Bar)
 
-The extension adds an **Ansible** panel to the Activity Bar with seven tree views:
+The extension adds an **Ansible** icon to the Activity Bar that opens the **Ansible**
+sidebar — an accordion (one section open at a time, collapsed by default). Sections include:
 
-#### Environment Managers
+- **Environment Managers** — Python environments by manager; select, create, refresh
+- **Ansible Dev Tools** — installed `ansible-dev-tools` packages; install / upgrade
+- **Installed Collections** — collections → plugin types → plugins; docs and search
+- **Collection Sources** — Galaxy and GitHub orgs; search and install
+- **Execution Environments** — local EE images via `ansible-navigator`; expandable details
+- **Creator** — `ansible-creator` init/add commands with schema-driven forms
+- **Playbooks** — workspace discovery, configure, run
+- **AI Tools / AI Skills / Lightspeed** — when the corresponding feature flags are enabled
 
-- Lists all available Python environments grouped by manager type (venv, Global, Conda, etc.)
-- Click an environment to set it as the active Python environment
-- **+** button to create a new environment
-- Auto-updates when the Python environment changes
-
-#### Ansible Dev Tools
-
-- Displays installed `ansible-dev-tools` packages and versions via `adt --version`
-- **Install** / **Upgrade** / **Refresh** buttons
-- Auto-updates when the Python environment changes
-
-#### Installed Collections
-
-- Lists installed Ansible collections alphabetically
-- Expandable tree: Collection → Plugin Types → Plugins
-- Click a plugin to open documentation in a webview panel
-- **Search** plugins by keyword across all collections
-- **Install** collections from Ansible Galaxy
-- **AI Summary** for collections and plugins (when AI features enabled)
-- Auto-updates when the Python environment changes
-
-#### Collection Sources
-
-- Browse Ansible collections from configurable GitHub organizations
-- Default orgs: `ansible`, `ansible-collections`, `redhat-cop`
-- **Add** custom GitHub organizations
-- **Search** and **Install** collections directly from source
-- Per-org refresh with cache persistence
-
-#### Execution Environments
-
-- Lists container EE images via `ansible-navigator images`
-- Expandable details: Ansible version, OS, collections, Python packages
-- **AI Summary** for EE inspection
-
-#### Creator
-
-- Tree view of `ansible-creator` commands (init, add)
-- Click a leaf command to open a dynamic form built from `ansible-creator schema`
-- Required/optional parameter sections with validation
-- Run button executes the command in a terminal
-
-#### AI Tools
-
-- Lists all available MCP tools for AI agent integration
-- Click a tool to inject a prompt into chat (Cursor/Copilot)
-- Copy button for example prompts
-- Visible when `ansibleEnvironments.enableAiFeatures` is enabled
+Issue-driven open: when Python or ansible-dev-tools is missing, the Ansible sidebar suggests opening
+the relevant section with welcome actions.
 
 ### Plugin Documentation Viewer
 
-Click any plugin in the Collections tree to open a rich documentation webview:
+Click any plugin in Installed Collections or Collection Sources to open a rich documentation webview:
 
 - **Synopsis** — description, requirements, author information
 - **Parameters** — collapsible tree with types, defaults, choices, and descriptions
@@ -87,13 +49,6 @@ Click any plugin in the Collections tree to open a rich documentation webview:
 - **Examples** — YAML tasks with copy buttons, formatted/raw toggle
 - **Return Values** — documented returns with samples
 - Configurable zoom (50–200%) and theme (auto/light/dark)
-
-### Playbooks
-
-- Discovers playbooks in the workspace
-- Per-playbook configuration (extra vars, inventory, etc.)
-- **Run** in terminal or **Run with Progress Viewer** (real-time progress via custom Ansible callback plugin)
-- **Edit** playbook or configuration directly from the tree
 
 ## MCP Server
 

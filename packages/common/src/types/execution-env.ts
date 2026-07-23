@@ -2,6 +2,21 @@
  * Types for execution environment management.
  */
 
+/**
+ * Short display label for an EE image ref: last path segment including tag.
+ * `ghcr.io/ansible/community-ansible-dev-tools:devel` → `community-ansible-dev-tools:devel`
+ * @param fullName - Full image reference (registry path and optional tag)
+ * @returns Last path segment including tag, or the trimmed input when there is no slash
+ */
+export function shortExecutionEnvironmentName(fullName: string): string {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+        return fullName;
+    }
+    const slash = trimmed.lastIndexOf('/');
+    return slash >= 0 ? trimmed.slice(slash + 1) : trimmed;
+}
+
 /** Information about an execution environment container image. */
 export interface ExecutionEnvironment {
     created: string;

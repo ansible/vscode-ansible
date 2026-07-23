@@ -92,6 +92,14 @@ export type {
     ParsedCollection,
     MetadataDumpResult,
     NavigatorEEOptions,
+    SidebarSectionId,
+    SidebarNodeAction,
+    SidebarTreeNode,
+    SidebarSectionSeverity,
+    SidebarWelcomeAction,
+    SidebarSection,
+    SidebarSnapshot,
+    SidebarEnvManagerInput,
 } from '@ansible/common';
 
 // --- Services ---
@@ -133,6 +141,23 @@ export { SCMDocsCache } from './SCMDocsCache';
 export { SkillRegistry, _resetGitHubToken } from './SkillRegistry';
 export { discoverPlaybooks } from './PlaybookDiscovery';
 export type { DiscoveredPlaybook } from './PlaybookDiscovery';
+export { SidebarModel, SECTION_REGISTRY } from './SidebarModel';
+export type {
+    SidebarModelInput,
+    SidebarCollectionSourceInput,
+    SidebarCreatorInput,
+    SidebarPlaybookWorkspaceInput,
+    SidebarAiToolInput,
+    SidebarLightspeedItem,
+    SidebarSkeletonOptions,
+    SidebarSectionDef,
+} from './SidebarModel';
+export {
+    assembleSidebarInput,
+    assembleCollectionSources,
+    assembleAiTools,
+} from './sidebar/assembleSidebarInput';
+export { preserveExpandedChildren } from './sidebar/preserveExpanded';
 
 // VS Code-specific type re-export
 export type * from './pythonEnvApi';

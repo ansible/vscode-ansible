@@ -8,13 +8,13 @@ import {
     TransportKind,
 } from 'vscode-languageclient/node';
 import { PluginDocPanel } from '@src/panels/PluginDocPanel';
-import { AnsibleDevToolsProvider } from '@src/views/AnsibleDevToolsProvider';
-import { EnvironmentManagersProvider } from '@src/views/EnvironmentManagersProvider';
-import { CollectionsProvider } from '@src/views/CollectionsProvider';
-import { ExecutionEnvironmentsProvider } from '@src/views/ExecutionEnvironmentsProvider';
-import { CreatorProvider } from '@src/views/CreatorProvider';
+import { AnsibleDevToolsController } from '@src/views/AnsibleDevToolsController';
+import { EnvironmentManagersController } from '@src/views/EnvironmentManagersController';
+import { CollectionsController } from '@src/views/CollectionsController';
+import { ExecutionEnvironmentsController } from '@src/views/ExecutionEnvironmentsController';
+import { CreatorController } from '@src/views/CreatorController';
 import { CreatorFormPanel } from '@src/panels/CreatorFormPanel';
-import { PlaybooksProvider } from '@src/views/PlaybooksProvider';
+import { PlaybooksController } from '@src/views/PlaybooksController';
 import { PlaybookConfigPanel } from '@src/panels/PlaybookConfigPanel';
 import { PlaybookProgressPanel } from '@src/panels/PlaybookProgressPanel';
 import { EEDetailPanel } from '@src/panels/EEDetailPanel';
@@ -23,16 +23,16 @@ import { PlaybooksService, PlaybookInfo, PlaybookPlay } from '@src/services/Play
 import { TerminalService } from '@src/services/TerminalService';
 import { PythonEnvironmentService } from '@src/services/PythonEnvironmentService';
 import {
-    McpToolsProvider,
+    McpToolsController,
     injectToolPromptIntoChat,
     type ToolInfo,
-} from '@src/views/McpToolsProvider';
+} from '@src/views/McpToolsController';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 import {
-    CollectionSourcesProvider,
+    CollectionSourcesController,
     setCollectionSourcesLogFunction,
     type CollectionSourceInfo,
-} from '@src/views/CollectionSourcesProvider';
+} from '@src/views/CollectionSourcesController';
 import {
     GalaxyCollectionCache,
     GalaxyDocsCache,
@@ -42,6 +42,7 @@ import {
     DevToolsService,
     ExecutionEnvService,
     cacheSelectedEnvironment,
+    getCachedEnvironment,
     getCommandService,
     SkillRegistry,
     isExecutionEnvironmentDefinition,
@@ -63,7 +64,7 @@ import type {
     SkillSource,
     SkillEntry,
 } from '@ansible/developer-services';
-import { SkillsProvider, openChatWithSkill, copySkillPrompt } from '@src/views/SkillsProvider';
+import { SkillsController, openChatWithSkill, copySkillPrompt } from '@src/views/SkillsController';
 import {
     registerMcpServerProvider,
     isMcpAvailable,
@@ -86,6 +87,7 @@ import { DiagnosticsPanel } from '@src/panels/DiagnosticsPanel';
 import { TelemetryService } from '@src/services/TelemetryService';
 import { emitJourneyOutcome } from '@src/services/journeyTelemetry';
 import { TelemetryEvents } from '@ansible/common';
+import { AnsibleNavTreeProvider } from '@src/sidebar/AnsibleNavTreeProvider';
 
 // Create output channel for extension logs
 export const outputChannel = vscode.window.createOutputChannel('Ansible');
@@ -235,53 +237,52 @@ export async function activate(context: vscode.ExtensionContext) {
         }),
     );
 
-    // Check if workspace is open
-    if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-        vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
-        return;
-    }
-
-    // Start the Ansible Language Server
-    const serverModule = context.asAbsolutePath(path.join('dist', 'language-server.js'));
-    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    const serverEnv: Record<string, string> = {};
-    if (workspaceRoot) {
-        serverEnv.ANSIBLE_ENV_WORKSPACE = workspaceRoot;
-    }
-    const serverOptions: ServerOptions = {
-        run: {
-            module: serverModule,
-            transport: TransportKind.ipc,
-            options: { cwd: workspaceRoot, env: serverEnv },
-        },
-        debug: {
-            module: serverModule,
-            transport: TransportKind.ipc,
-            options: {
-                execArgv: ['--nolazy', '--inspect=6009'],
-                cwd: workspaceRoot,
-                env: serverEnv,
+    let languageClient: LanguageClient | undefined;
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+        void vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
+    } else {
+        const serverModule = context.asAbsolutePath(path.join('dist', 'language-server.js'));
+        const workspaceRoot = workspaceFolder.uri.fsPath;
+        const serverEnv: Record<string, string> = {};
+        if (workspaceRoot) {
+            serverEnv.ANSIBLE_ENV_WORKSPACE = workspaceRoot;
+        }
+        const serverOptions: ServerOptions = {
+            run: {
+                module: serverModule,
+                transport: TransportKind.ipc,
+                options: { cwd: workspaceRoot, env: serverEnv },
             },
-        },
-    };
-    const clientOptions: LanguageClientOptions = {
-        documentSelector: [{ scheme: 'file', language: 'ansible' }],
-        synchronize: {
-            fileEvents: [
-                vscode.workspace.createFileSystemWatcher('**/ansible.cfg'),
-                vscode.workspace.createFileSystemWatcher('**/.ansible-lint'),
-            ],
-        },
-    };
-    const languageClient = new LanguageClient(
-        'ansibleLanguageServer',
-        'Ansible Language Server',
-        serverOptions,
-        clientOptions,
-    );
-    void languageClient.start();
-    context.subscriptions.push(languageClient);
-    log('Ansible Language Server started');
+            debug: {
+                module: serverModule,
+                transport: TransportKind.ipc,
+                options: {
+                    execArgv: ['--nolazy', '--inspect=6009'],
+                    cwd: workspaceRoot,
+                    env: serverEnv,
+                },
+            },
+        };
+        const clientOptions: LanguageClientOptions = {
+            documentSelector: [{ scheme: 'file', language: 'ansible' }],
+            synchronize: {
+                fileEvents: [
+                    vscode.workspace.createFileSystemWatcher('**/ansible.cfg'),
+                    vscode.workspace.createFileSystemWatcher('**/.ansible-lint'),
+                ],
+            },
+        };
+        languageClient = new LanguageClient(
+            'ansibleLanguageServer',
+            'Ansible Language Server',
+            serverOptions,
+            clientOptions,
+        );
+        void languageClient.start();
+        context.subscriptions.push(languageClient);
+        log('Ansible Language Server started');
+    }
 
     // Initialize centralized Python environment service (handles PET detection,
     // ms-python.python fallback, and environment change events)
@@ -372,7 +373,21 @@ export async function activate(context: vscode.ExtensionContext) {
                 const devToolsService = DevToolsService.getInstance();
                 devToolsService.setPackageInstaller(async () => {
                     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-                    const env = await pythonEnvService.getEnvironment(workspaceFolder);
+                    let env = await pythonEnvService.getEnvironment(workspaceFolder);
+                    // After NavTree/native select, getEnvironment can lag — resolve from
+                    // the env we just cached (cacheSelectedEnvironment on select).
+                    if (!env) {
+                        const cached = getCachedEnvironment();
+                        if (cached?.pythonPath) {
+                            const all = await pythonEnvService.getEnvironments('all');
+                            env = all.find((e) => e.execInfo.run.executable === cached.pythonPath);
+                            if (env) {
+                                log(
+                                    `packageInstaller: resolved env from cache (${env.displayName})`,
+                                );
+                            }
+                        }
+                    }
                     if (!env) {
                         throw new Error('No Python environment selected');
                     }
@@ -441,78 +456,43 @@ export async function activate(context: vscode.ExtensionContext) {
             log(`Python Environment Service initialization failed: ${formatError(error)}`);
         });
 
-    // Register the Environment Managers view
-    const envManagersProvider = new EnvironmentManagersProvider(pythonEnvService);
-    const envManagersView = vscode.window.createTreeView('ansibleDevToolsEnvManagers', {
-        treeDataProvider: envManagersProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(envManagersView);
+    // Controllers for NavTree hydrate + command handlers (no TreeViews — ADR-025 NavTree-only)
+    const envManagersController = new EnvironmentManagersController(pythonEnvService);
 
-    // Register the Packages view
-    const devToolsProvider = new AnsibleDevToolsProvider(pythonEnvService);
-    const packagesView = vscode.window.createTreeView('ansibleDevToolsPackages', {
-        treeDataProvider: devToolsProvider,
-        showCollapseAll: false,
-    });
-    context.subscriptions.push(packagesView);
+    const navTreeProvider = new AnsibleNavTreeProvider(
+        context,
+        envManagersController,
+        pythonEnvService,
+    );
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            AnsibleNavTreeProvider.viewType,
+            navTreeProvider,
+            { webviewOptions: { retainContextWhenHidden: true } },
+        ),
+        vscode.commands.registerCommand('ansible.sidebar.navTree.open', async () => {
+            await vscode.commands.executeCommand('ansibleNavTree.focus');
+        }),
+    );
 
-    // Register the Collections view
-    const collectionsProvider = new CollectionsProvider(pythonEnvService);
-    const collectionsView = vscode.window.createTreeView('ansibleDevToolsCollections', {
-        treeDataProvider: collectionsProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(collectionsView);
+    const devToolsController = new AnsibleDevToolsController(pythonEnvService);
+    const collectionsController = new CollectionsController(pythonEnvService);
+    const eeController = new ExecutionEnvironmentsController();
+    const creatorController = new CreatorController();
+    const playbooksController = new PlaybooksController();
 
-    // Register the Execution Environments view
-    const eeProvider = new ExecutionEnvironmentsProvider();
-    const eeView = vscode.window.createTreeView('ansibleExecutionEnvironments', {
-        treeDataProvider: eeProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(eeView);
-
-    // Register the Creator view
-    const creatorProvider = new CreatorProvider();
-    const creatorView = vscode.window.createTreeView('ansibleCreator', {
-        treeDataProvider: creatorProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(creatorView);
-
-    // Register the Playbooks view
-    const playbooksProvider = new PlaybooksProvider();
-    const playbooksView = vscode.window.createTreeView('ansiblePlaybooks', {
-        treeDataProvider: playbooksProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(playbooksView);
-
-    // Refresh playbooks when workspace folders change
     const workspaceFoldersListener = vscode.workspace.onDidChangeWorkspaceFolders(() => {
         log('Workspace folders changed, refreshing playbooks...');
-        playbooksProvider.refresh();
+        playbooksController.refresh();
     });
     context.subscriptions.push(workspaceFoldersListener);
 
-    // Register the MCP Tools view
-    const mcpToolsProvider = new McpToolsProvider(context);
-    const mcpToolsView = vscode.window.createTreeView('ansibleMcpTools', {
-        treeDataProvider: mcpToolsProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(mcpToolsView);
+    const mcpToolsController = new McpToolsController(context);
+    navTreeProvider.setMcpToolsController(mcpToolsController);
 
-    // Register the Collection Sources view
-    const collectionSourcesProvider = new CollectionSourcesProvider();
-    const collectionSourcesView = vscode.window.createTreeView('ansibleCollectionSources', {
-        treeDataProvider: collectionSourcesProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(collectionSourcesView);
+    const collectionSourcesController = new CollectionSourcesController();
+    navTreeProvider.setCollectionSourcesController(collectionSourcesController);
 
-    // Configure skill registry from settings and register Skills view
     const skillSources =
         vscode.workspace
             .getConfiguration('ansibleEnvironments')
@@ -520,16 +500,24 @@ export async function activate(context: vscode.ExtensionContext) {
     const skillRegistry = SkillRegistry.getInstance();
     skillRegistry.setSources(skillSources);
 
-    const skillsProvider = new SkillsProvider();
-    const skillsView = vscode.window.createTreeView('ansibleSkills', {
-        treeDataProvider: skillsProvider,
-        showCollapseAll: true,
-    });
-    context.subscriptions.push(skillsView);
+    const skillsController = new SkillsController();
+
+    context.subscriptions.push(
+        envManagersController,
+        navTreeProvider,
+        devToolsController,
+        collectionsController,
+        eeController,
+        creatorController,
+        playbooksController,
+        mcpToolsController,
+        collectionSourcesController,
+        skillsController,
+    );
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ansibleSkills.refresh', () => {
-            skillsProvider.refresh();
+            skillsController.refresh();
         }),
         vscode.commands.registerCommand(
             'ansibleSkills.useInChat',
@@ -586,7 +574,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         .getConfiguration('ansibleEnvironments')
                         .get<SkillSource[]>('skillSources') ?? [];
                 skillRegistry.setSources(updated);
-                skillsProvider.refresh();
+                skillsController.refresh();
             }
         }),
     );
@@ -595,7 +583,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const refreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsPackages.refresh',
         () => {
-            void devToolsProvider.refresh();
+            void devToolsController.refresh();
         },
     );
 
@@ -604,8 +592,29 @@ export async function activate(context: vscode.ExtensionContext) {
         async () => {
             try {
                 const devToolsService = DevToolsService.getInstance();
-                await devToolsService.install();
-                vscode.window.showInformationMessage('ansible-dev-tools installation started.');
+                await vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: 'Installing ansible-dev-tools…',
+                        cancellable: false,
+                    },
+                    async () => {
+                        await devToolsService.install();
+                    },
+                );
+                if (devToolsService.hasPackages()) {
+                    vscode.window.showInformationMessage(
+                        'ansible-dev-tools installed in the selected environment.',
+                    );
+                } else {
+                    vscode.window.showWarningMessage(
+                        'ansible-dev-tools install finished, but packages were not detected yet. Try Refresh on Ansible Dev Tools.',
+                    );
+                }
+                void devToolsController.refresh();
+                // Re-index collections now that ansible-doc / ade exist in the env
+                // (ansible.builtin and site-packages collections).
+                void collectionsController.forceRefresh();
             } catch (error) {
                 vscode.window.showErrorMessage(
                     `Failed to install ansible-dev-tools: ${formatError(error)}`,
@@ -621,6 +630,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 const devToolsService = DevToolsService.getInstance();
                 await devToolsService.upgrade();
                 vscode.window.showInformationMessage('Upgrading ansible-dev-tools...');
+                void collectionsController.forceRefresh();
             } catch (error) {
                 vscode.window.showErrorMessage(
                     `Failed to upgrade ansible-dev-tools: ${formatError(error)}`,
@@ -633,7 +643,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const envManagersRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsEnvManagers.refresh',
         () => {
-            void envManagersProvider.refresh();
+            void envManagersController.refresh();
         },
     );
 
@@ -652,17 +662,24 @@ export async function activate(context: vscode.ExtensionContext) {
                     return;
                 }
 
+                // Ansible-owned create: seed ansible-dev-tools so the new
+                // venv is immediately usable (lint, creator, navigator, etc.).
                 const environment = await pythonEnvService.createEnvironment(workspaceFolder, {
                     quickCreate: false,
+                    additionalPackages: ['ansible-dev-tools'],
                 });
 
                 if (environment) {
+                    const execPath = environment.execInfo.run.executable;
+                    if (execPath) {
+                        cacheSelectedEnvironment(execPath, environment.displayName);
+                    }
                     vscode.window.showInformationMessage(
                         `Created environment: ${environment.displayName}`,
                     );
-                    void envManagersProvider.refresh();
-                    void devToolsProvider.refresh();
-                    void collectionsProvider.refresh();
+                    void envManagersController.refresh();
+                    void devToolsController.refresh();
+                    void collectionsController.forceRefresh();
                     emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'success', { startedAt });
                 } else {
                     emitJourneyOutcome(TelemetryEvents.ENV_CREATE, 'cancel', { startedAt });
@@ -704,13 +721,23 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
 
                 await pythonEnvService.setEnvironment(workspaceFolder, environment);
+
+                // Cache immediately so CommandService/DevTools resolve the new
+                // venv bin even if getEnvironment lags behind the API switch.
+                const execPath = environment.execInfo.run.executable;
+                if (execPath) {
+                    cacheSelectedEnvironment(execPath, environment.displayName);
+                }
+
                 vscode.window.showInformationMessage(
                     `Selected environment: ${environment.displayName}`,
                 );
 
-                void envManagersProvider.refresh();
-                void devToolsProvider.refresh();
-                void collectionsProvider.refresh();
+                void envManagersController.refresh();
+                void devToolsController.refresh();
+                // Force re-index — soft refresh may reuse an empty cache from
+                // before ansible-doc was available in this env.
+                void collectionsController.forceRefresh();
             } catch (error) {
                 vscode.window.showErrorMessage(
                     `Failed to select environment: ${formatError(error)}`,
@@ -736,7 +763,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const collectionsRefreshCommand = vscode.commands.registerCommand(
         'ansibleDevToolsCollections.refresh',
         () => {
-            void collectionsProvider.refresh();
+            void collectionsController.forceRefresh();
         },
     );
 
@@ -819,7 +846,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const eeRefreshCommand = vscode.commands.registerCommand(
         'ansibleExecutionEnvironments.refresh',
         () => {
-            eeProvider.refresh();
+            eeController.refresh();
         },
     );
 
@@ -1032,7 +1059,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Register Creator commands
     const creatorRefreshCommand = vscode.commands.registerCommand('ansibleCreator.refresh', () => {
-        creatorProvider.refresh();
+        creatorController.refresh();
     });
 
     const creatorOpenFormCommand = vscode.commands.registerCommand(
@@ -1058,7 +1085,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const playbooksRefreshCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.refresh',
         () => {
-            playbooksProvider.refresh();
+            playbooksController.refresh();
         },
     );
 
@@ -1213,7 +1240,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const mcpToolsRefreshCommand = vscode.commands.registerCommand(
         'ansibleMcpTools.refresh',
         () => {
-            mcpToolsProvider.refresh();
+            mcpToolsController.refresh();
         },
     );
 
@@ -1266,7 +1293,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 await configureCursorMcp(context);
             }
             updateMcpStatusContext();
-            mcpToolsProvider.refresh();
+            mcpToolsController.refresh();
         },
     );
 
@@ -1274,77 +1301,77 @@ export async function activate(context: vscode.ExtensionContext) {
     const collectionSourcesRefreshCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.refresh',
         async () => {
-            await collectionSourcesProvider.refreshAll();
+            await collectionSourcesController.refreshAll();
         },
     );
 
     const collectionSourcesRefreshSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.refreshSource',
         async (node: { source: CollectionSourceInfo }) => {
-            await collectionSourcesProvider.refreshSource(node.source);
+            await collectionSourcesController.refreshSource(node.source);
         },
     );
 
     const collectionSourcesAddSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.addSource',
         async () => {
-            await collectionSourcesProvider.addSource();
+            await collectionSourcesController.addSource();
         },
     );
 
     const collectionSourcesInstallCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.install',
         async () => {
-            await collectionSourcesProvider.installCollection();
+            await collectionSourcesController.installCollection();
         },
     );
 
     const collectionSourcesSearchCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.search',
         async () => {
-            await collectionSourcesProvider.searchAllSources();
+            await collectionSourcesController.searchAllSources();
         },
     );
 
     const collectionSourcesSearchSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.searchSource',
         async (node: { source: CollectionSourceInfo }) => {
-            await collectionSourcesProvider.searchSource(node.source);
+            await collectionSourcesController.searchSource(node.source);
         },
     );
 
     const collectionSourcesInstallFromSourceCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.installFromSource',
         async (node: { source: CollectionSourceInfo }) => {
-            await collectionSourcesProvider.installFromSource(node.source);
+            await collectionSourcesController.installFromSource(node.source);
         },
     );
 
     const collectionSourcesAiSummaryCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.aiSummary',
         () => {
-            void collectionSourcesProvider.generateAiSummary();
+            void collectionSourcesController.generateAiSummary();
         },
     );
 
     const collectionSourcesAiSourceSummaryCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.aiSourceSummary',
         (node: { source: CollectionSourceInfo }) => {
-            void collectionSourcesProvider.generateSourceAiSummary(node.source);
+            void collectionSourcesController.generateSourceAiSummary(node.source);
         },
     );
 
     const filterGalaxyCollectionsCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.filterGalaxyCollections',
         async () => {
-            await collectionSourcesProvider.filterGalaxyCollections();
+            await collectionSourcesController.filterGalaxyCollections();
         },
     );
 
     const clearGalaxyFilterCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.clearGalaxyFilter',
         () => {
-            collectionSourcesProvider.clearGalaxyFilter();
+            collectionSourcesController.clearGalaxyFilter();
         },
     );
 
@@ -1355,20 +1382,18 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.window.showWarningMessage('Select a Galaxy collection from the tree view.');
                 return;
             }
-            await collectionSourcesProvider.installGalaxyCollection(
-                node as Parameters<typeof collectionSourcesProvider.installGalaxyCollection>[0],
-            );
+            await collectionSourcesController.installGalaxyCollection(node);
         },
     );
 
     const showGalaxyPluginDocCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.showGalaxyPluginDoc',
-        async (node?: Parameters<typeof collectionSourcesProvider.showGalaxyPluginDoc>[0]) => {
+        async (node?: Parameters<typeof collectionSourcesController.showGalaxyPluginDoc>[0]) => {
             if (!node) {
                 vscode.window.showWarningMessage('Select a Galaxy plugin from the tree view.');
                 return;
             }
-            await collectionSourcesProvider.showGalaxyPluginDoc(node, context.extensionUri);
+            await collectionSourcesController.showGalaxyPluginDoc(node, context.extensionUri);
         },
     );
 
@@ -1433,23 +1458,23 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const showGitHubPluginDocCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.showGitHubPluginDoc',
-        async (node?: Parameters<typeof collectionSourcesProvider.showGitHubPluginDoc>[0]) => {
+        async (node?: Parameters<typeof collectionSourcesController.showGitHubPluginDoc>[0]) => {
             if (!node) {
                 vscode.window.showWarningMessage('Select a GitHub plugin from the tree view.');
                 return;
             }
-            await collectionSourcesProvider.showGitHubPluginDoc(node, context.extensionUri);
+            await collectionSourcesController.showGitHubPluginDoc(node, context.extensionUri);
         },
     );
 
     const refreshGitHubCollectionCommand = vscode.commands.registerCommand(
         'ansibleCollectionSources.refreshGitHubCollection',
-        (node?: Parameters<typeof collectionSourcesProvider.refreshGitHubCollection>[0]) => {
+        (node?: Parameters<typeof collectionSourcesController.refreshGitHubCollection>[0]) => {
             if (!node) {
                 vscode.window.showWarningMessage('Select a GitHub collection from the tree view.');
                 return;
             }
-            collectionSourcesProvider.refreshGitHubCollection(node);
+            collectionSourcesController.refreshGitHubCollection(node);
         },
     );
 
@@ -1565,7 +1590,7 @@ export async function activate(context: vscode.ExtensionContext) {
                                 log(`Collection install output: ${output}`);
 
                                 // Refresh the collections view
-                                void collectionsProvider.refresh();
+                                void collectionsController.refresh();
                                 emitJourneyOutcome(TelemetryEvents.COLLECTION_INSTALL, 'success', {
                                     startedAt,
                                 });

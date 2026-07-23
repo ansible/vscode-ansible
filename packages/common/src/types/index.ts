@@ -21,6 +21,7 @@ export type {
     PythonPackageDetail,
     SystemPackageDetail,
 } from './execution-env';
+export { shortExecutionEnvironmentName } from './execution-env';
 export type { ContainerEngine, ContainerImage, InspectedImage } from './container';
 export type { CacheIndex, CacheIndexEntry } from './ee-cache';
 export type { GalaxyCollection } from './galaxy';

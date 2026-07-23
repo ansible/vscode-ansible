@@ -17,15 +17,18 @@ import {
     PlaybookConfigView,
     PlaybookProgressView,
     DiagnosticsView,
+    SidebarNavTreeView,
 } from '@ansible/ui';
-import type { SchemaNode } from '@ansible/ui';
+import type { SchemaNode, SidebarSnapshot } from '@ansible/ui';
 import { buildPreviewString } from '@ansible/common';
 import { VsCodeBridge } from './bridges/VsCodeBridge';
 // esbuild imports CSS as text via loader config; inject at runtime
 import tokensCss from '@ansible/ui/styles/tokens.css';
+import vscodeHostCss from '@ansible/ui/styles/vscode-host.css';
+import sidebarCss from '@ansible/ui/sidebar/sidebar.css';
 
 const style = document.createElement('style');
-style.textContent = tokensCss;
+style.textContent = `${tokensCss}\n${vscodeHostCss}\n${sidebarCss}`;
 document.head.appendChild(style);
 
 const vscode = acquireVsCodeApi();
@@ -100,6 +103,13 @@ function App() {
                 return <PlaybookProgressView />;
             case 'diagnostics':
                 return <DiagnosticsView />;
+            case 'sidebar-navtree':
+                return (
+                    <SidebarNavTreeView
+                        host={vscode}
+                        initialSnapshot={props.snapshot as SidebarSnapshot | undefined}
+                    />
+                );
             default:
                 return <div>Unknown view: {viewName}</div>;
         }

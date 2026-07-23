@@ -16,6 +16,7 @@
       "project": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "scripts/**", "tools/**"],
       "ignoreDependencies": [
         "@vscode-elements/elements",
+        "@vscode/codicons",
         "@modelcontextprotocol/sdk",
         "js-yaml",
         "zod",
@@ -48,8 +49,12 @@
       "ignoreDependencies": ["@ansible/developer-services", "electron", "vscode"]
     },
     "packages/ui": {
-      "entry": ["src/bridge/index.ts"],
-      "project": ["src/**/*.{ts,tsx}"],
+      "entry": [
+        "src/bridge/index.ts",
+        "src/sidebar/index.ts",
+        "playground/sidebar-navtree.tsx"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "playground/**/*.{ts,tsx}"],
       "ignoreDependencies": ["react-dom", "@types/react-dom"]
     },
     "packages/common": {

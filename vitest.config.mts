@@ -60,7 +60,7 @@ export default defineConfig({
             project('services', 'packages/services', ['test/**/*.test.ts']),
             project('mcp', 'packages/mcp-server', ['test/**/*.test.ts']),
             project('ls', 'packages/language-server', ['test/**/*.test.ts']),
-            project('ui', 'packages/ui', ['test/**/*.test.ts']),
+            project('ui', 'packages/ui', ['test/**/*.test.ts', 'test/**/*.test.tsx']),
             project('lightspeed', 'packages/lightspeed', ['test/**/*.test.ts']),
             {
                 resolve: {

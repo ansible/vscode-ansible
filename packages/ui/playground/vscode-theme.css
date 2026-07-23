@@ -1,0 +1,163 @@
+/*
+ * Standalone --vscode-* presets so the playground can use vscode-host.css
+ * without running inside VS Code.
+ */
+
+html.theme-dark {
+    color-scheme: dark;
+    --vscode-editor-background: #1e1e1e;
+    --vscode-editor-foreground: #cccccc;
+    --vscode-sideBar-background: #252526;
+    --vscode-sideBar-foreground: #bbbbbb;
+    --vscode-sideBarSectionHeader-foreground: #bbbbbb;
+    --vscode-sideBarSectionHeader-background: rgba(128, 128, 128, 0.2);
+    --vscode-sideBarTitle-foreground: #bbbbbb;
+    --vscode-list-hoverBackground: #2a2d2e;
+    --vscode-list-activeSelectionBackground: #094771;
+    --vscode-list-activeSelectionForeground: #ffffff;
+    --vscode-descriptionForeground: #9d9d9d;
+    --vscode-disabledForeground: #6e6e6e;
+    --vscode-textLink-foreground: #4daafc;
+    --vscode-panel-border: #3c3c3c;
+    --vscode-widget-border: #3c3c3c;
+    --vscode-focusBorder: #007fd4;
+    --vscode-button-background: #0e639c;
+    --vscode-button-hoverBackground: #1177bb;
+    --vscode-testing-iconPassed: #4ec9b0;
+    --vscode-editorWarning-foreground: #cca700;
+    --vscode-editorError-foreground: #f44747;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
+    --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --vscode-font-size: 13px;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
+    --vscode-editor-font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+}
+
+html.theme-light {
+    color-scheme: light;
+    --vscode-editor-background: #ffffff;
+    --vscode-editor-foreground: #333333;
+    --vscode-sideBar-background: #f3f3f3;
+    --vscode-sideBar-foreground: #6f6f6f;
+    --vscode-sideBarSectionHeader-foreground: #6f6f6f;
+    --vscode-sideBarSectionHeader-background: rgba(128, 128, 128, 0.2);
+    --vscode-sideBarTitle-foreground: #6f6f6f;
+    --vscode-list-hoverBackground: #e8e8e8;
+    --vscode-list-activeSelectionBackground: #0060c0;
+    --vscode-list-activeSelectionForeground: #ffffff;
+    --vscode-descriptionForeground: #616161;
+    --vscode-disabledForeground: #a0a0a0;
+    --vscode-textLink-foreground: #006ab1;
+    --vscode-panel-border: #e0e0e0;
+    --vscode-widget-border: #c8c8c8;
+    --vscode-focusBorder: #0090f1;
+    --vscode-button-background: #0078d4;
+    --vscode-button-hoverBackground: #026ec1;
+    --vscode-testing-iconPassed: #388a34;
+    --vscode-editorWarning-foreground: #bf8803;
+    --vscode-editorError-foreground: #e51400;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
+    --vscode-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --vscode-font-size: 13px;
+    /* stylelint-disable-next-line value-keyword-case -- proper font-family names */
+    --vscode-editor-font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+}
+
+.playground-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.playground-header h1 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.playground-header p {
+    margin: 0;
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+}
+
+.playground-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.playground-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.playground-controls select,
+.playground-controls button {
+    font: inherit;
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 2px;
+    background: var(--vscode-sideBar-background);
+    color: var(--vscode-editor-foreground);
+    cursor: pointer;
+}
+
+.playground-controls button:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.playground-stage {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.playground-sidebar-frame {
+    width: 280px;
+    height: 520px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px var(--vscode-panel-border);
+    overflow: hidden;
+}
+
+.playground-notes {
+    flex: 1;
+    min-width: 200px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--vscode-descriptionForeground);
+}
+
+.playground-notes ul {
+    margin: 8px 0 0;
+    padding-left: 18px;
+}
+
+.playground-notes code {
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+}

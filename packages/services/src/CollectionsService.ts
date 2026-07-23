@@ -482,9 +482,11 @@ export class CollectionsService {
 
         this._log('Starting refresh');
 
-        // Try to load from cache first for instant UI
+        // Try to load from cache first for instant UI.
+        // Treat an empty cache as a miss — e.g. indexed before ansible-doc /
+        // ansible-dev-tools was available in the selected env.
         const cache = readCollectionsCache();
-        if (cache) {
+        if (cache && cache.collections.length > 0) {
             this._log(
                 `Cache found with ${String(cache.collections.length)} collections from ${cache.timestamp}`,
             );
@@ -499,7 +501,11 @@ export class CollectionsService {
             return;
         }
 
-        this._log('No cache found, doing full load');
+        if (cache?.collections.length === 0) {
+            this._log('Cache is empty — ignoring and doing full load');
+        } else {
+            this._log('No cache found, doing full load');
+        }
 
         // No cache - do full load with loading state
         this._loading = true;
