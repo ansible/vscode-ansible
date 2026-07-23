@@ -182,8 +182,14 @@ export class DevToolsService {
         const python = await this._resolveSelectedPython();
         if (python) {
             log(`DevToolsService: installing via pip exec: ${python}`);
-            await this._installViaPipExec(python);
-            return;
+            try {
+                await this._installViaPipExec(python);
+                return;
+            } catch (error) {
+                log(
+                    `DevToolsService: Layer 1 pip exec failed, trying fallbacks: ${error instanceof Error ? error.message : String(error)}`,
+                );
+            }
         }
 
         if (this._packageInstaller) {

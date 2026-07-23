@@ -49,9 +49,10 @@ export class McpToolsController {
         void this._loadTools();
     }
 
-    /** Release creator service listeners. */
+    /** Release creator service listeners and event emitters. */
     dispose(): void {
         this._creatorServiceListener?.dispose();
+        this._onDidChange.dispose();
     }
 
     /** Reload MCP tool definitions and notify NavTree listeners. */

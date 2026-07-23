@@ -43,6 +43,11 @@ export class SkillsController {
             });
     }
 
+    /** Release event emitters owned by this controller. */
+    dispose(): void {
+        this._onDidChange.dispose();
+    }
+
     /**
      * Show an informational notification for user-added sources that loaded
      * zero skills. Default sources (like ai-forge) are silently hidden from

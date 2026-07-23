@@ -12,7 +12,7 @@ Legend: **Non-AI** = works without `ansibleEnvironments.enableAiFeatures`.
 | Feature                | Trigger          | Description                                                                                        | Non-AI | Implementation                   |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------------------------- | ------ | -------------------------------- |
 | Activity bar container | Ansible icon     | Opens Ansible sidebar                                                                              | yes    | `package.json` `viewsContainers` |
-| Ansible                    | Activity Bar     | Accordion sections (Env, Dev Tools, Collections, Sources, EEs, Creator, Playbooks, AI Tools*, AI Skills*, Lightspeed\*) | yes\*  | `src/sidebar/` + `*Controller.ts` |
+| Ansible                    | Activity Bar     | Accordion sections (Env, Dev Tools, Collections, Sources, EEs, Creator, Playbooks, AI Tools*, AI Skills*, Lightspeed\*) | yes\*  | `src/sidebar/AnsibleNavTreeProvider.ts` + `src/views/*Controller.ts` |
 | Output channel         | Output → Ansible | Extension logs                                                                                     | yes    | `src/extension.ts`               |
 
 \*AI views require `enableAiFeatures`; Lightspeed view requires `ansible.lightspeed.enabled`.

@@ -60,6 +60,9 @@ function TreeRow({
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onRowActivate();
@@ -125,6 +128,9 @@ function TreeRow({
                                 aria-label={action.label}
                                 onClick={(e) => {
                                     runAction(e, action);
+                                }}
+                                onKeyDown={(e) => {
+                                    e.stopPropagation();
                                 }}
                             >
                                 <span

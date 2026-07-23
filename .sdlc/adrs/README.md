@@ -20,6 +20,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-020](ADR-020-single-repo-multi-distribution.md) | Single Repository, Multiple Distribution Formats         | 2026-06-26 |
 | [ADR-022](ADR-022-pnpm-package-manager.md)           | Migrate to pnpm for Supply-Chain Security                | 2026-06-30 |
 | [ADR-024](ADR-024-host-agnostic-getting-started.md)  | Host-Agnostic Getting Started (Shared Walkthrough Content) | 2026-07-17 |
+| [ADR-025](ADR-025-host-agnostic-sidebar-navtree.md)         | Sidebar NavTree                          | 2026-07-17 |
 
 ## Accepted
 
@@ -27,7 +28,6 @@ Decisions that have been accepted but are not yet fully implemented.
 
 | ADR                                                     | Title                                                        | Date       |
 | ------------------------------------------------------- | ------------------------------------------------------------ | ---------- |
-| [ADR-025](ADR-025-host-agnostic-sidebar-navtree.md)         | Host-Agnostic Accordion Sidebar NavTree                          | 2026-07-17 |
 | [ADR-004](ADR-004-intentional-exclusions-from-main.md)  | Intentional Feature Exclusions from main                     | 2026-05-26 |
 | [ADR-005](ADR-005-architectural-invariants.md)          | Architectural Invariants                                     | 2026-05-26 |
 | [ADR-006](ADR-006-esbuild-bundler.md)                   | esbuild Bundler for Extension and Packages                   | 2026-06-10 |

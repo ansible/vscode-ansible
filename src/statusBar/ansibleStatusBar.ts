@@ -58,14 +58,16 @@ export class AnsibleStatusBar implements vscode.Disposable {
      */
     constructor(
         context: vscode.ExtensionContext,
-        private readonly _client: LanguageClient,
+        private readonly _client: LanguageClient | undefined,
         private readonly _envService: PythonEnvironmentService,
     ) {
         this._item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
         this._item.command = 'ansible.showDiagnostics';
         context.subscriptions.push(this._item);
 
-        this._disposables.push(this._registerNotificationHandler());
+        if (this._client) {
+            this._disposables.push(this._registerNotificationHandler());
+        }
 
         this._disposables.push(
             this._envService.onDidChangeEnvironment(() => {
@@ -84,7 +86,11 @@ export class AnsibleStatusBar implements vscode.Disposable {
      * @returns Disposable that unregisters the notification handler.
      */
     private _registerNotificationHandler(): vscode.Disposable {
-        return this._client.onNotification(
+        const client = this._client;
+        if (!client) {
+            return { dispose: () => undefined };
+        }
+        return client.onNotification(
             new NotificationType<AnsibleMetadata[]>(METADATA_NOTIFICATION),
             (dataList: AnsibleMetadata[]) => {
                 if (dataList.length > 0) {
@@ -137,7 +143,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
      * @returns True when the language server connection is active.
      */
     public isLanguageServerRunning(): boolean {
-        return this._client.isRunning();
+        return this._client?.isRunning() ?? false;
     }
 
     /**
@@ -171,7 +177,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
      * @param fileUri - The URI of the active file to fetch metadata for.
      */
     private async _requestMetadata(fileUri: string): Promise<void> {
-        if (!this._client.isRunning()) {
+        if (!this._client?.isRunning()) {
             return;
         }
 

@@ -28,4 +28,10 @@ export class ExecutionEnvironmentsController {
     refresh(): void {
         void this._service.refresh();
     }
+
+    /** Release service listeners and event emitters. */
+    dispose(): void {
+        this._serviceListener?.dispose();
+        this._onDidChange.dispose();
+    }
 }

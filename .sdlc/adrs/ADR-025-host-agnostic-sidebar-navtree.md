@@ -1,8 +1,8 @@
-# ADR-025: Host-Agnostic Accordion Sidebar NavTree
+# ADR-025: Sidebar NavTree
 
 ## Status
 
-Accepted
+Implemented
 
 ## Date
 
@@ -95,7 +95,7 @@ only TreeView chrome was deleted.
 ### Negative
 
 - Webview fidelity will never be pixel-identical to native TreeView chrome.
-- Controllers still use `onDidChangeTreeData` naming for change events (historical).
+- Controllers expose `onDidChange` for hub refresh (not TreeViews).
 
 ### Neutral
 
@@ -136,6 +136,6 @@ only TreeView chrome was deleted.
 
 | Date       | Author     | Change                                         |
 | ---------- | ---------- | ---------------------------------------------- |
-| 2026-07-17 | bthornton  | Initial decision                               |
-| 2026-07-18 | bthornton  | Progressive skeleton hydrate; custom tree UI   |
-| 2026-07-19 | bthornton  | Hard-remove native trees; hub-only cutover     |
+| 2026-07-17 | bthornto   | Initial decision                               |
+| 2026-07-18 | bthornto   | Progressive skeleton hydrate; custom tree UI   |
+| 2026-07-19 | bthornto   | Hard-remove native trees; NavTree-only UI      |

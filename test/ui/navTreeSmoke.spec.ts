@@ -21,8 +21,20 @@ describe('Ansible NavTree smoke', () => {
         await browser.waitUntil(
             async () => {
                 const webviews = await workbench.getAllWebviews();
-                navTree = webviews[0];
-                return Boolean(navTree);
+                for (const candidate of webviews) {
+                    await candidate.open();
+                    try {
+                        const shell = await $('.ansible-sidebar-shell');
+                        if (await shell.isExisting()) {
+                            navTree = candidate;
+                            return true;
+                        }
+                    } catch {
+                        // Not the NavTree webview — try the next one.
+                    }
+                    await candidate.close();
+                }
+                return false;
             },
             {
                 timeout: 30_000,

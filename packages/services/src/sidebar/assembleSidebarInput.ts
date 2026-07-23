@@ -165,7 +165,7 @@ export function assembleAiTools(
         return undefined;
     }
     return tools.map((t) => {
-        const firstLine = t.tool.description.split('\n')[0]?.trim() ?? t.tool.name;
+        const firstLine = t.tool.description.split('\n')[0]?.trim() || t.tool.name;
         const label = firstLine.length > 60 ? `${firstLine.substring(0, 57)}...` : firstLine;
         return {
             category: t.category,
