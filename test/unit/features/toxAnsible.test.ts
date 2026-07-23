@@ -119,6 +119,16 @@ vi.mock('@ansible/developer-services', () => ({
         }),
         detectConfigFile: vi.fn().mockReturnValue(undefined),
     })),
+    CommandService: Object.assign(
+        vi.fn().mockImplementation(() => ({
+            getToolPath: vi.fn().mockResolvedValue('/usr/bin/tox'),
+        })),
+        {
+            getInstance: vi.fn().mockReturnValue({
+                getToolPath: vi.fn().mockResolvedValue('/usr/bin/tox'),
+            }),
+        },
+    ),
 }));
 
 vi.mock('@src/extension', () => ({
@@ -193,18 +203,18 @@ describe('ToxTaskProvider', () => {
         expect(tasks[0].group).toEqual({ id: 'test' });
     });
 
-    it('returns undefined for non-matching task type on resolve', () => {
+    it('returns undefined for non-matching task type on resolve', async () => {
         const provider = new ToxTaskProvider();
-        const result = provider.resolveTask({
+        const result = await provider.resolveTask({
             definition: { type: 'not-tox', environment: 'foo' },
             scope: 1,
         } as unknown as vscode.Task);
         expect(result).toBeUndefined();
     });
 
-    it('resolves a task when scope is an enum value', () => {
+    it('resolves a task when scope is an enum value', async () => {
         const provider = new ToxTaskProvider();
-        const result = provider.resolveTask({
+        const result = await provider.resolveTask({
             definition: { type: 'ansible-tox', environment: 'unit-py3.12-devel' },
             scope: 1,
         } as unknown as vscode.Task);
@@ -212,14 +222,14 @@ describe('ToxTaskProvider', () => {
         expect((result as unknown as { name: string }).name).toBe('unit-py3.12-devel');
     });
 
-    it('resolves a task when scope is a WorkspaceFolder', () => {
+    it('resolves a task when scope is a WorkspaceFolder', async () => {
         const provider = new ToxTaskProvider();
         const folder = {
             uri: { fsPath: '/workspace', toString: () => 'file:///workspace' },
             name: 'workspace',
             index: 0,
         };
-        const result = provider.resolveTask({
+        const result = await provider.resolveTask({
             definition: { type: 'ansible-tox', environment: 'unit-py3.12-devel' },
             scope: folder,
         } as unknown as vscode.Task);
@@ -228,12 +238,17 @@ describe('ToxTaskProvider', () => {
     });
 });
 
+vi.mock('@src/services/TelemetryService', () => ({
+    TelemetryService: vi.fn(),
+}));
+
 describe('registerToxAnsible', () => {
     it('registers controller and task provider', () => {
         const context = {
             subscriptions: { push: vi.fn() },
         };
-        registerToxAnsible(context as unknown as vscode.ExtensionContext);
+        const telemetry = { sendEvent: vi.fn() };
+        registerToxAnsible(context as unknown as vscode.ExtensionContext, telemetry as never);
         expect(context.subscriptions.push).toHaveBeenCalledTimes(2);
     });
 });

@@ -35,6 +35,8 @@ export interface ToxRunResult {
     stderr: string;
     /** Duration in milliseconds */
     durationMs: number;
+    /** True when the run was killed by the execution timeout */
+    timedOut?: boolean;
 }
 
 /** Availability check result for tox and tox-ansible. */

@@ -86,6 +86,22 @@ describe('parseToxEnvironmentName', () => {
             ansibleVersion: '',
         });
     });
+
+    it('parses category-first with scenario suffix, capturing only ansible version', () => {
+        expect(parseToxEnvironmentName('integration-py3.12-devel-default')).toEqual({
+            category: 'integration',
+            pythonVersion: '3.12',
+            ansibleVersion: 'devel',
+        });
+    });
+
+    it('parses category-first with numeric version and suffix', () => {
+        expect(parseToxEnvironmentName('sanity-py3.11-2.17-extra')).toEqual({
+            category: 'sanity',
+            pythonVersion: '3.11',
+            ansibleVersion: '2.17',
+        });
+    });
 });
 
 describe('parseGhMatrixJson', () => {
@@ -129,6 +145,19 @@ describe('parseGhMatrixJson', () => {
 
     it('returns empty array for non-array JSON', () => {
         expect(parseGhMatrixJson('{"key": "value"}')).toEqual([]);
+    });
+
+    it('skips entries with missing or non-array factors', () => {
+        const json = JSON.stringify([
+            { name: 'good-env', factors: ['unit'], python: '3.12', description: 'ok' },
+            { name: 'no-factors', python: '3.12', description: 'bad' },
+            { name: 'string-factors', factors: 'not-array', python: '3.12', description: 'bad' },
+            { python: '3.12', factors: ['unit'], description: 'no name' },
+        ]);
+
+        const result = parseGhMatrixJson(json);
+        expect(result).toHaveLength(1);
+        expect(result[0].name).toBe('good-env');
     });
 
     it('handles entries with no known category factor', () => {
@@ -408,6 +437,32 @@ describe('ToxAnsibleService', () => {
             expect(result.stderr).toBe('Cancelled');
             expect(runCommandArgsMock).not.toHaveBeenCalled();
         });
+
+        it('sets timedOut when duration exceeds timeout and exit is non-zero', async () => {
+            const shortTimeout = 50;
+            runCommandArgsMock.mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve(makeResult({ exitCode: 1, stderr: 'killed' }));
+                        }, shortTimeout + 10);
+                    }),
+            );
+
+            const result = await service.runEnvironment('unit-py3.12-devel', tmpDir, shortTimeout);
+            expect(result.timedOut).toBe(true);
+            expect(result.success).toBe(false);
+        });
+
+        it('does not set timedOut on normal failure within timeout', async () => {
+            runCommandArgsMock.mockResolvedValue(
+                makeResult({ exitCode: 1, stderr: 'test failed' }),
+            );
+
+            const result = await service.runEnvironment('unit-py3.12-devel', tmpDir, 600_000);
+            expect(result.timedOut).toBe(false);
+            expect(result.success).toBe(false);
+        });
     });
 
     describe('runEnvironments', () => {
@@ -434,6 +489,25 @@ describe('ToxAnsibleService', () => {
 
             expect(progress).toHaveBeenCalledWith('unit-py3.12-devel', 'started');
             expect(progress).toHaveBeenCalledWith('unit-py3.12-devel', 'passed');
+        });
+
+        it('stops early when signal is aborted between environments', async () => {
+            const controller = new AbortController();
+            runCommandArgsMock.mockImplementation(() => {
+                controller.abort();
+                return Promise.resolve(makeResult());
+            });
+
+            const results = await service.runEnvironments(
+                ['env1', 'env2', 'env3'],
+                tmpDir,
+                undefined,
+                undefined,
+                controller.signal,
+            );
+
+            expect(results).toHaveLength(1);
+            expect(results[0].success).toBe(true);
         });
     });
 });

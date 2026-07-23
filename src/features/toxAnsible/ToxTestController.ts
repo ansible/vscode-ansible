@@ -8,7 +8,12 @@
 
 import * as vscode from 'vscode';
 import { ToxAnsibleService } from '@ansible/developer-services';
-import type { ToxEnvironment, ToxTestCategory, ToxRunResult } from '@ansible/developer-services';
+import type {
+    ToxEnvironment,
+    ToxTestCategory,
+    ToxRunResult,
+    ToxAvailability,
+} from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 const CONTROLLER_ID = 'ansibleToxTests';
@@ -30,12 +35,18 @@ export class ToxTestController implements vscode.Disposable {
     private readonly _disposables: vscode.Disposable[] = [];
     private readonly _watchers: vscode.FileSystemWatcher[] = [];
     private _discovering = false;
+    private _pendingRediscover = false;
     private _discoverDebounce?: ReturnType<typeof setTimeout>;
+    private _discoverResolve?: () => void;
 
     /**
      * @param service - ToxAnsibleService instance for discovery and execution
+     * @param _telemetry - Optional telemetry callback for discovery/run events
      */
-    constructor(service?: ToxAnsibleService) {
+    constructor(
+        service?: ToxAnsibleService,
+        private readonly _telemetry?: (name: string, props?: Record<string, string>) => void,
+    ) {
         this._service = service ?? new ToxAnsibleService();
         this._controller = vscode.tests.createTestController(CONTROLLER_ID, CONTROLLER_LABEL);
 
@@ -56,54 +67,95 @@ export class ToxTestController implements vscode.Disposable {
 
     /**
      * Discover tox-ansible environments and populate the test tree.
-     * Debounces rapid calls (e.g., from file watchers) to ensure the
-     * latest state is always picked up.
+     * Debounces rapid calls (e.g., from file watchers). If discovery is
+     * already in progress, schedules a re-run after it completes so the
+     * final file-system state is always picked up.
      */
     async discoverTests(): Promise<void> {
         if (this._discoverDebounce) {
             clearTimeout(this._discoverDebounce);
+            this._discoverResolve?.();
         }
 
         return new Promise<void>((resolve) => {
+            this._discoverResolve = resolve;
             this._discoverDebounce = setTimeout(() => {
-                void this._doDiscoverTests().then(resolve);
+                this._discoverResolve = undefined;
+                void this._guardedDiscover().then(resolve);
             }, DISCOVER_DEBOUNCE_MS);
         });
     }
 
     /**
-     * Perform the actual discovery, guarded by _discovering lock.
+     * Guard discovery so trailing requests during an active run are
+     * re-executed once the current discovery finishes.
      */
-    private async _doDiscoverTests(): Promise<void> {
-        if (this._discovering) return;
+    private async _guardedDiscover(): Promise<void> {
+        if (this._discovering) {
+            this._pendingRediscover = true;
+            return;
+        }
         this._discovering = true;
-
         try {
-            const folders = vscode.workspace.workspaceFolders;
-            if (!folders?.length) return;
-
-            this._controller.items.replace([]);
-
-            for (const folder of folders) {
-                const workspaceDir = folder.uri.fsPath;
-                const availability = await this._service.checkAvailability();
-
-                if (!availability.toxInstalled || !availability.toxAnsibleInstalled) {
-                    log(`ToxTestController: tox-ansible not available in ${workspaceDir}`);
-                    continue;
-                }
-
-                const envs = await this._service.listEnvironments(workspaceDir);
-                if (envs.length === 0) continue;
-
-                this._buildTestTree(envs, folder);
-                log(
-                    `ToxTestController: loaded ${String(envs.length)} environments from ${folder.name}`,
-                );
+            this._pendingRediscover = false;
+            await this._doDiscoverTests();
+            // File-watcher callbacks may set _pendingRediscover during the await above
+            while (this._pendingRediscover as boolean) {
+                this._pendingRediscover = false;
+                await this._doDiscoverTests();
             }
         } finally {
             this._discovering = false;
         }
+    }
+
+    /**
+     * Perform the actual test discovery across workspace folders.
+     */
+    private async _doDiscoverTests(): Promise<void> {
+        const startedAt = Date.now();
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders?.length) return;
+
+        const availability = await this._service.checkAvailability();
+        if (!availability.toxInstalled || !availability.toxAnsibleInstalled) {
+            log('ToxTestController: tox-ansible not available');
+            this._controller.items.replace([]);
+            this._showEmptyState(availability);
+            return;
+        }
+
+        this._controller.items.replace([]);
+        let totalEnvs = 0;
+
+        for (const folder of folders) {
+            const envs = await this._service.listEnvironments(folder.uri.fsPath);
+            if (envs.length === 0) continue;
+
+            this._buildTestTree(envs, folder);
+            totalEnvs += envs.length;
+            log(
+                `ToxTestController: loaded ${String(envs.length)} environments from ${folder.name}`,
+            );
+        }
+
+        this._telemetry?.('tox.discover', {
+            result: 'success',
+            envCount: String(totalEnvs),
+            durationMs: String(Date.now() - startedAt),
+        });
+    }
+
+    /**
+     * Show an informational message when tox-ansible is not available.
+     * Satisfies TOX-001 empty state acceptance criterion.
+     * @param availability - Tox/tox-ansible availability check result
+     */
+    private _showEmptyState(availability: ToxAvailability): void {
+        const msg = !availability.toxInstalled
+            ? 'tox is not installed. Install ansible-dev-tools to enable tox-ansible testing.'
+            : 'tox-ansible plugin is not installed. Run: pip install tox-ansible';
+        void vscode.window.showInformationMessage(msg);
     }
 
     /**
@@ -213,6 +265,7 @@ export class ToxTestController implements vscode.Disposable {
         abortController: AbortController,
     ): Promise<void> {
         run.started(item);
+        const startedAt = Date.now();
 
         try {
             const result = await this._service.runEnvironment(
@@ -222,17 +275,29 @@ export class ToxTestController implements vscode.Disposable {
                 abortController.signal,
             );
 
-            if (abortController.signal.aborted) {
+            if (abortController.signal.aborted && !result.success) {
                 run.skipped(item);
+                this._telemetry?.('tox.run', { result: 'cancel', environment: envName });
                 return;
             }
 
             this._reportResult(run, item, result);
+            this._telemetry?.('tox.run', {
+                result: result.success ? 'success' : 'error',
+                environment: envName,
+                durationMs: String(Date.now() - startedAt),
+                ...(result.timedOut ? { timedOut: 'true' } : {}),
+            });
         } catch (err) {
             run.errored(
                 item,
                 new vscode.TestMessage(err instanceof Error ? err.message : 'Unknown error'),
             );
+            this._telemetry?.('tox.run', {
+                result: 'error',
+                environment: envName,
+                errorCode: 'unexpected_exception',
+            });
         }
     }
 
@@ -250,6 +315,12 @@ export class ToxTestController implements vscode.Disposable {
 
         if (result.success) {
             run.passed(item, result.durationMs);
+        } else if (result.timedOut) {
+            run.errored(
+                item,
+                new vscode.TestMessage(`Timed out after ${String(result.durationMs)}ms`),
+                result.durationMs,
+            );
         } else {
             run.failed(
                 item,
@@ -308,6 +379,8 @@ export class ToxTestController implements vscode.Disposable {
 
     /**
      * Resolve the workspace directory for a test item.
+     * Appends "/" to folder URIs to prevent prefix collisions
+     * (e.g., "file:///workspace" matching "file:///workspace2").
      * @param item - Test item whose workspace to find
      * @returns Workspace directory path, or undefined
      */
@@ -316,17 +389,19 @@ export class ToxTestController implements vscode.Disposable {
         if (!folders?.length) return undefined;
 
         for (const folder of folders) {
-            if (item.id.startsWith(folder.uri.toString())) {
+            const folderPrefix = folder.uri.toString() + '/';
+            if (item.id.startsWith(folderPrefix)) {
                 return folder.uri.fsPath;
             }
         }
 
-        return folders[0].uri.fsPath;
+        return undefined;
     }
 
     /** Release all watchers, timers, and the test controller. */
     dispose(): void {
         if (this._discoverDebounce) clearTimeout(this._discoverDebounce);
+        this._discoverResolve?.();
         for (const d of this._disposables) d.dispose();
         this._controller.dispose();
     }

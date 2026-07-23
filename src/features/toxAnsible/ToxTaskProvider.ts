@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { ToxAnsibleService } from '@ansible/developer-services';
+import { ToxAnsibleService, CommandService } from '@ansible/developer-services';
 import { log } from '@src/extension';
 
 const TASK_TYPE = 'ansible-tox';
@@ -15,12 +15,15 @@ const TASK_SOURCE = 'ansible-tox';
 /** VS Code Task Provider for tox-ansible environments. */
 export class ToxTaskProvider implements vscode.TaskProvider {
     private readonly _service: ToxAnsibleService;
+    private readonly _cmd: CommandService;
 
     /**
      * @param service - ToxAnsibleService instance for discovery
+     * @param cmd - CommandService instance for venv-aware path resolution
      */
-    constructor(service?: ToxAnsibleService) {
+    constructor(service?: ToxAnsibleService, cmd?: CommandService) {
         this._service = service ?? new ToxAnsibleService();
+        this._cmd = cmd ?? CommandService.getInstance();
     }
 
     /**
@@ -32,16 +35,16 @@ export class ToxTaskProvider implements vscode.TaskProvider {
         const folders = vscode.workspace.workspaceFolders;
         if (!folders?.length) return [];
 
+        const availability = await this._service.checkAvailability();
+        if (!availability.toxInstalled || !availability.toxAnsibleInstalled) return [];
+
         const tasks: vscode.Task[] = [];
 
         for (const folder of folders) {
-            const availability = await this._service.checkAvailability();
-            if (!availability.toxInstalled || !availability.toxAnsibleInstalled) continue;
-
             const envs = await this._service.listEnvironments(folder.uri.fsPath);
 
             for (const env of envs) {
-                const task = this._createTask(env.name, env.description, folder);
+                const task = await this._createTask(env.name, env.description, folder);
                 tasks.push(task);
             }
 
@@ -59,7 +62,7 @@ export class ToxTaskProvider implements vscode.TaskProvider {
      * @param task - Task to resolve with execution details
      * @returns Resolved task with ShellExecution, or undefined
      */
-    resolveTask(task: vscode.Task): vscode.Task | undefined {
+    async resolveTask(task: vscode.Task): Promise<vscode.Task | undefined> {
         const definition = task.definition as { type: string; environment?: string };
         if (definition.type !== TASK_TYPE || !definition.environment) {
             return undefined;
@@ -74,21 +77,23 @@ export class ToxTaskProvider implements vscode.TaskProvider {
 
     /**
      * Create a VS Code Task for a tox-ansible environment.
+     * Uses CommandService.getToolPath for venv-aware tox resolution.
      * @param envName - Tox environment name
      * @param description - Optional human-readable description
      * @param folder - Workspace folder for cwd
      * @returns Configured VS Code task
      */
-    private _createTask(
+    private async _createTask(
         envName: string,
         description: string | undefined,
         folder: vscode.WorkspaceFolder | undefined,
-    ): vscode.Task {
+    ): Promise<vscode.Task> {
         const definition: vscode.TaskDefinition = {
             type: TASK_TYPE,
             environment: envName,
         };
 
+        const toxPath = (await this._cmd.getToolPath('tox')) ?? 'tox';
         const args = ['-e', envName, '--ansible'];
         if (folder?.uri.fsPath) {
             const configFile = this._service.detectConfigFile(folder.uri.fsPath);
@@ -97,7 +102,7 @@ export class ToxTaskProvider implements vscode.TaskProvider {
             }
         }
 
-        const execution = new vscode.ShellExecution('tox', args, {
+        const execution = new vscode.ShellExecution(toxPath, args, {
             cwd: folder?.uri.fsPath,
         });
 

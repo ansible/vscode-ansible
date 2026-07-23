@@ -29,9 +29,11 @@ const CONFIG_FILE_CANDIDATES = ['tox-ansible.ini', 'tox.ini'] as const;
 
 /**
  * Match tox-ansible environment names in category-first format.
- * Example: "integration-py3.12-devel"
+ * Example: "integration-py3.12-devel" or "integration-py3.12-2.17"
+ * Captures only the ansible version factor (first segment after python),
+ * not scenario suffixes like "-default".
  */
-const CATEGORY_FIRST_PATTERN = /^(integration|sanity|unit)-py(\d+\.\d+)-(.+)$/;
+const CATEGORY_FIRST_PATTERN = /^(integration|sanity|unit)-py(\d+\.\d+)-(\d+\.\d+|devel)(?:-.+)?$/;
 
 /**
  * Match tox-ansible environment names in python-first format.
@@ -303,25 +305,16 @@ export class ToxAnsibleService {
         );
 
         const durationMs = Date.now() - start;
-
-        if (signal?.aborted) {
-            return {
-                environment: envName,
-                success: false,
-                exitCode: 1,
-                stdout: '',
-                stderr: 'Cancelled by user',
-                durationMs,
-            };
-        }
+        const abortedDuringExec = signal?.aborted && r.exitCode !== 0;
 
         return {
             environment: envName,
-            success: r.exitCode === 0,
+            success: !abortedDuringExec && r.exitCode === 0,
             exitCode: r.exitCode,
-            stdout: r.stdout,
-            stderr: r.stderr,
+            stdout: abortedDuringExec ? '' : r.stdout,
+            stderr: abortedDuringExec ? 'Cancelled by user' : r.stderr,
             durationMs,
+            timedOut: !abortedDuringExec && r.exitCode !== 0 && durationMs >= timeoutMs,
         };
     }
 

@@ -170,7 +170,7 @@ export async function activate(context: vscode.ExtensionContext) {
     registerFileAssociation(context);
     registerExtensionConflictDetection(context);
     registerVaultCommand(context);
-    registerToxAnsible(context);
+    registerToxAnsible(context, telemetry);
     registerWalkthroughTelemetry(context, telemetry);
     registerGettingStarted(context, telemetry);
     registerLightspeed(context, telemetry)
