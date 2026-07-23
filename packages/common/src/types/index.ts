@@ -27,6 +27,7 @@ export type { GalaxyCollection } from './galaxy';
 export type { GitHubCollection } from './github';
 export type { SkillEntry, SkillSource, SkillCategory, TrustLevel, RepoFormat } from './skills';
 export type {
+    PlaybookExecutor,
     PlaybookConfig,
     PlaybookPlay,
     ProgressEvent,

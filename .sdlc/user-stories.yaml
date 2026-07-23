@@ -449,6 +449,22 @@ stories:
       - AI summary action is available on playbook tree items
       - Summary describes the playbook's purpose and structure
 
+  - id: PLB-007
+    title: Configurable playbook executor
+    story: >
+      As an Ansible developer, I want to choose between ansible-playbook
+      and ansible-navigator as my playbook executor, so that I can
+      leverage execution environments and artifact collection without
+      switching tools manually.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Executor dropdown in playbook configuration form
+      - VS Code setting (ansibleEnvironments.playbookExecutor) for default executor
+      - Run Playbook action uses configured executor
+      - Progress viewer uses the configured executor; ansible-navigator runs include --execution-environment false
+      - Command preview in config form reflects selected executor
+
   # ---------------------------------------------------------------------------
   # EE — Execution Environment Inspection
   # PRD: Section 5 (Execution Environment Inspection), US-7, AC-5

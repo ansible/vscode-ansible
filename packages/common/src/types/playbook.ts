@@ -2,8 +2,12 @@
  * Shared playbook types used across extension, MCP server, and UI.
  */
 
-/** Run settings for ansible-playbook. */
+/** Which tool is used to execute a playbook. */
+export type PlaybookExecutor = 'ansible-playbook' | 'ansible-navigator';
+
+/** Run settings for playbook execution. */
 export interface PlaybookConfig {
+    executor?: PlaybookExecutor;
     inventory?: string[];
     limit?: string;
     tags?: string[];
@@ -78,4 +82,5 @@ export interface PlaybookRunOptions {
     workspaceFolder: string;
     command: string;
     extensionPath: string;
+    executor?: PlaybookExecutor;
 }

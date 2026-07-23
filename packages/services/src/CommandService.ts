@@ -292,10 +292,14 @@ export class CommandService {
      * Run ansible-navigator command.
      *
      * @param args - Arguments passed to ansible-navigator.
+     * @param options - Execution options such as cwd, env, and timeout.
      * @returns Captured stdout, stderr, and exit code from ansible-navigator.
      */
-    public async runAnsibleNavigator(args: string[]): Promise<ExecResult> {
-        return this.runTool('ansible-navigator', args);
+    public async runAnsibleNavigator(
+        args: string[],
+        options: CommandOptions = {},
+    ): Promise<ExecResult> {
+        return this.runTool('ansible-navigator', args, options);
     }
 
     /**

@@ -1076,6 +1076,7 @@ export async function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Run playbook in terminal (respects configured executor)
     const playbooksRunCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.run',
         async (node: { playbook: PlaybookInfo }) => {
@@ -1084,27 +1085,26 @@ export async function activate(context: vscode.ExtensionContext) {
                 const playbooksService = PlaybooksService.getInstance();
                 const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-                // Calculate path relative to the playbook's workspace folder
                 const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
                 const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-                const command = playbooksService.buildCommand(playbookRelativePath, config);
+                const useNavigator = config.executor === 'ansible-navigator';
+                const command = useNavigator
+                    ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                    : playbooksService.buildCommand(playbookRelativePath, config);
+                const executorLabel = useNavigator ? 'ansible-navigator' : 'ansible-playbook';
 
                 log(`Running playbook: ${command} in ${workspaceFolderPath}`);
 
-                // Use TerminalService for proper venv activation handling
-                // Use the playbook's workspace folder as cwd
                 const terminalService = TerminalService.getInstance();
                 const managed = await terminalService.createActivatedTerminal({
-                    name: `ansible-playbook: ${node.playbook.name}`,
+                    name: `${executorLabel}: ${node.playbook.name}`,
                     cwd: node.playbook.workspaceFolder,
                     show: true,
                 });
 
                 log('Terminal ready, sending command...');
 
-                // Await dispatch only (waitForCompletion: false) so launch failures
-                // hit the catch; playbook exit is not tracked here.
                 await managed.sendCommand(command, { waitForCompletion: false });
                 emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'success', { startedAt });
             } catch (error) {
@@ -1118,6 +1118,7 @@ export async function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Run playbook with progress viewer (respects configured executor)
     const playbooksRunWithProgressCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.runWithProgress',
         async (node: { playbook: PlaybookInfo }) => {
@@ -1126,22 +1127,23 @@ export async function activate(context: vscode.ExtensionContext) {
                 const playbooksService = PlaybooksService.getInstance();
                 const config = playbooksService.getPlaybookConfig(node.playbook.relativePath);
 
-                // Calculate path relative to the playbook's workspace folder
                 const workspaceFolderPath = node.playbook.workspaceFolder.fsPath;
                 const playbookRelativePath = path.relative(workspaceFolderPath, node.playbook.path);
 
-                const command = playbooksService.buildCommand(playbookRelativePath, config);
+                const useNavigator = config.executor === 'ansible-navigator';
+                const command = useNavigator
+                    ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                    : playbooksService.buildCommand(playbookRelativePath, config);
 
                 log(`Running playbook with progress: ${command} in ${workspaceFolderPath}`);
 
-                // Show progress panel — completion telemetry fires from the panel
-                // when playbook_complete arrives (ansible outcome).
                 await PlaybookProgressPanel.show(context.extensionUri, {
                     playbookPath: node.playbook.path,
                     playbookName: node.playbook.name,
                     workspaceFolder: node.playbook.workspaceFolder,
                     command: command,
                     extensionPath: context.extensionPath,
+                    executor: config.executor,
                     telemetryStartedAt: startedAt,
                 });
             } catch (error) {
