@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 declare const PACKAGE_VERSION: string;
 
@@ -47,15 +49,13 @@ export async function run(argv: string[]): Promise<number> {
   return 0;
 }
 
-const entry = process.argv[1] ?? "";
+/** Canonical path of this module (src/cli.ts or dist/cli.cjs depending on build). */
+const thisModulePath = fileURLToPath(import.meta.url);
+const entryArg = process.argv[1] ? path.resolve(process.argv[1]) : "";
 const isDirectRun =
-  entry.endsWith("/cli.ts") ||
-  entry.endsWith("/cli.js") ||
-  entry.endsWith("/cli.cjs") ||
-  entry.endsWith("\\cli.ts") ||
-  entry.endsWith("\\cli.js") ||
-  entry.endsWith("\\cli.cjs") ||
-  /ansible-language-server$/.test(entry);
+  entryArg === thisModulePath ||
+  // npm/pnpm bin shim may invoke the package name rather than the file path
+  path.basename(entryArg) === "ansible-language-server";
 
 if (isDirectRun) {
   void run(process.argv.slice(2))

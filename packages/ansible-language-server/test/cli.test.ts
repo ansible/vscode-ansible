@@ -160,4 +160,16 @@ describe("CLI run() (source)", () => {
     const content = readFileSync(outPath, "utf8");
     expect(content).toContain("# Language Server Settings");
   });
+
+  it("returns 1 when settings docs cannot be written", async () => {
+    tempDir = mkdtempSync(join(tmpdir(), "als-cli-run-docs-fail-"));
+    const blocker = join(tempDir, "not-a-dir");
+    writeFileSync(blocker, "x");
+    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await expect(
+      run(["--generate-docs", join(blocker, "settings.md")]),
+    ).resolves.toBe(1);
+    expect(err).toHaveBeenCalled();
+  });
 });

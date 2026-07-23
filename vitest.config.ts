@@ -3,10 +3,14 @@ import { defineConfig } from "vitest/config";
 import path, { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import vue from "@vitejs/plugin-vue";
+import { PROJECT_ROOT } from "./test/setup";
 
 const alsPackageVersion = (
   JSON.parse(
-    readFileSync(resolve(__dirname, "packages/ansible-language-server/package.json"), "utf8"),
+    readFileSync(
+      resolve(PROJECT_ROOT, "packages/ansible-language-server/package.json"),
+      "utf8",
+    ),
   ) as { version: string }
 ).version;
 
