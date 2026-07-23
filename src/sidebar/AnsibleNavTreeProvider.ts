@@ -50,6 +50,9 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
     private _hasHydrated = false;
     /** Last posted snapshot (for lazy-expand patches). */
     private _lastSnapshot?: SidebarSnapshot;
+    /** Coalesce bursts of controller/config change events into one rebuild. */
+    private static readonly _SNAPSHOT_DEBOUNCE_MS = 200;
+    private _snapshotDebounce?: ReturnType<typeof setTimeout>;
 
     /**
      * @param _context - Extension context (MCP status, webview resources)
@@ -78,10 +81,10 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
         this._mcpTools = controller;
         this._controllerDisposables.push(
             controller.onDidChange(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
         );
-        void this._pushSnapshot();
+        this._schedulePushSnapshot();
     }
 
     /**
@@ -92,10 +95,10 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
         this._collectionSources = controller;
         this._controllerDisposables.push(
             controller.onDidChange(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
         );
-        void this._pushSnapshot();
+        this._schedulePushSnapshot();
     }
 
     /**
@@ -125,7 +128,7 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
 
         this._viewDisposables.push(
             this._envManagers.onDidChange(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
         );
 
@@ -135,16 +138,16 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
         const ees = ExecutionEnvService.getInstance();
         this._viewDisposables.push(
             (devTools.onDidChange as vscode.Event<void>)(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
             (collections.onDidChange as vscode.Event<void>)(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
             (creator.onDidChange as vscode.Event<void>)(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
             (ees.onDidChange as vscode.Event<void>)(() => {
-                void this._pushSnapshot();
+                this._schedulePushSnapshot();
             }),
             vscode.workspace.onDidChangeConfiguration((e) => {
                 if (
@@ -152,17 +155,18 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
                     e.affectsConfiguration('ansible.lightspeed.enabled') ||
                     e.affectsConfiguration('ansibleEnvironments.skillSources')
                 ) {
-                    void this._pushSnapshot();
+                    this._schedulePushSnapshot();
                 }
             }),
             vscode.authentication.onDidChangeSessions((e) => {
                 if (e.provider.id === 'auth-lightspeed') {
-                    void this._pushSnapshot();
+                    this._schedulePushSnapshot();
                 }
             }),
         );
 
         webviewView.onDidDispose(() => {
+            this._clearSnapshotDebounce();
             for (const d of this._viewDisposables) {
                 d.dispose();
             }
@@ -172,11 +176,13 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
             this._lastSnapshot = undefined;
         });
 
+        // First visible hydrate is immediate (progressive skeleton); event bursts debounce.
         void this._pushSnapshot({ progressive: true });
     }
 
     /** Release view and controller subscriptions on extension deactivate. */
     dispose(): void {
+        this._clearSnapshotDebounce();
         for (const d of this._viewDisposables) {
             d.dispose();
         }
@@ -185,6 +191,28 @@ export class AnsibleNavTreeProvider implements vscode.WebviewViewProvider, vscod
             d.dispose();
         }
         this._controllerDisposables = [];
+    }
+
+    /**
+     * Coalesce rapid change notifications into a single snapshot rebuild.
+     * Progressive / ready paths call `_pushSnapshot` directly instead.
+     */
+    private _schedulePushSnapshot(): void {
+        if (this._snapshotDebounce) {
+            clearTimeout(this._snapshotDebounce);
+        }
+        this._snapshotDebounce = setTimeout(() => {
+            this._snapshotDebounce = undefined;
+            void this._pushSnapshot();
+        }, AnsibleNavTreeProvider._SNAPSHOT_DEBOUNCE_MS);
+    }
+
+    /** Cancel a pending debounced snapshot push. */
+    private _clearSnapshotDebounce(): void {
+        if (this._snapshotDebounce) {
+            clearTimeout(this._snapshotDebounce);
+            this._snapshotDebounce = undefined;
+        }
     }
 
     /**

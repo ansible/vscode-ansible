@@ -26,6 +26,14 @@ suite('Ansible Extension — without python-envs', () => {
             !envsExt?.isActive,
             `${PYTHON_ENVS_ID} should not be active in the no-python-envs test profile`,
         );
+        // ADR-019 python-only path: ms-python.python remains available for discovery.
+        const pythonExt = vscode.extensions.getExtension('ms-python.python');
+        assert.ok(pythonExt, 'ms-python.python should be available for python-only degraded mode');
+        const ansible = vscode.extensions.getExtension(EXTENSION_ID);
+        assert.ok(
+            ansible?.isActive,
+            'Ansible should activate in degraded mode without python-envs',
+        );
     });
 
     test('extension activates without crash', () => {

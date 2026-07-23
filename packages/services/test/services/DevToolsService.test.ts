@@ -1,3 +1,6 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const ADT_OUTPUT = `ansible-builder 24.2.0
@@ -193,34 +196,35 @@ describe('DevToolsService', () => {
     });
 
     it('install prefers pip exec when selected python is known', async () => {
-        const fs = await import('fs');
-        const binDir = '/tmp/ansible-adt-venv-bin';
-        fs.mkdirSync(binDir, { recursive: true });
-        const python = `${binDir}/python3`;
-        fs.writeFileSync(python, '');
-        mocks.mockGetBinDir.mockResolvedValue(binDir);
-        mocks.mockRunCommandArgs.mockResolvedValue({
-            exitCode: 0,
-            stdout: 'Successfully installed ansible-dev-tools',
-            stderr: '',
-        });
-        mocks.mockRunTool.mockResolvedValue({
-            exitCode: 0,
-            stdout: ADT_OUTPUT,
-            stderr: '',
-        });
-        const installer = vi.fn().mockResolvedValue(undefined);
-        const svc = DevToolsService.getInstance();
-        svc.setPackageInstaller(installer);
-        await svc.install();
-        expect(mocks.mockRunCommandArgs).toHaveBeenCalledWith(
-            python,
-            ['-m', 'pip', 'install', 'ansible-dev-tools'],
-            { timeout: 600_000 },
-        );
-        expect(installer).not.toHaveBeenCalled();
-        expect(svc.hasPackages()).toBe(true);
-        fs.rmSync(binDir, { recursive: true, force: true });
+        const binDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ansible-adt-venv-bin-'));
+        const python = path.join(binDir, 'python3');
+        try {
+            fs.writeFileSync(python, '');
+            mocks.mockGetBinDir.mockResolvedValue(binDir);
+            mocks.mockRunCommandArgs.mockResolvedValue({
+                exitCode: 0,
+                stdout: 'Successfully installed ansible-dev-tools',
+                stderr: '',
+            });
+            mocks.mockRunTool.mockResolvedValue({
+                exitCode: 0,
+                stdout: ADT_OUTPUT,
+                stderr: '',
+            });
+            const installer = vi.fn().mockResolvedValue(undefined);
+            const svc = DevToolsService.getInstance();
+            svc.setPackageInstaller(installer);
+            await svc.install();
+            expect(mocks.mockRunCommandArgs).toHaveBeenCalledWith(
+                python,
+                ['-m', 'pip', 'install', 'ansible-dev-tools'],
+                { timeout: 600_000 },
+            );
+            expect(installer).not.toHaveBeenCalled();
+            expect(svc.hasPackages()).toBe(true);
+        } finally {
+            fs.rmSync(binDir, { recursive: true, force: true });
+        }
     });
 
     it('install delegates to packageInstaller when no python path is known', async () => {

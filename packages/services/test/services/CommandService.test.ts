@@ -117,12 +117,14 @@ describe('CommandService', () => {
         );
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         if (previousWorkspace === undefined) {
             delete process.env.ANSIBLE_ENV_WORKSPACE;
         } else {
             process.env.ANSIBLE_ENV_WORKSPACE = previousWorkspace;
         }
+        const { clearCachedEnvironment } = await import('../../src/EnvironmentCache');
+        clearCachedEnvironment();
         fs.rmSync(tmpDir, { recursive: true, force: true });
         vi.resetModules();
     });
