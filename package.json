@@ -228,17 +228,24 @@
             "scope": "machine-overridable",
             "type": "string"
           },
+          "ansible.config.path": {
+            "default": "",
+            "markdownDescription": "Path to the `ansible.cfg` file used by the language server for Ansible commands and diagnostics. Supports relative paths and `${workspaceFolder}`.",
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
+          },
           "ansible.ansible.reuseTerminal": {
             "default": false,
             "markdownDescription": "Enabling this will cause ansible commands run through VS Code to reuse the same Ansible Terminal.",
-            "order": 2,
+            "order": 3,
             "scope": "machine-overridable",
             "type": "boolean"
           },
           "ansible.ansible.useFullyQualifiedCollectionNames": {
             "default": true,
             "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
-            "order": 1,
+            "order": 2,
             "scope": "resource",
             "type": "boolean"
           }
