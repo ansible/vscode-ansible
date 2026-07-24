@@ -155,6 +155,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
         }
 
         try {
+            void vscode.window.showInformationMessage('Re-syncing Ansible inventory…');
             await this._client.sendNotification(
                 new NotificationType(RESYNC_INVENTORY_NOTIFICATION),
             );

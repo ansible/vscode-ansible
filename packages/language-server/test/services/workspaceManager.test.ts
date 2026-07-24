@@ -46,12 +46,21 @@ describe('WorkspaceManager', () => {
         expect(manager.folderContextCount).toBe(1);
     });
 
-    it('forEachContext materializes contexts before iterating', async () => {
+    it('forEachContext only iterates already-materialized contexts', async () => {
         const manager = new WorkspaceManager(mockConnection());
         manager.setWorkspaceFolders([
             { uri: 'file:///workspace/a', name: 'a' },
             { uri: 'file:///workspace/b', name: 'b' },
         ]);
+
+        const seenBefore: string[] = [];
+        await manager.forEachContext((context) => {
+            seenBefore.push(context.workspaceFolder.uri);
+        });
+        expect(seenBefore).toHaveLength(0);
+        expect(manager.folderContextCount).toBe(0);
+
+        manager.ensureFolderContexts();
 
         const seen: string[] = [];
         await manager.forEachContext((context) => {

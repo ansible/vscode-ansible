@@ -42,6 +42,7 @@ const { mockCreateStatusBarItem, mockRegisterCommand, mockWindow, mockWorkspace 
                     | undefined,
                 showQuickPick: vi.fn(),
                 showWarningMessage: vi.fn(),
+                showInformationMessage: vi.fn(),
             },
             mockWorkspace: {
                 workspaceFolders: [{ uri: { toString: () => 'file:///workspace' } }] as
@@ -187,6 +188,7 @@ describe('AnsibleStatusBar', () => {
         mockRegisterCommand.mockReturnValue({ dispose: vi.fn() });
         mockWorkspace.workspaceFolders = [{ uri: { toString: () => 'file:///workspace' } }];
         mockWindow.showWarningMessage = vi.fn();
+        mockWindow.showInformationMessage = vi.fn();
     });
 
     it('creates a status bar item with right alignment and priority 100', () => {
@@ -439,6 +441,9 @@ describe('AnsibleStatusBar', () => {
         expect(client.sendNotification).toHaveBeenCalledTimes(1);
         expect(client.sendNotification).toHaveBeenCalledWith(
             expect.objectContaining({ method: 'resync/ansible-inventory' }),
+        );
+        expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
+            'Re-syncing Ansible inventory…',
         );
         expect(mockWindow.showWarningMessage).not.toHaveBeenCalled();
     });

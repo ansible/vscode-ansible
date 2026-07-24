@@ -95,15 +95,16 @@ export class WorkspaceManager {
     }
 
     /**
-     * Invokes a callback for every workspace folder context. Ensures contexts
-     * exist for all known workspace folders before iterating.
+     * Invokes a callback for every already-materialized workspace folder
+     * context. Does not create contexts for folders that have never been
+     * accessed; call {@link ensureFolderContexts} first when eager
+     * materialization is required (e.g. inventory resync).
      *
      * @param callbackfn - Function run for each folder context.
      */
     public async forEachContext(
         callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
     ): Promise<void> {
-        this.ensureFolderContexts();
         await Promise.all(
             Array.from(this.folderContexts.values()).map((folder) =>
                 Promise.resolve(callbackfn(folder)),
