@@ -20,7 +20,16 @@ const hoisted = vi.hoisted(() => {
     const forceRefresh = vi.fn().mockResolvedValue(undefined);
     const refresh = vi.fn().mockResolvedValue(undefined);
     const listCollectionNames = vi.fn(() => ['ansible.builtin']);
-    const getCollection = vi.fn((name: string) => ({
+    interface CollectionInfo {
+        info: {
+            name: string;
+            version: string;
+            description: string;
+            authors: string[];
+        };
+        pluginTypes: Map<string, { name: string; fullName: string; shortDescription: string }[]>;
+    }
+    const getCollection = vi.fn((name: string): CollectionInfo | undefined => ({
         info: {
             name,
             version: '1.0.0',
@@ -109,6 +118,7 @@ const hoisted = vi.hoisted(() => {
                     name: string;
                     version: string;
                     description: string;
+                    repository?: string;
                 }[],
         ),
     };
@@ -146,7 +156,7 @@ const hoisted = vi.hoisted(() => {
     const creatorInstance = {
         isLoaded: vi.fn(() => true),
         refresh: vi.fn().mockResolvedValue(undefined),
-        getSchema: vi.fn(() => null),
+        getSchema: vi.fn(() => null as Record<string, unknown> | null),
         loadSchema: vi.fn().mockResolvedValue(null),
     };
 
@@ -160,6 +170,36 @@ const hoisted = vi.hoisted(() => {
         getPluginDoc: vi.fn().mockResolvedValue(null),
     };
 
+    const toxInstance = {
+        checkAvailability: vi.fn().mockResolvedValue({
+            toxInstalled: true,
+            toxAnsibleInstalled: true,
+            toxVersion: '4.21.0',
+        }),
+        listEnvironments: vi.fn().mockResolvedValue([
+            {
+                name: 'unit-py3.12-devel',
+                category: 'unit',
+                pythonVersion: '3.12',
+                ansibleVersion: 'devel',
+            },
+            {
+                name: 'sanity-py3.12-devel',
+                category: 'sanity',
+                pythonVersion: '3.12',
+                ansibleVersion: 'devel',
+            },
+        ]),
+        runEnvironment: vi.fn().mockResolvedValue({
+            environment: 'unit-py3.12-devel',
+            success: true,
+            exitCode: 0,
+            stdout: 'OK',
+            stderr: '',
+            durationMs: 5000,
+        }),
+    };
+
     return {
         getPluginDocumentation,
         collectionsInstance,
@@ -171,6 +211,7 @@ const hoisted = vi.hoisted(() => {
         commandServiceInstance,
         devToolsInstance,
         creatorInstance,
+        toxInstance,
         forceRefresh,
         listCollectionNames,
         getCollection,
@@ -214,6 +255,7 @@ vi.mock('@ansible/developer-services', async (importOriginal) => {
             getInstance: vi.fn(() => hoisted.scmDocsInstance),
         },
         getCommandService: vi.fn(() => hoisted.commandServiceInstance),
+        ToxAnsibleService: vi.fn().mockImplementation(() => hoisted.toxInstance),
         SkillRegistry: {
             getInstance: vi.fn(() => ({
                 setSources: vi.fn(),
@@ -231,6 +273,7 @@ vi.mock('@ansible/developer-services', async (importOriginal) => {
 
 import { McpToolHandler } from '../src/handlers';
 import type { McpToolResult, McpErrorDetail } from '../src/tools';
+import { ToxAnsibleService } from '@ansible/developer-services';
 
 /**
  * Extract and parse a structured error from an MCP tool result.
@@ -251,6 +294,39 @@ describe('McpToolHandler', () => {
         fsMock.readFileSync.mockReturnValue('');
 
         hoisted.isLoaded.mockReturnValue(true);
+
+        // Re-set ToxAnsibleService mock after clearAllMocks
+        (ToxAnsibleService as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+            () => hoisted.toxInstance,
+        );
+        hoisted.toxInstance.checkAvailability.mockResolvedValue({
+            toxInstalled: true,
+            toxAnsibleInstalled: true,
+            toxVersion: '4.21.0',
+        });
+        hoisted.toxInstance.listEnvironments.mockResolvedValue([
+            {
+                name: 'unit-py3.12-devel',
+                category: 'unit',
+                pythonVersion: '3.12',
+                ansibleVersion: 'devel',
+            },
+            {
+                name: 'sanity-py3.12-devel',
+                category: 'sanity',
+                pythonVersion: '3.12',
+                ansibleVersion: 'devel',
+            },
+        ]);
+        hoisted.toxInstance.runEnvironment.mockResolvedValue({
+            environment: 'unit-py3.12-devel',
+            success: true,
+            exitCode: 0,
+            stdout: 'OK',
+            stderr: '',
+            durationMs: 5000,
+        });
+
         hoisted.listCollectionNames.mockReturnValue(['ansible.builtin']);
         hoisted.getCollection.mockImplementation((name: string) => ({
             info: {
@@ -1589,6 +1665,189 @@ describe('McpToolHandler', () => {
 
             expect(text).toContain('interactive walkthrough');
             expect(text).toContain('Do NOT dump all steps at once');
+        });
+    });
+
+    describe('tox_list_environments', () => {
+        it('returns error when workspace_dir is missing', async () => {
+            const result = await handler.handleTool('tox_list_environments', {});
+            const err = parseError(result);
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('workspace_dir');
+        });
+
+        it('rejects relative workspace_dir', async () => {
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: 'relative/path',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('absolute path');
+        });
+
+        it('rejects workspace_dir with traversal sequences', async () => {
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace/../etc/passwd',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('traversal');
+        });
+
+        it('returns SERVICE_UNAVAILABLE when tox is not installed', async () => {
+            hoisted.toxInstance.checkAvailability.mockResolvedValueOnce({
+                toxInstalled: false,
+                toxAnsibleInstalled: false,
+            });
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.message).toContain('tox');
+        });
+
+        it('returns SERVICE_UNAVAILABLE when tox-ansible plugin is missing', async () => {
+            hoisted.toxInstance.checkAvailability.mockResolvedValueOnce({
+                toxInstalled: true,
+                toxAnsibleInstalled: false,
+            });
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.message).toContain('tox-ansible');
+        });
+
+        it('returns grouped environments on success', async () => {
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBeUndefined();
+            const data = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            expect(data.total).toBe(2);
+            expect(data.tox_version).toBe('4.21.0');
+        });
+
+        it('returns guidance when no environments found', async () => {
+            hoisted.toxInstance.listEnvironments.mockResolvedValueOnce([]);
+            const result = await handler.handleTool('tox_list_environments', {
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBeUndefined();
+            expect(result.content[0].text).toContain('No tox-ansible environments found');
+        });
+    });
+
+    describe('tox_run_environment', () => {
+        it('returns error when environment is missing', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                workspace_dir: '/workspace',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('environment');
+        });
+
+        it('returns error when workspace_dir is missing', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('workspace_dir');
+        });
+
+        it('rejects relative workspace_dir', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: 'relative/path',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('absolute path');
+        });
+
+        it('rejects workspace_dir with traversal sequences', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace/../etc/passwd',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('traversal');
+        });
+
+        it('returns run result on success', async () => {
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBeUndefined();
+            const data = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            expect(data.success).toBe(true);
+            expect(data.exitCode).toBe(0);
+            expect(data.environment).toBe('unit-py3.12-devel');
+        });
+
+        it('passes timeout_ms to service', async () => {
+            await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+                timeout_ms: 120000,
+            });
+            expect(hoisted.toxInstance.runEnvironment).toHaveBeenCalledWith(
+                'unit-py3.12-devel',
+                '/workspace',
+                120000,
+            );
+        });
+
+        it('returns failure data without isError when test fails', async () => {
+            hoisted.toxInstance.runEnvironment.mockResolvedValueOnce({
+                environment: 'unit-py3.12-devel',
+                success: false,
+                exitCode: 2,
+                stdout: 'FAILED test_foo.py',
+                stderr: '',
+                durationMs: 5000,
+            });
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+            });
+            expect(result.isError).toBeUndefined();
+            const data = JSON.parse(result.content[0].text) as Record<string, unknown>;
+            expect(data.success).toBe(false);
+            expect(data.exitCode).toBe(2);
+            expect(data.environment).toBe('unit-py3.12-devel');
+        });
+
+        it('rejects zero or negative timeout_ms', async () => {
+            await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+                timeout_ms: 0,
+            });
+            expect(hoisted.toxInstance.runEnvironment).toHaveBeenCalledWith(
+                'unit-py3.12-devel',
+                '/workspace',
+                undefined,
+            );
+        });
+
+        it('returns SERVICE_UNAVAILABLE when tox not installed', async () => {
+            hoisted.toxInstance.checkAvailability.mockResolvedValueOnce({
+                toxInstalled: false,
+                toxAnsibleInstalled: false,
+            });
+            const result = await handler.handleTool('tox_run_environment', {
+                environment: 'unit-py3.12-devel',
+                workspace_dir: '/workspace',
+            });
+            const err = parseError(result);
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
         });
     });
 });

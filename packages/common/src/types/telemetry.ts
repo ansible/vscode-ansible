@@ -52,6 +52,10 @@ export const TelemetryEvents = {
 
     // Walkthroughs
     WALKTHROUGH_OPEN: 'walkthrough.open',
+
+    // Tox-Ansible
+    TOX_DISCOVER: 'tox.discover',
+    TOX_RUN: 'tox.run',
 } as const;
 
 export type TelemetryEventName = (typeof TelemetryEvents)[keyof typeof TelemetryEvents];

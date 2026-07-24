@@ -92,6 +92,11 @@ export type {
     ParsedCollection,
     MetadataDumpResult,
     NavigatorEEOptions,
+    ToxTestCategory,
+    ToxEnvironment,
+    ToxRunResult,
+    ToxAvailability,
+    ToxGhMatrixEntry,
 } from '@ansible/common';
 
 // --- Services ---
@@ -132,6 +137,7 @@ export { GitHubCollectionCache } from './GitHubCollectionCache';
 export { SCMDocsCache } from './SCMDocsCache';
 export { SkillRegistry, _resetGitHubToken } from './SkillRegistry';
 export { discoverPlaybooks } from './PlaybookDiscovery';
+export { ToxAnsibleService } from './ToxAnsibleService';
 export type { DiscoveredPlaybook } from './PlaybookDiscovery';
 
 // VS Code-specific type re-export

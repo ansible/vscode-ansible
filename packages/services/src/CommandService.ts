@@ -216,12 +216,14 @@ export class CommandService {
      * @param file - Executable path or name.
      * @param args - Arguments passed directly to the process (no shell interpolation).
      * @param options - Execution options such as cwd, env, and timeout.
+     * @param signal - Optional AbortSignal to kill the child process on cancellation.
      * @returns Captured stdout, stderr, and exit code from the subprocess.
      */
     public async runCommandArgs(
         file: string,
         args: string[],
         options: CommandOptions = {},
+        signal?: AbortSignal,
     ): Promise<ExecResult> {
         const cwd = options.cwd ?? this.getWorkspaceRoot() ?? process.cwd();
         const maxBuffer = options.maxBuffer ?? 10 * 1024 * 1024;
@@ -242,6 +244,7 @@ export class CommandService {
                 maxBuffer,
                 timeout: options.timeout,
                 env,
+                signal,
             });
             return {
                 stdout: stdout.trim(),
@@ -249,6 +252,9 @@ export class CommandService {
                 exitCode: 0,
             };
         } catch (error) {
+            if (signal?.aborted) {
+                return { stdout: '', stderr: 'Cancelled', exitCode: 1 };
+            }
             const execError = error as cp.ExecException & { stdout?: string; stderr?: string };
             return {
                 stdout: execError.stdout?.trim() ?? '',

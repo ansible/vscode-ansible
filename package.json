@@ -34,6 +34,20 @@
     "redhat.abbenay-provider"
   ],
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "ansible-tox",
+        "required": [
+          "environment"
+        ],
+        "properties": {
+          "environment": {
+            "type": "string",
+            "description": "Tox-ansible environment name (e.g., 'integration-py3.12-devel')"
+          }
+        }
+      }
+    ],
     "icons": {
       "ansible-logo": {
         "description": "Ansible logo icon for status bar",
