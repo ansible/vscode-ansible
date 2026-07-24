@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { log } from '@src/extension';
 import type { ProgressEvent } from '@ansible/developer-services';
-import { buildTaskAnalysisPrompt } from '@ansible/developer-services';
+import { buildTaskAnalysisPrompt, buildNavigatorEECommand } from '@ansible/developer-services';
 import { openChatWithPrompt } from '@src/features/chatProvider';
 import {
     OnceJourneyEmitter,
@@ -34,6 +34,7 @@ export interface PlaybookRunOptions {
     workspaceFolder: vscode.Uri;
     command: string;
     extensionPath: string;
+    executor?: 'ansible-playbook' | 'ansible-navigator';
     /** Epoch ms when the user invoked run-with-progress (for durationMs). */
     telemetryStartedAt?: number;
 }
@@ -46,6 +47,8 @@ export class PlaybookProgressPanel {
     private _disposables: vscode.Disposable[] = [];
     private _socketServer: net.Server | undefined;
     private _socketPath: string | undefined;
+    /** Per-run temp directory (mode 0o700) that owns `_socketPath`. */
+    private _socketDir: string | undefined;
     private _isRunning = false;
     private _terminal: vscode.Terminal | undefined;
     private _lastOptions: PlaybookRunOptions | undefined;
@@ -195,36 +198,105 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
             this._socketServer = undefined;
         }
-        if (this._socketPath) {
-            try {
-                fs.unlinkSync(this._socketPath);
-            } catch {
-                /* ignore */
-            }
-        }
+        this._cleanupSocketDir();
 
         await this._createSocketServer();
 
         const callbackPath = path.join(options.extensionPath, 'resources', 'callback_plugins');
-        log(`PlaybookProgress: Starting with socket ${this._socketPath ?? ''}`);
+        const executorLabel =
+            options.executor === 'ansible-navigator' ? 'ansible-navigator' : 'ansible-playbook';
+        log(
+            `PlaybookProgress: Starting with socket ${this._socketPath ?? ''} (executor: ${executorLabel})`,
+        );
 
         const { TerminalService } = await import('../services/TerminalService');
         const terminalService = TerminalService.getInstance();
 
         const managed = await terminalService.createActivatedTerminal({
-            name: `ansible-playbook: ${options.playbookName}`,
+            name: `${executorLabel}: ${options.playbookName}`,
             cwd: options.workspaceFolder,
             show: false,
         });
 
         this._terminal = managed.terminal;
 
+        // For the progress viewer, we force --execution-environment false on
+        // navigator commands. The env-var prefix (ANSIBLE_CALLBACK_PLUGINS,
+        // ANSIBLE_ENV_SOCKET) only works when ansible-playbook runs on the
+        // host — env vars don't cross the container boundary. The EE volume-
+        // mount path (_startNavigatorEERun) handles the containerized case
+        // but is reserved for future use.
+        let terminalCommand = options.command;
+        if (options.executor === 'ansible-navigator') {
+            terminalCommand = this._injectNavigatorNoEE(terminalCommand);
+        }
+
         managed.terminal.sendText(
             `ANSIBLE_CALLBACK_PLUGINS=${shellQuote(callbackPath)} ` +
                 `ANSIBLE_CALLBACKS_ENABLED=vscode_progress ` +
                 `ANSIBLE_ENV_SOCKET=${shellQuote(this._socketPath ?? '')} ` +
-                options.command,
+                terminalCommand,
         );
+    }
+
+    /**
+     * Insert `--execution-environment false` into an ansible-navigator command
+     * so the playbook runs on the host (not in a container). Placed before the
+     * `--` passthrough separator if one exists.
+     *
+     * @param command - The ansible-navigator command string to modify.
+     * @returns The command with `--execution-environment false` injected.
+     */
+    private _injectNavigatorNoEE(command: string): string {
+        const flag = '--execution-environment false';
+        const sep = command.indexOf(' -- ');
+        if (sep !== -1) {
+            return command.slice(0, sep) + ` ${flag}` + command.slice(sep);
+        }
+        return `${command} ${flag}`;
+    }
+
+    /**
+     * Start a navigator run with EE volume mounts for the callback plugin and socket.
+     * Used when ansible-navigator runs with execution environments enabled, where
+     * shell env vars don't cross the container boundary.
+     *
+     * @param terminal - VS Code terminal to send the command to.
+     * @param options - Playbook run configuration.
+     * @param callbackPath - Host path to the callback plugin directory.
+     */
+    private async _startNavigatorEERun(
+        terminal: vscode.Terminal,
+        options: PlaybookRunOptions,
+        callbackPath: string,
+    ): Promise<void> {
+        const socketDir = path.dirname(this._socketPath ?? '');
+        const containerCallbackPath = '/tmp/vscode-callback-plugins';
+        const containerSocketDir = '/tmp/vscode-ansible-progress';
+        const containerSocketPath = path.join(
+            containerSocketDir,
+            path.basename(this._socketPath ?? ''),
+        );
+
+        const { PlaybooksService } = await import('../services/PlaybooksService');
+        const playbooksService = PlaybooksService.getInstance();
+        const workspaceFolderPath = options.workspaceFolder.fsPath;
+        const playbookRelativePath = path.relative(workspaceFolderPath, options.playbookPath);
+        const config = playbooksService.getPlaybookConfig(playbookRelativePath);
+
+        const command = buildNavigatorEECommand(playbookRelativePath, config, {
+            volumeMounts: [
+                { src: callbackPath, dest: containerCallbackPath, options: 'ro' },
+                { src: socketDir, dest: containerSocketDir, options: 'Z' },
+            ],
+            setEnvVars: {
+                ANSIBLE_CALLBACK_PLUGINS: containerCallbackPath,
+                ANSIBLE_CALLBACKS_ENABLED: 'vscode_progress',
+                ANSIBLE_ENV_SOCKET: containerSocketPath,
+            },
+        });
+
+        terminal.sendText(command);
     }
 
     /** Create a Unix socket server to receive callback plugin events. */
@@ -233,15 +305,9 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
         }
 
-        this._socketPath = path.join(os.tmpdir(), `ansible-env-${String(Date.now())}.sock`);
-
-        try {
-            if (fs.existsSync(this._socketPath)) {
-                fs.unlinkSync(this._socketPath);
-            }
-        } catch {
-            /* ignore */
-        }
+        // Unique per-run directory with owner-only permissions (Node mkdtemp → 0o700).
+        this._socketDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vscode-ansible-progress-'));
+        this._socketPath = path.join(this._socketDir, 'run.sock');
 
         return new Promise((resolve, reject) => {
             this._socketServer = net.createServer((socket) => {
@@ -395,6 +461,17 @@ export class PlaybookProgressPanel {
             this._socketServer.close();
             this._socketServer = undefined;
         }
+        this._cleanupSocketDir();
+
+        this._panel.dispose();
+        while (this._disposables.length) {
+            const x = this._disposables.pop();
+            x?.dispose();
+        }
+    }
+
+    /** Remove the per-run socket file and its owner-only temp directory. */
+    private _cleanupSocketDir(): void {
         if (this._socketPath) {
             try {
                 fs.unlinkSync(this._socketPath);
@@ -403,11 +480,13 @@ export class PlaybookProgressPanel {
             }
             this._socketPath = undefined;
         }
-
-        this._panel.dispose();
-        while (this._disposables.length) {
-            const x = this._disposables.pop();
-            x?.dispose();
+        if (this._socketDir) {
+            try {
+                fs.rmSync(this._socketDir, { recursive: true, force: true });
+            } catch {
+                /* ignore */
+            }
+            this._socketDir = undefined;
         }
     }
 }

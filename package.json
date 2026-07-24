@@ -1083,6 +1083,19 @@
           },
           "description": "AI skill sources. Each source points to a GitHub repo or local directory containing SKILL.md files."
         },
+        "ansibleEnvironments.playbookExecutor": {
+          "type": "string",
+          "enum": [
+            "ansible-playbook",
+            "ansible-navigator"
+          ],
+          "default": "ansible-playbook",
+          "enumDescriptions": [
+            "Run playbooks directly with ansible-playbook",
+            "Run playbooks via ansible-navigator (supports execution environments and artifact collection)"
+          ],
+          "markdownDescription": "Default executor for running playbooks from the progress viewer and configuration panel."
+        },
         "ansibleEnvironments.pluginDocZoom": {
           "type": "number",
           "default": 100,

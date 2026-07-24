@@ -3,9 +3,11 @@
  * No VS Code dependency — suitable for MCP server and UI consumers.
  */
 import type { PlaybookConfig, PlaybookPlay } from '../types/playbook';
+import { quoteIfNeeded } from '../utils/creatorArgs';
 
-/** Default ansible-playbook run configuration. */
+/** Default playbook run configuration. */
 export const DEFAULT_PLAYBOOK_CONFIG: PlaybookConfig = {
+    executor: 'ansible-playbook',
     inventory: [],
     limit: '',
     tags: [],
@@ -31,31 +33,33 @@ export const DEFAULT_PLAYBOOK_CONFIG: PlaybookConfig = {
 };
 
 /**
- * Build an ansible-playbook CLI command string from configuration.
+ * Build ansible-playbook CLI flags from configuration (no executable or playbook path).
  *
- * @param playbookPath - Path to the playbook file (appended last).
+ * Shared by both `buildPlaybookCommand` and `buildNavigatorCommand` to avoid
+ * duplicating flag translation logic.
+ *
  * @param config - Effective run settings.
- * @returns Space-joined ansible-playbook command.
+ * @returns Array of CLI flag strings.
  */
-export function buildPlaybookCommand(playbookPath: string, config: PlaybookConfig): string {
-    const args: string[] = ['ansible-playbook'];
+export function buildPlaybookFlags(config: PlaybookConfig): string[] {
+    const flags: string[] = [];
 
     if (config.inventory && config.inventory.length > 0) {
         for (const inv of config.inventory) {
             if (inv) {
-                args.push('-i', inv);
+                flags.push('-i', inv);
             }
         }
     }
 
     if (config.limit) {
-        args.push('-l', config.limit);
+        flags.push('-l', config.limit);
     }
 
     if (config.tags && config.tags.length > 0) {
         for (const tag of config.tags) {
             if (tag) {
-                args.push('-t', tag);
+                flags.push('-t', tag);
             }
         }
     }
@@ -63,86 +67,171 @@ export function buildPlaybookCommand(playbookPath: string, config: PlaybookConfi
     if (config.skipTags && config.skipTags.length > 0) {
         for (const tag of config.skipTags) {
             if (tag) {
-                args.push('--skip-tags', tag);
+                flags.push('--skip-tags', tag);
             }
         }
     }
 
     if (config.extraVars) {
-        args.push('-e', config.extraVars);
+        flags.push('-e', config.extraVars);
     }
 
     if (config.check) {
-        args.push('--check');
+        flags.push('--check');
     }
 
     if (config.diff) {
-        args.push('--diff');
+        flags.push('--diff');
     }
 
     if (config.verbose && config.verbose > 0) {
-        args.push('-' + 'v'.repeat(Math.min(config.verbose, 6)));
+        flags.push('-' + 'v'.repeat(Math.min(config.verbose, 6)));
     }
 
     if (config.forks && config.forks !== 5) {
-        args.push('-f', String(config.forks));
+        flags.push('-f', String(config.forks));
     }
 
     if (config.connection && config.connection !== 'ssh') {
-        args.push('-c', config.connection);
+        flags.push('-c', config.connection);
     }
 
     if (config.user) {
-        args.push('-u', config.user);
+        flags.push('-u', config.user);
     }
 
     if (config.timeout) {
-        args.push('-T', String(config.timeout));
+        flags.push('-T', String(config.timeout));
     }
 
     if (config.privateKey) {
-        args.push('--private-key', config.privateKey);
+        flags.push('--private-key', config.privateKey);
     }
 
     if (config.become) {
-        args.push('--become');
+        flags.push('--become');
     }
 
     if (config.becomeMethod && config.becomeMethod !== 'sudo') {
-        args.push('--become-method', config.becomeMethod);
+        flags.push('--become-method', config.becomeMethod);
     }
 
     if (config.becomeUser && config.becomeUser !== 'root') {
-        args.push('--become-user', config.becomeUser);
+        flags.push('--become-user', config.becomeUser);
     }
 
     if (config.vaultPasswordFile) {
-        args.push('--vault-password-file', config.vaultPasswordFile);
+        flags.push('--vault-password-file', config.vaultPasswordFile);
     }
 
     if (config.startAtTask) {
-        args.push('--start-at-task', config.startAtTask);
+        flags.push('--start-at-task', config.startAtTask);
     }
 
     if (config.step) {
-        args.push('--step');
+        flags.push('--step');
     }
 
     if (config.askPass) {
-        args.push('--ask-pass');
+        flags.push('--ask-pass');
     }
 
     if (config.askBecomePass) {
-        args.push('--ask-become-pass');
+        flags.push('--ask-become-pass');
     }
 
     if (config.askVaultPass) {
-        args.push('--ask-vault-pass');
+        flags.push('--ask-vault-pass');
     }
 
-    args.push(playbookPath);
+    return flags;
+}
 
-    return args.join(' ');
+/**
+ * Build an ansible-playbook CLI command string from configuration.
+ *
+ * @param playbookPath - Path to the playbook file (appended last).
+ * @param config - Effective run settings.
+ * @returns Space-joined ansible-playbook command.
+ */
+export function buildPlaybookCommand(playbookPath: string, config: PlaybookConfig): string {
+    const args = ['ansible-playbook', ...buildPlaybookFlags(config), playbookPath];
+    return args.map(quoteIfNeeded).join(' ');
+}
+
+/**
+ * Build an ansible-navigator run command string from playbook configuration.
+ *
+ * Uses `--mode stdout` for predictable output in VS Code's integrated terminal.
+ * Playbook flags are passed after `--` so ansible-navigator forwards them to
+ * the underlying ansible-playbook invocation.
+ *
+ * @param playbookPath - Path to the playbook file.
+ * @param config - Effective run settings.
+ * @returns Space-joined ansible-navigator run command.
+ */
+export function buildNavigatorCommand(playbookPath: string, config: PlaybookConfig): string {
+    const args: string[] = ['ansible-navigator', 'run', playbookPath, '--mode', 'stdout'];
+
+    const passthroughFlags = buildPlaybookFlags(config);
+    if (passthroughFlags.length > 0) {
+        args.push('--', ...passthroughFlags);
+    }
+
+    return args.map(quoteIfNeeded).join(' ');
+}
+
+/** Options for ansible-navigator execution environment integration. */
+export interface NavigatorEEVolumeMount {
+    src: string;
+    dest: string;
+    options?: string;
+}
+
+export interface NavigatorEEOptions {
+    volumeMounts?: NavigatorEEVolumeMount[];
+    setEnvVars?: Record<string, string>;
+    passEnvVars?: string[];
+}
+
+/**
+ * Build an ansible-navigator run command with EE volume mounts and env vars.
+ *
+ * Injects `--execution-environment-volume-mounts` and `--senv` flags before the
+ * `--` passthrough separator so the callback plugin and Unix socket are accessible
+ * inside the execution environment container.
+ *
+ * @param playbookPath - Path to the playbook file.
+ * @param config - Effective run settings.
+ * @param eeOptions - Volume mounts and env vars for the EE container.
+ * @returns Space-joined ansible-navigator run command with EE flags.
+ */
+export function buildNavigatorEECommand(
+    playbookPath: string,
+    config: PlaybookConfig,
+    eeOptions: NavigatorEEOptions,
+): string {
+    const args: string[] = ['ansible-navigator', 'run', playbookPath, '--mode', 'stdout'];
+
+    for (const mount of eeOptions.volumeMounts ?? []) {
+        const mountStr = mount.options
+            ? `${mount.src}:${mount.dest}:${mount.options}`
+            : `${mount.src}:${mount.dest}`;
+        args.push('--execution-environment-volume-mounts', mountStr);
+    }
+    for (const [key, value] of Object.entries(eeOptions.setEnvVars ?? {})) {
+        args.push('--senv', `${key}=${value}`);
+    }
+    for (const varName of eeOptions.passEnvVars ?? []) {
+        args.push('--penv', varName);
+    }
+
+    const passthroughFlags = buildPlaybookFlags(config);
+    if (passthroughFlags.length > 0) {
+        args.push('--', ...passthroughFlags);
+    }
+
+    return args.map(quoteIfNeeded).join(' ');
 }
 
 /**

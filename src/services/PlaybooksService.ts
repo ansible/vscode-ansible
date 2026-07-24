@@ -4,9 +4,11 @@ import * as path from 'path';
 import { log } from '@src/extension';
 import {
     buildPlaybookCommand,
+    buildNavigatorCommand,
     buildPlaybookSummaryPrompt,
     discoverPlaybooks,
     DEFAULT_PLAYBOOK_CONFIG,
+    type PlaybookExecutor,
     type PlaybookConfig,
     type PlaybookPlay,
 } from '@ansible/developer-services';
@@ -166,9 +168,18 @@ export class PlaybooksService {
      * @returns Global playbook configuration merged with defaults
      */
     public getGlobalConfig(): PlaybookConfig {
+        const settingsExecutor = vscode.workspace
+            .getConfiguration('ansibleEnvironments')
+            .get<PlaybookExecutor>('playbookExecutor', 'ansible-playbook');
+
+        const base: PlaybookConfig = {
+            ...DEFAULT_PLAYBOOK_CONFIG,
+            executor: settingsExecutor,
+        };
+
         const configDir = this._getConfigDir();
         if (!configDir) {
-            return { ...DEFAULT_PLAYBOOK_CONFIG };
+            return base;
         }
 
         const configPath = path.join(configDir, GLOBAL_CONFIG_FILE);
@@ -176,7 +187,7 @@ export class PlaybooksService {
             if (fs.existsSync(configPath)) {
                 const content = fs.readFileSync(configPath, 'utf-8');
                 return {
-                    ...DEFAULT_PLAYBOOK_CONFIG,
+                    ...base,
                     ...(JSON.parse(content) as Partial<PlaybookConfig>),
                 };
             }
@@ -185,7 +196,7 @@ export class PlaybooksService {
                 `PlaybooksService: Error reading global config: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
-        return { ...DEFAULT_PLAYBOOK_CONFIG };
+        return base;
     }
 
     /**
@@ -291,6 +302,17 @@ export class PlaybooksService {
      */
     public buildCommand(playbookPath: string, config: PlaybookConfig): string {
         return buildPlaybookCommand(playbookPath, config);
+    }
+
+    /**
+     * Build an ansible-navigator run command from saved configuration.
+     * Uses --mode stdout for predictable terminal output in VS Code.
+     * @param playbookPath - Playbook file path passed to ansible-navigator run
+     * @param config - Effective playbook run settings
+     * @returns Shell-ready ansible-navigator run command string
+     */
+    public buildNavigatorCommand(playbookPath: string, config: PlaybookConfig): string {
+        return buildNavigatorCommand(playbookPath, config);
     }
 
     /**
