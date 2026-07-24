@@ -17,9 +17,10 @@ this as a user-facing command `extension.resync-ansible-inventory`.
 
 ## Acceptance criteria
 
-- [ ] Command palette entry "Ansible: Resync Inventory"
-- [ ] Sends `resync/ansible-inventory` notification to the LS
-- [ ] Status bar or notification confirms completion
+- [x] Command palette entry "Ansible: Resync Inventory"
+- [x] Sends `resync/ansible-inventory` notification to the LS
+- [x] Status bar or notification confirms completion
+  (LS shows info messages on receipt of the notification)
 
 ## Notes
 

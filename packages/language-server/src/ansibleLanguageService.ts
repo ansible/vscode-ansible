@@ -264,15 +264,35 @@ export class AnsibleLanguageService {
         });
 
         this.connection.onNotification('resync/ansible-inventory', () => {
-            void this.workspaceManager.forEachContext((e) => {
-                e.clearAnsibleInventory();
-                this.connection.window.showInformationMessage(
-                    'Re-syncing ansible inventory. This might take some time.',
-                );
-                void e.ansibleInventory.then(() => {
-                    this.connection.window.showInformationMessage('Ansible Inventory re-synced.');
-                });
-            });
+            void (async () => {
+                try {
+                    this.workspaceManager.ensureFolderContexts();
+                    if (this.workspaceManager.folderContextCount === 0) {
+                        this.connection.window.showWarningMessage(
+                            'No workspace folder available to resync Ansible inventory.',
+                        );
+                        return;
+                    }
+
+                    await this.workspaceManager.forEachContext((e) => {
+                        e.clearAnsibleInventory();
+                        this.connection.window.showInformationMessage(
+                            'Re-syncing ansible inventory. This might take some time.',
+                        );
+                        void Promise.resolve(e.ansibleInventory)
+                            .then(() => {
+                                this.connection.window.showInformationMessage(
+                                    'Ansible Inventory re-synced.',
+                                );
+                            })
+                            .catch((error: unknown) => {
+                                this.handleError(error, 'resync/ansible-inventory');
+                            });
+                    });
+                } catch (error) {
+                    this.handleError(error, 'resync/ansible-inventory');
+                }
+            })();
         });
 
         this.connection.onNotification('update/ansible-metadata', (activeFileUri: string) => {

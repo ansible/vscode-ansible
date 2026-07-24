@@ -5,6 +5,7 @@ import type { PythonEnvironmentService } from '@src/services/PythonEnvironmentSe
 import { log } from '@src/extension';
 
 const METADATA_NOTIFICATION = 'update/ansible-metadata';
+const RESYNC_INVENTORY_NOTIFICATION = 'resync/ansible-inventory';
 const LOADING_TIMEOUT_MS = 15_000;
 
 /**
@@ -130,6 +131,39 @@ export class AnsibleStatusBar implements vscode.Disposable {
         this._lastRequestedUri = undefined;
         void this._updatePythonCache();
         this.update();
+    }
+
+    /**
+     * Ask the language server to clear and rebuild its Ansible inventory cache.
+     * Useful when inventory files change outside the editor or the active
+     * Python environment changes. Progress is reported by the language server
+     * via information messages.
+     */
+    public async resyncInventory(): Promise<void> {
+        if (!this._client.isRunning()) {
+            void vscode.window.showWarningMessage(
+                'Ansible Language Server is not running. Open an Ansible file and try again.',
+            );
+            return;
+        }
+
+        if (!vscode.workspace.workspaceFolders?.length) {
+            void vscode.window.showWarningMessage(
+                'Open a workspace folder before resyncing Ansible inventory.',
+            );
+            return;
+        }
+
+        try {
+            void vscode.window.showInformationMessage('Re-syncing Ansible inventory…');
+            await this._client.sendNotification(
+                new NotificationType(RESYNC_INVENTORY_NOTIFICATION),
+            );
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            log(`AnsibleStatusBar inventory resync failed: ${message}`);
+            void vscode.window.showWarningMessage(`Failed to resync Ansible inventory: ${message}`);
+        }
     }
 
     /**
