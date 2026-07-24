@@ -26,16 +26,8 @@ import {
     getCommandService,
     isExecutionEnvironmentDefinition,
     planAnsibleBuilderBuild,
-    buildPlaybookFlags,
-    DEFAULT_PLAYBOOK_CONFIG,
 } from '@ansible/developer-services';
-import type {
-    PluginOption,
-    PluginInfo,
-    PluginData,
-    SchemaNode,
-    PlaybookConfig,
-} from '@ansible/developer-services';
+import type { PluginOption, PluginInfo, PluginData, SchemaNode } from '@ansible/developer-services';
 
 /**
  * Normalizes ansible-doc fields that may be a single string or string array.
@@ -162,10 +154,8 @@ export class McpToolHandler {
                     return await this._handleGetEEDetails(args);
                 case 'build_execution_environment':
                     return await this._handleBuildEE(args);
-
-                // Playbook execution
-                case 'run_playbook_navigator':
-                    return await this._handleRunPlaybookNavigator(args);
+                case 'generate_devcontainer_config':
+                    return await this._handleGenerateDevcontainer(args);
 
                 // Dev tools
                 case 'list_ansible_dev_tools':
@@ -1545,95 +1535,164 @@ export class McpToolHandler {
         }
     }
 
-    // === Playbook Execution Handlers ===
-
     /**
-     * Handles `run_playbook_navigator` by running ansible-navigator in stdout mode.
+     * Handles `generate_devcontainer_config` by writing a devcontainer.json (and optional
+     * Containerfile) into the target project directory.
      *
-     * @param args - Tool args: `playbook_path` (required), optional inventory, limit, etc.
-     * @returns Navigator stdout/stderr output or a structured error
+     * @param args - Tool args: `ee_name` and `output_dir` (required), optional `add_dev_tools_layer`
+     * @returns File paths written or a structured error
      */
-    private async _handleRunPlaybookNavigator(
+    private async _handleGenerateDevcontainer(
         args: Record<string, unknown>,
     ): Promise<McpToolResult> {
-        const playbookPath = args.playbook_path as string | undefined;
-        if (!playbookPath) {
+        const eeName = args.ee_name as string;
+        const outputDir = args.output_dir as string;
+        const addLayer = args.add_dev_tools_layer as boolean | undefined;
+
+        if (!eeName) {
             return mcpError({
                 code: 'MISSING_PARAM',
                 recoverability: 'fail',
-                message: 'Missing required parameter: playbook_path',
-                suggestion: 'Provide the absolute path to a playbook YAML file.',
+                message: 'Missing required parameter: ee_name',
+                suggestion: 'Use list_execution_environments to find available EE names.',
             });
         }
 
-        if (!fs.existsSync(playbookPath)) {
+        if (!/^[\w][\w./:@-]*$/.test(eeName)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `Invalid ee_name: "${eeName}".`,
+                suggestion: 'Provide a valid container image reference.',
+            });
+        }
+
+        if (!outputDir) {
+            return mcpError({
+                code: 'MISSING_PARAM',
+                recoverability: 'fail',
+                message: 'Missing required parameter: output_dir',
+                suggestion: 'Provide the project directory path.',
+            });
+        }
+
+        if (!fs.existsSync(outputDir)) {
             return mcpError({
                 code: 'NOT_FOUND',
                 recoverability: 'fail',
-                message: `Playbook not found: ${playbookPath}`,
+                message: `Output directory not found: ${outputDir}`,
             });
         }
 
-        const commandService = getCommandService();
-        const navigatorAvailable = await commandService.isToolAvailable('ansible-navigator');
-        if (!navigatorAvailable) {
+        const devcontainerDir = path.join(outputDir, '.devcontainer');
+        const devcontainerFile = path.join(devcontainerDir, 'devcontainer.json');
+
+        if (fs.existsSync(devcontainerFile)) {
             return mcpError({
-                code: 'SERVICE_UNAVAILABLE',
-                recoverability: 'escalate',
-                message: 'ansible-navigator is not installed in the active Python environment',
-                suggestion:
-                    'Install ansible-dev-tools (which includes ansible-navigator) using the install_ansible_dev_tools tool.',
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: `${devcontainerFile} already exists. Remove or rename it before generating a new configuration.`,
             });
         }
 
-        const config: PlaybookConfig = {
-            ...DEFAULT_PLAYBOOK_CONFIG,
-            inventory: (args.inventory as string[] | undefined) ?? [],
-            limit: (args.limit as string | undefined) ?? '',
-            tags: (args.tags as string[] | undefined) ?? [],
-            skipTags: (args.skip_tags as string[] | undefined) ?? [],
-            extraVars: (args.extra_vars as string | undefined) ?? '',
-            check: (args.check as boolean | undefined) ?? false,
-            diff: (args.diff as boolean | undefined) ?? false,
-            verbose: (args.verbose as number | undefined) ?? 0,
-            forks: (args.forks as number | undefined) ?? 5,
-            connection: (args.connection as string | undefined) ?? 'ssh',
-            user: (args.user as string | undefined) ?? '',
-            timeout: args.timeout as number | undefined,
-            privateKey: (args.private_key as string | undefined) ?? '',
-            become: (args.become as boolean | undefined) ?? false,
-            becomeMethod: (args.become_method as string | undefined) ?? 'sudo',
-            becomeUser: (args.become_user as string | undefined) ?? 'root',
-            vaultPasswordFile: (args.vault_password_file as string | undefined) ?? '',
-        };
-
-        const passthroughFlags = buildPlaybookFlags(config);
-        const shellArgs = ['run', path.basename(playbookPath), '--mode', 'stdout'];
-        if (passthroughFlags.length > 0) {
-            shellArgs.push('--', ...passthroughFlags);
-        }
-        const cwd = path.dirname(playbookPath);
+        const filesWritten: string[] = [];
 
         try {
-            const result = await commandService.runAnsibleNavigator(shellArgs, {
-                cwd,
-                timeout: 30 * 60 * 1000,
-            });
-            const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+            if (!fs.existsSync(devcontainerDir)) {
+                fs.mkdirSync(devcontainerDir, { recursive: true });
+            }
+
+            let imageName = eeName;
+
+            if (addLayer) {
+                const containerfilePath = path.join(devcontainerDir, 'Containerfile');
+                const containerfileContent = [
+                    `FROM ${eeName}`,
+                    '',
+                    'USER root',
+                    'RUN pip3 install --no-cache-dir ansible-dev-tools',
+                    'USER 1000',
+                    '',
+                ].join('\n');
+                fs.writeFileSync(containerfilePath, containerfileContent, 'utf-8');
+                filesWritten.push(containerfilePath);
+                imageName = ''; // Will use build.dockerfile instead
+            }
+
+            interface DevcontainerConfig {
+                name: string;
+                image?: string;
+                build?: { dockerfile: string };
+                customizations: {
+                    vscode: {
+                        extensions: string[];
+                        settings: Record<string, unknown>;
+                    };
+                };
+            }
+
+            const config: DevcontainerConfig = {
+                name: 'Ansible EE Development',
+                customizations: {
+                    vscode: {
+                        extensions: ['redhat.ansible', 'redhat.vscode-yaml', 'ms-python.python'],
+                        settings: {
+                            'ansible.validation.lint.enabled': true,
+                        },
+                    },
+                },
+            };
+
+            if (addLayer) {
+                config.build = { dockerfile: 'Containerfile' };
+            } else {
+                config.image = imageName;
+            }
+
+            fs.writeFileSync(devcontainerFile, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+            filesWritten.push(devcontainerFile);
+
+            // Check if the EE has ansible-dev-tools
+            let devToolsNote = '';
+            if (!addLayer) {
+                try {
+                    const service = ExecutionEnvService.getInstance();
+                    const details = await service.loadDetails(eeName);
+                    const hasDevTools = details?.python_packages?.details.some(
+                        (p) => p.name === 'ansible-dev-tools',
+                    );
+                    if (!hasDevTools) {
+                        devToolsNote =
+                            '\n\n**Note:** This EE does not appear to include `ansible-dev-tools`. ' +
+                            'For the best development experience, re-run with `add_dev_tools_layer: true` ' +
+                            'to layer dev tools onto the image, or install them manually inside the container.';
+                    }
+                } catch {
+                    // EE details unavailable — skip the check
+                }
+            }
+
+            const fileList = filesWritten.map((f) => `  - ${f}`).join('\n');
             return {
                 content: [
                     {
                         type: 'text',
-                        text: `## ansible-navigator run (exit code: ${String(result.exitCode)})\n\n\`\`\`\n${output}\n\`\`\``,
+                        text:
+                            `Successfully generated Dev Container configuration for **${eeName}**.\n\n` +
+                            `Files created:\n${fileList}\n\n` +
+                            'To use:\n' +
+                            '1. Open the project in VS Code\n' +
+                            '2. Install the Dev Containers extension (ms-vscode-remote.remote-containers)\n' +
+                            '3. Press Ctrl+Shift+P → "Dev Containers: Reopen in Container"' +
+                            devToolsNote,
                     },
                 ],
-                isError: result.exitCode !== 0,
             };
         } catch (error) {
             return mcpError({
                 code: 'OPERATION_FAILED',
-                recoverability: 'retry',
-                message: `ansible-navigator failed: ${error instanceof Error ? error.message : String(error)}`,
+                recoverability: 'escalate',
+                message: `Failed to generate devcontainer config: ${error instanceof Error ? error.message : String(error)}`,
             });
         }
     }
@@ -1923,12 +1982,10 @@ export class McpToolHandler {
 - Dynamically generated from ansible-creator schema
 - Use \`get_ansible_creator_schema\` to see available commands
 
-### Playbook Execution
-- \`run_playbook_navigator\` -- run a playbook via ansible-navigator in stdout mode
-
 ### Execution Environments
 - \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs (read-only)
 - \`build_execution_environment\` -- build an EE image from execution-environment.yml via ansible-builder
+- \`generate_devcontainer_config\` -- generate a .devcontainer/devcontainer.json from an EE image
 
 ### Skills (read-only)
 - \`skill_search\` -- find skills by keyword

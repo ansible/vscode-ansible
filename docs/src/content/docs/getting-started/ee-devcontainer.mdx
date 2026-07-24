@@ -1,0 +1,196 @@
+---
+title: EE Dev Containers
+description: How to use Ansible Execution Environments as VS Code Dev Containers for a fully containerized development workflow.
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Ansible [Execution Environments](https://docs.ansible.com/automation_controller/latest/html/userguide/execution_environments.html) (EEs) are container images that bundle Ansible, collections, Python dependencies, and system packages into a portable runtime. The Ansible extension integrates with EEs through **VS Code Dev Containers** rather than routing commands through `docker run` / `podman run`.
+
+This approach gives you a **full development environment inside the EE** — editor, terminal, linting, completions, and debugger — not just routed tool execution.
+
+## Why Dev Containers instead of container exec?
+
+The previous Ansible extension (`main` branch) offered a "run inside EE" mode with `ansible.executionEnvironment.*` settings that wrapped every tool invocation in `podman run --rm`. This had limitations:
+
+- Subprocess routing through containers is brittle (argument escaping, TTY handling, signal propagation)
+- Only Ansible tooling ran inside the container — no access to the EE's Python environment for debugging or ad-hoc work
+- Seven config properties and container engine detection logic to maintain
+
+**Dev Containers** solve this at the platform level. Your entire VS Code session runs inside the container, with full access to the EE's Python environment, tools, and packages.
+
+## Add an ansible-dev-tools layer to your EE
+
+Most EE images include Ansible and collections but not the full developer toolkit (ansible-lint, ansible-creator, molecule, etc.). Adding an `ansible-dev-tools` layer makes the EE suitable for interactive development.
+
+### Option 1: Modify your execution-environment.yml
+
+If you build your own EEs with [ansible-builder](https://ansible.readthedocs.io/en/latest/builder/), add `ansible-dev-tools` to the Python dependencies:
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: quay.io/ansible/ansible-runner:latest
+
+dependencies:
+  python_interpreter:
+    package_system: python3.11
+  python:
+    - ansible-dev-tools
+  galaxy:
+    collections:
+      - name: ansible.netcommon
+      - name: cisco.ios
+```
+
+Build the image:
+
+```bash
+ansible-builder build -f execution-environment.yml -t my-ee-with-devtools:latest
+```
+
+### Option 2: Layer onto an existing EE image
+
+If you have a pre-built EE and cannot modify its definition, create a simple `Containerfile` that layers dev tools on top:
+
+```dockerfile
+FROM registry.redhat.io/ansible-automation-platform/ee-supported-rhel9:latest
+
+USER root
+RUN pip3 install --no-cache-dir ansible-dev-tools
+USER 1000
+```
+
+Build it:
+
+<Tabs>
+<TabItem label="Podman">
+```bash
+podman build -t my-ee-with-devtools:latest -f Containerfile .
+```
+</TabItem>
+<TabItem label="Docker">
+```bash
+docker build -t my-ee-with-devtools:latest -f Containerfile .
+```
+</TabItem>
+</Tabs>
+
+## Generate a Dev Container configuration
+
+Once your EE has the dev-tools layer, generate a `.devcontainer/devcontainer.json` that uses it.
+
+### Using ansible-creator (recommended)
+
+The `ansible-creator` CLI can scaffold a Dev Container configuration:
+
+```bash
+ansible-creator add resource devcontainer /path/to/your/project
+```
+
+Then edit the generated `.devcontainer/devcontainer.json` to use your EE image:
+
+```json
+{
+  "name": "Ansible EE Development",
+  "image": "my-ee-with-devtools:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible",
+        "redhat.vscode-yaml",
+        "ms-python.python"
+      ],
+      "settings": {
+        "ansible.validation.lint.enabled": true
+      }
+    }
+  }
+}
+```
+
+### Using the extension sidebar
+
+Right-click any EE in the **Execution Environments** tree view and select **Generate Dev Container Config**. This opens the Creator form pre-filled with the EE image name, letting you scaffold the configuration directly from the sidebar.
+
+### Manual configuration
+
+Create `.devcontainer/devcontainer.json` in your project root:
+
+```json
+{
+  "name": "Ansible Development",
+  "image": "quay.io/ansible/community-ansible-dev-tools:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.ansible",
+        "redhat.vscode-yaml",
+        "ms-python.python"
+      ]
+    }
+  }
+}
+```
+
+## Open your project in the Dev Container
+
+<Steps>
+1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) (`ms-vscode-remote.remote-containers`).
+2. Open your project folder in VS Code.
+3. Press `Ctrl+Shift+P` and select **Dev Containers: Reopen in Container**.
+4. VS Code pulls the image (if needed) and reopens inside the container.
+</Steps>
+
+The Ansible extension activates inside the container, discovers the EE's Python environment and all installed collections automatically.
+
+## Inspect EE images from the sidebar
+
+Even without opening a Dev Container, you can inspect any local EE image from the **Execution Environments** tree view in the sidebar:
+
+- **Expand an image** to see its Ansible version, OS, installed collections, Python packages, and system packages
+- **Click an image** to open a detailed panel with searchable package lists
+- **Right-click** for AI summary and devcontainer generation options
+
+The tree view uses `podman` or `docker` to list images labeled as execution environments and runs a vendored introspection script inside each image to extract package metadata.
+
+## Common EE images
+
+| Image | Contents |
+|-------|----------|
+| `ghcr.io/ansible/community-ansible-dev-tools:latest` | Community dev tools, ansible-lint, molecule, ansible-creator |
+| `registry.redhat.io/ansible-automation-platform/ee-supported-rhel9:latest` | Red Hat supported EE with certified collections |
+| `registry.redhat.io/ansible-automation-platform/ee-minimal-rhel9:latest` | Minimal EE with ansible-core only |
+| `quay.io/ansible/creator-ee:latest` | EE for content creation workflows |
+
+<Aside type="tip">
+Use `list_execution_environments` and `get_ee_details` MCP tools to inspect EEs programmatically from AI agents.
+</Aside>
+
+## Troubleshooting
+
+### "No execution environments found"
+
+Ensure a container runtime (Podman or Docker) is installed and that EE images are pulled locally. The extension checks for the `execution_environment` label on container images.
+
+### Collections or tools missing in the Dev Container
+
+The EE image might not include `ansible-dev-tools`. Add it using the layering approach above, or install it inside the running container:
+
+```bash
+pip install ansible-dev-tools
+```
+
+### SSH keys not available in Dev Container
+
+The recommended approach is to use **SSH agent forwarding**, which avoids exposing private key files inside the container:
+
+1. Start your SSH agent on the host: `eval "$(ssh-agent -s)" && ssh-add`
+2. VS Code Dev Containers automatically forwards the host SSH agent into the container
+
+<Aside type="caution">
+Avoid bind-mounting your `~/.ssh` directory into containers. Even read-only mounts expose private keys to all processes in the container. Use SSH agent forwarding instead.
+</Aside>

@@ -28,6 +28,7 @@
         "cidrblock",
         "codegen",
         "commitlint",
+        "containerfile",
         "cspell",
         "devcontainer",
         "devfile",

@@ -435,6 +435,11 @@
         "icon": "$(package)"
       },
       {
+        "command": "ansibleExecutionEnvironments.generateDevcontainer",
+        "title": "Generate Dev Container Config",
+        "icon": "$(file-code)"
+      },
+      {
         "command": "ansibleCreator.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
@@ -777,6 +782,10 @@
         {
           "command": "ansible.lightspeed.statusBar.click",
           "when": "false"
+        },
+        {
+          "command": "ansibleExecutionEnvironments.generateDevcontainer",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -910,7 +919,12 @@
         {
           "command": "ansibleExecutionEnvironments.aiEESummary",
           "when": "view == ansibleExecutionEnvironments && viewItem == executionEnvironment && config.ansibleEnvironments.enableAiFeatures",
-          "group": "inline"
+          "group": "inline@1"
+        },
+        {
+          "command": "ansibleExecutionEnvironments.generateDevcontainer",
+          "when": "view == ansibleExecutionEnvironments && viewItem == executionEnvironment",
+          "group": "context@1"
         },
         {
           "command": "ansibleCreator.openForm",

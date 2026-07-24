@@ -923,6 +923,80 @@ export async function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Generate devcontainer.json from an EE image
+    const eeGenerateDevcontainerCommand = vscode.commands.registerCommand(
+        'ansibleExecutionEnvironments.generateDevcontainer',
+        async (node?: { ee: { full_name: string } }) => {
+            const eeName = node?.ee.full_name;
+            if (!eeName) {
+                return;
+            }
+
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                void vscode.window.showErrorMessage('No workspace folder open.');
+                return;
+            }
+
+            const devcontainerDir = vscode.Uri.joinPath(workspaceFolder.uri, '.devcontainer');
+            const devcontainerFile = vscode.Uri.joinPath(devcontainerDir, 'devcontainer.json');
+
+            try {
+                await vscode.workspace.fs.stat(devcontainerFile);
+                const overwrite = await vscode.window.showWarningMessage(
+                    '.devcontainer/devcontainer.json already exists. Overwrite?',
+                    'Overwrite',
+                    'Cancel',
+                );
+                if (overwrite !== 'Overwrite') {
+                    return;
+                }
+            } catch {
+                // File doesn't exist — proceed
+            }
+
+            const config = {
+                name: 'Ansible EE Development',
+                image: eeName,
+                customizations: {
+                    vscode: {
+                        extensions: ['redhat.ansible', 'redhat.vscode-yaml', 'ms-python.python'],
+                        settings: {
+                            'ansible.validation.lint.enabled': true,
+                        },
+                    },
+                },
+            };
+
+            try {
+                const content = JSON.stringify(config, null, 2) + '\n';
+                await vscode.workspace.fs.createDirectory(devcontainerDir);
+                await vscode.workspace.fs.writeFile(
+                    devcontainerFile,
+                    Buffer.from(content, 'utf-8'),
+                );
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to generate devcontainer config: ${error instanceof Error ? error.message : String(error)}`,
+                );
+                return;
+            }
+
+            const openAction = await vscode.window.showInformationMessage(
+                `Generated .devcontainer/devcontainer.json for ${eeName}`,
+                'Open File',
+                'Reopen in Container',
+            );
+
+            if (openAction === 'Open File') {
+                await vscode.commands.executeCommand('vscode.open', devcontainerFile);
+            } else if (openAction === 'Reopen in Container') {
+                await vscode.commands.executeCommand('remote-containers.reopenInContainer');
+            }
+        },
+    );
+    context.subscriptions.push(eeGenerateDevcontainerCommand);
+
     // Open EE detail panel
     const eeDetailCommand = vscode.commands.registerCommand(
         'ansibleExecutionEnvironments.showDetail',

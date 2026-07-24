@@ -36,6 +36,8 @@ export default defineConfig({
                         { slug: 'getting-started/overview' },
                         { slug: 'getting-started/installation' },
                         { slug: 'getting-started/configuration' },
+                        { slug: 'getting-started/ee-devcontainer' },
+                        { slug: 'getting-started/ee-migration' },
                     ],
                 },
                 {

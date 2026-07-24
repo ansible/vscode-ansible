@@ -701,6 +701,42 @@ After a successful build, local EE image inventories are refreshed.`,
     },
 };
 
+export const GENERATE_DEVCONTAINER_TOOL: McpToolDefinition = {
+    name: 'generate_devcontainer_config',
+    description: `Generate a .devcontainer/devcontainer.json configuration from an Ansible Execution Environment image.
+
+Creates a Dev Container configuration that uses the specified EE image, pre-configured
+with the Ansible extension and recommended settings. Optionally layers ansible-dev-tools
+onto the EE if not already present.
+
+Use list_execution_environments to find available EE images first.
+
+Examples:
+- generate_devcontainer_config({ ee_name: "quay.io/ansible/creator-ee:latest", output_dir: "/path/to/project" })
+- generate_devcontainer_config({ ee_name: "my-custom-ee:1.0", output_dir: "/path/to/project", add_dev_tools_layer: true })`,
+    annotations: DESTRUCTIVE,
+    inputSchema: {
+        type: 'object',
+        properties: {
+            ee_name: {
+                type: 'string',
+                description:
+                    'Execution environment image name (e.g., "quay.io/ansible/creator-ee:latest")',
+            },
+            output_dir: {
+                type: 'string',
+                description: 'Project directory where .devcontainer/ will be created (required).',
+            },
+            add_dev_tools_layer: {
+                type: 'boolean',
+                description:
+                    'If true, generates a Containerfile that layers ansible-dev-tools onto the EE image and references it in devcontainer.json.',
+            },
+        },
+        required: ['ee_name', 'output_dir'],
+    },
+};
+
 // === Dev Tools ===
 
 export const LIST_DEV_TOOLS_TOOL: McpToolDefinition = {
@@ -1007,6 +1043,7 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     LIST_EE_TOOL,
     GET_EE_DETAILS_TOOL,
     BUILD_EE_TOOL,
+    GENERATE_DEVCONTAINER_TOOL,
 
     // Playbook execution
     RUN_PLAYBOOK_NAVIGATOR_TOOL,

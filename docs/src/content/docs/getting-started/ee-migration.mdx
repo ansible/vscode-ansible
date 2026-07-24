@@ -1,0 +1,174 @@
+---
+title: Migrating from EE Mode
+description: Guide for migrating from the previous extension's "run inside EE" mode to the Dev Container workflow.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+The previous Ansible extension (pre-v27 / `main` branch) offered an **"Execution Environment mode"** controlled by `ansible.executionEnvironment.*` settings. When enabled, every Ansible tool invocation was routed through `podman run --rm` or `docker run --rm`, running inside a container while your editor stayed on the host.
+
+**This mode has been replaced** by a Dev Container-based workflow that provides a superior development experience with less complexity. This guide walks you through the migration.
+
+## What changed
+
+| Feature | Previous (`main`) | Current (`next`) |
+|---------|-------------------|------------------|
+| EE development | `ansible.executionEnvironment.enabled` + 6 related settings | [Dev Containers](/vscode-ansible/getting-started/ee-devcontainer/) |
+| Tool execution | Routed through `podman/docker run --rm` | Native — tools run directly in the container |
+| Debugging | Not available inside EE | Full Python debugging inside Dev Container |
+| Terminal | Host terminal, commands proxied | Container terminal with full access |
+| EE inspection | Via ansible-navigator | Native tree view with vendored introspection |
+| Collections/packages | Copied to host cache | Available directly in the container |
+
+## Settings that no longer exist
+
+The following settings from the previous extension are **not available** in the current version. Each has a recommended replacement.
+
+### `ansible.executionEnvironment.enabled`
+
+**Was:** Master toggle for EE mode.
+
+**Replace with:** Open your project in a Dev Container using the EE image. See [Execution Environments with Dev Containers](/vscode-ansible/getting-started/ee-devcontainer/).
+
+### `ansible.executionEnvironment.image`
+
+**Was:** EE image reference (default: `ghcr.io/ansible/community-ansible-dev-tools:latest`).
+
+**Replace with:** Set the `image` field in `.devcontainer/devcontainer.json`:
+
+```json
+{
+  "image": "your-ee-image:tag"
+}
+```
+
+### `ansible.executionEnvironment.containerEngine`
+
+**Was:** `auto | podman | docker` selection for container commands.
+
+**Replace with:** Dev Containers handles engine selection automatically. Configure via `dev.containers.dockerPath` in VS Code settings if needed.
+
+### `ansible.executionEnvironment.containerOptions`
+
+**Was:** Extra engine flags (e.g., `--net=host`) appended to every `run` command.
+
+**Replace with:** Use `runArgs` in `.devcontainer/devcontainer.json`:
+
+```json
+{
+  "runArgs": ["--net=host"]
+}
+```
+
+<Aside type="caution">
+Only add `--privileged` if your workload specifically requires it (e.g., nested containers). It grants the container extensive host access.
+</Aside>
+
+### `ansible.executionEnvironment.volumeMounts`
+
+**Was:** Array of `{src, dest, options}` objects mounted into every container invocation.
+
+**Replace with:** Use `mounts` in `.devcontainer/devcontainer.json` for data directories:
+
+```json
+{
+  "mounts": [
+    "source=/path/to/roles,target=/usr/share/ansible/roles,type=bind"
+  ]
+}
+```
+
+For SSH access, use SSH agent forwarding instead of mounting key directories. VS Code Dev Containers automatically forward the host SSH agent into the container. See [SSH keys troubleshooting](/vscode-ansible/getting-started/ee-devcontainer/#ssh-keys-not-available-in-dev-container).
+
+### `ansible.executionEnvironment.pull.policy` and `pull.arguments`
+
+**Was:** Control when and how the EE image was pulled (`always | missing | never | tag`).
+
+**Replace with:** Dev Containers pulls the image when you first open the container. To force a fresh pull, rebuild the container: `Dev Containers: Rebuild Container`.
+
+## Step-by-step migration
+
+<Steps>
+1. **Identify your EE image**
+
+   Check your current settings for the image name:
+   ```json
+   "ansible.executionEnvironment.image": "registry.example.com/my-ee:latest"
+   ```
+
+2. **Ensure the image has dev tools**
+
+   If your EE doesn't include `ansible-dev-tools`, layer it on:
+   ```dockerfile
+   FROM registry.example.com/my-ee:latest
+   USER root
+   RUN pip3 install --no-cache-dir ansible-dev-tools
+   USER 1000
+   ```
+   Build: `podman build -t my-ee-with-devtools:latest .`
+
+   See [Adding a dev-tools layer](/vscode-ansible/getting-started/ee-devcontainer/#add-an-ansible-dev-tools-layer-to-your-ee) for details.
+
+3. **Generate devcontainer config**
+
+   Use ansible-creator:
+   ```bash
+   ansible-creator add resource devcontainer /path/to/project
+   ```
+
+   Or right-click an EE in the sidebar and select **Generate Dev Container Config**.
+
+   Edit `.devcontainer/devcontainer.json` to use your image and migrate volume mounts.
+
+4. **Migrate volume mounts**
+
+   Convert each `volumeMount` entry to a Dev Container `mounts` entry:
+
+   | Previous format | Dev Container format |
+   |----------------|---------------------|
+   | `{"src": "/data/roles", "dest": "/roles", "options": "ro"}` | `"source=/data/roles,target=/roles,type=bind,readonly"` |
+   | `{"src": "${HOME}/.ssh", "dest": "/root/.ssh"}` | Use SSH agent forwarding instead (see [troubleshooting](/vscode-ansible/getting-started/ee-devcontainer/#ssh-keys-not-available-in-dev-container)) |
+
+5. **Remove old settings**
+
+   Delete the `ansible.executionEnvironment` block from `.vscode/settings.json`:
+   ```json
+   {
+     // Remove this entire block:
+     "ansible.executionEnvironment.enabled": true,
+     "ansible.executionEnvironment.image": "...",
+     "ansible.executionEnvironment.containerEngine": "podman",
+     "ansible.executionEnvironment.volumeMounts": [...]
+   }
+   ```
+
+6. **Reopen in container**
+
+   Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), then press `Ctrl+Shift+P` and select **Dev Containers: Reopen in Container**.
+</Steps>
+
+## What you gain
+
+- **Full terminal access** inside the EE — run ad-hoc commands, debug Python, test playbooks interactively
+- **Python debugging** — set breakpoints in custom modules and plugins
+- **Consistent linting** — ansible-lint runs against the same Python environment and collections your playbooks target
+- **Simplified configuration** — one `devcontainer.json` replaces seven settings
+- **No subprocess routing** — no more TTY/escaping issues from `docker exec` / `podman exec`
+
+## ansible-navigator with EEs
+
+If you previously used `ansible-navigator run` with EE flags (`--ee true --eei <image>`), navigator continues to work inside the Dev Container. Since you are already inside the EE, run navigator with `--ee false` (the default when EE mode is disabled):
+
+```bash
+ansible-navigator run playbook.yml --ee false
+```
+
+<Aside type="caution">
+Running ansible-navigator with `--ee true` inside a Dev Container would launch a container-inside-a-container. This works only if your Dev Container has nested container support (e.g., Docker-in-Docker or Podman-in-Podman).
+</Aside>
+
+## Related
+
+- [Execution Environments with Dev Containers](/vscode-ansible/getting-started/ee-devcontainer/) — full setup guide
+- [ADR-003: EE via Dev Containers](https://github.com/ansible/vscode-ansible/blob/next/.sdlc/adrs/ADR-003-ee-via-devcontainers.md) — architectural decision record
+- [ADR-004: Intentional Exclusions](https://github.com/ansible/vscode-ansible/blob/next/.sdlc/adrs/ADR-004-intentional-exclusions-from-main.md) — features not ported from main
