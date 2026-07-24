@@ -19,7 +19,7 @@ overrides:
   "fast-uri@3": ">=3.1.2"
   "fastify": ">=5.8.3"
   "form-data@4": ">=4.0.6"
-  "js-yaml@4": ">=5.2.1"
+  "js-yaml@4": ">=5.2.2"
   "markdown-it": ">=14.2.0"
   "protobufjs@7": ">=7.6.3"
   "serialize-javascript": ">=7.0.5"
@@ -37,5 +37,5 @@ packageExtensions:
     "dependencies":
       "mocha": "*"
 minimumReleaseAgeExclude:
-  # Renovate security update: js-yaml@5.2.1
-  - js-yaml@5.2.1
+  # Renovate security update: js-yaml@5.2.1 || 5.2.2
+  - js-yaml@5.2.1 || 5.2.2
