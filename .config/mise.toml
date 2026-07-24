@@ -29,4 +29,4 @@ node = "24.18"
 python = { version = "3.13", os = ["linux", "macos"] }
 task = "latest"  # >=3.45 but mise does not support minimal condition
 uv = "latest"
-pnpm = "11.15.1"
+pnpm = "11.17.0"
