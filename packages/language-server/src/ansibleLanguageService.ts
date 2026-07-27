@@ -9,6 +9,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { doCompletion, doCompletionResolve } from './providers/completionProvider';
+import { doDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
 import { doSemanticTokens, tokenModifiers, tokenTypes } from './providers/semanticTokenProvider';
 import { doValidate } from './providers/validationProvider';
@@ -68,6 +69,7 @@ export class AnsibleLanguageService {
                         },
                     },
                     hoverProvider: true,
+                    definitionProvider: true,
                     completionProvider: {
                         resolveProvider: true,
                     },
@@ -229,6 +231,32 @@ export class AnsibleLanguageService {
                 }
             } catch (error) {
                 this.handleError(error, 'onHover');
+            }
+            return null;
+        });
+
+        this.connection.onDefinition(async (params) => {
+            try {
+                const document = this.documents.get(params.textDocument.uri);
+                if (document) {
+                    const context = this.workspaceManager.getContext(params.textDocument.uri);
+                    if (context) {
+                        const collectionsService = CollectionsService.getInstance();
+                        return await doDefinition(
+                            document,
+                            params.position,
+                            collectionsService,
+                            (openParams) => {
+                                void this.connection.sendNotification(
+                                    'ansible/openPluginDoc',
+                                    openParams,
+                                );
+                            },
+                        );
+                    }
+                }
+            } catch (error) {
+                this.handleError(error, 'onDefinition');
             }
             return null;
         });
