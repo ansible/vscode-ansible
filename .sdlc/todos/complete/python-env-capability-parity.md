@@ -1,7 +1,7 @@
 ---
 title: Python environment capability parity
 created: 2026-06-24
-status: complete
+status: done
 priority: high
 scope: extension, mcp
 related:

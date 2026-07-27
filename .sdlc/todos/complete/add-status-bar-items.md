@@ -1,7 +1,7 @@
 ---
 title: Add status bar items for environment info
 created: 2026-05-26
-status: pending
+status: done
 priority: medium
 scope: extension
 ---
