@@ -19,11 +19,11 @@ sidebar tree views.
 
 ## Acceptance criteria
 
-- [ ] Status bar item showing active Python environment
-- [ ] Status bar item showing Ansible version (from LS metadata)
-- [ ] Clicking the items opens relevant commands (select environment,
+- [x] Status bar item showing active Python environment
+- [x] Status bar item showing Ansible version (from LS metadata)
+- [x] Clicking the items opens relevant commands (select environment,
       resync, etc.)
-- [ ] Items update when the active environment changes
+- [x] Items update when the active environment changes
 
 ## Notes
 
