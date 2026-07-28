@@ -125,7 +125,7 @@ describe('CreatorService', () => {
         expect(svc.getSchema()).toBeNull();
     });
 
-    it('loadSchema handles concurrent calls without duplicate CommandService runs', async () => {
+    it('loadSchema coalesces concurrent callers onto one in-flight promise', async () => {
         let release!: () => void;
         const gate = new Promise<void>((r) => {
             release = r;
@@ -145,11 +145,11 @@ describe('CreatorService', () => {
         expect(svc.isLoading()).toBe(true);
         expect(mocks.mockRunTool).toHaveBeenCalledTimes(1);
         const p2 = svc.loadSchema();
-        const early = await p2;
-        expect(early).toBeNull();
         expect(mocks.mockRunTool).toHaveBeenCalledTimes(1);
         release();
-        await p1;
+        const [schema1, schema2] = await Promise.all([p1, p2]);
+        expect(schema1).toEqual(MOCK_SCHEMA);
+        expect(schema2).toEqual(MOCK_SCHEMA);
         expect(svc.getSchema()).toEqual(MOCK_SCHEMA);
         expect(mocks.mockRunTool).toHaveBeenCalledTimes(1);
     });
@@ -221,6 +221,19 @@ describe('CreatorService', () => {
         expect(svc.getCommandDescription(['init', 'playbook'])).toBe(
             'Initialize a playbook project',
         );
+    });
+
+    it('getSchemaNode returns the schema node at a path', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: JSON.stringify(MOCK_SCHEMA),
+            stderr: '',
+        });
+        const svc = CreatorService.getInstance();
+        await svc.loadSchema();
+        expect(svc.getSchemaNode(['init', 'playbook'])?.name).toBe('playbook');
+        expect(svc.getSchemaNode(['init', 'missing'])).toBeNull();
+        expect(svc.getSchemaNode([])).toBeNull();
     });
 
     it('buildCommandString constructs correct CLI string with positional and flag args', () => {

@@ -41,6 +41,7 @@ Beyond full projects, ansible-creator can add individual components to existing 
 
 | Command | What it adds |
 |---------|--------------|
+| `ansible-creator add resource playbook` | Sample single-file `playbook.yml` |
 | `ansible-creator add resource devcontainer` | `.devcontainer/` directory with Docker and Podman variants |
 | `ansible-creator add resource devfile` | `devfile.yaml` |
 | `ansible-creator add resource execution-environment` | Sample `execution-environment.yml` |
@@ -135,6 +136,9 @@ Generates:
 Add a resource to an existing project.
 
 ```bash
+# Add a sample single-file playbook
+ansible-creator add resource playbook /path/to/project
+
 # Add a devcontainer with upstream image
 ansible-creator add resource devcontainer /path/to/project --image upstream
 
