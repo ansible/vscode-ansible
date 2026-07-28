@@ -455,6 +455,12 @@
         "icon": "$(window)"
       },
       {
+        "command": "ansibleCreator.createSimplePlaybook",
+        "title": "Ansible: Create Simple Playbook",
+        "category": "Ansible",
+        "icon": "$(new-file)"
+      },
+      {
         "command": "ansible.walkthrough.openGettingStarted",
         "title": "Ansible: Get Started",
         "category": "Ansible",

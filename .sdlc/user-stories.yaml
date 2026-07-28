@@ -368,6 +368,20 @@ stories:
       - Schema is read at runtime from the installed ansible-creator
       - New subcommands appear in the Creator view automatically
 
+  - id: SCF-004
+    title: Create a simple playbook from Creator
+    story: >
+      As an Ansible developer, I want to create a single example
+      playbook file through Creator (not a full project), so that I
+      can start writing tasks quickly with a best-practice starter
+      instead of a hardcoded extension template (AAP-81422).
+    prd_refs: [US-5, AC-3]
+    requires_ai: false
+    criteria:
+      - Command palette exposes Ansible: Create Simple Playbook
+      - The command opens the Creator form for add resource playbook
+      - When ansible-creator is missing, outdated, or lacks the resource, the user gets actionable remediation (install, upgrade, or refresh)
+
   # ---------------------------------------------------------------------------
   # PLB — Playbook Execution & Visualization
   # PRD: Section 4 (Playbook Execution), US-6, AC-4
