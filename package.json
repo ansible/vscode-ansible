@@ -479,6 +479,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "ansible.resyncInventory",
+        "title": "Ansible: Resync Inventory",
+        "category": "Ansible",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "ansible.extension-settings.open",
         "title": "Open Ansible Extension Settings",
         "category": "Ansible"

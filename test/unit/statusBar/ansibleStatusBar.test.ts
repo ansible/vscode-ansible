@@ -22,25 +22,35 @@ interface MockClient {
     _fireNotification: (method: string, data: unknown[]) => void;
 }
 
-const { mockCreateStatusBarItem, mockRegisterCommand, mockWindow } = vi.hoisted(() => {
-    const _mockCreateStatusBarItem = vi.fn((): MockStatusBarItem => ({
-        text: '',
-        command: undefined,
-        backgroundColor: undefined,
-        show: vi.fn(),
-        hide: vi.fn(),
-        dispose: vi.fn(),
-    }));
-    return {
-        mockCreateStatusBarItem: _mockCreateStatusBarItem,
-        mockRegisterCommand: vi.fn(() => ({ dispose: vi.fn() })),
-        mockWindow: {
-            createStatusBarItem: _mockCreateStatusBarItem,
-            activeTextEditor: undefined,
-            showQuickPick: vi.fn(),
-        },
-    };
-});
+const { mockCreateStatusBarItem, mockRegisterCommand, mockWindow, mockWorkspace } = vi.hoisted(
+    () => {
+        const _mockCreateStatusBarItem = vi.fn((): MockStatusBarItem => ({
+            text: '',
+            command: undefined,
+            backgroundColor: undefined,
+            show: vi.fn(),
+            hide: vi.fn(),
+            dispose: vi.fn(),
+        }));
+        return {
+            mockCreateStatusBarItem: _mockCreateStatusBarItem,
+            mockRegisterCommand: vi.fn(() => ({ dispose: vi.fn() })),
+            mockWindow: {
+                createStatusBarItem: _mockCreateStatusBarItem,
+                activeTextEditor: undefined as
+                    | { document: { languageId: string; uri: { toString: () => string } } }
+                    | undefined,
+                showQuickPick: vi.fn(),
+                showWarningMessage: vi.fn(),
+                showInformationMessage: vi.fn(),
+            },
+            mockWorkspace: {
+                workspaceFolders: [{ uri: { toString: () => 'file:///workspace' } }] as
+                    { uri: { toString: () => string } }[] | undefined,
+            },
+        };
+    },
+);
 
 vi.mock('vscode', () => ({
     window: mockWindow,
@@ -48,9 +58,7 @@ vi.mock('vscode', () => ({
         registerCommand: mockRegisterCommand,
         executeCommand: vi.fn(),
     },
-    workspace: {
-        workspaceFolders: [{ uri: { toString: () => 'file:///workspace' } }],
-    },
+    workspace: mockWorkspace,
     StatusBarAlignment: { Right: 2 },
     ThemeColor: class MockThemeColor {
         /**
@@ -178,6 +186,9 @@ describe('AnsibleStatusBar', () => {
             dispose: vi.fn(),
         });
         mockRegisterCommand.mockReturnValue({ dispose: vi.fn() });
+        mockWorkspace.workspaceFolders = [{ uri: { toString: () => 'file:///workspace' } }];
+        mockWindow.showWarningMessage = vi.fn();
+        mockWindow.showInformationMessage = vi.fn();
     });
 
     it('creates a status bar item with right alignment and priority 100', () => {
@@ -411,6 +422,72 @@ describe('AnsibleStatusBar', () => {
         bar.forceRefresh();
 
         expect(client.sendNotification).toHaveBeenCalledTimes(2);
+    });
+
+    it('sends resync/ansible-inventory when language server is running', async () => {
+        mockWindow.activeTextEditor = undefined;
+        const ctx = createMockContext();
+        const client = createMockClient();
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        client.sendNotification.mockClear();
+
+        await bar.resyncInventory();
+
+        expect(client.sendNotification).toHaveBeenCalledTimes(1);
+        expect(client.sendNotification).toHaveBeenCalledWith(
+            expect.objectContaining({ method: 'resync/ansible-inventory' }),
+        );
+        expect(mockWindow.showInformationMessage).toHaveBeenCalledWith(
+            'Re-syncing Ansible inventory…',
+        );
+        expect(mockWindow.showWarningMessage).not.toHaveBeenCalled();
+    });
+
+    it('warns when resyncInventory is called while language server is stopped', async () => {
+        mockWindow.activeTextEditor = undefined;
+        const ctx = createMockContext();
+        const client = createMockClient();
+        client.isRunning.mockReturnValue(false);
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        client.sendNotification.mockClear();
+
+        await bar.resyncInventory();
+
+        expect(client.sendNotification).not.toHaveBeenCalled();
+        expect(mockWindow.showWarningMessage).toHaveBeenCalledWith(
+            expect.stringContaining('Language Server is not running'),
+        );
+    });
+
+    it('warns when resyncInventory is called with no workspace folder', async () => {
+        mockWindow.activeTextEditor = undefined;
+        mockWorkspace.workspaceFolders = undefined;
+        const ctx = createMockContext();
+        const client = createMockClient();
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        client.sendNotification.mockClear();
+
+        await bar.resyncInventory();
+
+        expect(client.sendNotification).not.toHaveBeenCalled();
+        expect(mockWindow.showWarningMessage).toHaveBeenCalledWith(
+            expect.stringContaining('Open a workspace folder'),
+        );
     });
 
     it('pushes disposables to context subscriptions', () => {
