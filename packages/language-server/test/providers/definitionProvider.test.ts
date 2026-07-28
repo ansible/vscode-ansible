@@ -76,6 +76,64 @@ describe('doDefinition', () => {
         expect(result).toHaveLength(1);
     });
 
+    it('resolves short name via play-level collections keyword', async () => {
+        const content = [
+            '- hosts: all',
+            '  collections:',
+            '    - acme.tools',
+            '  tasks:',
+            '    - foo:',
+            '        opt: val',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'foo',
+                short_description: 'Acme foo module',
+                options: {},
+            },
+        };
+        const svc = mockCollectionsService({ 'acme.tools.foo': pluginData });
+        const sendOpenPluginDoc = vi.fn();
+
+        const result = await doDefinition(d, { line: 4, character: 6 }, svc, sendOpenPluginDoc);
+
+        expect(sendOpenPluginDoc).toHaveBeenCalledWith({
+            fqcn: 'acme.tools.foo',
+            pluginType: 'module',
+        });
+        expect(result).toHaveLength(1);
+    });
+
+    it('falls back to ansible.builtin when collections keyword has no match', async () => {
+        const content = [
+            '- hosts: all',
+            '  collections:',
+            '    - acme.tools',
+            '  tasks:',
+            '    - copy:',
+            '        src: a',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'copy',
+                short_description: 'Copy files',
+                options: {},
+            },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        const sendOpenPluginDoc = vi.fn();
+
+        const result = await doDefinition(d, { line: 4, character: 6 }, svc, sendOpenPluginDoc);
+
+        expect(sendOpenPluginDoc).toHaveBeenCalledWith({
+            fqcn: 'ansible.builtin.copy',
+            pluginType: 'module',
+        });
+        expect(result).toHaveLength(1);
+    });
+
     it('returns null for unknown modules without docs', async () => {
         const content = '- hosts: all\n  tasks:\n    - unknown_module:\n        opt: val';
         const d = doc(content);

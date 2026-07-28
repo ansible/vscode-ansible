@@ -1,10 +1,11 @@
 import { DefinitionLink } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { isScalar } from 'yaml';
+import { type Node, isScalar } from 'yaml';
 import { isTaskKeyword } from '../utils/ansible';
 import { toLspRange } from '../utils/misc';
 import {
     AncestryBuilder,
+    getDeclaredCollections,
     getOrigRange,
     getPathAt,
     isTaskParam,
@@ -42,7 +43,11 @@ export async function doDefinition(
     if (!path) return null;
 
     const node = path[path.length - 1];
-    if (!isScalar(node) || !new AncestryBuilder(path).parentOfKey().get()) {
+    if (
+        !isScalar(node) ||
+        typeof node.value !== 'string' ||
+        !new AncestryBuilder(path).parentOfKey().get()
+    ) {
         return null;
     }
 
@@ -50,12 +55,12 @@ export async function doDefinition(
         return null;
     }
 
-    if (isTaskKeyword(node.value as string)) {
+    if (isTaskKeyword(node.value)) {
         return null;
     }
 
-    const moduleName = node.value as string;
-    const fqcn = resolveFqcn(moduleName);
+    const moduleName = node.value;
+    const fqcn = await resolveFqcn(moduleName, path, collectionsService);
     const pluginData = await collectionsService.getPluginDocumentation(fqcn, 'module');
     if (!pluginData?.doc) {
         return null;
@@ -80,15 +85,35 @@ export async function doDefinition(
 }
 
 /**
- * Normalizes a short module name to its fully qualified collection name.
+ * Resolves a module name to its FQCN using play/role collection context.
+ *
+ * Already-qualified names (>=2 dots) pass through unchanged. Short names
+ * are resolved by checking each collection declared via the `collections`
+ * keyword in scope, then falling back to `ansible.builtin`.
  *
  * @param name - Module name from the playbook YAML.
- * @returns FQCN suitable for documentation lookup.
+ * @param path - YAML node ancestry at the module key.
+ * @param collectionsService - Source of cached plugin documentation.
+ * @returns FQCN with confirmed documentation, or the builtin fallback.
  */
-function resolveFqcn(name: string): string {
+async function resolveFqcn(
+    name: string,
+    path: Node[],
+    collectionsService: CollectionsService,
+): Promise<string> {
     const dotCount = (name.match(/\./g) ?? []).length;
     if (dotCount >= 2) {
         return name;
     }
+
+    const declaredCollections = getDeclaredCollections(path);
+    for (const collection of declaredCollections) {
+        const candidate = `${collection}.${name}`;
+        const pluginData = await collectionsService.getPluginDocumentation(candidate, 'module');
+        if (pluginData?.doc) {
+            return candidate;
+        }
+    }
+
     return `ansible.builtin.${name}`;
 }
