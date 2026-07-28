@@ -21,7 +21,7 @@ a command or Creator tree entry.
 ## Acceptance criteria
 
 - [ ] ansible-creator supports a simple/example playbook scaffold
-- [ ] Extension exposes a command to create a playbook from Creator
+- [ ] Extension exposes playbook creation through the schema-driven Creator flow
 - [ ] Generated playbook uses best-practice structure from Creator
 
 ## Notes
