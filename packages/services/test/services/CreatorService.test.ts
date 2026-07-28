@@ -223,6 +223,19 @@ describe('CreatorService', () => {
         );
     });
 
+    it('getSchemaNode returns the schema node at a path', async () => {
+        mocks.mockRunTool.mockResolvedValue({
+            exitCode: 0,
+            stdout: JSON.stringify(MOCK_SCHEMA),
+            stderr: '',
+        });
+        const svc = CreatorService.getInstance();
+        await svc.loadSchema();
+        expect(svc.getSchemaNode(['init', 'playbook'])?.name).toBe('playbook');
+        expect(svc.getSchemaNode(['init', 'missing'])).toBeNull();
+        expect(svc.getSchemaNode([])).toBeNull();
+    });
+
     it('buildCommandString constructs correct CLI string with positional and flag args', () => {
         const svc = CreatorService.getInstance();
         const s = svc.buildCommandString(

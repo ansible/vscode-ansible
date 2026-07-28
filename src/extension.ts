@@ -14,6 +14,7 @@ import { CollectionsProvider } from '@src/views/CollectionsProvider';
 import { ExecutionEnvironmentsProvider } from '@src/views/ExecutionEnvironmentsProvider';
 import { CreatorProvider } from '@src/views/CreatorProvider';
 import { CreatorFormPanel } from '@src/panels/CreatorFormPanel';
+import { openSimplePlaybookCreatorForm } from '@src/features/createSimplePlaybook';
 import { PlaybooksProvider } from '@src/views/PlaybooksProvider';
 import { PlaybookConfigPanel } from '@src/panels/PlaybookConfigPanel';
 import { PlaybookProgressPanel } from '@src/panels/PlaybookProgressPanel';
@@ -1059,6 +1060,18 @@ export async function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    const creatorCreateSimplePlaybookCommand = vscode.commands.registerCommand(
+        'ansibleCreator.createSimplePlaybook',
+        async () => {
+            const opened = await openSimplePlaybookCreatorForm(context.extensionUri);
+            if (opened) {
+                telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
+                    command: 'add/resource/playbook',
+                });
+            }
+        },
+    );
+
     // Register Playbooks commands
     const playbooksRefreshCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.refresh',
@@ -1684,6 +1697,7 @@ export async function activate(context: vscode.ExtensionContext) {
         galaxyCacheRefreshCommand,
         creatorRefreshCommand,
         creatorOpenFormCommand,
+        creatorCreateSimplePlaybookCommand,
         creatorAiSummaryCommand,
         creatorAiEntrySummaryCommand,
         playbooksRefreshCommand,

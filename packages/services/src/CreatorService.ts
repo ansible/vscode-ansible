@@ -281,20 +281,30 @@ export class CreatorService {
      * @returns Human-readable description from the schema, or undefined when missing.
      */
     public getCommandDescription(path: string[]): string | undefined {
+        return this.getSchemaNode(path)?.description;
+    }
+
+    /**
+     * Resolve a schema node for a command path.
+     *
+     * @param path - Command path segments identifying the target subcommand.
+     * @returns Schema node at the path, or null when not found / schema unloaded.
+     */
+    public getSchemaNode(path: string[]): SchemaNode | null {
         if (!this._schema || path.length === 0) {
-            return undefined;
+            return null;
         }
 
         let node: SchemaNode | undefined = this._schema;
 
         for (const segment of path) {
             if (!node.subcommands?.[segment]) {
-                return undefined;
+                return null;
             }
             node = node.subcommands[segment];
         }
 
-        return node.description;
+        return node;
     }
 
     /**
