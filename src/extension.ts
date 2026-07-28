@@ -286,6 +286,17 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(languageClient);
     log('Ansible Language Server started');
 
+    // LS go-to-definition opens PluginDocPanel via custom notification
+    // (webview panels can only be created on the extension host).
+    context.subscriptions.push(
+        languageClient.onNotification(
+            'ansible/openPluginDoc',
+            (params: { fqcn: string; pluginType: string }) => {
+                PluginDocPanel.show(context.extensionUri, params.fqcn, params.pluginType);
+            },
+        ),
+    );
+
     // Initialize centralized Python environment service (handles PET detection,
     // ms-python.python fallback, and environment change events)
     const pythonEnvService = PythonEnvironmentService.getInstance();

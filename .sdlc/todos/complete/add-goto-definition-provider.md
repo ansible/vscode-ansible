@@ -1,7 +1,7 @@
 ---
 title: Add go-to-definition that opens PluginDocPanel
 created: 2026-05-26
-status: pending
+status: complete
 priority: medium
 scope: ls
 ---
@@ -20,12 +20,15 @@ targeted FQCN.
 
 ## Acceptance criteria
 
-- [ ] Ctrl+click / F12 on a module FQCN in a task opens PluginDocPanel
-- [ ] The language server registers a `definitionProvider` capability
-- [ ] Works for both short names and FQCNs
+- [x] Ctrl+click / F12 on a module FQCN in a task opens PluginDocPanel
+- [x] The language server registers a `definitionProvider` capability
+- [x] Works for both short names and FQCNs
 
 ## Notes
 
 The LS will need to send a custom notification or command link to the
 client since webview panels can only be opened from the extension host,
 not from the language server process directly.
+
+Implemented via `ansible/openPluginDoc` notification from the language
+server; the extension host opens `PluginDocPanel.show`.
