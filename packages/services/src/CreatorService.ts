@@ -22,6 +22,8 @@ export class CreatorService {
     private _loaded = false;
     private _status: CreatorStatus = 'unknown';
     private _installedVersion: string | undefined;
+    /** Shared in-flight load so concurrent callers await the same completion. */
+    private _loadPromise: Promise<SchemaNode | null> | null = null;
     private _onDidChange: SimpleEventEmitter<void> | { fire: () => void; event: unknown };
     public readonly onDidChange: unknown;
     private _logFn: (message: string) => void = console.error;
@@ -128,6 +130,9 @@ export class CreatorService {
      * Refresh the schema
      */
     public async refresh(): Promise<void> {
+        if (this._loadPromise) {
+            await this._loadPromise;
+        }
         this._schema = null;
         this._loaded = false;
         this._status = 'unknown';
@@ -138,20 +143,38 @@ export class CreatorService {
     /**
      * Load the ansible-creator schema.
      *
+     * Concurrent callers share one in-flight promise so remediation UI does not
+     * race ahead of a load that is already in progress.
+     *
      * @returns Parsed schema node, or null when ansible-creator is unavailable.
      */
     public async loadSchema(): Promise<SchemaNode | null> {
-        if (this._loading) {
+        if (this._loaded && this._schema) {
             return this._schema;
         }
 
-        if (this._loaded && this._schema) {
-            return this._schema;
+        if (this._loadPromise) {
+            return this._loadPromise;
         }
 
         this._loading = true;
         (this._onDidChange as { fire: () => void }).fire();
 
+        this._loadPromise = this._fetchSchema().finally(() => {
+            this._loading = false;
+            this._loadPromise = null;
+            (this._onDidChange as { fire: () => void }).fire();
+        });
+
+        return this._loadPromise;
+    }
+
+    /**
+     * Fetch and parse the ansible-creator schema (single flight body).
+     *
+     * @returns Parsed schema node, or null when ansible-creator is unavailable.
+     */
+    private async _fetchSchema(): Promise<SchemaNode | null> {
         try {
             const { getCommandService } = await import('./CommandService');
             const commandService = getCommandService();
@@ -198,9 +221,6 @@ export class CreatorService {
             );
             this._status = 'not-installed';
             return null;
-        } finally {
-            this._loading = false;
-            (this._onDidChange as { fire: () => void }).fire();
         }
     }
 

@@ -380,7 +380,7 @@ stories:
     criteria:
       - Command palette exposes Ansible: Create Simple Playbook
       - The command opens the Creator form for add resource playbook
-      - When ansible-creator lacks the resource, the user is guided to upgrade
+      - When ansible-creator is missing, outdated, or lacks the resource, the user gets actionable remediation (install, upgrade, or refresh)
 
   # ---------------------------------------------------------------------------
   # PLB — Playbook Execution & Visualization

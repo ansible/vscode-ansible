@@ -27,7 +27,7 @@ command or Creator tree entry.
 - [x] Extension exposes a command to create a playbook from Creator
   (`ansibleCreator.createSimplePlaybook`)
 - [ ] Generated playbook uses best-practice structure from Creator
-  (requires released ansible-creator with the resource)
+  (requires a released ansible-creator with the resource)
 - [x] MCP picks up the resource automatically via schema
   (`ac_add_res_play` once creator is upgraded)
 
