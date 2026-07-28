@@ -2,7 +2,7 @@
 title: Port and improve Ansible Tox integration
 created: 2026-05-26
 completed: 2026-07-24
-status: completed
+status: done
 priority: medium
 scope: extension
 ---

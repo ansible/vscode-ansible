@@ -2,7 +2,7 @@
 title: Add extension conflict detection
 created: 2026-05-26
 completed: 2026-07-14
-status: complete
+status: done
 priority: low
 scope: extension
 ---

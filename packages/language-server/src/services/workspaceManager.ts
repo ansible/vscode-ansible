@@ -69,7 +69,36 @@ export class WorkspaceManager {
     }
 
     /**
-     * Invokes a callback for every active workspace folder context.
+     * Creates folder contexts for every known workspace folder that does not
+     * already have one. Contexts are normally created lazily on first document
+     * access; this eagerly materializes them so folder-wide operations (e.g.
+     * inventory resync) work before any Ansible file is opened.
+     */
+    public ensureFolderContexts(): void {
+        for (const folder of this.sortedWorkspaceFolders) {
+            if (!this.folderContexts.has(folder.uri)) {
+                this.folderContexts.set(
+                    folder.uri,
+                    new WorkspaceFolderContext(this.connection, folder, this),
+                );
+            }
+        }
+    }
+
+    /**
+     * Number of materialized workspace folder contexts.
+     *
+     * @returns Count of entries in the folder context map.
+     */
+    public get folderContextCount(): number {
+        return this.folderContexts.size;
+    }
+
+    /**
+     * Invokes a callback for every already-materialized workspace folder
+     * context. Does not create contexts for folders that have never been
+     * accessed; call {@link ensureFolderContexts} first when eager
+     * materialization is required (e.g. inventory resync).
      *
      * @param callbackfn - Function run for each folder context.
      */
