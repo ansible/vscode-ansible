@@ -332,7 +332,9 @@ describe("PythonEnvironmentService", function () {
         return undefined;
       });
       mockExistsSync.mockReturnValue(false);
-      mockShowWarningMessage.mockResolvedValue("Disable Environments Extension");
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
       mockShowInformationMessage.mockResolvedValue(undefined);
       mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
 
@@ -372,7 +374,9 @@ describe("PythonEnvironmentService", function () {
         return undefined;
       });
       mockExistsSync.mockReturnValue(false);
-      mockShowWarningMessage.mockResolvedValue("Disable Environments Extension");
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
       mockShowInformationMessage.mockResolvedValue("Reload Now");
       mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
 
