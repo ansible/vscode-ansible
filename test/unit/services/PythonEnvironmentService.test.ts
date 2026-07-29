@@ -196,7 +196,7 @@ describe("PythonEnvironmentService", function () {
       await service.initialize();
 
       // Second call must not trigger any additional extension lookups
-      expect(mockGetExtension.mock.calls.length).toBe(callsAfterFirst);
+      expect(mockGetExtension.mock.calls).toHaveLength(callsAfterFirst);
     });
   });
 
@@ -558,6 +558,44 @@ describe("PythonEnvironmentService", function () {
       expect(env).toBeDefined();
       expect(env?.execInfo.run.executable).toBe("/usr/bin/python3");
       expect(env?.version).toBe("3.11.5");
+    });
+
+    it("should return undefined and log when fallback resolveEnvironment throws", async function () {
+      const fallbackApi = makeMockPythonExtApi({
+        resolveEnvironment: vi
+          .fn()
+          .mockRejectedValue(new Error("resolve boom")),
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+
+      await service.initialize();
+      const env = await service.getEnvironment();
+
+      expect(env).toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error getting environment (python ext)"),
+      );
     });
 
     it("should return undefined when fallback resolves to nothing", async function () {
@@ -935,6 +973,43 @@ describe("PythonEnvironmentService", function () {
       const result = await service.getEnvironments();
 
       expect(result).toEqual([]);
+    });
+
+    it("should return empty array and log when fallback resolveEnvironment throws", async function () {
+      const fallbackApi = makeMockPythonExtApi({
+        known: [{ id: "env-1", path: "/usr/bin/python3" }],
+        resolveEnvironment: vi.fn().mockRejectedValue(new Error("list boom")),
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+
+      await service.initialize();
+      const result = await service.getEnvironments();
+
+      expect(result).toEqual([]);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error getting environments (python ext)"),
+      );
     });
 
     it("should call API getEnvironments with scope", async function () {
