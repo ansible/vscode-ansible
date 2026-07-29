@@ -266,4 +266,8 @@ export class VsCodeBridge implements EEBridge, PluginDocBridge, CreatorBridge, P
     openOutput(): void {
         this._vscode.postMessage({ method: 'openOutput' });
     }
+
+    openLanguageServerLogs(): void {
+        this._vscode.postMessage({ method: 'openLanguageServerLogs' });
+    }
 }

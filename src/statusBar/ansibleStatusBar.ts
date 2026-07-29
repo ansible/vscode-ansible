@@ -35,7 +35,7 @@ interface AnsibleMetadata {
  * warning when ansible-lint is missing, error when ansible is not
  * found). Hovering shows a Markdown tooltip with clickable command
  * links for quick actions (get started, sidebar, diagnostics, LLM
- * config, output log, refresh).
+ * config, output log, language server logs, refresh).
  *
  * Exposes {@link getMetadata} and {@link getEnvironmentInfo} for
  * telemetry and the diagnostics panel.
@@ -312,6 +312,7 @@ export class AnsibleStatusBar implements vscode.Disposable {
                 'ansible.showDiagnostics',
                 llmCmd,
                 'ansible.open-output',
+                'ansible.open-language-server-logs',
                 'ansible.statusBar.refresh',
             ],
         };
@@ -321,6 +322,9 @@ export class AnsibleStatusBar implements vscode.Disposable {
         md.appendMarkdown(`$(pulse) [Diagnostics](command:ansible.showDiagnostics)\n\n`);
         md.appendMarkdown(`$(hubot) [Configure LLM](command:${llmCmd})\n\n`);
         md.appendMarkdown(`$(output) [Output Log](command:ansible.open-output)\n\n`);
+        md.appendMarkdown(
+            `$(output) [Language Server Logs](command:ansible.open-language-server-logs)\n\n`,
+        );
         md.appendMarkdown(`$(refresh) [Refresh](command:ansible.statusBar.refresh)`);
 
         return md;

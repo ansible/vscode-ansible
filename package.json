@@ -473,6 +473,12 @@
         "icon": "$(output)"
       },
       {
+        "command": "ansible.open-language-server-logs",
+        "title": "Ansible: Open Language Server Logs",
+        "category": "Ansible",
+        "icon": "$(output)"
+      },
+      {
         "command": "ansible.statusBar.refresh",
         "title": "Ansible: Refresh Status",
         "category": "Ansible",

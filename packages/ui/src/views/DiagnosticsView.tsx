@@ -408,6 +408,15 @@ export function DiagnosticsView() {
                         >
                             Open Ansible Output
                         </button>
+                        <button
+                            type="button"
+                            style={styles.refreshBtn}
+                            onClick={() => {
+                                bridge.openLanguageServerLogs();
+                            }}
+                        >
+                            Open Language Server Logs
+                        </button>
                     </div>
                 </div>
             </div>

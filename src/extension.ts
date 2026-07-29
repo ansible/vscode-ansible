@@ -312,6 +312,17 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('ansible.open-output', () => {
             outputChannel.show(true);
         }),
+        vscode.commands.registerCommand('ansible.open-language-server-logs', () => {
+            // Always reveal the LS client channel — startup/crash logs are most
+            // useful when the server is not Running. Inform when not ready so
+            // the action never fails silently (AAP-82121).
+            languageClient.outputChannel.show(true);
+            if (!languageClient.isRunning()) {
+                void vscode.window.showInformationMessage(
+                    'Ansible Language Server is not running. Logs may be incomplete until the server starts.',
+                );
+            }
+        }),
         vscode.commands.registerCommand('ansible.statusBar.refresh', () => {
             ansibleStatusBar.forceRefresh();
         }),
