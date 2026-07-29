@@ -309,6 +309,7 @@ describe("PythonEnvironmentService", function () {
 
       // Reset initialized flag to allow a second initialize() call on the same
       // instance, keeping _petWarningShown=true to exercise the early-return path.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any)._initialized = false;
       await service.initialize();
 
