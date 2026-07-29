@@ -2,6 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "watch",
       "type": "shell",
       "command": "pnpm run watch",
       "problemMatcher": "$tsc-watch",

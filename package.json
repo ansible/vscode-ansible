@@ -474,7 +474,7 @@
       },
       {
         "command": "ansible.open-language-server-logs",
-        "title": "Ansible: Open Language Server Logs",
+        "title": "Ansible: Show Language Server Logs",
         "category": "Ansible",
         "icon": "$(output)"
       },

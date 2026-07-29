@@ -406,7 +406,7 @@ export function DiagnosticsView() {
                                 bridge.openOutput();
                             }}
                         >
-                            Open Ansible Output
+                            Show Ansible Output
                         </button>
                         <button
                             type="button"
@@ -415,7 +415,7 @@ export function DiagnosticsView() {
                                 bridge.openLanguageServerLogs();
                             }}
                         >
-                            Open Language Server Logs
+                            Show Language Server Logs
                         </button>
                     </div>
                 </div>
