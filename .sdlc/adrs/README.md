@@ -20,6 +20,7 @@ Decisions that are fully reflected in the codebase.
 | [ADR-020](ADR-020-single-repo-multi-distribution.md) | Single Repository, Multiple Distribution Formats         | 2026-06-26 |
 | [ADR-022](ADR-022-pnpm-package-manager.md)           | Migrate to pnpm for Supply-Chain Security                | 2026-06-30 |
 | [ADR-024](ADR-024-host-agnostic-getting-started.md)  | Host-Agnostic Getting Started (Shared Walkthrough Content) | 2026-07-17 |
+| [ADR-025](ADR-025-host-agnostic-sidebar-navtree.md)         | Sidebar NavTree                          | 2026-07-17 |
 
 ## Accepted
 
@@ -48,7 +49,7 @@ Decisions under consideration — not yet accepted or implemented.
 ## Creating New ADRs
 
 1. Copy the template from `../templates/adr.md`
-2. Use the next available number (currently ADR-025)
+2. Use the next available number (currently ADR-026)
 3. Include:
     - Status (Proposed → Accepted → Implemented)
     - Date

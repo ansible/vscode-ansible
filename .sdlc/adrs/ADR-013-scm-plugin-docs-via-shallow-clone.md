@@ -185,7 +185,7 @@ authoritative tool.
 - `packages/services/src/SCMDocsCache.ts` — new service
 - `packages/common/src/parsers/metadataDumpParser.ts` — shared
   browser-safe parsing utility extracted from `CollectionsService`
-- `src/views/CollectionSourcesProvider.ts` — tree expansion for
+- `src/views/CollectionSourcesController.ts` — tree expansion for
   GitHub collection nodes
 - `packages/mcp-server/src/tools.ts` + `handlers.ts` — MCP tool
 

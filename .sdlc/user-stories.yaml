@@ -35,7 +35,7 @@ stories:
     prd_refs: [US-1, AC-1]
     requires_ai: false
     criteria:
-      - Environment Managers tree view populates with discovered environments
+      - Environment Managers sidebar section populates with discovered environments
       - Environments are grouped under their manager type
       - Each environment shows its Python path or version
 
@@ -75,7 +75,7 @@ stories:
     prd_refs: [US-2, AC-1]
     requires_ai: false
     criteria:
-      - Dev Tools tree view shows installed packages with version numbers
+      - Dev Tools sidebar section shows installed packages with version numbers
       - Packages include ansible-lint, ansible-navigator, ansible-creator, etc.
 
   - id: ENV-005
@@ -232,7 +232,7 @@ stories:
     prd_refs: [US-3, AC-2]
     requires_ai: false
     criteria:
-      - Collections tree view shows installed collections
+      - Collections sidebar section shows installed collections
       - Each collection expands to show plugin types, then individual plugins
       - Counts, versions, and descriptions are visible
 
@@ -338,7 +338,7 @@ stories:
     prd_refs: [US-5, AC-3]
     requires_ai: false
     criteria:
-      - Creator view shows available ansible-creator subcommands
+      - Creator sidebar section shows available ansible-creator subcommands
       - Opening a form presents fields for the selected scaffold type
       - Submitting the form creates the correct directory structure
 
@@ -366,7 +366,7 @@ stories:
     requires_ai: false
     criteria:
       - Schema is read at runtime from the installed ansible-creator
-      - New subcommands appear in the Creator view automatically
+      - New subcommands appear in the Creator sidebar section automatically
 
   # ---------------------------------------------------------------------------
   # PLB — Playbook Execution & Visualization
@@ -381,7 +381,7 @@ stories:
     prd_refs: [US-6, AC-4]
     requires_ai: false
     criteria:
-      - Playbooks tree view discovers and displays workspace playbooks
+      - Playbooks sidebar section discovers and displays workspace playbooks
       - Tree shows folder hierarchy, play names, and target hosts
 
   - id: PLB-002
@@ -478,7 +478,7 @@ stories:
     prd_refs: [US-7, AC-5]
     requires_ai: false
     criteria:
-      - EE tree view discovers and lists available container images
+      - EE sidebar section discovers and lists available container images
       - Images are discovered via ansible-navigator
 
   - id: EE-002
@@ -625,7 +625,7 @@ stories:
     prd_refs: [US-18, AC-8]
     requires_ai: true
     criteria:
-      - AI Tools tree view shows available MCP tools by category
+      - AI Tools sidebar section shows available MCP tools by category
       - Use in Chat action sends the tool prompt to the active chat
 
   - id: AI-009
@@ -651,7 +651,7 @@ stories:
     prd_refs: [US-18, AC-8]
     requires_ai: true
     criteria:
-      - AI Skills tree view shows available skills
+      - AI Skills sidebar section shows available skills
       - Skills are categorized by source (builtin, external)
       - Each skill shows a description of what it does
 
@@ -746,14 +746,14 @@ stories:
     title: Extension activation and sidebar
     story: >
       As an Ansible developer, I want the extension to activate
-      cleanly and show the Ansible sidebar with all expected views,
+      cleanly and show Ansible in the Activity Bar,
       so that I can start working immediately after opening a project.
     prd_refs: [US-18, AC-8]
     requires_ai: false
     criteria:
       - Extension activates without errors
       - Ansible icon appears in the activity bar
-      - Clicking the icon opens the sidebar with tree views
+      - Clicking the icon opens Ansible (accordion sidebar)
 
   - id: XC-002
     title: Graceful degradation without AI
@@ -765,7 +765,7 @@ stories:
     prd_refs: [US-18, AC-8]
     requires_ai: false
     criteria:
-      - Core views populate and function without AI
+      - Core sidebar sections populate and function without AI
       - AI-only actions are hidden or show graceful fallback
       - No errors when enableAiFeatures is false
 
@@ -779,7 +779,7 @@ stories:
     prd_refs: [US-19, AC-8]
     requires_ai: false
     criteria:
-      - Empty tree views show a helpful message with next-step actions
+      - Empty sidebar sections show a helpful message with next-step actions
       - Missing tool warnings explain what to install
       - Error states show actionable recovery guidance
 

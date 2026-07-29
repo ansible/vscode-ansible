@@ -182,6 +182,7 @@ export default defineConfig(
             'src/panels/bridges/**',
             'src/panels/webview.d.ts',
             'packages/ui/vite.config.ts',
+            'packages/ui/playground/**',
             'packages/lightspeed/webviews/**',
             'packages/lightspeed/vite.config.mts',
             'packages/lightspeed/vitest.config.mts',
