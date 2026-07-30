@@ -1,12 +1,12 @@
 ---
-title: Add MCP tool for running playbooks with ansible-playbook
+title: ansible-playbook MCP tool
 created: 2026-07-30
 status: pending
 priority: medium
 scope: mcp
 ---
 
-# Add MCP tool for running playbooks with ansible-playbook
+# ansible-playbook MCP tool
 
 ## Context
 

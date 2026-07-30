@@ -1,5 +1,5 @@
 ---
-title: Add playbook run to editor and explorer context menus
+title: Playbook run menus
 created: 2026-05-26
 status: done
 completed: 2026-07-30
@@ -7,7 +7,7 @@ priority: low
 scope: extension
 ---
 
-# Add playbook run to editor and explorer context menus
+# Playbook run menus
 
 ## Context
 

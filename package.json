@@ -819,6 +819,14 @@
           "when": "config.ansible.lightspeed.enabled && editorLangId == ansible"
         },
         {
+          "command": "ansiblePlaybooks.runFileWithAnsiblePlaybook",
+          "when": "editorLangId == ansible"
+        },
+        {
+          "command": "ansiblePlaybooks.runFileWithNavigator",
+          "when": "editorLangId == ansible"
+        },
+        {
           "command": "ansible.lightspeed.statusBar.click",
           "when": "false"
         }
