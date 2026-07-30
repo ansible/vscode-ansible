@@ -62,6 +62,7 @@ import type {
     SchemaNode,
     SkillSource,
     SkillEntry,
+    PlaybookExecutor,
 } from '@ansible/developer-services';
 import { SkillsProvider, openChatWithSkill, copySkillPrompt } from '@src/views/SkillsProvider';
 import {
@@ -149,6 +150,97 @@ export function log(message: string) {
  */
 export function getLogFilePath(): string | undefined {
     return _logFilePath;
+}
+
+/**
+ * Resolve which file a "Run Playbook via..." context-menu command should target.
+ * The editor/context menu does not pass an argument, so fall back to the active editor.
+ * @param uri - Resource URI passed by the explorer context menu, if any
+ * @returns The playbook file URI to run, or undefined if none can be resolved
+ */
+function resolvePlaybookRunUri(uri?: vscode.Uri): vscode.Uri | undefined {
+    return uri?.fsPath ? uri : vscode.window.activeTextEditor?.document.uri;
+}
+
+/**
+ * Compute the same lookup key `PlaybooksService` uses to key saved per-playbook
+ * configuration, without depending on workspace discovery having completed.
+ * Mirrors the `displayPath` built in `PlaybooksService._discoverPlaybooks()`.
+ * @param workspaceFolder - Workspace folder containing the playbook
+ * @param playbookRelativePath - Path to the playbook, relative to `workspaceFolder`
+ * @returns The per-playbook config key (folder-prefixed only in multi-root workspaces)
+ */
+function toPlaybookConfigKey(
+    workspaceFolder: vscode.WorkspaceFolder,
+    playbookRelativePath: string,
+): string {
+    const isMultiRoot = (vscode.workspace.workspaceFolders?.length ?? 0) > 1;
+    return isMultiRoot ? `${workspaceFolder.name}/${playbookRelativePath}` : playbookRelativePath;
+}
+
+/**
+ * Run a playbook file with a specific executor, invoked from the editor or explorer
+ * context menu. Reuses saved per-playbook configuration (keyed the same way as the
+ * Playbooks tree view), falling back to the workspace default configuration when none
+ * has been saved for this file.
+ * @param uri - Resource URI from the context menu, or undefined for the active editor
+ * @param executor - Executor to force for this run, overriding the saved config
+ */
+async function runPlaybookFileWithExecutor(
+    uri: vscode.Uri | undefined,
+    executor: PlaybookExecutor,
+): Promise<void> {
+    const startedAt = Date.now();
+    const targetUri = resolvePlaybookRunUri(uri);
+
+    if (!targetUri?.fsPath) {
+        vscode.window.showErrorMessage('No playbook file selected to run.');
+        return;
+    }
+
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(targetUri);
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('Playbook must be inside an open workspace folder to run.');
+        return;
+    }
+
+    try {
+        const playbooksService = PlaybooksService.getInstance();
+        const playbookRelativePath = path.relative(workspaceFolder.uri.fsPath, targetUri.fsPath);
+        const configKey = toPlaybookConfigKey(workspaceFolder, playbookRelativePath);
+        const config = {
+            ...playbooksService.getPlaybookConfig(configKey),
+            executor,
+        };
+
+        const command =
+            executor === 'ansible-navigator'
+                ? playbooksService.buildNavigatorCommand(playbookRelativePath, config)
+                : playbooksService.buildCommand(playbookRelativePath, config);
+
+        log(`Running playbook from context menu: ${command} in ${workspaceFolder.uri.fsPath}`);
+
+        const terminalService = TerminalService.getInstance();
+        const managed = await terminalService.createActivatedTerminal({
+            name: `${executor}: ${path.basename(targetUri.fsPath)}`,
+            cwd: workspaceFolder.uri,
+            show: true,
+        });
+
+        await managed.sendCommand(command, { waitForCompletion: false });
+        emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'success', {
+            startedAt,
+            extra: { source: 'contextMenu', executor },
+        });
+    } catch (error) {
+        emitJourneyOutcome(TelemetryEvents.PLAYBOOK_RUN, 'error', {
+            startedAt,
+            errorCode: 'launch_failed',
+            extra: { source: 'contextMenu', executor },
+        });
+        vscode.window.showErrorMessage(`Failed to run playbook: ${formatError(error)}`);
+        throw error;
+    }
 }
 
 /**
@@ -1196,6 +1288,22 @@ export async function activate(context: vscode.ExtensionContext) {
         },
     );
 
+    // Run playbook via ansible-playbook from the editor/explorer "Run Ansible Playbook via..." submenu
+    const playbooksRunFileWithAnsiblePlaybookCommand = vscode.commands.registerCommand(
+        'ansiblePlaybooks.runFileWithAnsiblePlaybook',
+        async (uri?: vscode.Uri) => {
+            await runPlaybookFileWithExecutor(uri, 'ansible-playbook');
+        },
+    );
+
+    // Run playbook via ansible-navigator from the editor/explorer "Run Ansible Playbook via..." submenu
+    const playbooksRunFileWithNavigatorCommand = vscode.commands.registerCommand(
+        'ansiblePlaybooks.runFileWithNavigator',
+        async (uri?: vscode.Uri) => {
+            await runPlaybookFileWithExecutor(uri, 'ansible-navigator');
+        },
+    );
+
     const playbooksOpenCommand = vscode.commands.registerCommand(
         'ansiblePlaybooks.openPlaybook',
         async (arg: PlaybookInfo | { playbook: PlaybookInfo }) => {
@@ -1723,6 +1831,8 @@ export async function activate(context: vscode.ExtensionContext) {
         playbooksEditDefaultsCommand,
         playbooksRunCommand,
         playbooksRunWithProgressCommand,
+        playbooksRunFileWithAnsiblePlaybookCommand,
+        playbooksRunFileWithNavigatorCommand,
         playbooksOpenCommand,
         playbooksGoToPlayCommand,
         playbooksAiSummaryCommand,

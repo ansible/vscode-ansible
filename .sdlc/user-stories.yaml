@@ -465,6 +465,20 @@ stories:
       - Progress viewer uses the configured executor; ansible-navigator runs include --execution-environment false
       - Command preview in config form reflects selected executor
 
+  - id: PLB-008
+    title: Run playbook from editor and explorer context menus
+    story: >
+      As an Ansible developer, I want to right-click a playbook in the
+      editor or file explorer and run it directly, so that I don't have
+      to switch to the Playbooks sidebar for a quick run.
+    prd_refs: [US-6, AC-4]
+    requires_ai: false
+    criteria:
+      - Right-clicking in an open Ansible file shows a "Run Ansible Playbook via..." submenu
+      - Right-clicking an Ansible file in the file explorer shows the same submenu
+      - Submenu lists ansible-playbook and ansible-navigator as runners
+      - Running from the submenu reuses saved per-playbook configuration when available
+
   # ---------------------------------------------------------------------------
   # EE — Execution Environment Inspection
   # PRD: Section 5 (Execution Environment Inspection), US-7, AC-5

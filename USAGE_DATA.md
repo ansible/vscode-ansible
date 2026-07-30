@@ -57,7 +57,7 @@ event properties are automatically sanitized by the Red Hat telemetry library.
 
 | Event                      | Description                             | Properties                                                                                        |
 | -------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `playbook.run`             | Playbook terminal launch finished       | `result` — launch outcome (`success` \| `error`); optional `durationMs`, `errorCode`              |
+| `playbook.run`             | Playbook terminal launch finished       | `result` — launch outcome (`success` \| `error`); optional `durationMs`, `errorCode`; optional `source` (`contextMenu` when launched from the editor/explorer "Run Ansible Playbook via..." menu), `executor` |
 | `playbook.runWithProgress` | Progress-viewer run finished or stopped | `result` — ansible outcome (`success` \| `cancel` \| `error`); optional `durationMs`, `errorCode` |
 
 ### Creator
@@ -169,6 +169,7 @@ a product story:
 | Collection install         | `collection.install`       | [COL-007] Install collection from sidebar           | Mapped |
 | Collection search          | `collection.search`        | [COL-005] Search remote collections                 | Mapped |
 | Playbook run               | `playbook.run`             | [PLB-003] Run playbook in terminal                  | Mapped |
+| Playbook run via context menu | `playbook.run`          | [PLB-008] Run playbook from editor and explorer context menus | Mapped |
 | Playbook run with progress | `playbook.runWithProgress` | [PLB-004] Real-time playbook progress visualization | Mapped |
 | Creator form open          | `creator.formOpen`         | [SCF-001] Scaffold new Ansible content              | Mapped |
 | Creator complete           | `creator.complete`         | [SCF-001] Scaffold new Ansible content              | Mapped |
