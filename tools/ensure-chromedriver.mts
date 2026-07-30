@@ -232,7 +232,13 @@ function driverPaths(
 }
 
 /**
- *
+ * Prefix of the directory @vscode/test-electron creates for a downloaded
+ * VS Code build, e.g. `vscode-win32-x64-archive-1.131.0`. Must match
+ * `systemDefaultPlatform` in @vscode/test-electron's util.ts, which is
+ * NOT simply `${process.platform}-${process.arch}`: Windows downloads
+ * ship as a zip "archive" and get an `-archive` suffix, and Intel Mac
+ * (unlike Apple Silicon) gets no arch suffix at all (`darwin`, not
+ * `darwin-x64`).
  */
 function vscodeInstallDirPrefix(): string {
     const key = `${process.platform}-${process.arch}`;
@@ -242,9 +248,9 @@ function vscodeInstallDirPrefix(): string {
         case 'darwin-arm64':
             return 'vscode-darwin-arm64';
         case 'darwin-x64':
-            return 'vscode-darwin-x64';
+            return 'vscode-darwin';
         case 'win32-x64':
-            return 'vscode-win32-x64';
+            return 'vscode-win32-x64-archive';
         default:
             throw new Error(`Unsupported platform: ${key}`);
     }
