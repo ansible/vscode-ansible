@@ -6,6 +6,7 @@ settings:
 
 overrides:
   rollup: npm:@rollup/wasm-node@*
+  '@vscode/test-electron': 3.1.0
   '@xhmikosr/decompress@10': 11.1.3
   fast-uri@3: '>=3.1.2'
   fastify: '>=5.8.3'
@@ -148,8 +149,8 @@ importers:
         specifier: ^0.0.15
         version: 0.0.15(patch_hash=e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2)
       '@vscode/test-electron':
-        specifier: ^3.0.0
-        version: 3.0.0(supports-color@8.1.1)
+        specifier: 3.1.0
+        version: 3.1.0(supports-color@8.1.1)
       '@vscode/vsce':
         specifier: ^3.9.2
         version: 3.9.2(supports-color@8.1.1)
@@ -2557,12 +2558,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  '@vscode/test-electron@2.5.2':
-    resolution: {integrity: sha512-8ukpxv4wYe0iWMRQU18jhzJOHkeGKbnw7xWRX3Zw1WJA4cEKbHcmmLPdPrPtL6rhDcrlCZN+xKRpv09n4gRHYg==}
-    engines: {node: '>=16'}
-
-  '@vscode/test-electron@3.0.0':
-    resolution: {integrity: sha512-TY5mC7aAjxSLDXsyjhrG8cJHgc/HLdiE5lvtW7hABYQrY24Qwozzr5UoO3HiuAM4Hzz4b7K/eZlwrCILj94CcA==}
+  '@vscode/test-electron@3.1.0':
+    resolution: {integrity: sha512-CRqv5u+YYoseuNVJ6Tyo4k0sF0mx4qnKMihRB0PjsUF8Dc0WKtCXo6CNL6nWWm5esfFQsQA/pejMj4ZbpJVLTw==}
     engines: {node: '>=22'}
 
   '@vscode/vsce-sign-alpine-arm64@2.0.6':
@@ -9321,17 +9318,7 @@ snapshots:
     transitivePeerDependencies:
       - monocart-coverage-reports
 
-  '@vscode/test-electron@2.5.2(supports-color@8.1.1)':
-    dependencies:
-      http-proxy-agent: 7.0.2(supports-color@8.1.1)
-      https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      jszip: 3.10.1
-      ora: 8.2.0
-      semver: 7.8.5
-    transitivePeerDependencies:
-      - supports-color
-
-  '@vscode/test-electron@3.0.0(supports-color@8.1.1)':
+  '@vscode/test-electron@3.1.0(supports-color@8.1.1)':
     dependencies:
       http-proxy-agent: 7.0.2(supports-color@8.1.1)
       https-proxy-agent: 7.0.6(supports-color@8.1.1)
@@ -14615,7 +14602,7 @@ snapshots:
       '@fastify/cors': 9.0.1
       '@fastify/static': 7.0.4
       '@types/ws': 8.18.1
-      '@vscode/test-electron': 2.5.2(supports-color@8.1.1)
+      '@vscode/test-electron': 3.1.0(supports-color@8.1.1)
       '@wdio/logger': 9.18.0
       '@xhmikosr/downloader': 15.2.0(supports-color@8.1.1)
       decamelize: 6.0.0

@@ -14,6 +14,11 @@ allowBuilds:
 
 overrides:
   rollup: "npm:@rollup/wasm-node@*"
+  # VS Code 1.110+ renamed macOS Electron -> Code; Electron symlink removed in
+  # 1.131 (microsoft/vscode#326502). @vscode/test-electron 3.1.0 resolves via
+  # Info.plist / Contents/MacOS (microsoft/vscode-test#348). Force all
+  # consumers (incl. wdio-vscode-service@^2.4.1) onto the fixed release.
+  "@vscode/test-electron": "3.1.0"
   # Security overrides
   "@xhmikosr/decompress@10": "11.1.3"
   "fast-uri@3": ">=3.1.2"
@@ -39,3 +44,5 @@ packageExtensions:
 minimumReleaseAgeExclude:
   # Renovate security update: js-yaml@5.2.1 || 5.2.2
   - js-yaml@5.2.1 || 5.2.2
+  # Unblocks macOS e2e/wdio after Electron binary rename (see overrides above)
+  - "@vscode/test-electron"
