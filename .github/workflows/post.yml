@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Create check run with link
         id: create-check
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         with:
           result-encoding: string
           script: |
@@ -46,7 +46,7 @@ jobs:
           allow-unsafe-pr-checkout: true # required for running from forks
 
       - name: Download artifacts (coverage reports)
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
         with:
           pattern: logs-*.zip
           path: .
@@ -94,7 +94,7 @@ jobs:
 
       - name: Update check run (success)
         if: success()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         with:
           script: |
             await github.rest.checks.update({
@@ -112,7 +112,7 @@ jobs:
 
       - name: Update check run (failure)
         if: failure()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         with:
           script: |
             await github.rest.checks.update({
