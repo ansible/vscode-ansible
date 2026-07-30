@@ -239,6 +239,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Check if workspace is open
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+        // package.json contributes this command globally; register a handler
+        // before early return so Command Palette / executeCommand never hit
+        // an unbound command when no workspace is open.
+        context.subscriptions.push(
+            vscode.commands.registerCommand('ansible.open-language-server-logs', () => {
+                void vscode.window.showWarningMessage(
+                    'Ansible Language Server logs require an open workspace folder.',
+                );
+            }),
+        );
         vscode.window.showWarningMessage('Ansible requires an open workspace folder.');
         return;
     }

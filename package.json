@@ -767,6 +767,10 @@
       ],
       "commandPalette": [
         {
+          "command": "ansible.open-language-server-logs",
+          "when": "workspaceFolderCount != 0"
+        },
+        {
           "command": "ansible.lightspeed.oauth",
           "when": "config.ansible.lightspeed.enabled"
         },
