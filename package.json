@@ -582,6 +582,16 @@
         "icon": "$(sparkle)"
       },
       {
+        "command": "ansiblePlaybooks.runFileWithAnsiblePlaybook",
+        "title": "Run Playbook via ansible-playbook",
+        "category": "Ansible"
+      },
+      {
+        "command": "ansiblePlaybooks.runFileWithNavigator",
+        "title": "Run Playbook via ansible-navigator",
+        "category": "Ansible"
+      },
+      {
         "command": "ansibleCollectionSources.refresh",
         "title": "Refresh All Sources",
         "icon": "$(refresh)"
@@ -736,11 +746,24 @@
       }
     ],
     "menus": {
+      "ansiblePlaybooks.runVia": [
+        {
+          "command": "ansiblePlaybooks.runFileWithAnsiblePlaybook"
+        },
+        {
+          "command": "ansiblePlaybooks.runFileWithNavigator"
+        }
+      ],
       "editor/context": [
         {
           "command": "ansibleEnvironments.vault",
           "when": "editorLangId == ansible",
           "group": "1_ansible"
+        },
+        {
+          "submenu": "ansiblePlaybooks.runVia",
+          "when": "editorLangId == ansible",
+          "group": "1_ansible@2"
         },
         {
           "command": "ansibleExecutionEnvironments.buildFromDefinition",
@@ -759,6 +782,11 @@
         }
       ],
       "explorer/context": [
+        {
+          "submenu": "ansiblePlaybooks.runVia",
+          "when": "resourceLangId == ansible",
+          "group": "1_ansible@2"
+        },
         {
           "command": "ansibleExecutionEnvironments.buildFromDefinition",
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
@@ -789,6 +817,14 @@
         {
           "command": "ansible.lightspeed.roleExplanation",
           "when": "config.ansible.lightspeed.enabled && editorLangId == ansible"
+        },
+        {
+          "command": "ansiblePlaybooks.runFileWithAnsiblePlaybook",
+          "when": "editorLangId == ansible"
+        },
+        {
+          "command": "ansiblePlaybooks.runFileWithNavigator",
+          "when": "editorLangId == ansible"
         },
         {
           "command": "ansible.lightspeed.statusBar.click",
@@ -1045,6 +1081,12 @@
         }
       ]
     },
+    "submenus": [
+      {
+        "id": "ansiblePlaybooks.runVia",
+        "label": "Run Ansible Playbook via..."
+      }
+    ],
     "configuration": {
       "title": "Ansible",
       "properties": {
