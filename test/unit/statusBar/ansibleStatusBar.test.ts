@@ -6,6 +6,7 @@ interface MockStatusBarItem {
     text: string;
     command: string | undefined;
     backgroundColor: unknown;
+    tooltip: unknown;
     show: ReturnType<typeof vi.fn>;
     hide: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
@@ -28,6 +29,7 @@ const { mockCreateStatusBarItem, mockRegisterCommand, mockWindow, mockWorkspace 
             text: '',
             command: undefined,
             backgroundColor: undefined,
+            tooltip: undefined,
             show: vi.fn(),
             hide: vi.fn(),
             dispose: vi.fn(),
@@ -181,6 +183,7 @@ describe('AnsibleStatusBar', () => {
             text: '',
             command: undefined,
             backgroundColor: undefined,
+            tooltip: undefined,
             show: vi.fn(),
             hide: vi.fn(),
             dispose: vi.fn(),
@@ -216,6 +219,28 @@ describe('AnsibleStatusBar', () => {
 
         const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
         expect(item.command).toBe('ansible.showDiagnostics');
+    });
+
+    it('includes language server logs command in the tooltip', () => {
+        mockWindow.activeTextEditor = { document: { languageId: 'typescript' } };
+
+        const ctx = createMockContext();
+        const client = createMockClient();
+        const envService = createMockEnvService();
+        const bar = new AnsibleStatusBar(
+            ctx as unknown as ExtensionContext,
+            client as unknown as LanguageClient,
+            envService as unknown as PythonEnvironmentService,
+        );
+        bar.update();
+
+        const item = mockCreateStatusBarItem.mock.results[0].value as MockStatusBarItem;
+        const tooltip = item.tooltip as {
+            value: string;
+            isTrusted: { enabledCommands: string[] };
+        };
+        expect(tooltip.value).toContain('command:ansible.open-language-server-logs');
+        expect(tooltip.isTrusted.enabledCommands).toContain('ansible.open-language-server-logs');
     });
 
     it('registers the metadata notification handler', () => {

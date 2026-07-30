@@ -54,4 +54,5 @@ export interface DiagnosticsBridge extends HostBridgeCore {
     upgradeDevTools(): void;
     resyncMetadata(): void;
     openOutput(): void;
+    openLanguageServerLogs(): void;
 }

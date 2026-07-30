@@ -473,6 +473,12 @@
         "icon": "$(output)"
       },
       {
+        "command": "ansible.open-language-server-logs",
+        "title": "Ansible: Show Language Server Logs",
+        "category": "Ansible",
+        "icon": "$(output)"
+      },
+      {
         "command": "ansible.statusBar.refresh",
         "title": "Ansible: Refresh Status",
         "category": "Ansible",
@@ -760,6 +766,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "ansible.open-language-server-logs",
+          "when": "workspaceFolderCount != 0"
+        },
         {
           "command": "ansible.lightspeed.oauth",
           "when": "config.ansible.lightspeed.enabled"

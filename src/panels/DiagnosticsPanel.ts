@@ -166,6 +166,9 @@ export class DiagnosticsPanel {
             case 'openOutput':
                 outputChannel.show();
                 return;
+            case 'openLanguageServerLogs':
+                void vscode.commands.executeCommand('ansible.open-language-server-logs');
+                return;
             case 'showToast': {
                 const text = msg.params?.message;
                 if (typeof text === 'string' && text) {
