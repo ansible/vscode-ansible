@@ -334,6 +334,21 @@ describe('ExecutionEnvService', () => {
             const details = await svc.loadDetails('quay.io/ansible/ee-supported:latest');
             expect(details).toBeNull();
         });
+
+        it('deploys vendored scripts from packages/services when cache is empty', async () => {
+            setupDefaultMocks();
+            containerMocks.getScriptCacheDir.mockReturnValue(tmpCacheDir);
+            containerMocks.runInContainer.mockResolvedValue(INTROSPECTION_JSON);
+
+            const svc = ExecutionEnvService.getInstance();
+            await svc.loadExecutionEnvironments();
+            await svc.loadDetails('quay.io/ansible/ee-supported:latest');
+
+            expect(containerMocks.deployScripts).toHaveBeenCalled();
+            const dataDir = containerMocks.deployScripts.mock.calls[0]?.[0] as string;
+            expect(dataDir.replaceAll('\\', '/')).toMatch(/packages\/services\/(?:src\/)?data$/);
+            expect(fs.existsSync(path.join(dataDir, 'image_introspect.py'))).toBe(true);
+        });
     });
 
     describe('getCollections', () => {

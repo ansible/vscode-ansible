@@ -62,8 +62,13 @@ export {
     quoteIfNeeded,
     valueToString,
     formatLabel,
+    resolveSchemaNode,
+    withPrefilledDefault,
+    resolveDevcontainerFormPlan,
+    DEVCONTAINER_COMMAND_PATH,
     CREATOR_FILTERED_KEYS,
 } from './utils/creatorArgs';
+export type { DevcontainerFormPlan } from './utils/creatorArgs';
 export { setLogFunction, log, getLogFunction } from './utils/logging';
 export { SimpleEventEmitter } from './utils/SimpleEventEmitter';
 export type { Disposable } from './utils/SimpleEventEmitter';

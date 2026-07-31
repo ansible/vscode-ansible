@@ -1,0 +1,44 @@
+---
+title: EE Dev Containers
+description: Short overview of using Ansible Execution Environments as VS Code Dev Containers. Full guide lives under Editor Integration.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Ansible [Execution Environments](https://docs.ansible.com/automation_controller/latest/html/userguide/execution_environments.html)
+(EEs) are container images that bundle Ansible, collections, and dependencies.
+This extension uses **VS Code Dev Containers** for EE-based development (see
+[ADR-003](https://github.com/ansible/vscode-ansible/blob/next/.sdlc/adrs/ADR-003-ee-via-devcontainers.md))
+rather than routing host commands through `docker run` / `podman run`.
+
+## Full guide
+
+See **[Dev Containers](/vscode-ansible/editor/devcontainer/)** under Editor
+Integration for:
+
+- Using a Dev Container day to day
+- Adding a `.devcontainer/` file with ansible-creator (`ac_add_res_devc` / CLI)
+- Layering `ansible-dev-tools` onto an EE (outer Containerfile or EE definition)
+- Podman path, SSH agent, and C-in-C `runArgs` notes
+
+## Quick path
+
+1. Ensure the EE includes `ansible-dev-tools` (bake into
+   `execution-environment.yml` or build an outer Containerfile).
+2. Scaffold config:
+
+   ```bash
+   ansible-creator add resource devcontainer /path/to/project --image <ee-or-layered-image>
+   ```
+
+   Or right-click an EE in the sidebar → **Add Dev Container**.
+3. **Dev Containers: Reopen in Container**.
+
+<Aside type="tip">
+AI agents: use skill `guide-ee-devcontainer` and MCP tool `ac_add_res_devc`.
+</Aside>
+
+## Migrating from the old EE mode
+
+If you used `ansible.executionEnvironment.*` on the `main` branch, see
+[Migrating from EE Mode](/vscode-ansible/getting-started/ee-migration/).

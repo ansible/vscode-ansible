@@ -1,11 +1,37 @@
 #!/usr/bin/env node
 // @ts-check
 import * as esbuild from 'esbuild';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
+
+/** Copy vendored EE introspection scripts into dist/data for runtime lookup. */
+function copyVendoredData() {
+    const srcDir = path.join(ROOT, 'packages', 'services', 'src', 'data');
+    const destDir = path.join(ROOT, 'dist', 'data');
+    const files = ['image_introspect.py', 'python_latest.sh', 'NOTICE'];
+    fs.mkdirSync(destDir, { recursive: true });
+    const missing = [];
+    for (const file of files) {
+        const src = path.join(srcDir, file);
+        if (!fs.existsSync(src)) {
+            missing.push(file);
+            continue;
+        }
+        fs.copyFileSync(src, path.join(destDir, file));
+    }
+    if (missing.length > 0) {
+        console.error(
+            `[build] ERROR: missing vendored EE scripts in ${srcDir}: ${missing.join(', ')}`,
+        );
+        process.exitCode = 1;
+        return;
+    }
+    console.log('[build] copied vendored EE scripts → dist/data');
+}
 
 const watch = process.argv.includes('--watch');
 const production = process.argv.includes('--production');
@@ -94,6 +120,7 @@ async function main() {
     if (watch) {
         const contexts = await Promise.all(targets.map((t) => esbuild.context(t)));
         await Promise.all(contexts.map((ctx) => ctx.watch()));
+        copyVendoredData();
         console.log('[build] watching for changes…');
     } else {
         const results = await Promise.all(targets.map((t) => esbuild.build(t)));
@@ -104,6 +131,7 @@ async function main() {
                 console.log(`  ${out}: ${(bytes / 1024).toFixed(1)} KB`);
             }
         }
+        copyVendoredData();
     }
 }
 
