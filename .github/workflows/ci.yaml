@@ -331,12 +331,15 @@ jobs:
             exit 98
           }
 
-      - parallel:
-          - name: task lint
-            if: runner.os == 'Linux'
-            id: lint
-            run: task lint && task lint --status
+      # Lint must not run in parallel with package: als:package regenerates
+      # docs/als/settings.md and prek treats that dirty worktree as a failure
+      # ("Files were modified by following hooks").
+      - name: task lint
+        if: runner.os == 'Linux'
+        id: lint
+        run: task lint && task lint --status
 
+      - parallel:
           - name: task build / package
             # Warning: ensure that conditional templates have a negative condition
             # expanding to an empty string because otherwise it will fail the command
