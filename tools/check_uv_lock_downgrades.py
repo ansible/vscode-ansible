@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -255,7 +256,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _write_step_summary(report: str) -> None:
-    summary_path = Path(sys.environ["GITHUB_STEP_SUMMARY"])
+    summary_path = Path(os.environ["GITHUB_STEP_SUMMARY"])
     with summary_path.open("a", encoding="utf-8") as handle:
         handle.write(report)
         handle.write("\n")
@@ -289,7 +290,7 @@ def main(argv: list[str] | None = None, stdout: TextIO = sys.stdout) -> int:
     report = format_report(downgrades)
     stdout.write(f"{report}\n")
 
-    if args.github_step_summary and "GITHUB_STEP_SUMMARY" in sys.environ:
+    if args.github_step_summary and "GITHUB_STEP_SUMMARY" in os.environ:
         _write_step_summary(report)
 
     if args.allow_downgrade:
