@@ -534,6 +534,22 @@ stories:
       - Build output appears in the integrated terminal
       - EE tree refreshes after a successful build
 
+  - id: EE-005
+    title: Add Dev Container from an Execution Environment
+    story: >
+      As an Ansible developer, I want to add a Dev Container config from
+      a selected EE image so I can develop against that environment
+      without hand-writing .devcontainer/.
+    prd_refs: [US-7, AC-5]
+    requires_ai: false
+    criteria:
+      - EE tree context menu exposes "Add Dev Container"
+      - Command opens the Creator form for add resource devcontainer with
+        --image prefilled to the selected EE
+      - When ansible-creator is missing or lacks the resource, the user
+        gets an actionable error
+      - Agents and docs use ac_add_res_devc (no custom generator)
+
   # ---------------------------------------------------------------------------
   # AI — AI-Assisted Authoring, MCP, and Skills
   # PRD: Section 6 (AI Content Authoring), Section 8 (MCP), US-8–11, AC-6

@@ -265,19 +265,21 @@ export class ExecutionEnvService {
                 return this._scriptCacheDir;
             }
 
-            // __dirname varies by context: tsc output (packages/core/out/services),
-            // esbuild bundle (dist/), Electron asar, etc.  Try multiple candidate
-            // paths to locate the vendored source files for initial deployment.
+            // __dirname varies by context: tsc output (packages/services/out),
+            // esbuild bundle (dist/), Extension Development Host, etc. Try multiple
+            // candidate paths to locate the vendored source files for initial deploy.
             const candidates = [
-                // tsc: __dirname = packages/core/out/services
+                // Packaged / esbuild: scripts copied next to the bundle (dist/data)
+                path.resolve(__dirname, 'data'),
+                // tsc: __dirname = packages/services/out → ../src/data
                 path.resolve(__dirname, '..', 'data'),
                 path.resolve(__dirname, '..', 'src', 'data'),
-                // esbuild: __dirname = dist/  (one level below repo root)
-                path.resolve(__dirname, '..', 'packages', 'core', 'src', 'data'),
-                path.resolve(__dirname, '..', 'packages', 'core', 'data'),
-                // deeper nesting (Electron asar, etc.)
-                path.resolve(__dirname, '..', '..', 'packages', 'core', 'src', 'data'),
-                path.resolve(__dirname, '..', '..', 'packages', 'core', 'data'),
+                // esbuild Extension Development Host: __dirname = dist/
+                path.resolve(__dirname, '..', 'packages', 'services', 'src', 'data'),
+                path.resolve(__dirname, '..', 'packages', 'services', 'data'),
+                // deeper nesting (Electron asar, nested out dirs, etc.)
+                path.resolve(__dirname, '..', '..', 'packages', 'services', 'src', 'data'),
+                path.resolve(__dirname, '..', '..', 'packages', 'services', 'data'),
                 path.resolve(__dirname, '..', '..', 'data'),
                 path.resolve(__dirname, '..', '..', 'src', 'data'),
             ];

@@ -6,6 +6,10 @@ import {
     buildCommandArgs,
     buildPreviewString,
     formatLabel,
+    resolveSchemaNode,
+    withPrefilledDefault,
+    resolveDevcontainerFormPlan,
+    DEVCONTAINER_COMMAND_PATH,
     CREATOR_FILTERED_KEYS,
 } from '../../src/utils/creatorArgs';
 import type { SchemaNode } from '../../src/types/creator';
@@ -187,6 +191,204 @@ describe('creatorArgs', () => {
                 overwrite: false,
             });
             expect(preview).not.toContain('overwrite');
+        });
+    });
+
+    describe('resolveSchemaNode', () => {
+        const DEVCONTAINER_SCHEMA: SchemaNode = {
+            name: 'add',
+            subcommands: {
+                resource: {
+                    name: 'resource',
+                    subcommands: {
+                        devcontainer: {
+                            name: 'devcontainer',
+                            description: 'Add a devcontainer config',
+                            parameters: {
+                                type: 'object',
+                                properties: {
+                                    image: {
+                                        type: 'string',
+                                        description: 'Execution environment image',
+                                    },
+                                },
+                                required: ['image'],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        it('resolves a nested subcommand path', () => {
+            const node = resolveSchemaNode(DEVCONTAINER_SCHEMA, ['resource', 'devcontainer']);
+            expect(node?.name).toBe('devcontainer');
+        });
+
+        it('returns the root node for an empty path', () => {
+            expect(resolveSchemaNode(DEVCONTAINER_SCHEMA, [])).toBe(DEVCONTAINER_SCHEMA);
+        });
+
+        it('returns undefined when a middle segment is missing', () => {
+            expect(
+                resolveSchemaNode(DEVCONTAINER_SCHEMA, ['missing', 'devcontainer']),
+            ).toBeUndefined();
+        });
+
+        it('returns undefined when the final segment is missing', () => {
+            expect(resolveSchemaNode(DEVCONTAINER_SCHEMA, ['resource', 'missing'])).toBeUndefined();
+        });
+
+        it('returns undefined when a leaf node has no subcommands', () => {
+            const node = resolveSchemaNode(DEVCONTAINER_SCHEMA, [
+                'resource',
+                'devcontainer',
+                'extra',
+            ]);
+            expect(node).toBeUndefined();
+        });
+    });
+
+    describe('withPrefilledDefault', () => {
+        it('sets prefill without changing the schema default or mutating the input', () => {
+            const prefilled = withPrefilledDefault(LEAF_SCHEMA, 'output', '/prefilled');
+            expect(prefilled.parameters?.properties.output.prefill).toBe('/prefilled');
+            expect(prefilled.parameters?.properties.output.default).toBe('./');
+            expect(LEAF_SCHEMA.parameters?.properties.output.default).toBe('./');
+            expect(LEAF_SCHEMA.parameters?.properties.output.prefill).toBeUndefined();
+            expect(prefilled).not.toBe(LEAF_SCHEMA);
+        });
+
+        it('preserves other parameters and required list untouched', () => {
+            const prefilled = withPrefilledDefault(LEAF_SCHEMA, 'output', '/prefilled');
+            expect(prefilled.parameters?.required).toEqual(LEAF_SCHEMA.parameters?.required);
+            expect(prefilled.parameters?.properties.project).toEqual(
+                LEAF_SCHEMA.parameters?.properties.project,
+            );
+        });
+
+        it('keeps prefilled values visible in the command preview', () => {
+            const schema: SchemaNode = {
+                name: 'devcontainer',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        image: {
+                            type: 'string',
+                            description: 'EE image',
+                            default: 'auto',
+                            aliases: ['--image'],
+                        },
+                    },
+                    required: ['image'],
+                },
+            };
+            const prefilled = withPrefilledDefault(schema, 'image', 'quay.io/ee/example:latest');
+            const preview = buildPreviewString(['add', 'resource', 'devcontainer'], prefilled, {
+                image: 'quay.io/ee/example:latest',
+            });
+            expect(preview).toContain('--image quay.io/ee/example:latest');
+        });
+
+        it('returns the original schema unchanged when the key does not exist', () => {
+            const prefilled = withPrefilledDefault(LEAF_SCHEMA, 'nonexistent', 'value');
+            expect(prefilled).toBe(LEAF_SCHEMA);
+        });
+
+        it('returns the original schema unchanged when there are no parameters', () => {
+            const schema: SchemaNode = { name: 'empty' };
+            expect(withPrefilledDefault(schema, 'image', 'value')).toBe(schema);
+        });
+    });
+
+    describe('resolveDevcontainerFormPlan', () => {
+        const ROOT_SCHEMA: SchemaNode = {
+            name: 'ansible-creator',
+            subcommands: {
+                add: {
+                    name: 'add',
+                    subcommands: {
+                        resource: {
+                            name: 'resource',
+                            subcommands: {
+                                devcontainer: {
+                                    name: 'devcontainer',
+                                    description: 'Add a devcontainer config',
+                                    parameters: {
+                                        type: 'object',
+                                        properties: {
+                                            image: {
+                                                type: 'string',
+                                                description: 'Execution environment image',
+                                            },
+                                        },
+                                        required: ['image'],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        it('no-ops when no EE was selected', () => {
+            expect(resolveDevcontainerFormPlan(undefined, ROOT_SCHEMA)).toEqual({
+                kind: 'noop',
+            });
+        });
+
+        it('no-ops when no EE was selected even without a schema', () => {
+            expect(resolveDevcontainerFormPlan(undefined, undefined)).toEqual({ kind: 'noop' });
+        });
+
+        it('errors when ansible-creator schema is unavailable', () => {
+            const plan = resolveDevcontainerFormPlan('quay.io/ee/example:latest', undefined);
+            expect(plan.kind).toBe('error');
+            if (plan.kind === 'error') {
+                expect(plan.message).toMatch(/ansible-creator not found/);
+            }
+        });
+
+        it('errors with upgrade guidance when ansible-creator is outdated', () => {
+            const plan = resolveDevcontainerFormPlan(
+                'quay.io/ee/example:latest',
+                undefined,
+                'outdated',
+            );
+            expect(plan.kind).toBe('error');
+            if (plan.kind === 'error') {
+                expect(plan.message).toMatch(/outdated/);
+                expect(plan.message).toMatch(/Upgrade/);
+            }
+        });
+
+        it('errors when the schema does not support add resource devcontainer', () => {
+            const plan = resolveDevcontainerFormPlan('quay.io/ee/example:latest', {
+                name: 'add',
+            });
+            expect(plan.kind).toBe('error');
+            if (plan.kind === 'error') {
+                expect(plan.message).toMatch(/does not support/);
+            }
+        });
+
+        it('opens the form with the resolved command path and prefilled image', () => {
+            const plan = resolveDevcontainerFormPlan('quay.io/ee/example:latest', ROOT_SCHEMA);
+            expect(plan.kind).toBe('open');
+            if (plan.kind === 'open') {
+                expect(plan.commandPath).toEqual(DEVCONTAINER_COMMAND_PATH);
+                expect(plan.schema.parameters?.properties.image.prefill).toBe(
+                    'quay.io/ee/example:latest',
+                );
+                expect(plan.schema.parameters?.properties.image.default).toBeUndefined();
+            }
+        });
+
+        it('does not mutate the original schema', () => {
+            resolveDevcontainerFormPlan('quay.io/ee/example:latest', ROOT_SCHEMA);
+            const devcontainerNode = resolveSchemaNode(ROOT_SCHEMA, DEVCONTAINER_COMMAND_PATH);
+            expect(devcontainerNode?.parameters?.properties.image.prefill).toBeUndefined();
         });
     });
 

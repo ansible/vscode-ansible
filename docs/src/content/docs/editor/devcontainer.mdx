@@ -1,0 +1,200 @@
+---
+title: Dev Containers
+description: Use VS Code Dev Containers with Ansible projects — scaffold configs, layer ansible-dev-tools onto an Execution Environment, and reopen inside the container.
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Ansible development works best when the editor, terminal, linters, and Python
+environment share one container image. This guide covers three related jobs:
+
+1. **Using** a Dev Container for day-to-day Ansible work
+2. **Adding** a `.devcontainer/` config to a project (via ansible-creator)
+3. **Layering** `ansible-dev-tools` onto an Execution Environment (EE) so that
+   EE can be the Dev Container image
+
+The Ansible extension follows [ADR-003](https://github.com/ansible/vscode-ansible/blob/next/.sdlc/adrs/ADR-003-ee-via-devcontainers.md):
+EE-based development uses Dev Containers, not `docker exec` / `podman exec`
+routing.
+
+## Prerequisites
+
+- [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+  extension (`ms-vscode-remote.remote-containers`)
+- Podman or Docker
+- `ansible-creator` (included with `ansible-dev-tools`)
+
+## Using a Dev Container
+
+<Steps>
+1. Open your project folder in VS Code or a compatible editor.
+2. Ensure the project has a `.devcontainer/` directory (see [Add a Dev Container file](#add-a-dev-container-file) below).
+3. Press `Ctrl+Shift+P` / `Cmd+Shift+P` → **Dev Containers: Reopen in Container**.
+4. The editor reconnects inside the container. The Ansible extension activates
+   against the container's Python environment and collections.
+</Steps>
+
+Creator scaffolds Docker and Podman variants under `.devcontainer/`. Pick the
+variant that matches your engine, or use the root `devcontainer.json` when
+present.
+
+### Podman path for GUI-launched editors
+
+Apps started from the Dock/Start menu often miss shell `PATH`. Prefer an
+absolute `dev.containers.dockerPath`:
+
+```json
+{
+  "dev.containers.dockerPath": "/opt/podman/bin/podman"
+}
+```
+
+On Linux the binary is often `/usr/bin/podman`. Confirm with `command -v podman`.
+
+## Add a Dev Container file
+
+Use **ansible-creator** as the source of truth for scaffolding (same templates
+as [ansible-creator's common devcontainer resources](https://github.com/ansible/ansible-creator/tree/main/src/ansible_creator/resources/common/devcontainer/.devcontainer)).
+
+### CLI
+
+```bash
+ansible-creator add resource devcontainer /path/to/project --image <image>
+```
+
+`--image` accepts any container image reference (for example an EE tag, or
+`ghcr.io/ansible/community-ansible-dev-tools:latest`). Defaults to `auto` when
+omitted.
+
+### Creator tree / form
+
+In the Ansible sidebar, open **Creator** → **Add** → **devcontainer**, fill in
+**path** and **image**, then run.
+
+### MCP
+
+```text
+ac_add_res_devc({
+  "path": "/path/to/project",
+  "image": "ghcr.io/ansible/community-ansible-dev-tools:latest"
+})
+```
+
+### From an Execution Environment in the sidebar
+
+Right-click an image under **Execution Environments** → **Add Dev Container**.
+That opens the Creator form with `--image` set to the selected EE.
+
+Generated layouts typically include Docker and Podman `devcontainer.json`
+files with containers-in-containers (C-in-C) friendly `runArgs` (fuse device,
+SYS_ADMIN, seccomp/apparmor settings). Those match the patterns used by
+[ansible-dev-tools](https://github.com/ansible/ansible-dev-tools/blob/main/.devcontainer/podman/devcontainer.json).
+
+## Add ansible-dev-tools to an EE
+
+Most production EEs ship Ansible and collections but not the full developer
+toolkit (ansible-lint, ansible-creator, molecule, and so on). Layer
+`ansible-dev-tools` before using the EE as a Dev Container image.
+
+### Option A — Bake into `execution-environment.yml`
+
+```yaml
+---
+version: 3
+
+images:
+  base_image:
+    name: quay.io/ansible/ansible-runner:latest
+
+dependencies:
+  python_interpreter:
+    package_system: python3.11
+  python:
+    - ansible-dev-tools
+  galaxy:
+    collections:
+      - name: ansible.netcommon
+```
+
+```bash
+ansible-builder build -f execution-environment.yml -t my-ee-with-devtools:latest
+```
+
+Then scaffold with `--image my-ee-with-devtools:latest`.
+
+### Option B — Outer Containerfile on an existing EE
+
+When you cannot rebuild the EE definition, write an **outer** Containerfile
+that layers tools on top:
+
+```dockerfile
+FROM registry.redhat.io/ansible-automation-platform/ee-supported-rhel9:latest
+
+USER root
+RUN pip3 install --no-cache-dir ansible-dev-tools
+USER 1000
+```
+
+Build it:
+
+<Tabs>
+<TabItem label="Podman">
+```bash
+podman build -t my-ee-with-devtools:latest -f Containerfile .
+```
+</TabItem>
+<TabItem label="Docker">
+```bash
+docker build -t my-ee-with-devtools:latest -f Containerfile .
+```
+</TabItem>
+</Tabs>
+
+Pass the tagged image to creator:
+
+```bash
+ansible-creator add resource devcontainer . --image my-ee-with-devtools:latest
+```
+
+Alternatively keep the Containerfile under `.devcontainer/` and point
+`devcontainer.json` at it with `"build": { "dockerfile": "Containerfile" }`
+instead of `"image"`.
+
+### Inspect before you layer
+
+Use the **Execution Environments** tree (or MCP `list_execution_environments` /
+`get_ee_details`) to see whether `ansible-dev-tools` is already present.
+
+## Common images
+
+| Image | Role |
+|-------|------|
+| `ghcr.io/ansible/community-ansible-dev-tools:latest` | Ready-made community ADT image |
+| `registry.redhat.io/ansible-automation-platform/ee-supported-rhel9:latest` | Supported AAP EE (layer ADT if needed) |
+| `registry.redhat.io/ansible-automation-platform/ee-minimal-rhel9:latest` | Minimal EE (layer ADT for interactive work) |
+| Your custom EE | Prefer baking ADT into the EE definition |
+
+## Troubleshooting
+
+### `docker info` / reopen failures with Podman
+
+Set absolute `dev.containers.dockerPath` as above, reload the window, retry
+**Reopen in Container**.
+
+### SSH keys inside the container
+
+Prefer **SSH agent forwarding** on the host (`ssh-add`) — Dev Containers
+forwards the agent. Avoid bind-mounting `~/.ssh`.
+
+### Tools missing after reopen
+
+The image likely lacks `ansible-dev-tools`. Use [Option A or B](#add-ansible-dev-tools-to-an-ee),
+or install temporarily with `pip install ansible-dev-tools` inside the running
+container.
+
+## Related
+
+- [Migrating from EE mode](/vscode-ansible/getting-started/ee-migration/) — map old `ansible.executionEnvironment.*` settings
+- [ansible-creator](/vscode-ansible/python-tools/ansible-creator/) — scaffolding reference
+- [VS Code extension](/vscode-ansible/editor/vscode-extension/) — sidebar views and Creator form
+- [Red Hat Dev Spaces](/vscode-ansible/editor/devspaces/) — cloud workspaces with similar images
