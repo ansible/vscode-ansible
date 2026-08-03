@@ -45,7 +45,7 @@ export type RepoFormat = 'lola' | 'vercel' | 'generic';
 export interface SkillSource {
     /** Unique identifier for this source. */
     id: string;
-    /** Transport type: github, registry (future), local disk, or builtin. */
+    /** Transport type: github, registry index URL, local disk, or builtin. */
     type: 'github' | 'registry' | 'local' | 'builtin';
     /** URL or path for the source. */
     url: string;
@@ -130,6 +130,24 @@ interface SkillFrontmatter {
     'argument-hint'?: string;
     sdlc_mcp_tools?: string[];
 }
+
+/**
+ * One entry in an Agent Skills discovery index
+ * (https://schemas.agentskills.io/discovery/0.2.0/schema.json).
+ */
+interface RegistryIndexEntry {
+    name?: string;
+    type?: string;
+    description?: string;
+    url?: string;
+    category?: string;
+    domain?: string;
+    tags?: string[];
+    triggers?: string[] | string;
+}
+
+/** Agent Skills discovery index document, or a bare skills array. */
+type RegistryIndexDocument = RegistryIndexEntry[] | { skills?: RegistryIndexEntry[] };
 
 // ---------------------------------------------------------------------------
 // Cache helpers
@@ -221,14 +239,15 @@ export function _resetGitHubToken(): void {
 /**
  * Singleton registry that discovers, indexes, and caches AI development skills.
  *
- * Supports local sources, GitHub repos with Lola manifests,
- * Vercel-style skills/ directories, and generic SKILL.md repos.
+ * Supports local sources, HTTP registry indexes, GitHub repos with Lola
+ * manifests, Vercel-style skills/ directories, and generic SKILL.md repos.
  */
 export class SkillRegistry {
     private static _instance: SkillRegistry | undefined;
 
     private _sources: SkillSource[] = [];
     private _skills = new Map<string, SkillEntry>();
+    private _sourceErrors = new Map<string, string>();
     private _loading = false;
     private _loaded = false;
     private _forceRefresh = false;
@@ -277,6 +296,17 @@ export class SkillRegistry {
         this._sources = sources;
         this._loaded = false;
         this._skills.clear();
+        this._sourceErrors.clear();
+    }
+
+    /**
+     * Returns the last load error for a source, if any.
+     *
+     * @param sourceId - Configured source ID.
+     * @returns Error message, or undefined when the last load succeeded.
+     */
+    getSourceError(sourceId: string): string | undefined {
+        return this._sourceErrors.get(sourceId);
     }
 
     /**
@@ -473,7 +503,9 @@ export class SkillRegistry {
                 try {
                     await this._loadSource(source);
                 } catch (err: unknown) {
-                    log(`SkillRegistry: failed to load source ${source.id}: ${String(err)}`);
+                    const message = err instanceof Error ? err.message : String(err);
+                    this._sourceErrors.set(source.id, message);
+                    log(`SkillRegistry: failed to load source ${source.id}: ${message}`);
                 }
             }
             this._loaded = true;
@@ -489,6 +521,8 @@ export class SkillRegistry {
      * @param source - The source to load.
      */
     private async _loadSource(source: SkillSource): Promise<void> {
+        this._sourceErrors.delete(source.id);
+
         const cached = this._forceRefresh ? undefined : this._readCache(source.id);
         const maxAge = (source.refreshInterval ?? 24) * 60 * 60 * 1000;
         const urlMatch = !cached?.sourceUrl || cached.sourceUrl === source.url;
@@ -519,7 +553,7 @@ export class SkillRegistry {
                 skills = this._loadLocalSource(source);
                 break;
             case 'registry':
-                skills = this._loadRegistrySource();
+                skills = await this._loadRegistrySource(source);
                 break;
             case 'builtin':
                 break;
@@ -1125,16 +1159,116 @@ export class SkillRegistry {
         return skills;
     }
 
-    // -- Private: registry source (future) ----------------------------------
+    // -- Private: registry source -------------------------------------------
 
     /**
-     * Placeholder for future registry-based source support.
+     * Loads skills from an HTTP registry index URL.
      *
-     * @returns Empty array (not yet implemented).
+     * Expects an Agent Skills discovery document
+     * (`{ "skills": [ { "name", "type", "description", "url" } ] }`) or a bare
+     * array of the same entries. HTTP(S) skill URLs are fetched for frontmatter
+     * enrichment; non-HTTP URLs (e.g. `skill://`) are indexed from metadata only.
+     *
+     * @param source - Registry source with the index URL.
+     * @returns Skills discovered from the index.
+     * @throws When the index URL is unreachable or the payload is invalid.
      */
-    private _loadRegistrySource(): SkillEntry[] {
-        log('SkillRegistry: registry source type not yet implemented');
-        return [];
+    private async _loadRegistrySource(source: SkillSource): Promise<SkillEntry[]> {
+        if (!source.url) {
+            throw new Error(`registry source "${source.id}" has no URL configured`);
+        }
+
+        const raw = await this._httpGet(source.url);
+        if (raw === undefined) {
+            throw new Error(`registry source "${source.id}" is unreachable at ${source.url}`);
+        }
+
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(raw) as unknown;
+        } catch {
+            throw new Error(
+                `registry source "${source.id}" returned invalid JSON from ${source.url}`,
+            );
+        }
+
+        const entries = this._registryIndexEntries(parsed);
+        if (entries === undefined) {
+            throw new Error(
+                `registry source "${source.id}" index is missing a skills array at ${source.url}`,
+            );
+        }
+
+        const skills: SkillEntry[] = [];
+        for (const entry of entries) {
+            if (!entry || typeof entry !== 'object') {
+                continue;
+            }
+            // Parameterized templates are not concrete skills.
+            if (entry.type === 'mcp-resource-template') {
+                continue;
+            }
+            const slug = entry.name?.trim();
+            if (!slug) {
+                continue;
+            }
+
+            const contentUrl =
+                typeof entry.url === 'string' && /^https?:\/\//i.test(entry.url)
+                    ? entry.url
+                    : undefined;
+
+            let frontmatter: SkillFrontmatter = {};
+            let body: string | undefined;
+            if (contentUrl) {
+                const skillMd = await this._httpGet(contentUrl);
+                if (skillMd) {
+                    const parsedSkill = this._parseSkillMd(skillMd);
+                    frontmatter = parsedSkill.frontmatter;
+                    body = parsedSkill.body;
+                }
+            }
+
+            skills.push({
+                id: `${source.id}/${slug}`,
+                source: source.id,
+                module: source.id,
+                name: frontmatter.name ?? slug,
+                description: frontmatter.description ?? entry.description ?? '',
+                triggers: this._normalizeTriggers(frontmatter.triggers ?? entry.triggers),
+                category:
+                    (frontmatter.category as SkillCategory | undefined) ??
+                    this._inferCategoryFromFrontmatter(frontmatter) ??
+                    (entry.category as SkillCategory | undefined) ??
+                    'other',
+                domain: frontmatter.domain ?? entry.domain,
+                tags: frontmatter.tags ?? entry.tags ?? [],
+                trust: source.trust,
+                contentUrl,
+                content: body,
+            });
+        }
+
+        return skills;
+    }
+
+    /**
+     * Normalizes a registry index payload into a skills entry array.
+     *
+     * @param parsed - Parsed JSON document.
+     * @returns Skills entries, or undefined when the shape is invalid.
+     */
+    private _registryIndexEntries(parsed: unknown): RegistryIndexEntry[] | undefined {
+        if (Array.isArray(parsed)) {
+            return parsed as RegistryIndexEntry[];
+        }
+        if (parsed && typeof parsed === 'object') {
+            const skills = (parsed as RegistryIndexDocument & { skills?: unknown }).skills;
+            if (Array.isArray(skills)) {
+                return skills;
+            }
+        }
+        return undefined;
     }
 
     // -- Private: builtin source (bundled internal skills) ------------------

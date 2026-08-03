@@ -350,7 +350,9 @@ export class SkillToolGenerator {
 
         const lines = sources.map((s: SkillSource) => {
             const count = allSkills.filter((sk) => sk.source === s.id).length;
-            return `- **${s.id}** (${s.type}, ${s.trust}): ${String(count)} skills\n  URL: ${s.url}`;
+            const error = this._registry.getSourceError(s.id);
+            const status = error ? `error — ${error}` : `${String(count)} skills`;
+            return `- **${s.id}** (${s.type}, ${s.trust}): ${status}\n  URL: ${s.url}`;
         });
 
         return {
