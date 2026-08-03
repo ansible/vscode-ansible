@@ -1170,7 +1170,8 @@ export class SkillRegistry {
             throw new Error(`registry source "${source.id}" has no URL configured`);
         }
 
-        const raw = await this._httpGet(source.url);
+        const authHeaders = this._getAuthHeaders();
+        const raw = await this._httpGet(source.url, authHeaders);
         if (raw === undefined) {
             throw new Error(`registry source "${source.id}" is unreachable at ${source.url}`);
         }
@@ -1191,7 +1192,13 @@ export class SkillRegistry {
             );
         }
 
-        const skills: SkillEntry[] = [];
+        interface PendingRegistrySkill {
+            slug: string;
+            entry: RegistryIndexEntry;
+            contentUrl?: string;
+        }
+
+        const pending: PendingRegistrySkill[] = [];
         for (const entry of entries) {
             try {
                 // Parameterized templates are not concrete skills.
@@ -1208,37 +1215,54 @@ export class SkillRegistry {
                 if (!slug) {
                     continue;
                 }
+                pending.push({
+                    slug,
+                    entry,
+                    contentUrl: this._registryContentUrl(entry.url),
+                });
+            } catch (err: unknown) {
+                log(
+                    `SkillRegistry: skipping invalid registry entry in ${source.id}: ${String(err)}`,
+                );
+            }
+        }
 
-                const contentUrl = this._registryContentUrl(entry.url);
+        const fetched = await this._mapPool(pending, 5, async (item) => {
+            if (!item.contentUrl) {
+                return { item, skillMd: undefined as string | undefined };
+            }
+            const skillMd = await this._httpGet(item.contentUrl, authHeaders);
+            return { item, skillMd };
+        });
 
+        const skills: SkillEntry[] = [];
+        for (const { item, skillMd } of fetched) {
+            try {
                 let frontmatter: SkillFrontmatter = {};
                 let body: string | undefined;
-                if (contentUrl) {
-                    const skillMd = await this._httpGet(contentUrl);
-                    if (skillMd) {
-                        const parsedSkill = this._parseSkillMd(skillMd);
-                        frontmatter = parsedSkill.frontmatter;
-                        body = parsedSkill.body;
-                    }
+                if (skillMd) {
+                    const parsedSkill = this._parseSkillMd(skillMd);
+                    frontmatter = parsedSkill.frontmatter;
+                    body = parsedSkill.body;
                 }
 
                 const description =
                     typeof frontmatter.description === 'string'
                         ? frontmatter.description
-                        : typeof entry.description === 'string'
-                          ? entry.description
+                        : typeof item.entry.description === 'string'
+                          ? item.entry.description
                           : '';
-                const triggersRaw = frontmatter.triggers ?? entry.triggers;
-                const tagsRaw = frontmatter.tags ?? entry.tags;
+                const triggersRaw = frontmatter.triggers ?? item.entry.triggers;
+                const tagsRaw = frontmatter.tags ?? item.entry.tags;
 
                 skills.push({
-                    id: `${source.id}/${slug}`,
+                    id: `${source.id}/${item.slug}`,
                     source: source.id,
                     module: source.id,
                     name:
                         typeof frontmatter.name === 'string' && frontmatter.name
                             ? frontmatter.name
-                            : slug,
+                            : item.slug,
                     description,
                     triggers: this._normalizeTriggers(
                         typeof triggersRaw === 'string' || Array.isArray(triggersRaw)
@@ -1248,21 +1272,21 @@ export class SkillRegistry {
                     category:
                         (frontmatter.category as SkillCategory | undefined) ??
                         this._inferCategoryFromFrontmatter(frontmatter) ??
-                        (typeof entry.category === 'string'
-                            ? (entry.category as SkillCategory)
+                        (typeof item.entry.category === 'string'
+                            ? (item.entry.category as SkillCategory)
                             : undefined) ??
                         'other',
                     domain:
                         typeof frontmatter.domain === 'string'
                             ? frontmatter.domain
-                            : typeof entry.domain === 'string'
-                              ? entry.domain
+                            : typeof item.entry.domain === 'string'
+                              ? item.entry.domain
                               : undefined,
                     tags: Array.isArray(tagsRaw)
                         ? tagsRaw.filter((t): t is string => typeof t === 'string')
                         : [],
                     trust: source.trust,
-                    contentUrl,
+                    contentUrl: item.contentUrl,
                     content: body,
                 });
             } catch (err: unknown) {
@@ -1273,6 +1297,35 @@ export class SkillRegistry {
         }
 
         return skills;
+    }
+
+    /**
+     * Maps items with a fixed concurrency limit.
+     *
+     * @param items - Items to process.
+     * @param concurrency - Maximum parallel workers.
+     * @param fn - Async mapper.
+     * @returns Mapped results in input order.
+     */
+    private async _mapPool<T, R>(
+        items: T[],
+        concurrency: number,
+        fn: (item: T) => Promise<R>,
+    ): Promise<R[]> {
+        if (items.length === 0) {
+            return [];
+        }
+        const results: R[] = new Array<R>(items.length);
+        let next = 0;
+        const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+            while (next < items.length) {
+                const index = next;
+                next += 1;
+                results[index] = await fn(items[index]);
+            }
+        });
+        await Promise.all(workers);
+        return results;
     }
 
     /**
@@ -1593,7 +1646,28 @@ export class SkillRegistry {
                     res.statusCode < 400 &&
                     res.headers.location
                 ) {
-                    void this._httpGet(res.headers.location, headers).then(resolve);
+                    try {
+                        const current = new URL(url);
+                        const target = new URL(res.headers.location, url);
+                        let redirectHeaders = headers;
+                        if (headers?.Authorization) {
+                            const downgrades =
+                                current.protocol === 'https:' && target.protocol !== 'https:';
+                            const originChanged =
+                                current.protocol !== target.protocol ||
+                                current.host !== target.host;
+                            if (downgrades || originChanged) {
+                                const rest = Object.fromEntries(
+                                    Object.entries(headers).filter(([k]) => k !== 'Authorization'),
+                                );
+                                redirectHeaders = Object.keys(rest).length > 0 ? rest : undefined;
+                            }
+                        }
+                        void this._httpGet(target.toString(), redirectHeaders).then(resolve);
+                    } catch (err: unknown) {
+                        log(`SkillRegistry: invalid redirect from ${url}: ${String(err)}`);
+                        resolve(undefined);
+                    }
                     return;
                 }
 
