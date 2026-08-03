@@ -24,8 +24,6 @@ const DEPENDENCY_EXTENSIONS = [
   "ms-python.vscode-python-envs",
   "ms-vscode-remote.remote-wsl",
   "redhat.vscode-yaml",
-  // Hard dependency (package.json extensionDependencies); required for
-  // redhat.ansible to activate under WDIO.
   "redhat.abbenay-provider",
 ];
 
