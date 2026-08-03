@@ -24,6 +24,7 @@ const DEPENDENCY_EXTENSIONS = [
   "ms-python.vscode-python-envs",
   "ms-vscode-remote.remote-wsl",
   "redhat.vscode-yaml",
+  "redhat.abbenay-provider",
 ];
 
 fs.mkdirSync(extensionsDir, { recursive: true });
