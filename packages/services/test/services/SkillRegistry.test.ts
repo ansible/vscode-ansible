@@ -707,6 +707,48 @@ Commit carefully.`;
             expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
             expect(reg.getSourceError('bad-reg')).toContain('invalid JSON');
         });
+
+        it('skips malformed entries without failing the whole source', async () => {
+            const index = {
+                skills: [
+                    {
+                        name: 123,
+                        type: 'skill-md',
+                        description: 'bad name type',
+                        url: 'https://example.com/skills/bad/SKILL.md',
+                    },
+                    {
+                        name: 'good-skill',
+                        type: 'skill-md',
+                        description: 'valid skill',
+                        url: 'https://example.com/skills/good-skill/SKILL.md',
+                        triggers: { nope: true },
+                    },
+                ],
+            };
+            httpResponses.set('https://example.com/mixed-registry.json', JSON.stringify(index));
+            httpResponses.set(
+                'https://example.com/skills/good-skill/SKILL.md',
+                '---\nname: Good Skill\ndescription: Valid\n---\nBody',
+            );
+
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'mixed-reg',
+                    type: 'registry',
+                    url: 'https://example.com/mixed-registry.json',
+                    trust: 'certified',
+                },
+            ]);
+            await reg.ensureLoaded();
+
+            const skills = nonBuiltin(reg.getAllSkills());
+            expect(skills).toHaveLength(1);
+            expect(skills[0].id).toBe('mixed-reg/good-skill');
+            expect(skills[0].triggers).toEqual([]);
+            expect(reg.getSourceError('mixed-reg')).toBeUndefined();
+        });
     });
 
     describe('GitHub source with mocked HTTP', () => {

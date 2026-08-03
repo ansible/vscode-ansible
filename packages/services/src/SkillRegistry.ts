@@ -19,6 +19,7 @@ try {
     // Running standalone (MCP server, CLI)
 }
 
+import * as http from 'http';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -26,7 +27,15 @@ import * as os from 'os';
 import * as childProcess from 'child_process';
 import * as yaml from 'js-yaml';
 
-import { log, SimpleEventEmitter, BUILTIN_SKILLS } from '@ansible/common';
+import {
+    log,
+    SimpleEventEmitter,
+    BUILTIN_SKILLS,
+    type SkillSource,
+    type TrustLevel,
+} from '@ansible/common';
+
+export type { SkillSource, TrustLevel };
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,25 +44,8 @@ import { log, SimpleEventEmitter, BUILTIN_SKILLS } from '@ansible/common';
 /** Broad skill category. */
 export type SkillCategory = 'standards' | 'sdlc' | 'domain' | 'scaffold' | 'workflow' | 'other';
 
-/** How much the source is trusted. */
-export type TrustLevel = 'community' | 'certified' | 'partner' | 'private';
-
 /** Detected repository layout convention. */
 export type RepoFormat = 'lola' | 'vercel' | 'generic';
-
-/** Describes a location from which skills can be loaded. */
-export interface SkillSource {
-    /** Unique identifier for this source. */
-    id: string;
-    /** Transport type: github, registry index URL, local disk, or builtin. */
-    type: 'github' | 'registry' | 'local' | 'builtin';
-    /** URL or path for the source. */
-    url: string;
-    /** Trust level applied to all skills from this source. */
-    trust: TrustLevel;
-    /** Hours between automatic refreshes (default: 24). */
-    refreshInterval?: number;
-}
 
 /** A single indexed skill. */
 export interface SkillEntry {
@@ -1201,52 +1193,107 @@ export class SkillRegistry {
 
         const skills: SkillEntry[] = [];
         for (const entry of entries) {
-            // Parameterized templates are not concrete skills.
-            if (entry.type === 'mcp-resource-template') {
-                continue;
-            }
-            const slug = entry.name?.trim();
-            if (!slug) {
-                continue;
-            }
-
-            const contentUrl =
-                typeof entry.url === 'string' && /^https?:\/\//i.test(entry.url)
-                    ? entry.url
-                    : undefined;
-
-            let frontmatter: SkillFrontmatter = {};
-            let body: string | undefined;
-            if (contentUrl) {
-                const skillMd = await this._httpGet(contentUrl);
-                if (skillMd) {
-                    const parsedSkill = this._parseSkillMd(skillMd);
-                    frontmatter = parsedSkill.frontmatter;
-                    body = parsedSkill.body;
+            try {
+                // Parameterized templates are not concrete skills.
+                if (entry.type === 'mcp-resource-template') {
+                    continue;
                 }
-            }
+                if (typeof entry.name !== 'string') {
+                    log(
+                        `SkillRegistry: skipping registry entry in ${source.id}: name must be a string`,
+                    );
+                    continue;
+                }
+                const slug = entry.name.trim();
+                if (!slug) {
+                    continue;
+                }
 
-            skills.push({
-                id: `${source.id}/${slug}`,
-                source: source.id,
-                module: source.id,
-                name: frontmatter.name ?? slug,
-                description: frontmatter.description ?? entry.description ?? '',
-                triggers: this._normalizeTriggers(frontmatter.triggers ?? entry.triggers),
-                category:
-                    (frontmatter.category as SkillCategory | undefined) ??
-                    this._inferCategoryFromFrontmatter(frontmatter) ??
-                    (entry.category as SkillCategory | undefined) ??
-                    'other',
-                domain: frontmatter.domain ?? entry.domain,
-                tags: frontmatter.tags ?? entry.tags ?? [],
-                trust: source.trust,
-                contentUrl,
-                content: body,
-            });
+                const contentUrl = this._registryContentUrl(entry.url);
+
+                let frontmatter: SkillFrontmatter = {};
+                let body: string | undefined;
+                if (contentUrl) {
+                    const skillMd = await this._httpGet(contentUrl);
+                    if (skillMd) {
+                        const parsedSkill = this._parseSkillMd(skillMd);
+                        frontmatter = parsedSkill.frontmatter;
+                        body = parsedSkill.body;
+                    }
+                }
+
+                const description =
+                    typeof frontmatter.description === 'string'
+                        ? frontmatter.description
+                        : typeof entry.description === 'string'
+                          ? entry.description
+                          : '';
+                const triggersRaw = frontmatter.triggers ?? entry.triggers;
+                const tagsRaw = frontmatter.tags ?? entry.tags;
+
+                skills.push({
+                    id: `${source.id}/${slug}`,
+                    source: source.id,
+                    module: source.id,
+                    name:
+                        typeof frontmatter.name === 'string' && frontmatter.name
+                            ? frontmatter.name
+                            : slug,
+                    description,
+                    triggers: this._normalizeTriggers(
+                        typeof triggersRaw === 'string' || Array.isArray(triggersRaw)
+                            ? triggersRaw
+                            : undefined,
+                    ),
+                    category:
+                        (frontmatter.category as SkillCategory | undefined) ??
+                        this._inferCategoryFromFrontmatter(frontmatter) ??
+                        (typeof entry.category === 'string'
+                            ? (entry.category as SkillCategory)
+                            : undefined) ??
+                        'other',
+                    domain:
+                        typeof frontmatter.domain === 'string'
+                            ? frontmatter.domain
+                            : typeof entry.domain === 'string'
+                              ? entry.domain
+                              : undefined,
+                    tags: Array.isArray(tagsRaw)
+                        ? tagsRaw.filter((t): t is string => typeof t === 'string')
+                        : [],
+                    trust: source.trust,
+                    contentUrl,
+                    content: body,
+                });
+            } catch (err: unknown) {
+                log(
+                    `SkillRegistry: skipping invalid registry entry in ${source.id}: ${String(err)}`,
+                );
+            }
         }
 
         return skills;
+    }
+
+    /**
+     * Returns an HTTP(S) content URL when supported by `_httpGet`.
+     *
+     * @param url - Candidate skill content URL from the registry index.
+     * @returns Absolute http(s) URL, or undefined when unsupported.
+     */
+    private _registryContentUrl(url: unknown): string | undefined {
+        if (typeof url !== 'string') {
+            return undefined;
+        }
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+                return url;
+            }
+        } catch {
+            return undefined;
+        }
+        return undefined;
     }
 
     /**
@@ -1374,7 +1421,7 @@ export class SkillRegistry {
             return [];
         }
         if (Array.isArray(raw)) {
-            return raw;
+            return raw.filter((t): t is string => typeof t === 'string');
         }
         return raw
             .split(',')
@@ -1523,7 +1570,23 @@ export class SkillRegistry {
                 ...headers,
             };
 
-            const req = https.get(url, { headers: reqHeaders }, (res) => {
+            let client: typeof http | typeof https = https;
+            try {
+                const protocol = new URL(url).protocol;
+                if (protocol === 'http:') {
+                    client = http;
+                } else if (protocol !== 'https:') {
+                    log(`SkillRegistry: unsupported URL protocol for ${url}`);
+                    resolve(undefined);
+                    return;
+                }
+            } catch (err: unknown) {
+                log(`SkillRegistry: invalid URL ${url}: ${String(err)}`);
+                resolve(undefined);
+                return;
+            }
+
+            const req = client.get(url, { headers: reqHeaders }, (res) => {
                 if (
                     res.statusCode &&
                     res.statusCode >= 300 &&
