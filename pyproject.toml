@@ -94,7 +94,15 @@ select = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
 "test/**/*.py" = ["DOC201", "DOC501", "PLC2701", "S"]
-"tools/test_*.py" = ["DOC201", "DOC501", "PLC2701", "PLR6301", "PT017", "PT027", "S"]
+"tools/test_*.py" = [
+  "DOC201",
+  "DOC501",
+  "PLC2701",
+  "PLR6301",
+  "PT017",
+  "PT027",
+  "S"
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
