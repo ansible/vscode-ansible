@@ -14,7 +14,7 @@ runs:
   steps:
     # needed by our prek system hooks like toml
     - name: Install uv (cache)
-      uses: astral-sh/setup-uv@v8.3.2
+      uses: astral-sh/setup-uv@v9.0.0
 
     # needed by our prek systems hooks like biome
     - name: Install node (cache)
@@ -37,7 +37,7 @@ runs:
         pnpm --version
 
     - name: Run prek
-      uses: j178/prek-action@v2
+      uses: j178/prek-action@v3.0.0
       # ideally prek should run in under 30s, but we keep a hard limit of 3
       # minutes to count for slower hooks and uncached data. If a hook is
       # slower, even occasionally it should be moved outside and included in
