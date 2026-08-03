@@ -1929,6 +1929,7 @@ export class McpToolHandler {
 ### Execution Environments
 - \`list_execution_environments\` / \`get_ee_details\` -- inspect container-based EEs (read-only)
 - \`build_execution_environment\` -- build an EE image from execution-environment.yml via ansible-builder
+- Use creator tool \`ac_add_res_devc\` to scaffold \`.devcontainer/\` (pass EE image via \`image\`)
 
 ### Skills (read-only)
 - \`skill_search\` -- find skills by keyword

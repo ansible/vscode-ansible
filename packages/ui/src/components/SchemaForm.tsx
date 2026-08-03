@@ -72,7 +72,11 @@ export function SchemaForm({
         const initial: Record<string, unknown> = {};
         for (const [key, prop] of Object.entries(properties)) {
             if (filtered.has(key)) continue;
-            if (prop.default !== undefined && prop.default !== null) {
+            // Prefer caller prefill (e.g. EE image) over schema default so
+            // preview/default-hint keep using the real schema default.
+            if (prop.prefill !== undefined && prop.prefill !== null) {
+                initial[key] = prop.prefill;
+            } else if (prop.default !== undefined && prop.default !== null) {
                 initial[key] = prop.default;
             }
             if ((key === 'path' || key === 'init_path') && workspacePath) {

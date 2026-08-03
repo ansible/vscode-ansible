@@ -11,6 +11,7 @@ import analyzeTaskResult from './analyze-task-result.content';
 import buildTask from './build-task.content';
 import detailExecutionEnv from './detail-execution-env.content';
 import explainPlugin from './explain-plugin.content';
+import guideEeDevcontainer from './guide-ee-devcontainer.content';
 import overviewCollectionSources from './overview-collection-sources.content';
 import overviewCreator from './overview-creator.content';
 import summarizeCollection from './summarize-collection.content';
@@ -27,6 +28,7 @@ export const BUILTIN_SKILLS: Record<string, string> = {
     'build-task': buildTask,
     'detail-execution-env': detailExecutionEnv,
     'explain-plugin': explainPlugin,
+    'guide-ee-devcontainer': guideEeDevcontainer,
     'overview-collection-sources': overviewCollectionSources,
     'overview-creator': overviewCreator,
     'summarize-collection': summarizeCollection,

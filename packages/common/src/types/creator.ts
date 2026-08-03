@@ -7,6 +7,12 @@ export interface ParameterSchema {
     type: string;
     description: string;
     default?: unknown;
+    /**
+     * Optional initial form value that does not replace `default`.
+     * Used to prefill Creator fields (e.g. EE `--image`) while keeping
+     * preview/default-hint behavior tied to the real schema default.
+     */
+    prefill?: unknown;
     enum?: string[];
     aliases?: string[];
 }

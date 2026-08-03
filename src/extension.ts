@@ -41,6 +41,7 @@ import {
     setLogFunction as setCollectionsLogFunction,
     DevToolsService,
     ExecutionEnvService,
+    CreatorService,
     cacheSelectedEnvironment,
     getCommandService,
     SkillRegistry,
@@ -56,6 +57,7 @@ import {
     buildEEDetailPrompt,
     buildCreatorOverviewPrompt,
     buildCreatorCommandWalkthroughPrompt,
+    resolveDevcontainerFormPlan,
 } from '@ansible/developer-services';
 import type {
     PythonEnvironment,
@@ -959,6 +961,35 @@ export async function activate(context: vscode.ExtensionContext) {
             }
         },
     );
+
+    // Open ansible-creator add-devcontainer form prefilled with the EE image
+    const eeGenerateDevcontainerCommand = vscode.commands.registerCommand(
+        'ansibleExecutionEnvironments.generateDevcontainer',
+        async (node?: { ee?: { full_name?: string } }) => {
+            const eeName = node?.ee?.full_name;
+            const creator = CreatorService.getInstance();
+            const rootSchema = eeName ? ((await creator.loadSchema()) ?? undefined) : undefined;
+            const plan = resolveDevcontainerFormPlan(
+                eeName,
+                rootSchema,
+                rootSchema ? undefined : creator.getStatus(),
+            );
+
+            if (plan.kind === 'noop') {
+                return;
+            }
+            if (plan.kind === 'error') {
+                void vscode.window.showErrorMessage(plan.message);
+                return;
+            }
+
+            telemetry.sendEvent(TelemetryEvents.CREATOR_FORM_OPEN, {
+                command: plan.commandPath.join('/'),
+            });
+            CreatorFormPanel.show(context.extensionUri, plan.commandPath, plan.schema);
+        },
+    );
+    context.subscriptions.push(eeGenerateDevcontainerCommand);
 
     // Open EE detail panel
     const eeDetailCommand = vscode.commands.registerCommand(

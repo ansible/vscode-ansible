@@ -1,4 +1,4 @@
-import type { SchemaNode } from '../types/creator';
+import type { CreatorStatus, SchemaNode } from '../types/creator';
 
 /** Schema parameter keys omitted from creator form UI. */
 export const CREATOR_FILTERED_KEYS = [
@@ -192,6 +192,117 @@ export function buildPreviewString(
     }
 
     return `ansible-creator ${args.join(' ')}`;
+}
+
+/**
+ * Walks a chain of subcommand segments starting at a root schema node.
+ *
+ * @param root - Root schema node to start the traversal from.
+ * @param path - Subcommand path segments (e.g. `['add', 'resource', 'devcontainer']`).
+ * @returns The resolved schema node, or `undefined` if any segment is missing.
+ */
+export function resolveSchemaNode(root: SchemaNode, path: string[]): SchemaNode | undefined {
+    let node: SchemaNode | undefined = root;
+    for (const segment of path) {
+        node = node.subcommands?.[segment];
+        if (!node) {
+            return undefined;
+        }
+    }
+    return node;
+}
+
+/**
+ * Returns a copy of a schema node with one parameter's `prefill` set, leaving
+ * the original node and its schema `default` untouched. Useful for seeding a
+ * Creator form field (e.g. `image`) from calling context without making
+ * `buildPreviewString` treat the value as the schema default (and omit it).
+ *
+ * @param schema - Schema node whose parameter should be prefilled.
+ * @param key - Parameter name to prefill.
+ * @param value - Initial form value for the parameter.
+ * @returns A new schema node with `prefill` applied, or the original node
+ * unchanged if it has no matching parameter.
+ */
+export function withPrefilledDefault(schema: SchemaNode, key: string, value: unknown): SchemaNode {
+    const parameters = schema.parameters;
+    const property = parameters?.properties[key];
+    if (!parameters || !property) {
+        return schema;
+    }
+    return {
+        ...schema,
+        parameters: {
+            type: parameters.type,
+            required: parameters.required,
+            properties: {
+                ...parameters.properties,
+                [key]: { ...property, prefill: value },
+            },
+        },
+    };
+}
+
+/** ansible-creator subcommand path for scaffolding a Dev Container. */
+export const DEVCONTAINER_COMMAND_PATH = ['add', 'resource', 'devcontainer'];
+
+/** Outcome of resolving an EE → Dev Container creator-form request. */
+export type DevcontainerFormPlan =
+    | { kind: 'noop' }
+    | { kind: 'error'; message: string }
+    | { kind: 'open'; commandPath: string[]; schema: SchemaNode };
+
+/**
+ * Resolves what the "Add Dev Container" EE command should do, keeping the
+ * VS Code command handler a thin registration. Prefills the resolved
+ * schema's `image` field with the selected EE so the Creator form opens
+ * ready to submit (without changing the schema `default`).
+ *
+ * @param eeName - Full name of the selected EE image, or undefined when the
+ * command was not invoked from a valid EE tree node.
+ * @param rootSchema - ansible-creator root schema, or undefined when
+ * ansible-creator is not installed or the schema failed to load.
+ * @param creatorStatus - Optional readiness status from CreatorService when
+ * `rootSchema` is missing, used to distinguish "not installed" from "outdated".
+ * @returns A no-op when no EE was selected, an error when ansible-creator is
+ * missing `add resource devcontainer`, or an open plan with the resolved
+ * command path and image-prefilled schema.
+ */
+export function resolveDevcontainerFormPlan(
+    eeName: string | undefined,
+    rootSchema: SchemaNode | undefined,
+    creatorStatus?: CreatorStatus,
+): DevcontainerFormPlan {
+    if (!eeName) {
+        return { kind: 'noop' };
+    }
+    if (!rootSchema) {
+        if (creatorStatus === 'outdated') {
+            return {
+                kind: 'error',
+                message:
+                    'ansible-creator is outdated and cannot load its schema. Upgrade ansible-dev-tools to scaffold a Dev Container.',
+            };
+        }
+        return {
+            kind: 'error',
+            message:
+                'ansible-creator not found. Install ansible-dev-tools to scaffold a Dev Container.',
+        };
+    }
+    const schemaNode = resolveSchemaNode(rootSchema, DEVCONTAINER_COMMAND_PATH);
+    if (!schemaNode) {
+        return {
+            kind: 'error',
+            message:
+                'ansible-creator does not support `add resource devcontainer`. Upgrade ansible-dev-tools.',
+        };
+    }
+    return {
+        kind: 'open',
+        commandPath: [...DEVCONTAINER_COMMAND_PATH],
+        schema: withPrefilledDefault(schemaNode, 'image', eeName),
+    };
 }
 
 /**
