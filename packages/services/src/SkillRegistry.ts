@@ -1201,9 +1201,6 @@ export class SkillRegistry {
 
         const skills: SkillEntry[] = [];
         for (const entry of entries) {
-            if (!entry || typeof entry !== 'object') {
-                continue;
-            }
             // Parameterized templates are not concrete skills.
             if (entry.type === 'mcp-resource-template') {
                 continue;
@@ -1259,13 +1256,16 @@ export class SkillRegistry {
      * @returns Skills entries, or undefined when the shape is invalid.
      */
     private _registryIndexEntries(parsed: unknown): RegistryIndexEntry[] | undefined {
+        const asEntries = (value: unknown[]): RegistryIndexEntry[] =>
+            value.filter((e): e is RegistryIndexEntry => e !== null && typeof e === 'object');
+
         if (Array.isArray(parsed)) {
-            return parsed as RegistryIndexEntry[];
+            return asEntries(parsed);
         }
         if (parsed && typeof parsed === 'object') {
             const skills = (parsed as RegistryIndexDocument & { skills?: unknown }).skills;
             if (Array.isArray(skills)) {
-                return skills;
+                return asEntries(skills);
             }
         }
         return undefined;
