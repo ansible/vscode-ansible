@@ -539,19 +539,215 @@ This is the body of the skill.`,
         });
     });
 
-    describe('registry source (placeholder)', () => {
-        it('returns empty for registry type', async () => {
+    describe('registry source', () => {
+        beforeEach(() => {
+            httpResponses.reset();
+        });
+
+        afterEach(() => {
+            httpResponses.reset();
+        });
+
+        it('loads skills from an Agent Skills discovery index', async () => {
+            const index = {
+                $schema: 'https://schemas.agentskills.io/discovery/0.2.0/schema.json',
+                skills: [
+                    {
+                        name: 'git-workflow',
+                        type: 'skill-md',
+                        description: 'Follow git conventions',
+                        url: 'https://example.com/skills/git-workflow/SKILL.md',
+                    },
+                    {
+                        type: 'mcp-resource-template',
+                        description: 'Parameterized docs',
+                        url: 'skill://docs/{product}/SKILL.md',
+                    },
+                ],
+            };
+            const skillMd = `---
+name: Git Workflow
+description: Follow this team's Git conventions
+category: sdlc
+triggers:
+  - commit changes
+tags:
+  - git
+---
+# Git Workflow
+
+Commit carefully.`;
+
+            httpResponses.set('https://example.com/registry/index.json', JSON.stringify(index));
+            httpResponses.set('https://example.com/skills/git-workflow/SKILL.md', skillMd);
+
             const reg = SkillRegistry.getInstance();
             reg.setSources([
                 {
                     id: 'reg-src',
                     type: 'registry',
-                    url: 'https://example.com/registry',
+                    url: 'https://example.com/registry/index.json',
                     trust: 'certified',
                 },
             ]);
             await reg.ensureLoaded();
+
+            const skills = nonBuiltin(reg.getAllSkills());
+            expect(skills).toHaveLength(1);
+            expect(skills[0].id).toBe('reg-src/git-workflow');
+            expect(skills[0].name).toBe('Git Workflow');
+            expect(skills[0].description).toBe("Follow this team's Git conventions");
+            expect(skills[0].category).toBe('sdlc');
+            expect(skills[0].trust).toBe('certified');
+            expect(skills[0].contentUrl).toBe('https://example.com/skills/git-workflow/SKILL.md');
+            expect(skills[0].content).toContain('Commit carefully');
+            expect(reg.getSourceError('reg-src')).toBeUndefined();
+        });
+
+        it('loads skills from a bare skills array', async () => {
+            const index = [
+                {
+                    name: 'review-pr',
+                    type: 'skill-md',
+                    description: 'Review pull requests',
+                    url: 'https://example.com/skills/review-pr/SKILL.md',
+                    category: 'standards',
+                },
+            ];
+            httpResponses.set('https://example.com/bare-registry.json', JSON.stringify(index));
+            httpResponses.set(
+                'https://example.com/skills/review-pr/SKILL.md',
+                '---\nname: Review PR\ndescription: Review PRs\n---\nBody',
+            );
+
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'bare-reg',
+                    type: 'registry',
+                    url: 'https://example.com/bare-registry.json',
+                    trust: 'community',
+                },
+            ]);
+            await reg.ensureLoaded();
+
+            const skills = nonBuiltin(reg.getAllSkills());
+            expect(skills).toHaveLength(1);
+            expect(skills[0].id).toBe('bare-reg/review-pr');
+            expect(skills[0].name).toBe('Review PR');
+        });
+
+        it('indexes metadata-only entries when skill URL is not HTTP', async () => {
+            const index = {
+                skills: [
+                    {
+                        name: 'local-skill',
+                        type: 'skill-md',
+                        description: 'Served over skill URI',
+                        url: 'skill://local-skill/SKILL.md',
+                        category: 'workflow',
+                    },
+                ],
+            };
+            httpResponses.set('https://example.com/skill-uri-index.json', JSON.stringify(index));
+
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'uri-reg',
+                    type: 'registry',
+                    url: 'https://example.com/skill-uri-index.json',
+                    trust: 'partner',
+                },
+            ]);
+            await reg.ensureLoaded();
+
+            const skills = nonBuiltin(reg.getAllSkills());
+            expect(skills).toHaveLength(1);
+            expect(skills[0].name).toBe('local-skill');
+            expect(skills[0].description).toBe('Served over skill URI');
+            expect(skills[0].category).toBe('workflow');
+            expect(skills[0].contentUrl).toBeUndefined();
+            expect(skills[0].content).toBeUndefined();
+        });
+
+        it('records a meaningful error when the registry is unreachable', async () => {
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'down-reg',
+                    type: 'registry',
+                    url: 'https://example.com/missing-registry.json',
+                    trust: 'certified',
+                },
+            ]);
+            await reg.ensureLoaded();
+
             expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
+            expect(reg.getSourceError('down-reg')).toContain('unreachable');
+            expect(reg.getSourceError('down-reg')).toContain(
+                'https://example.com/missing-registry.json',
+            );
+        });
+
+        it('records a meaningful error for invalid registry JSON', async () => {
+            httpResponses.set('https://example.com/bad-registry.json', 'not-json{');
+
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'bad-reg',
+                    type: 'registry',
+                    url: 'https://example.com/bad-registry.json',
+                    trust: 'certified',
+                },
+            ]);
+            await reg.ensureLoaded();
+
+            expect(nonBuiltin(reg.getAllSkills())).toHaveLength(0);
+            expect(reg.getSourceError('bad-reg')).toContain('invalid JSON');
+        });
+
+        it('skips malformed entries without failing the whole source', async () => {
+            const index = {
+                skills: [
+                    {
+                        name: 123,
+                        type: 'skill-md',
+                        description: 'bad name type',
+                        url: 'https://example.com/skills/bad/SKILL.md',
+                    },
+                    {
+                        name: 'good-skill',
+                        type: 'skill-md',
+                        description: 'valid skill',
+                        url: 'https://example.com/skills/good-skill/SKILL.md',
+                        triggers: { nope: true },
+                    },
+                ],
+            };
+            httpResponses.set('https://example.com/mixed-registry.json', JSON.stringify(index));
+            httpResponses.set(
+                'https://example.com/skills/good-skill/SKILL.md',
+                '---\nname: Good Skill\ndescription: Valid\n---\nBody',
+            );
+
+            const reg = SkillRegistry.getInstance();
+            reg.setSources([
+                {
+                    id: 'mixed-reg',
+                    type: 'registry',
+                    url: 'https://example.com/mixed-registry.json',
+                    trust: 'certified',
+                },
+            ]);
+            await reg.ensureLoaded();
+
+            const skills = nonBuiltin(reg.getAllSkills());
+            expect(skills).toHaveLength(1);
+            expect(skills[0].id).toBe('mixed-reg/good-skill');
+            expect(skills[0].triggers).toEqual([]);
+            expect(reg.getSourceError('mixed-reg')).toBeUndefined();
         });
     });
 
