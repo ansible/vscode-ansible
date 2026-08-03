@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import logging
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import tomllib
-from check_uv_lock_downgrades import find_downgrades, format_report, main
+from check_uv_lock_downgrades import (
+    PackageKey,
+    find_downgrades,
+    format_report,
+    locked_versions,
+    main,
+)
 
 
 def _lock(*packages: str, root_deps: list[str] | None = None) -> str:
@@ -248,6 +256,74 @@ class MainCliTests(unittest.TestCase):
             head.write_text(content, encoding="utf-8")
             code = main(["--base", str(base), "--head", str(head)])
             assert code == 0
+
+    def test_main_missing_lockfile(self) -> None:
+        """CLI exits 2 when a lockfile path does not exist."""
+        with tempfile.TemporaryDirectory() as tmp:
+            head = Path(tmp) / "head.lock"
+            head.write_text(_lock(RUFF_014, MYPY_117), encoding="utf-8")
+            with self.assertRaises(SystemExit) as ctx:
+                main(["--base", str(Path(tmp) / "missing.lock"), "--head", str(head)])
+            assert ctx.exception.code == 2
+
+    def test_main_malformed_lockfile(self) -> None:
+        """CLI exits 2 when a lockfile cannot be parsed."""
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp) / "base.lock"
+            head = Path(tmp) / "head.lock"
+            base.write_text("not: valid: toml [[[", encoding="utf-8")
+            head.write_text(_lock(RUFF_014, MYPY_117), encoding="utf-8")
+            with self.assertRaises(SystemExit) as ctx:
+                main(["--base", str(base), "--head", str(head)])
+            assert ctx.exception.code == 2
+
+    def test_main_github_step_summary(self) -> None:
+        """CLI appends the downgrade report to GITHUB_STEP_SUMMARY."""
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp) / "base.lock"
+            head = Path(tmp) / "head.lock"
+            summary = Path(tmp) / "summary.md"
+            base.write_text(_lock(RUFF_014, MYPY_117), encoding="utf-8")
+            head.write_text(_lock(RUFF_010, MYPY_117), encoding="utf-8")
+            summary.write_text("existing\n", encoding="utf-8")
+            with mock.patch.dict(
+                "os.environ",
+                {"GITHUB_STEP_SUMMARY": str(summary)},
+            ):
+                code = main([
+                    "--base",
+                    str(base),
+                    "--head",
+                    str(head),
+                    "--allow-downgrade",
+                    "--github-step-summary",
+                ])
+            assert code == 0
+            text = summary.read_text(encoding="utf-8")
+            assert text.startswith("existing\n")
+            assert "### uv.lock downgrades detected" in text
+
+
+class LockedVersionsTests(unittest.TestCase):
+    """Tests for locked_versions() edge cases."""
+
+    def test_unparsable_version_is_skipped_with_warning(self) -> None:
+        """Invalid version strings are skipped and logged."""
+        lock = _parse(
+            _lock(
+                """\
+[[package]]
+name = "ruff"
+version = "not-a-version"
+source = { registry = "https://pypi.org/simple" }
+""",
+                MYPY_117,
+            )
+        )
+        with self.assertLogs("check_uv_lock_downgrades", level=logging.WARNING) as logs:
+            versions = locked_versions(lock, only_names={"ruff", "mypy"})
+        assert PackageKey("ruff", ()) not in versions
+        assert any("not-a-version" in message for message in logs.output)
 
 
 if __name__ == "__main__":

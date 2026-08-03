@@ -117,6 +117,11 @@ def locked_versions(
         try:
             version = Version(str(version_raw))
         except InvalidVersion:
+            logger.warning(
+                "Skipping unparsable version %r for %s",
+                version_raw,
+                name,
+            )
             continue
         # Prefer first occurrence; uv.lock should not duplicate keys.
         result.setdefault(key, version)

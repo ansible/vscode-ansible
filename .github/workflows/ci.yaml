@@ -579,17 +579,26 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
           show-progress: false
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v8.3.2
+        with:
+          enable-cache: false
 
       - name: Fetch base branch lockfile
         env:
-          BASE_REF: ${{ github.base_ref || 'main' }}
+          # pull_request provides github.base_ref; merge_group uses event.merge_group.base_ref
+          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'main' }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          BASE_REF="${BASE_REF#refs/heads/}"
+          # Token is passed only for this fetch (persist-credentials is false).
+          git fetch --no-tags --depth=1 \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
           git show "origin/${BASE_REF}:uv.lock" > /tmp/base-uv.lock
 
       - name: Run unit tests
@@ -613,7 +622,9 @@ jobs:
           code=${PIPESTATUS[0]}
           set -e
           if [[ "$code" -eq 0 ]]; then
-            if grep -q "downgrades detected" /tmp/uv-lock-downgrade-report.md; then
+            # Match the report heading only; the success message also contains
+            # the substring "downgrades detected".
+            if grep -q "^### uv.lock downgrades detected" /tmp/uv-lock-downgrade-report.md; then
               echo "has_downgrades=true" >> "$GITHUB_OUTPUT"
             else
               echo "has_downgrades=false" >> "$GITHUB_OUTPUT"
