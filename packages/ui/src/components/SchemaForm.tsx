@@ -6,12 +6,10 @@ import { FormSelect } from './form/FormSelect';
 import { FormCheckbox } from './form/FormCheckbox';
 import { FormSection } from './form/FormSection';
 import { FormListBuilder } from './form/FormListBuilder';
+import { isValueMissing, getFieldError } from '../utils/formValidation';
 
 /** Default schema parameter keys hidden from the creator form UI. */
 const DEFAULT_FILTERED_KEYS = ['no_ansi', 'log_file', 'log_level', 'log_append', 'json', 'verbose'];
-
-/** Ansible FQCN format: namespace.name with lowercase letters, digits, and underscores. */
-const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
 
 interface SchemaFormProps {
     schema: SchemaNode;
@@ -128,65 +126,22 @@ export function SchemaForm({
         setTouched(all);
     }, [sortedKeys]);
 
-    const isValueMissing = useCallback((value: unknown, prop: ParameterSchema): boolean => {
-        if (value === undefined || value === null) return true;
-        if (prop.type === 'array') return !Array.isArray(value) || value.length === 0;
-        if (prop.type === 'boolean') return false;
-        if (typeof value === 'string') return value.trim() === '';
-        return false;
-    }, []);
-
-    const getFieldError = useCallback(
+    const validateField = useCallback(
         (key: string, value: unknown): string | undefined => {
             const isRequired = requiredKeys.includes(key);
             const prop = properties[key];
-            const strVal = typeof value === 'string' ? value.trim() : '';
-
-            if (isRequired && isValueMissing(value, prop)) {
-                return 'This field is required';
-            }
-
-            if (key === 'collection' && strVal !== '') {
-                if (!FQCN_PATTERN.test(strVal)) {
-                    return 'Must be in format namespace.name (lowercase letters and underscores only)';
-                }
-            }
-
-            if (
-                prop.minLength !== undefined &&
-                prop.minLength > 0 &&
-                strVal.length > 0 &&
-                strVal.length < prop.minLength
-            ) {
-                return `Must be at least ${String(prop.minLength)} characters`;
-            }
-
-            if (prop.maxLength !== undefined && strVal.length > prop.maxLength) {
-                return `Must be at most ${String(prop.maxLength)} characters`;
-            }
-
-            if (prop.pattern && strVal !== '') {
-                try {
-                    if (!new RegExp(prop.pattern).test(strVal)) {
-                        return 'Does not match the required format';
-                    }
-                } catch {
-                    /* invalid regex in schema, skip */
-                }
-            }
-
-            return undefined;
+            return getFieldError(key, value, prop, isRequired);
         },
-        [requiredKeys, properties, isValueMissing],
+        [requiredKeys, properties],
     );
 
     const errors = useMemo(() => {
         const result: Record<string, string | undefined> = {};
         for (const key of sortedKeys) {
-            result[key] = getFieldError(key, formValues[key]);
+            result[key] = validateField(key, formValues[key]);
         }
         return result;
-    }, [sortedKeys, formValues, getFieldError]);
+    }, [sortedKeys, formValues, validateField]);
 
     const isValid = useMemo(() => {
         return sortedKeys.every((key) => !errors[key]);
