@@ -50,7 +50,12 @@ export function getFieldError(
         }
     }
 
-    if (prop.minLength !== undefined && prop.minLength > 0 && strVal.length > 0 && strVal.length < prop.minLength) {
+    if (
+        prop.minLength !== undefined &&
+        prop.minLength > 0 &&
+        strVal.length > 0 &&
+        strVal.length < prop.minLength
+    ) {
         return `Must be at least ${String(prop.minLength)} characters`;
     }
 
