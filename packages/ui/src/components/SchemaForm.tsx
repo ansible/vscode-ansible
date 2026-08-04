@@ -10,6 +10,9 @@ import { FormListBuilder } from './form/FormListBuilder';
 /** Default schema parameter keys hidden from the creator form UI. */
 const DEFAULT_FILTERED_KEYS = ['no_ansi', 'log_file', 'log_level', 'log_append', 'json', 'verbose'];
 
+/** Ansible FQCN format: namespace.name with lowercase letters, digits, and underscores. */
+const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
+
 interface SchemaFormProps {
     schema: SchemaNode;
     workspacePath?: string;
@@ -124,8 +127,6 @@ export function SchemaForm({
         }
         setTouched(all);
     }, [sortedKeys]);
-
-    const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
 
     const isValueMissing = useCallback((value: unknown, prop: ParameterSchema): boolean => {
         if (value === undefined || value === null) return true;
