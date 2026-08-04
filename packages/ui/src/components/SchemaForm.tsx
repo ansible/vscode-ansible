@@ -68,6 +68,12 @@ export function SchemaForm({
     const requiredKeys = useMemo(() => schema.parameters?.required ?? [], [schema]);
     const filtered = useMemo(() => new Set(filteredKeys ?? DEFAULT_FILTERED_KEYS), [filteredKeys]);
 
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    const markTouched = useCallback((key: string) => {
+        setTouched((prev) => ({ ...prev, [key]: true }));
+    }, []);
+
     const [formValues, setFormValues] = useState<Record<string, unknown>>(() => {
         const initial: Record<string, unknown> = {};
         for (const [key, prop] of Object.entries(properties)) {
@@ -111,22 +117,71 @@ export function SchemaForm({
         [sortedKeys, requiredKeys],
     );
 
-    const isValid = useMemo(() => {
-        for (const key of requiredKeys) {
-            if (filtered.has(key)) continue;
-            const val = formValues[key];
-            if (val === undefined || val === null || val === '') return false;
+    const markAllTouched = useCallback(() => {
+        const all: Record<string, boolean> = {};
+        for (const key of sortedKeys) {
+            all[key] = true;
         }
-        return true;
-    }, [requiredKeys, formValues, filtered]);
+        setTouched(all);
+    }, [sortedKeys]);
+
+    const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
+
+    const getFieldError = useCallback(
+        (key: string, value: unknown): string | undefined => {
+            const isRequired = requiredKeys.includes(key);
+            const strVal = typeof value === 'string' ? value.trim() : '';
+            const prop = properties[key];
+
+            if (isRequired && (value === undefined || value === null || strVal === '')) {
+                return 'This field is required';
+            }
+
+            if (key === 'collection' && strVal !== '') {
+                if (!FQCN_PATTERN.test(strVal)) {
+                    return 'Must be in format namespace.name (lowercase letters and underscores only)';
+                }
+            }
+
+            if (prop?.minLength && strVal.length > 0 && strVal.length < prop.minLength) {
+                return `Must be at least ${String(prop.minLength)} characters`;
+            }
+
+            if (prop?.pattern && strVal !== '') {
+                try {
+                    if (!new RegExp(prop.pattern).test(strVal)) {
+                        return `Does not match the required format`;
+                    }
+                } catch {
+                    /* invalid regex in schema, skip */
+                }
+            }
+
+            return undefined;
+        },
+        [requiredKeys, properties],
+    );
+
+    const errors = useMemo(() => {
+        const result: Record<string, string | undefined> = {};
+        for (const key of sortedKeys) {
+            result[key] = getFieldError(key, formValues[key]);
+        }
+        return result;
+    }, [sortedKeys, formValues, getFieldError]);
+
+    const isValid = useMemo(() => {
+        return sortedKeys.every((key) => !errors[key]);
+    }, [sortedKeys, errors]);
 
     const preview = useMemo(() => buildPreview(formValues), [buildPreview, formValues]);
 
     const handleExecute = useCallback(() => {
+        markAllTouched();
         if (isValid) {
             onExecute(formValues);
         }
-    }, [isValid, formValues, onExecute]);
+    }, [isValid, formValues, onExecute, markAllTouched]);
 
     const renderField = useCallback(
         (key: string) => {
@@ -134,6 +189,7 @@ export function SchemaForm({
             const isRequired = requiredKeys.includes(key);
             const label = toLabel(key);
             const isPath = key === 'path' || key === 'init_path';
+            const fieldError = touched[key] ? errors[key] : undefined;
 
             if (prop.type === 'boolean') {
                 return (
@@ -166,6 +222,7 @@ export function SchemaForm({
                             prop.default !== undefined ? safeStr(prop.default) : undefined
                         }
                         required={isRequired}
+                        error={fieldError}
                     />
                 );
             }
@@ -186,6 +243,7 @@ export function SchemaForm({
                         }
                         required={isRequired}
                         placeholder={isRequired ? undefined : '-- Select --'}
+                        error={fieldError}
                     />
                 );
             }
@@ -207,10 +265,12 @@ export function SchemaForm({
                     }
                     required={isRequired}
                     isPath={isPath}
+                    error={fieldError}
+                    onBlur={() => { markTouched(key); }}
                 />
             );
         },
-        [properties, requiredKeys, formValues, updateValue],
+        [properties, requiredKeys, formValues, updateValue, touched, errors, markTouched],
     );
 
     const styles: Record<string, CSSProperties> = {

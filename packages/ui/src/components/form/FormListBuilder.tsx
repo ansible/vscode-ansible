@@ -9,6 +9,7 @@ interface FormListBuilderProps {
     defaultValue?: string;
     required?: boolean;
     placeholder?: string;
+    error?: string;
 }
 
 /**
@@ -22,6 +23,7 @@ interface FormListBuilderProps {
  * @param root0.defaultValue - Optional default value shown as hint text.
  * @param root0.required - Whether to show a required indicator.
  * @param root0.placeholder - Optional placeholder text for the input.
+ * @param root0.error - Optional validation error message to display.
  * @returns The rendered list builder field.
  */
 export function FormListBuilder({
@@ -32,6 +34,7 @@ export function FormListBuilder({
     defaultValue,
     required,
     placeholder,
+    error,
 }: FormListBuilderProps) {
     const [draft, setDraft] = useState('');
 
@@ -191,6 +194,18 @@ export function FormListBuilder({
                         </li>
                     ))}
                 </ul>
+            )}
+            {error && (
+                <div
+                    style={{
+                        fontSize: 11,
+                        color: 'var(--ui-error, var(--vscode-errorForeground, #f44))',
+                        marginTop: 4,
+                        lineHeight: 1.4,
+                    }}
+                >
+                    {error}
+                </div>
             )}
             {description && <div style={styles.help}>{description}</div>}
             {defaultValue !== undefined && (

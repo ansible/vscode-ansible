@@ -9,6 +9,7 @@ interface FormSelectProps {
     defaultValue?: string;
     required?: boolean;
     placeholder?: string;
+    error?: string;
 }
 
 /**
@@ -22,6 +23,7 @@ interface FormSelectProps {
  * @param root0.defaultValue - Optional default value shown as hint text.
  * @param root0.required - Whether to show a required indicator.
  * @param root0.placeholder - Optional empty option label.
+ * @param root0.error - Optional validation error message to display.
  * @returns The rendered select field.
  */
 export function FormSelect({
@@ -33,6 +35,7 @@ export function FormSelect({
     defaultValue,
     required,
     placeholder,
+    error,
 }: FormSelectProps) {
     const styles: Record<string, CSSProperties> = {
         group: { marginBottom: 20 },
@@ -53,7 +56,9 @@ export function FormSelect({
             background:
                 'var(--ui-input-bg, var(--vscode-dropdown-background, var(--vscode-input-background)))',
             color: 'var(--ui-input-fg, var(--vscode-dropdown-foreground, var(--vscode-input-foreground)))',
-            border: '1px solid var(--ui-input-border, var(--vscode-dropdown-border, var(--vscode-input-border, var(--ui-border, #444))))',
+            border: error
+                ? '1px solid var(--ui-error, var(--vscode-inputValidation-errorBorder, #f44))'
+                : '1px solid var(--ui-input-border, var(--vscode-dropdown-border, var(--vscode-input-border, var(--ui-border, #444))))',
             borderRadius: 4,
             fontSize: 13,
             outline: 'none',
@@ -93,6 +98,18 @@ export function FormSelect({
                     </option>
                 ))}
             </select>
+            {error && (
+                <div
+                    style={{
+                        fontSize: 11,
+                        color: 'var(--ui-error, var(--vscode-errorForeground, #f44))',
+                        marginTop: 4,
+                        lineHeight: 1.4,
+                    }}
+                >
+                    {error}
+                </div>
+            )}
             {description && <div style={styles.help}>{description}</div>}
             {defaultValue !== undefined && (
                 <div style={styles.default}>Default: {defaultValue}</div>
