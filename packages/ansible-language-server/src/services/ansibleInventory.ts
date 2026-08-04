@@ -133,14 +133,12 @@ export class AnsibleInventory {
  * @returns an array of object with host and priority as keys
  */
 function parseInventoryHosts(hostObj: inventoryType): HostType[] {
-  if (
-    !(
-      "all" in hostObj &&
-      typeof hostObj.all === "object" &&
-      "children" in hostObj.all &&
-      Array.isArray(hostObj.all.children)
-    )
-  ) {
+  if (!(
+    "all" in hostObj &&
+    typeof hostObj.all === "object" &&
+    "children" in hostObj.all &&
+    Array.isArray(hostObj.all.children)
+  )) {
     return [];
   }
   const topLevelGroups = hostObj.all.children.filter(

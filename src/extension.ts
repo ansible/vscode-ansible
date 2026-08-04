@@ -1560,8 +1560,7 @@ export function makeConfigurationMiddleware(
 
         const scopeUri = params.items[i].scopeUri ?? "";
         const pythonConfig = config.python as
-          | Record<string, unknown>
-          | undefined;
+          Record<string, unknown> | undefined;
         const rawInterpreterPath = pythonConfig?.interpreterPath;
 
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {

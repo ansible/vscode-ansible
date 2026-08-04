@@ -433,6 +433,8 @@ jobs:
           done
           # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
           rm -rf out/e2e/tmp/home/.local/share/mise || true
+          # Remove virtualenvs (symlinks race with tar --dereference)
+          rm -rf out/e2e/tmp/home/.local/share/virtualenvs || true
           # Reduce artifact size by removing cached test data
           rm -rf out/e2e/tmp/home/.cache || true
 
