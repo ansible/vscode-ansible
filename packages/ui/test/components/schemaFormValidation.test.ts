@@ -42,6 +42,10 @@ describe('isValueMissing', () => {
     it('treats true boolean as present', () => {
         expect(isValueMissing(true, boolProp)).toBe(false);
     });
+
+    it('treats number as present', () => {
+        expect(isValueMissing(42, stringProp)).toBe(false);
+    });
 });
 
 describe('getFieldError', () => {
@@ -163,6 +167,11 @@ describe('getFieldError', () => {
 
         it('skips check for empty value', () => {
             expect(getFieldError('name', '', prop, false)).toBeUndefined();
+        });
+
+        it('skips check for invalid regex in schema', () => {
+            const badProp: ParameterSchema = { ...stringProp, pattern: '[invalid(' };
+            expect(getFieldError('name', 'test', badProp, false)).toBeUndefined();
         });
     });
 });
