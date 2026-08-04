@@ -151,11 +151,16 @@ export function SchemaForm({
                 }
             }
 
-            if (prop.minLength && strVal.length > 0 && strVal.length < prop.minLength) {
+            if (
+                prop.minLength !== undefined &&
+                prop.minLength > 0 &&
+                strVal.length > 0 &&
+                strVal.length < prop.minLength
+            ) {
                 return `Must be at least ${String(prop.minLength)} characters`;
             }
 
-            if (prop.maxLength && strVal.length > prop.maxLength) {
+            if (prop.maxLength !== undefined && strVal.length > prop.maxLength) {
                 return `Must be at most ${String(prop.maxLength)} characters`;
             }
 
