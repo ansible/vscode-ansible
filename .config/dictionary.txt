@@ -65,6 +65,7 @@ genai
 haaaad
 hbenl
 highlightjs
+hono
 hostsvars
 inetpub
 issuetracker
@@ -122,6 +123,7 @@ tomlsort
 towerhost
 tsdown
 typedarrays
+undici
 unrs
 unstub
 uuidv
