@@ -9,6 +9,8 @@ interface FormListBuilderProps {
     defaultValue?: string;
     required?: boolean;
     placeholder?: string;
+    error?: string;
+    onBlur?: () => void;
 }
 
 /**
@@ -22,6 +24,8 @@ interface FormListBuilderProps {
  * @param root0.defaultValue - Optional default value shown as hint text.
  * @param root0.required - Whether to show a required indicator.
  * @param root0.placeholder - Optional placeholder text for the input.
+ * @param root0.error - Optional validation error message to display.
+ * @param root0.onBlur - Optional callback invoked when the input loses focus.
  * @returns The rendered list builder field.
  */
 export function FormListBuilder({
@@ -32,6 +36,8 @@ export function FormListBuilder({
     defaultValue,
     required,
     placeholder,
+    error,
+    onBlur,
 }: FormListBuilderProps) {
     const [draft, setDraft] = useState('');
 
@@ -81,7 +87,9 @@ export function FormListBuilder({
             padding: '6px 10px',
             background: 'var(--ui-input-bg, var(--vscode-input-background))',
             color: 'var(--ui-input-fg, var(--vscode-input-foreground))',
-            border: '1px solid var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))',
+            border: error
+                ? '1px solid var(--ui-error, var(--vscode-inputValidation-errorBorder, #f44))'
+                : '1px solid var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))',
             borderRadius: 4,
             fontSize: 13,
             outline: 'none',
@@ -165,8 +173,10 @@ export function FormListBuilder({
                             'var(--ui-input-focus-border, var(--vscode-focusBorder, #007acc))';
                     }}
                     onBlur={(e) => {
-                        e.target.style.borderColor =
-                            'var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))';
+                        e.target.style.borderColor = error
+                            ? 'var(--ui-error, var(--vscode-inputValidation-errorBorder, #f44))'
+                            : 'var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))';
+                        onBlur?.();
                     }}
                 />
                 <button type="button" style={styles.addBtn} onClick={addItem}>
@@ -191,6 +201,18 @@ export function FormListBuilder({
                         </li>
                     ))}
                 </ul>
+            )}
+            {error && (
+                <div
+                    style={{
+                        fontSize: 11,
+                        color: 'var(--ui-error, var(--vscode-errorForeground, #f44))',
+                        marginTop: 4,
+                        lineHeight: 1.4,
+                    }}
+                >
+                    {error}
+                </div>
             )}
             {description && <div style={styles.help}>{description}</div>}
             {defaultValue !== undefined && (

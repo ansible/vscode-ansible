@@ -15,6 +15,9 @@ export interface ParameterSchema {
     prefill?: unknown;
     enum?: string[];
     aliases?: string[];
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
 }
 
 /** Schema node representing a command or subcommand. */

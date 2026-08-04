@@ -9,6 +9,8 @@ interface FormTextFieldProps {
     defaultValue?: string;
     required?: boolean;
     isPath?: boolean;
+    error?: string;
+    onBlur?: () => void;
 }
 
 /**
@@ -22,6 +24,8 @@ interface FormTextFieldProps {
  * @param root0.defaultValue - Optional default value shown as hint text.
  * @param root0.required - Whether to show a required indicator.
  * @param root0.isPath - Whether to use monospace font for path fields.
+ * @param root0.error - Optional validation error message to display.
+ * @param root0.onBlur - Optional callback invoked when the field loses focus.
  * @returns The rendered text field.
  */
 export function FormTextField({
@@ -33,6 +37,8 @@ export function FormTextField({
     defaultValue,
     required,
     isPath,
+    error,
+    onBlur,
 }: FormTextFieldProps) {
     const styles: Record<string, CSSProperties> = {
         group: { marginBottom: 20 },
@@ -52,12 +58,20 @@ export function FormTextField({
             padding: '6px 10px',
             background: 'var(--ui-input-bg, var(--vscode-input-background))',
             color: 'var(--ui-input-fg, var(--vscode-input-foreground))',
-            border: '1px solid var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))',
+            border: error
+                ? '1px solid var(--ui-error, var(--vscode-inputValidation-errorBorder, #f44))'
+                : '1px solid var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))',
             borderRadius: 4,
             fontSize: 13,
             fontFamily: isPath ? 'var(--vscode-editor-font-family, monospace)' : 'inherit',
             outline: 'none',
             boxSizing: 'border-box' as const,
+        },
+        errorText: {
+            fontSize: 11,
+            color: 'var(--ui-error, var(--vscode-errorForeground, #f44))',
+            marginTop: 4,
+            lineHeight: 1.4,
         },
         help: {
             fontSize: 11,
@@ -92,10 +106,13 @@ export function FormTextField({
                         'var(--ui-input-focus-border, var(--vscode-focusBorder, #007acc))';
                 }}
                 onBlur={(e) => {
-                    e.target.style.borderColor =
-                        'var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))';
+                    e.target.style.borderColor = error
+                        ? 'var(--ui-error, var(--vscode-inputValidation-errorBorder, #f44))'
+                        : 'var(--ui-input-border, var(--vscode-input-border, var(--ui-border, #444)))';
+                    onBlur?.();
                 }}
             />
+            {error && <div style={styles.errorText}>{error}</div>}
             {description && <div style={styles.help}>{description}</div>}
             {defaultValue !== undefined && (
                 <div style={styles.default}>Default: {defaultValue}</div>
