@@ -93,7 +93,9 @@ export function FormSelect({
                 onChange={(e) => {
                     onChange(e.target.value);
                 }}
-                onBlur={() => { onBlur?.(); }}
+                onBlur={() => {
+                    onBlur?.();
+                }}
             >
                 {placeholder && <option value="">{placeholder}</option>}
                 {options.map((opt) => (

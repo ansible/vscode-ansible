@@ -161,7 +161,7 @@ export function SchemaForm({
 
             if (prop.pattern && strVal !== '') {
                 try {
-                    if (!new RegExp(prop.pattern as string).test(strVal)) {
+                    if (!new RegExp(prop.pattern).test(strVal)) {
                         return 'Does not match the required format';
                     }
                 } catch {
@@ -239,7 +239,9 @@ export function SchemaForm({
                         }
                         required={isRequired}
                         error={fieldError}
-                        onBlur={() => { markTouched(key); }}
+                        onBlur={() => {
+                            markTouched(key);
+                        }}
                     />
                 );
             }
@@ -261,7 +263,9 @@ export function SchemaForm({
                         required={isRequired}
                         placeholder={isRequired ? undefined : '-- Select --'}
                         error={fieldError}
-                        onBlur={() => { markTouched(key); }}
+                        onBlur={() => {
+                            markTouched(key);
+                        }}
                     />
                 );
             }
@@ -284,7 +288,9 @@ export function SchemaForm({
                     required={isRequired}
                     isPath={isPath}
                     error={fieldError}
-                    onBlur={() => { markTouched(key); }}
+                    onBlur={() => {
+                        markTouched(key);
+                    }}
                 />
             );
         },
@@ -368,11 +374,7 @@ export function SchemaForm({
                         Cancel
                     </button>
                 )}
-                <button
-                    type="button"
-                    style={styles.executeBtn}
-                    onClick={handleExecute}
-                >
+                <button type="button" style={styles.executeBtn} onClick={handleExecute}>
                     Run
                 </button>
             </div>
