@@ -6,7 +6,7 @@ import { FormSelect } from './form/FormSelect';
 import { FormCheckbox } from './form/FormCheckbox';
 import { FormSection } from './form/FormSection';
 import { FormListBuilder } from './form/FormListBuilder';
-import { isValueMissing, getFieldError } from '../utils/formValidation';
+import { getFieldError } from '../utils/formValidation';
 
 /** Default schema parameter keys hidden from the creator form UI. */
 const DEFAULT_FILTERED_KEYS = ['no_ansi', 'log_file', 'log_level', 'log_append', 'json', 'verbose'];
