@@ -94,6 +94,18 @@ describe('getFieldError', () => {
             );
         });
 
+        it('rejects leading underscore in namespace', () => {
+            expect(getFieldError('collection', '_ns.col', stringProp, true)).toBe(
+                'Must be in format namespace.name (lowercase letters and underscores only)',
+            );
+        });
+
+        it('rejects consecutive underscores', () => {
+            expect(getFieldError('collection', 'my__ns.col', stringProp, true)).toBe(
+                'Must be in format namespace.name (lowercase letters and underscores only)',
+            );
+        });
+
         it('does not apply FQCN check to non-collection fields', () => {
             expect(getFieldError('name', 'abc', stringProp, true)).toBeUndefined();
         });

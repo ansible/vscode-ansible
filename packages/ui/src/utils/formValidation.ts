@@ -5,8 +5,8 @@
 
 import type { ParameterSchema } from '../bridge/creator';
 
-/** Ansible FQCN format: namespace.name with lowercase letters, digits, and underscores. */
-const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
+/** Ansible FQCN format: namespace.name starting with a letter, no consecutive underscores. */
+const FQCN_PATTERN = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*\.[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
 /**
  * Check whether a form value should be considered missing for required-field validation.
