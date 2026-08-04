@@ -12,9 +12,11 @@ interface ParameterSchema {
 }
 
 /**
+ * Check whether a form value should be considered missing for required-field validation.
  *
- * @param value
- * @param prop
+ * @param value - The current field value to check.
+ * @param prop - Schema metadata describing the field type.
+ * @returns True when the value is absent or empty for its type.
  */
 function isValueMissing(value: unknown, prop: ParameterSchema): boolean {
     if (value === undefined || value === null) return true;
@@ -25,11 +27,13 @@ function isValueMissing(value: unknown, prop: ParameterSchema): boolean {
 }
 
 /**
+ * Return a validation error message for a single form field, or undefined when valid.
  *
- * @param key
- * @param value
- * @param prop
- * @param isRequired
+ * @param key - The schema parameter key (e.g. "collection", "name").
+ * @param value - The current field value.
+ * @param prop - Schema metadata for the field.
+ * @param isRequired - Whether the field is listed in the schema required array.
+ * @returns Error message string, or undefined when the value is valid.
  */
 function getFieldError(
     key: string,
