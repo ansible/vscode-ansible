@@ -127,13 +127,21 @@ export function SchemaForm({
 
     const FQCN_PATTERN = /^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/;
 
+    const isValueMissing = useCallback((value: unknown, prop: ParameterSchema): boolean => {
+        if (value === undefined || value === null) return true;
+        if (prop.type === 'array') return !Array.isArray(value) || value.length === 0;
+        if (prop.type === 'boolean') return false;
+        if (typeof value === 'string') return value.trim() === '';
+        return false;
+    }, []);
+
     const getFieldError = useCallback(
         (key: string, value: unknown): string | undefined => {
             const isRequired = requiredKeys.includes(key);
-            const strVal = typeof value === 'string' ? value.trim() : '';
             const prop = properties[key];
+            const strVal = typeof value === 'string' ? value.trim() : '';
 
-            if (isRequired && (value === undefined || value === null || strVal === '')) {
+            if (isRequired && isValueMissing(value, prop)) {
                 return 'This field is required';
             }
 
@@ -143,14 +151,18 @@ export function SchemaForm({
                 }
             }
 
-            if (prop?.minLength && strVal.length > 0 && strVal.length < prop.minLength) {
+            if (prop.minLength && strVal.length > 0 && strVal.length < prop.minLength) {
                 return `Must be at least ${String(prop.minLength)} characters`;
             }
 
-            if (prop?.pattern && strVal !== '') {
+            if (prop.maxLength && strVal.length > prop.maxLength) {
+                return `Must be at most ${String(prop.maxLength)} characters`;
+            }
+
+            if (prop.pattern && strVal !== '') {
                 try {
-                    if (!new RegExp(prop.pattern).test(strVal)) {
-                        return `Does not match the required format`;
+                    if (!new RegExp(prop.pattern as string).test(strVal)) {
+                        return 'Does not match the required format';
                     }
                 } catch {
                     /* invalid regex in schema, skip */
@@ -159,7 +171,7 @@ export function SchemaForm({
 
             return undefined;
         },
-        [requiredKeys, properties],
+        [requiredKeys, properties, isValueMissing],
     );
 
     const errors = useMemo(() => {
@@ -179,7 +191,11 @@ export function SchemaForm({
     const handleExecute = useCallback(() => {
         markAllTouched();
         if (isValid) {
-            onExecute(formValues);
+            const trimmed: Record<string, unknown> = {};
+            for (const [key, value] of Object.entries(formValues)) {
+                trimmed[key] = typeof value === 'string' ? value.trim() : value;
+            }
+            onExecute(trimmed);
         }
     }, [isValid, formValues, onExecute, markAllTouched]);
 
@@ -223,6 +239,7 @@ export function SchemaForm({
                         }
                         required={isRequired}
                         error={fieldError}
+                        onBlur={() => { markTouched(key); }}
                     />
                 );
             }
@@ -244,6 +261,7 @@ export function SchemaForm({
                         required={isRequired}
                         placeholder={isRequired ? undefined : '-- Select --'}
                         error={fieldError}
+                        onBlur={() => { markTouched(key); }}
                     />
                 );
             }
@@ -320,8 +338,8 @@ export function SchemaForm({
             borderRadius: 4,
             fontSize: 13,
             fontWeight: 600,
-            cursor: isValid ? 'pointer' : 'default',
-            opacity: isValid ? 1 : 0.5,
+            cursor: 'pointer',
+            opacity: isValid ? 1 : 0.7,
         },
     };
 
@@ -353,7 +371,6 @@ export function SchemaForm({
                 <button
                     type="button"
                     style={styles.executeBtn}
-                    disabled={!isValid}
                     onClick={handleExecute}
                 >
                     Run

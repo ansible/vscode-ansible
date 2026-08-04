@@ -10,6 +10,7 @@ interface FormSelectProps {
     required?: boolean;
     placeholder?: string;
     error?: string;
+    onBlur?: () => void;
 }
 
 /**
@@ -24,6 +25,7 @@ interface FormSelectProps {
  * @param root0.required - Whether to show a required indicator.
  * @param root0.placeholder - Optional empty option label.
  * @param root0.error - Optional validation error message to display.
+ * @param root0.onBlur - Optional callback invoked when the select loses focus.
  * @returns The rendered select field.
  */
 export function FormSelect({
@@ -36,6 +38,7 @@ export function FormSelect({
     required,
     placeholder,
     error,
+    onBlur,
 }: FormSelectProps) {
     const styles: Record<string, CSSProperties> = {
         group: { marginBottom: 20 },
@@ -90,6 +93,7 @@ export function FormSelect({
                 onChange={(e) => {
                     onChange(e.target.value);
                 }}
+                onBlur={() => { onBlur?.(); }}
             >
                 {placeholder && <option value="">{placeholder}</option>}
                 {options.map((opt) => (

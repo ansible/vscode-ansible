@@ -7,8 +7,12 @@ export interface ParameterSchema {
     type: string;
     description: string;
     default?: unknown;
+    prefill?: unknown;
     enum?: string[];
     aliases?: string[];
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
 }
 
 /**
