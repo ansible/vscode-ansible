@@ -57,23 +57,70 @@ This connects Abbenay to a local Ollama instance with one model. An empty object
 
 Add one or more AI provider engines under the `providers` section. Each provider needs a name, an engine ID, and at least one model.
 
-```yaml
-providers:
-  my-anthropic:
-    engine: anthropic
-    api_key_env_var_name: 'ANTHROPIC_API_KEY'
-    models:
-      claude-sonnet-4-20250514: {}
-      claude-3-5-haiku-20241022:
-        temperature: 0.7
-```
+### Prerequisites
 
-After editing the file, restart the daemon and confirm the new provider is available:
+- Abbenay is installed. See [Abbenay](/vscode-ansible/ai/abbenay/).
+- You have the API key for your chosen cloud provider (not required for Ollama or LM Studio).
 
-```bash
-aby stop && aby start
-aby list-models
-```
+On first use, create the configuration directory before editing `config.yaml`.
+
+### Procedure
+
+1. Create the Abbenay configuration directory and open `config.yaml`:
+
+   <Tabs>
+     <TabItem label="Linux">
+       ```bash
+       mkdir -p ~/.config/abbenay
+       vi ~/.config/abbenay/config.yaml
+       ```
+     </TabItem>
+     <TabItem label="macOS">
+       ```bash
+       mkdir -p ~/Library/Application\ Support/abbenay
+       vi ~/Library/Application\ Support/abbenay/config.yaml
+       ```
+     </TabItem>
+     <TabItem label="Windows">
+       ```powershell
+       mkdir $env:APPDATA\abbenay
+       notepad $env:APPDATA\abbenay\config.yaml
+       ```
+     </TabItem>
+   </Tabs>
+
+2. List all supported engine IDs:
+
+   ```bash
+   aby list-engines
+   ```
+
+3. Add a provider entry under the `providers` section. Each provider needs a name, an engine ID from step 2, and at least one model:
+
+   ```yaml
+   providers:
+     my-anthropic:
+       engine: anthropic
+       api_key_env_var_name: 'ANTHROPIC_API_KEY'
+       models:
+         claude-sonnet-4-20250514: {}
+         claude-3-5-haiku-20241022:
+           temperature: 0.7
+   ```
+
+4. Save the file.
+
+5. Restart the Abbenay daemon for changes to take effect:
+
+   ```bash
+   aby stop && aby start
+   ```
+
+6. Verify the new provider and models are available:
+
+   ```bash
+   aby list-models
+   ```
 
 ### Add multiple providers
 
@@ -184,6 +231,14 @@ The `base_url` should include the full path prefix up to `/models`. When no API 
 
 ### Discover available models
 
+List all supported engine IDs:
+
+```bash
+aby list-engines
+```
+
+Discover models from a configured or reachable provider, including models not yet in your configuration:
+
 ```bash
 aby list-models --discover ollama
 aby list-models --discover redhat
@@ -194,6 +249,8 @@ You can also discover models from the web dashboard using the Add Provider wizar
 ## Manage API keys and secrets
 
 Each provider uses exactly one of two mutually exclusive API key storage methods.
+
+For keychain storage, a system keychain must be available — macOS Keychain, Windows Credential Manager, or Linux Secret Service (via gnome-keyring or equivalent).
 
 <Tabs>
   <TabItem label="System keychain (interactive use)">
@@ -333,11 +390,11 @@ When the gRPC listener binds to a non-loopback address (`0.0.0.0`, a LAN IP, or 
 | `--insecure` | Bypass the TLS requirement and allow open auth (the consumer requirement is also waived). Use only on trusted networks |
 | `--allow-open-auth` | Skip the consumer requirement on non-loopback binds, without disabling TLS |
 
-Loopback binds (`127.0.0.1`, `::1`, `localhost`) may remain plaintext for local development. Unix sockets always remain plaintext (local IPC only — on Windows, the equivalent local transport is loopback TCP; see [Windows support](/vscode-ansible/ai/abbenay/#windows-support)). The container default `CMD` includes `--grpc-tls`.
+Loopback binds (`127.0.0.1`, `::1`, `localhost`) may remain plaintext for local development. Unix sockets always remain plaintext (local IPC only — on Windows, the equivalent local transport is loopback TCP; see [Windows support](/vscode-ansible/ai/abbenay/#windows-support)). The container default `CMD` includes `--grpc-tls`. gRPC clients that connect over TCP (such as the Python AbbenayClient and grpc-web-control) support matching SSL credentials with the `abbenay-grpc` target name.
 
 ### Dashboard session authentication
 
-The web dashboard uses `SameSite=Strict` cookies plus a CSRF token for browser session authentication. Open `http://127.0.0.1:8787/login` to establish a session. When authentication is enabled, unauthenticated browser requests to `/` redirect to `/login` — unless both the TCP peer and the browser `Host` header are localhost. API routes return `401 Unauthorized` JSON when unauthenticated.
+The web dashboard uses `SameSite=Strict` cookies plus a CSRF token for browser session authentication. Open `http://127.0.0.1:8787/login` to establish a session. When authentication is enabled, unauthenticated browser requests to `/` redirect to `/login` — unless both the TCP peer and the browser `Host` header are localhost. API routes (`/api/*`, `/v1/*`, `/mcp`) return `401 Unauthorized` JSON when unauthenticated.
 
 ### Provider endpoint policy
 
@@ -463,15 +520,15 @@ consumers:
 
 Grant only the capabilities each consumer application needs — for example, a monitoring agent might need only `chat`, while a configuration management tool would need `config` and `providers`.
 
-| Capability | Roughly gates |
-|------------|---------------|
-| `chat` | Sending chat messages and session summaries |
-| `inline_policy` | Overriding tool policy inline on a chat request (also requires `chat`) |
-| `mcp_register` | Registering, unregistering, or reconnecting dynamic MCP servers |
-| `secrets` | Reading, writing, deleting, or listing stored API keys |
-| `config` | Reading or updating daemon configuration and policies |
-| `providers` | Configuring, removing, or discovering models for a provider |
-| `shutdown` | Shutting down the daemon remotely |
+| Capability | Description |
+|------------|-------------|
+| `chat` | Chat and session operations |
+| `inline_policy` | Override tool policy inline on chat requests (requires `chat`) |
+| `mcp_register` | Register and manage dynamic MCP servers |
+| `secrets` | Read, write, and manage stored API keys |
+| `config` | Read or update daemon configuration and policies |
+| `providers` | Configure providers and discover models |
+| `shutdown` | Shut down the daemon remotely |
 
 | Bind address | No `consumers` configured | `consumers` configured |
 |---------------|---------------------------|--------------------------|
@@ -494,7 +551,7 @@ Sessions are isolated by owner. A caller can only list, view, delete, and resume
 
 ## Credential aggregation risk
 
-Abbenay centralizes API keys for 20 LLM providers in a single daemon (keychain and environment variables referenced from one configuration). If the daemon host or an authenticated configuration surface is compromised, all configured provider credentials can be exposed at once. This is a larger blast radius than per-extension credential storage, where compromising one editor extension typically yields only that extension's keys.
+Abbenay centralizes API keys for 20+ LLM providers in a single daemon (keychain and environment variables referenced from one configuration). If the daemon host or an authenticated configuration surface is compromised, all configured provider credentials can be exposed at once. This is a larger blast radius than per-extension credential storage, where compromising one editor extension typically yields only that extension's keys.
 
 ### Mitigations in place
 
@@ -532,7 +589,7 @@ Stronger isolation — per-secret encryption-at-rest beyond the OS keychain, and
 
 ## Supported engines
 
-All 20 production engines, plus a built-in `mock` engine used for testing.
+All 20 production engines, plus a built-in `mock` engine for testing. Run `aby list-engines` from the CLI to list all supported engine IDs.
 
 | Engine | ID | Default env var | Key required |
 |--------|----|--------------------|:---:|
@@ -584,13 +641,13 @@ All 20 production engines, plus a built-in `mock` engine used for testing.
 | Setting | Type | Description |
 |---------|------|--------------|
 | `token_env` | string | Environment variable holding the consumer token |
-| `capabilities.chat` | boolean | Chat, SessionChat, SummarizeSession |
-| `capabilities.inline_policy` | boolean | Inline PolicyConfig on chat requests |
-| `capabilities.mcp_register` | boolean | RegisterMcpServer, UnregisterMcpServer |
-| `capabilities.secrets` | boolean | GetSecret, SetSecret, DeleteSecret, ListSecrets, GetKeyStatus |
-| `capabilities.config` | boolean | GetConfig, UpdateConfig, CreatePolicy, DeletePolicy |
-| `capabilities.providers` | boolean | ConfigureProvider, RemoveProvider, DiscoverModels |
-| `capabilities.shutdown` | boolean | Shutdown |
+| `capabilities.chat` | boolean | Chat and session operations |
+| `capabilities.inline_policy` | boolean | Inline tool policy on chat requests (requires `chat`) |
+| `capabilities.mcp_register` | boolean | Register and manage dynamic MCP servers |
+| `capabilities.secrets` | boolean | Read, write, and manage stored API keys |
+| `capabilities.config` | boolean | Read or update daemon configuration and policies |
+| `capabilities.providers` | boolean | Configure providers and discover models |
+| `capabilities.shutdown` | boolean | Shut down the daemon remotely |
 
 ### `tool_policy` block
 
@@ -608,7 +665,20 @@ All 20 production engines, plus a built-in `mock` engine used for testing.
 
 ### Per-model settings
 
-See [Tune individual model behavior](#tune-individual-model-behavior) for the full field table (`model_id`, `system_prompt`, `temperature`, `max_tokens`, `reasoning`, and others).
+| Setting | Type | Description |
+|---------|------|--------------|
+| `model_id` | string | Actual engine model ID (when the YAML key is an alias) |
+| `system_prompt` | string | System prompt text |
+| `system_prompt_mode` | `"prepend"` \| `"replace"` | How to combine config and request system prompts (default: `"prepend"`) |
+| `temperature` | number (0.0–2.0) | Sampling temperature |
+| `top_p` | number (0.0–1.0) | Nucleus sampling |
+| `top_k` | number | Top-k sampling |
+| `max_tokens` | number | Maximum output tokens |
+| `timeout` | number (ms) | Request timeout (total budget) |
+| `reasoning` | string | Reasoning effort: `provider-default`, `none`, `minimal`, `low`, `medium`, `high`, `xhigh`. Deltas not streamed to clients yet |
+| `openai_compat_tools` | `"off"` \| `"passthrough"` | Per-model override for `/v1` tools passthrough |
+
+For examples and OpenAI-compatible tools passthrough details, see [Tune individual model behavior](#tune-individual-model-behavior).
 
 ### Per-provider settings
 
