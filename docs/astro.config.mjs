@@ -91,6 +91,10 @@ export default defineConfig({
                         { slug: 'ai/skills' },
                         { slug: 'ai/language-server' },
                         { slug: 'ai/connecting-agents' },
+                        {
+                            label: 'Abbenay',
+                            items: [{ slug: 'ai/abbenay' }, { slug: 'ai/abbenay-configuration' }],
+                        },
                     ],
                 },
                 {

@@ -1,0 +1,748 @@
+---
+title: Abbenay Configuration Reference
+description: Full configuration reference for the Abbenay AI daemon — providers, secrets, per-model tuning, security, tool policy, and the supported engine list.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+This page is the full configuration reference for [Abbenay](/vscode-ansible/ai/abbenay/). For installation and your first provider, start with [Abbenay](/vscode-ansible/ai/abbenay/) instead.
+
+Abbenay stores its configuration in a YAML file. It controls which AI providers are available, how API keys are stored, and how the daemon's security and tool policies operate.
+
+## Configuration file locations
+
+Abbenay supports two configuration levels. Workspace-level settings override user-level settings for the same keys.
+
+| Level | Path | Scope |
+|-------|------|-------|
+| User (Linux) | `~/.config/abbenay/config.yaml` | Applies globally to all workspaces |
+| User (macOS) | `~/Library/Application Support/abbenay/config.yaml` | Applies globally to all workspaces |
+| User (Windows) | `%APPDATA%\abbenay\config.yaml` | Applies globally to all workspaces |
+| Workspace | `<workspace>/.config/abbenay/config.yaml` | Applies to a single workspace only (overrides user-level) |
+
+## Configuration file structure
+
+The configuration file contains these top-level sections:
+
+| Section | Purpose |
+|---------|---------|
+| `providers` | AI provider definitions — engines, models, API key references |
+| `server` | HTTP API security — authentication, bind address, CORS, provider endpoint policy |
+| `security` | MCP spawn policy — stdio command allowlist, approval settings |
+| `consumers` | Named consumer applications — gRPC authentication and capability matrix |
+| `tool_policy` | Tool execution policy — auto-approve, require-approval, and disabled tool lists |
+| `openai_compat` | OpenAI-compatible API settings — tools passthrough toggle |
+| `mcp_servers` | MCP server definitions — external tool servers to connect to |
+
+### Minimal configuration example
+
+```yaml
+providers:
+  ollama:
+    engine: ollama
+    models:
+      llama3.2: {}
+```
+
+This connects Abbenay to a local Ollama instance with one model. An empty object `{}` means "enabled with all defaults." No API key is required for Ollama.
+
+### Key concepts
+
+- **Virtual provider name** — the YAML key (for example, `my-openai`). User-defined; must be lowercase alphanumeric with dots, hyphens, or underscores.
+- **Engine** — the actual API backend (`openai`, `anthropic`, `ollama`, and others). Fixed set of 20 supported production engines, plus a `mock` engine used for testing.
+- **Virtual model name** — the YAML key under `models`. Usually matches the engine model ID, but you can set a custom alias using the `model_id` field.
+- **Composite ID** — `{provider}/{model}` format (for example, `my-openai/gpt-4o`). Used in chat requests and API calls.
+
+## Connect provider engines
+
+Add one or more AI provider engines under the `providers` section. Each provider needs a name, an engine ID, and at least one model.
+
+```yaml
+providers:
+  my-anthropic:
+    engine: anthropic
+    api_key_env_var_name: 'ANTHROPIC_API_KEY'
+    models:
+      claude-sonnet-4-20250514: {}
+      claude-3-5-haiku-20241022:
+        temperature: 0.7
+```
+
+After editing the file, restart the daemon and confirm the new provider is available:
+
+```bash
+aby stop && aby start
+aby list-models
+```
+
+### Add multiple providers
+
+```yaml
+providers:
+  openai:
+    engine: openai
+    api_key_keychain_name: 'OPENAI_API_KEY'
+    models:
+      gpt-4o: {}
+      gpt-4o-mini: {}
+
+  anthropic:
+    engine: anthropic
+    api_key_keychain_name: 'ANTHROPIC_API_KEY'
+    models:
+      claude-sonnet-4-20250514: {}
+
+  local:
+    engine: ollama
+    models:
+      llama3.2: {}
+      qwen2.5-coder:
+        model_id: 'qwen2.5-coder:7b'
+```
+
+### Use multiple instances of the same engine
+
+Create multiple provider instances that use the same engine — useful when you have separate API keys for work and personal use, or need to connect to different endpoints:
+
+```yaml
+providers:
+  work-openai:
+    engine: openai
+    api_key_env_var_name: 'WORK_OPENAI_KEY'
+    base_url: 'https://corp-proxy.example.com/v1'
+    models:
+      gpt-4o: {}
+
+  personal-openai:
+    engine: openai
+    api_key_keychain_name: 'PERSONAL_OPENAI_KEY'
+    models:
+      gpt-4o: {}
+      gpt-4o-mini: {}
+```
+
+Each instance has a unique virtual provider name and can use different API keys, base URLs, and model selections.
+
+### Red Hat AI (both deployment profiles)
+
+Abbenay includes a dedicated `redhat` engine for Red Hat AI endpoints, with two deployment profiles:
+
+<Tabs>
+  <TabItem label="Profile A — Inference Server">
+    A standalone vLLM instance, local or OpenShift-hosted:
+
+    ```yaml
+    providers:
+      redhat-inference:
+        engine: redhat
+        models:
+          RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+    ```
+
+    The default endpoint is `http://127.0.0.1:8000/v1`. Authentication is optional (depends on whether the server was started with the `--api-key` flag).
+  </TabItem>
+  <TabItem label="Profile B — OpenShift AI MaaS">
+    OpenShift AI Models-as-a-Service, an enterprise governance gateway:
+
+    ```yaml
+    providers:
+      redhat-maas:
+        engine: redhat
+        base_url: 'https://maas.apps.cluster.example.com/v1'
+        api_key_env_var_name: 'REDHAT_AI_API_KEY'
+        models:
+          llama-3.1-8b-instruct: {}
+    ```
+
+    MaaS adds token quotas, rate limiting, and usage tracking. The `base_url` must point to the `/v1` inference endpoint, not the `/maas-api/v1` management API.
+  </TabItem>
+</Tabs>
+
+| | Inference Server | MaaS |
+|---|---|---|
+| Auth | Optional (`--api-key` flag) | Typically requires API key |
+| Base URL | `http://127.0.0.1:8000/v1` (default) | MaaS route `/v1` |
+| Governance | None | Token quotas, rate limiting |
+| Model routing | Direct model serving | Gateway routes to model pool |
+
+### Connect Vertex-hosted Anthropic
+
+For corporate Vertex AI proxies that authenticate via Bearer token:
+
+```yaml
+providers:
+  corp-vertex:
+    engine: vertex-anthropic
+    base_url: 'https://your-proxy.example.com/sonnet/models'
+    api_key_env_var_name: 'VERTEX_ANTHROPIC_API_KEY'
+    models:
+      claude-sonnet-4:
+        model_id: 'claude-sonnet-4@20250514'
+```
+
+The `base_url` should include the full path prefix up to `/models`. When no API key is configured, the engine falls back to standard Google Cloud Application Default Credentials — set `GOOGLE_VERTEX_PROJECT` and `GOOGLE_VERTEX_LOCATION`. For proxies with self-signed or internal CA certificates, set `NODE_EXTRA_CA_CERTS`.
+
+### Discover available models
+
+```bash
+aby list-models --discover ollama
+aby list-models --discover redhat
+```
+
+You can also discover models from the web dashboard using the Add Provider wizard.
+
+## Manage API keys and secrets
+
+Each provider uses exactly one of two mutually exclusive API key storage methods.
+
+<Tabs>
+  <TabItem label="System keychain (interactive use)">
+    ```yaml
+    providers:
+      my-openai:
+        engine: openai
+        api_key_keychain_name: 'OPENAI_API_KEY'
+    ```
+
+    Set the key value through the web dashboard at `http://localhost:8787` — click the **Key** toggle on the provider card and enter your API key. The key is stored securely in the system keychain, persists across daemon restarts, and never appears in `config.yaml`.
+
+    Not available in container deployments (no keychain access inside containers).
+  </TabItem>
+  <TabItem label="Environment variable (CI/CD and containers)">
+    ```yaml
+    providers:
+      anthropic-work:
+        engine: anthropic
+        api_key_env_var_name: 'ANTHROPIC_API_KEY'
+    ```
+
+    ```bash
+    export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+    ```
+
+    The key is read from the environment at runtime and is never written to disk.
+  </TabItem>
+</Tabs>
+
+If neither `api_key_keychain_name` nor `api_key_env_var_name` is set, Abbenay falls back to the engine's default environment variable (for example, `openai` checks `OPENAI_API_KEY`). See the [supported engines table](#supported-engines).
+
+### Best practices by deployment context
+
+| Context | Recommended approach |
+|---------|----------------------|
+| Personal development | Keychain storage, managed via the web dashboard |
+| Team projects | Environment variables referenced in `config.yaml`; each team member sets their own variable. Commit `config.yaml` to version control and document required env vars in the project README |
+| CI/CD pipelines | Environment variables injected by the CI/CD platform's secret management |
+| Container deployments | Environment variables only — keychain is not available |
+
+:::caution
+Never commit API key **values** to version control. Use `api_key_keychain_name` or `api_key_env_var_name` references — never put key values directly in `config.yaml`.
+:::
+
+## Tune individual model behavior
+
+Each model entry supports these optional fields. An empty object `{}` means "enabled with all defaults."
+
+| Field | Type | Description |
+|-------|------|--------------|
+| `model_id` | string | Actual engine model ID. Use when the YAML key is a custom alias (for example, `fast-coder` mapped to `qwen2.5-coder:7b`) |
+| `system_prompt` | string | System prompt text prepended to every request for this model |
+| `system_prompt_mode` | `"prepend"` \| `"replace"` | How to combine with per-request system prompts. `prepend` (default) adds the config prompt before the request prompt; `replace` uses only the config prompt |
+| `temperature` | number (0.0–2.0) | Sampling temperature. Lower values produce more deterministic output |
+| `top_p` | number (0.0–1.0) | Nucleus sampling. Lower values make the model consider fewer token options |
+| `top_k` | number | Top-k sampling. Limits the token pool to the *k* most likely tokens |
+| `max_tokens` | number | Maximum number of output tokens per response |
+| `timeout` | number (ms) | Request timeout, applied as a total budget for the entire request |
+| `reasoning` | string | AI SDK 7 reasoning effort: `provider-default`, `none`, `minimal`, `low`, `medium`, `high`, `xhigh`. Passed through to the model. Reasoning deltas are not streamed to clients yet |
+| `openai_compat_tools` | `"off"` \| `"passthrough"` | Per-model override for `/v1` tools passthrough (see below) |
+
+```yaml
+providers:
+  anthropic:
+    engine: anthropic
+    api_key_env_var_name: 'ANTHROPIC_API_KEY'
+    models:
+      claude-sonnet-4-20250514: {}
+      claude-3-5-haiku-20241022:
+        temperature: 0.3
+        max_tokens: 4096
+
+  local:
+    engine: ollama
+    models:
+      qwen2.5-coder:
+        model_id: 'qwen2.5-coder:7b'
+        temperature: 0.2
+        system_prompt: 'You are an Ansible expert. Always respond with playbook examples.'
+```
+
+### OpenAI-compatible tools passthrough
+
+By default, the OpenAI-compatible API endpoint (`/v1/chat/completions`) ignores `tools` and `tool_choice` in requests. Enable passthrough so that clients like Open WebUI can send tools and receive structured `tool_calls` responses, including explicit tool selection via `tool_choice`.
+
+| Level | Setting | Effect |
+|-------|---------|--------|
+| Global | `openai_compat.tools: off \| passthrough` | Applies to all models (default: `off`) |
+| Per-model | `openai_compat_tools: off \| passthrough` | Overrides the global setting for this model |
+
+Resolve order: per-model setting → global setting → `off`.
+
+```yaml
+openai_compat:
+  tools: off
+
+providers:
+  openrouter:
+    engine: openrouter
+    models:
+      anthropic/claude-sonnet-4: {}
+      x-ai/grok-3:
+        openai_compat_tools: passthrough
+```
+
+:::caution
+Passthrough trusts the client's tool list and `tool_choice` value, and bypasses Abbenay's tool approval UI. Enable it only on models used with trusted clients. For Abbenay-managed tool approval, use the dashboard, gRPC, or MCP paths instead of `/v1`.
+:::
+
+## Secure the daemon for enterprise deployment
+
+By default, Abbenay binds to `127.0.0.1` (localhost only) and generates a Bearer token automatically for HTTP API authentication. These defaults are secure for single-user local development. When you expose the daemon on a network — in containers, behind a proxy, or on a shared host — review the following settings.
+
+### HTTP API authentication
+
+The web dashboard, REST API (`/api/*`), OpenAI-compatible API (`/v1/*`), and MCP endpoint (`/mcp`) require authentication by default.
+
+| Setting | Purpose | Default |
+|---------|---------|---------|
+| `ABBENAY_API_TOKEN` or `server.api_token` / `server.api_token_env` | Bearer token for all HTTP routes | Auto-generated and stored in the config directory |
+| `ABBENAY_HTTP_AUTH` | Enable or disable HTTP authentication | Enabled — set to `0`, `false`, `off`, `no`, or `disabled` to turn off |
+| `ABBENAY_HTTP_HOST` or `server.host` or `--host` | HTTP bind address | `127.0.0.1` |
+| `ABBENAY_CORS_ORIGINS` or `server.cors_origins` | Extra CORS allowed origins | `http://127.0.0.1:<port>`, `http://localhost:<port>` |
+
+```bash
+curl -H "Authorization: Bearer $ABBENAY_API_TOKEN" http://127.0.0.1:8787/api/health
+```
+
+### gRPC TLS for non-loopback binds
+
+When the gRPC listener binds to a non-loopback address (`0.0.0.0`, a LAN IP, or `::` — anything other than `127.0.0.1`, `::1`, or `localhost`), Abbenay requires TLS and refuses to start without it unless you explicitly opt out.
+
+| Flag | Effect |
+|------|--------|
+| `--grpc-tls` | Enable TLS with auto-generated self-signed certificates (stored under the runtime `tls/` directory). SSL target name: `abbenay-grpc` |
+| `--insecure` | Bypass the TLS requirement and allow open auth (the consumer requirement is also waived). Use only on trusted networks |
+| `--allow-open-auth` | Skip the consumer requirement on non-loopback binds, without disabling TLS |
+
+Loopback binds (`127.0.0.1`, `::1`, `localhost`) may remain plaintext for local development. Unix sockets always remain plaintext (local IPC only — on Windows, the equivalent local transport is loopback TCP; see [Windows support](/vscode-ansible/ai/abbenay/#windows-support)). The container default `CMD` includes `--grpc-tls`.
+
+### Dashboard session authentication
+
+The web dashboard uses `SameSite=Strict` cookies plus a CSRF token for browser session authentication. Open `http://127.0.0.1:8787/login` to establish a session. When authentication is enabled, unauthenticated browser requests to `/` redirect to `/login` — unless both the TCP peer and the browser `Host` header are localhost. API routes return `401 Unauthorized` JSON when unauthenticated.
+
+### Provider endpoint policy
+
+Provider `base_url` values are validated before use:
+
+- Absolute URL with scheme `http` or `https` only.
+- Credentials in the URL (`https://user:pass@...`) are rejected.
+- `http` is allowed only for loopback addresses (`localhost`, `127.0.0.1`, `::1`) unless the host is listed in `allowed_provider_hosts` or `allow_insecure_provider_http: true`.
+- When `allowed_provider_hosts` is set, every non-loopback host must match the allowlist.
+- The engine must be a built-in engine ID — unknown engines are rejected.
+- Endpoint changes are audited: `[Audit] provider endpoint changed: provider=... from=... to=... source=...`
+
+```yaml
+server:
+  allowed_provider_hosts:
+    - 'api.openai.com'
+    - 'maas.apps.cluster.example.com'
+    - '10.0.0.5'
+  # Or, for broader air-gapped trust:
+  # allow_insecure_provider_http: true
+```
+
+API keys used during model discovery must be sent in headers (`X-Api-Key` or `Authorization`) or request bodies — never in URL query strings. Requests with `?apiKey=` are rejected with `HTTP 400`.
+
+:::caution
+Setting `ABBENAY_HTTP_AUTH=0` disables authentication on any bind address, including `--host 0.0.0.0`. Any process that can reach the port can then read or write secrets, configuration, chat history, MCP sessions, and sessions. The server logs a warning when authentication is disabled.
+
+Legitimate cases for disabling authentication:
+
+- **Cluster or production pod** — Abbenay runs as an internal Service, reachable only on a private network with no public ingress to the daemon port.
+- **Auth at the proxy** — a reverse proxy, API gateway, or ingress already authenticates callers and forwards only trusted traffic to Abbenay.
+
+If neither case applies, keep authentication enabled and use a strong `ABBENAY_API_TOKEN`.
+:::
+
+## Control tool execution and MCP access
+
+### Tool policy
+
+The `tool_policy` section controls which tools are available during chat and MCP interactions. All tools default to requiring user approval unless explicitly configured.
+
+```yaml
+tool_policy:
+  disabled_tools: ['mcp:dangerous/*']
+  auto_approve: ['local:agent/echo']
+  require_approval: ['local:agent/danger']
+```
+
+| Policy | Chat behavior | MCP HTTP (`/mcp`) behavior |
+|--------|----------------|------------------------------|
+| `disabled_tools` | Tool omitted from LLM context | `tools/call` returns an error |
+| `auto_approve` | Runs immediately, no prompt | Runs immediately |
+| `require_approval` (default) | Blocks until user approves in dashboard | Blocks until approved via dashboard or API |
+
+### MCP server configuration
+
+Define external MCP servers in `mcp_servers` to make their tools available during chat:
+
+```yaml
+mcp_servers:
+  filesystem:
+    transport: stdio
+    command: npx
+    args: ['-y', '@modelcontextprotocol/server-filesystem', '/tmp']
+    enabled: true
+```
+
+MCP servers defined in the configuration file are admin-authorized and skip the allowlist and approval gates that apply to dynamically registered servers.
+
+### MCP client connection consent
+
+When an external MCP client connects to Abbenay's MCP endpoint (`/mcp`), Abbenay creates a pending connection consent. The client cannot interact until the connection is approved through the dashboard or the connections API.
+
+| Action | API |
+|--------|-----|
+| List pending and active connections | `GET /api/mcp/connections` |
+| Allow or deny a connection | `POST /api/mcp/connections/:requestId` |
+| Revoke a session | `DELETE /api/mcp/connections/sessions/:sessionId` |
+| Forget a remembered client | `DELETE /api/mcp/connections/remembered/:clientName` |
+
+Approving a connection with `remember: true` creates a persistent shortcut keyed on the client name. Pending connection consents and tool approvals auto-deny after 5 minutes if no response is given.
+
+### Stdio MCP spawn policy
+
+Dynamic MCP server registration with `transport: stdio` can spawn a local process. This path is locked down by default:
+
+1. **Allowlist** — the command must match `security.stdio_command_allowlist`. An empty or omitted allowlist denies all dynamic stdio spawns.
+2. **Operator approval** — even allowlisted commands wait for explicit approval on the dashboard, unless `stdio_require_approval: false`.
+3. **Authentication** — when `consumers` is configured, stdio registration requires a matching consumer token with the `mcp_register` capability.
+
+```yaml
+security:
+  max_dynamic_mcp_servers: 10
+  stdio_command_allowlist:
+    - npx
+    - uvx
+    - /usr/local/bin/my-trusted-mcp
+  stdio_require_approval: true
+```
+
+| API | Purpose |
+|-----|---------|
+| `GET /api/mcp/stdio-spawns` | List pending spawn approvals and recent denials |
+| `POST /api/mcp/stdio-spawns/:requestId` | Approve or deny: `{ "decision": "allow" }` or `{ "decision": "deny" }` |
+
+### Consumer authentication
+
+Named consumer applications authenticate to gRPC with a token in the `x-abbenay-token` metadata header. Each consumer is granted a capability matrix that controls which operations it can perform:
+
+```yaml
+consumers:
+  apme:
+    token_env: 'APME_TOKEN'
+    capabilities:
+      chat: true
+      inline_policy: true
+      mcp_register: true
+      secrets: true
+      config: true
+      providers: true
+      shutdown: true
+```
+
+Grant only the capabilities each consumer application needs — for example, a monitoring agent might need only `chat`, while a configuration management tool would need `config` and `providers`.
+
+| Capability | Roughly gates |
+|------------|---------------|
+| `chat` | Sending chat messages and session summaries |
+| `inline_policy` | Overriding tool policy inline on a chat request (also requires `chat`) |
+| `mcp_register` | Registering, unregistering, or reconnecting dynamic MCP servers |
+| `secrets` | Reading, writing, deleting, or listing stored API keys |
+| `config` | Reading or updating daemon configuration and policies |
+| `providers` | Configuring, removing, or discovering models for a provider |
+| `shutdown` | Shutting down the daemon remotely |
+
+| Bind address | No `consumers` configured | `consumers` configured |
+|---------------|---------------------------|--------------------------|
+| Unix socket / loopback TCP | Allow all (local development) | Token + capability required for sensitive operations |
+| Non-loopback TCP (`0.0.0.0`, LAN IP) | Refuses to start (unless `--allow-open-auth` or `--insecure`) | Token + capability required |
+
+### Session ownership
+
+Every session is stamped with an owner principal based on how the caller connects:
+
+| Surface | Owner |
+|---------|-------|
+| CLI (`aby chat` / `aby sessions`) | `local` |
+| HTTP API (Bearer / dashboard cookie) | `http:<token-fingerprint>` |
+| HTTP + `X-Abbenay-Session-Owner` header | `http:<fingerprint>:<name>` |
+| gRPC with matching consumer token | `consumer:<name>` |
+| gRPC without consumer token | `local` |
+
+Sessions are isolated by owner. A caller can only list, view, delete, and resume sessions that belong to its own principal. Cross-owner access returns `404` (not `403`) to prevent session ID leakage.
+
+## Credential aggregation risk
+
+Abbenay centralizes API keys for 20 LLM providers in a single daemon (keychain and environment variables referenced from one configuration). If the daemon host or an authenticated configuration surface is compromised, all configured provider credentials can be exposed at once. This is a larger blast radius than per-extension credential storage, where compromising one editor extension typically yields only that extension's keys.
+
+### Mitigations in place
+
+| Control | What it does |
+|---------|---------------|
+| OS keychain / env var references | Secrets are not stored in plaintext YAML |
+| Config files mode `0600` | User-only read and write on disk |
+| HTTP Bearer auth | Unauthenticated callers cannot read or write secrets or configure providers |
+| gRPC consumer capabilities | On non-localhost binds, sensitive operations require a token and capability (`secrets`, `providers`, `config`, `mcp_register`) |
+| Secret API shape | `GET /api/secrets` returns key names and `hasValue` only — never secret values. The value-returning gRPC `GetSecret` requires the `secrets` capability |
+| Audit logs | `[Audit] secret changed` and `[Audit] provider endpoint changed` entries (never log secret values) |
+| Provider endpoint policy | Malformed or disallowed `base_url` values are rejected; changes are audited |
+| Localhost bind defaults | HTTP and gRPC default to loopback; non-loopback requires intentional opt-in |
+
+Dynamic provider registration and dynamic MCP registration cannot be performed anonymously when authentication is enabled or `consumers` are configured.
+
+### Guidance by persona
+
+| Persona | Recommended posture |
+|---------|----------------------|
+| Enterprise or air-gapped | Bind loopback or trusted network only. Configure `consumers` for gRPC. Set `server.allowed_provider_hosts` to approved gateways. Prefer environment variable or secrets-manager injection over long-lived dashboard tokens |
+| Security-conscious workstation | Keychain storage. Keep HTTP auth on. Do not disable `ABBENAY_HTTP_AUTH`. Treat `ABBENAY_API_TOKEN` like a password-manager master secret |
+| Local development or single user | Defaults (loopback + auto token + keychain) are acceptable. Still rotate keys if the host may have been exposed |
+
+### Operator checklist
+
+1. Treat the daemon host and API token as high value — the same tier as a password manager holding multiple cloud keys.
+2. Prefer keychain storage on interactive workstations; prefer environment variables (or a secrets manager injecting environment variables) in CI/CD and containers.
+3. Keep HTTP and gRPC on loopback unless remote access is needed; then require strong tokens and, for gRPC, a `consumers` section with least-privilege capabilities.
+4. For enterprise and air-gapped fleets, set `server.allowed_provider_hosts` to the approved inference gateways only.
+5. Review audit logs for `[Audit] secret changed` and `[Audit] provider endpoint changed` after configuration changes or suspected compromise.
+6. Rotate all provider API keys if the daemon host or `ABBENAY_API_TOKEN` may have been exposed — centralization means one incident can touch every configured provider.
+
+Stronger isolation — per-secret encryption-at-rest beyond the OS keychain, and process-level isolation of secrets — is deferred. Current controls rely on the OS keychain, environment variables, filesystem permissions, authentication gates, audit logs, and endpoint policy.
+
+## Supported engines
+
+All 20 production engines, plus a built-in `mock` engine used for testing.
+
+| Engine | ID | Default env var | Key required |
+|--------|----|--------------------|:---:|
+| OpenAI | `openai` | `OPENAI_API_KEY` | Yes |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | Yes |
+| Google Gemini | `gemini` | `GOOGLE_API_KEY` | Yes |
+| Mistral | `mistral` | `MISTRAL_API_KEY` | Yes |
+| xAI (Grok) | `xai` | `XAI_API_KEY` | Yes |
+| DeepSeek | `deepseek` | `DEEPSEEK_API_KEY` | Yes |
+| Groq | `groq` | `GROQ_API_KEY` | Yes |
+| Cohere | `cohere` | `COHERE_API_KEY` | Yes |
+| Amazon Bedrock | `bedrock` | *(AWS credentials)* | No |
+| Vertex Anthropic | `vertex-anthropic` | `VERTEX_ANTHROPIC_API_KEY` | No |
+| Fireworks | `fireworks` | `FIREWORKS_API_KEY` | Yes |
+| Together AI | `togetherai` | `TOGETHER_AI_API_KEY` | Yes |
+| Perplexity | `perplexity` | `PERPLEXITY_API_KEY` | Yes |
+| Azure OpenAI | `azure` | `AZURE_OPENAI_API_KEY` | Yes |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` | Yes |
+| Ollama | `ollama` | *(none needed)* | No |
+| LM Studio | `lmstudio` | *(none needed)* | No |
+| Cerebras | `cerebras` | `CEREBRAS_API_KEY` | Yes |
+| Meta (Llama) | `meta` | `META_API_KEY` | Yes |
+| Red Hat AI | `redhat` | `REDHAT_AI_API_KEY` | No |
+| Mock *(testing only)* | `mock` | *(none)* | No |
+
+## Settings reference
+
+### `server` block
+
+| Setting | Type | Default | Description |
+|---------|------|---------|--------------|
+| `api_token` | string | Auto-generated | Bearer token for all HTTP routes (discouraged — prefer `api_token_env`) |
+| `api_token_env` | string | `"ABBENAY_API_TOKEN"` | Environment variable holding the Bearer token |
+| `host` | string | `"127.0.0.1"` | HTTP bind address |
+| `cors_origins` | string[] | localhost | Extra CORS allowed origins |
+| `allowed_provider_hosts` | string[] | *(unset)* | Host allowlist for provider `base_url` (non-loopback). When set, every non-loopback host must match |
+| `allow_insecure_provider_http` | boolean | `false` | Allow `http://` provider endpoints to non-loopback hosts |
+
+### `security` block
+
+| Setting | Type | Default | Description |
+|---------|------|---------|--------------|
+| `max_dynamic_mcp_servers` | number | `10` | Maximum number of dynamic MCP server registrations |
+| `stdio_command_allowlist` | string[] | *(empty)* | Commands allowed for dynamic stdio MCP spawn |
+| `stdio_require_approval` | boolean | `true` | Require operator approval for allowlisted stdio commands |
+
+### `consumers` block (per consumer)
+
+| Setting | Type | Description |
+|---------|------|--------------|
+| `token_env` | string | Environment variable holding the consumer token |
+| `capabilities.chat` | boolean | Chat, SessionChat, SummarizeSession |
+| `capabilities.inline_policy` | boolean | Inline PolicyConfig on chat requests |
+| `capabilities.mcp_register` | boolean | RegisterMcpServer, UnregisterMcpServer |
+| `capabilities.secrets` | boolean | GetSecret, SetSecret, DeleteSecret, ListSecrets, GetKeyStatus |
+| `capabilities.config` | boolean | GetConfig, UpdateConfig, CreatePolicy, DeletePolicy |
+| `capabilities.providers` | boolean | ConfigureProvider, RemoveProvider, DiscoverModels |
+| `capabilities.shutdown` | boolean | Shutdown |
+
+### `tool_policy` block
+
+| Setting | Type | Description |
+|---------|------|--------------|
+| `disabled_tools` | string[] | Tools that are rejected and never listed for chat |
+| `auto_approve` | string[] | Tools that run without user approval |
+| `require_approval` | string[] | Tools that block until the user approves |
+
+### `openai_compat` block
+
+| Setting | Type | Default | Description |
+|---------|------|---------|--------------|
+| `tools` | `"off"` \| `"passthrough"` | `"off"` | Global toggle for tools (and `tool_choice`) passthrough on `/v1/chat/completions` |
+
+### Per-model settings
+
+See [Tune individual model behavior](#tune-individual-model-behavior) for the full field table (`model_id`, `system_prompt`, `temperature`, `max_tokens`, `reasoning`, and others).
+
+### Per-provider settings
+
+| Setting | Type | Description |
+|---------|------|--------------|
+| `engine` | string (required) | Engine ID from the [supported engines table](#supported-engines) |
+| `base_url` | string | Custom base URL for the provider endpoint |
+| `api_key_keychain_name` | string | Keychain key name (mutually exclusive with `api_key_env_var_name`) |
+| `api_key_env_var_name` | string | Environment variable name (mutually exclusive with `api_key_keychain_name`) |
+| `models` | object (required) | Map of model names to per-model settings |
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ABBENAY_API_TOKEN` | HTTP API Bearer token |
+| `ABBENAY_HTTP_AUTH` | Enable/disable HTTP auth (`0`/`false`/`off`/`no`/`disabled` to turn off) |
+| `ABBENAY_HTTP_HOST` | HTTP bind address override |
+| `ABBENAY_CORS_ORIGINS` | Extra CORS allowed origins |
+| `NODE_EXTRA_CA_CERTS` | Path to CA certificate bundle for self-signed certificates |
+| `GOOGLE_VERTEX_PROJECT` | Google Cloud project ID (for Vertex Anthropic ADC) |
+| `GOOGLE_VERTEX_LOCATION` | Google Cloud region (for Vertex Anthropic ADC) |
+
+## Example configurations
+
+<Tabs>
+  <TabItem label="Minimal">
+    ```yaml
+    providers:
+      openai:
+        engine: openai
+        api_key_env_var_name: 'OPENAI_API_KEY'
+        models:
+          gpt-4o: {}
+    ```
+  </TabItem>
+  <TabItem label="Multiple providers">
+    ```yaml
+    providers:
+      openai:
+        engine: openai
+        api_key_keychain_name: 'OPENAI_API_KEY'
+        models:
+          gpt-4o: {}
+          gpt-4o-mini: {}
+
+      anthropic:
+        engine: anthropic
+        api_key_keychain_name: 'ANTHROPIC_API_KEY'
+        models:
+          claude-sonnet-4-20250514: {}
+
+      local:
+        engine: ollama
+        models:
+          llama3.2: {}
+          qwen2.5-coder:
+            model_id: 'qwen2.5-coder:7b'
+    ```
+  </TabItem>
+  <TabItem label="Red Hat AI (both profiles)">
+    ```yaml
+    providers:
+      redhat-inference:
+        engine: redhat
+        models:
+          RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+
+      redhat-maas:
+        engine: redhat
+        base_url: 'https://maas.apps.cluster.example.com/v1'
+        api_key_env_var_name: 'REDHAT_AI_API_KEY'
+        models:
+          llama-3.1-8b-instruct: {}
+    ```
+  </TabItem>
+  <TabItem label="Enterprise lockdown">
+    ```yaml
+    server:
+      api_token_env: 'ABBENAY_API_TOKEN'
+      host: '127.0.0.1'
+      allowed_provider_hosts:
+        - 'api.openai.com'
+        - 'maas.apps.cluster.example.com'
+
+    security:
+      stdio_command_allowlist:
+        - npx
+        - uvx
+      stdio_require_approval: true
+
+    consumers:
+      apme:
+        token_env: 'APME_TOKEN'
+        capabilities:
+          chat: true
+          mcp_register: true
+          secrets: false
+          config: false
+          providers: false
+          shutdown: false
+
+    tool_policy:
+      disabled_tools: ['mcp:dangerous/*']
+      auto_approve: []
+      require_approval: ['mcp:filesystem/*']
+
+    providers:
+      redhat-inference:
+        engine: redhat
+        api_key_env_var_name: 'REDHAT_AI_API_KEY'
+        models:
+          RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+    ```
+  </TabItem>
+  <TabItem label="Vertex Anthropic (ADC)">
+    ```yaml
+    providers:
+      vertex-claude:
+        engine: vertex-anthropic
+        models:
+          claude-sonnet-4:
+            model_id: 'claude-sonnet-4@20250514'
+    ```
+
+    Set `GOOGLE_VERTEX_PROJECT` and `GOOGLE_VERTEX_LOCATION` environment variables, and ensure Google Cloud Application Default Credentials are configured.
+  </TabItem>
+</Tabs>
+
+## Additional resources
+
+- [Abbenay](/vscode-ansible/ai/abbenay/) — installation and first provider setup
+- [Abbenay configuration reference (upstream)](https://github.com/redhat-developer/abbenay/blob/main/docs/CONFIGURATION.md) — engineering source for this document
+- [Red Hat AI engine details (upstream)](https://github.com/redhat-developer/abbenay/blob/main/docs/REDHAT_AI.md) — full Inference Server and MaaS setup
+- [Red Hat AI Inference documentation](https://docs.redhat.com/en/documentation/red_hat_ai_inference_server) — endpoint setup
+- [Abbenay container guide](https://github.com/redhat-developer/abbenay/blob/main/docs/CONTAINER.md) — Kubernetes manifests, TLS, and security hardening
+- [Abbenay on GitHub](https://github.com/redhat-developer/abbenay) — source repository, issues, and releases

@@ -84,7 +84,7 @@ It communicates over stdio using the MCP JSON-RPC protocol.
 
 **From CI artifacts:** Every pull request produces a standalone `mcp-server.js` file (~950KB).
 
-**From the plugin:** Bundled at `servers/mcp-server.js` inside the [plugin package](/ai/plugin/).
+**From the plugin:** Bundled at `servers/mcp-server.js` inside the [plugin package](/vscode-ansible/ai/plugin/).
 
 **Build from source:**
 ```bash
@@ -160,7 +160,7 @@ Configure additional skill sources via the `ANSIBLE_SKILL_SOURCES` environment v
 
 ## Design principles
 
-The MCP server follows [ADR-018](/development/architecture/) compliance:
+The MCP server follows [ADR-018](/vscode-ansible/development/architecture/) compliance:
 
 - **Intent-based naming** — tools named after user outcomes, not API endpoints
 - **Behavioral annotations** — `readOnlyHint`, `destructiveHint`, `idempotentHint` on every tool

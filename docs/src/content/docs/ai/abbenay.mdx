@@ -1,0 +1,373 @@
+---
+title: Abbenay
+description: Connect any AI model — local, cloud, or Red Hat AI — to your Ansible developer tools through the Abbenay daemon.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+[Abbenay](https://github.com/redhat-developer/abbenay) is a background daemon that centralizes AI model access for the Ansible developer toolchain. Configure your providers once, and every consuming tool — the Ansible VS Code extension, CLI scripts, or custom applications — connects through the same daemon.
+
+## Why this matters
+
+AI coding assistants generate better Ansible automation when connected to AI models that understand your environment, your collections, and your organizational policies. Without a unified provider layer, each tool embeds its own LLM client — duplicating configuration, fragmenting secret management, and locking you into a single provider.
+
+## What Abbenay gives you
+
+- **Bring Your Own Model (BYOM)** — use any model from 20 supported provider engines, including OpenAI, Anthropic, Google Gemini, Ollama, and Red Hat AI. See the [configuration reference](/vscode-ansible/ai/abbenay-configuration/) for the full engine list.
+- **One configuration file** — define all providers, models, and API keys in a single `config.yaml` file.
+- **Centralized secret management** — store API keys in your system keychain or environment variables.
+- **OpenAI-compatible API** — expose any configured model through a standard `/v1/chat/completions` endpoint for tools that speak the OpenAI protocol.
+
+:::note
+Abbenay ships standalone and is not bundled in the Ansible Automation Platform installer. It coexists with Ansible Lightspeed — Abbenay is the provider-agnostic BYOM layer, while Lightspeed remains a separate Red Hat-hosted AI service.
+:::
+
+## Get started
+
+1. **[Install Abbenay](#install-abbenay)** — download the pre-built binary, pull the container image, or (on Windows) run from source.
+2. **Configure a provider** — set up [Ollama](#set-up-a-local-model-with-ollama) for local development, a [cloud provider](#connect-a-cloud-provider) for BYOM, or [Red Hat AI](#connect-red-hat-ai-inference) for enterprise deployments.
+3. **[Verify your connection](#verify-your-connection)** — launch Abbenay and send a test prompt.
+
+For the full list of settings, security options, and engine reference, see the [Abbenay configuration reference](/vscode-ansible/ai/abbenay-configuration/).
+
+## Install Abbenay
+
+### Prerequisites
+
+- Linux x86_64, Linux ARM64, macOS Apple Silicon, or Windows (see the [Windows notes](#windows-support)).
+- For the container method: Podman or a compatible container runtime.
+
+Choose one of the following installation methods.
+
+<Tabs>
+  <TabItem label="Pre-built binary (recommended)">
+    The pre-built binary is a Node.js Single Executable Application (SEA) that requires no runtime dependencies.
+
+    1. Download the latest release archive for your platform from the [Abbenay releases page](https://github.com/redhat-developer/abbenay/releases):
+
+       | Platform | Archive name |
+       |----------|--------------|
+       | Linux x86_64 | `abbenay-<version>-linux-x64.tar.gz` |
+       | Linux ARM64 | `abbenay-<version>-linux-arm64.tar.gz` |
+       | macOS Apple Silicon | `abbenay-<version>-darwin-arm64.tar.gz` |
+
+    2. Extract the archive:
+
+       ```bash
+       tar xzf abbenay-<version>-<platform>.tar.gz
+       ```
+
+    3. Rename the binary and move it to a directory on your `PATH`:
+
+       ```bash
+       chmod +x abbenay-daemon
+       sudo mv abbenay-daemon /usr/local/bin/aby
+       ```
+
+    4. Verify the installation:
+
+       ```bash
+       aby --version
+       ```
+  </TabItem>
+  <TabItem label="Container image">
+    Pull the pre-built container image from GitHub Container Registry. The image is available for `linux/amd64` and `linux/arm64`.
+
+    1. Pull the image:
+
+       ```bash
+       podman pull ghcr.io/redhat-developer/abbenay:latest
+       ```
+
+    2. Verify the image:
+
+       ```bash
+       podman run --rm ghcr.io/redhat-developer/abbenay:latest aby --version
+       ```
+
+    :::note
+    For container deployments, use environment variables for API key storage (`api_key_env_var_name`). System keychain storage is not available inside containers. For full container deployment details, including Kubernetes manifests, see the [Abbenay container guide](https://github.com/redhat-developer/abbenay/blob/main/docs/CONTAINER.md).
+    :::
+  </TabItem>
+  <TabItem label="Windows">
+    Windows builds run from source (no pre-built SEA binary yet):
+
+    ```bash
+    git clone https://github.com/redhat-developer/abbenay.git
+    cd abbenay
+    npm install
+    cd packages/daemon
+    npx tsx src/daemon/index.ts daemon
+    ```
+
+    See [Windows support](#windows-support) below for how Abbenay's runtime paths and transport differ from Linux and macOS.
+  </TabItem>
+</Tabs>
+
+### Windows support
+
+Abbenay runs on Windows with two platform-specific differences from Linux and macOS:
+
+| Aspect | Linux / macOS | Windows |
+|--------|---------------|---------|
+| Runtime directory | XDG / platform data dir | `%TEMP%\abbenay` |
+| Local daemon transport | Unix domain socket | Loopback TCP |
+| Config directory | `~/.config/abbenay` | `%APPDATA%\abbenay` |
+
+Because Windows has no native Unix domain sockets, the daemon falls back to a loopback TCP listener for local IPC (CLI, VS Code extension) instead of the Unix socket used on Linux and macOS. This is functionally equivalent for single-user, local-machine use — the listener still binds to `127.0.0.1` only, so it is not reachable from other hosts.
+
+## Set up a local model with Ollama
+
+Configure Abbenay to use [Ollama](https://ollama.com) so that you can get AI-powered Ansible assistance without external network access.
+
+### Prerequisites
+
+- Abbenay is installed. See [Install Abbenay](#install-abbenay).
+- Ollama is installed and running at `http://localhost:11434`.
+- At least one model is pulled in Ollama (for example, `ollama pull llama3.2`).
+
+### Procedure
+
+1. Create the Abbenay configuration directory and open `config.yaml`:
+
+   <Tabs>
+     <TabItem label="Linux">
+       ```bash
+       mkdir -p ~/.config/abbenay
+       vi ~/.config/abbenay/config.yaml
+       ```
+     </TabItem>
+     <TabItem label="macOS">
+       ```bash
+       mkdir -p ~/Library/Application\ Support/abbenay
+       vi ~/Library/Application\ Support/abbenay/config.yaml
+       ```
+     </TabItem>
+     <TabItem label="Windows">
+       ```powershell
+       mkdir $env:APPDATA\abbenay
+       notepad $env:APPDATA\abbenay\config.yaml
+       ```
+     </TabItem>
+   </Tabs>
+
+2. Add the Ollama provider configuration:
+
+   ```yaml
+   providers:
+     ollama:
+       engine: ollama
+       models:
+         llama3.2: {}
+         qwen2.5-coder: {}
+   ```
+
+3. Save the file, then continue to [Verify your connection](#verify-your-connection).
+
+## Connect a cloud provider
+
+Configure Abbenay to use a cloud AI provider so that you can use your existing AI investments with Ansible developer tools.
+
+### Prerequisites
+
+- Abbenay is installed. See [Install Abbenay](#install-abbenay).
+- You have an API key from your cloud AI provider.
+
+Abbenay supports 20 production engines. This procedure uses OpenAI as an example — see the [full engine table](/vscode-ansible/ai/abbenay-configuration/#supported-engines) for the rest.
+
+### Procedure
+
+1. Open the Abbenay `config.yaml` (see the path table in [Set up a local model](#set-up-a-local-model-with-ollama)).
+
+2. Add the cloud provider configuration:
+
+   ```yaml
+   providers:
+     openai:
+       engine: openai
+       api_key_env_var_name: 'OPENAI_API_KEY'
+       models:
+         gpt-4o: {}
+         gpt-4o-mini: {}
+   ```
+
+3. Set the API key as an environment variable:
+
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+   Alternatively, store the API key in your system keychain for persistent, secure storage:
+
+   ```yaml
+   providers:
+     openai:
+       engine: openai
+       api_key_keychain_name: 'OPENAI_API_KEY'
+       models:
+         gpt-4o: {}
+   ```
+
+   :::note
+   System keychain storage is not available in container deployments. Use environment variables for containers.
+   :::
+
+Some commonly used cloud engines:
+
+| Provider | Engine ID | Default env var |
+|----------|-----------|------------------|
+| OpenAI | `openai` | `OPENAI_API_KEY` |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` |
+| Google Gemini | `gemini` | `GOOGLE_API_KEY` |
+| Mistral | `mistral` | `MISTRAL_API_KEY` |
+| xAI (Grok) | `xai` | `XAI_API_KEY` |
+| DeepSeek | `deepseek` | `DEEPSEEK_API_KEY` |
+| Groq | `groq` | `GROQ_API_KEY` |
+| Cohere | `cohere` | `COHERE_API_KEY` |
+| Amazon Bedrock | `bedrock` | *(AWS credentials)* |
+| OpenRouter | `openrouter` | `OPENROUTER_API_KEY` |
+
+For the complete list of 20 supported engines, see the [configuration reference](/vscode-ansible/ai/abbenay-configuration/#supported-engines).
+
+## Connect Red Hat AI Inference
+
+Configure Abbenay to use a Red Hat AI Inference endpoint so that you can use enterprise-governed models for Ansible development.
+
+### Prerequisites
+
+- Abbenay is installed. See [Install Abbenay](#install-abbenay).
+- A Red Hat AI Inference endpoint is running and serving at least one model.
+
+Red Hat AI Inference is a standalone vLLM instance that exposes an OpenAI-compatible REST API. It runs locally, on a RHEL AI host, or in an OpenShift container.
+
+### Procedure
+
+1. Verify that your Red Hat AI Inference endpoint is running and serving models:
+
+   ```bash
+   curl http://127.0.0.1:8000/v1/models
+   ```
+
+2. Open the Abbenay `config.yaml` and add the Red Hat AI provider configuration:
+
+   ```yaml
+   providers:
+     redhat-inference:
+       engine: redhat
+       models:
+         RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+   ```
+
+   Replace the model ID with whatever your server's `/v1/models` endpoint reports.
+
+3. **Optional** — if your endpoint requires authentication (started with the `--api-key` flag), add an API key:
+
+   ```yaml
+   providers:
+     redhat-inference:
+       engine: redhat
+       api_key_env_var_name: 'REDHAT_AI_API_KEY'
+       models:
+         RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+   ```
+
+   ```bash
+   export REDHAT_AI_API_KEY="your-server-api-key"
+   ```
+
+4. **Optional** — if your endpoint runs on a non-default port or remote host, set `base_url`:
+
+   ```yaml
+   providers:
+     redhat-inference:
+       engine: redhat
+       base_url: 'http://192.168.1.100:8080/v1'
+       models:
+         RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+   ```
+
+5. **Optional** — for servers with self-signed or internal CA certificates:
+
+   ```bash
+   export NODE_EXTRA_CA_CERTS="/path/to/ca-bundle.crt"
+   ```
+
+If Abbenay runs inside a container and the Red Hat AI Inference endpoint runs on the host, use:
+
+```yaml
+providers:
+  redhat-inference:
+    engine: redhat
+    base_url: 'http://host.containers.internal:8000/v1'
+    models:
+      RedHatAI/Llama-3.2-1B-Instruct-FP8: {}
+```
+
+:::note
+This covers Red Hat AI Inference (a standalone vLLM instance). To connect to a Red Hat OpenShift AI Models-as-a-Service (MaaS) endpoint instead, use the `openai` engine (or the `redhat` engine with `base_url` set to your MaaS `/v1` route) — see the [Red Hat AI engine reference](/vscode-ansible/ai/abbenay-configuration/#red-hat-ai-both-deployment-profiles) for both profiles.
+:::
+
+## Verify your connection
+
+Start the Abbenay daemon and send a test prompt to verify that your AI model is connected and responding.
+
+### Prerequisites
+
+- At least one provider is configured (see the sections above).
+- Your provider is running and accessible — for example, Ollama is started, or your cloud API key is valid.
+
+### Procedure
+
+1. Start the Abbenay daemon:
+
+   ```bash
+   aby start
+   ```
+
+   Abbenay starts the daemon, web dashboard, OpenAI-compatible API, and MCP server on port `8787`. A bearer token is generated automatically for HTTP API authentication.
+
+2. Verify your configured models are available:
+
+   ```bash
+   aby list-models
+   ```
+
+3. **Optional** — discover models available from a specific provider, including models not yet in your configuration:
+
+   ```bash
+   aby list-models --discover ollama
+   aby list-models --discover redhat
+   ```
+
+4. Send a test prompt, using `<provider>/<model>` format:
+
+   ```bash
+   aby chat -m ollama/llama3.2
+   ```
+
+5. Type a test message and verify you receive a response. Press <kbd>Ctrl</kbd>+<kbd>D</kbd> to end the chat session.
+
+### Stop Abbenay
+
+```bash
+aby stop    # Stop all Abbenay services
+aby status  # Check if Abbenay is running
+```
+
+## Troubleshooting
+
+| Symptom | Cause | Resolution |
+|---------|-------|------------|
+| `aby list-models` shows no models | Configuration file not found or malformed YAML | Verify your `config.yaml` path and syntax |
+| Connection refused when chatting | Provider not running | Start your provider (for example, `ollama serve`, or verify your Red Hat AI endpoint is accessible) |
+| `401 Unauthorized` | Missing or invalid API key | Verify your API key environment variable is set and matches the provider's requirements |
+| Model name not found | Incorrect model ID | Run `aby list-models --discover <engine>` to see available models, and use the exact ID in your config |
+
+## Additional resources
+
+- [Abbenay configuration reference](/vscode-ansible/ai/abbenay-configuration/) — full `config.yaml` documentation, security hardening, and engine reference
+- [Abbenay architecture](https://github.com/redhat-developer/abbenay/blob/main/docs/ARCHITECTURE.md) — daemon design and component overview
+- [Red Hat AI Inference documentation](https://docs.redhat.com/en/documentation/red_hat_ai_inference_server) — RHEL AI endpoint setup
+- [Abbenay container guide](https://github.com/redhat-developer/abbenay/blob/main/docs/CONTAINER.md) — Kubernetes manifests, TLS, and security hardening
+- [Abbenay on GitHub](https://github.com/redhat-developer/abbenay) — source repository, issues, and releases
+- [Our AI approach](/vscode-ansible/ai/approach/) — how Abbenay fits alongside the MCP server, skills, and Lightspeed
