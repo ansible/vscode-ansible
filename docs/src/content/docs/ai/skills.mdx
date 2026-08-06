@@ -31,7 +31,7 @@ The Ansible DevTools project ships 13 built-in skills covering the core developm
 
 ### Via the plugin
 
-If you install the [Ansible DevTools Plugin](/ai/plugin/), skills are included automatically and discoverable by the host.
+If you install the [Ansible DevTools Plugin](/vscode-ansible/ai/plugin/), skills are included automatically and discoverable by the host.
 
 ### Via `npx skills` (68+ agents)
 
@@ -102,7 +102,7 @@ Instructions for the agent...
 
 ### Three-level progressive disclosure
 
-Skills support three levels of context loading (per [ADR-018](/development/architecture/)):
+Skills support three levels of context loading (per [ADR-018](/vscode-ansible/development/architecture/)):
 
 1. **Level 1 — Frontmatter:** Name + description always in context (for discovery)
 2. **Level 2 — Body:** Full SKILL.md loaded when the agent decides to apply the skill

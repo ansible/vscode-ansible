@@ -38,13 +38,13 @@ designed to work with any AI system:
 
 <CardGrid>
   <Card title="MCP Tools" icon="rocket">
-    A standalone [MCP server](/ai/mcp-server/) with 22+ tools for collection
+    A standalone [MCP server](/vscode-ansible/ai/mcp-server/) with 22+ tools for collection
     discovery, plugin documentation, task generation, execution environment
     introspection, and project scaffolding. Any MCP-compatible agent can call
     these tools directly.
   </Card>
   <Card title="Skills" icon="document">
-    [13 guided workflows](/ai/skills/) written as portable SKILL.md files.
+    [13 guided workflows](/vscode-ansible/ai/skills/) written as portable SKILL.md files.
     Skills teach your agent *how* to approach Ansible tasks — explaining
     plugins, analyzing playbooks, building tasks interactively — without
     requiring MCP support.
@@ -103,8 +103,8 @@ required.
 
 | Capability | VS Code | Cursor | IBM Bob | Agent-only (CLI) |
 |------------|---------|--------|---------|------------------|
-| Language server (completions, diagnostics, hover) | Yes | Yes | Yes | [Standalone](/ai/language-server/) |
-| MCP server auto-registration | `vscode.lm` API | `cursor.mcp` API | `~/.bob/settings/mcp.json` | [Manual config](/ai/connecting-agents/) |
+| Language server (completions, diagnostics, hover) | Yes | Yes | Yes | [Standalone](/vscode-ansible/ai/language-server/) |
+| MCP server auto-registration | `vscode.lm` API | `cursor.mcp` API | `~/.bob/settings/mcp.json` | [Manual config](/vscode-ansible/ai/connecting-agents/) |
 | Chat prompt routing | Copilot Chat | Cursor Chat | Bob Chat | N/A |
 | Collection browser + sparkle actions | Yes | Yes | Yes | Via MCP tools |
 | Playbook execution + AI analysis | Yes | Yes | Yes | Via MCP tools |
@@ -174,12 +174,12 @@ invokes. The model choice is always yours.
 
 <CardGrid>
   <Card title="Install the extension" icon="laptop">
-    Works out of the box in [VS Code](/editor/vscode-extension/),
-    [Cursor](/editor/cursor/), and [IBM Bob](/editor/ibm-bob/).
+    Works out of the box in [VS Code](/vscode-ansible/editor/vscode-extension/),
+    [Cursor](/vscode-ansible/editor/cursor/), and [IBM Bob](/vscode-ansible/editor/ibm-bob/).
     MCP auto-registration happens on activation.
   </Card>
   <Card title="Connect a standalone agent" icon="setting">
     Using Claude Code, Codex, or another MCP client?
-    See [Connecting AI Agents](/ai/connecting-agents/) for setup.
+    See [Connecting AI Agents](/vscode-ansible/ai/connecting-agents/) for setup.
   </Card>
 </CardGrid>
