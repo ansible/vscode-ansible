@@ -288,7 +288,7 @@ If neither `api_key_keychain_name` nor `api_key_env_var_name` is set, Abbenay fa
 | Context | Recommended approach |
 |---------|----------------------|
 | Personal development | Keychain storage, managed via the web dashboard |
-| Team projects | Environment variables referenced in `config.yaml`; each team member sets their own variable. Commit `config.yaml` to version control and document required env vars in the project README |
+| Team projects | Environment variables referenced in `config.yaml`; each team member sets their own variable. Commit `config.yaml` to version control only when it contains env var names and no key values. Document the required env vars in the project README |
 | CI/CD pipelines | Environment variables injected by the CI/CD platform's secret management |
 | Container deployments | Environment variables only — keychain is not available |
 

@@ -127,11 +127,11 @@ Choose one of the following installation methods.
 
 Abbenay runs on Windows with two platform-specific differences from Linux and macOS:
 
-| Aspect | Linux / macOS | Windows |
-|--------|---------------|---------|
-| Runtime directory | XDG / platform data dir | `%TEMP%\abbenay` |
-| Local daemon transport | Unix domain socket | Loopback TCP |
-| Config directory | `~/.config/abbenay` | `%APPDATA%\abbenay` |
+| Aspect | Linux | macOS | Windows |
+|--------|-------|-------|---------|
+| Runtime directory | XDG data dir | Platform data dir | `%TEMP%\abbenay` |
+| Local daemon transport | Unix domain socket | Unix domain socket | Loopback TCP |
+| Config directory | `~/.config/abbenay` | `~/Library/Application Support/abbenay` | `%APPDATA%\abbenay` |
 
 Because Windows has no native Unix domain sockets, the daemon falls back to a loopback TCP listener for local IPC (CLI, VS Code extension) instead of the Unix socket used on Linux and macOS. This is functionally equivalent for single-user, local-machine use — the listener still binds to `127.0.0.1` only, so it is not reachable from other hosts.
 
