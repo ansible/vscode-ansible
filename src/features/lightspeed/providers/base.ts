@@ -6,12 +6,7 @@ import { AnsibleContextProcessor } from "@src/features/lightspeed/ansibleContext
 
 export interface ProviderMetadata {
   ansibleFileType?:
-    | "playbook"
-    | "tasks"
-    | "handlers"
-    | "vars"
-    | "role"
-    | "inventory";
+    "playbook" | "tasks" | "handlers" | "vars" | "role" | "inventory";
   documentUri?: string;
   workspaceContext?: string;
   context?: string;
