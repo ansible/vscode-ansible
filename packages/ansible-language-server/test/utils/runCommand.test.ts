@@ -1,10 +1,15 @@
 import { CommandRunner } from "@src/utils/commandRunner.js";
-import { expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AssertionError } from "assert";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
+import type { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "@test/helper.js";
 import { ExecException } from "child_process";
+import { URI } from "vscode-uri";
+import * as os from "node:os";
+import * as path from "node:path";
 
 describe("commandRunner", function () {
   const tests = [
@@ -60,15 +65,46 @@ describe("commandRunner", function () {
       pythonInterpreterPath: "path-before-python/bin/python",
       activationScript: `${process.env.VIRTUAL_ENV}/bin/activate`,
     },
+    {
+      args: ["printenv", "ANSIBLE_CONFIG"],
+      rc: 0,
+      stdout: "/tmp/ansible.cfg",
+      stderr: "",
+      pythonInterpreterPath: "",
+      activationScript: "",
+      ansibleConfigPath: "/tmp/ansible.cfg",
+    },
+    {
+      args: ["printenv", "ANSIBLE_CONFIG"],
+      rc: 0,
+      stdout: path.join(os.homedir(), "ansible.cfg"),
+      stderr: "",
+      pythonInterpreterPath: "",
+      activationScript: "",
+      ansibleConfigPath: "~/ansible.cfg",
+    },
+    {
+      args: ["printenv", "ANSIBLE_CONFIG"],
+      rc: 0,
+      stdout: os.homedir(),
+      stderr: "",
+      pythonInterpreterPath: "",
+      activationScript: "",
+      ansibleConfigPath: "~",
+    },
   ];
 
   tests.forEach(
-    ({ args, rc, stdout, stderr, pythonInterpreterPath, activationScript }) => {
+    ({
+      args,
+      rc,
+      stdout,
+      stderr,
+      pythonInterpreterPath,
+      activationScript,
+      ansibleConfigPath,
+    }) => {
       it(`call ${args.join(" ")}`, { timeout: 10000 }, async () => {
-        // try to enforce ansible to output ANSI in order to check if we are
-        // still able to disable it at runtime in order to keep output parsable.
-        process.env.ANSIBLE_FORCE_COLOR = "1";
-
         process.argv.push("--node-ipc");
         const connection = createConnection();
         const workspaceManager = new WorkspaceManager(connection);
@@ -81,6 +117,9 @@ describe("commandRunner", function () {
           }
           if (activationScript) {
             settings.python.activationScript = activationScript;
+          }
+          if (ansibleConfigPath) {
+            settings.config.path = ansibleConfigPath;
           }
 
           const commandRunner = new CommandRunner(
@@ -110,4 +149,88 @@ describe("commandRunner", function () {
       });
     },
   );
+
+  it.each([
+    {
+      configuredPath: "ansible/ansible.cfg",
+      expectedRelativePath: "ansible/ansible.cfg",
+    },
+    {
+      configuredPath:
+        "${workspaceFolder}/ansible/${workspaceFolder}/ansible.cfg",
+      expectedPath: `${process.cwd()}/ansible/${process.cwd()}/ansible.cfg`,
+    },
+    { configuredPath: "" },
+  ])(
+    "passes $configuredPath to the execution environment",
+    async ({
+      configuredPath,
+      expectedRelativePath,
+      expectedPath: pathValue,
+    }) => {
+      const workspaceFolder = process.cwd();
+      const expectedPath =
+        pathValue ??
+        (expectedRelativePath
+          ? path.join(workspaceFolder, expectedRelativePath)
+          : undefined);
+      const wrapContainerArgs = vi.fn().mockReturnValue(["printf", "ok"]);
+      const context = {
+        workspaceFolder: { uri: URI.file(workspaceFolder).toString() },
+        executionEnvironment: Promise.resolve({ wrapContainerArgs }),
+      } as unknown as WorkspaceFolderContext;
+      const settings = {
+        config: { path: configuredPath },
+        executionEnvironment: { enabled: true },
+        python: { interpreterPath: "", activationScript: "" },
+      } as ExtensionSettings;
+      const commandRunner = new CommandRunner(undefined, context, settings);
+
+      const result = await commandRunner.runCommand("ansible", "--version");
+
+      expect(result.stdout).toBe("ok");
+      expect(wrapContainerArgs).toHaveBeenCalledOnce();
+      const [, mountPaths, envOverrides] = wrapContainerArgs.mock.calls[0];
+      expect(envOverrides).toEqual(
+        expectedPath ? { ANSIBLE_CONFIG: expectedPath } : {},
+      );
+      expect(mountPaths).toEqual(
+        new Set(
+          expectedPath
+            ? [workspaceFolder, path.dirname(expectedPath)]
+            : [workspaceFolder],
+        ),
+      );
+    },
+  );
+
+  it("returns an empty result when the execution environment is unavailable", async () => {
+    const wrapContainerArgs = vi.fn().mockReturnValue(undefined);
+    const workspaceFolder = process.cwd();
+    const context = {
+      workspaceFolder: { uri: URI.file(workspaceFolder).toString() },
+      executionEnvironment: Promise.resolve({ wrapContainerArgs }),
+    } as unknown as WorkspaceFolderContext;
+    const settings = {
+      config: { path: "/tmp/ansible.cfg" },
+      executionEnvironment: { enabled: true },
+      python: { interpreterPath: "", activationScript: "" },
+    } as ExtensionSettings;
+    const commandRunner = new CommandRunner(undefined, context, settings);
+    const mountPaths = new Set(["/tmp/custom-mount"]);
+
+    const result = await commandRunner.runCommand(
+      "ansible",
+      "--version",
+      workspaceFolder,
+      mountPaths,
+    );
+
+    expect(result).toEqual({ stdout: "", stderr: "" });
+    expect(wrapContainerArgs).toHaveBeenCalledWith(
+      "ansible --version",
+      new Set(["/tmp/custom-mount", "/tmp"]),
+      { ANSIBLE_CONFIG: "/tmp/ansible.cfg" },
+    );
+  });
 });
