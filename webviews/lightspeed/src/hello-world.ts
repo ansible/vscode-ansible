@@ -31,7 +31,6 @@ const MyPreset = definePreset(Nora, {
           background: "var(--vscode-background)",
           borderColor: "var(--vscode-checkbox-selectBorder)",
           color: "var(--vscode-foreground)",
-          focusColor: "var(--vscode-foreground)",
         },
       },
       dark: {
@@ -47,7 +46,6 @@ const MyPreset = definePreset(Nora, {
           background: "var(--vscode-background)",
           borderColor: "var(--vscode-checkbox-selectBorder)",
           color: "var(--vscode-foreground)",
-          focusColor: "var(--vscode-foreground)",
         },
       },
     },

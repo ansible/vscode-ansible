@@ -291,7 +291,8 @@ export class WebviewMessageHandlers {
     webview: vscode.Webview,
   ) {
     const payload = message.payload as
-      AnsibleCollectionFormInterface | AnsibleProjectFormInterface;
+      | AnsibleCollectionFormInterface
+      | AnsibleProjectFormInterface;
     await this.creatorOps.runInitCommand(payload, webview);
   }
 
