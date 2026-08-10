@@ -388,6 +388,53 @@ describe("makeConfigurationMiddleware", function () {
     expect(configSettings.path).toBe("/workspace/project/ansible/ansible.cfg");
   });
 
+  it("should leave config.path unchanged when it is already an absolute path", async function () {
+    const params: ConfigurationParams = {
+      items: [{ section: "ansible", scopeUri: "file:///workspace/project" }],
+    };
+    const originalResult = [
+      {
+        config: {
+          path: "/etc/ansible/ansible.cfg",
+        },
+      },
+    ];
+    mockNext.mockResolvedValue(originalResult);
+    mockPythonEnvService.getExecutablePath.mockResolvedValue(
+      "/usr/bin/python3",
+    );
+
+    const result = await invokeMiddleware(params);
+
+    const config = (result as Record<string, unknown>[])[0];
+    const configSettings = config.config as Record<string, unknown>;
+    expect(configSettings.path).toBe("/etc/ansible/ansible.cfg");
+  });
+
+  it("should resolve config.path with tilde when scopeUri is absent", async function () {
+    const params: ConfigurationParams = {
+      items: [{ section: "ansible" }],
+    };
+    const originalResult = [
+      {
+        config: {
+          path: "~/ansible/ansible.cfg",
+        },
+      },
+    ];
+    mockNext.mockResolvedValue(originalResult);
+    mockPythonEnvService.getExecutablePath.mockResolvedValue(
+      "/usr/bin/python3",
+    );
+
+    const result = await invokeMiddleware(params);
+
+    const config = (result as Record<string, unknown>[])[0];
+    const configSettings = config.config as Record<string, unknown>;
+    expect(configSettings.path).toMatch(/\/.*\/ansible\/ansible\.cfg$/);
+    expect(configSettings.path).not.toContain("~");
+  });
+
   it("should resolve config.path when interpreterPath is user-configured", async function () {
     vi.mocked(vscode.Uri.parse).mockImplementation(
       (value: string) =>
