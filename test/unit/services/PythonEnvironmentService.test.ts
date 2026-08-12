@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
 import * as vscode from "vscode";
-import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
+import {
+  PythonEnvironmentService,
+  showPetWarningDialog,
+} from "@src/services/PythonEnvironmentService";
 import { PythonExtension } from "@vscode/python-extension";
 import { PYTHON_ENVS_EXTENSION_ID } from "@src/types/pythonEnvApi";
 
@@ -18,6 +21,23 @@ describe("PythonEnvironmentService", function () {
   let mockExecuteCommand: ReturnType<typeof vi.fn>;
   let mockExistsSync: ReturnType<typeof vi.fn>;
   let mockPythonExtApi: ReturnType<typeof vi.fn>;
+
+  const makeMockContext = (
+    globalStateOverrides: Record<string, unknown> = {},
+  ) => {
+    const store = new Map<string, unknown>(
+      Object.entries(globalStateOverrides),
+    );
+    return {
+      globalState: {
+        get: vi.fn((key: string) => store.get(key)),
+        update: vi.fn((key: string, value: unknown) => {
+          store.set(key, value);
+          return Promise.resolve();
+        }),
+      },
+    } as unknown as import("vscode").ExtensionContext;
+  };
 
   const resetSingleton = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,9 +195,11 @@ describe("PythonEnvironmentService", function () {
       mockExistsSync.mockReturnValue(true);
 
       await service.initialize();
+      const callsAfterFirst = mockGetExtension.mock.calls.length;
       await service.initialize();
 
-      expect(mockGetExtension).toHaveBeenCalledTimes(1);
+      // Second call must not trigger any additional extension lookups
+      expect(mockGetExtension.mock.calls).toHaveLength(callsAfterFirst);
     });
   });
 
@@ -234,6 +256,7 @@ describe("PythonEnvironmentService", function () {
 
       expect(mockShowWarningMessage).toHaveBeenCalledWith(
         expect.stringContaining("PET binary missing"),
+        "Don't show again",
         "Learn More",
       );
     });
@@ -260,9 +283,264 @@ describe("PythonEnvironmentService", function () {
       const mockOpenExternal = vi.mocked(vscode.env.openExternal);
       await service.initialize();
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockOpenExternal).toHaveBeenCalled();
+    });
+
+    it("should not show warning again if already shown in current session", async function () {
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      await service.initialize();
+      expect(mockShowWarningMessage).toHaveBeenCalledTimes(1);
+
+      // Reset initialized flag to allow a second initialize() call on the same
+      // instance, keeping _petWarningShown=true to exercise the early-return path.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any)._initialized = false;
+      await service.initialize();
+
+      expect(mockShowWarningMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it("should disable environments extension when that button is selected", async function () {
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
+      mockShowInformationMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const mockConfig = {
+        get: vi.fn().mockReturnValue(true),
+        update: vi.fn().mockResolvedValue(undefined),
+      };
+      mockGetConfiguration.mockReturnValue(mockConfig);
+
+      await service.initialize();
+
+      expect(mockConfig.update).toHaveBeenCalledWith(
+        "useEnvironmentsExtension",
+        false,
+        vscode.ConfigurationTarget.Global,
+      );
+      expect(mockShowInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining("Reload"),
+        "Reload Now",
+      );
+    });
+
+    it("should reload window when Reload Now selected after disabling environments extension", async function () {
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
+      mockShowInformationMessage.mockResolvedValue("Reload Now");
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const mockConfig = {
+        get: vi.fn().mockReturnValue(true),
+        update: vi.fn().mockResolvedValue(undefined),
+      };
+      mockGetConfiguration.mockReturnValue(mockConfig);
+
+      await service.initialize();
+
+      expect(mockExecuteCommand).toHaveBeenCalledWith(
+        "workbench.action.reloadWindow",
+      );
+    });
+  });
+
+  describe("showPetWarningDialog", function () {
+    it("should show warning and persist when Don't show again clicked", async function () {
+      const ctx = makeMockContext();
+      mockShowWarningMessage.mockResolvedValue("Don't show again");
+      mockGetConfiguration.mockReturnValue({
+        get: vi.fn().mockReturnValue(false),
+      });
+
+      await showPetWarningDialog(ctx);
+
+      expect(mockShowWarningMessage).toHaveBeenCalledWith(
+        expect.stringContaining("PET binary missing"),
+        "Don't show again",
+        "Learn More",
+      );
+      expect(
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
+      ).toHaveBeenCalledWith("ansible.petWarningShown", true);
+    });
+
+    it("should not persist when dismissed without action", async function () {
+      const ctx = makeMockContext();
+      mockShowWarningMessage.mockResolvedValue(undefined);
+
+      await showPetWarningDialog(ctx);
+
+      expect(
+        ctx.globalState.update as ReturnType<typeof vi.fn>,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should open external link when Learn More is selected", async function () {
+      mockGetConfiguration.mockReturnValue({
+        get: vi.fn().mockReturnValue(false),
+      });
+      mockShowWarningMessage.mockResolvedValue("Learn More");
+
+      const mockOpenExternal = vi.mocked(vscode.env.openExternal);
+      await showPetWarningDialog(makeMockContext());
 
       expect(mockOpenExternal).toHaveBeenCalled();
+    });
+
+    it("should include Disable button when useEnvironmentsExtension is enabled", async function () {
+      const mockConfig = {
+        get: vi.fn().mockReturnValue(true),
+        update: vi.fn().mockResolvedValue(undefined),
+      };
+      mockGetConfiguration.mockReturnValue(mockConfig);
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
+      mockShowInformationMessage.mockResolvedValue(undefined);
+
+      await showPetWarningDialog(makeMockContext());
+
+      expect(mockShowWarningMessage).toHaveBeenCalledWith(
+        expect.stringContaining("Disabling the Environments extension"),
+        "Disable Environments Extension",
+        "Don't show again",
+        "Learn More",
+      );
+      expect(mockConfig.update).toHaveBeenCalledWith(
+        "useEnvironmentsExtension",
+        false,
+        vscode.ConfigurationTarget.Global,
+      );
+    });
+
+    it("should reload window when Reload Now selected after disabling", async function () {
+      const mockConfig = {
+        get: vi.fn().mockReturnValue(true),
+        update: vi.fn().mockResolvedValue(undefined),
+      };
+      mockGetConfiguration.mockReturnValue(mockConfig);
+      mockShowWarningMessage.mockResolvedValue(
+        "Disable Environments Extension",
+      );
+      mockShowInformationMessage.mockResolvedValue("Reload Now");
+
+      await showPetWarningDialog(makeMockContext());
+
+      expect(mockExecuteCommand).toHaveBeenCalledWith(
+        "workbench.action.reloadWindow",
+      );
+    });
+
+    it("should handle undefined context gracefully", async function () {
+      mockGetConfiguration.mockReturnValue({
+        get: vi.fn().mockReturnValue(false),
+      });
+      mockShowWarningMessage.mockResolvedValue("Don't show again");
+
+      await showPetWarningDialog(undefined);
+
+      expect(mockShowWarningMessage).toHaveBeenCalled();
+    });
+  });
+
+  describe("initialize — PET warning globalState persistence", function () {
+    it("should skip warning when globalState already set", async function () {
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/envs/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext({ "ansible.petWarningShown": true });
+      await service.initialize(ctx);
+
+      expect(mockShowWarningMessage).not.toHaveBeenCalled();
+    });
+
+    it("should still fall back to Python extension even when warning suppressed", async function () {
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/envs/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
+
+      const ctx = makeMockContext({ "ansible.petWarningShown": true });
+      const result = await service.initialize(ctx);
+
+      expect(result).toBe(true);
+      expect(service.hasFullApi()).toBe(false);
     });
   });
 
@@ -356,6 +634,44 @@ describe("PythonEnvironmentService", function () {
       expect(env).toBeDefined();
       expect(env?.execInfo.run.executable).toBe("/usr/bin/python3");
       expect(env?.version).toBe("3.11.5");
+    });
+
+    it("should return undefined and log when fallback resolveEnvironment throws", async function () {
+      const fallbackApi = makeMockPythonExtApi({
+        resolveEnvironment: vi
+          .fn()
+          .mockRejectedValue(new Error("resolve boom")),
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+
+      await service.initialize();
+      const env = await service.getEnvironment();
+
+      expect(env).toBeUndefined();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error getting environment (python ext)"),
+      );
     });
 
     it("should return undefined when fallback resolves to nothing", async function () {
@@ -733,6 +1049,43 @@ describe("PythonEnvironmentService", function () {
       const result = await service.getEnvironments();
 
       expect(result).toEqual([]);
+    });
+
+    it("should return empty array and log when fallback resolveEnvironment throws", async function () {
+      const fallbackApi = makeMockPythonExtApi({
+        known: [{ id: "env-1", path: "/usr/bin/python3" }],
+        resolveEnvironment: vi.fn().mockRejectedValue(new Error("list boom")),
+      });
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => undefined);
+
+      await service.initialize();
+      const result = await service.getEnvironments();
+
+      expect(result).toEqual([]);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Error getting environments (python ext)"),
+      );
     });
 
     it("should call API getEnvironments with scope", async function () {
