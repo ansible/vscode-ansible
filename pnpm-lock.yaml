@@ -14,7 +14,7 @@ overrides:
   brace-expansion@1: '>=5.0.8 <6.0.0'
   brace-expansion@2: '>=2.1.2 <3.0.0'
   brace-expansion@5: '>=5.0.8 <6.0.0'
-  fast-uri@3: '>=3.1.4 <4.0.0'
+  fast-uri@3: <5.0.0
   fast-xml-parser: '>=5.10.1 <6.0.0'
   fastify: '>=5.8.3 <6.0.0'
   find-my-way: '>=9.7.0 <10.0.0'
@@ -2460,6 +2460,11 @@ packages:
 
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
+    peerDependencies:
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@vscode-elements/elements@2.5.1':
     resolution: {integrity: sha512-HiKgIj9GwlfYkw1LrxG7dM5bMQUr8/GkOqG1HU1+npGHd51nRKCF6ZZ9FtnfoC2wujNN0lc+m0emH/wMpAseYQ==}
@@ -9053,11 +9058,13 @@ snapshots:
 
   '@volar/source-map@2.4.28': {}
 
-  '@volar/typescript@2.4.28':
+  '@volar/typescript@2.4.28(typescript@6.0.3)':
     dependencies:
       '@volar/language-core': 2.4.28
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
+    optionalDependencies:
+      typescript: 6.0.3
 
   '@vscode-elements/elements@2.5.1(@vscode/codicons@0.0.45)':
     dependencies:
@@ -14204,7 +14211,7 @@ snapshots:
 
   vue-tsc@3.3.6(typescript@6.0.3):
     dependencies:
-      '@volar/typescript': 2.4.28
+      '@volar/typescript': 2.4.28(typescript@6.0.3)
       '@vue/language-core': 3.3.6
       typescript: 6.0.3
 
