@@ -389,6 +389,7 @@ jobs:
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
             run: |
               set -e
+              mkdir -p out/log
               task build 2>out/log/build-before.txt
               task e2e ${{ matrix.env.TASKFILE_ARGS }}
               task build 2>out/log/build-after.txt
