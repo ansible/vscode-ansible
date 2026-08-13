@@ -156,6 +156,7 @@ Generate Ansible inventory content with:
         indent: 2,
         lineWidth: 120,
         noRefs: true,
+        forceQuotes: false,
         sortKeys: false,
       });
 
@@ -232,6 +233,7 @@ Generate Ansible inventory content with:
             indent: 2,
             lineWidth: 120,
             noRefs: true,
+            forceQuotes: false,
           })
           .trim();
       }

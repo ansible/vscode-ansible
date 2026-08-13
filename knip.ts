@@ -134,6 +134,8 @@ const config: KnipConfig = {
     // in production mode. They live in package.json#exports entry files so
     // includeEntryExports:false should suppress them, but the global true wins.
     "packages/ansible-language-server/test/globalSetup.ts": ["exports"],
+    // Exported for Vitest CLI coverage; production knip excludes test imports
+    "packages/ansible-language-server/src/cli.ts": ["exports"],
     "packages/ansible-language-server/src/providers/completionProvider.ts": [
       "exports",
     ],

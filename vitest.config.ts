@@ -1,7 +1,20 @@
 // used for unit tests from test/unit
 import { defineConfig } from "vitest/config";
 import path, { resolve } from "node:path";
+import { readFileSync } from "node:fs";
 import vue from "@vitejs/plugin-vue";
+
+// Prefer __dirname here (same as als_root/mcp_root below). Do not import
+// ./test/setup — eslint no-restricted-imports bans relative imports, and
+// @test/* aliases are not available while this config file is loading.
+const alsPackageVersion = (
+  JSON.parse(
+    readFileSync(
+      resolve(__dirname, "packages/ansible-language-server/package.json"),
+      "utf8",
+    ),
+  ) as { version: string }
+).version;
 
 // see https://vitest.dev/guide/migration.html
 // we use this approach because it allows 'knip' to also detect the imports
@@ -47,6 +60,10 @@ const isFiltered = process.argv.slice(2).some((arg) => {
 
 const alsVitestProject = {
   extends: true as const,
+  define: {
+    // Match tsdown define so importing src/cli.ts in unit tests works.
+    PACKAGE_VERSION: JSON.stringify(alsPackageVersion),
+  },
   resolve: {
     alias: {
       "@src": path.resolve(als_root, "src"),

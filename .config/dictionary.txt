@@ -83,6 +83,7 @@ libxshmfence
 libyaml
 lightspeed
 lineinfile
+linkify
 llmprovider
 microdnf
 myorg

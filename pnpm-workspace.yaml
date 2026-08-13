@@ -14,15 +14,30 @@ allowBuilds:
 
 overrides:
   rollup: "npm:@rollup/wasm-node@*"
+  # VS Code 1.110+ renamed macOS Electron -> Code; Electron symlink removed in
+  # 1.131 (microsoft/vscode#326502). @vscode/test-electron 3.1.0 resolves via
+  # Info.plist / Contents/MacOS (microsoft/vscode-test#348). Force all
+  # consumers (incl. wdio-vscode-service@^2.4.1) onto the fixed release.
+  "@vscode/test-electron": "3.1.0"
   # Security overrides
-  "@xhmikosr/decompress@10": "11.1.3"
-  "fast-uri@3": ">=3.1.2"
-  "fastify": ">=5.8.3"
+  "@fastify/static": ">=10.1.2 <11.0.0"
+  "@hono/node-server": ">=2.0.5 <3.0.0"
+  "@xhmikosr/decompress@10": "10.2.1"
+  "body-parser": ">=2.3.0 <3.0.0"
+  "brace-expansion@1": ">=5.0.8 <6.0.0"
+  "brace-expansion@2": ">=2.1.2 <3.0.0"
+  "brace-expansion@5": ">=5.0.8 <6.0.0"
+  "fast-uri@3": "<5.0.0"
+  "fast-xml-parser": ">=5.10.1 <6.0.0"
+  "fastify": ">=5.8.3 <6.0.0"
+  "find-my-way": ">=9.7.0 <10.0.0"
   "form-data@4": ">=4.0.6"
-  "js-yaml@4": ">=5.2.1"
-  "markdown-it": ">=14.2.0"
-  "protobufjs@7": ">=7.6.3"
-  "serialize-javascript": ">=7.0.5"
+  "js-yaml@5": ">=5.2.2"
+  "linkify-it": ">=5.0.2 <6.0.0"
+  "markdown-it": ">=14.2.0 <15.0.0"
+  "postcss": ">=8.5.18 <9.0.0"
+  "protobufjs@7": ">=7.6.5 <8.0.0"
+  "serialize-javascript": ">=7.0.5 <8.0.0"
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
 
@@ -37,5 +52,9 @@ packageExtensions:
     "dependencies":
       "mocha": "*"
 minimumReleaseAgeExclude:
-  # Renovate security update: js-yaml@5.2.1
-  - js-yaml@5.2.1
+  # Renovate security update: js-yaml@5.2.1 || 5.2.2
+  - js-yaml@5.2.1 || 5.2.2
+  # Unblocks macOS e2e/wdio after Electron binary rename (see overrides above)
+  - "@vscode/test-electron"
+  # Renovate security update: brace-expansion@5.0.8
+  - brace-expansion@5.0.8

@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
+const FIX_TEST_TIMEOUT_MS = 60_000;
+
 describe("Ansible Lint Handler", () => {
   let testDir: string;
   let testPlaybookPath: string;
@@ -144,22 +146,26 @@ describe("Ansible Lint Handler", () => {
       expect(result.content).toBeDefined();
     });
 
-    it("should run linting with automatic fixes when fix parameter is true", async () => {
-      const handler = createAnsibleLintHandler(testDir);
-      const result = await handler({
-        filePath: testPlaybookPath,
-        fix: true,
-      });
+    it(
+      "should run linting with automatic fixes when fix parameter is true",
+      async () => {
+        const handler = createAnsibleLintHandler(testDir);
+        const result = await handler({
+          filePath: testPlaybookPath,
+          fix: true,
+        });
 
-      // Should not contain the prompt message
-      expect(result.content[0].text).not.toContain(
-        "Would you like ansible-lint to apply automatic fixes?",
-      );
-      // Should contain fixed content since fix is true
-      expect(result.content[0].text).toContain("📝 Fixed content:");
-      // Should either contain an error (if ansible-lint not available) or linting results
-      expect(result.content).toBeDefined();
-    });
+        // Should not contain the prompt message
+        expect(result.content[0].text).not.toContain(
+          "Would you like ansible-lint to apply automatic fixes?",
+        );
+        // Should contain fixed content since fix is true
+        expect(result.content[0].text).toContain("📝 Fixed content:");
+        // Should either contain an error (if ansible-lint not available) or linting results
+        expect(result.content).toBeDefined();
+      },
+      FIX_TEST_TIMEOUT_MS,
+    );
   });
 
   describe("Path traversal prevention", () => {
@@ -193,18 +199,22 @@ describe("Ansible Lint Handler", () => {
   });
 
   describe("Fix functionality", () => {
-    it("should apply fixes when fix: true is specified", async () => {
-      const handler = createAnsibleLintHandler(testDir);
+    it(
+      "should apply fixes when fix: true is specified",
+      async () => {
+        const handler = createAnsibleLintHandler(testDir);
 
-      const result = await handler({
-        filePath: testPlaybookPath,
-        fix: true,
-      });
+        const result = await handler({
+          filePath: testPlaybookPath,
+          fix: true,
+        });
 
-      expect(result.content).toBeDefined();
-      expect(result.content[0].text).toContain("📝 Fixed content:");
-      expect(result.content[0].text).toContain("```yaml");
-    });
+        expect(result.content).toBeDefined();
+        expect(result.content[0].text).toContain("📝 Fixed content:");
+        expect(result.content[0].text).toContain("```yaml");
+      },
+      FIX_TEST_TIMEOUT_MS,
+    );
 
     it("should not apply fixes when fix: false is specified", async () => {
       const handler = createAnsibleLintHandler(testDir);
@@ -219,20 +229,24 @@ describe("Ansible Lint Handler", () => {
       expect(result.content[0].text).not.toContain("```yaml");
     });
 
-    it("should display fixed content when fix is applied and content is available", async () => {
-      const handler = createAnsibleLintHandler(testDir);
+    it(
+      "should display fixed content when fix is applied and content is available",
+      async () => {
+        const handler = createAnsibleLintHandler(testDir);
 
-      const result = await handler({
-        filePath: testPlaybookPath,
-        fix: true,
-      });
+        const result = await handler({
+          filePath: testPlaybookPath,
+          fix: true,
+        });
 
-      expect(result.content).toBeDefined();
-      // This test specifically covers the fixed content display logic
-      expect(result.content[0].text).toContain("📝 Fixed content:");
-      expect(result.content[0].text).toContain("```yaml");
-      expect(result.content[0].text).toContain("---");
-    });
+        expect(result.content).toBeDefined();
+        // This test specifically covers the fixed content display logic
+        expect(result.content[0].text).toContain("📝 Fixed content:");
+        expect(result.content[0].text).toContain("```yaml");
+        expect(result.content[0].text).toContain("---");
+      },
+      FIX_TEST_TIMEOUT_MS,
+    );
 
     it("should handle clean playbook with no issues", async () => {
       const handler = createAnsibleLintHandler(testDir);

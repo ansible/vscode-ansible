@@ -49,7 +49,7 @@ jobs:
     outputs:
       commit_context: ${{ steps.build.outputs.context }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -125,7 +125,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           fetch-tags: true # needed for dynamic versioning
@@ -331,12 +331,15 @@ jobs:
             exit 98
           }
 
-      - parallel:
-          - name: task lint
-            if: runner.os == 'Linux'
-            id: lint
-            run: task lint && task lint --status
+      # Lint must not run in parallel with package: als:package regenerates
+      # docs/als/settings.md and prek treats that dirty worktree as a failure
+      # ("Files were modified by following hooks").
+      - name: task lint
+        if: runner.os == 'Linux'
+        id: lint
+        run: task lint && task lint --status
 
+      - parallel:
           - name: task build / package
             # Warning: ensure that conditional templates have a negative condition
             # expanding to an empty string because otherwise it will fail the command
@@ -386,6 +389,7 @@ jobs:
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
             run: |
               set -e
+              mkdir -p out/log
               task build 2>out/log/build-before.txt
               task e2e ${{ matrix.env.TASKFILE_ARGS }}
               task build 2>out/log/build-after.txt
@@ -430,6 +434,8 @@ jobs:
           done
           # Remove mise installs from test HOME (v8-internal.h triggers gitleaks)
           rm -rf out/e2e/tmp/home/.local/share/mise || true
+          # Remove virtualenvs (symlinks race with tar --dereference)
+          rm -rf out/e2e/tmp/home/.local/share/virtualenvs || true
           # Reduce artifact size by removing cached test data
           rm -rf out/e2e/tmp/home/.cache || true
 
@@ -503,7 +509,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           show-progress: false
 
@@ -563,11 +569,106 @@ jobs:
             docker push "$tag"
           done <<< "${{ steps.meta.outputs.tags }}"
 
+  # Prevent silent uv.lock pin regressions on PRs (AAP-83826).
+  uv-lock-downgrade:
+    name: uv.lock downgrade gate
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          show-progress: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: false
+
+      - name: Fetch base branch lockfile
+        env:
+          # pull_request provides github.base_ref; merge_group uses event.merge_group.base_ref
+          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'main' }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BASE_REF="${BASE_REF#refs/heads/}"
+          # Token is passed only for this fetch (persist-credentials is false).
+          git fetch --no-tags --depth=1 \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
+          git show "origin/${BASE_REF}:uv.lock" > /tmp/base-uv.lock
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          cd tools
+          uv run --with packaging --no-project python -m unittest -v test_check_uv_lock_downgrades.py
+
+      - name: Check for uv.lock downgrades
+        id: check
+        env:
+          ALLOW_DOWNGRADE: ${{ contains(join(github.event.pull_request.labels.*.name, ','), 'allow-lock-downgrade') }}
+        run: |
+          set -euo pipefail
+          args=(--base /tmp/base-uv.lock --head uv.lock --github-step-summary)
+          if [[ "${ALLOW_DOWNGRADE}" == "true" ]]; then
+            args+=(--allow-downgrade)
+          fi
+          set +e
+          uv run --with packaging --no-project python tools/check_uv_lock_downgrades.py "${args[@]}" | tee /tmp/uv-lock-downgrade-report.md
+          code=${PIPESTATUS[0]}
+          set -e
+          if [[ "$code" -eq 0 ]]; then
+            # Match the report heading only; the success message also contains
+            # the substring "downgrades detected".
+            if grep -q "^### uv.lock downgrades detected" /tmp/uv-lock-downgrade-report.md; then
+              echo "has_downgrades=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "has_downgrades=false" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+          echo "has_downgrades=true" >> "$GITHUB_OUTPUT"
+          exit "$code"
+
+      - name: Comment downgrades on PR
+        if: >
+          always() &&
+          github.event_name == 'pull_request' &&
+          steps.check.outputs.has_downgrades == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          marker="<!-- uv-lock-downgrade-gate -->"
+          body="$(printf '%s\n%s\n' "${marker}" "$(cat /tmp/uv-lock-downgrade-report.md)")"
+          # Replace previous bot comment with the same marker, if any.
+          existing="$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq ".[] | select(.body | contains(\"${marker}\")) | .id" | head -n1 || true)"
+          payload="$(jq -n --arg body "${body}" '{body: $body}')"
+          if [[ -n "${existing}" ]]; then
+            gh api --method PATCH \
+              "repos/${{ github.repository }}/issues/comments/${existing}" \
+              --input - <<<"${payload}"
+          else
+            gh api --method POST \
+              "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+              --input - <<<"${payload}"
+          fi
+
   check: # This job does nothing and is only used for the branch protection
     needs:
       - package
       - build
       - mcp-server-image
+      - uv-lock-downgrade
     if: always() && !cancelled() && needs.build.result == 'success'
 
     permissions:
@@ -580,7 +681,7 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -617,7 +718,7 @@ jobs:
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         id: alls-green
         with:
-          allowed-skips: mcp-server-image
+          allowed-skips: mcp-server-image, uv-lock-downgrade
           jobs: ${{ toJSON(needs) }}
 
       - name: Report unexpected failures
@@ -644,7 +745,7 @@ jobs:
       checks: read
     steps:
       - name: Checkout Source
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -699,7 +800,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Source
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download the artifact
         uses: actions/download-artifact@v8

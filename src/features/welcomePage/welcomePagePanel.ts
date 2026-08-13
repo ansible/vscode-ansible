@@ -199,8 +199,7 @@ export class WelcomePagePanel {
     try {
       const extension = vscode.extensions.getExtension("redhat.ansible");
       const manifest = extension?.packageJSON as
-        | ExtensionPackageManifest
-        | undefined;
+        ExtensionPackageManifest | undefined;
       const walkthroughs = manifest?.contributes?.walkthroughs || [];
 
       return walkthroughs.map((walkthrough) => ({

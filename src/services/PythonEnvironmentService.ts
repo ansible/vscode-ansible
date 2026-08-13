@@ -33,6 +33,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   private _pythonExtApi: PythonExtension | undefined;
   private _initialized: boolean = false;
   private _petWarningShown: boolean = false;
+  private _context: vscode.ExtensionContext | undefined;
   private _disposables: vscode.Disposable[] = [];
 
   private _onDidChangeEnvironment =
@@ -53,11 +54,15 @@ export class PythonEnvironmentService implements vscode.Disposable {
    * Initialize the service. Tries the Environments extension first; if PET
    * is missing falls back to the main Python extension's environments API.
    */
-  public async initialize(): Promise<boolean> {
+  public async initialize(context?: vscode.ExtensionContext): Promise<boolean> {
     if (this._initialized) {
       return (
         this._pythonEnvApi !== undefined || this._pythonExtApi !== undefined
       );
+    }
+
+    if (context) {
+      this._context = context;
     }
 
     console.log(
@@ -77,7 +82,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
         console.warn(
           "[Ansible] PET binary not found — environment discovery will be degraded",
         );
-        this._showPetWarning();
+        await this._showPetWarning();
         await this._initFromPythonExtension();
       }
     } else {
@@ -237,52 +242,20 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // Notification
   // ---------------------------------------------------------------------------
 
-  private _showPetWarning(): void {
+  private async _showPetWarning(): Promise<void> {
     if (this._petWarningShown) {
       return;
     }
+
+    if (
+      this._context?.globalState.get<boolean>("ansible.petWarningShown") ===
+      true
+    ) {
+      return;
+    }
+
     this._petWarningShown = true;
-
-    const useEnvsSetting = vscode.workspace
-      .getConfiguration("python")
-      .get<boolean>("useEnvironmentsExtension");
-
-    vscode.window
-      .showWarningMessage(
-        "Python environment discovery is degraded (PET binary missing). " +
-          "This commonly occurs in OpenVSX-based editors (Dev Spaces, VSCodium)." +
-          (useEnvsSetting
-            ? " Disabling the Environments extension delegation may resolve hanging discovery."
-            : ""),
-        ...(useEnvsSetting ? ["Disable Environments Extension"] : []),
-        "Learn More",
-      )
-      .then(async (selection) => {
-        if (selection === "Disable Environments Extension") {
-          await vscode.workspace
-            .getConfiguration("python")
-            .update(
-              "useEnvironmentsExtension",
-              false,
-              vscode.ConfigurationTarget.Global,
-            );
-          const reload = await vscode.window.showInformationMessage(
-            "Setting disabled. Reload VS Code for the change to take effect.",
-            "Reload Now",
-          );
-          if (reload === "Reload Now") {
-            await vscode.commands.executeCommand(
-              "workbench.action.reloadWindow",
-            );
-          }
-        } else if (selection === "Learn More") {
-          vscode.env.openExternal(
-            vscode.Uri.parse(
-              "https://github.com/microsoft/vscode-python/issues/25820",
-            ),
-          );
-        }
-      });
+    await showPetWarningDialog(this._context);
   }
 
   // ---------------------------------------------------------------------------
@@ -545,5 +518,49 @@ export class PythonEnvironmentService implements vscode.Disposable {
     });
     this._disposables = [];
     this._onDidChangeEnvironment.dispose();
+  }
+}
+
+export async function showPetWarningDialog(
+  context: vscode.ExtensionContext | undefined,
+): Promise<void> {
+  const useEnvsSetting = vscode.workspace
+    .getConfiguration("python")
+    .get<boolean>("useEnvironmentsExtension");
+
+  const selection = await vscode.window.showWarningMessage(
+    "Python environment discovery is degraded (PET binary missing). " +
+      "This commonly occurs in OpenVSX-based editors (Dev Spaces, VSCodium)." +
+      (useEnvsSetting
+        ? " Disabling the Environments extension delegation may resolve hanging discovery."
+        : ""),
+    ...(useEnvsSetting ? ["Disable Environments Extension"] : []),
+    "Don't show again",
+    "Learn More",
+  );
+
+  if (selection === "Don't show again") {
+    await context?.globalState.update("ansible.petWarningShown", true);
+  } else if (selection === "Disable Environments Extension") {
+    await vscode.workspace
+      .getConfiguration("python")
+      .update(
+        "useEnvironmentsExtension",
+        false,
+        vscode.ConfigurationTarget.Global,
+      );
+    const reload = await vscode.window.showInformationMessage(
+      "Setting disabled. Reload VS Code for the change to take effect.",
+      "Reload Now",
+    );
+    if (reload === "Reload Now") {
+      await vscode.commands.executeCommand("workbench.action.reloadWindow");
+    }
+  } else if (selection === "Learn More") {
+    vscode.env.openExternal(
+      vscode.Uri.parse(
+        "https://github.com/microsoft/vscode-python/issues/25820",
+      ),
+    );
   }
 }

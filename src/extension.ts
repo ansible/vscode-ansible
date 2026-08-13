@@ -109,7 +109,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize Python Environment Service early
   const pythonEnvService = PythonEnvironmentService.getInstance();
-  await pythonEnvService.initialize();
+  await pythonEnvService.initialize(context);
   context.subscriptions.push(pythonEnvService);
 
   // Initialize Terminal Service
@@ -1560,8 +1560,7 @@ export function makeConfigurationMiddleware(
 
         const scopeUri = params.items[i].scopeUri ?? "";
         const pythonConfig = config.python as
-          | Record<string, unknown>
-          | undefined;
+          Record<string, unknown> | undefined;
         const rawInterpreterPath = pythonConfig?.interpreterPath;
 
         if (typeof rawInterpreterPath === "string" && rawInterpreterPath) {
