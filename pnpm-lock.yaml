@@ -9,7 +9,7 @@ overrides:
   '@vscode/test-electron': 3.1.0
   '@fastify/static': '>=10.1.2 <11.0.0'
   '@hono/node-server': '>=2.0.5 <3.0.0'
-  '@xhmikosr/decompress@10': 11.1.4
+  '@xhmikosr/decompress@10': 10.2.1
   body-parser: '>=2.3.0 <3.0.0'
   brace-expansion@1: '>=5.0.8 <6.0.0'
   brace-expansion@2: '>=2.1.2 <3.0.0'
@@ -20,13 +20,19 @@ overrides:
   find-my-way: '>=9.7.0 <10.0.0'
   form-data@4: '>=4.0.6'
   js-yaml@5: '>=5.2.2'
-  linkify-it: <7.0.0
-  markdown-it: <16.0.0
+  linkify-it: '>=5.0.2 <6.0.0'
+  markdown-it: '>=14.2.0 <15.0.0'
   postcss: '>=8.5.18 <9.0.0'
-  protobufjs@7: <9.0.0
+  protobufjs@7: '>=7.6.5 <8.0.0'
   serialize-javascript: '>=7.0.5 <8.0.0'
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
+  undici@6: '>=6.28.0 <7.0.0'
+  undici@7: '>=7.29.0 <8.0.0'
+  hono: '>=4.12.34 <5.0.0'
+  ip-address: '>=10.2.2'
+  diff@>=5.0.0 <8.0.3: 8.0.4
+  file-type@>=13.0.0 <21.3.2: 21.3.2
 
 packageExtensionsChecksum: sha256-l5iXATrO+IHdGlMiwq1daaoMDCcQ9gqreFXfc7KspzM=
 
@@ -1163,7 +1169,7 @@ packages:
     resolution: {integrity: sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg==}
     engines: {node: '>=20'}
     peerDependencies:
-      hono: ^4
+      hono: '>=4.12.34 <5.0.0'
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -2044,10 +2050,6 @@ packages:
   '@textlint/types@15.7.1':
     resolution: {integrity: sha512-Vye/GmFNBTgVzZFtIFJTmLB+s2A7oIADxNG6r9UhfPuY+Czv0z5G3xeyFZZudPlfxURsKUyPIU5XsjOFqVp33A==}
 
-  '@tokenizer/inflate@0.2.7':
-    resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
-    engines: {node: '>=18'}
-
   '@tokenizer/inflate@0.4.1':
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
     engines: {node: '>=18'}
@@ -2656,25 +2658,25 @@ packages:
     resolution: {integrity: sha512-xZEpnGplg1sNPyEgFh0zbHxqlw5dtYg6viplmWSxUj12+QjU9SKu3U/2G73a15pEjLaOqTefNSZ1fOPUOT4Xgg==}
     engines: {node: '>=18'}
 
-  '@xhmikosr/decompress-tar@9.0.2':
-    resolution: {integrity: sha512-8nPZ6lZ3ExhsSxi/X/PMB3K+Vtsuxk43HowxYpxw4AsCHTYqFBXwC8B3Y+M/meaUOGOVm+2tFNUAfWGRjBt+Ww==}
-    engines: {node: '>=20'}
+  '@xhmikosr/decompress-tar@8.1.0':
+    resolution: {integrity: sha512-m0q8x6lwxenh1CrsTby0Jrjq4vzW/QU1OLhTHMQLEdHpmjR1lgahGz++seZI0bXF3XcZw3U3xHfqZSz+JPP2Gg==}
+    engines: {node: '>=18'}
 
-  '@xhmikosr/decompress-tarbz2@9.0.2':
-    resolution: {integrity: sha512-m0DvZhE7remCxtS8xY2iHSjivT4v+iyYDdfNoeuu8Nm+7g8xEXdLKSyDEicu4u1ImJLLGEfjMuTLera/F6UGWw==}
-    engines: {node: '>=20'}
+  '@xhmikosr/decompress-tarbz2@8.1.0':
+    resolution: {integrity: sha512-aCLfr3A/FWZnOu5eqnJfme1Z1aumai/WRw55pCvBP+hCGnTFrcpsuiaVN5zmWTR53a8umxncY2JuYsD42QQEbw==}
+    engines: {node: '>=18'}
 
-  '@xhmikosr/decompress-targz@9.0.1':
-    resolution: {integrity: sha512-1JXu2b6yrpm5EuBoOzMU57B4qrHXJKWQQ7LlMynNEiz85mEjDciO3ayf//GXaTLLCEKiHjWlU3q3THjgf7uODA==}
-    engines: {node: '>=20'}
+  '@xhmikosr/decompress-targz@8.1.0':
+    resolution: {integrity: sha512-fhClQ2wTmzxzdz2OhSQNo9ExefrAagw93qaG1YggoIz/QpI7atSRa7eOHv4JZkpHWs91XNn8Hry3CwUlBQhfPA==}
+    engines: {node: '>=18'}
 
-  '@xhmikosr/decompress-unzip@8.2.1':
-    resolution: {integrity: sha512-2MS94QnmXQwjkKN8WyFiu1sU7J3rcWJcMze4kRYsX7tN+CXpUGECgkh4YSOhujpkWPuVlFudIziJHO/TxOqkQQ==}
-    engines: {node: '>=20'}
+  '@xhmikosr/decompress-unzip@7.1.0':
+    resolution: {integrity: sha512-oqTYAcObqTlg8owulxFTqiaJkfv2SHsxxxz9Wg4krJAHVzGWlZsU8tAB30R6ow+aHrfv4Kub6WQ8u04NWVPUpA==}
+    engines: {node: '>=18'}
 
-  '@xhmikosr/decompress@11.1.4':
-    resolution: {integrity: sha512-ZbYL7SAfY37/TMpopqBR3mQiuQ76kI/RNpN4q82YHSw/UxktZNy8P4wgiKPSrTImMAWRaUG8UK1pgEa56YdLaw==}
-    engines: {node: '>=20'}
+  '@xhmikosr/decompress@10.2.1':
+    resolution: {integrity: sha512-ceGT3K2JR73Usj5o+HM2RRZw0XPUes4rhb7uVTY9PefUQQMpuj8x+V29XVG09JnS7EOj9SIBhHn3K4bFNNb7hA==}
+    engines: {node: '>=18'}
 
   '@xhmikosr/downloader@15.2.0':
     resolution: {integrity: sha512-lAqbig3uRGTt0sHNIM4vUG9HoM+mRl8K28WuYxyXLCUT6pyzl4Y4i0LZ3jMEsCYZ6zjPZbO9XkG91OSTd4si7g==}
@@ -3475,14 +3477,6 @@ packages:
     resolution: {integrity: sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==}
     engines: {node: '>=0.3.1'}
 
-  diff@5.2.2:
-    resolution: {integrity: sha512-vtcDfH3TOjP8UekytvnHH1o1P4FcUdt4eQ1Y+Abap1tk/OB2MWQvcwS2ClCd1zuIhc3JKOx6p3kod8Vfys3E+A==}
-    engines: {node: '>=0.3.1'}
-
-  diff@7.0.0:
-    resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
-    engines: {node: '>=0.3.1'}
-
   diff@8.0.4:
     resolution: {integrity: sha512-DPi0FmjiSU5EvQV0++GFDOJ9ASQUVFh5kD+OzOnYdi7n3Wpm9hWWGfB/O2blfHcMVTL5WkQXSnRiK9makhrcnw==}
     engines: {node: '>=0.3.1'}
@@ -4010,12 +4004,8 @@ packages:
     resolution: {integrity: sha512-XXTUwCvisa5oacNGRP9SfNtYBNAMi+RPwBFmblZEF7N7swHYQS6/Zfk7SRwx4D5j3CH211YNRco1DEMNVfZCnQ==}
     engines: {node: '>=16.0.0'}
 
-  file-type@20.5.0:
-    resolution: {integrity: sha512-BfHZtG/l9iMm4Ecianu7P8HRD2tBHLtjXinm4X62XBOYzi7CYA7jyqfJzOvXHqzVrVPYqBo2/GvbARMaaJkKVg==}
-    engines: {node: '>=18'}
-
-  file-type@21.3.4:
-    resolution: {integrity: sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==}
+  file-type@21.3.2:
+    resolution: {integrity: sha512-DLkUvGwep3poOV2wpzbHCOnSKGk1LzyXTv+aHFgN2VFl96wnp8YA9YjO2qPzg5PuL8q/SW9Pdi6WTkYOIh995w==}
     engines: {node: '>=20'}
 
   filelist@1.0.6:
@@ -4323,8 +4313,8 @@ packages:
     resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
     engines: {node: '>=12.0.0'}
 
-  hono@4.12.27:
-    resolution: {integrity: sha512-1yrb/+w6HWQJrUCLkJ2IF5jNIPvvFkblV5RNOYl6bV+OA6p9GLcMpHFFGTosSvHvcAUibuUukRqhlYI4z32C7Q==}
+  hono@4.13.1:
+    resolution: {integrity: sha512-kdJoFVv2xmayw6cY09H7AbMJMt8Jn5jdlEdXsP7AGBdF2DIptVlKlOLKXP41yPip4/a3yQPv9gVcJYI8YY04dw==}
     engines: {node: '>=16.9.0'}
 
   hookable@6.1.1:
@@ -4465,8 +4455,8 @@ packages:
     resolution: {integrity: sha512-CYdFeFexxhv/Bcny+Q0BfOV+ltRlJcd4BBZBYFX/O0u4npJrgZtIcjokegtiSMAvlMTJ+Koq0GBCc//3bueQxw==}
     engines: {node: '>=8'}
 
-  ip-address@10.2.0:
-    resolution: {integrity: sha512-/+S6j4E9AHvW9SWMSEY9Xfy66O5PWvVEJ08O0y5JGyEKQpojb0K0GKpz/v5HJ/G0vi3D2sjGK78119oXZeE0qA==}
+  ip-address@10.5.0:
+    resolution: {integrity: sha512-R5SnVLJmgYYvf2F2ZgwSBnelz5G4q5AxIC277GDfUaNbrZKNANcBC7RHqYYePlszf4kBolVkJauG0ZjHHFh55g==}
     engines: {node: '>= 12'}
 
   ipaddr.js@1.9.1:
@@ -6409,9 +6399,6 @@ packages:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
 
-  tar-stream@3.1.7:
-    resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
-
   tar-stream@3.2.0:
     resolution: {integrity: sha512-ojzvCvVaNp6aOTFmG7jaRD0meowIAuPc3cMMhSgKiVWws1GyHbGd/xvnyuRKcKlMpt3qvxx6r0hreCNITP9hIg==}
 
@@ -6695,12 +6682,12 @@ packages:
   undici-types@7.28.0:
     resolution: {integrity: sha512-LJAfY+2w6HGeT8d8J1wNQsUGUEGio6NWWpwdwurQe4f6oojzCFuGLizl1KSve4irsTxyLly1QhEeE6iapdaIvQ==}
 
-  undici@6.27.0:
-    resolution: {integrity: sha512-YmfV3YnEDzXRC5lZ2jWtWWHKGUm1zIt8AhesR1tens+HTNv+YZlN/dp6G727LOvMJ8xjP9Be7Y2Sdr96LDm+pg==}
+  undici@6.28.0:
+    resolution: {integrity: sha512-LIY910g9TI13YS95lrMFrs8Rm/u/irgHeTWoKCoteeJ04CUJ92eEfj0rVn+7VKMPBpUPiUoBKfhNyLI23EE/KA==}
     engines: {node: '>=18.17'}
 
-  undici@7.28.0:
-    resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
+  undici@7.29.0:
+    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
 
   unicorn-magic@0.1.0:
@@ -7631,7 +7618,7 @@ snapshots:
       semver: 7.8.5
       sumchecker: 3.0.1(supports-color@8.1.1)
     optionalDependencies:
-      undici: 7.28.0
+      undici: 7.29.0
     transitivePeerDependencies:
       - supports-color
 
@@ -7862,9 +7849,9 @@ snapshots:
       highlight.js: 11.11.1
       vue: 3.5.39(typescript@6.0.3)
 
-  '@hono/node-server@2.0.12(hono@4.12.27)':
+  '@hono/node-server@2.0.12(hono@4.13.1)':
     dependencies:
-      hono: 4.12.27
+      hono: 4.13.1
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -8084,7 +8071,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.30.0(supports-color@8.1.1)(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 2.0.12(hono@4.12.27)
+      '@hono/node-server': 2.0.12(hono@4.13.1)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -8094,7 +8081,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1(supports-color@8.1.1)
       express-rate-limit: 8.5.2(express@5.2.1(supports-color@8.1.1))
-      hono: 4.12.27
+      hono: 4.13.1
       jose: 6.2.3
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -8644,14 +8631,6 @@ snapshots:
   '@textlint/types@15.7.1':
     dependencies:
       '@textlint/ast-node-types': 15.7.1
-
-  '@tokenizer/inflate@0.2.7(supports-color@8.1.1)':
-    dependencies:
-      debug: 4.4.3(supports-color@8.1.1)
-      fflate: 0.8.3
-      token-types: 6.1.2
-    transitivePeerDependencies:
-      - supports-color
 
   '@tokenizer/inflate@0.4.1(supports-color@8.1.1)':
     dependencies:
@@ -9444,76 +9423,81 @@ snapshots:
 
   '@xhmikosr/archive-type@7.1.0(supports-color@8.1.1)':
     dependencies:
-      file-type: 20.5.0(supports-color@8.1.1)
+      file-type: 21.3.2(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
-  '@xhmikosr/decompress-tar@9.0.2(supports-color@8.1.1)':
+  '@xhmikosr/decompress-tar@8.1.0(supports-color@8.1.1)':
     dependencies:
-      file-type: 21.3.4(supports-color@8.1.1)
-      is-stream: 4.0.1
-      tar-stream: 3.1.7
+      file-type: 21.3.2(supports-color@8.1.1)
+      is-stream: 2.0.1
+      tar-stream: 3.2.0
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - react-native-b4a
       - supports-color
 
-  '@xhmikosr/decompress-tarbz2@9.0.2(supports-color@8.1.1)':
+  '@xhmikosr/decompress-tarbz2@8.1.0(supports-color@8.1.1)':
     dependencies:
-      '@xhmikosr/decompress-tar': 9.0.2(supports-color@8.1.1)
-      file-type: 21.3.4(supports-color@8.1.1)
-      is-stream: 4.0.1
+      '@xhmikosr/decompress-tar': 8.1.0(supports-color@8.1.1)
+      file-type: 21.3.2(supports-color@8.1.1)
+      is-stream: 2.0.1
       seek-bzip: 2.0.0
       unbzip2-stream: 1.4.3
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - react-native-b4a
       - supports-color
 
-  '@xhmikosr/decompress-targz@9.0.1(supports-color@8.1.1)':
+  '@xhmikosr/decompress-targz@8.1.0(supports-color@8.1.1)':
     dependencies:
-      '@xhmikosr/decompress-tar': 9.0.2(supports-color@8.1.1)
-      file-type: 21.3.4(supports-color@8.1.1)
-      is-stream: 4.0.1
+      '@xhmikosr/decompress-tar': 8.1.0(supports-color@8.1.1)
+      file-type: 21.3.2(supports-color@8.1.1)
+      is-stream: 2.0.1
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - react-native-b4a
       - supports-color
 
-  '@xhmikosr/decompress-unzip@8.2.1(supports-color@8.1.1)':
+  '@xhmikosr/decompress-unzip@7.1.0(supports-color@8.1.1)':
     dependencies:
-      file-type: 21.3.4(supports-color@8.1.1)
-      get-stream: 9.0.1
+      file-type: 21.3.2(supports-color@8.1.1)
+      get-stream: 6.0.1
       yauzl: 3.4.0
     transitivePeerDependencies:
       - supports-color
 
-  '@xhmikosr/decompress@11.1.4(supports-color@8.1.1)':
+  '@xhmikosr/decompress@10.2.1(supports-color@8.1.1)':
     dependencies:
-      '@xhmikosr/decompress-tar': 9.0.2(supports-color@8.1.1)
-      '@xhmikosr/decompress-tarbz2': 9.0.2(supports-color@8.1.1)
-      '@xhmikosr/decompress-targz': 9.0.1(supports-color@8.1.1)
-      '@xhmikosr/decompress-unzip': 8.2.1(supports-color@8.1.1)
+      '@xhmikosr/decompress-tar': 8.1.0(supports-color@8.1.1)
+      '@xhmikosr/decompress-tarbz2': 8.1.0(supports-color@8.1.1)
+      '@xhmikosr/decompress-targz': 8.1.0(supports-color@8.1.1)
+      '@xhmikosr/decompress-unzip': 7.1.0(supports-color@8.1.1)
       graceful-fs: 4.2.11
       strip-dirs: 3.0.0
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - react-native-b4a
       - supports-color
 
   '@xhmikosr/downloader@15.2.0(supports-color@8.1.1)':
     dependencies:
       '@xhmikosr/archive-type': 7.1.0(supports-color@8.1.1)
-      '@xhmikosr/decompress': 11.1.4(supports-color@8.1.1)
+      '@xhmikosr/decompress': 10.2.1(supports-color@8.1.1)
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
-      file-type: 20.5.0(supports-color@8.1.1)
+      file-type: 21.3.2(supports-color@8.1.1)
       filenamify: 6.0.0
       get-stream: 6.0.1
       got: 13.0.0
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - react-native-b4a
       - supports-color
 
@@ -9929,7 +9913,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 7.28.0
+      undici: 7.29.0
       whatwg-mimetype: 4.0.0
 
   chokidar@3.6.0:
@@ -10350,10 +10334,6 @@ snapshots:
       dequal: 2.0.3
 
   diff@4.0.4: {}
-
-  diff@5.2.2: {}
-
-  diff@7.0.0: {}
 
   diff@8.0.4: {}
 
@@ -10898,7 +10878,7 @@ snapshots:
   express-rate-limit@8.5.2(express@5.2.1(supports-color@8.1.1)):
     dependencies:
       express: 5.2.1(supports-color@8.1.1)
-      ip-address: 10.2.0
+      ip-address: 10.5.0
 
   express@5.2.1(supports-color@8.1.1):
     dependencies:
@@ -11062,16 +11042,7 @@ snapshots:
     dependencies:
       flat-cache: 4.0.1
 
-  file-type@20.5.0(supports-color@8.1.1):
-    dependencies:
-      '@tokenizer/inflate': 0.2.7(supports-color@8.1.1)
-      strtok3: 10.3.5
-      token-types: 6.1.2
-      uint8array-extras: 1.5.0
-    transitivePeerDependencies:
-      - supports-color
-
-  file-type@21.3.4(supports-color@8.1.1):
+  file-type@21.3.2(supports-color@8.1.1):
     dependencies:
       '@tokenizer/inflate': 0.4.1(supports-color@8.1.1)
       strtok3: 10.3.5
@@ -11432,7 +11403,7 @@ snapshots:
 
   highlight.js@11.11.1: {}
 
-  hono@4.12.27: {}
+  hono@4.13.1: {}
 
   hookable@6.1.1: {}
 
@@ -11563,7 +11534,7 @@ snapshots:
 
   invert-kv@3.0.1: {}
 
-  ip-address@10.2.0: {}
+  ip-address@10.5.0: {}
 
   ipaddr.js@1.9.1: {}
 
@@ -11882,7 +11853,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.1
-      undici: 7.28.0
+      undici: 7.29.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -12519,7 +12490,7 @@ snapshots:
       browser-stdout: 1.3.1
       chokidar: 3.6.0
       debug: 4.4.3(supports-color@8.1.1)
-      diff: 5.2.2
+      diff: 8.0.4
       escape-string-regexp: 4.0.0
       find-up: 5.0.0
       glob: 8.1.0
@@ -12541,7 +12512,7 @@ snapshots:
       browser-stdout: 1.3.1
       chokidar: 4.0.3
       debug: 4.4.3(supports-color@8.1.1)
-      diff: 7.0.0
+      diff: 8.0.4
       escape-string-regexp: 4.0.0
       find-up: 5.0.0
       glob: 10.5.0
@@ -13570,7 +13541,7 @@ snapshots:
 
   socks@2.8.9:
     dependencies:
-      ip-address: 10.2.0
+      ip-address: 10.5.0
       smart-buffer: 4.2.0
 
   sonic-boom@4.2.1:
@@ -13799,15 +13770,6 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
     optional: true
-
-  tar-stream@3.1.7:
-    dependencies:
-      b4a: 1.8.1
-      fast-fifo: 1.3.2
-      streamx: 2.28.0
-    transitivePeerDependencies:
-      - bare-abort-controller
-      - react-native-b4a
 
   tar-stream@3.2.0:
     dependencies:
@@ -14093,9 +14055,9 @@ snapshots:
 
   undici-types@7.28.0: {}
 
-  undici@6.27.0: {}
+  undici@6.28.0: {}
 
-  undici@7.28.0: {}
+  undici@7.29.0: {}
 
   unicorn-magic@0.1.0: {}
 
@@ -14291,7 +14253,7 @@ snapshots:
       slash: 5.1.0
       tinyclip: 0.1.15
       tmp-promise: 3.0.3
-      undici: 6.27.0
+      undici: 6.28.0
       vscode-uri: 3.1.0
       ws: 8.21.0
       yargs-parser: 21.1.1
@@ -14299,6 +14261,7 @@ snapshots:
       webdriverio: 9.29.1(supports-color@8.1.1)
     transitivePeerDependencies:
       - bare-abort-controller
+      - bare-buffer
       - bufferutil
       - react-native-b4a
       - supports-color
@@ -14317,7 +14280,7 @@ snapshots:
       '@wdio/utils': 9.29.1(supports-color@8.1.1)
       deepmerge-ts: 7.1.5
       https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      undici: 6.27.0
+      undici: 6.28.0
       ws: 8.21.0
     transitivePeerDependencies:
       - bare-abort-controller
