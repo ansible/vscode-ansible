@@ -164,6 +164,8 @@ export class McpToolHandler {
                     return await this._handleBuildEE(args);
 
                 // Playbook execution
+                case 'run_playbook':
+                    return await this._handleRunPlaybook(args);
                 case 'run_playbook_navigator':
                     return await this._handleRunPlaybookNavigator(args);
 
@@ -1548,14 +1550,14 @@ export class McpToolHandler {
     // === Playbook Execution Handlers ===
 
     /**
-     * Handles `run_playbook_navigator` by running ansible-navigator in stdout mode.
+     * Validates playbook_path and returns a structured error when missing or absent on disk.
      *
-     * @param args - Tool args: `playbook_path` (required), optional inventory, limit, etc.
-     * @returns Navigator stdout/stderr output or a structured error
+     * @param args - Tool args containing `playbook_path`
+     * @returns Validated absolute path, or an MCP error result
      */
-    private async _handleRunPlaybookNavigator(
+    private _validatePlaybookPath(
         args: Record<string, unknown>,
-    ): Promise<McpToolResult> {
+    ): { playbookPath: string } | McpToolResult {
         const playbookPath = args.playbook_path as string | undefined;
         if (!playbookPath) {
             return mcpError({
@@ -1574,19 +1576,17 @@ export class McpToolHandler {
             });
         }
 
-        const commandService = getCommandService();
-        const navigatorAvailable = await commandService.isToolAvailable('ansible-navigator');
-        if (!navigatorAvailable) {
-            return mcpError({
-                code: 'SERVICE_UNAVAILABLE',
-                recoverability: 'escalate',
-                message: 'ansible-navigator is not installed in the active Python environment',
-                suggestion:
-                    'Install ansible-dev-tools (which includes ansible-navigator) using the install_ansible_dev_tools tool.',
-            });
-        }
+        return { playbookPath };
+    }
 
-        const config: PlaybookConfig = {
+    /**
+     * Maps MCP playbook tool args to a PlaybookConfig.
+     *
+     * @param args - Tool args with optional inventory, limit, tags, etc.
+     * @returns PlaybookConfig for flag building
+     */
+    private _playbookConfigFromArgs(args: Record<string, unknown>): PlaybookConfig {
+        return {
             ...DEFAULT_PLAYBOOK_CONFIG,
             inventory: (args.inventory as string[] | undefined) ?? [],
             limit: (args.limit as string | undefined) ?? '',
@@ -1606,6 +1606,89 @@ export class McpToolHandler {
             becomeUser: (args.become_user as string | undefined) ?? 'root',
             vaultPasswordFile: (args.vault_password_file as string | undefined) ?? '',
         };
+    }
+
+    /**
+     * Handles `run_playbook` by running ansible-playbook in the active Python environment.
+     *
+     * @param args - Tool args: `playbook_path` (required), optional inventory, limit, etc.
+     * @returns ansible-playbook stdout/stderr output or a structured error
+     */
+    private async _handleRunPlaybook(args: Record<string, unknown>): Promise<McpToolResult> {
+        const validated = this._validatePlaybookPath(args);
+        if ('content' in validated) {
+            return validated;
+        }
+        const { playbookPath } = validated;
+
+        const commandService = getCommandService();
+        const playbookAvailable = await commandService.isToolAvailable('ansible-playbook');
+        if (!playbookAvailable) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'ansible-playbook is not installed in the active Python environment',
+                suggestion:
+                    'Install ansible-core (or ansible) in the active Python environment, or use create_python_environment to scaffold a venv.',
+            });
+        }
+
+        const config = this._playbookConfigFromArgs(args);
+        const shellArgs = [...buildPlaybookFlags(config), path.basename(playbookPath)];
+        const cwd = path.dirname(playbookPath);
+
+        try {
+            const result = await commandService.runAnsiblePlaybook(shellArgs, {
+                cwd,
+                timeout: 30 * 60 * 1000,
+            });
+            const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: `## ansible-playbook (exit code: ${String(result.exitCode)})\n\n\`\`\`\n${output}\n\`\`\``,
+                    },
+                ],
+                isError: result.exitCode !== 0,
+            };
+        } catch (error) {
+            return mcpError({
+                code: 'OPERATION_FAILED',
+                recoverability: 'retry',
+                message: `ansible-playbook failed: ${error instanceof Error ? error.message : String(error)}`,
+            });
+        }
+    }
+
+    /**
+     * Handles `run_playbook_navigator` by running ansible-navigator in stdout mode.
+     *
+     * @param args - Tool args: `playbook_path` (required), optional inventory, limit, etc.
+     * @returns Navigator stdout/stderr output or a structured error
+     */
+    private async _handleRunPlaybookNavigator(
+        args: Record<string, unknown>,
+    ): Promise<McpToolResult> {
+        const validated = this._validatePlaybookPath(args);
+        if ('content' in validated) {
+            return validated;
+        }
+        const { playbookPath } = validated;
+
+        const commandService = getCommandService();
+        const navigatorAvailable = await commandService.isToolAvailable('ansible-navigator');
+        if (!navigatorAvailable) {
+            return mcpError({
+                code: 'SERVICE_UNAVAILABLE',
+                recoverability: 'escalate',
+                message: 'ansible-navigator is not installed in the active Python environment',
+                suggestion:
+                    'Install ansible-dev-tools (which includes ansible-navigator) using the install_ansible_dev_tools tool.',
+            });
+        }
+
+        const config = this._playbookConfigFromArgs(args);
 
         const passthroughFlags = buildPlaybookFlags(config);
         const shellArgs = ['run', path.basename(playbookPath), '--mode', 'stdout'];
@@ -1924,6 +2007,7 @@ export class McpToolHandler {
 - Use \`get_ansible_creator_schema\` to see available commands
 
 ### Playbook Execution
+- \`run_playbook\` -- run a playbook via ansible-playbook
 - \`run_playbook_navigator\` -- run a playbook via ansible-navigator in stdout mode
 
 ### Execution Environments

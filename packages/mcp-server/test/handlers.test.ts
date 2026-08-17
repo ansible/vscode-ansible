@@ -137,6 +137,16 @@ const hoisted = vi.hoisted(() => {
 
     const commandServiceInstance = {
         isToolAvailable: vi.fn().mockResolvedValue(true),
+        runAnsiblePlaybook: vi.fn().mockResolvedValue({
+            stdout: 'PLAY [all] *****',
+            stderr: '',
+            exitCode: 0,
+        }),
+        runAnsibleNavigator: vi.fn().mockResolvedValue({
+            stdout: 'PLAY [all] *****',
+            stderr: '',
+            exitCode: 0,
+        }),
         runAnsibleBuilder: vi.fn().mockResolvedValue({
             stdout: 'Complete! The build context can be found at: context',
             stderr: '',
@@ -368,6 +378,16 @@ describe('McpToolHandler', () => {
         hoisted.eeInstance.loadDetails.mockResolvedValue(null);
         hoisted.eeInstance.forceRefresh.mockClear();
         hoisted.commandServiceInstance.isToolAvailable.mockResolvedValue(true);
+        hoisted.commandServiceInstance.runAnsiblePlaybook.mockResolvedValue({
+            stdout: 'PLAY [all] *****',
+            stderr: '',
+            exitCode: 0,
+        });
+        hoisted.commandServiceInstance.runAnsibleNavigator.mockResolvedValue({
+            stdout: 'PLAY [all] *****',
+            stderr: '',
+            exitCode: 0,
+        });
         hoisted.commandServiceInstance.runAnsibleBuilder.mockResolvedValue({
             stdout: 'Complete! The build context can be found at: context',
             stderr: '',
@@ -988,6 +1008,81 @@ describe('McpToolHandler', () => {
 
             expect(err.code).toBe('OPERATION_FAILED');
             expect(hoisted.eeInstance.forceRefresh).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('run_playbook', () => {
+        const playbookPath = '/workspace/site.yml';
+
+        it('returns structured error when playbook_path missing', async () => {
+            const result = await handler.handleTool('run_playbook', {});
+            const err = parseError(result);
+
+            expect(err.code).toBe('MISSING_PARAM');
+            expect(err.message).toContain('playbook_path');
+        });
+
+        it('returns NOT_FOUND when playbook file is missing', async () => {
+            fsMock.existsSync.mockReturnValue(false);
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: playbookPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('NOT_FOUND');
+        });
+
+        it('returns SERVICE_UNAVAILABLE when ansible-playbook is missing', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.isToolAvailable.mockImplementation((tool: string) =>
+                Promise.resolve(tool !== 'ansible-playbook'),
+            );
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: playbookPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('SERVICE_UNAVAILABLE');
+            expect(err.message).toContain('ansible-playbook');
+        });
+
+        it('runs ansible-playbook with flags and returns output', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.isToolAvailable.mockResolvedValue(true);
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: playbookPath,
+                inventory: ['inventory/hosts'],
+                limit: 'web',
+                tags: ['deploy'],
+                check: true,
+            });
+
+            expect(result.isError).toBe(false);
+            expect(hoisted.commandServiceInstance.runAnsiblePlaybook).toHaveBeenCalledWith(
+                ['-i', 'inventory/hosts', '-l', 'web', '-t', 'deploy', '--check', 'site.yml'],
+                expect.objectContaining({ cwd: '/workspace' }),
+            );
+            expect(result.content[0].text).toContain('ansible-playbook');
+            expect(result.content[0].text).toContain('PLAY [all]');
+        });
+
+        it('returns isError when ansible-playbook exits non-zero', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.runAnsiblePlaybook.mockResolvedValue({
+                stdout: '',
+                stderr: 'failed',
+                exitCode: 2,
+            });
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: playbookPath,
+            });
+
+            expect(result.isError).toBe(true);
+            expect(result.content[0].text).toContain('exit code: 2');
         });
     });
 

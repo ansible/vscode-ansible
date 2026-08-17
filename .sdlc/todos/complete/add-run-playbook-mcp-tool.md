@@ -1,7 +1,8 @@
 ---
 title: ansible-playbook MCP tool
 created: 2026-07-30
-status: pending
+status: done
+completed: 2026-08-17
 priority: medium
 scope: mcp
 ---
@@ -22,12 +23,12 @@ since before this gap was noticed, and now also from the editor/explorer
 
 ## Acceptance criteria
 
-- [ ] New `run_playbook` MCP tool mirrors `run_playbook_navigator`'s shape
+- [x] New `run_playbook` MCP tool mirrors `run_playbook_navigator`'s shape
       (inventory, limit, tags, check, diff, become, connection, vault, etc.)
-- [ ] Tool executes `ansible-playbook` in the active Python environment
-- [ ] Tool is registered in `packages/mcp-server/src/tools.ts` and handled
+- [x] Tool executes `ansible-playbook` in the active Python environment
+- [x] Tool is registered in `packages/mcp-server/src/tools.ts` and handled
       in `packages/mcp-server/src/handlers.ts`
-- [ ] Covered by a unit test in `packages/mcp-server/test/`
+- [x] Covered by a unit test in `packages/mcp-server/test/`
 
 ## Notes
 

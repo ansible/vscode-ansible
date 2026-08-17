@@ -569,6 +569,37 @@ describe('CommandService', () => {
         expect(result.stdout).toBe('nav-ok');
     });
 
+    it('runAnsiblePlaybook delegates to runTool', async () => {
+        const binDir = path.join(tmpDir, 'venv-playbook', 'bin');
+        fs.mkdirSync(binDir, { recursive: true });
+        const tool = path.join(binDir, 'ansible-playbook');
+        fs.writeFileSync(tool, '');
+        const { cacheSelectedEnvironment } = await import('../../src/EnvironmentCache');
+        cacheSelectedEnvironment(path.join(binDir, 'python'));
+
+        execFileImpl.mockImplementation(
+            (
+                file: string,
+                args: string[],
+                optsOrCb:
+                    | Record<string, unknown>
+                    | ((err: Error | null, stdout?: string, stderr?: string) => void),
+                maybeCb?: (err: Error | null, stdout?: string, stderr?: string) => void,
+            ) => {
+                expect(file).toBe(tool);
+                expect(args).toEqual(['--check', 'site.yml']);
+                const cb = typeof optsOrCb === 'function' ? optsOrCb : maybeCb;
+                cb?.(null, 'play-ok\n', '');
+            },
+        );
+
+        const { CommandService } = await import('../../src/CommandService');
+        const svc = CommandService.getInstance();
+        const result = await svc.runAnsiblePlaybook(['--check', 'site.yml']);
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('play-ok');
+    });
+
     it('runAnsibleBuilder delegates to runTool', async () => {
         const binDir = path.join(tmpDir, 'venv-builder', 'bin');
         fs.mkdirSync(binDir, { recursive: true });
