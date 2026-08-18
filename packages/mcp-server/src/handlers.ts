@@ -1612,7 +1612,7 @@ export class McpToolHandler {
             check: (args.check as boolean | undefined) ?? false,
             diff: (args.diff as boolean | undefined) ?? false,
             verbose: (args.verbose as number | undefined) ?? 0,
-            forks: (args.forks as number | undefined) ?? 5,
+            forks: typeof args.forks === 'number' ? args.forks : 5,
             connection: (args.connection as string | undefined) ?? 'ssh',
             user: (args.user as string | undefined) ?? '',
             timeout: args.timeout as number | undefined,
