@@ -1558,13 +1558,21 @@ export class McpToolHandler {
     private _validatePlaybookPath(
         args: Record<string, unknown>,
     ): { playbookPath: string } | McpToolResult {
-        const playbookPath = args.playbook_path as string | undefined;
-        if (!playbookPath) {
+        const playbookPath = args.playbook_path;
+        if (playbookPath === undefined || playbookPath === null || playbookPath === '') {
             return mcpError({
                 code: 'MISSING_PARAM',
                 recoverability: 'fail',
                 message: 'Missing required parameter: playbook_path',
                 suggestion: 'Provide the absolute path to a playbook YAML file.',
+            });
+        }
+
+        if (typeof playbookPath !== 'string' || !path.isAbsolute(playbookPath)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: 'playbook_path must be an absolute path to a playbook YAML file.',
             });
         }
 

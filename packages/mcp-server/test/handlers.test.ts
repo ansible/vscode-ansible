@@ -1022,6 +1022,16 @@ describe('McpToolHandler', () => {
             expect(err.message).toContain('playbook_path');
         });
 
+        it('returns INVALID_INPUT when playbook_path is relative', async () => {
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: 'site.yml',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('absolute path');
+        });
+
         it('returns NOT_FOUND when playbook file is missing', async () => {
             fsMock.existsSync.mockReturnValue(false);
 

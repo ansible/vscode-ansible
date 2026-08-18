@@ -80,10 +80,9 @@ describe('STATIC_TOOLS', () => {
         for (const name of ['run_playbook', 'run_playbook_navigator']) {
             const tool = STATIC_TOOLS.find((t) => t.name === name);
             expect(tool, `tool ${name} not found`).toBeDefined();
-            if (tool?.annotations) {
-                expect(tool.annotations.destructiveHint, `${name} destructiveHint`).toBe(true);
-                expect(tool.annotations.readOnlyHint, `${name} readOnlyHint`).toBe(false);
-            }
+            expect(tool?.annotations, `${name} annotations`).toBeDefined();
+            expect(tool?.annotations?.destructiveHint, `${name} destructiveHint`).toBe(true);
+            expect(tool?.annotations?.readOnlyHint, `${name} readOnlyHint`).toBe(false);
         }
     });
 
