@@ -76,6 +76,16 @@ describe('STATIC_TOOLS', () => {
         }
     });
 
+    it('run_playbook tools are marked destructive', () => {
+        for (const name of ['run_playbook', 'run_playbook_navigator']) {
+            const tool = STATIC_TOOLS.find((t) => t.name === name);
+            expect(tool, `tool ${name} not found`).toBeDefined();
+            expect(tool?.annotations, `${name} annotations`).toBeDefined();
+            expect(tool?.annotations?.destructiveHint, `${name} destructiveHint`).toBe(true);
+            expect(tool?.annotations?.readOnlyHint, `${name} readOnlyHint`).toBe(false);
+        }
+    });
+
     it('generate_ansible_task has plugin_type enum', () => {
         const tool = STATIC_TOOLS.find((t) => t.name === 'generate_ansible_task');
         expect(tool).toBeDefined();

@@ -309,6 +309,20 @@ export class CommandService {
     }
 
     /**
+     * Run ansible-playbook command.
+     *
+     * @param args - Arguments passed to ansible-playbook.
+     * @param options - Execution options such as cwd, env, and timeout.
+     * @returns Captured stdout, stderr, and exit code from ansible-playbook.
+     */
+    public async runAnsiblePlaybook(
+        args: string[],
+        options: CommandOptions = {},
+    ): Promise<ExecResult> {
+        return this.runTool('ansible-playbook', args, options);
+    }
+
+    /**
      * Run ansible-builder command.
      *
      * @param args - Arguments passed to ansible-builder.

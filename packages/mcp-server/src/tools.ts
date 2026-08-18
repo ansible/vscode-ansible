@@ -840,6 +840,102 @@ export const GET_EXTENSION_WALKTHROUGH_TOOL: McpToolDefinition = {
 
 // === Playbook Execution ===
 
+const RUN_PLAYBOOK_INPUT_PROPERTIES = {
+    playbook_path: {
+        type: 'string',
+        description: 'Absolute path to the playbook YAML file',
+    },
+    inventory: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Inventory file paths (repeatable)',
+    },
+    limit: {
+        type: 'string',
+        description: 'Host pattern to limit execution',
+    },
+    tags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Tags to select tasks',
+    },
+    skip_tags: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Tags to skip',
+    },
+    check: {
+        type: 'boolean',
+        description: 'Run in check mode (dry run)',
+    },
+    diff: {
+        type: 'boolean',
+        description: 'Show change diffs',
+    },
+    extra_vars: {
+        type: 'string',
+        description: 'Extra variables (key=value or @file)',
+    },
+    verbose: {
+        type: 'number',
+        description: 'Verbosity level (0-6)',
+    },
+    forks: {
+        type: 'number',
+        description: 'Number of parallel processes (default: 5)',
+    },
+    connection: {
+        type: 'string',
+        description: 'Connection type (default: ssh)',
+    },
+    user: {
+        type: 'string',
+        description: 'Remote user for connection',
+    },
+    timeout: {
+        type: 'number',
+        description: 'Connection timeout in seconds',
+    },
+    private_key: {
+        type: 'string',
+        description: 'Path to SSH private key file',
+    },
+    become: {
+        type: 'boolean',
+        description: 'Enable privilege escalation',
+    },
+    become_method: {
+        type: 'string',
+        description: 'Privilege escalation method (default: sudo)',
+    },
+    become_user: {
+        type: 'string',
+        description: 'Privilege escalation target user (default: root)',
+    },
+    vault_password_file: {
+        type: 'string',
+        description: 'Path to vault password file',
+    },
+};
+
+const RUN_PLAYBOOK_INPUT_SCHEMA = {
+    type: 'object' as const,
+    properties: RUN_PLAYBOOK_INPUT_PROPERTIES,
+    required: ['playbook_path'],
+};
+
+export const RUN_PLAYBOOK_TOOL: McpToolDefinition = {
+    name: 'run_playbook',
+    description: `Run an Ansible playbook using ansible-playbook.
+
+Executes \`ansible-playbook <playbook>\` in the active Python environment.
+Requires ansible-core (or ansible) to be installed.
+Supports standard playbook flags: inventory, limit, tags, check, diff,
+become, connection, vault, etc.`,
+    annotations: DESTRUCTIVE,
+    inputSchema: RUN_PLAYBOOK_INPUT_SCHEMA,
+};
+
 export const RUN_PLAYBOOK_NAVIGATOR_TOOL: McpToolDefinition = {
     name: 'run_playbook_navigator',
     description: `Run an Ansible playbook using ansible-navigator in stdout mode.
@@ -849,87 +945,7 @@ Requires ansible-navigator (via ansible-dev-tools) to be installed.
 Supports the same playbook flags as ansible-playbook (inventory, limit, tags, check, diff,
 become, connection, vault, etc.) passed through via the \`--\` separator.`,
     annotations: DESTRUCTIVE,
-    inputSchema: {
-        type: 'object',
-        properties: {
-            playbook_path: {
-                type: 'string',
-                description: 'Absolute path to the playbook YAML file',
-            },
-            inventory: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Inventory file paths (repeatable)',
-            },
-            limit: {
-                type: 'string',
-                description: 'Host pattern to limit execution',
-            },
-            tags: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Tags to select tasks',
-            },
-            skip_tags: {
-                type: 'array',
-                items: { type: 'string' },
-                description: 'Tags to skip',
-            },
-            check: {
-                type: 'boolean',
-                description: 'Run in check mode (dry run)',
-            },
-            diff: {
-                type: 'boolean',
-                description: 'Show change diffs',
-            },
-            extra_vars: {
-                type: 'string',
-                description: 'Extra variables (key=value or @file)',
-            },
-            verbose: {
-                type: 'number',
-                description: 'Verbosity level (0-6)',
-            },
-            forks: {
-                type: 'number',
-                description: 'Number of parallel processes (default: 5)',
-            },
-            connection: {
-                type: 'string',
-                description: 'Connection type (default: ssh)',
-            },
-            user: {
-                type: 'string',
-                description: 'Remote user for connection',
-            },
-            timeout: {
-                type: 'number',
-                description: 'Connection timeout in seconds',
-            },
-            private_key: {
-                type: 'string',
-                description: 'Path to SSH private key file',
-            },
-            become: {
-                type: 'boolean',
-                description: 'Enable privilege escalation',
-            },
-            become_method: {
-                type: 'string',
-                description: 'Privilege escalation method (default: sudo)',
-            },
-            become_user: {
-                type: 'string',
-                description: 'Privilege escalation target user (default: root)',
-            },
-            vault_password_file: {
-                type: 'string',
-                description: 'Path to vault password file',
-            },
-        },
-        required: ['playbook_path'],
-    },
+    inputSchema: RUN_PLAYBOOK_INPUT_SCHEMA,
 };
 
 // === Tox-Ansible Tools ===
@@ -1009,6 +1025,7 @@ export const STATIC_TOOLS: McpToolDefinition[] = [
     BUILD_EE_TOOL,
 
     // Playbook execution
+    RUN_PLAYBOOK_TOOL,
     RUN_PLAYBOOK_NAVIGATOR_TOOL,
 
     // Dev tools

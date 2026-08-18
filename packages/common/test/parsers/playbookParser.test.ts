@@ -227,6 +227,12 @@ describe('buildPlaybookFlags', () => {
         expect(flags).toContain('--become');
     });
 
+    it('omits forks when value is null (invalid runtime input)', () => {
+        const config = { ...DEFAULT_PLAYBOOK_CONFIG, forks: null } as PlaybookConfig;
+        const flags = buildPlaybookFlags(config);
+        expect(flags).not.toContain('-f');
+    });
+
     it('produces identical output to what buildPlaybookCommand embeds', () => {
         const config: PlaybookConfig = {
             ...DEFAULT_PLAYBOOK_CONFIG,
