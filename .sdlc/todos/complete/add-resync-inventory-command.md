@@ -1,7 +1,8 @@
 ---
 title: Add resync Ansible inventory command
 created: 2026-05-26
-status: pending
+status: done
+completed: 2026-07-28
 priority: low
 scope: extension
 ---
@@ -26,3 +27,5 @@ this as a user-facing command `extension.resync-ansible-inventory`.
 
 Useful when the user modifies inventory files outside the editor or
 changes the active Python environment.
+
+Implemented in #3052 (`ansible.resyncInventory`).
