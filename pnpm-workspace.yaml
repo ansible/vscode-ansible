@@ -46,6 +46,7 @@ overrides:
   "ip-address": ">=10.2.2"
   "diff@>=5.0.0 <8.0.3": "8.0.4"
   "file-type@>=13.0.0 <21.3.2": "21.3.2"
+  "nanoid@3": ">=3.3.18 <4.0.0"
 
 patchedDependencies:
   # See: https://github.com/microsoft/vscode-test-cli/issues/106
@@ -69,3 +70,4 @@ minimumReleaseAgeExclude:
   - ip-address@10.5.0
   - diff@8.0.4
   - file-type@21.3.2
+  - nanoid@3.3.18
