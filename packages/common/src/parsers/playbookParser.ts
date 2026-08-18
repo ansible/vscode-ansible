@@ -88,7 +88,7 @@ export function buildPlaybookFlags(config: PlaybookConfig): string[] {
         flags.push('-' + 'v'.repeat(Math.min(config.verbose, 6)));
     }
 
-    if (config.forks && config.forks !== 5) {
+    if (config.forks !== undefined && config.forks !== 5) {
         flags.push('-f', String(config.forks));
     }
 

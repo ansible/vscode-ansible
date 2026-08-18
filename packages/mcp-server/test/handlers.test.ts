@@ -1094,6 +1094,32 @@ describe('McpToolHandler', () => {
             expect(result.isError).toBe(true);
             expect(result.content[0].text).toContain('exit code: 2');
         });
+
+        it('returns OPERATION_FAILED when ansible-playbook throws', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+            hoisted.commandServiceInstance.runAnsiblePlaybook.mockRejectedValue(
+                new Error('exec timeout'),
+            );
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: playbookPath,
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('OPERATION_FAILED');
+        });
+
+        it('rejects a directory path with a trailing slash', async () => {
+            fsMock.existsSync.mockReturnValue(true);
+
+            const result = await handler.handleTool('run_playbook', {
+                playbook_path: '/workspace/',
+            });
+            const err = parseError(result);
+
+            expect(err.code).toBe('INVALID_INPUT');
+            expect(err.message).toContain('not a directory');
+        });
     });
 
     describe('list_ansible_dev_tools', () => {

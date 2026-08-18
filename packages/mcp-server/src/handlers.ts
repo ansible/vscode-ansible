@@ -1576,6 +1576,14 @@ export class McpToolHandler {
             });
         }
 
+        if (playbookPath.endsWith('/') || playbookPath.endsWith(path.sep)) {
+            return mcpError({
+                code: 'INVALID_INPUT',
+                recoverability: 'fail',
+                message: 'playbook_path must point to a YAML file, not a directory.',
+            });
+        }
+
         if (!fs.existsSync(playbookPath)) {
             return mcpError({
                 code: 'NOT_FOUND',
