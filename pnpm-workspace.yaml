@@ -34,7 +34,7 @@ overrides:
   "form-data@4": ">=4.0.6"
   "js-yaml@5": ">=5.2.2"
   "linkify-it": "<7.0.0"
-  "markdown-it": ">=14.2.0 <15.0.0"
+  "markdown-it": "<16.0.0"
   "postcss": ">=8.5.18 <9.0.0"
   "protobufjs@7": ">=7.6.5 <8.0.0"
   "serialize-javascript": ">=7.0.5 <8.0.0"
