@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           ref: next
+          persist-credentials: false
 
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
 
@@ -81,6 +82,9 @@ jobs:
           } > "${notes}"
 
           if gh release view nightly-next >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly-next" \
+              -f sha="${sha}" \
+              -F force=true
             gh release upload nightly-next ansible-next.vsix --clobber
             gh release edit nightly-next \
               --prerelease \
