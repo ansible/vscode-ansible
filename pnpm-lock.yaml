@@ -27,7 +27,7 @@ overrides:
   serialize-javascript: '>=7.0.5 <8.0.0'
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
-  undici@6: '>=6.28.0 <7.0.0'
+  undici@6: <9.0.0
   undici@7: '>=7.29.0 <8.0.0'
   hono: '>=4.12.34 <5.0.0'
   ip-address: '>=10.2.2'
@@ -14300,7 +14300,7 @@ snapshots:
       '@wdio/utils': 9.29.1(supports-color@8.1.1)
       deepmerge-ts: 7.1.5
       https-proxy-agent: 7.0.6(supports-color@8.1.1)
-      undici: 6.28.0
+      undici: 7.29.0
       ws: 8.21.0
     transitivePeerDependencies:
       - bare-abort-controller
