@@ -225,11 +225,11 @@ Stable releases are not wired to this workflow; only pre-releases run the upload
 
 A rolling pre-release tracks the `next` branch. The asset name is stable so the URL does not change:
 
-[ansible-next.vsix](https://github.com/ansible/vscode-ansible/releases/download/nightly-next/ansible-next.vsix)
-
-Install from the Command Palette (**Install from VSIX…**) or:
+Download [ansible-next.vsix](https://github.com/ansible/vscode-ansible/releases/download/nightly-next/ansible-next.vsix), then install it from the Command Palette (**Install from VSIX…**) or:
 
 ```bash
+curl -L -o ansible-next.vsix \
+  https://github.com/ansible/vscode-ansible/releases/download/nightly-next/ansible-next.vsix
 code --install-extension ansible-next.vsix --force
 ```
 

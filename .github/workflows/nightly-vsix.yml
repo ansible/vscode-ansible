@@ -37,7 +37,7 @@ jobs:
 
       - name: Stamp nightly version
         run: |
-          stamp=$(date -u +%Y%m%d%H%M)
+          stamp=$(date -u +%Y%m%d%H%M%S)
           pnpm pkg set "version=0.0.1-next.${stamp}"
 
       - name: Package
