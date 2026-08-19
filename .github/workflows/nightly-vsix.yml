@@ -1,12 +1,13 @@
 # Package a rolling VSIX from `next` for testers.
 # Manual: Actions → Nightly VSIX → Run workflow (use branch `next`).
 # Nightly cron cannot live here — GitHub only runs schedule from the
-# default branch (`main`). A follow-up on `main` should dispatch this
-# workflow with: gh workflow run nightly-vsix.yml --ref next
+# default branch (`main`). A follow-up on `main` calls this workflow
+# via workflow_call from ansible/vscode-ansible/.github/workflows/nightly-vsix.yml@next.
 name: Nightly VSIX
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}

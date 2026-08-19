@@ -233,7 +233,7 @@ curl -L -o ansible-next.vsix \
 code --install-extension ansible-next.vsix --force
 ```
 
-This build is not on the Marketplace. To produce one on demand, run **Nightly VSIX** from the Actions tab using branch `next`. A small follow-up workflow on `main` will dispatch that job on a nightly schedule.
+This build is not on the Marketplace. To produce one on demand, run **Nightly VSIX** from the Actions tab using branch `next`. A companion workflow on `main` calls that job on a nightly schedule.
 
 ## Data and Telemetry
 
