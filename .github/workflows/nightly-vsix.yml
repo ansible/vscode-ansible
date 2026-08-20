@@ -39,8 +39,13 @@ jobs:
 
       - name: Stamp nightly version
         run: |
-          stamp=$(date -u +%Y%m%d%H%M%S)
-          pnpm pkg set "version=0.0.1-next.${stamp}"
+          built=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          compact=${built//-/}
+          compact=${compact//:/}
+          compact=${compact//T/}
+          compact=${compact%Z}
+          pnpm pkg set "version=0.0.1-next.${compact}"
+          echo "NIGHTLY_BUILT=${built}" >> "$GITHUB_ENV"
 
       - name: Package
         run: pnpm run package
@@ -68,13 +73,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha=$(git rev-parse HEAD)
-          stamp=$(date -u +%Y-%m-%dT%H:%MZ)
           notes="${RUNNER_TEMP}/notes.md"
           {
             echo "Nightly VSIX from the \`next\` branch."
             echo
             echo "- Commit: ${sha}"
-            echo "- Built: ${stamp}"
+            echo "- Built: ${NIGHTLY_BUILT}"
             echo
             echo "Install this file in VS Code; it is not published to the Marketplace."
             echo "This asset is overwritten on each run so the download URL stays stable."
