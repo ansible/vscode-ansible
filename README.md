@@ -221,6 +221,20 @@ Publishing a **pre-release** on GitHub triggers Actions to build the VSIX and at
 
 Stable releases are not wired to this workflow; only pre-releases run the upload job.
 
+### Nightly next VSIX
+
+A rolling pre-release tracks the `next` branch. The asset name is stable so the URL does not change:
+
+Download [ansible-next.vsix](https://github.com/ansible/vscode-ansible/releases/download/nightly-next/ansible-next.vsix), then install it from the Command Palette (**Install from VSIX…**) or:
+
+```bash
+curl -L -o ansible-next.vsix \
+  https://github.com/ansible/vscode-ansible/releases/download/nightly-next/ansible-next.vsix
+code --install-extension ansible-next.vsix --force
+```
+
+This build is not on the Marketplace. To produce one on demand, run **Nightly VSIX** from the Actions tab using branch `next`. A companion workflow on `main` calls that job on a nightly schedule.
+
 ## Data and Telemetry
 
 The Ansible extension collects anonymous [usage data](USAGE_DATA.md) and sends

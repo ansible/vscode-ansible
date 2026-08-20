@@ -1,0 +1,105 @@
+# Package a rolling VSIX from `next` for testers.
+# Manual: Actions → Nightly VSIX → Run workflow (use branch `next`).
+# Nightly cron cannot live here — GitHub only runs schedule from the
+# default branch (`main`). A follow-up on `main` calls this workflow
+# via workflow_call from ansible/vscode-ansible/.github/workflows/nightly-vsix.yml@next.
+name: Nightly VSIX
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          ref: next
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Stamp nightly version
+        run: |
+          built=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          compact=${built//-/}
+          compact=${compact//:/}
+          compact=${compact//T/}
+          compact=${compact%Z}
+          pnpm pkg set "version=0.0.1-next.${compact}"
+          echo "NIGHTLY_BUILT=${built}" >> "$GITHUB_ENV"
+
+      - name: Package
+        run: pnpm run package
+
+      - name: Rename VSIX
+        run: |
+          set -- ansible-*.vsix
+          if [[ "$#" -ne 1 || ! -f "$1" ]]; then
+            echo "expected exactly one ansible-*.vsix, found: $*"
+            exit 1
+          fi
+          mv "$1" ansible-next.vsix
+          ls -la ansible-next.vsix
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ansible-next.vsix
+          path: ansible-next.vsix
+          archive: false
+          retention-days: 14
+
+      - name: Publish rolling pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          notes="${RUNNER_TEMP}/notes.md"
+          {
+            echo "Nightly VSIX from the \`next\` branch."
+            echo
+            echo "- Commit: ${sha}"
+            echo "- Built: ${NIGHTLY_BUILT}"
+            echo
+            echo "Install this file in VS Code; it is not published to the Marketplace."
+            echo "This asset is overwritten on each run so the download URL stays stable."
+            echo
+            echo "https://github.com/${GITHUB_REPOSITORY}/commits/${sha}"
+          } > "${notes}"
+
+          if gh release view nightly-next >/dev/null 2>&1; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly-next" \
+              -f sha="${sha}" \
+              -F force=true
+            gh release upload nightly-next ansible-next.vsix --clobber
+            gh release edit nightly-next \
+              --prerelease \
+              --latest=false \
+              --notes-file "${notes}"
+          else
+            gh release create nightly-next ansible-next.vsix \
+              --prerelease \
+              --latest=false \
+              --title "Nightly (next)" \
+              --notes-file "${notes}" \
+              --target "${sha}"
+          fi
