@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: nightly-vsix
@@ -19,5 +19,6 @@ jobs:
   nightly:
     if: github.repository == 'ansible/vscode-ansible'
     uses: ansible/vscode-ansible/.github/workflows/nightly-vsix.yml@next
+    secrets: inherit
     permissions:
       contents: write
