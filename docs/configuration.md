@@ -115,6 +115,8 @@ Existing values from deprecated settings are automatically migrated to the panel
 
 ## Completion & Language Server Settings
 
+- `ansible.completion.enabled`: Enables completion suggestions for Ansible
+  files. When disabled, the extension offers no completion items.
 - `ansible.completion.provideRedirectModules`: Toggle redirected module provider
   when completing modules.
 - `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
