@@ -7,8 +7,8 @@ any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.ansible.path`: Path to the `ansible` executable.
 - `ansible.config.path`: Path to the `ansible.cfg` file used by the language
-  server for Ansible commands and diagnostics. Supports relative paths and
-  `${workspaceFolder}`.
+  server for Ansible commands and diagnostics. Supports relative paths, `${workspaceFolder}`,
+  and home directory paths with `~`.
 - `ansible.ansible.reuseTerminal`: Enabling this will cause ansible commands run
   through VS Code to reuse the same Ansible Terminal.
 - `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of fully

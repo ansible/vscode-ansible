@@ -15,7 +15,8 @@ Toggle usage of fully qualified collection names (FQCN) when inserting module na
 ``true``
 
 ## [`ansible.config.path`](#config.path) { #config.path data-toc-label=config.path }
-Path to the &#x60;ansible.cfg&#x60; file used by the language server for Ansible commands and diagnostics. Supports relative paths and &#x60;${workspaceFolder}&#x60;.
+
+Path to the &#x60;ansible.cfg&#x60; file used by the language server for Ansible commands and diagnostics. Supports relative paths, &#x60;${workspaceFolder}&#x60;, and home directory paths with &#x60;~&#x60;.
 . Default value:
 ``""``
 

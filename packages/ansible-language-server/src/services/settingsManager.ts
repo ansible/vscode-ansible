@@ -45,7 +45,7 @@ export class SettingsManager {
       path: {
         default: "",
         description:
-          "Path to the `ansible.cfg` file used by the language server for Ansible commands and diagnostics. Supports relative paths and `${workspaceFolder}`.",
+          "Path to the `ansible.cfg` file used by the language server for Ansible commands and diagnostics. Supports relative paths, `${workspaceFolder}`, and home directory paths with `~`.",
       },
     },
     python: {
