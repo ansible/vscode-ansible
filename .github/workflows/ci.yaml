@@ -728,13 +728,15 @@ jobs:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish:
-    # be warned that job will skip if any other job from same workflow is
-    # skipped due to implicit `success() &&` condition GHA is injecting.
-    # Be sure build-image runs too.
+    # always() is required: uv-lock-downgrade is skipped on release/tag runs but
+    # listed in check.needs, which otherwise prevents publish from running.
+    # See https://github.com/actions/runner/issues/2205
     if: >
-      github.ref_type == 'tag' ||
+      always() &&
+      needs.check.result == 'success' &&
+      (github.ref_type == 'tag' ||
       (github.event_name == 'release' && github.event.action == 'published') ||
-      github.event.inputs.publish == 'true'
+      github.event.inputs.publish == 'true')
     runs-on: ubuntu-latest
     environment: release
     needs:
@@ -788,7 +790,15 @@ jobs:
 
   publish-npm:
     environment: release
-    if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') || github.event.inputs.publish == 'true' || github.event.inputs.publish == true)
+    if: >
+      always() &&
+      needs.check.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.build.outputs.can_release_to_npm == 'true' &&
+      (github.ref_type == 'tag' ||
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      github.event.inputs.publish == 'true' ||
+      github.event.inputs.publish == true)
     runs-on: ubuntu-latest
     needs:
       - build
