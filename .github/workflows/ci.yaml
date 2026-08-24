@@ -733,6 +733,7 @@ jobs:
     # See https://github.com/actions/runner/issues/2205
     if: >
       always() &&
+      !cancelled() &&
       needs.check.result == 'success' &&
       (github.ref_type == 'tag' ||
       (github.event_name == 'release' && github.event.action == 'published') ||
@@ -792,6 +793,7 @@ jobs:
     environment: release
     if: >
       always() &&
+      !cancelled() &&
       needs.check.result == 'success' &&
       needs.build.result == 'success' &&
       needs.build.outputs.can_release_to_npm == 'true' &&
