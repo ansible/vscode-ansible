@@ -168,6 +168,20 @@ stories:
       - Requesting completions under a module key returns its options
       - Options come from ansible-doc (real schema, not training data)
 
+  - id: LSP-009
+    title: Auto-completion under module_defaults
+    story: >
+      As an Ansible developer, I want autocomplete for module names and
+      options inside module_defaults, so that I can set module defaults
+      without guessing FQCNs or leaving the editor.
+    prd_refs: [US-3, US-18, AC-8]
+    requires_ai: false
+    jira: AAP-89099
+    criteria:
+      - Completing a key under module_defaults suggests module names
+      - Completing under a module key in module_defaults suggests options
+      - Task and play keyword completion remain unchanged
+
   - id: LSP-005
     title: Hover documentation
     story: >

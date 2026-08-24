@@ -31,6 +31,7 @@ function shell(cmd: string, opts: Record<string, unknown> = {}): string {
  * @covers COL-007
  * @covers LSP-003
  * @covers LSP-004
+ * @covers LSP-009
  */
 describe('Language Server full stack e2e', function () {
     before(function () {
@@ -109,7 +110,7 @@ describe('Language Server full stack e2e', function () {
         const fixtureUri = path.resolve(FIXTURES_DIR, COMPLETION_PLAYBOOK);
 
         // Open the playbook and request completions at a task-level position.
-        // Line 10 (0-indexed) is "    - " — a new task entry where task
+        // Line 15 (0-indexed) is "    - " — a new task entry where task
         // keywords (name, become, register, …) and module names are valid.
         const labels: string[] = await browser.executeWorkbench(
             async (vscode: typeof VsCode, uri: string) => {
@@ -119,7 +120,7 @@ describe('Language Server full stack e2e', function () {
                 // Wait for the LS to be ready
                 await new Promise((r) => setTimeout(r, 3000));
 
-                const pos = new vscode.Position(10, 6);
+                const pos = new vscode.Position(15, 6);
                 const result: { items?: { label: string | { label: string } }[] } | undefined =
                     await vscode.commands.executeCommand(
                         'vscode.executeCompletionItemProvider',
@@ -150,11 +151,9 @@ describe('Language Server full stack e2e', function () {
 
         const fixtureUri = path.resolve(FIXTURES_DIR, COMPLETION_PLAYBOOK);
 
-        // Line 7 (0-indexed) is '        msg: "hello"' — this is under the
-        // ansible.builtin.debug module. Requesting completions at line 7,
-        // column 8 should trigger the LS to call ansible-doc for module
-        // options.  If ansible-doc is reachable, we'll get options like
-        // "msg", "var", "verbosity".
+        // Line 12 (0-indexed) is '        msg: "hello"' — under
+        // ansible.builtin.debug in tasks. Requesting completions at line 12,
+        // column 8 should return module options such as msg/var/verbosity.
         const labels: string[] = await browser.executeWorkbench(
             async (vscode: typeof VsCode, uri: string) => {
                 const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
@@ -162,7 +161,76 @@ describe('Language Server full stack e2e', function () {
 
                 await new Promise((r) => setTimeout(r, 5000));
 
-                const pos = new vscode.Position(7, 8);
+                const pos = new vscode.Position(12, 8);
+                const result: { items?: { label: string | { label: string } }[] } | undefined =
+                    await vscode.commands.executeCommand(
+                        'vscode.executeCompletionItemProvider',
+                        doc.uri,
+                        pos,
+                    );
+
+                if (!result?.items) return [];
+                return result.items.map((i) =>
+                    typeof i.label === 'string' ? i.label : i.label.label,
+                );
+            },
+            fixtureUri,
+        );
+
+        const debugOptions = ['msg', 'var', 'verbosity'];
+        const foundOptions = debugOptions.filter((opt) => labels.includes(opt));
+        expect(foundOptions.length).toBeGreaterThan(0);
+    });
+
+    it('should return module name completions under module_defaults', async function () {
+        this.timeout(60_000);
+
+        const fixtureUri = path.resolve(FIXTURES_DIR, COMPLETION_PLAYBOOK);
+
+        // Line 5 is partial module token "ans" under module_defaults.
+        const labels: string[] = await browser.executeWorkbench(
+            async (vscode: typeof VsCode, uri: string) => {
+                const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
+                await vscode.window.showTextDocument(doc);
+
+                await new Promise((r) => setTimeout(r, 5000));
+
+                const pos = new vscode.Position(5, 7);
+                const result: { items?: { label: string | { label: string } }[] } | undefined =
+                    await vscode.commands.executeCommand(
+                        'vscode.executeCompletionItemProvider',
+                        doc.uri,
+                        pos,
+                    );
+
+                if (!result?.items) return [];
+                return result.items.map((i) =>
+                    typeof i.label === 'string' ? i.label : i.label.label,
+                );
+            },
+            fixtureUri,
+        );
+
+        const hasModule = labels.some(
+            (l) => l === 'ansible.builtin.debug' || l === 'debug' || l.startsWith('ansible.'),
+        );
+        expect(hasModule).toBe(true);
+    });
+
+    it('should return module options under module_defaults', async function () {
+        this.timeout(60_000);
+
+        const fixtureUri = path.resolve(FIXTURES_DIR, COMPLETION_PLAYBOOK);
+
+        // Line 8 is partial option token "m" under module_defaults → debug.
+        const labels: string[] = await browser.executeWorkbench(
+            async (vscode: typeof VsCode, uri: string) => {
+                const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
+                await vscode.window.showTextDocument(doc);
+
+                await new Promise((r) => setTimeout(r, 5000));
+
+                const pos = new vscode.Position(8, 7);
                 const result: { items?: { label: string | { label: string } }[] } | undefined =
                     await vscode.commands.executeCommand(
                         'vscode.executeCompletionItemProvider',

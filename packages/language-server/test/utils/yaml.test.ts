@@ -5,6 +5,7 @@ import {
     AncestryBuilder,
     getPathAt,
     isTaskParam,
+    isModuleDefaultsKey,
     isPlayParam,
     isBlockParam,
     isRoleParam,
@@ -185,6 +186,45 @@ describe('isTaskParam', () => {
             if (isPlay === false || isPlay === undefined) {
                 expect(isTaskParam(path)).toBe(true);
             }
+        }
+    });
+});
+
+describe('isModuleDefaultsKey', () => {
+    it('returns true for a key under play-level module_defaults', () => {
+        const content = ['- hosts: all', '  module_defaults:', '    _:'].join('\n');
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 2, character: 4 }, docs, true);
+        expect(path).not.toBeNull();
+        if (path) {
+            expect(isModuleDefaultsKey(path)).toBe(true);
+        }
+    });
+
+    it('returns false for a key under a module inside module_defaults', () => {
+        const content = [
+            '- hosts: all',
+            '  module_defaults:',
+            '    ansible.builtin.copy:',
+            '      _:',
+        ].join('\n');
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 3, character: 6 }, docs, true);
+        expect(path).not.toBeNull();
+        if (path) {
+            expect(isModuleDefaultsKey(path)).toBe(false);
+        }
+    });
+
+    it('returns false for a normal task key', () => {
+        const content = '- hosts: all\n  tasks:\n    - name: test';
+        const d = doc(content);
+        const docs = parseAllDocuments(content);
+        const path = getPathAt(d, { line: 2, character: 6 }, docs, true);
+        if (path) {
+            expect(isModuleDefaultsKey(path)).toBe(false);
         }
     });
 });
