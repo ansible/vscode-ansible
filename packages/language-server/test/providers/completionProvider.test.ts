@@ -196,6 +196,83 @@ describe('doCompletion', () => {
         expect(labels).toContain('dest');
     });
 
+    it('offers module names as keys under module_defaults', async () => {
+        const content = ['- hosts: all', '  module_defaults:', '    '].join('\n');
+        const d = doc(content);
+        const svc = mockCollectionsService(
+            {},
+            new Map([
+                [
+                    'ansible.builtin',
+                    {
+                        pluginTypes: new Map([['module', [{ fullName: 'ansible.builtin.copy' }]]]),
+                    },
+                ],
+            ]),
+        );
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 2, character: 4 }, ctx as never);
+        expect(items.map((i) => i.label)).toContain('ansible.builtin.copy');
+    });
+
+    it('offers module options under a module_defaults module key', async () => {
+        const content = [
+            '- hosts: all',
+            '  module_defaults:',
+            '    ansible.builtin.copy:',
+            '      ',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'copy',
+                options: {
+                    src: { type: 'str', required: true, description: ['Source'] },
+                    dest: { type: 'str', required: true, description: ['Dest'] },
+                },
+            },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 3, character: 6 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('src');
+        expect(labels).toContain('dest');
+    });
+
+    it('offers module options under task-level module_defaults', async () => {
+        const content = [
+            '- hosts: all',
+            '  tasks:',
+            '    - name: example',
+            '      module_defaults:',
+            '        ansible.builtin.copy:',
+            '          ',
+        ].join('\n');
+        const d = doc(content);
+        const pluginData = {
+            doc: {
+                module: 'copy',
+                options: {
+                    src: { type: 'str', required: true, description: ['Source'] },
+                    dest: { type: 'str', required: true, description: ['Dest'] },
+                },
+            },
+        };
+        const svc = mockCollectionsService({ 'ansible.builtin.copy': pluginData });
+        CollectionsServiceMock._setMockInstance(svc);
+        const ctx = mockContext();
+
+        const items = await doCompletion(d, { line: 5, character: 10 }, ctx as never);
+        const labels = items.map((i) => i.label);
+        expect(labels).toContain('src');
+        expect(labels).toContain('dest');
+    });
+
     it('filters already-provided keywords', async () => {
         const content = '- hosts: all\n  gather_facts: true\n  ';
         const d = doc(content);

@@ -436,7 +436,21 @@ async function resolveModuleName(
 }
 
 /**
+ * Determines whether the cursor is a key under a `module_defaults` map.
+ *
+ * @param path - YAML node ancestry path to test.
+ * @returns True when completing a key whose enclosing map is the value of module_defaults.
+ */
+export function isModuleDefaultsKey(path: Node[]): boolean {
+    return (
+        new AncestryBuilder(path).parentOfKey().parent(YAMLMap).getStringKey() === 'module_defaults'
+    );
+}
+
+/**
  * Returns possible options/suboptions at the current path level.
+ *
+ * Supports both task module parameters and keys nested under `module_defaults`.
  *
  * @param path - YAML node ancestry path at the cursor.
  * @param document - Text document containing the task.
@@ -448,20 +462,52 @@ export async function getPossibleOptionsForPath(
     document: TextDocument,
     collectionsService: CollectionsService,
 ): Promise<Record<string, PluginOption> | null> {
-    const [taskParamPath, suboptionTrace] = getTaskParamPathWithTrace(path);
-    if (taskParamPath.length === 0) return null;
+    // Walk module_defaults first. A task-level `module_defaults` key is also a
+    // task param, so the task walk would stop on that keyword and miss options.
+    const [defaultsParamPath, defaultsTrace] = getModuleDefaultsParamPathWithTrace(path);
+    if (defaultsParamPath.length > 0) {
+        return resolveOptionsFromModulePath(
+            defaultsParamPath,
+            defaultsTrace,
+            document,
+            collectionsService,
+        );
+    }
 
+    const [taskParamPath, taskTrace] = getTaskParamPathWithTrace(path);
+    if (taskParamPath.length > 0) {
+        return resolveOptionsFromModulePath(taskParamPath, taskTrace, document, collectionsService);
+    }
+
+    return null;
+}
+
+/**
+ * Resolves module options from a module-name key path and option-type trace.
+ *
+ * @param moduleParamPath - Path ending at the module name key.
+ * @param suboptionTrace - Dict/list steps walked from the cursor to the module key.
+ * @param document - Text document containing the YAML.
+ * @param collectionsService - Source of cached plugin documentation.
+ * @returns Option map for the current level, or null when the module/options are unavailable.
+ */
+async function resolveOptionsFromModulePath(
+    moduleParamPath: Node[],
+    suboptionTrace: [string, 'list' | 'dict'][],
+    document: TextDocument,
+    collectionsService: CollectionsService,
+): Promise<Record<string, PluginOption> | null> {
     const optionTraceElement = suboptionTrace.pop();
     if (optionTraceElement?.[1] !== 'dict') {
         return null;
     }
 
-    const taskParamNode = taskParamPath[taskParamPath.length - 1];
+    const taskParamNode = moduleParamPath[moduleParamPath.length - 1];
     if (!isScalar(taskParamNode)) return null;
 
     const pluginData =
         taskParamNode.value === 'args'
-            ? await findProvidedModule(taskParamPath, document, collectionsService)
+            ? await findProvidedModule(moduleParamPath, document, collectionsService)
             : await resolveModuleName(taskParamNode.value as string, collectionsService);
 
     if (!pluginData?.doc?.options) return null;
@@ -481,14 +527,18 @@ export async function getPossibleOptionsForPath(
 }
 
 /**
- * Walks upward from a nested option path to the enclosing task and records dict/list steps.
+ * Walks upward from a nested option path until a stop condition matches.
  *
- * @param path - YAML node ancestry path starting inside a task option.
- * @returns Task parameter path and reversed trace of parent option types.
+ * @param path - YAML node ancestry path starting inside nested options.
+ * @param isStop - Returns true when `path` is at the module-name key.
+ * @returns Module parameter path and trace of parent option types.
  */
-function getTaskParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'dict'][]] {
+function getParamPathWithTrace(
+    path: Node[],
+    isStop: (candidate: Node[]) => boolean,
+): [Node[], [string, 'list' | 'dict'][]] {
     const trace: [string, 'list' | 'dict'][] = [];
-    while (!isTaskParam(path)) {
+    while (!isStop(path)) {
         let parentKeyPath = new AncestryBuilder(path).parentOfKey().parent(YAMLMap).getKeyPath();
         if (parentKeyPath) {
             const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
@@ -514,6 +564,26 @@ function getTaskParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'di
         return [[], []];
     }
     return [path, trace];
+}
+
+/**
+ * Walks upward from a nested option path to the enclosing task and records dict/list steps.
+ *
+ * @param path - YAML node ancestry path starting inside a task option.
+ * @returns Task parameter path and reversed trace of parent option types.
+ */
+function getTaskParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'dict'][]] {
+    return getParamPathWithTrace(path, isTaskParam);
+}
+
+/**
+ * Walks upward from a nested option path to the module key under `module_defaults`.
+ *
+ * @param path - YAML node ancestry path starting inside a module_defaults option.
+ * @returns Module key path and reversed trace of parent option types.
+ */
+function getModuleDefaultsParamPathWithTrace(path: Node[]): [Node[], [string, 'list' | 'dict'][]] {
+    return getParamPathWithTrace(path, isModuleDefaultsKey);
 }
 
 /**

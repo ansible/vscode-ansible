@@ -26,6 +26,7 @@ import {
     getOrigRange,
     getYamlMapKeys,
     isBlockParam,
+    isModuleDefaultsKey,
     isPlayParam,
     isRoleParam,
     isTaskParam,
@@ -152,6 +153,25 @@ export async function doCompletion(
             completionItems.push(...moduleCompletionItems);
         }
         return completionItems;
+    }
+
+    // Keys under module_defaults are module names (issue #773 / AAP-89099).
+    if (isModuleDefaultsKey(path)) {
+        const cursorAtEnd = atEndOfLine(document, position);
+        const nodeRange = getNodeRange(node, document);
+        const cursorAtFirst = firstElementOfList(document, nodeRange);
+        let textEdit: TextEdit | undefined;
+        if (nodeRange) {
+            textEdit = { range: nodeRange, newText: '' };
+        }
+        return getModuleCompletions(
+            collectionsService,
+            useFqcn,
+            cursorAtEnd,
+            cursorAtFirst,
+            textEdit,
+            document.uri,
+        );
     }
 
     if (isAnsiblePlaybook && isCursorInsideJinjaBrackets(document, position, path)) {
