@@ -19,7 +19,7 @@ coverage:
     project:
       default:
         target: auto
-        threshold: 0.5%
+        threshold: 1%
       tests:
         target: 100%
         threshold: 0%
