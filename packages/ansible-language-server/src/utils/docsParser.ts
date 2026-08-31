@@ -227,7 +227,7 @@ function parseRawDeprecationOrTombstone(
 
 export class LazyModuleDocumentation implements IModuleMetadata {
   public static docsRegex =
-    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
+    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*\\?\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
 
   source: string;
   sourceLineRange: [number, number] = [0, 0];
@@ -280,8 +280,40 @@ export class LazyModuleDocumentation implements IModuleMetadata {
           this.errors = document.errors;
         }
       }
+
+      // Fallback: if no DOCUMENTATION found via regex, try to parse the entire file
+      // to handle modules with non-standard DOCUMENTATION formats
+      if (this._contents.size === 0) {
+        this.tryParseNonStandardFormats(contents);
+      }
     }
     return this._contents;
+  }
+
+  private tryParseNonStandardFormats(contents: string): void {
+    // Try to find DOCUMENTATION = """ ... """ even if the regex didn't match
+    // This handles modules with unusual formatting like line continuations or spacing
+    const tripleQuoteMatch = contents.match(
+      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?"""([\s\S]*?)"""/
+    );
+    if (tripleQuoteMatch) {
+      const docContent = tripleQuoteMatch[1];
+      const document = parseDocument(docContent);
+      this._contents!.set(DOCUMENTATION, document.toJSON() as Record<string, unknown>);
+      this.errors = document.errors;
+      return;
+    }
+
+    // Try single triple quotes
+    const singleQuoteMatch = contents.match(
+      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?'''([\s\S]*?)'''/
+    );
+    if (singleQuoteMatch) {
+      const docContent = singleQuoteMatch[1];
+      const document = parseDocument(docContent);
+      this._contents!.set(DOCUMENTATION, document.toJSON() as Record<string, unknown>);
+      this.errors = document.errors;
+    }
   }
 
   public set rawDocumentationFragments(
