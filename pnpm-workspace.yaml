@@ -27,6 +27,9 @@ overrides:
   "brace-expansion@1": ">=5.0.8 <6.0.0"
   "brace-expansion@2": ">=5.0.9 <6.0.0"
   "brace-expansion@5": ">=5.0.8 <6.0.0"
+  # minimatch@5/@9 default-import brace-expansion; v5 is named export only
+  "minimatch@5": ">=10.2.6 <11"
+  "minimatch@9": ">=10.2.6 <11"
   "fast-uri@3": "<5.0.0"
   "fast-xml-parser": ">=5.10.1 <6.0.0"
   "fastify": ">=5.8.3 <6.0.0"
