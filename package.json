@@ -1131,7 +1131,7 @@
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "ovsx": "^1.0.2",
-    "pnpm": "^11.9.0",
+    "pnpm": "^11.11.0",
     "prettier": "^3.8.4",
     "rimraf": "^6.1.3",
     "sinon": "^22.0.0",
