@@ -1153,7 +1153,7 @@
     "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=24.13.1",
     "npm": "\n\nERROR: Please use pnpm instead of npm for this repository.!!!\n\n",
-    "pnpm": ">=10.28.2",
+    "pnpm": ">=11.11.0",
     "vscode": "^1.91.0"
   },
   "extensionDependencies": [
