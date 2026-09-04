@@ -87,6 +87,7 @@ lineinfile
 linkify
 llmprovider
 microdnf
+minimatch
 myorg
 noconfirm
 npmjs
