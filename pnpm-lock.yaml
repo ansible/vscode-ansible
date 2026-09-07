@@ -201,7 +201,7 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(mocha@11.7.6)
       electron:
-        specifier: ^42.10.1
+        specifier: ^42.11.0
         version: 42.11.1
       esbuild:
         specifier: ^0.28.1
