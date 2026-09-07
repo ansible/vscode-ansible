@@ -75,3 +75,5 @@ minimumReleaseAgeExclude:
   - diff@8.0.4
   - file-type@21.3.2
   - nanoid@3.3.18
+  # Renovate security update: pnpm@11.11.0
+  - pnpm@11.11.0
