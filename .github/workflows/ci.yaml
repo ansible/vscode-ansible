@@ -339,6 +339,14 @@ jobs:
         id: lint
         run: task lint && task lint --status
 
+      # Run setup before parallel build/docs so concurrent task processes do not
+      # both invoke pnpm install on the same node_modules (ERR_PNPM_PATCH_FAILED).
+      - name: task setup
+        # starting podman machine can randomly get stuck on macos
+        timeout-minutes: 25
+        run: task setup && task setup --status
+        id: setup
+
       - parallel:
           - name: task build / package
             # Warning: ensure that conditional templates have a negative condition
@@ -355,12 +363,6 @@ jobs:
             shell: bash
             # timeout-minutes: 2
             run: task docs && task docs --status
-
-      - name: task setup
-        # starting podman machine can randomly get stuck on macos
-        timeout-minutes: 25
-        run: task setup && task setup --status
-        id: setup
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
