@@ -390,8 +390,7 @@ components:
     it("should return 'failed' if template file doesn't exist", () => {
       const destinationPath = path.join(tempDir, "devfile.yaml");
 
-      const originalMock = vi.mocked(vscode.Uri.joinPath);
-      vi.spyOn(vscode.Uri, "joinPath").mockReturnValueOnce({
+      const joinPathSpy = vi.spyOn(vscode.Uri, "joinPath").mockReturnValueOnce({
         fsPath: "/nonexistent/template.yaml",
         toString: () => "file:///nonexistent/template.yaml",
       } as vscode.Uri);
@@ -406,7 +405,7 @@ components:
       expect(result).toBe("failed");
       expect(fs.existsSync(destinationPath)).toBe(false);
 
-      vi.spyOn(vscode.Uri, "joinPath").mockImplementation(originalMock);
+      joinPathSpy.mockRestore();
     });
 
     it("should preserve YAML schema structure", () => {
