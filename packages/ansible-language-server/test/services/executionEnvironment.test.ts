@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import sinon from "sinon";
 import { Connection } from "vscode-languageserver";
 import { ExecutionEnvironment } from "@src/services/executionEnvironment.js";
@@ -164,9 +164,12 @@ describe("@ee", () => {
       (ee as any)._container_image = "test-image";
       (ee as any).settingsVolumeMounts = [];
       (ee as any).settingsContainerOptions = "";
-      const result = ee.wrapContainerArgs("echo hello", new Set(["/tmp"]));
+      const result = ee.wrapContainerArgs("echo hello", new Set(["/tmp"]), {
+        ANSIBLE_CONFIG: "/tmp/ansible.cfg",
+      });
       expect(result).toBeDefined();
       expect(result?.join(" ")).toContain("docker run --rm");
+      expect(result?.join(" ")).toContain("-e ANSIBLE_CONFIG=/tmp/ansible.cfg");
       expect(result).toContain("test-image");
       expect(result).toContain("echo");
       expect(result).toContain("hello");
