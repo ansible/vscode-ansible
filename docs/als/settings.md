@@ -14,6 +14,12 @@ Toggle usage of fully qualified collection names (FQCN) when inserting module na
 . Default value:
 ``true``
 
+## [`ansible.config.path`](#config.path) { #config.path data-toc-label=config.path }
+
+Path to the &#x60;ansible.cfg&#x60; file used by the language server for Ansible commands and diagnostics. Supports relative paths, &#x60;${workspaceFolder}&#x60;, and home directory paths with &#x60;~&#x60;.
+. Default value:
+``""``
+
 ## [`ansible.python.interpreterPath`](#python.interpreterPath) { #python.interpreterPath data-toc-label=python.interpreterPath }
 Path to the python/python3 executable. This settings may be used to make the extension work with ansible and ansible-lint installations in a python virtual environment
 . Default value:
