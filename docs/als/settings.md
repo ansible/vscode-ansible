@@ -59,6 +59,11 @@ Extra parameters passed to the container engine command example: &#x27;--net&#x3
 . Default value:
 ``""``
 
+## [`ansible.completion.enabled`](#completion.enabled) { #completion.enabled data-toc-label=completion.enabled }
+Toggle completion provider. If disabled, no completion items are offered for Ansible files
+. Default value:
+``true``
+
 ## [`ansible.completion.provideRedirectModules`](#completion.provideRedirectModules) { #completion.provideRedirectModules data-toc-label=completion.provideRedirectModules }
 Toggle redirected module provider when completing modules
 . Default value:

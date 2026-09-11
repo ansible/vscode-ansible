@@ -290,17 +290,24 @@
       },
       {
         "properties": {
+          "ansible.completion.enabled": {
+            "default": true,
+            "markdownDescription": "Enables completion suggestions for Ansible files. If disabled, no completion items are offered by this extension.",
+            "order": 0,
+            "scope": "resource",
+            "type": "boolean"
+          },
           "ansible.completion.provideModuleOptionAliases": {
             "default": true,
-            "markdownDescription": "Toggle alias provider when completing module options.",
-            "order": 1,
+            "markdownDescription": "Toggle alias provider when completing module options. Requires `#ansible.completion.enabled#` to be enabled.",
+            "order": 2,
             "scope": "resource",
             "type": "boolean"
           },
           "ansible.completion.provideRedirectModules": {
             "default": true,
-            "markdownDescription": "Toggle redirected module provider when completing modules.",
-            "order": 0,
+            "markdownDescription": "Toggle redirected module provider when completing modules. Requires `#ansible.completion.enabled#` to be enabled.",
+            "order": 1,
             "scope": "resource",
             "type": "boolean"
           }
