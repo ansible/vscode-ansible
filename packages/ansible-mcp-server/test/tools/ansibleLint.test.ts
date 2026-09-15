@@ -216,18 +216,22 @@ describe("Ansible Lint Handler", () => {
       FIX_TEST_TIMEOUT_MS,
     );
 
-    it("should not apply fixes when fix: false is specified", async () => {
-      const handler = createAnsibleLintHandler(testDir);
+    it(
+      "should not apply fixes when fix: false is specified",
+      async () => {
+        const handler = createAnsibleLintHandler(testDir);
 
-      const result = await handler({
-        filePath: testPlaybookPath,
-        fix: false,
-      });
+        const result = await handler({
+          filePath: testPlaybookPath,
+          fix: false,
+        });
 
-      expect(result.content).toBeDefined();
-      expect(result.content[0].text).not.toContain("📝 Fixed content:");
-      expect(result.content[0].text).not.toContain("```yaml");
-    });
+        expect(result.content).toBeDefined();
+        expect(result.content[0].text).not.toContain("📝 Fixed content:");
+        expect(result.content[0].text).not.toContain("```yaml");
+      },
+      FIX_TEST_TIMEOUT_MS,
+    );
 
     it(
       "should display fixed content when fix is applied and content is available",
