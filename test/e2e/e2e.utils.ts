@@ -115,6 +115,61 @@ export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Options for waitForCondition utility
+ */
+export interface WaitForConditionOptions {
+  /** Maximum time to wait in milliseconds (default: 5000) */
+  timeout?: number;
+  /** Interval between condition checks in milliseconds (default: 200) */
+  interval?: number;
+  /** Description for error messages (default: "condition") */
+  description?: string;
+}
+
+/**
+ * Wait for a condition to become true, polling at regular intervals.
+ * Useful for e2e tests that need to wait for async state changes.
+ *
+ * @param condition - Function that returns true when the condition is met
+ * @param options - Configuration options
+ * @returns Promise that resolves when condition is true, or rejects on timeout
+ *
+ * @example
+ * // Wait for hover results to be available
+ * await waitForCondition(
+ *   async () => {
+ *     const hovers = await vscode.commands.executeCommand("vscode.executeHoverProvider", uri, pos);
+ *     return hovers.length > 0;
+ *   },
+ *   { timeout: 10000, description: "hover results" }
+ * );
+ */
+export async function waitForCondition(
+  condition: () => boolean | Promise<boolean>,
+  options?: WaitForConditionOptions,
+): Promise<void> {
+  const {
+    timeout = 5000,
+    interval = 200,
+    description = "condition",
+  } = options ?? {};
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeout) {
+    try {
+      if (await condition()) {
+        return;
+      }
+    } catch {
+      // Condition threw an error, continue polling
+    }
+    await sleep(interval);
+  }
+
+  throw new Error(`Timeout waiting for ${description} after ${timeout}ms`);
+}
+
 const getDocPath = (p: string): string => {
   return path.resolve(PROJECT_ROOT, "test", "testFixtures", p);
 };
@@ -310,29 +365,85 @@ export async function testDiagnostics(
   }
 }
 
+/**
+ * Options for testHover retry behavior
+ */
+export interface TestHoverOptions {
+  /** Number of retries after initial attempt (default: 5, so 6 total attempts) */
+  retries?: number;
+  /** Delay between retries in milliseconds (default: 500) */
+  retryDelay?: number;
+}
+
+/**
+ * Test hover functionality with retry logic to handle timing-dependent flakiness.
+ *
+ * In e2e tests, hover results may not be immediately available after docs library
+ * initialization completes due to async processing. This function retries the hover
+ * request until the expected results are found or retries are exhausted.
+ *
+ * @param docUri - URI of the document to hover in
+ * @param position - Position to hover at
+ * @param expectedHover - Expected hover results
+ * @param options - Retry options (default: 5 retries with 500ms delay)
+ */
 export async function testHover(
   docUri: vscode.Uri,
   position: vscode.Position,
   expectedHover: vscode.Hover[],
+  options?: TestHoverOptions,
 ): Promise<void> {
-  const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
-    "vscode.executeHoverProvider",
-    docUri,
-    position,
-  );
+  const { retries = 5, retryDelay = 500 } = options ?? {};
 
-  assert.strictEqual(actualHover.length, expectedHover.length);
+  let lastActualHover: vscode.Hover[] = [];
+  let lastError: Error | undefined;
 
-  if (actualHover.length && expectedHover.length) {
-    expectedHover.forEach((expectedItem, i) => {
-      const actualItem = actualHover[i];
-      assert.ok(
-        (actualItem.contents[i] as vscode.MarkdownString).value.includes(
-          expectedItem.contents[i].toString(),
-        ),
-      );
-    });
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
+      "vscode.executeHoverProvider",
+      docUri,
+      position,
+    );
+    lastActualHover = actualHover;
+
+    // Check if we have the expected number of hover results
+    if (actualHover.length === expectedHover.length) {
+      // Verify content matches
+      try {
+        if (actualHover.length && expectedHover.length) {
+          expectedHover.forEach((expectedItem, i) => {
+            const actualItem = actualHover[i];
+            assert.ok(
+              (actualItem.contents[i] as vscode.MarkdownString).value.includes(
+                expectedItem.contents[i].toString(),
+              ),
+              `Hover content mismatch at index ${i}: expected "${expectedItem.contents[i].toString()}" to be in "${(actualItem.contents[i] as vscode.MarkdownString).value}"`,
+            );
+          });
+        }
+        // All assertions passed
+        return;
+      } catch (e) {
+        lastError = e as Error;
+        // Content didn't match, will retry
+      }
+    }
+
+    // If this isn't the last attempt, wait before retrying
+    if (attempt < retries) {
+      await sleep(retryDelay);
+    }
   }
+
+  // All retries exhausted, fail with informative error
+  const errorMessage =
+    `Hover test failed after ${retries + 1} attempts.\n` +
+    `Expected ${expectedHover.length} hover(s), got ${lastActualHover.length}.\n` +
+    `Position: line ${position.line}, character ${position.character}\n` +
+    `Document: ${docUri.toString()}\n` +
+    (lastError ? `Last error: ${lastError.message}` : "");
+
+  assert.fail(errorMessage);
 }
 
 async function waitForDiagnosisCompletion(

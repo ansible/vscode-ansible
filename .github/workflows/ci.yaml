@@ -339,6 +339,14 @@ jobs:
         id: lint
         run: task lint && task lint --status
 
+      # Run setup before parallel build/docs so concurrent task processes do not
+      # both invoke pnpm install on the same node_modules (ERR_PNPM_PATCH_FAILED).
+      - name: task setup
+        # starting podman machine can randomly get stuck on macos
+        timeout-minutes: 25
+        run: task setup && task setup --status
+        id: setup
+
       - parallel:
           - name: task build / package
             # Warning: ensure that conditional templates have a negative condition
@@ -355,12 +363,6 @@ jobs:
             shell: bash
             # timeout-minutes: 2
             run: task docs && task docs --status
-
-      - name: task setup
-        # starting podman machine can randomly get stuck on macos
-        timeout-minutes: 25
-        run: task setup && task setup --status
-        id: setup
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -389,6 +391,7 @@ jobs:
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
             run: |
               set -e
+              mkdir -p out/log
               task build 2>out/log/build-before.txt
               task e2e ${{ matrix.env.TASKFILE_ARGS }}
               task build 2>out/log/build-after.txt
@@ -585,7 +588,7 @@ jobs:
           show-progress: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: false
 
@@ -727,13 +730,16 @@ jobs:
           slack_webhook_url: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
 
   publish:
-    # be warned that job will skip if any other job from same workflow is
-    # skipped due to implicit `success() &&` condition GHA is injecting.
-    # Be sure build-image runs too.
+    # always() is required: uv-lock-downgrade is skipped on release/tag runs but
+    # listed in check.needs, which otherwise prevents publish from running.
+    # See https://github.com/actions/runner/issues/2205
     if: >
-      github.ref_type == 'tag' ||
+      always() &&
+      !cancelled() &&
+      needs.check.result == 'success' &&
+      (github.ref_type == 'tag' ||
       (github.event_name == 'release' && github.event.action == 'published') ||
-      github.event.inputs.publish == 'true'
+      github.event.inputs.publish == 'true')
     runs-on: ubuntu-latest
     environment: release
     needs:
@@ -763,7 +769,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: github.ref_type == 'tag'
         with:
           files: "out/*.vsix"
@@ -787,7 +793,16 @@ jobs:
 
   publish-npm:
     environment: release
-    if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || (github.event_name == 'release' && github.event.action == 'published') || github.event.inputs.publish == 'true' || github.event.inputs.publish == true)
+    if: >
+      always() &&
+      !cancelled() &&
+      needs.check.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.build.outputs.can_release_to_npm == 'true' &&
+      (github.ref_type == 'tag' ||
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      github.event.inputs.publish == 'true' ||
+      github.event.inputs.publish == true)
     runs-on: ubuntu-latest
     needs:
       - build
@@ -811,7 +826,7 @@ jobs:
 
       - name: Attach npm package to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         if: github.ref_type == 'tag'
         with:
           files: "out/*.tgz"

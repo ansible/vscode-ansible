@@ -22,7 +22,7 @@
 !dist/extension/**/*
 !dist/assets/**/*
 !dist/webviews/**/*
-!packages/ansible-language-server/dist/cli.cjs
+!packages/ansible-language-server/dist/**/*
 !packages/ansible-mcp-server/dist/**/*
 !packages/ansible-mcp-server/package.json
 !package.json

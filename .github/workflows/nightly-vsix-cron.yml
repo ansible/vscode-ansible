@@ -1,0 +1,23 @@
+# GitHub only runs cron from the default branch (`main`). This caller
+# invokes the package/publish job defined on `next`.
+name: Nightly VSIX cron
+
+on:
+  schedule:
+    # 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-vsix
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    if: github.repository == 'ansible/vscode-ansible'
+    uses: ansible/vscode-ansible/.github/workflows/nightly-vsix.yml@next
+    permissions:
+      contents: write

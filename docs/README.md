@@ -375,8 +375,8 @@ The extension includes an MCP server that enables AI assistants and LLM-powered 
 
 ### Learn More
 
-- **[MCP Server Overview](mcp/README.md)** - Features, architecture, and getting started guide
-- **[API Reference](mcp/api.md)** - Complete technical API documentation for all tools and resources
+- **[MCP Server Overview](https://docs.ansible.com/projects/vscode-ansible/mcp/)** - Features, architecture, and getting started guide
+- **[API Reference](https://docs.ansible.com/projects/vscode-ansible/mcp/api/)** - Complete technical API documentation for all tools and resources
 
 ## Contact
 
