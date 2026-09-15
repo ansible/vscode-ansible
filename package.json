@@ -1109,7 +1109,7 @@
     "c8": "^11.0.0",
     "cspell-cli": "^10.0.1",
     "cypress-multi-reporters": "^2.0.5",
-    "electron": "^42.11.0",
+    "electron": "^44.0.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
