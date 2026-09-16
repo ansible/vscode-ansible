@@ -9,6 +9,7 @@ allowBuilds:
   esbuild: true
   geckodriver: true
   keytar: true
+  pnpm: true
   protobufjs: true
   unrs-resolver: true
 
