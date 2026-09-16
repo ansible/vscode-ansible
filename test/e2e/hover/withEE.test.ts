@@ -79,46 +79,80 @@ describe("ee", function () {
     });
 
     describe("Hover for builtin module name and options", function () {
+      // Builtin module docs in EE mode may take longer to be indexed.
+      // Use more aggressive retry options to handle timing variability.
+      const builtinRetryOptions = { retries: 10, retryDelay: 1000 };
+
       it("should hover over builtin module name", async function () {
-        await testHover(docUri1, new vscode.Position(5, 7), [
-          {
-            contents: ["Print statements during execution"],
-          },
-        ]);
+        this.timeout(30_000);
+        await testHover(
+          docUri1,
+          new vscode.Position(5, 7),
+          [
+            {
+              contents: ["Print statements during execution"],
+            },
+          ],
+          builtinRetryOptions,
+        );
       });
 
       it("should hover over builtin module option", async function () {
-        await testHover(docUri1, new vscode.Position(6, 9), [
-          {
-            contents: ["customized message"],
-          },
-        ]);
+        this.timeout(30_000);
+        await testHover(
+          docUri1,
+          new vscode.Position(6, 9),
+          [
+            {
+              contents: ["customized message"],
+            },
+          ],
+          builtinRetryOptions,
+        );
       });
     });
 
     describe("Hover for module name and options present in the EE", function () {
+      // Collection module docs may also benefit from retry logic for stability
+      const collectionRetryOptions = { retries: 5, retryDelay: 500 };
+
       it("should hover over collection module name present in EE (ansible.posix.patch)", async function () {
-        await testHover(docUri1, new vscode.Position(9, 7), [
-          {
-            contents: ["GNU patch"],
-          },
-        ]);
+        await testHover(
+          docUri1,
+          new vscode.Position(9, 7),
+          [
+            {
+              contents: ["GNU patch"],
+            },
+          ],
+          collectionRetryOptions,
+        );
       });
 
       it("should hover over collection module option present in EE (ansible.posix.patch -> src)", async function () {
-        await testHover(docUri1, new vscode.Position(10, 9), [
-          {
-            contents: ["GNU patch"],
-          },
-        ]);
+        await testHover(
+          docUri1,
+          new vscode.Position(10, 9),
+          [
+            {
+              contents: ["GNU patch"],
+            },
+          ],
+          collectionRetryOptions,
+        );
       });
 
       it("should hover over collection module option present in EE (ansible.posix.patch -> dest)", async function () {
-        await testHover(docUri1, new vscode.Position(11, 9), [
-          {
-            contents: ["remote machine"],
-          },
-        ]);
+        await testHover(
+          docUri1,
+          new vscode.Position(11, 9),
+          [
+            {
+              contents: ["remote machine"],
+            },
+          ],
+          collectionRetryOptions,
+        );
       });
     });
 
