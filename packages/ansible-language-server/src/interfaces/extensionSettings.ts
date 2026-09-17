@@ -27,6 +27,7 @@ export interface ExtensionSettings extends ExtensionSettingsType {
     useFullyQualifiedCollectionNames: boolean;
   };
   completion: {
+    enabled: boolean;
     provideRedirectModules: boolean;
     provideModuleOptionAliases: boolean;
   };
@@ -130,6 +131,10 @@ interface PythonSettingsWithDescription extends SettingsEntry {
  * Interface for completion settings
  */
 interface CompletionSettingsWithDescription extends SettingsEntry {
+  enabled: {
+    default: boolean;
+    description: string;
+  };
   provideRedirectModules: {
     default: boolean;
     description: string;
