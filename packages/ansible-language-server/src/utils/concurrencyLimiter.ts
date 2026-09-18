@@ -34,24 +34,24 @@ export class ConcurrencyLimiter {
 
   private acquire(): Promise<void> {
     if (this.active < this.maxConcurrent) {
-      this.active++;
+      this.active = this.active + 1;
       return Promise.resolve();
     }
     return new Promise<void>((resolve) => {
       this.queue.push(() => {
-        this.active++;
+        this.active = this.active + 1;
         resolve();
       });
     });
   }
 
   private release(): void {
-    this.active--;
+    this.active = this.active - 1;
     this.dequeueIfPossible();
   }
 
   private dequeueIfPossible(): void {
-    while (this.active < this.maxConcurrent && this.queue.length > 0) {
+    while (this.active <= this.maxConcurrent && this.queue.length > 0) {
       const next = this.queue.shift();
       next?.();
     }
