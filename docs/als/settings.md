@@ -98,3 +98,4 @@ Specifies whether &#x60;ansible-lint --fix&#x60; should run automatically when y
 Maximum number of ansible-lint processes that may run at the same time. Lower this value if ansible-lint is overwhelming your CPU in repositories with many files.
 . Default value:
 ``4``
+
