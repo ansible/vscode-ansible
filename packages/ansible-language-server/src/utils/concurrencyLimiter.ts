@@ -7,7 +7,7 @@ class ConcurrencyLimiter {
   private active = 0;
   private readonly queue: Array<() => void> = [];
 
-  constructor(maxConcurrent: number) {
+  constructor(maxConcurrent: number = 4) {
     this.maxConcurrent = ConcurrencyLimiter.normalize(maxConcurrent);
   }
 
@@ -65,9 +65,4 @@ class ConcurrencyLimiter {
   }
 }
 
-/**
- * Shared limiter for `ansible-lint` invocations. It is a module-level
- * singleton so that the cap applies across all workspace folders, since
- * each one otherwise triggers linting independently.
- */
-export const ansibleLintConcurrencyLimiter = new ConcurrencyLimiter(4);
+export const ansibleLintConcurrencyLimiter = new ConcurrencyLimiter();
