@@ -2,7 +2,7 @@
  * Limits how many asynchronous tasks (e.g. spawned child processes) may run
  * at the same time. Extra tasks are queued (FIFO) until a slot frees up.
  */
-export class ConcurrencyLimiter {
+class ConcurrencyLimiter {
   private maxConcurrent: number;
   private active = 0;
   private readonly queue: Array<() => void> = [];
