@@ -70,6 +70,7 @@ export interface SettingsEntry {
     | SettingsEntry
     | string
     | boolean
+    | number
     | Array<IVolumeMounts>;
 }
 
@@ -92,7 +93,7 @@ interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
 }
 
 export interface ExtensionSettingsWithDescriptionBase {
-  [key: string]: SettingsEntry | string | boolean;
+  [key: string]: SettingsEntry | string | boolean | number;
 }
 
 export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
