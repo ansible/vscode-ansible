@@ -51,7 +51,7 @@ class ConcurrencyLimiter {
   }
 
   private dequeueIfPossible(): void {
-    while (this.active <= this.maxConcurrent && this.queue.length > 0) {
+    while (this.active < this.maxConcurrent && this.queue.length > 0) {
       const next = this.queue.shift();
       next?.();
     }
