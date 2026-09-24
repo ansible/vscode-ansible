@@ -126,6 +126,11 @@ export class SettingsManager {
           description:
             "Specifies whether `ansible-lint --fix` should run automatically when you save a file.",
         },
+        maxConcurrentProcesses: {
+          default: 4,
+          description:
+            "Maximum number of ansible-lint processes that may run at the same time. Lower this value if ansible-lint is overwhelming your CPU in repositories with many files.",
+        },
       },
     },
   };
