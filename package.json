@@ -1151,7 +1151,7 @@
   "engineStrict": true,
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
-    "node": ">=24.13.1",
+    "node": ">=24.15.0",
     "npm": "\n\nERROR: Please use pnpm instead of npm for this repository.!!!\n\n",
     "pnpm": ">=11.11.0",
     "vscode": "^1.91.0"
