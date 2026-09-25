@@ -177,8 +177,11 @@ overrides:
   fast-uri@3: <5.0.0
   fast-xml-parser: '>=5.10.1 <6.0.0'
   fastify: '>=5.8.3 <6.0.0'
+  file-type: '>=21.3.2'
   find-my-way: '>=9.7.0 <10.0.0'
   form-data@4: '>=4.0.6'
+  hono: '>=4.12.34'
+  ip-address: '>=10.3.1'
   js-yaml@5: '>=5.2.2'
   linkify-it: <7.0.0
   markdown-it: <16.0.0
@@ -186,6 +189,8 @@ overrides:
   protobufjs@7: <9.0.0
   serialize-javascript: '>=7.0.5 <8.0.0'
   tar-fs@3: '>=3.1.2'
+  undici@6: '>=6.28.0'
+  undici@7: 7.29.0
   ws@8: '>=8.17.1'
   undici@6: <9.0.0
   undici@7: <9.0.0
@@ -7134,6 +7139,10 @@ packages:
   undici@7.29.0:
     resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
     engines: {node: '>=20.18.1'}
+
+  undici@8.10.0:
+    resolution: {integrity: sha512-HvltHd7avK13QIw/oLe4qoOLyoVSoafqJ2jYOrtMRBkbYT31eiBQ8O0ehRKZiEZCMEyLFQNIADpgCWC5fALvYQ==}
+    engines: {node: '>=22.19.0'}
 
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
