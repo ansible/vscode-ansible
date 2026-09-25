@@ -595,6 +595,90 @@ export function isPlaybook(textDocument: TextDocument): boolean {
 }
 
 /**
+ * Task, block and role keywords that Ansible evaluates as bare Jinja
+ * expressions, without `{{ }}`.
+ */
+const bareJinjaKeywords = new Set([
+  "when",
+  "changed_when",
+  "failed_when",
+  "until",
+]);
+
+/**
+ * Other keys that take a bare Jinja expression, with the keys they must be
+ * nested under.
+ */
+const bareJinjaOptions = new Map([
+  ["that", ["assert", "ansible.builtin.assert", "ansible.legacy.assert"]],
+  ["var", ["debug", "ansible.builtin.debug", "ansible.legacy.debug"]],
+  ["break_when", ["loop_control"]],
+]);
+
+/**
+ * A function to find the value that Ansible evaluates as a bare Jinja
+ * expression, such as that of `when`, when the cursor is in it, either
+ * directly or as an item of a list of them
+ * @param path - array of nodes leading to that position
+ * @returns the path to the value, or null if the cursor is not in one
+ */
+export function getBareJinjaPath(path: Node[]): Node[] | null {
+  const valueIndex = findBareJinjaValue(path);
+  return valueIndex === null ? null : path.slice(0, valueIndex + 1);
+}
+
+function findBareJinjaValue(path: Node[]): number | null {
+  const last = path.length - 1;
+  const node = path[last];
+  const parent = path[last - 1];
+
+  let valueIndex = last;
+  if (isSeq(parent)) {
+    valueIndex = last - 1;
+  } else if (isPair(parent) && parent.key === node) {
+    // Completion inserts `_:` at the cursor on a list item, which turns the
+    // item into a mapping of its own; the list is the value.
+    const item = path[last - 2];
+    if (!(isMap(item) && item.items.length === 1 && isSeq(path[last - 3]))) {
+      return null;
+    }
+    valueIndex = last - 3;
+  }
+
+  const pair = path[valueIndex - 1];
+  if (
+    !isPair(pair) ||
+    pair.value !== path[valueIndex] ||
+    !isScalar(pair.key) ||
+    typeof pair.key.value !== "string"
+  ) {
+    return null;
+  }
+  const key = pair.key.value;
+
+  if (bareJinjaKeywords.has(key)) {
+    const keyPath = [...path.slice(0, valueIndex), pair.key];
+    const inScope =
+      isTaskParam(keyPath) || isBlockParam(keyPath) || isRoleParam(keyPath);
+    return inScope ? valueIndex : null;
+  }
+
+  const parentKeys = bareJinjaOptions.get(key);
+  const outer = path[valueIndex - 3];
+  if (
+    !parentKeys ||
+    !isPair(outer) ||
+    outer.value !== path[valueIndex - 2] ||
+    !isScalar(outer.key) ||
+    !parentKeys.includes(String(outer.key.value))
+  ) {
+    return null;
+  }
+  const outerKeyPath = [...path.slice(0, valueIndex - 2), outer.key];
+  return isTaskParam(outerKeyPath) ? valueIndex : null;
+}
+
+/**
  * A function to check if the cursor is present inside valid jinja inline brackets in a yaml file
  * @param document - text document on which the function is to be checked
  * @param position - current cursor position

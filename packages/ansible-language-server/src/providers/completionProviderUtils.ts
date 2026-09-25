@@ -1,7 +1,12 @@
 import { CompletionItem, CompletionItemKind } from "vscode-languageserver";
 import { URI } from "vscode-uri";
 import { isScalar, Node, YAMLMap, YAMLSeq, parseDocument } from "yaml";
-import { AncestryBuilder, isPlayParam } from "@src/utils/yaml.js";
+import {
+  AncestryBuilder,
+  isBlockParam,
+  isPlayParam,
+  isTaskParam,
+} from "@src/utils/yaml.js";
 import { hasOwnProperty, isObject } from "@src/utils/misc.js";
 import * as pathUri from "path";
 import { existsSync, readFileSync } from "fs";
@@ -67,6 +72,22 @@ export function getVarsCompletion(
 ): CompletionItem[] {
   const varsCompletion: varType[] = [];
   let varPriority = 0;
+
+  // A task or block keyword's own value, such as `when`, sits directly in the
+  // task or block, whose vars are in scope; the loop below starts one level up
+  const ownerKeyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
+  if (
+    ownerKeyPath &&
+    (isTaskParam(ownerKeyPath) || isBlockParam(ownerKeyPath))
+  ) {
+    const owner = ownerKeyPath[ownerKeyPath.length - 3].toJSON() as Record<
+      string,
+      unknown
+    >;
+    if (hasOwnProperty(owner, "vars")) {
+      collectVarsKeys(owner.vars, varPriority, varsCompletion);
+    }
+  }
 
   // the loop calculates and traverses till the path reaches the play level from the position where the auto-completion was asked
   while (!isPlayParam(path)) {

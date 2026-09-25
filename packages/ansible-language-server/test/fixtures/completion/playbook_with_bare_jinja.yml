@@ -1,0 +1,67 @@
+---
+- name: Test variable completion in bare Jinja expressions
+  hosts: localhost
+  vars:
+    - os: fedora
+    - home: /home/ansible
+
+  tasks:
+    - name: Condition on one line
+      ansible.builtin.debug:
+        msg: Hello
+      when: os is defined
+      vars:
+        - task_var: 1
+
+    - name: Conditions as a list
+      ansible.builtin.command: /bin/true
+      changed_when:
+        - os
+      failed_when: os
+      until: os
+      vars:
+        - list_var: 1
+
+    - name: Condition on a block
+      when: os
+      block:
+        - name: Inside the block
+          ansible.builtin.debug:
+            msg: Hello
+
+    - name: Assert
+      ansible.builtin.assert:
+        that:
+          - os
+        fail_msg: os
+
+    - name: Debug a variable
+      ansible.builtin.debug:
+        var: os
+
+    - name: Break out of a loop
+      ansible.builtin.debug:
+        msg: Hello
+      loop: [1, 2]
+      loop_control:
+        break_when:
+          - os
+
+    - name: Template a task keyword
+      ansible.builtin.debug:
+        msg: Hello
+      delegate_to: "{{ os }}"
+      vars:
+        - keyword_var: 1
+
+    - name: Set a fact that happens to be called var
+      ansible.builtin.set_fact:
+        var: os
+
+- name: Test variable completion in a role condition
+  hosts: localhost
+  vars:
+    - role_var: 1
+  roles:
+    - role: some_role
+      when: role

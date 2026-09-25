@@ -665,6 +665,101 @@ function testVarsCompletionInsideJinja(
   });
 }
 
+function testVarsCompletionInBareJinja(
+  context: WorkspaceFolderContext | undefined,
+  textDoc: TextDocument,
+) {
+  const tests = [
+    {
+      name: "when, with task vars",
+      position: { line: 11, character: 14 },
+      completion: ["task_var", "home", "os"],
+    },
+    {
+      name: "changed_when, as a list",
+      position: { line: 18, character: 12 },
+      completion: ["list_var", "home", "os"],
+    },
+    {
+      name: "failed_when",
+      position: { line: 19, character: 21 },
+      completion: ["list_var", "home", "os"],
+    },
+    {
+      name: "until",
+      position: { line: 20, character: 15 },
+      completion: ["list_var", "home", "os"],
+    },
+    {
+      name: "when on a block",
+      position: { line: 25, character: 14 },
+      completion: ["home", "os"],
+    },
+    {
+      name: "assert's that",
+      position: { line: 34, character: 14 },
+      completion: ["home", "os"],
+    },
+    {
+      name: "debug's var",
+      position: { line: 39, character: 15 },
+      completion: ["home", "os"],
+    },
+    {
+      name: "loop_control's break_when",
+      position: { line: 47, character: 14 },
+      completion: ["home", "os"],
+    },
+    {
+      name: "a templated task keyword, with task vars",
+      position: { line: 52, character: 25 },
+      completion: ["keyword_var", "home", "os"],
+    },
+    {
+      name: "when on a role",
+      position: { line: 66, character: 16 },
+      completion: ["role_var"],
+    },
+  ];
+
+  tests.forEach(({ name, position, completion }) => {
+    it(`should provide variables in ${name}`, async function () {
+      expect(context).toBeDefined();
+      if (context) {
+        const actualCompletion = await doCompletion(textDoc, position, context);
+        const labels = smartFilter(actualCompletion, "").map(
+          (item) => item.label,
+        );
+        expect(labels).be.deep.equal(completion);
+      }
+    });
+  });
+
+  const negatives = [
+    {
+      name: "a templated option such as assert's fail_msg",
+      position: { line: 35, character: 20 },
+    },
+    {
+      name: "an option called var on a module other than debug",
+      position: { line: 58, character: 15 },
+    },
+  ];
+
+  negatives.forEach(({ name, position }) => {
+    it(`should not provide variables in ${name}`, async function () {
+      expect(context).toBeDefined();
+      if (context) {
+        const actualCompletion = await doCompletion(textDoc, position, context);
+        const variables = actualCompletion.filter(
+          (item) => item.kind === CompletionItemKind.Variable,
+        );
+        expect(variables).be.deep.equal([]);
+      }
+    });
+  });
+}
+
 function testModuleKindAndDocumentation(
   context: WorkspaceFolderContext | undefined,
   textDoc: TextDocument,
@@ -1191,6 +1286,28 @@ describe("doCompletion()", function () {
 
         testVarsCompletionInsideJinja(jinjaVarsContext, jinjaVarsTextDoc);
       });
+    });
+  }
+  const bareJinjaFixturePath = "completion/playbook_with_bare_jinja.yml";
+  const bareJinjaFixtureUri = resolveDocUri(bareJinjaFixturePath);
+  const bareJinjaContext = workspaceManager.getContext(bareJinjaFixtureUri);
+  const bareJinjaTextDoc = getDoc(bareJinjaFixturePath);
+  expect(bareJinjaContext).toBeDefined();
+  if (bareJinjaContext) {
+    const bareJinjaDocSettings = bareJinjaContext.documentSettings.get(
+      bareJinjaTextDoc.uri,
+    );
+
+    describe("Completion for variables in bare Jinja expressions", function () {
+      beforeAll(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(
+          bareJinjaDocSettings,
+          bareJinjaContext,
+        );
+      });
+
+      testVarsCompletionInBareJinja(bareJinjaContext, bareJinjaTextDoc);
     });
   }
   // Capture variables for playbook adjacent collection tests

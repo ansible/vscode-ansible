@@ -39,6 +39,7 @@ import {
   isTaskParam,
   parseAllDocuments,
   getPossibleOptionsForPath,
+  getBareJinjaPath,
   isCursorInsideJinjaBrackets,
   isPlaybook,
 } from "@src/utils/yaml.js";
@@ -186,6 +187,14 @@ export async function doCompletion(
     const node = path[path.length - 1];
     if (node) {
       const docsLibrary = await context.docsLibrary;
+
+      // Keywords such as `when` take a bare Jinja expression, so they get
+      // the same variables as the inside of `{{ }}`. This comes first: an
+      // item of a list of conditions would otherwise look like a task.
+      const bareJinjaPath = isAnsiblePlaybook ? getBareJinjaPath(path) : null;
+      if (bareJinjaPath) {
+        return getVarsCompletion(document.uri, bareJinjaPath);
+      }
 
       const isPlay = isPlayParam(path);
       if (isPlay) {
