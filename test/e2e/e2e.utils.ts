@@ -170,6 +170,39 @@ export async function waitForCondition(
   throw new Error(`Timeout waiting for ${description} after ${timeout}ms`);
 }
 
+/**
+ * Poll executeHoverProvider until a non-empty result is returned.
+ * Useful as a readiness gate in `before` hooks when
+ * `ansible.awaitDocsLibraryReady` cannot be used (e.g. outside-workspace
+ * files where the event is workspace-scoped and never fires).
+ *
+ * @param docUri    - document to probe
+ * @param position  - position expected to produce hover content
+ * @param timeout   - max wait in ms (default 210 000 – ~3.5 min)
+ * @param interval  - polling interval in ms (default 3 000)
+ */
+export async function waitForHoverReady(
+  docUri: vscode.Uri,
+  position: vscode.Position,
+  timeout = 210_000,
+  interval = 3000,
+): Promise<void> {
+  await waitForCondition(
+    async () => {
+      const result = await Promise.race([
+        vscode.commands.executeCommand<vscode.Hover[]>(
+          "vscode.executeHoverProvider",
+          docUri,
+          position,
+        ),
+        sleep(5000).then((): vscode.Hover[] => []),
+      ]);
+      return result.length > 0;
+    },
+    { timeout, interval, description: "hover provider readiness" },
+  );
+}
+
 const getDocPath = (p: string): string => {
   return path.resolve(PROJECT_ROOT, "test", "testFixtures", p);
 };
