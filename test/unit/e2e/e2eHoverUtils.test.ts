@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";
-import {
-  maxTestHoverDurationMs,
-  testHover,
-} from "@test/e2e/e2e.utils";
+import { maxTestHoverDurationMs, testHover } from "@test/e2e/e2e.utils";
 
 const MOCHA_E2E_TIMEOUT_MS = 120_000;
 
@@ -59,12 +56,11 @@ describe("e2e hover utilities", () => {
       vi.mocked(vscode.commands.executeCommand).mockResolvedValue([]);
 
       await expect(
-        testHover(
-          docUri,
-          position,
-          [{ contents: ["missing hover"] }],
-          { retries: 1, retryDelay: 0, attemptTimeout: 5 },
-        ),
+        testHover(docUri, position, [{ contents: ["missing hover"] }], {
+          retries: 1,
+          retryDelay: 0,
+          attemptTimeout: 5,
+        }),
       ).rejects.toThrow(/Hover test failed after 2 attempts/);
     });
   });

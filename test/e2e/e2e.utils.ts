@@ -176,16 +176,20 @@ export async function waitForCondition(
  * `ansible.awaitDocsLibraryReady` cannot be used (e.g. outside-workspace
  * files where the event is workspace-scoped and never fires).
  *
- * @param docUri    - document to probe
- * @param position  - position expected to produce hover content
- * @param timeout   - max wait in ms (default 210 000 – ~3.5 min)
- * @param interval  - polling interval in ms (default 3 000)
+ * @param docUri         - document to probe
+ * @param position       - position expected to produce hover content
+ * @param timeout        - max wait in ms (default 210 000 – ~3.5 min)
+ * @param interval       - polling interval in ms (default 3 000)
+ * @param attemptTimeout - per-attempt timeout in ms (default 5 000); a hung
+ *                         hover command is abandoned after this many ms so the
+ *                         poll loop can retry without blocking indefinitely.
  */
 export async function waitForHoverReady(
   docUri: vscode.Uri,
   position: vscode.Position,
   timeout = 210_000,
   interval = 3000,
+  attemptTimeout = 5000,
 ): Promise<void> {
   await waitForCondition(
     async () => {
@@ -195,7 +199,7 @@ export async function waitForHoverReady(
           docUri,
           position,
         ),
-        sleep(5000).then((): vscode.Hover[] => []),
+        sleep(attemptTimeout).then((): vscode.Hover[] => []),
       ]);
       return result.length > 0;
     },
