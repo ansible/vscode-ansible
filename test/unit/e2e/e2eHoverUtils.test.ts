@@ -23,7 +23,9 @@ describe("e2e hover utilities", () => {
 
   describe("waitForCondition", () => {
     it("resolves immediately when condition is true", async () => {
-      await waitForCondition(() => true, { timeout: 500, interval: 50 });
+      await expect(
+        waitForCondition(() => true, { timeout: 500, interval: 50 }),
+      ).resolves.toBeUndefined();
     });
 
     it("polls until condition becomes true", async () => {
@@ -97,13 +99,11 @@ describe("e2e hover utilities", () => {
 
     it("keeps polling until hover becomes available", async () => {
       let callCount = 0;
-      vi.mocked(vscode.commands.executeCommand).mockImplementation(
-        async () => {
-          callCount++;
-          if (callCount < 3) return [];
-          return [{ contents: [{ value: "ready" }] }];
-        },
-      );
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+        callCount++;
+        if (callCount < 3) return [];
+        return [{ contents: [{ value: "ready" }] }];
+      });
 
       await waitForHoverReady(docUri, position, 5000, 10, 500);
 
@@ -120,7 +120,10 @@ describe("e2e hover utilities", () => {
 
     it("abandons hung hover attempt via per-attempt timeout", async () => {
       vi.mocked(vscode.commands.executeCommand).mockImplementation(
-        () => new Promise(() => {}), // never resolves
+        () =>
+          new Promise<vscode.Hover[]>(() => {
+            // Intentionally never settles — simulates a hung hover provider.
+          }),
       );
 
       await expect(
