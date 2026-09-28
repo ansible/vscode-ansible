@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";
-import { maxTestHoverDurationMs, testHover } from "@test/e2e/e2e.utils";
+import {
+  maxTestHoverDurationMs,
+  testHover,
+  waitForCondition,
+  waitForHoverReady,
+} from "@test/e2e/e2e.utils";
 
 const MOCHA_E2E_TIMEOUT_MS = 120_000;
 
@@ -14,6 +19,114 @@ describe("e2e hover utilities", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  describe("waitForCondition", () => {
+    it("resolves immediately when condition is true", async () => {
+      await waitForCondition(() => true, { timeout: 500, interval: 50 });
+    });
+
+    it("polls until condition becomes true", async () => {
+      let callCount = 0;
+      await waitForCondition(
+        () => {
+          callCount++;
+          return callCount >= 3;
+        },
+        { timeout: 2000, interval: 10 },
+      );
+      expect(callCount).toBe(3);
+    });
+
+    it("throws on timeout when condition never becomes true", async () => {
+      await expect(
+        waitForCondition(() => false, {
+          timeout: 100,
+          interval: 10,
+          description: "test condition",
+        }),
+      ).rejects.toThrow(/Timeout waiting for test condition after 100ms/);
+    });
+
+    it("uses default description in timeout error", async () => {
+      await expect(
+        waitForCondition(() => false, { timeout: 100, interval: 10 }),
+      ).rejects.toThrow(/Timeout waiting for condition after 100ms/);
+    });
+
+    it("keeps polling when condition throws errors", async () => {
+      let callCount = 0;
+      await waitForCondition(
+        () => {
+          callCount++;
+          if (callCount < 3) throw new Error("not ready");
+          return true;
+        },
+        { timeout: 2000, interval: 10 },
+      );
+      expect(callCount).toBe(3);
+    });
+
+    it("works with async condition functions", async () => {
+      let callCount = 0;
+      await waitForCondition(
+        async () => {
+          callCount++;
+          return callCount >= 2;
+        },
+        { timeout: 2000, interval: 10 },
+      );
+      expect(callCount).toBe(2);
+    });
+  });
+
+  describe("waitForHoverReady", () => {
+    it("resolves when hover returns non-empty result", async () => {
+      vi.mocked(vscode.commands.executeCommand).mockResolvedValue([
+        { contents: [{ value: "some hover content" }] },
+      ]);
+
+      await waitForHoverReady(docUri, position, 5000, 50, 500);
+
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
+        "vscode.executeHoverProvider",
+        docUri,
+        position,
+      );
+    });
+
+    it("keeps polling until hover becomes available", async () => {
+      let callCount = 0;
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(
+        async () => {
+          callCount++;
+          if (callCount < 3) return [];
+          return [{ contents: [{ value: "ready" }] }];
+        },
+      );
+
+      await waitForHoverReady(docUri, position, 5000, 10, 500);
+
+      expect(callCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it("times out when hover never returns results", async () => {
+      vi.mocked(vscode.commands.executeCommand).mockResolvedValue([]);
+
+      await expect(
+        waitForHoverReady(docUri, position, 200, 20, 500),
+      ).rejects.toThrow(/Timeout waiting for hover provider readiness/);
+    });
+
+    it("abandons hung hover attempt via per-attempt timeout", async () => {
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(
+        () => new Promise(() => {}), // never resolves
+      );
+
+      await expect(
+        waitForHoverReady(docUri, position, 200, 20, 50),
+      ).rejects.toThrow(/Timeout waiting for hover provider readiness/);
+    });
   });
 
   describe("maxTestHoverDurationMs", () => {
