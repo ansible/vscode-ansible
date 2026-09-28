@@ -27,30 +27,45 @@ describe("language services for a playbook that is present outside a workspace",
   });
 
   describe("hover functionality", function () {
-    // On WSL the docs library can take 2–3 minutes to become ready for
-    // outside-workspace files. Wait for it before attempting any hovers
-    // so the per-attempt timeouts are not wasted on a cold server.
-    before(async function () {
-      this.timeout(180_000);
-      await commands.executeCommand("ansible.awaitDocsLibraryReady");
-    });
+    // awaitDocsLibraryReady never resolves for outside-workspace files
+    // because the event is workspace-scoped.  Instead give each hover
+    // test a generous timeout and retry budget so it can poll until the
+    // language server finishes loading docs (~2-3 min on WSL).
+    // Worst case: 26×5s + 25×3s = 205s, within the 240s per-test timeout.
+    const outsideWsRetryOptions = {
+      retries: 25,
+      retryDelay: 3000,
+      attemptTimeout: 5000,
+    };
 
     it("should hover over `name` keyword", async function () {
-      await testHover(docUri, new Position(0, 4), [
-        {
-          contents: [
-            "Identifier. Can be used for documentation, or in tasks/handlers.",
-          ],
-        },
-      ]);
+      this.timeout(240_000);
+      await testHover(
+        docUri,
+        new Position(0, 4),
+        [
+          {
+            contents: [
+              "Identifier. Can be used for documentation, or in tasks/handlers.",
+            ],
+          },
+        ],
+        outsideWsRetryOptions,
+      );
     });
 
     it("should hover over builtin module name", async function () {
-      await testHover(docUri, new Position(3, 10), [
-        {
-          contents: ["Print statements during execution"],
-        },
-      ]);
+      this.timeout(240_000);
+      await testHover(
+        docUri,
+        new Position(3, 10),
+        [
+          {
+            contents: ["Print statements during execution"],
+          },
+        ],
+        outsideWsRetryOptions,
+      );
     });
   });
 
