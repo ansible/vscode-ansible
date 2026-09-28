@@ -368,14 +368,28 @@ export async function testDiagnostics(
 /**
  * Options for testHover retry behavior
  */
+/** Default testHover retry budget (must stay within .vscode-test.mjs mocha timeout). */
+const DEFAULT_TEST_HOVER_RETRIES = 15;
+const DEFAULT_TEST_HOVER_RETRY_DELAY = 2000;
+const DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT = 5000;
+
 export interface TestHoverOptions {
-  /** Number of retries after initial attempt (default: 20, so 21 total attempts) */
+  /** Number of retries after initial attempt */
   retries?: number;
-  /** Delay between retries in milliseconds (default: 2000) */
+  /** Delay between retries in milliseconds */
   retryDelay?: number;
   /** Per-attempt timeout in ms; avoids a single hanging hover request from
-   *  consuming the entire mocha timeout (default: 5000) */
+   *  consuming the entire mocha timeout */
   attemptTimeout?: number;
+}
+
+/** Worst-case duration when every attempt hits attemptTimeout. */
+export function maxTestHoverDurationMs(options?: TestHoverOptions): number {
+  const retries = options?.retries ?? DEFAULT_TEST_HOVER_RETRIES;
+  const retryDelay = options?.retryDelay ?? DEFAULT_TEST_HOVER_RETRY_DELAY;
+  const attemptTimeout =
+    options?.attemptTimeout ?? DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT;
+  return (retries + 1) * attemptTimeout + retries * retryDelay;
 }
 
 /**
@@ -401,9 +415,9 @@ export async function testHover(
   options?: TestHoverOptions,
 ): Promise<void> {
   const {
-    retries = 20,
-    retryDelay = 2000,
-    attemptTimeout = 5000,
+    retries = DEFAULT_TEST_HOVER_RETRIES,
+    retryDelay = DEFAULT_TEST_HOVER_RETRY_DELAY,
+    attemptTimeout = DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT,
   } = options ?? {};
 
   let lastActualHover: vscode.Hover[] = [];
