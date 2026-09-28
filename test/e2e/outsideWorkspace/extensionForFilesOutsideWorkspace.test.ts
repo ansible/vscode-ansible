@@ -27,6 +27,14 @@ describe("language services for a playbook that is present outside a workspace",
   });
 
   describe("hover functionality", function () {
+    // On WSL the docs library can take 2–3 minutes to become ready for
+    // outside-workspace files. Wait for it before attempting any hovers
+    // so the per-attempt timeouts are not wasted on a cold server.
+    before(async function () {
+      this.timeout(180_000);
+      await commands.executeCommand("ansible.awaitDocsLibraryReady");
+    });
+
     it("should hover over `name` keyword", async function () {
       await testHover(docUri, new Position(0, 4), [
         {

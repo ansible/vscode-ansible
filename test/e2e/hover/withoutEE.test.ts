@@ -5,8 +5,11 @@ describe("hover-no-ee", function () {
   const docUri1 = getDocUri("hover/without_ee/1.yml");
 
   before(async function () {
+    this.timeout(180_000);
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     await activate(docUri1);
+    // Wait for the docs library so hover tests don't race against cold ALS
+    await vscode.commands.executeCommand("ansible.awaitDocsLibraryReady");
   });
 
   describe("Hover for play keywords", function () {
