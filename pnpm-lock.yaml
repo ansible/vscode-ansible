@@ -188,7 +188,7 @@ overrides:
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
   undici@6: <9.0.0
-  undici@7: <9.0.0
+  undici@7: <8.0.0
   hono: '>=4.12.34 <5.0.0'
   ip-address: '>=10.2.2'
   diff@>=5.0.0 <8.0.3: 9.0.0
@@ -7088,6 +7088,10 @@ packages:
   undici-types@7.30.0:
     resolution: {integrity: sha512-7QjA5O+GhM27do7Id6hQZpnYEd7WzHbs7/XIS9A1k+Gat/ZVF7Jmpzt68zL/205f65FYwDNLSjQemHPS8ReM/A==}
 
+  undici@7.30.0:
+    resolution: {integrity: sha512-dkrQXeHSaoamnItlYbmzG0wFYrM0ZwDxCIg0A7aKjTyyhh9svRzCNFEzV+Vm05/yehjCzjDZ31KXfGEjYSztDQ==}
+    engines: {node: '>=20.18.1'}
+
   undici@8.11.2:
     resolution: {integrity: sha512-u4UB2/IrKdU6lFxumHmmo1a3fCQO5tzQllRorfoRS63txhrB7xTpSn1PftwC4qEHkOaqP95fCWW4lJzwErwzhQ==}
     engines: {node: '>=22.19.0'}
@@ -8017,7 +8021,7 @@ snapshots:
       semver: 7.8.5
       sumchecker: 3.0.1(supports-color@8.1.1)
     optionalDependencies:
-      undici: 8.11.2
+      undici: 7.30.0
     transitivePeerDependencies:
       - supports-color
 
@@ -10446,7 +10450,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 8.11.2
+      undici: 7.30.0
       whatwg-mimetype: 4.0.0
 
   chokidar@3.6.0:
@@ -12459,7 +12463,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.2
-      undici: 8.11.2
+      undici: 7.30.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -14714,6 +14718,8 @@ snapshots:
   undici-types@7.24.6: {}
 
   undici-types@7.30.0: {}
+
+  undici@7.30.0: {}
 
   undici@8.11.2: {}
 
