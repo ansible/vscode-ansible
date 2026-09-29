@@ -24,6 +24,11 @@ function assertVitestListIsClean(): void {
 
   const result = spawnSync("npm", ["exec", "--", "vitest", "list"], {
     encoding: "utf8",
+    env: {
+      ...process.env,
+      // Vite 8.3+ warns on vitest.config.ts ESM-in-CJS; finish treats stderr as failure
+      VITE_CONFIG_NATIVE_IGNORE_WARNING: "true",
+    },
   });
   const stderr = (result.stderr ?? "").trim();
   const stdout = (result.stdout ?? "").trim();
