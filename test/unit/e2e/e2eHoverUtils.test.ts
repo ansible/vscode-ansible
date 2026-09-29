@@ -168,6 +168,77 @@ describe("e2e hover utilities", () => {
       expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(1);
     });
 
+    it("retries when hover provider times out", async () => {
+      let callCount = 0;
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(
+        () =>
+          new Promise<vscode.Hover[]>((resolve) => {
+            callCount++;
+            if (callCount < 3) {
+              // First two attempts never settle — simulates a hung provider.
+              return;
+            }
+            resolve([
+              {
+                contents: [
+                  { value: "Identifier. Can be used for documentation." },
+                ],
+              },
+            ]);
+          }),
+      );
+
+      await testHover(
+        docUri,
+        position,
+        [{ contents: ["Identifier. Can be used for documentation."] }],
+        { retries: 4, retryDelay: 0, attemptTimeout: 50 },
+      );
+
+      expect(callCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it("retries when hover content does not match", async () => {
+      let callCount = 0;
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(async () => {
+        callCount++;
+        if (callCount < 3) {
+          return [{ contents: [{ value: "wrong content" }] }];
+        }
+        return [
+          {
+            contents: [{ value: "Identifier. Can be used for documentation." }],
+          },
+        ];
+      });
+
+      await testHover(
+        docUri,
+        position,
+        [{ contents: ["Identifier. Can be used for documentation."] }],
+        { retries: 4, retryDelay: 0, attemptTimeout: 500 },
+      );
+
+      expect(callCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it("includes last error in failure message", async () => {
+      vi.mocked(vscode.commands.executeCommand).mockImplementation(
+        () =>
+          new Promise<vscode.Hover[]>(() => {
+            // Never settles — every attempt hits attemptTimeout.
+          }),
+      );
+
+      await expect(
+        testHover(docUri, position, [{ contents: ["expected"] }], {
+          retries: 1,
+          retryDelay: 0,
+          attemptTimeout: 50,
+        }),
+      ).rejects.toThrow(/Last error: Hover provider did not respond within/);
+    });
+
     it("fails after exhausting retries", async () => {
       vi.mocked(vscode.commands.executeCommand).mockResolvedValue([]);
 
