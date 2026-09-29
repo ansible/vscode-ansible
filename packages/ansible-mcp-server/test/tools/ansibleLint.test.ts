@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-const FIX_TEST_TIMEOUT_MS = 60_000;
+const LINT_TEST_TIMEOUT_MS = 60_000;
 
-describe("Ansible Lint Handler", () => {
+describe("Ansible Lint Handler", { timeout: LINT_TEST_TIMEOUT_MS }, () => {
   let testDir: string;
   let testPlaybookPath: string;
   let cleanPlaybookPath: string;
@@ -164,7 +164,6 @@ describe("Ansible Lint Handler", () => {
         // Should either contain an error (if ansible-lint not available) or linting results
         expect(result.content).toBeDefined();
       },
-      FIX_TEST_TIMEOUT_MS,
     );
   });
 
@@ -213,7 +212,6 @@ describe("Ansible Lint Handler", () => {
         expect(result.content[0].text).toContain("📝 Fixed content:");
         expect(result.content[0].text).toContain("```yaml");
       },
-      FIX_TEST_TIMEOUT_MS,
     );
 
     it(
@@ -230,7 +228,6 @@ describe("Ansible Lint Handler", () => {
         expect(result.content[0].text).not.toContain("📝 Fixed content:");
         expect(result.content[0].text).not.toContain("```yaml");
       },
-      FIX_TEST_TIMEOUT_MS,
     );
 
     it(
@@ -249,7 +246,6 @@ describe("Ansible Lint Handler", () => {
         expect(result.content[0].text).toContain("```yaml");
         expect(result.content[0].text).toContain("---");
       },
-      FIX_TEST_TIMEOUT_MS,
     );
 
     it("should handle clean playbook with no issues", async () => {
