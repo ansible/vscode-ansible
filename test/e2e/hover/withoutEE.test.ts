@@ -1,12 +1,24 @@
 import * as vscode from "vscode";
-import { getDocUri, activate, testHover } from "@test/e2e/e2e.utils";
+import {
+  getDocUri,
+  activate,
+  testHover,
+  waitForHoverReady,
+} from "@test/e2e/e2e.utils";
 
 describe("hover-no-ee", function () {
   const docUri1 = getDocUri("hover/without_ee/1.yml");
 
   before(async function () {
+    this.timeout(240_000);
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     await activate(docUri1);
+    // Race the notification gate against hover-polling so we never hang
+    // when the ALS is slow to emit ansible/docsLibraryReady.
+    await Promise.race([
+      vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
+      waitForHoverReady(docUri1, new vscode.Position(0, 4)),
+    ]);
   });
 
   describe("Hover for play keywords", function () {

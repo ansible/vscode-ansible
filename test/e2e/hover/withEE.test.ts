@@ -81,10 +81,14 @@ describe("ee", function () {
     describe("Hover for builtin module name and options", function () {
       // Builtin module docs in EE mode may take longer to be indexed.
       // Use more aggressive retry options to handle timing variability.
-      const builtinRetryOptions = { retries: 10, retryDelay: 1000 };
+      const builtinRetryOptions = {
+        retries: 10,
+        retryDelay: 1000,
+        attemptTimeout: 5000,
+      };
 
       it("should hover over builtin module name", async function () {
-        this.timeout(30_000);
+        this.timeout(90_000);
         await testHover(
           docUri1,
           new vscode.Position(5, 7),
@@ -98,7 +102,7 @@ describe("ee", function () {
       });
 
       it("should hover over builtin module option", async function () {
-        this.timeout(30_000);
+        this.timeout(90_000);
         await testHover(
           docUri1,
           new vscode.Position(6, 9),
