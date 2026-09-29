@@ -1151,7 +1151,7 @@
   "engineStrict": true,
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
-    "node": ">=24.15.0",
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0",
     "npm": "\n\nERROR: Please use pnpm instead of npm for this repository.!!!\n\n",
     "pnpm": ">=11.11.0",
     "vscode": "^1.91.0"
@@ -1171,7 +1171,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@12.5.1",
+  "packageManager": "pnpm@12.6.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {

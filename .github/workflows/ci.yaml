@@ -84,7 +84,7 @@ jobs:
       id-token: write # codecov actions
       checks: read # codecov actions
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         # Avoid letting github do the matrix multiplication and use manual
         # includes for each job, this gives us fine control over job name.
@@ -244,7 +244,7 @@ jobs:
         id: wsl-cache
         with:
           path: .cache/wsl-bootstrap
-          key: wsl-bootstrap-v2-${{ matrix.os }}-${{ github.ref }}-${{ hashFiles('.config/mise.toml', 'pnpm-lock.yaml') }}
+          key: wsl-bootstrap-v3-${{ matrix.os }}-${{ github.ref }}-${{ hashFiles('.config/mise.toml', 'pnpm-lock.yaml') }}
 
       - name: Bootstrap tools inside WSL
         if: contains(matrix.name, 'wsl')
@@ -259,6 +259,11 @@ jobs:
             echo "::group::Restoring cached WSL tools"
             tar xf "$CACHE_TAR" -C /
             echo "::endgroup::"
+            # Reconcile tools after cache restore: mise may resolve backends
+            # differently than when the cache was built (e.g. uv moved to aqua).
+            export PATH="$HOME/.local/bin:$PATH"
+            mise trust
+            mise install
           else
             echo "::group::Installing mise and tools from scratch"
             MISE_VERSION=v2026.5.15 curl -fsSL https://mise.run | sh

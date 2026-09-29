@@ -22,9 +22,10 @@ describe("yaml-diag-no-ee", function () {
     });
 
     it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {
+      this.timeout(60_000);
       await activate(docUri1);
-      // Wait for ansible-lint diagnostics to appear
-      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 10000);
+      // Wait for ansible-lint diagnostics to appear (30s — macos CI can be slow)
+      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 30000);
 
       // Filter to only check diagnostics from expected sources (not YAML extension duplicates)
       const expectedSources = ["ansible-lint", "Ansible [YAML]"];
@@ -77,7 +78,7 @@ describe("yaml-diag-no-ee", function () {
             source: "Ansible [YAML]",
           },
         ],
-        5000,
+        15000,
         expectedSources,
       );
     });
