@@ -45,6 +45,7 @@ overrides:
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
   "undici@6": "<9.0.0"
+  # jsdom@29 imports undici 7 internals removed in undici 8; cap ^7 deps at 7.x
   "undici@7": "<9.0.0"
   "hono": ">=4.12.34 <5.0.0"
   "ip-address": ">=10.2.2"
