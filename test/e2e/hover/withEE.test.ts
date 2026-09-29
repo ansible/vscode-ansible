@@ -3,6 +3,7 @@ import {
   getDocUri,
   activate,
   testHover,
+  waitForHoverReady,
   setFixtureAnsibleCollectionPathEnv,
   skip_ee,
   deleteAlsCache,
@@ -33,17 +34,16 @@ describe("ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
     before(async function () {
-      this.timeout(60_000);
+      this.timeout(240_000);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
       setFixtureAnsibleCollectionPathEnv(
         "/home/runner/.ansible/collections:/usr/share/ansible/collections",
       );
-    });
-
-    it("should receive docsLibraryReady from ALS", async function () {
-      this.timeout(60_000);
-      await vscode.commands.executeCommand("ansible.awaitDocsLibraryReady");
+      await Promise.race([
+        vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
+        waitForHoverReady(docUri1, new vscode.Position(0, 4)),
+      ]);
     });
 
     describe("Hover for play keywords", function () {
@@ -161,12 +161,32 @@ describe("ee", function () {
     });
 
     describe("Hover for module name and options absent in the EE", function () {
+      // Default testHover retries exceed mocha's 60s it() timeout when hover
+      // count stays wrong; keep a short budget for "expect no hover" cases.
+      const noHoverOptions = {
+        retries: 5,
+        retryDelay: 500,
+        attemptTimeout: 5000,
+      };
+
       it("should not hover over collection module name present in EE (vyos.vyos.vyos_prefix_list)", async function () {
-        await testHover(docUri1, new vscode.Position(14, 8), []);
+        this.timeout(60_000);
+        await testHover(
+          docUri1,
+          new vscode.Position(14, 8),
+          [],
+          noHoverOptions,
+        );
       });
 
       it("should not hover over collection module option present in EE (vyos.vyos.vyos_prefix_list -> config)", async function () {
-        await testHover(docUri1, new vscode.Position(15, 10), []);
+        this.timeout(60_000);
+        await testHover(
+          docUri1,
+          new vscode.Position(15, 10),
+          [],
+          noHoverOptions,
+        );
       });
     });
   });

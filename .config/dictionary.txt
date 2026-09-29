@@ -13,7 +13,6 @@ FQCN
 FQCNs
 Fqcn
 Fqcns
-jsdom
 KUBEDOCK
 Kiro
 LIGHTSPEED
@@ -34,6 +33,7 @@ RHSSO
 Rhcustom
 SSOT
 Towncrier
+VITE
 Vitest
 WDIO
 WSLENV
@@ -70,6 +70,7 @@ hono
 hostsvars
 inetpub
 issuetracker
+jsdom
 keytar
 knip
 lcovonly
