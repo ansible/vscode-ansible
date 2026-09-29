@@ -127,6 +127,11 @@ export default defineConfig(
       "sonarjs/no-async-constructor": "off",
       "sonarjs/function-return-type": "off",
       "sonarjs/fixme-tag": "off",
+      // eslint-plugin-sonarjs@4.2.x (lock file maintenance)
+      "sonarjs/no-default-utility-imports": "off",
+      "sonarjs/prefer-native-lodash-alternative": "off",
+      "sonarjs/assertions-in-test-cases": "off",
+      "sonarjs/parameterized-tests": "off",
     },
     settings: {
       // workaround for vscode imports in test files
