@@ -32,7 +32,7 @@ export default defineConfig({
     color: true,
     ui: "bdd",
     slow: 25_000,
-    timeout: 50_000,
+    timeout: 120_000,
     reporter: "cypress-multi-reporters",
     preload: "tsx/cjs",
     reporterOptions: {

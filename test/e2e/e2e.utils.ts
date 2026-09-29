@@ -170,6 +170,43 @@ export async function waitForCondition(
   throw new Error(`Timeout waiting for ${description} after ${timeout}ms`);
 }
 
+/**
+ * Poll executeHoverProvider until a non-empty result is returned.
+ * Useful as a readiness gate in `before` hooks when
+ * `ansible.awaitDocsLibraryReady` cannot be used (e.g. outside-workspace
+ * files where the event is workspace-scoped and never fires).
+ *
+ * @param docUri         - document to probe
+ * @param position       - position expected to produce hover content
+ * @param timeout        - max wait in ms (default 210 000 – ~3.5 min)
+ * @param interval       - polling interval in ms (default 3 000)
+ * @param attemptTimeout - per-attempt timeout in ms (default 5 000); a hung
+ *                         hover command is abandoned after this many ms so the
+ *                         poll loop can retry without blocking indefinitely.
+ */
+export async function waitForHoverReady(
+  docUri: vscode.Uri,
+  position: vscode.Position,
+  timeout = 210_000,
+  interval = 3000,
+  attemptTimeout = 5000,
+): Promise<void> {
+  await waitForCondition(
+    async () => {
+      const result = await Promise.race([
+        vscode.commands.executeCommand<vscode.Hover[]>(
+          "vscode.executeHoverProvider",
+          docUri,
+          position,
+        ),
+        sleep(attemptTimeout).then((): vscode.Hover[] => []),
+      ]);
+      return result.length > 0;
+    },
+    { timeout, interval, description: "hover provider readiness" },
+  );
+}
+
 const getDocPath = (p: string): string => {
   return path.resolve(PROJECT_ROOT, "test", "testFixtures", p);
 };
@@ -368,24 +405,45 @@ export async function testDiagnostics(
 /**
  * Options for testHover retry behavior
  */
+/** Default testHover retry budget (must stay within .vscode-test.mjs mocha timeout). */
+const DEFAULT_TEST_HOVER_RETRIES = 15;
+const DEFAULT_TEST_HOVER_RETRY_DELAY = 2000;
+const DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT = 5000;
+
 export interface TestHoverOptions {
-  /** Number of retries after initial attempt (default: 5, so 6 total attempts) */
+  /** Number of retries after initial attempt */
   retries?: number;
-  /** Delay between retries in milliseconds (default: 500) */
+  /** Delay between retries in milliseconds */
   retryDelay?: number;
+  /** Per-attempt timeout in ms; avoids a single hanging hover request from
+   *  consuming the entire mocha timeout */
+  attemptTimeout?: number;
+}
+
+/** Worst-case duration when every attempt hits attemptTimeout. */
+export function maxTestHoverDurationMs(options?: TestHoverOptions): number {
+  const retries = options?.retries ?? DEFAULT_TEST_HOVER_RETRIES;
+  const retryDelay = options?.retryDelay ?? DEFAULT_TEST_HOVER_RETRY_DELAY;
+  const attemptTimeout =
+    options?.attemptTimeout ?? DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT;
+  return (retries + 1) * attemptTimeout + retries * retryDelay;
 }
 
 /**
  * Test hover functionality with retry logic to handle timing-dependent flakiness.
  *
  * In e2e tests, hover results may not be immediately available after docs library
- * initialization completes due to async processing. This function retries the hover
- * request until the expected results are found or retries are exhausted.
+ * initialization completes due to async processing.  The hover provider command
+ * can also *hang* while the language server is still loading docs (observed on
+ * WSL where the first hover request blocks for 50+ seconds).  To cope with
+ * both situations each attempt is wrapped with a per-attempt timeout so a
+ * hanging request fails fast and the loop can retry until the language server
+ * is ready.
  *
  * @param docUri - URI of the document to hover in
  * @param position - Position to hover at
  * @param expectedHover - Expected hover results
- * @param options - Retry options (default: 5 retries with 500ms delay)
+ * @param options - Retry options
  */
 export async function testHover(
   docUri: vscode.Uri,
@@ -393,17 +451,38 @@ export async function testHover(
   expectedHover: vscode.Hover[],
   options?: TestHoverOptions,
 ): Promise<void> {
-  const { retries = 5, retryDelay = 500 } = options ?? {};
+  const {
+    retries = DEFAULT_TEST_HOVER_RETRIES,
+    retryDelay = DEFAULT_TEST_HOVER_RETRY_DELAY,
+    attemptTimeout = DEFAULT_TEST_HOVER_ATTEMPT_TIMEOUT,
+  } = options ?? {};
 
   let lastActualHover: vscode.Hover[] = [];
   let lastError: Error | undefined;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
-      "vscode.executeHoverProvider",
-      docUri,
-      position,
-    );
+    let actualHover: vscode.Hover[];
+    try {
+      actualHover = await Promise.race([
+        vscode.commands.executeCommand<vscode.Hover[]>(
+          "vscode.executeHoverProvider",
+          docUri,
+          position,
+        ),
+        sleep(attemptTimeout).then(() => {
+          throw new Error(
+            `Hover provider did not respond within ${attemptTimeout}ms (attempt ${attempt + 1}/${retries + 1})`,
+          );
+        }),
+      ]);
+    } catch (e) {
+      lastError = e as Error;
+      if (attempt < retries) {
+        await sleep(retryDelay);
+      }
+      continue;
+    }
+
     lastActualHover = actualHover;
 
     // Check if we have the expected number of hover results

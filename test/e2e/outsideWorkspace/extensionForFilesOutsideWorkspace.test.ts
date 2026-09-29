@@ -5,6 +5,7 @@ import {
   testDiagnostics,
   testHover,
   waitForDiagnosticsFromSource,
+  waitForHoverReady,
   clearActivationCache,
 } from "@test/e2e/e2e.utils";
 import assert from "node:assert/strict";
@@ -27,6 +28,14 @@ describe("language services for a playbook that is present outside a workspace",
   });
 
   describe("hover functionality", function () {
+    // awaitDocsLibraryReady never resolves for outside-workspace files
+    // (event is workspace-scoped).  Poll hover directly until the
+    // language server is ready (~2-3 min on WSL).
+    before(async function () {
+      this.timeout(240_000);
+      await waitForHoverReady(docUri, new Position(0, 4));
+    });
+
     it("should hover over `name` keyword", async function () {
       await testHover(docUri, new Position(0, 4), [
         {
