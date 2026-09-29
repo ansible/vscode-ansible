@@ -181,7 +181,11 @@ describe("e2e hover utilities", () => {
             resolve([
               {
                 contents: [
-                  { value: "Identifier. Can be used for documentation." },
+                  {
+                    language: "yaml",
+                    value:
+                      "Identifier. Can be used for documentation.",
+                  },
                 ],
               },
             ]);
