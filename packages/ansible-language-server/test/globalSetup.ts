@@ -15,7 +15,13 @@ function readDefaultEeImageTag(): string {
   const configPaths = [
     path.join(REPO_ROOT, ".config", "Containerfile"),
     path.join(REPO_ROOT, ".config", "Dockerfile"),
-    path.join(REPO_ROOT, "packages", "ansible-language-server", ".config", "Dockerfile"),
+    path.join(
+      REPO_ROOT,
+      "packages",
+      "ansible-language-server",
+      ".config",
+      "Dockerfile",
+    ),
   ];
   let version = "latest";
   for (const configPath of configPaths) {
@@ -216,5 +222,4 @@ export async function setup() {
       }
     }
   }
-
 }

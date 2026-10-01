@@ -15,7 +15,10 @@ beforeAll(() => {
 });
 
 function taskRunsUnderEeSuite(context: {
-  task?: { name?: string; suite?: { name?: string; fullName?: string; parent?: unknown } };
+  task?: {
+    name?: string;
+    suite?: { name?: string; fullName?: string; parent?: unknown };
+  };
 }): boolean {
   let suite = context.task?.suite;
   while (suite) {
