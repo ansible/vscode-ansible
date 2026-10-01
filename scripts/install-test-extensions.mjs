@@ -23,6 +23,39 @@ const DEPENDENCY_EXTENSIONS = [
   "redhat.vscode-yaml",
 ];
 
+const INSTALL_MAX_ATTEMPTS = 5;
+const INSTALL_RETRY_BASE_MS = 5000;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function installExtension(cliPath, ext) {
+  execSync(
+    `"${cliPath}" --install-extension ${ext} --force` +
+      ` --extensions-dir "${extensionsDir}"`,
+    { stdio: "inherit" },
+  );
+}
+
+async function installExtensionWithRetry(cliPath, ext) {
+  for (let attempt = 1; attempt <= INSTALL_MAX_ATTEMPTS; attempt++) {
+    try {
+      installExtension(cliPath, ext);
+      return;
+    } catch (error) {
+      if (attempt >= INSTALL_MAX_ATTEMPTS) {
+        throw error;
+      }
+      const delayMs = INSTALL_RETRY_BASE_MS * attempt;
+      console.warn(
+        `Installing ${ext} failed (attempt ${attempt}/${INSTALL_MAX_ATTEMPTS}), retrying in ${delayMs}ms...`,
+      );
+      await sleep(delayMs);
+    }
+  }
+}
+
 fs.mkdirSync(extensionsDir, { recursive: true });
 
 const vscodePath = await download({
@@ -33,11 +66,7 @@ const cliPath = resolveCliPathFromVSCodeExecutablePath(vscodePath);
 
 for (const ext of DEPENDENCY_EXTENSIONS) {
   console.log(`Installing: ${ext}`);
-  execSync(
-    `"${cliPath}" --install-extension ${ext} --force` +
-      ` --extensions-dir "${extensionsDir}"`,
-    { stdio: "inherit" },
-  );
+  await installExtensionWithRetry(cliPath, ext);
 }
 
 console.log("UI test dependency extensions installed.");
