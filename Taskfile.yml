@@ -259,6 +259,7 @@ tasks:
       - out/junit/unit-test-results.xml
     cmds:
       - mkdir -p out/unit/tmp
+      - node tools/get-image-version.mts >/dev/null
       - vitest run
     interactive: true
   package:

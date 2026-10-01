@@ -240,6 +240,13 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
+const EE_E2E_COLLECTIONS_PREPEND =
+  "/home/runner/.ansible/collections:/usr/share/ansible/collections";
+
+export function setEeFixtureAnsibleCollectionPathEnv(): void {
+  setFixtureAnsibleCollectionPathEnv(EE_E2E_COLLECTIONS_PREPEND);
+}
+
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;

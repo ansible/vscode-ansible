@@ -83,6 +83,12 @@ const alsVitestProject = {
     testTimeout: 60000, // same as mocha timeout (60 seconds)
     hookTimeout: 30000, // self-hosted WSL runner needs more than the 10s default
     setupFiles: [`${als_root}/test/vitestSetup.ts`],
+    env: {
+      // ALS @ee unit tests only: runner ~/.ansible collections break completion ordering.
+      ...(process.env.CI === "true"
+        ? { ALS_EE_COLLECTIONS_PREPEND: "/usr/share/ansible/collections" }
+        : {}),
+    },
     sequence: {
       concurrent: false,
       groupOrder: 2,
