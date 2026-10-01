@@ -50,7 +50,8 @@ function getEeCollectionsPrependPath(): string {
     return override;
   }
   if (process.env.CI === "true") {
-    // GHA images may install collections under ~/.ansible that break @ee completion ordering.
+    // Default on GHA when ALS_EE_COLLECTIONS_PREPEND is unset (e.g. non-vitest callers).
+    // Vitest als project sets ALS_EE_COLLECTIONS_PREPEND explicitly in vitest.config.ts.
     return USR_SHARE_ANSIBLE_COLLECTIONS;
   }
   return `/home/runner/.ansible/collections:${USR_SHARE_ANSIBLE_COLLECTIONS}`;
