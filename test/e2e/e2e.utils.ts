@@ -242,7 +242,7 @@ export function deleteAlsCache(): void {
 
 const USR_SHARE_ANSIBLE_COLLECTIONS = "/usr/share/ansible/collections";
 
-export function getEeCollectionsPrependPath(): string {
+function getEeCollectionsPrependPath(): string {
   const override = process.env.ALS_EE_COLLECTIONS_PREPEND;
   if (override !== undefined && override !== "") {
     return override;
