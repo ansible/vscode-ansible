@@ -7,10 +7,40 @@ import { createRequire } from "module";
 import { quote } from "shell-quote";
 
 const require = createRequire(import.meta.url);
-// Resolve root package.json from repo root (tests run with cwd = workspace root)
-const pkg = require(
-  path.join(import.meta.dirname, "..", "..", "..", "package.json"),
-);
+const REPO_ROOT = path.join(import.meta.dirname, "..", "..", "..");
+// Resolve root package.json (vitest als project root is packages/ansible-language-server)
+const pkg = require(path.join(REPO_ROOT, "package.json"));
+
+function readDefaultEeImageTag(): string {
+  const configPaths = [
+    path.join(REPO_ROOT, ".config", "Containerfile"),
+    path.join(REPO_ROOT, ".config", "Dockerfile"),
+    path.join(REPO_ROOT, "packages", "ansible-language-server", ".config", "Dockerfile"),
+  ];
+  let version = "latest";
+  for (const configPath of configPaths) {
+    let text: string;
+    try {
+      text = fs.readFileSync(configPath, "utf8");
+    } catch {
+      continue;
+    }
+    for (const line of text.split(/\r?\n/)) {
+      if (line.startsWith("FROM")) {
+        const colon = line.indexOf(":");
+        if (colon !== -1) {
+          version = line.slice(colon + 1);
+          const space = version.indexOf(" ");
+          if (space !== -1) {
+            version = version.slice(0, space);
+          }
+        }
+        return version;
+      }
+    }
+  }
+  return version;
+}
 
 const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
@@ -23,9 +53,16 @@ const DEFAULT_CONTAINER: string =
 function exec(cmd: string[], options: SpawnSyncOptions = {}) {
   options.stdio = "inherit";
   console.info(`Execute: ${cmd.join(" ")}`);
-  spawnSync(cmd[0], cmd.slice(1), {
+  const result = spawnSync(cmd[0], cmd.slice(1), {
     stdio: "inherit",
   });
+  if (result.status !== 0) {
+    const message = `${cmd.join(" ")} failed with exit code ${result.status ?? "unknown"}`;
+    if (process.env.CI === "true") {
+      throw new Error(message);
+    }
+    console.warn(`Warning: ${message}`);
+  }
 }
 
 function execWithTimeout(
@@ -69,6 +106,11 @@ function execWithTimeout(
 }
 
 export async function setup() {
+  if (process.env._ALS_ORIGINAL_HOME) {
+    process.env.HOME = process.env._ALS_ORIGINAL_HOME;
+    process.env.USERPROFILE = process.env._ALS_ORIGINAL_HOME;
+  }
+
   // Isolate ANSIBLE_HOME and XDG_CACHE_HOME to prevent writes to ~/.ansible/
   // and ~/.cache/ansible-language-server/ respectively.
   const ansibleHome = path.resolve(
@@ -138,38 +180,12 @@ export async function setup() {
     }
   }
 
-  try {
-    const result = await execWithTimeout(
-      "node ./tools/get-image-version.mts",
-      [],
-      5000,
+  EE_VERSION = readDefaultEeImageTag();
+  console.info(`EE_VERSION: ${EE_VERSION}`);
+  if (EE_VERSION === "latest" && process.env.CI === "true") {
+    console.warn(
+      "Warning: EE image tag resolved to 'latest'; pin a tag in .config/Containerfile if tests become flaky.",
     );
-    if (result.status === 0) {
-      console.info(`EE_VERSION: ${result.stdout}`);
-      EE_VERSION = result.stdout.trim();
-    } else {
-      console.warn(
-        `Warning: Failed to get EE version: rc=${result.status}. Using 'latest' as fallback.`,
-      );
-      EE_VERSION = "latest";
-    }
-  } catch (e: unknown) {
-    if (
-      e instanceof Error &&
-      typeof e.message === "string" &&
-      e.message.includes("timeout")
-    ) {
-      console.warn(
-        `Warning: get-image-version timed out. Using 'latest' as fallback.`,
-      );
-    } else {
-      const message =
-        e instanceof Error ? e.message : typeof e === "string" ? e : String(e);
-      console.warn(
-        `Warning: Failed to get EE version: ${message}. Using 'latest' as fallback.`,
-      );
-    }
-    EE_VERSION = "latest";
   }
   const containers = new Set([
     `ghcr.io/ansible/community-ansible-dev-tools:${EE_VERSION}`,
@@ -201,11 +217,4 @@ export async function setup() {
     }
   }
 
-  // Container setup is optional - skip if it would take too long
-  // Only run if engines are available and we have time
-  // Don't fail tests if containers can't be pulled/run
-  // Skip container setup to avoid long timeouts during test setup
-  console.info(
-    "Skipping container setup during test initialization. Container tests will be skipped if containers are not available.",
-  );
 }

@@ -14,14 +14,23 @@ beforeAll(() => {
   deleteAlsCache();
 });
 
+function taskRunsUnderEeSuite(context: {
+  task?: { name?: string; suite?: { name?: string; fullName?: string; parent?: unknown } };
+}): boolean {
+  let suite = context.task?.suite;
+  while (suite) {
+    if (suite.name?.includes("@ee") || suite.fullName?.includes("@ee")) {
+      return true;
+    }
+    suite = suite.parent as typeof suite | undefined;
+  }
+  return context.task?.name?.includes("@ee") ?? false;
+}
+
 // Vitest hooks - runs before each test
 beforeEach((context) => {
   // Skip tests marked with @ee if both SKIP_PODMAN and SKIP_DOCKER are set
-  if (
-    skipEE() &&
-    (context.task?.name?.includes("@ee") ||
-      context.task?.suite?.fullName?.includes("@ee"))
-  ) {
+  if (skipEE() && taskRunsUnderEeSuite(context)) {
     console.warn(
       `Skipped test due to environment conditions: ${context.task.name}`,
     );

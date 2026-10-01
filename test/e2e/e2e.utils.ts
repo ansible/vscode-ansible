@@ -240,6 +240,23 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
+const USR_SHARE_ANSIBLE_COLLECTIONS = "/usr/share/ansible/collections";
+
+export function getEeCollectionsPrependPath(): string {
+  const override = process.env.ALS_EE_COLLECTIONS_PREPEND;
+  if (override !== undefined && override !== "") {
+    return override;
+  }
+  if (process.env.CI === "true") {
+    return USR_SHARE_ANSIBLE_COLLECTIONS;
+  }
+  return `/home/runner/.ansible/collections:${USR_SHARE_ANSIBLE_COLLECTIONS}`;
+}
+
+export function setEeFixtureAnsibleCollectionPathEnv(): void {
+  setFixtureAnsibleCollectionPathEnv(getEeCollectionsPrependPath());
+}
+
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;

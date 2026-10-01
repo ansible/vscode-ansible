@@ -15,6 +15,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
+  setEeFixtureAnsibleCollectionPathEnv,
 } from "@test/helper.js";
 import { ValidationManager } from "@src/services/validationManager.js";
 import { SchemaService } from "@src/services/schemaService.js";
@@ -383,9 +384,7 @@ describe("doValidate()", function () {
     describe("Get validation only from cache", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setFixtureAnsibleCollectionPathEnv(
-            "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-          );
+          setEeFixtureAnsibleCollectionPathEnv();
           await enableExecutionEnvironmentSettings(docSettings, context);
         });
 
@@ -412,9 +411,7 @@ describe("doValidate()", function () {
         // EE tests require a container runtime (podman/docker) unavailable in standard CI
         describe.skip("@ee", function () {
           beforeAll(async () => {
-            setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-            );
+            setEeFixtureAnsibleCollectionPathEnv();
             await enableExecutionEnvironmentSettings(docSettings, context);
           });
 
@@ -452,9 +449,7 @@ describe("doValidate()", function () {
             describe.skip("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
-                setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-                );
+                setEeFixtureAnsibleCollectionPathEnv();
                 await enableExecutionEnvironmentSettings(docSettings, context);
               });
 
@@ -576,9 +571,7 @@ describe("doValidate()", function () {
             describe("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
-                setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-                );
+                setEeFixtureAnsibleCollectionPathEnv();
                 await enableExecutionEnvironmentSettings(docSettings, context);
               });
 
@@ -632,9 +625,7 @@ describe("doValidate()", function () {
             describe("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
-                setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-                );
+                setEeFixtureAnsibleCollectionPathEnv();
                 await enableExecutionEnvironmentSettings(docSettings, context);
               });
 
@@ -689,9 +680,7 @@ describe("doValidate()", function () {
           describe.skip("@ee", function () {
             beforeAll(async () => {
               (await docSettings).validation.lint.enabled = false;
-              setFixtureAnsibleCollectionPathEnv(
-                "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-              );
+              setEeFixtureAnsibleCollectionPathEnv();
               await enableExecutionEnvironmentSettings(docSettings, context);
             });
 
@@ -749,9 +738,7 @@ describe("doValidate()", function () {
                 // (await docSettings).validation.lint.path =
                 //   "invalid-ansible-lint-path";
                 (await docSettings).validation.enabled = false;
-                setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-                );
+                setEeFixtureAnsibleCollectionPathEnv();
                 await enableExecutionEnvironmentSettings(docSettings, context);
               });
 
@@ -815,9 +802,7 @@ describe("doValidate()", function () {
                 // (await docSettings).validation.lint.path =
                 //   "invalid-ansible-lint-path";
                 (await docSettings).validation.enabled = false;
-                setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-                );
+                setEeFixtureAnsibleCollectionPathEnv();
                 await enableExecutionEnvironmentSettings(docSettings, context);
               });
 
@@ -879,9 +864,7 @@ describe("doValidate()", function () {
 
         describe("@ee", function () {
           beforeAll(async () => {
-            setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-            );
+            setEeFixtureAnsibleCollectionPathEnv();
             await enableExecutionEnvironmentSettings(docSettings, context);
           });
 
