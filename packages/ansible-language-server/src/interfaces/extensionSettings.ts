@@ -26,6 +26,9 @@ export interface ExtensionSettings extends ExtensionSettingsType {
     path: string;
     useFullyQualifiedCollectionNames: boolean;
   };
+  config: {
+    path: string;
+  };
   completion: {
     provideRedirectModules: boolean;
     provideModuleOptionAliases: boolean;
@@ -95,6 +98,7 @@ export interface ExtensionSettingsWithDescriptionBase {
 
 export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
   ansible: AnsibleSettingsWithDescription;
+  config: ConfigSettingsWithDescription;
   completion: CompletionSettingsWithDescription;
   validation: ValidationSettingsWithDescription;
   executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
@@ -108,6 +112,13 @@ interface AnsibleSettingsWithDescription extends SettingsEntry {
   };
   useFullyQualifiedCollectionNames: {
     default: boolean;
+    description: string;
+  };
+}
+
+interface ConfigSettingsWithDescription extends SettingsEntry {
+  path: {
+    default: string;
     description: string;
   };
 }
