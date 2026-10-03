@@ -1,9 +1,16 @@
+import * as os from "node:os";
+import * as path from "node:path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { withInterpreter, asyncExec, asyncSpawn } from "@src/utils/misc.js";
 import { getAnsibleCommandExecPath } from "@src/utils/execPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+
+interface PreparedCommand {
+  command: string | string[] | undefined;
+  env: NodeJS.ProcessEnv;
+}
 
 export class CommandRunner {
   private connection: Connection | undefined;
@@ -29,58 +36,40 @@ export class CommandRunner {
     stdout: string;
     stderr: string;
   }> {
-    let executablePath: string;
-    let command: string | string[] | undefined;
-    let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
-    let interpreterPathFromConfig = this.settings.python.interpreterPath;
-    if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
-      const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).path;
-      interpreterPathFromConfig = interpreterPathFromConfig.replace(
-        "${workspaceFolder}",
-        workspaceFolder,
-      );
-    }
+    const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).fsPath;
+    const currentWorkingDirectory = workingDirectory
+      ? workingDirectory
+      : workspaceFolder;
+    const ansibleConfigPath = this.resolveConfigPath(workspaceFolder);
+    const executablePath = this.resolveExecutablePath(executable, isEEEnabled);
+    const interpreterPath = this.resolveInterpreterPath(
+      workspaceFolder,
+      isEEEnabled,
+    );
+    const preparedCommand = isEEEnabled
+      ? await this.prepareExecutionEnvironmentCommand(
+          executable,
+          args,
+          currentWorkingDirectory,
+          mountPaths,
+          ansibleConfigPath,
+        )
+      : this.prepareLocalCommand(
+          executablePath,
+          args,
+          interpreterPath,
+          ansibleConfigPath,
+        );
+    const { command, env } = preparedCommand;
 
-    const interpreterPath = isEEEnabled ? "python3" : interpreterPathFromConfig;
-    if (executable.startsWith("ansible")) {
-      executablePath = isEEEnabled
-        ? executable
-        : getAnsibleCommandExecPath(executable, this.settings);
-    } else {
-      executablePath = executable;
-    }
-
-    // prepare command and env for local run
-    if (!isEEEnabled) {
-      const result = withInterpreter(
-        executablePath,
-        args,
-        interpreterPath,
-        this.settings.python.activationScript,
-      );
-      command = result.command;
-      runEnv = result.env;
-    } else {
-      // prepare command and env for execution environment run
-      const executionEnvironment = await this.context.executionEnvironment;
-      command = executionEnvironment.wrapContainerArgs(
-        `${executable} ${args}`,
-        mountPaths,
-      );
-      runEnv = process.env;
-    }
     if (command === undefined) {
       return { stdout: "", stderr: "" };
     }
-
-    const currentWorkingDirectory = workingDirectory
-      ? workingDirectory
-      : URI.parse(this.context.workspaceFolder.uri).path;
     const spawnOptions = {
       encoding: "utf-8" as const,
       cwd: currentWorkingDirectory,
-      env: runEnv,
+      env,
       maxBuffer: 10 * 1000 * 1000,
     };
 
@@ -92,6 +81,101 @@ export class CommandRunner {
     const result = await asyncExec(command, spawnOptions);
 
     return result;
+  }
+
+  private resolveExecutablePath(
+    executable: string,
+    isEEEnabled: boolean,
+  ): string {
+    if (!executable.startsWith("ansible") || isEEEnabled) {
+      return executable;
+    }
+    return getAnsibleCommandExecPath(executable, this.settings);
+  }
+
+  private resolveInterpreterPath(
+    workspaceFolder: string,
+    isEEEnabled: boolean,
+  ): string {
+    if (isEEEnabled) {
+      return "python3";
+    }
+    return this.settings.python.interpreterPath.replaceAll(
+      "${workspaceFolder}",
+      workspaceFolder,
+    );
+  }
+
+  private prepareLocalCommand(
+    executablePath: string,
+    args: string,
+    interpreterPath: string,
+    ansibleConfigPath?: string,
+  ): PreparedCommand {
+    const result = withInterpreter(
+      executablePath,
+      args,
+      interpreterPath,
+      this.settings.python.activationScript,
+    );
+    return {
+      command: result.command,
+      env: {
+        ...result.env,
+        ...(ansibleConfigPath ? { ANSIBLE_CONFIG: ansibleConfigPath } : {}),
+      },
+    };
+  }
+
+  private async prepareExecutionEnvironmentCommand(
+    executable: string,
+    args: string,
+    currentWorkingDirectory: string,
+    mountPaths: Set<string> | undefined,
+    ansibleConfigPath: string | undefined,
+  ): Promise<PreparedCommand> {
+    const executionEnvironment = await this.context.executionEnvironment;
+    const effectiveMountPaths = mountPaths
+      ? new Set(mountPaths)
+      : new Set<string>([currentWorkingDirectory]);
+    if (ansibleConfigPath) {
+      effectiveMountPaths.add(path.dirname(ansibleConfigPath));
+    }
+    return {
+      command: executionEnvironment.wrapContainerArgs(
+        `${executable} ${args}`,
+        effectiveMountPaths,
+        ansibleConfigPath ? { ANSIBLE_CONFIG: ansibleConfigPath } : {},
+      ),
+      env: { ...process.env },
+    };
+  }
+
+  private resolveConfigPath(workspaceFolder: string): string | undefined {
+    const configuredPath = this.settings.config?.path?.trim();
+
+    if (!configuredPath) {
+      return undefined;
+    }
+
+    let resolvedPath = configuredPath;
+
+    if (resolvedPath === "~") {
+      resolvedPath = os.homedir();
+    } else if (resolvedPath.startsWith("~/")) {
+      resolvedPath = path.join(os.homedir(), resolvedPath.slice(2));
+    }
+
+    resolvedPath = resolvedPath.replaceAll(
+      "${workspaceFolder}",
+      workspaceFolder,
+    );
+
+    if (!path.isAbsolute(resolvedPath)) {
+      resolvedPath = path.resolve(workspaceFolder, resolvedPath);
+    }
+
+    return resolvedPath;
   }
 
   /**
