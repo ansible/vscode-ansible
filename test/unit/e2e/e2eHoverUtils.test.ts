@@ -265,9 +265,9 @@ describe("e2e hover utilities", () => {
     it("prepends GHA runner and usr-share paths before fixture collections", () => {
       setEeFixtureAnsibleCollectionPathEnv();
       const collectionsPath = process.env.ANSIBLE_COLLECTIONS_PATH ?? "";
-      expect(collectionsPath.startsWith("/home/runner/.ansible/collections:")).toBe(
-        true,
-      );
+      expect(
+        collectionsPath.startsWith("/home/runner/.ansible/collections:"),
+      ).toBe(true);
       expect(collectionsPath).toContain("/usr/share/ansible/collections:");
     });
   });

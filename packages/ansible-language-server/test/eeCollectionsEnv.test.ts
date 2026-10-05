@@ -15,9 +15,11 @@ describe("setEeFixtureAnsibleCollectionPathEnv", () => {
   it("uses ALS_EE_COLLECTIONS_PREPEND when set", () => {
     process.env.ALS_EE_COLLECTIONS_PREPEND = "/opt/ansible/collections";
     setEeFixtureAnsibleCollectionPathEnv();
-    expect(process.env.ANSIBLE_COLLECTIONS_PATH?.startsWith("/opt/ansible/collections:")).toBe(
-      true,
-    );
+    expect(
+      process.env.ANSIBLE_COLLECTIONS_PATH?.startsWith(
+        "/opt/ansible/collections:",
+      ),
+    ).toBe(true);
   });
 
   it("prepends only /usr/share/ansible/collections on CI without override", () => {
