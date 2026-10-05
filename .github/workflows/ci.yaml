@@ -763,7 +763,7 @@ jobs:
         run: |
           npm config set fund false
 
-      - uses: jdx/mise-action@v4
+      - uses: jdx/mise-action@v5
 
       - name: Download the artifact
         uses: actions/download-artifact@v8
@@ -836,7 +836,7 @@ jobs:
         with:
           files: "out/*.tgz"
 
-      - uses: jdx/mise-action@v4
+      - uses: jdx/mise-action@v5
 
       - name: Publish npm packages to npmjs.com
         run: |
