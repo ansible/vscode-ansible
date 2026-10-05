@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";
 import {
   maxTestHoverDurationMs,
+  setEeFixtureAnsibleCollectionPathEnv,
   testHover,
+  unSetFixtureAnsibleCollectionPathEnv,
   waitForCondition,
   waitForHoverReady,
 } from "@test/e2e/e2e.utils";
@@ -252,6 +254,21 @@ describe("e2e hover utilities", () => {
           attemptTimeout: 5,
         }),
       ).rejects.toThrow(/Hover test failed after 2 attempts/);
+    });
+  });
+
+  describe("setEeFixtureAnsibleCollectionPathEnv", () => {
+    afterEach(() => {
+      unSetFixtureAnsibleCollectionPathEnv();
+    });
+
+    it("prepends GHA runner and usr-share paths before fixture collections", () => {
+      setEeFixtureAnsibleCollectionPathEnv();
+      const collectionsPath = process.env.ANSIBLE_COLLECTIONS_PATH ?? "";
+      expect(collectionsPath.startsWith("/home/runner/.ansible/collections:")).toBe(
+        true,
+      );
+      expect(collectionsPath).toContain("/usr/share/ansible/collections:");
     });
   });
 });
