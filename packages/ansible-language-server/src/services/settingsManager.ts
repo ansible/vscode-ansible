@@ -91,6 +91,11 @@ export class SettingsManager {
       },
     },
     completion: {
+      enabled: {
+        default: true,
+        description:
+          "Toggle completion provider. If disabled, no completion items are offered for Ansible files",
+      },
       provideRedirectModules: {
         default: true,
         description:

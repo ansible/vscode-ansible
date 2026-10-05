@@ -129,6 +129,14 @@ export async function doCompletion(
   context: WorkspaceFolderContext,
   schemaService?: SchemaService,
 ): Promise<CompletionItem[]> {
+  const extensionSettings = await context.documentSettings.get(document.uri);
+
+  // Read before any other work, so that disabling completion also suppresses
+  // the schema-based completions handled right below.
+  if (!extensionSettings.completion.enabled) {
+    return [];
+  }
+
   // Check for schema-based completions first (for meta/main.yml, etc.)
   if (schemaService && schemaService.shouldValidateWithSchema(document)) {
     const schemaCompletions = await getSchemaCompletions(
@@ -170,8 +178,6 @@ export async function doCompletion(
 
   preparedText = insert(preparedText, offset, dummyMappingCharacter);
   const yamlDocs = parseAllDocuments(preparedText);
-
-  const extensionSettings = await context.documentSettings.get(document.uri);
 
   const useFqcn = extensionSettings.ansible.useFullyQualifiedCollectionNames;
   const provideRedirectModulesCompletion =
@@ -604,6 +610,15 @@ export async function doCompletionResolve(
   completionItem: CompletionItem,
   context: WorkspaceFolderContext,
 ): Promise<CompletionItem> {
+  if (hasCompletionDocumentUri(completionItem.data)) {
+    const settings = await context.documentSettings.get(
+      completionItem.data.documentUri,
+    );
+    if (!settings.completion.enabled) {
+      return completionItem;
+    }
+  }
+
   if (isModuleCompletionResolveData(completionItem.data)) {
     const data = completionItem.data;
     // resolve completion for a module
