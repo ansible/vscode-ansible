@@ -8,11 +8,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: jdx/mise-action@v4
+    - uses: jdx/mise-action@v5
       with:
         experimental: true
         # without specific version here will not upgrade old existing versions
-        version: 2026.9.14
+        version: 2026.9.18
         reshim: true
 
     - name: Runner image version
