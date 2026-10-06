@@ -66,6 +66,7 @@ const alsVitestProject = {
   },
   resolve: {
     alias: {
+      "@root": path.resolve(__dirname),
       "@src": path.resolve(als_root, "src"),
       "@test": path.resolve(als_root, "test"),
     },

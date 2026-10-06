@@ -5,7 +5,7 @@ import {
   getUserAnsibleCollectionsPath,
   restoreProcessEnv,
   USR_SHARE_ANSIBLE_COLLECTIONS,
-} from "@test/eeCollectionsEnvUtils.js";
+} from "@root/test/eeCollectionsEnvUtils.js";
 
 describe("setEeFixtureAnsibleCollectionPathEnv", () => {
   const originalCi = process.env.CI;

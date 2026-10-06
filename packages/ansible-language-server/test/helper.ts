@@ -42,7 +42,7 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
-import { getEeCollectionsPrependPath } from "@test/eeCollectionsEnvUtils.js";
+import { getEeCollectionsPrependPath } from "@root/test/eeCollectionsEnvUtils.js";
 
 export function setEeFixtureAnsibleCollectionPathEnv(): void {
   setFixtureAnsibleCollectionPathEnv(getEeCollectionsPrependPath());

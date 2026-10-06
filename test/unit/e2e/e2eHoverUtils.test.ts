@@ -11,7 +11,7 @@ import {
 import {
   getUserAnsibleCollectionsPath,
   USR_SHARE_ANSIBLE_COLLECTIONS,
-} from "@root/packages/ansible-language-server/test/eeCollectionsEnvUtils.js";
+} from "@test/eeCollectionsEnvUtils.js";
 
 const MOCHA_E2E_TIMEOUT_MS = 120_000;
 
