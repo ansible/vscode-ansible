@@ -8,6 +8,10 @@ import {
   waitForCondition,
   waitForHoverReady,
 } from "@test/e2e/e2e.utils";
+import {
+  getUserAnsibleCollectionsPath,
+  USR_SHARE_ANSIBLE_COLLECTIONS,
+} from "@root/packages/ansible-language-server/test/eeCollectionsEnvUtils.js";
 
 const MOCHA_E2E_TIMEOUT_MS = 120_000;
 
@@ -262,13 +266,13 @@ describe("e2e hover utilities", () => {
       unSetFixtureAnsibleCollectionPathEnv();
     });
 
-    it("prepends GHA runner and usr-share paths before fixture collections", () => {
+    it("prepends user ansible collections and usr-share paths before fixture collections", () => {
       setEeFixtureAnsibleCollectionPathEnv();
       const collectionsPath = process.env.ANSIBLE_COLLECTIONS_PATH ?? "";
-      expect(
-        collectionsPath.startsWith("/home/runner/.ansible/collections:"),
-      ).toBe(true);
-      expect(collectionsPath).toContain("/usr/share/ansible/collections:");
+      const userCollections = getUserAnsibleCollectionsPath();
+      expect(collectionsPath.startsWith(`${userCollections}:`)).toBe(true);
+      expect(collectionsPath).toContain(`${USR_SHARE_ANSIBLE_COLLECTIONS}:`);
+      expect(collectionsPath).toContain("test/testFixtures");
     });
   });
 });
