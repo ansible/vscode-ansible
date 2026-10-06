@@ -179,7 +179,6 @@ export default defineConfig({
       ],
       include: [
         "src/**/**.{js,jsx,ts,tsx}",
-        "test/eeCollectionsEnvUtils.ts",
         ...(skipAlsTests
           ? []
           : ["packages/ansible-language-server/src/**/*.{js,jsx,ts,tsx}"]),

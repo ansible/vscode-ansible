@@ -28,18 +28,11 @@ coverage:
         paths:
           - test/
           - packages/*/test/
-    # Enforce coverage only on lines changed in the pull request (product
-    # source). Test harness and config in the diff are not in vitest coverage
-    # include; counting them makes test-only PRs fail patch/project checks.
+    # Enforce coverage only on lines changed in the pull request.
     patch:
       default:
         target: auto
         threshold: 0%
-        paths:
-          - "src/"
-          - "packages/ansible-language-server/src/"
-          - "packages/ansible-mcp-server/src/"
-          - "webviews/"
     # Indirect coverage changes on untouched lines are noisy in multi-OS CI.
     changes:
       default:
