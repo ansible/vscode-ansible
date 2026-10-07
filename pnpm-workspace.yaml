@@ -85,3 +85,5 @@ minimumReleaseAgeExclude:
   - "@modelcontextprotocol/sdk@1.31.0"
   # Renovate security update: handlebars@4.7.10
   - handlebars@4.7.10
+  # Renovate security update: shell-quote@1.11.0
+  - shell-quote@1.11.0
