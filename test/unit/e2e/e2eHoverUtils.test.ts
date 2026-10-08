@@ -2,10 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as vscode from "vscode";
 import {
   maxTestHoverDurationMs,
+  setEeFixtureAnsibleCollectionPathEnv,
   testHover,
+  unSetFixtureAnsibleCollectionPathEnv,
   waitForCondition,
   waitForHoverReady,
 } from "@test/e2e/e2e.utils";
+import {
+  getUserAnsibleCollectionsPath,
+  restoreProcessEnv,
+  USR_SHARE_ANSIBLE_COLLECTIONS,
+} from "@test/eeCollectionsEnvUtils.js";
 
 const MOCHA_E2E_TIMEOUT_MS = 120_000;
 
@@ -252,6 +259,39 @@ describe("e2e hover utilities", () => {
           attemptTimeout: 5,
         }),
       ).rejects.toThrow(/Hover test failed after 2 attempts/);
+    });
+  });
+
+  describe("setEeFixtureAnsibleCollectionPathEnv", () => {
+    const originalCi = process.env.CI;
+    const originalPrepend = process.env.ALS_EE_COLLECTIONS_PREPEND;
+
+    afterEach(() => {
+      restoreProcessEnv("CI", originalCi);
+      restoreProcessEnv("ALS_EE_COLLECTIONS_PREPEND", originalPrepend);
+      unSetFixtureAnsibleCollectionPathEnv();
+    });
+
+    it("prepends user ansible collections and usr-share paths before fixture collections", () => {
+      delete process.env.ALS_EE_COLLECTIONS_PREPEND;
+      delete process.env.CI;
+      setEeFixtureAnsibleCollectionPathEnv();
+      const collectionsPath = process.env.ANSIBLE_COLLECTIONS_PATH ?? "";
+      const userCollections = getUserAnsibleCollectionsPath();
+      expect(collectionsPath.startsWith(`${userCollections}:`)).toBe(true);
+      expect(collectionsPath).toContain(`${USR_SHARE_ANSIBLE_COLLECTIONS}:`);
+      expect(collectionsPath).toContain("test/testFixtures");
+    });
+
+    it("prepends only usr-share on CI without override", () => {
+      delete process.env.ALS_EE_COLLECTIONS_PREPEND;
+      process.env.CI = "true";
+      setEeFixtureAnsibleCollectionPathEnv();
+      const collectionsPath = process.env.ANSIBLE_COLLECTIONS_PATH ?? "";
+      expect(
+        collectionsPath.startsWith(`${USR_SHARE_ANSIBLE_COLLECTIONS}:`),
+      ).toBe(true);
+      expect(collectionsPath).toContain("test/testFixtures");
     });
   });
 });
