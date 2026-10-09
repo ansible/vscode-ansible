@@ -22,6 +22,9 @@ any level (User, Remote, Workspace and/or Folder).
   [documentation](https://docs.ansible.com/projects/lint/configuring/).
 - `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
+- `ansible.validation.lint.maxConcurrentProcesses`: Maximum number of
+  `ansible-lint` processes that may run at the same time. Lower this value if
+  `ansible-lint` is overwhelming your CPU in repositories with many files.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
 
 ## Execution Environment Settings

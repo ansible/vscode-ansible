@@ -336,6 +336,14 @@
             "scope": "resource",
             "type": "boolean"
           },
+          "ansible.validation.lint.maxConcurrentProcesses": {
+            "default": 4,
+            "markdownDescription": "Maximum number of `ansible-lint` processes that may run at the same time. Lower this value if `ansible-lint` is overwhelming your CPU in repositories with many files.",
+            "minimum": 1,
+            "order": 5,
+            "scope": "window",
+            "type": "integer"
+          },
           "ansible.validation.lint.path": {
             "default": "ansible-lint",
             "markdownDescription": "Path to the ansible-lint executable.",
