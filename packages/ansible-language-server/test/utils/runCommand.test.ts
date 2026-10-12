@@ -11,15 +11,15 @@ describe("commandRunner Windows path mapping", () => {
   it("maps Windows config paths containing spaces", () => {
     expect(
       mapHostPathToContainerPath(
-        "C:\\\\Projects\\\\My Workspace\\\\ansible.cfg",
+        "C:\\Projects\\My Workspace\\ansible.cfg",
         true,
       ),
     ).toBe("/mnt/c/Projects/My Workspace/ansible.cfg");
   });
 
   it("preserves Windows host paths for bind mount sources outside the workspace", () => {
-    const hostPath = "D:\\\\Shared Configs\\\\ansible.cfg";
-    expect(hostPath).toBe("D:\\\\Shared Configs\\\\ansible.cfg");
+    const hostPath = "D:\\Shared Configs\\ansible.cfg";
+    expect(hostPath).toBe("D:\\Shared Configs\\ansible.cfg");
     expect(mapHostPathToContainerPath(hostPath, true)).toBe(
       "/mnt/d/Shared Configs/ansible.cfg",
     );
