@@ -1,3 +1,5 @@
+import * as os from "node:os";
+import * as path from "node:path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { withInterpreter, asyncExec, asyncSpawn } from "@src/utils/misc.js";
@@ -33,9 +35,22 @@ export class CommandRunner {
     let command: string | string[] | undefined;
     let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
+    const workspaceUri = URI.parse(this.context.workspaceFolder.uri);
+    const workspaceHostPath = workspaceUri.fsPath;
+    const configuredConfigPath = this.settings.config?.path?.trim();
+    const ansibleConfigPath = configuredConfigPath
+      ? path.resolve(
+          workspaceHostPath,
+          configuredConfigPath.replace("${workspaceFolder}", workspaceHostPath),
+        )
+      : undefined;
+    const effectiveMountPaths = new Set(mountPaths || []);
+    if (isEEEnabled && ansibleConfigPath) {
+      effectiveMountPaths.add(path.dirname(ansibleConfigPath));
+    }
     let interpreterPathFromConfig = this.settings.python.interpreterPath;
     if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
-      const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).path;
+      const workspaceFolder = workspaceHostPath;
       interpreterPathFromConfig = interpreterPathFromConfig.replace(
         "${workspaceFolder}",
         workspaceFolder,
@@ -64,9 +79,14 @@ export class CommandRunner {
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
+      const envOverrides: NodeJS.ProcessEnv = {};
+      if (ansibleConfigPath) {
+        envOverrides.ANSIBLE_CONFIG = ansibleConfigPath;
+      }
       command = executionEnvironment.wrapContainerArgs(
         `${executable} ${args}`,
-        mountPaths,
+        effectiveMountPaths,
+        envOverrides,
       );
       runEnv = process.env;
     }
@@ -76,7 +96,7 @@ export class CommandRunner {
 
     const currentWorkingDirectory = workingDirectory
       ? workingDirectory
-      : URI.parse(this.context.workspaceFolder.uri).path;
+      : workspaceHostPath;
     const spawnOptions = {
       encoding: "utf-8" as const,
       cwd: currentWorkingDirectory,
