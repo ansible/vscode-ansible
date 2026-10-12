@@ -1,10 +1,36 @@
 import { CommandRunner } from "@src/utils/commandRunner.js";
 import { expect, it } from "vitest";
+import { mapHostPathToContainerPath } from "@src/utils/containerPath.js";
 import { AssertionError } from "assert";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "@test/helper.js";
 import { ExecException } from "child_process";
+
+describe("commandRunner Windows path mapping", () => {
+  it("maps Windows config paths containing spaces", () => {
+    expect(
+      mapHostPathToContainerPath(
+        "C:\\\\Projects\\\\My Workspace\\\\ansible.cfg",
+        true,
+      ),
+    ).toBe("/mnt/c/Projects/My Workspace/ansible.cfg");
+  });
+
+  it("preserves Windows host paths for bind mount sources outside the workspace", () => {
+    const hostPath = "D:\\\\Shared Configs\\\\ansible.cfg";
+    expect(hostPath).toBe("D:\\\\Shared Configs\\\\ansible.cfg");
+    expect(mapHostPathToContainerPath(hostPath, true)).toBe(
+      "/mnt/d/Shared Configs/ansible.cfg",
+    );
+  });
+
+  it("preserves native Linux paths", () => {
+    expect(mapHostPathToContainerPath("/home/user/project/ansible.cfg", false)).toBe(
+      "/home/user/project/ansible.cfg",
+    );
+  });
+});
 
 describe("commandRunner", function () {
   const tests = [
