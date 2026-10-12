@@ -1,6 +1,6 @@
 import { CommandRunner } from "@src/utils/commandRunner.js";
 import { expect, it } from "vitest";
-import { mapHostPathToContainerPath } from "@src/utils/containerPath.js";
+import { mapHostPathToContainerPath, resolveHostConfigPath } from "@src/utils/containerPath.js";
 import { AssertionError } from "assert";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
 import { createConnection } from "vscode-languageserver/node";
@@ -8,6 +8,26 @@ import { getDoc } from "@test/helper.js";
 import { ExecException } from "child_process";
 
 describe("commandRunner Windows path mapping", () => {
+  it("resolves absolute Windows config paths outside the workspace", () => {
+    expect(
+      resolveHostConfigPath(
+        "D:\\\\Shared Configs\\\\ansible.cfg",
+        "C:\\\\Projects\\\\My Workspace",
+        "win32",
+      ),
+    ).toBe("D:\\\\Shared Configs\\\\ansible.cfg");
+  });
+
+  it("resolves relative Windows config paths against the Windows workspace", () => {
+    expect(
+      resolveHostConfigPath(
+        ".ansible\\\\ansible.cfg",
+        "C:\\\\Projects\\\\My Workspace",
+        "win32",
+      ),
+    ).toBe("C:\\\\Projects\\\\My Workspace\\\\.ansible\\\\ansible.cfg");
+  });
+
   it("maps Windows config paths containing spaces", () => {
     expect(
       mapHostPathToContainerPath(
