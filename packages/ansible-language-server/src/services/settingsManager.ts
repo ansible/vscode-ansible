@@ -30,6 +30,12 @@ export class SettingsManager {
   // settings with their default values and descriptions
   // default values of settings to be updated here
   readonly defaultSettingsWithDescription: ExtensionSettingsWithDescription = {
+    config: {
+      path: {
+        default: "",
+        description: "Path to an Ansible configuration file",
+      },
+    },
     ansible: {
       path: {
         default: "ansible",
