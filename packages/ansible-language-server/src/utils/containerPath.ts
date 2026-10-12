@@ -17,3 +17,20 @@ export function mapHostPathToContainerPath(
   const remainder = normalized.slice(2).replace(/\\/g, "/");
   return "/mnt/" + drive[0] + remainder;
 }
+
+/**
+ * Resolves ansible.config.path using the host platform's path semantics.
+ * This also makes Windows paths testable when the tests run on Linux.
+ */
+export function resolveHostConfigPath(
+  configuredPath: string,
+  workspaceHostPath: string,
+  hostPlatform: NodeJS.Platform,
+): string {
+  const pathApi = hostPlatform === "win32" ? path.win32 : path;
+  const expandedPath = configuredPath.replace(
+    "${workspaceFolder}",
+    workspaceHostPath,
+  );
+  return pathApi.resolve(workspaceHostPath, expandedPath);
+}
