@@ -251,6 +251,7 @@ export class ExecutionEnvironment {
     command: string,
     mountPaths?: Set<string>,
     envOverrides: NodeJS.ProcessEnv = {},
+    hostPlatform: NodeJS.Platform = os.platform(),
   ): string[] | undefined {
     /* v8 ignore next 10 */
     if (
@@ -267,7 +268,7 @@ export class ExecutionEnvironment {
     const workspaceHostPath = URI.parse(
       this.context.workspaceFolder.uri,
     ).fsPath;
-    const isWindowsHost = os.platform() === "win32";
+    const isWindowsHost = hostPlatform === "win32";
     const toContainerPath = (hostPath: string): string =>
       mapHostPathToContainerPath(hostPath, isWindowsHost);
     const workspaceContainerPath = toContainerPath(workspaceHostPath);
