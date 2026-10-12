@@ -16,6 +16,7 @@ import {
   validateExecutionEnvironmentSettings,
 } from "@src/utils/containerCommandSafety.js";
 import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
+import { mapHostPathToContainerPath } from "@src/utils/containerPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type {
   ExtensionSettings,
