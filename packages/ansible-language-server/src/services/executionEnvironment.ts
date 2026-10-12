@@ -268,15 +268,8 @@ export class ExecutionEnvironment {
       this.context.workspaceFolder.uri,
     ).fsPath;
     const isWindowsHost = os.platform() === "win32";
-    const toContainerPath = (hostPath: string): string => {
-      if (!isWindowsHost || !path.win32.isAbsolute(hostPath)) {
-        return hostPath;
-      }
-      const normalized = path.win32.normalize(hostPath);
-      const drive = normalized.slice(0, 2).toLowerCase();
-      const remainder = normalized.slice(2).replace(/\\/g, "/");
-      return `/mnt/${drive[0]}${remainder}`;
-    };
+    const toContainerPath = (hostPath: string): string =>
+      mapHostPathToContainerPath(hostPath, isWindowsHost);
     const workspaceContainerPath = toContainerPath(workspaceHostPath);
     const containerCommand: Array<string> = [this._container_engine];
     containerCommand.push(...["run", "--rm"]);
