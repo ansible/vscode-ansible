@@ -75,7 +75,10 @@ export class CommandRunner {
         this.settings.python.activationScript,
       );
       command = result.command;
-      runEnv = result.env;
+      runEnv = { ...result.env };
+      if (ansibleConfigPath) {
+        runEnv.ANSIBLE_CONFIG = ansibleConfigPath;
+      }
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
