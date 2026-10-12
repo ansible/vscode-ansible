@@ -221,6 +221,13 @@
     "configuration": [
       {
         "properties": {
+          "ansible.config.path": {
+            "default": "",
+            "markdownDescription": "Path to the Ansible configuration file. When using a Linux execution environment on Windows, the host path is mounted and translated to its Linux container path.",
+            "order": 0,
+            "scope": "resource",
+            "type": "string"
+          },
           "ansible.ansible.path": {
             "default": "ansible",
             "markdownDescription": "Path to the ansible executable. All subcommands are expected to have adjacent locations.",
