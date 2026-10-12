@@ -11,21 +11,21 @@ describe("commandRunner Windows path mapping", () => {
   it("resolves absolute Windows config paths outside the workspace", () => {
     expect(
       resolveHostConfigPath(
-        "D:\\\\Shared Configs\\\\ansible.cfg",
-        "C:\\\\Projects\\\\My Workspace",
+        "D:\\Shared Configs\\ansible.cfg",
+        "C:\\Projects\\My Workspace",
         "win32",
       ),
-    ).toBe("D:\\\\Shared Configs\\\\ansible.cfg");
+    ).toBe("D:\\Shared Configs\\ansible.cfg");
   });
 
   it("resolves relative Windows config paths against the Windows workspace", () => {
     expect(
       resolveHostConfigPath(
-        ".ansible\\\\ansible.cfg",
-        "C:\\\\Projects\\\\My Workspace",
+        ".ansible\\ansible.cfg",
+        "C:\\Projects\\My Workspace",
         "win32",
       ),
-    ).toBe("C:\\\\Projects\\\\My Workspace\\\\.ansible\\\\ansible.cfg");
+    ).toBe("C:\\Projects\\My Workspace\\.ansible\\ansible.cfg");
   });
 
   it("maps Windows config paths containing spaces", () => {
