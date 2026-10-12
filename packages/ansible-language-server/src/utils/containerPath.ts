@@ -14,6 +14,6 @@ export function mapHostPathToContainerPath(
 
   const normalized = path.win32.normalize(hostPath);
   const drive = normalized.slice(0, 2).toLowerCase();
-  const remainder = normalized.slice(2).replace(/\\\\/g, "/");
-  return `/mnt/${drive[0]}${remainder}`;
+  const remainder = normalized.slice(2).replace(/\\/g, "/");
+  return `/mnt/\${drive[0]}\${remainder}`;
 }
