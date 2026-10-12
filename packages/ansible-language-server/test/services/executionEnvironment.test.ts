@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "vitest";
-import * as os from "node:os";
 import sinon from "sinon";
 import { Connection } from "vscode-languageserver";
 import { ExecutionEnvironment } from "@src/services/executionEnvironment.js";
@@ -67,8 +66,6 @@ describe("container path mapping", () => {
 
 
   it("uses the Windows host path as the bind source and the Linux path as target", () => {
-    const platformStub = sinon.stub(os, "platform").returns("win32");
-    try {
       const windowsContext = {
         ...mockContext,
         workspaceFolder: { uri: "file:///C:/Users/Dhruv%20Dagar/project" },
@@ -89,6 +86,7 @@ describe("container path mapping", () => {
         "ansible-config dump",
         new Set([hostConfigDirectory]),
         { ANSIBLE_CONFIG: hostConfigPath },
+        "win32",
       );
 
       expect(result).toContain(
@@ -97,9 +95,6 @@ describe("container path mapping", () => {
       expect(result).toContain("ANSIBLE_CONFIG=/mnt/d/Ansible Config/ansible.cfg");
       expect(result).toContain("--workdir");
       expect(result).toContain("/mnt/c/Users/Dhruv Dagar/project");
-    } finally {
-      platformStub.restore();
-    }
   });
 
 describe("@ee", () => {
