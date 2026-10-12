@@ -43,18 +43,18 @@ describe("container path mapping", () => {
   it("maps Windows paths with spaces to absolute Linux paths", () => {
     expect(
       mapHostPathToContainerPath(
-        "C:\\\\Users\\\\Dhruv Dagar\\\\ansible.cfg",
+        "C:\\Users\\Dhruv Dagar\\ansible.cfg",
         true,
       ),
     ).toBe("/mnt/c/Users/Dhruv Dagar/ansible.cfg");
   });
 
   it("maps paths outside the workspace without changing the host source", () => {
-    const hostPath = "D:\\\\Ansible Config\\\\ansible.cfg";
+    const hostPath = "D:\\Ansible Config\\ansible.cfg";
     expect(mapHostPathToContainerPath(hostPath, true)).toBe(
       "/mnt/d/Ansible Config/ansible.cfg",
     );
-    expect(hostPath).toBe("D:\\\\Ansible Config\\\\ansible.cfg");
+    expect(hostPath).toBe("D:\\Ansible Config\\ansible.cfg");
   });
 
   it("leaves Linux and macOS paths unchanged", () => {
