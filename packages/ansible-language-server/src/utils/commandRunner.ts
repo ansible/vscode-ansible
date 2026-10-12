@@ -1,4 +1,3 @@
-import * as os from "node:os";
 import * as path from "node:path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
