@@ -1,3 +1,4 @@
+import * as os from "node:os";
 import * as path from "node:path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
@@ -5,6 +6,7 @@ import { withInterpreter, asyncExec, asyncSpawn } from "@src/utils/misc.js";
 import { getAnsibleCommandExecPath } from "@src/utils/execPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import { resolveHostConfigPath } from "@src/utils/containerPath.js";
 
 export class CommandRunner {
   private connection: Connection | undefined;
@@ -38,10 +40,7 @@ export class CommandRunner {
     const workspaceHostPath = workspaceUri.fsPath;
     const configuredConfigPath = this.settings.config?.path?.trim();
     const ansibleConfigPath = configuredConfigPath
-      ? path.resolve(
-          workspaceHostPath,
-          configuredConfigPath.replace("${workspaceFolder}", workspaceHostPath),
-        )
+      ? resolveHostConfigPath(configuredConfigPath, workspaceHostPath, os.platform())
       : undefined;
     const effectiveMountPaths = new Set(mountPaths || []);
     if (isEEEnabled && ansibleConfigPath) {
