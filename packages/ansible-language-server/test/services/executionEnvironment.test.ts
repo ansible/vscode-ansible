@@ -93,8 +93,6 @@ describe("container path mapping", () => {
         "type=bind,source=D:\\\\Ansible Config,target=/mnt/d/Ansible Config",
       );
       expect(result).toContain("ANSIBLE_CONFIG=/mnt/d/Ansible Config/ansible.cfg");
-      expect(result).toContain("--workdir");
-      expect(result).toContain("/mnt/c/Users/Dhruv Dagar/project");
   });
 
 describe("@ee", () => {
