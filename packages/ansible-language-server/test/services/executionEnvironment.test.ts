@@ -171,6 +171,27 @@ describe("@ee", () => {
       expect(result).toContain("echo");
       expect(result).toContain("hello");
     });
+
+    it("should pass an explicit Ansible config environment override", () => {
+      const ee = new ExecutionEnvironment(
+        mockConnection as unknown as Connection,
+        mockContext as unknown as WorkspaceFolderContext,
+      );
+      ee.isServiceInitialized = true;
+      (ee as any)._container_engine = "docker";
+      (ee as any)._container_image = "test-image";
+      (ee as any).settingsVolumeMounts = [];
+      (ee as any).settingsContainerOptions = "";
+      const result = ee.wrapContainerArgs(
+        "ansible-config dump",
+        new Set(["/tmp/config dir"]),
+        { ANSIBLE_CONFIG: "/tmp/config dir/ansible.cfg" },
+      );
+      expect(result).toContain("-e");
+      expect(result).toContain("ANSIBLE_CONFIG=/tmp/config dir/ansible.cfg");
+      expect(result).toContain("-v");
+      expect(result).toContain("/tmp/config dir:/tmp/config dir");
+    });
   });
 
   describe("getBasicContainerAndImageDetails", () => {
