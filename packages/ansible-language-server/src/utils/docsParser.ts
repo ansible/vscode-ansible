@@ -291,27 +291,35 @@ export class LazyModuleDocumentation implements IModuleMetadata {
   }
 
   private tryParseNonStandardFormats(contents: string): void {
+    const documentationFragments = (this._contents ??= new Map());
+
     // Try to find DOCUMENTATION = """ ... """ even if the regex didn't match
     // This handles modules with unusual formatting like line continuations or spacing
     const tripleQuoteMatch = contents.match(
-      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?"""([\s\S]*?)"""/
+      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?"""([\s\S]*?)"""/,
     );
     if (tripleQuoteMatch) {
       const docContent = tripleQuoteMatch[1];
       const document = parseDocument(docContent);
-      this._contents!.set(DOCUMENTATION, document.toJSON() as Record<string, unknown>);
+      documentationFragments.set(
+        DOCUMENTATION,
+        document.toJSON() as Record<string, unknown>,
+      );
       this.errors = document.errors;
       return;
     }
 
     // Try single triple quotes
     const singleQuoteMatch = contents.match(
-      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?'''([\s\S]*?)'''/
+      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?'''([\s\S]*?)'''/,
     );
     if (singleQuoteMatch) {
       const docContent = singleQuoteMatch[1];
       const document = parseDocument(docContent);
-      this._contents!.set(DOCUMENTATION, document.toJSON() as Record<string, unknown>);
+      documentationFragments.set(
+        DOCUMENTATION,
+        document.toJSON() as Record<string, unknown>,
+      );
       this.errors = document.errors;
     }
   }
