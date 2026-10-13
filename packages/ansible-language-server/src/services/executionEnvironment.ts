@@ -285,9 +285,21 @@ export class ExecutionEnvironment {
       const targetPath = toContainerPath(hostPath);
       if (isWindowsHost && path.win32.isAbsolute(hostPath)) {
         // --mount avoids the drive-letter colon ambiguity in -v on Windows.
+        // Docker parses --mount as CSV, so quote key-value fields containing
+        // commas and escape embedded quotes before joining the fields.
+        const encodeMountField = (field: string): string => {
+          if (!field.includes(",") && !field.includes('"')) {
+            return field;
+          }
+          return `"${field.replace(/"/g, '""')}"`;
+        };
         containerCommand.push(
           "--mount",
-          `type=bind,source=${hostPath},target=${targetPath}`,
+          [
+            "type=bind",
+            encodeMountField(`source=${hostPath}`),
+            encodeMountField(`target=${targetPath}`),
+          ].join(","),
         );
       } else {
         containerCommand.push("-v", `${hostPath}:${targetPath}`);
