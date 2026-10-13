@@ -118,7 +118,7 @@ describe("container path mapping", () => {
     );
 
     expect(result).toContain(
-      '"source=D:\\Ansible, Config","target=/mnt/d/Ansible, Config"',
+      'source="D:\\Ansible, Config",target="/mnt/d/Ansible, Config"',
     );
     expect(result).toContain(
       'ANSIBLE_CONFIG=/mnt/d/Ansible, Config/ansible.cfg',
