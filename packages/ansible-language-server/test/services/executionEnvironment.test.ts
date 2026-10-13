@@ -66,33 +66,63 @@ describe("container path mapping", () => {
 
 
   it("uses the Windows host path as the bind source and the Linux path as target", () => {
-      const windowsContext = {
-        ...mockContext,
-        workspaceFolder: { uri: "file:///C:/Users/Dhruv%20Dagar/project" },
-      };
-      const ee = new ExecutionEnvironment(
-        mockConnection as unknown as Connection,
-        windowsContext as unknown as WorkspaceFolderContext,
-      );
-      ee.isServiceInitialized = true;
-      (ee as any)._container_engine = "docker";
-      (ee as any)._container_image = "test-image";
-      (ee as any).settingsVolumeMounts = [];
-      (ee as any).settingsContainerOptions = "";
+    const windowsContext = {
+      ...mockContext,
+      workspaceFolder: { uri: "file:///C:/Users/Dhruv%20Dagar/project" },
+    };
+    const ee = new ExecutionEnvironment(
+      mockConnection as unknown as Connection,
+      windowsContext as unknown as WorkspaceFolderContext,
+    );
+    ee.isServiceInitialized = true;
+    (ee as any)._container_engine = "docker";
+    (ee as any)._container_image = "test-image";
+    (ee as any).settingsVolumeMounts = [];
+    (ee as any).settingsContainerOptions = "";
 
-      const hostConfigDirectory = "D:\\\\Ansible Config";
-      const hostConfigPath = "D:\\\\Ansible Config\\\\ansible.cfg";
-      const result = ee.wrapContainerArgs(
-        "ansible-config dump",
-        new Set([hostConfigDirectory]),
-        { ANSIBLE_CONFIG: hostConfigPath },
-        "win32",
-      );
+    const hostConfigDirectory = "D:\\\\Ansible Config";
+    const hostConfigPath = "D:\\\\Ansible Config\\\\ansible.cfg";
+    const result = ee.wrapContainerArgs(
+      "ansible-config dump",
+      new Set([hostConfigDirectory]),
+      { ANSIBLE_CONFIG: hostConfigPath },
+      "win32",
+    );
 
-      expect(result).toContain(
-        "type=bind,source=D:\\\\Ansible Config,target=/mnt/d/Ansible Config",
-      );
-      expect(result).toContain("ANSIBLE_CONFIG=/mnt/d/Ansible Config/ansible.cfg");
+    expect(result).toContain(
+      "type=bind,source=D:\\\\Ansible Config,target=/mnt/d/Ansible Config",
+    );
+    expect(result).toContain("ANSIBLE_CONFIG=/mnt/d/Ansible Config/ansible.cfg");
+  });
+
+  it("quotes comma-containing Windows bind mount fields for Docker's CSV parser", () => {
+    const windowsContext = {
+      ...mockContext,
+      workspaceFolder: { uri: "file:///C:/work%2Cfiles/project" },
+    };
+    const ee = new ExecutionEnvironment(
+      mockConnection as unknown as Connection,
+      windowsContext as unknown as WorkspaceFolderContext,
+    );
+    ee.isServiceInitialized = true;
+    (ee as any)._container_engine = "docker";
+    (ee as any)._container_image = "test-image";
+    (ee as any).settingsVolumeMounts = [];
+    (ee as any).settingsContainerOptions = "";
+
+    const result = ee.wrapContainerArgs(
+      "ansible-config dump",
+      new Set(["D:\\\\Ansible, Config"]),
+      { ANSIBLE_CONFIG: "D:\\\\Ansible, Config\\\\ansible.cfg" },
+      "win32",
+    );
+
+    expect(result).toContain(
+      '"source=D:\\\\Ansible, Config","target=/mnt/d/Ansible, Config"',
+    );
+    expect(result).toContain(
+      'ANSIBLE_CONFIG=/mnt/d/Ansible, Config/ansible.cfg',
+    );
   });
 
 describe("@ee", () => {
