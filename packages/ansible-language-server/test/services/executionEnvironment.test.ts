@@ -80,8 +80,8 @@ describe("container path mapping", () => {
     (ee as any).settingsVolumeMounts = [];
     (ee as any).settingsContainerOptions = "";
 
-    const hostConfigDirectory = "D:\\\\Ansible Config";
-    const hostConfigPath = "D:\\\\Ansible Config\\\\ansible.cfg";
+    const hostConfigDirectory = "D:\\Ansible Config";
+    const hostConfigPath = "D:\\Ansible Config\\\\ansible.cfg";
     const result = ee.wrapContainerArgs(
       "ansible-config dump",
       new Set([hostConfigDirectory]),
@@ -90,7 +90,7 @@ describe("container path mapping", () => {
     );
 
     expect(result).toContain(
-      "type=bind,source=D:\\\\Ansible Config,target=/mnt/d/Ansible Config",
+      "type=bind,source=D:\\Ansible Config,target=/mnt/d/Ansible Config",
     );
     expect(result).toContain("ANSIBLE_CONFIG=/mnt/d/Ansible Config/ansible.cfg");
   });
@@ -112,13 +112,13 @@ describe("container path mapping", () => {
 
     const result = ee.wrapContainerArgs(
       "ansible-config dump",
-      new Set(["D:\\\\Ansible, Config"]),
-      { ANSIBLE_CONFIG: "D:\\\\Ansible, Config\\\\ansible.cfg" },
+      new Set(["D:\\Ansible, Config"]),
+      { ANSIBLE_CONFIG: "D:\\Ansible, Config\\\\ansible.cfg" },
       "win32",
     );
 
     expect(result).toContain(
-      '"source=D:\\\\Ansible, Config","target=/mnt/d/Ansible, Config"',
+      '"source=D:\\Ansible, Config","target=/mnt/d/Ansible, Config"',
     );
     expect(result).toContain(
       'ANSIBLE_CONFIG=/mnt/d/Ansible, Config/ansible.cfg',
