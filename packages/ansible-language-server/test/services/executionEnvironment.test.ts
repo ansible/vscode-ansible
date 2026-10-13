@@ -81,7 +81,7 @@ describe("container path mapping", () => {
     (ee as any).settingsContainerOptions = "";
 
     const hostConfigDirectory = "D:\\Ansible Config";
-    const hostConfigPath = "D:\\Ansible Config\\\\ansible.cfg";
+    const hostConfigPath = "D:\\Ansible Config\\ansible.cfg";
     const result = ee.wrapContainerArgs(
       "ansible-config dump",
       new Set([hostConfigDirectory]),
@@ -113,7 +113,7 @@ describe("container path mapping", () => {
     const result = ee.wrapContainerArgs(
       "ansible-config dump",
       new Set(["D:\\Ansible, Config"]),
-      { ANSIBLE_CONFIG: "D:\\Ansible, Config\\\\ansible.cfg" },
+      { ANSIBLE_CONFIG: "D:\\Ansible, Config\\ansible.cfg" },
       "win32",
     );
 
