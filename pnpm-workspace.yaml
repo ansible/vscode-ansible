@@ -81,3 +81,5 @@ minimumReleaseAgeExclude:
   - pnpm@11.11.0
   # Renovate security update: vitest@4.1.11
   - vitest@4.1.11
+  # Renovate security update: @modelcontextprotocol/sdk@1.31.0
+  - "@modelcontextprotocol/sdk@1.31.0"

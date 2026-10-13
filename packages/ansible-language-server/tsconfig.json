@@ -5,6 +5,7 @@
     "moduleResolution": "bundler",
     "outDir": "lib",
     "paths": {
+      "@root/*": ["../../*"],
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"]
     },

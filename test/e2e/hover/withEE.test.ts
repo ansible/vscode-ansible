@@ -4,7 +4,7 @@ import {
   activate,
   testHover,
   waitForHoverReady,
-  setFixtureAnsibleCollectionPathEnv,
+  setEeFixtureAnsibleCollectionPathEnv,
   skip_ee,
   deleteAlsCache,
   enableExecutionEnvironmentSettings,
@@ -18,9 +18,7 @@ describe("ee", function () {
       this.skip();
     }
     deleteAlsCache();
-    setFixtureAnsibleCollectionPathEnv(
-      "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-    );
+    setEeFixtureAnsibleCollectionPathEnv();
     await enableExecutionEnvironmentSettings();
   });
 
@@ -37,9 +35,7 @@ describe("ee", function () {
       this.timeout(240_000);
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
-      setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-      );
+      setEeFixtureAnsibleCollectionPathEnv();
       await Promise.race([
         vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
         waitForHoverReady(docUri1, new vscode.Position(0, 4)),

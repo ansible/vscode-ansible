@@ -8,6 +8,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
+  setEeFixtureAnsibleCollectionPathEnv,
 } from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
@@ -289,9 +290,7 @@ describe("doHover()", function () {
   describe("Play keywords hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (docSettings && context) {
           await enableExecutionEnvironmentSettings(docSettings, context);
         }
@@ -324,9 +323,7 @@ describe("doHover()", function () {
   describe("Task keywords hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (docSettings && context) {
           await enableExecutionEnvironmentSettings(docSettings, context);
         }
@@ -359,9 +356,7 @@ describe("doHover()", function () {
   describe("Block keywords hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (docSettings && context) {
           await enableExecutionEnvironmentSettings(docSettings, context);
         }
@@ -402,9 +397,7 @@ describe("doHover()", function () {
   describe("Role keywords hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (roleDocSettings && roleContext) {
           await enableExecutionEnvironmentSettings(
             roleDocSettings,
@@ -457,9 +450,7 @@ describe("doHover()", function () {
   describe("Module name and options hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (moduleDocSettings && moduleContext) {
           await enableExecutionEnvironmentSettings(
             moduleDocSettings,
@@ -503,9 +494,7 @@ describe("doHover()", function () {
   describe("No hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (moduleDocSettings && moduleContext) {
           await enableExecutionEnvironmentSettings(
             moduleDocSettings,
@@ -556,9 +545,7 @@ describe("doHover()", function () {
   describe("Hover for playbook adjacent collection", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (pacDocSettings && pacContext) {
           await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         }
@@ -603,9 +590,7 @@ describe("doHover()", function () {
   describe("Negate hover for non playbook adjacent collection", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (nonAdjacentDocSettings && nonAdjacentContext) {
           await enableExecutionEnvironmentSettings(
             nonAdjacentDocSettings,
