@@ -1,9 +1,12 @@
+import * as os from "node:os";
+import * as path from "node:path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { withInterpreter, asyncExec, asyncSpawn } from "@src/utils/misc.js";
 import { getAnsibleCommandExecPath } from "@src/utils/execPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import { resolveHostConfigPath } from "@src/utils/containerPath.js";
 
 export class CommandRunner {
   private connection: Connection | undefined;
@@ -33,9 +36,19 @@ export class CommandRunner {
     let command: string | string[] | undefined;
     let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
+    const workspaceUri = URI.parse(this.context.workspaceFolder.uri);
+    const workspaceHostPath = workspaceUri.fsPath;
+    const configuredConfigPath = this.settings.config?.path?.trim();
+    const ansibleConfigPath = configuredConfigPath
+      ? resolveHostConfigPath(configuredConfigPath, workspaceHostPath, os.platform())
+      : undefined;
+    const effectiveMountPaths = new Set(mountPaths || []);
+    if (isEEEnabled && ansibleConfigPath) {
+      effectiveMountPaths.add(path.dirname(ansibleConfigPath));
+    }
     let interpreterPathFromConfig = this.settings.python.interpreterPath;
     if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
-      const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).path;
+      const workspaceFolder = workspaceHostPath;
       interpreterPathFromConfig = interpreterPathFromConfig.replace(
         "${workspaceFolder}",
         workspaceFolder,
@@ -60,13 +73,21 @@ export class CommandRunner {
         this.settings.python.activationScript,
       );
       command = result.command;
-      runEnv = result.env;
+      runEnv = { ...result.env };
+      if (ansibleConfigPath) {
+        runEnv.ANSIBLE_CONFIG = ansibleConfigPath;
+      }
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
+      const envOverrides: NodeJS.ProcessEnv = {};
+      if (ansibleConfigPath) {
+        envOverrides.ANSIBLE_CONFIG = ansibleConfigPath;
+      }
       command = executionEnvironment.wrapContainerArgs(
         `${executable} ${args}`,
-        mountPaths,
+        effectiveMountPaths,
+        envOverrides,
       );
       runEnv = process.env;
     }
@@ -76,7 +97,7 @@ export class CommandRunner {
 
     const currentWorkingDirectory = workingDirectory
       ? workingDirectory
-      : URI.parse(this.context.workspaceFolder.uri).path;
+      : workspaceHostPath;
     const spawnOptions = {
       encoding: "utf-8" as const,
       cwd: currentWorkingDirectory,

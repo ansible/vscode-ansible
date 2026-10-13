@@ -16,6 +16,7 @@ import {
   validateExecutionEnvironmentSettings,
 } from "@src/utils/containerCommandSafety.js";
 import { asyncSpawn, spawnSyncWithResult } from "@src/utils/misc.js";
+import { mapHostPathToContainerPath } from "@src/utils/containerPath.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type {
   ExtensionSettings,
@@ -249,6 +250,8 @@ export class ExecutionEnvironment {
   public wrapContainerArgs(
     command: string,
     mountPaths?: Set<string>,
+    envOverrides: NodeJS.ProcessEnv = {},
+    hostPlatform: NodeJS.Platform = os.platform(),
   ): string[] | undefined {
     /* v8 ignore next 10 */
     if (
@@ -262,28 +265,54 @@ export class ExecutionEnvironment {
       return undefined;
     }
     /* v8 ignore next 92 */
-    const workspaceFolderPath = URI.parse(
+    const workspaceHostPath = URI.parse(
       this.context.workspaceFolder.uri,
-    ).path;
+    ).fsPath;
+    const isWindowsHost = hostPlatform === "win32";
+    const toContainerPath = (hostPath: string): string =>
+      mapHostPathToContainerPath(hostPath, isWindowsHost);
+    const workspaceContainerPath = toContainerPath(workspaceHostPath);
     const containerCommand: Array<string> = [this._container_engine];
     containerCommand.push(...["run", "--rm"]);
-    containerCommand.push(...["--workdir", workspaceFolderPath]);
+    containerCommand.push(...["--workdir", workspaceContainerPath]);
 
-    containerCommand.push(
-      ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`],
-    );
+    const addedHostMounts = new Set<string>();
+    const addBindMount = (hostPath: string): void => {
+      if (!hostPath || addedHostMounts.has(hostPath)) {
+        return;
+      }
+      addedHostMounts.add(hostPath);
+      const targetPath = toContainerPath(hostPath);
+      if (isWindowsHost && path.win32.isAbsolute(hostPath)) {
+        // --mount avoids the drive-letter colon ambiguity in -v on Windows.
+        // Docker parses --mount as CSV, so quote key-value fields containing
+        // commas and escape embedded quotes before joining the fields.
+        const encodeMountValue = (value: string): string => {
+          if (!value.includes(",") && !value.includes('"')) {
+            return value;
+          }
+          return `"${value.replace(/"/g, '""')}"`;
+        };
+        containerCommand.push(
+          "--mount",
+          [
+            "type=bind",
+            `source=${encodeMountValue(hostPath)}`,
+            `target=${encodeMountValue(targetPath)}`,
+          ].join(","),
+        );
+      } else {
+        containerCommand.push("-v", `${hostPath}:${targetPath}`);
+      }
+    };
+    addBindMount(workspaceHostPath);
 
     for (const mountPath of mountPaths || []) {
-      // push to array only if mount path isn't an empty string, then let podman produce errors as needed
+      // Let the container engine report invalid non-empty mount paths.
       if (mountPath === "") {
         continue;
       }
-
-      const volumeMountPath = `${mountPath}:${mountPath}`;
-      if (containerCommand.includes(volumeMountPath)) {
-        continue;
-      }
-      containerCommand.push("-v", volumeMountPath);
+      addBindMount(mountPath);
     }
 
     // handle container volume mounts setting from client
@@ -297,9 +326,16 @@ export class ExecutionEnvironment {
     }
 
     // handle Ansible environment variables
-    for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
-      if (envVarKey.startsWith("ANSIBLE_")) {
-        containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
+    for (const [envVarKey, envVarValue] of Object.entries({
+      ...process.env,
+      ...envOverrides,
+    })) {
+      if (envVarKey.startsWith("ANSIBLE_") && envVarValue !== undefined) {
+        const value =
+          envVarKey === "ANSIBLE_CONFIG" && isWindowsHost
+            ? toContainerPath(envVarValue)
+            : envVarValue;
+        containerCommand.push("-e", `${envVarKey}=${value}`);
       }
     }
     // ensure output is parsable (no ANSI)
