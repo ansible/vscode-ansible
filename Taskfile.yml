@@ -276,6 +276,8 @@ tasks:
       - exclude: "test/ui/**/*"
       - package*.json
       - tools/helper.mts
+      - tools/als-packaging.mts
+      - tools/smoke-als-vsix.mts
       - pnpm-lock.yaml
       - dist/**/*
     generates:
@@ -286,6 +288,7 @@ tasks:
       - cmd: task mcp:package
       # we want to build both all the time:
       - npm run package
+      - node tools/smoke-als-vsix.mts
       - node packages/ansible-language-server/tools/can-release.mts
       - task: knip
       - defer: { task: finish }
