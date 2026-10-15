@@ -14,6 +14,7 @@ import { getDefinition } from "@src/providers/definitionProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { fileExists } from "@src/utils/misc.js";
 import { URI } from "vscode-uri";
+import * as path from "node:path";
 
 function testModuleNamesForDefinition(
   context: WorkspaceFolderContext,
@@ -165,6 +166,115 @@ describe("getDefinition()", function () {
         docsLibrary,
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe("File reference definitions", function () {
+    const docsLibrary = {
+      findModule: vi.fn().mockResolvedValue([undefined, undefined]),
+    } as unknown as DocsLibrary;
+
+    const playbook = "definition/file_reference/playbook.yml";
+    const roleTasks = "definition/file_reference/roles/web/tasks/main.yml";
+
+    const cases = [
+      {
+        name: "template src is found in the templates directory",
+        file: playbook,
+        position: { line: 6, character: 15 },
+        expected: "definition/file_reference/templates/myfile.txt.j2",
+      },
+      {
+        name: "copy src is found in the files directory",
+        file: playbook,
+        position: { line: 11, character: 15 },
+        expected: "definition/file_reference/files/static.txt",
+      },
+      {
+        name: "short module names are supported",
+        file: playbook,
+        position: { line: 34, character: 15 },
+        expected: "definition/file_reference/templates/myfile.txt.j2",
+      },
+      {
+        name: "free-form include_tasks value is resolved",
+        file: playbook,
+        position: { line: 30, character: 40 },
+        expected: "definition/file_reference/extra_tasks.yml",
+      },
+      {
+        name: "role template is found in the role templates directory",
+        file: roleTasks,
+        position: { line: 3, character: 12 },
+        expected:
+          "definition/file_reference/roles/web/templates/nginx.conf.j2",
+      },
+      {
+        name: "role copy is found in the role files directory",
+        file: roleTasks,
+        position: { line: 8, character: 12 },
+        expected: "definition/file_reference/roles/web/files/motd.txt",
+      },
+    ];
+
+    cases.forEach(({ name, file, position, expected }) => {
+      it(`resolves: ${name}`, async function () {
+        const doc = getDoc(file);
+        const result = await getDefinition(doc, position, docsLibrary);
+        expect(result).toHaveLength(1);
+        expect(URI.parse(result![0].targetUri).fsPath.toLowerCase()).toBe(
+          resolveDocUri(expected).toLowerCase(),
+        );
+        expect(result![0].originSelectionRange).toBeDefined();
+      });
+    });
+
+    const nullCases = [
+      {
+        name: "file does not exist",
+        position: { line: 16, character: 15 },
+      },
+      {
+        name: "value contains a Jinja expression",
+        position: { line: 21, character: 18 },
+      },
+      {
+        name: "option is a destination on the managed host (dest)",
+        position: { line: 27, character: 16 },
+      },
+    ];
+
+    nullCases.forEach(({ name, position }) => {
+      it(`returns null when ${name}`, async function () {
+        const doc = getDoc(playbook);
+        const result = await getDefinition(doc, position, docsLibrary);
+        expect(result).toBeNull();
+      });
+    });
+
+    it("falls back to the basedir passed by the caller", async function () {
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri("elsewhere.yml")).toString(),
+        "ansible",
+        1,
+        `- hosts: localhost
+  tasks:
+    - ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/x
+`,
+      );
+      const base = resolveDocUri("definition/file_reference");
+      const result = await getDefinition(
+        doc,
+        { line: 3, character: 14 },
+        docsLibrary,
+        [base],
+      );
+      expect(result).toHaveLength(1);
+      expect(URI.parse(result![0].targetUri).fsPath.toLowerCase()).toBe(
+        path.join(base, "files", "static.txt").toLowerCase(),
+      );
     });
   });
 });

@@ -10,6 +10,7 @@ import {
   TextDocumentSyncOptions,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { URI } from "vscode-uri";
 import {
   doCompletion,
   doCompletionResolve,
@@ -358,6 +359,7 @@ export class AnsibleLanguageService {
               document,
               params.position,
               await context.docsLibrary,
+              [URI.parse(context.workspaceFolder.uri).fsPath],
             );
           }
         }
