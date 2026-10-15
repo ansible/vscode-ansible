@@ -8,7 +8,7 @@ import {
   extractVsixExtensionRoot,
   findSingleVsix,
   smokeAlsCli,
-} from "@root/tools/als-packaging.mts";
+} from "@root/tools/als-packaging";
 import {
   requirePathOnCi,
   requireVsixOnCi,

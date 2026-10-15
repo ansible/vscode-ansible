@@ -12,7 +12,7 @@ import {
   extractVsixExtensionRoot,
   findSingleVsix,
   smokeAlsCli,
-} from "@root/tools/als-packaging.mts";
+} from "./als-packaging.mts";
 
 const projectRoot = join(import.meta.dirname, "..");
 

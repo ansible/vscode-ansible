@@ -113,14 +113,65 @@ export function assertAlsDistInExtensionRoot(extensionRoot: string): void {
 
 const MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
 
+const LSP_INITIALIZE_REQUEST = {
+  jsonrpc: "2.0",
+  id: 1,
+  method: "initialize",
+  params: {
+    capabilities: {},
+    clientInfo: { name: "als-packaging-smoke", version: "0.0.0" },
+    processId: null,
+    rootUri: null,
+  },
+};
+
+function formatLspMessage(payload: object): string {
+  const body = JSON.stringify(payload);
+  return `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n${body}`;
+}
+
+function consumeInitializeResponse(stdoutBuffer: string): {
+  remaining: string;
+  initialized: boolean;
+} {
+  let buffer = stdoutBuffer;
+  while (buffer.length > 0) {
+    const headerEnd = buffer.indexOf("\r\n\r\n");
+    if (headerEnd === -1) {
+      return { remaining: buffer, initialized: false };
+    }
+    const header = buffer.slice(0, headerEnd);
+    const lengthMatch = /Content-Length:\s*(\d+)/i.exec(header);
+    if (!lengthMatch) {
+      return { remaining: buffer.slice(headerEnd + 4), initialized: false };
+    }
+    const contentLength = Number.parseInt(lengthMatch[1] ?? "", 10);
+    const bodyStart = headerEnd + 4;
+    if (buffer.length < bodyStart + contentLength) {
+      return { remaining: buffer, initialized: false };
+    }
+    const body = buffer.slice(bodyStart, bodyStart + contentLength);
+    buffer = buffer.slice(bodyStart + contentLength);
+    try {
+      const message = JSON.parse(body) as { id?: number; result?: unknown };
+      if (message.id === 1 && message.result !== undefined) {
+        return { remaining: buffer, initialized: true };
+      }
+    } catch {
+      // keep scanning
+    }
+  }
+  return { remaining: buffer, initialized: false };
+}
+
 /**
- * Start packaged ALS CLI with --stdio; fail on missing modules, resolve once the
- * server begins listening (or after a short grace period without errors).
+ * Start packaged ALS CLI with --stdio; fail on missing modules; pass only after
+ * an LSP initialize response is received on stdout.
  */
 export function smokeAlsCli(
   cliPath: string,
   cwd: string,
-  timeoutMs = 5000,
+  timeoutMs = 15000,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cliPath, "--stdio"], {
@@ -130,6 +181,8 @@ export function smokeAlsCli(
     });
 
     let stderr = "";
+    let stdoutBuffer = "";
+    let startupConfirmed = false;
     let settled = false;
 
     const fail = (message: string) => {
@@ -155,6 +208,15 @@ export function smokeAlsCli(
       }
     });
 
+    child.stdout.on("data", (chunk: Buffer) => {
+      const parsed = consumeInitializeResponse(stdoutBuffer + chunk.toString());
+      stdoutBuffer = parsed.remaining;
+      if (parsed.initialized) {
+        startupConfirmed = true;
+        succeed();
+      }
+    });
+
     child.on("error", (err) => {
       fail(`Failed to spawn ALS CLI: ${String(err)}`);
     });
@@ -165,13 +227,23 @@ export function smokeAlsCli(
         fail(`ALS CLI exited with missing module: ${stderr}`);
         return;
       }
+      if (signal !== null && signal !== "SIGTERM") {
+        fail(
+          `ALS CLI exited with signal ${signal} (code ${code ?? "null"}): ${stderr}`,
+        );
+        return;
+      }
       if (code !== null && code !== 0) {
         fail(
           `ALS CLI exited with code ${code} (signal ${signal ?? "none"}): ${stderr}`,
         );
         return;
       }
-      succeed();
+      if (!startupConfirmed) {
+        fail(
+          `ALS CLI exited before LSP initialize response (code=${String(code)}, signal=${signal ?? "none"}): ${stderr}`,
+        );
+      }
     });
 
     const timer = setTimeout(() => {
@@ -179,7 +251,13 @@ export function smokeAlsCli(
         fail(`ALS CLI stderr contains ${MODULE_NOT_FOUND}: ${stderr}`);
         return;
       }
-      succeed();
+      if (!startupConfirmed) {
+        fail(
+          `ALS CLI did not respond to initialize within ${timeoutMs}ms: ${stderr}`,
+        );
+      }
     }, timeoutMs);
+
+    child.stdin.write(formatLspMessage(LSP_INITIALIZE_REQUEST));
   });
 }
