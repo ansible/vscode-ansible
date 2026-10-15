@@ -234,8 +234,15 @@ export function smokeAlsCli(
       fail(`Failed to spawn ALS CLI: ${String(err)}`);
     });
 
-    child.on("exit", (code, signal) => {
+    const handleExit = (code: number | null, signal: NodeJS.Signals | null) => {
       if (settled) return;
+      const parsed = consumeInitializeResponse(stdoutBuffer);
+      stdoutBuffer = Buffer.from(parsed.remaining);
+      if (parsed.initialized) {
+        startupConfirmed = true;
+        succeed();
+        return;
+      }
       if (stderr.includes(MODULE_NOT_FOUND)) {
         fail(`ALS CLI exited with missing module: ${stderr}`);
         return;
@@ -257,6 +264,12 @@ export function smokeAlsCli(
           `ALS CLI exited before LSP initialize response (code=${String(code)}, signal=${signal ?? "none"}): ${stderr}`,
         );
       }
+    };
+
+    child.on("exit", (code, signal) => {
+      setImmediate(() => {
+        handleExit(code, signal);
+      });
     });
 
     const timer = setTimeout(() => {

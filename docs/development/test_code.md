@@ -85,7 +85,7 @@ node tools/smoke-als-vsix.mts
 node tools/smoke-als-vsix.mts --vsix out/ansible-<version>.vsix
 ```
 
-On CI, `task package` (Linux/macOS) enforces the VSIX smoke; unit tests in
+On CI, `task package` on Linux enforces the VSIX smoke; unit tests in
 `test/unit/als/alsPackaging.test.ts` mirror `test/unit/mcp/mcpPackaging.test.ts` for
 `.vscodeignore` and dist layout.
 

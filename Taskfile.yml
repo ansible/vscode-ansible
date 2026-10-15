@@ -288,7 +288,9 @@ tasks:
       - cmd: task mcp:package
       # we want to build both all the time:
       - npm run package
-      - node tools/smoke-als-vsix.mts
+      # VSIX smoke uses unzip; validated on Linux CI (package job + linux build).
+      - cmd: node tools/smoke-als-vsix.mts
+        platforms: [linux]
       - node packages/ansible-language-server/tools/can-release.mts
       - task: knip
       - defer: { task: finish }
