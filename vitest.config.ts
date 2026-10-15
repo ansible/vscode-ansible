@@ -112,8 +112,11 @@ export default defineConfig({
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
           exclude: ["test/unit/webviews/**"],
-          isolate: true, // spawns ALS CLI in packaging tests; avoids process listener leaks
           setupFiles: ["./test/unit/vitestSetup.ts"],
+          sequence: {
+            // After mcp (1) and als @ee/podman (2); CLI smokes must not run during ALS tests
+            groupOrder: 3,
+          },
         },
       },
       {

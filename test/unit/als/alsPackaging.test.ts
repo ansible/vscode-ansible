@@ -9,7 +9,10 @@ import {
   findSingleVsix,
   smokeAlsCli,
 } from "@root/tools/als-packaging";
-import { requirePathOnCi } from "@test/unit/als/alsPackagingTestUtils";
+import {
+  isPackagingCi,
+  requirePathOnCi,
+} from "@test/unit/als/alsPackagingTestUtils";
 
 const alsPackageDir = path.join(
   PROJECT_ROOT,
@@ -92,7 +95,8 @@ describe("ALS packaging", function () {
     });
   });
 
-  describe("packaged ALS CLI smoke", function () {
+  describe.skipIf(isPackagingCi())("packaged ALS CLI smoke", function () {
+    // On CI, `task package` runs tools/smoke-als-vsix.mts (avoid parallel CLI spawns during als @ee tests).
     it("should start --stdio without MODULE_NOT_FOUND from workspace dist", async function () {
       const hasDist = fs.existsSync(alsCliPath);
       if (

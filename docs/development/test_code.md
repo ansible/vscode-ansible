@@ -87,7 +87,8 @@ node tools/smoke-als-vsix.mts --vsix out/ansible-<version>.vsix
 
 On CI, `task package` enforces the VSIX smoke; unit tests in
 `test/unit/als/alsPackaging.test.ts` mirror `test/unit/mcp/mcpPackaging.test.ts` for
-`.vscodeignore` and dist layout.
+`.vscodeignore` and dist layout. CLI `--stdio` smokes in that file are skipped on CI
+so they do not run in parallel with ALS execution-environment (podman) unit tests.
 
 ## Coverage
 

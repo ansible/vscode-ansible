@@ -140,10 +140,20 @@ export function smokeAlsCli(
     let stderr = "";
     let settled = false;
 
+    const dispose = () => {
+      child.stderr.removeAllListeners("data");
+      child.removeAllListeners("error");
+      child.removeAllListeners("exit");
+      child.stdin?.end();
+      child.stdout?.destroy();
+      child.stderr?.destroy();
+    };
+
     const fail = (message: string) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      dispose();
       child.kill("SIGKILL");
       reject(new Error(message));
     };
@@ -152,6 +162,7 @@ export function smokeAlsCli(
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      dispose();
       child.kill("SIGTERM");
       resolve();
     };
