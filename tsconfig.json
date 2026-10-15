@@ -8,8 +8,8 @@
     "outDir": "lib",
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
-      "@root/tools/als-packaging": ["./tools/als-packaging.mts"],
       "@root/*": ["./*"],
+      "@root/tools/als-packaging": ["./tools/als-packaging.mts"],
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@webviews/*": ["./webviews/*"]
