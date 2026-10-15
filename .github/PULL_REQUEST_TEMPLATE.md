@@ -1,3 +1,5 @@
+# Pull request
+
 ## Summary
 
 <!-- Conventional commit style title in PR name, e.g. feat(ci): ... -->
@@ -20,7 +22,7 @@ node tools/smoke-als-vsix.mts
 
 ## Issue references
 
-```
+```text
 (related): AAP-93529
 (fixes|closes): AAP-97287
 ```

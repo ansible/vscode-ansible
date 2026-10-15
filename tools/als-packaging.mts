@@ -71,9 +71,11 @@ export function assertAlsDistComplete(distDir: string): void {
   }
 }
 
+const PACKAGED_VSIX_PATTERN = /^ansible-\d.*\.vsix$/;
+
 export function findSingleVsix(outDir: string): string {
-  const entries = readdirSync(outDir).filter(
-    (name) => name.startsWith("ansible-") && name.endsWith(".vsix"),
+  const entries = readdirSync(outDir).filter((name) =>
+    PACKAGED_VSIX_PATTERN.test(name),
   );
   if (entries.length !== 1) {
     throw new Error(
@@ -130,30 +132,36 @@ function formatLspMessage(payload: object): string {
   return `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n${body}`;
 }
 
-function consumeInitializeResponse(stdoutBuffer: string): {
-  remaining: string;
+const HEADER_SEPARATOR = Buffer.from("\r\n\r\n");
+
+function consumeInitializeResponse(stdoutBuffer: Buffer): {
+  remaining: Buffer;
   initialized: boolean;
 } {
   let buffer = stdoutBuffer;
   while (buffer.length > 0) {
-    const headerEnd = buffer.indexOf("\r\n\r\n");
+    const headerEnd = buffer.indexOf(HEADER_SEPARATOR);
     if (headerEnd === -1) {
       return { remaining: buffer, initialized: false };
     }
-    const header = buffer.slice(0, headerEnd);
+    const header = buffer.subarray(0, headerEnd).toString("ascii");
     const lengthMatch = /Content-Length:\s*(\d+)/i.exec(header);
+    const bodyStart = headerEnd + HEADER_SEPARATOR.length;
     if (!lengthMatch) {
-      return { remaining: buffer.slice(headerEnd + 4), initialized: false };
+      buffer = buffer.subarray(bodyStart);
+      continue;
     }
     const contentLength = Number.parseInt(lengthMatch[1] ?? "", 10);
-    const bodyStart = headerEnd + 4;
     if (buffer.length < bodyStart + contentLength) {
       return { remaining: buffer, initialized: false };
     }
-    const body = buffer.slice(bodyStart, bodyStart + contentLength);
-    buffer = buffer.slice(bodyStart + contentLength);
+    const body = buffer.subarray(bodyStart, bodyStart + contentLength);
+    buffer = buffer.subarray(bodyStart + contentLength);
     try {
-      const message = JSON.parse(body) as { id?: number; result?: unknown };
+      const message = JSON.parse(body.toString("utf8")) as {
+        id?: number;
+        result?: unknown;
+      };
       if (message.id === 1 && message.result !== undefined) {
         return { remaining: buffer, initialized: true };
       }
@@ -181,7 +189,7 @@ export function smokeAlsCli(
     });
 
     let stderr = "";
-    let stdoutBuffer = "";
+    let stdoutBuffer = Buffer.alloc(0);
     let startupConfirmed = false;
     let settled = false;
 
@@ -209,12 +217,17 @@ export function smokeAlsCli(
     });
 
     child.stdout.on("data", (chunk: Buffer) => {
-      const parsed = consumeInitializeResponse(stdoutBuffer + chunk.toString());
-      stdoutBuffer = parsed.remaining;
+      stdoutBuffer = Buffer.concat([stdoutBuffer, chunk]);
+      const parsed = consumeInitializeResponse(stdoutBuffer);
+      stdoutBuffer = Buffer.from(parsed.remaining);
       if (parsed.initialized) {
         startupConfirmed = true;
         succeed();
       }
+    });
+
+    child.stdin.on("error", (err) => {
+      fail(`ALS CLI stdin error: ${String(err)}`);
     });
 
     child.on("error", (err) => {
@@ -258,6 +271,11 @@ export function smokeAlsCli(
       }
     }, timeoutMs);
 
-    child.stdin.write(formatLspMessage(LSP_INITIALIZE_REQUEST));
+    const initMessage = formatLspMessage(LSP_INITIALIZE_REQUEST);
+    child.stdin.write(initMessage, (err) => {
+      if (err) {
+        fail(`Failed to write initialize to ALS CLI stdin: ${String(err)}`);
+      }
+    });
   });
 }
