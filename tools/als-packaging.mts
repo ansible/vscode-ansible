@@ -115,6 +115,10 @@ export function assertAlsDistInExtensionRoot(extensionRoot: string): void {
 
 const MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
 
+/** Grace period for --stdio smoke; MODULE_NOT_FOUND shows up quickly. */
+export const DEFAULT_SMOKE_TIMEOUT_MS =
+  process.env.CI === "true" ? 3000 : 10000;
+
 /**
  * Start packaged `cli.cjs --stdio`; fail on `MODULE_NOT_FOUND` or non-zero exit.
  * Exit 0 without that error means bundles resolved (some runners exit before LSP
@@ -123,7 +127,7 @@ const MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
 export function smokeAlsCli(
   cliPath: string,
   _cwd: string,
-  timeoutMs = 10000,
+  timeoutMs = DEFAULT_SMOKE_TIMEOUT_MS,
 ): Promise<void> {
   const distDir = dirname(cliPath);
   return new Promise((resolve, reject) => {

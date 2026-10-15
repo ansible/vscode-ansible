@@ -112,6 +112,7 @@ export default defineConfig({
           fileParallelism: false,
           include: ["test/unit/**/*.test.ts"],
           exclude: ["test/unit/webviews/**"],
+          isolate: true, // spawns ALS CLI in packaging tests; avoids process listener leaks
           setupFiles: ["./test/unit/vitestSetup.ts"],
         },
       },
@@ -155,7 +156,7 @@ export default defineConfig({
             concurrent: false,
             groupOrder: 1,
           },
-          testTimeout: 30000, // 30 seconds for tests that might spawn processes
+          testTimeout: process.platform === "darwin" ? 60000 : 30000, // mac GHA: slow ansible-navigator spawns
         },
       },
     ],
