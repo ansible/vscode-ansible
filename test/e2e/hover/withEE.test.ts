@@ -32,14 +32,30 @@ describe("ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
     before(async function () {
-      this.timeout(240_000);
+      // Two hover readiness probes share one budget (default 210s each would exceed
+      // a 240s hook and let Mocha abort the builtin-module wait).
+      this.timeout(480_000);
+      const readinessDeadline = Date.now() + 420_000;
+      const readinessTimeoutMs = () =>
+        Math.max(readinessDeadline - Date.now(), 1);
+
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
       setEeFixtureAnsibleCollectionPathEnv();
       await Promise.race([
         vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
-        waitForHoverReady(docUri1, new vscode.Position(0, 4)),
+        waitForHoverReady(
+          docUri1,
+          new vscode.Position(0, 4),
+          readinessTimeoutMs(),
+        ),
       ]);
+      // Play-keyword hovers can succeed before EE indexes builtin module docs.
+      await waitForHoverReady(
+        docUri1,
+        new vscode.Position(5, 7),
+        readinessTimeoutMs(),
+      );
     });
 
     describe("Hover for play keywords", function () {

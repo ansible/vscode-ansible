@@ -32,7 +32,6 @@
   "labels": ["chore", "dependencies"],
   "lockFileMaintenance": {
     "enabled": true,
-    "rangeStrategy": "replace",
     "rebaseWhen": "conflicted",
     "recreateWhen": "auto"
   },

@@ -35,42 +35,53 @@ describe("ansible-diag-no-ee", function () {
     });
 
     it("should complain about no task names", async function () {
+      this.timeout(60_000);
       await activate(docUri1);
       await vscode.commands.executeCommand("workbench.action.files.save");
       // Wait for ansible-lint diagnostics directly instead of relying on process detection
       // which is unreliable on WSL. Use a generous timeout for slow CI environments.
-      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 15000);
+      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 30000);
 
-      await testDiagnostics(docUri1, [
-        {
-          severity: 0,
-          message: "All tasks should be named",
-          range: new vscode.Range(
-            new vscode.Position(3, 0),
-            new vscode.Position(3, integer.MAX_VALUE),
-          ),
-          source: "ansible-lint",
-        },
-      ]);
+      await testDiagnostics(
+        docUri1,
+        [
+          {
+            severity: 0,
+            message: "All tasks should be named",
+            range: new vscode.Range(
+              new vscode.Position(3, 0),
+              new vscode.Position(3, integer.MAX_VALUE),
+            ),
+            source: "ansible-lint",
+          },
+        ],
+        15000,
+      );
     });
 
     it("should complain about command syntax-check failed", async function () {
+      this.timeout(60_000);
       await activate(docUri2);
       await vscode.commands.executeCommand("workbench.action.files.save");
       // Wait for ansible-lint diagnostics directly instead of relying on process detection
-      await waitForDiagnosticsFromSource(docUri2, "ansible-lint", 1, 15000);
+      await waitForDiagnosticsFromSource(docUri2, "ansible-lint", 1, 30000);
 
-      await testDiagnostics(docUri2, [
-        {
-          severity: 0,
-          message: "Error processing keyword 'hosts': 'my_hosts' is undefined",
-          range: new vscode.Range(
-            new vscode.Position(1, 9),
-            new vscode.Position(1, integer.MAX_VALUE),
-          ),
-          source: "ansible-lint",
-        },
-      ]);
+      await testDiagnostics(
+        docUri2,
+        [
+          {
+            severity: 0,
+            message:
+              "Error processing keyword 'hosts': 'my_hosts' is undefined",
+            range: new vscode.Range(
+              new vscode.Position(1, 9),
+              new vscode.Position(1, integer.MAX_VALUE),
+            ),
+            source: "ansible-lint",
+          },
+        ],
+        15000,
+      );
     });
   });
 });
