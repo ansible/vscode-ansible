@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as vscode from "vscode";
 import { makeConfigurationMiddleware } from "@src/extension";
 import type { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 import type {
@@ -36,9 +37,20 @@ describe("makeConfigurationMiddleware", function () {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    Object.defineProperty(vscode.workspace, "getWorkspaceFolder", {
+      configurable: true,
+      value: vi.fn().mockReturnValue({
+        uri: {
+          fsPath: "/workspace/project",
+        },
+      }),
+    });
+
     mockPythonEnvService = {
       getExecutablePath: vi.fn(),
-      resolveInterpreterPath: vi.fn((userPath) => Promise.resolve(userPath)),
+      resolveInterpreterPath: vi.fn((userPath: string) =>
+        Promise.resolve(userPath),
+      ),
     };
 
     mockOutputChannel = {
@@ -344,5 +356,69 @@ describe("makeConfigurationMiddleware", function () {
     expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
       expect.stringMatching(/user-configured interpreterPath.*~.*resolved:/),
     );
+  });
+
+  it("should resolve user-configured config.path relative to workspaceFolder", async function () {
+    vi.mocked(vscode.Uri.parse).mockImplementation(
+      (value: string) =>
+        ({
+          fsPath: value.replace("file://", ""),
+          path: value.replace("file://", ""),
+        }) as unknown as import("vscode").Uri,
+    );
+
+    const params: ConfigurationParams = {
+      items: [
+        { section: "ansible", scopeUri: "file:///workspace/project/site.yml" },
+      ],
+    };
+    const originalResult = [
+      {
+        config: {
+          path: "${workspaceFolder}/ansible/ansible.cfg",
+        },
+      },
+    ];
+    mockNext.mockResolvedValue(originalResult);
+
+    const result = await invokeMiddleware(params);
+
+    const config = (result as Record<string, unknown>[])[0];
+    const configSettings = config.config as Record<string, unknown>;
+    expect(configSettings.path).toBe("/workspace/project/ansible/ansible.cfg");
+  });
+
+  it("should resolve config.path when interpreterPath is user-configured", async function () {
+    vi.mocked(vscode.Uri.parse).mockImplementation(
+      (value: string) =>
+        ({
+          fsPath: value.replace("file://", ""),
+          path: value.replace("file://", ""),
+        }) as unknown as import("vscode").Uri,
+    );
+
+    const params: ConfigurationParams = {
+      items: [
+        { section: "ansible", scopeUri: "file:///workspace/project/site.yml" },
+      ],
+    };
+    const originalResult = [
+      {
+        python: { interpreterPath: "/usr/local/bin/python3" },
+        config: {
+          path: "${workspaceFolder}/ansible/ansible.cfg",
+        },
+      },
+    ];
+    mockNext.mockResolvedValue(originalResult);
+
+    const result = await invokeMiddleware(params);
+
+    const config = (result as Record<string, unknown>[])[0];
+    const pythonConfig = config.python as Record<string, unknown>;
+    const configSettings = config.config as Record<string, unknown>;
+    expect(pythonConfig.interpreterPath).toBe("/usr/local/bin/python3");
+    expect(configSettings.path).toBe("/workspace/project/ansible/ansible.cfg");
+    expect(mockPythonEnvService.getExecutablePath).not.toHaveBeenCalled();
   });
 });
