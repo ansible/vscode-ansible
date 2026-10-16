@@ -7,11 +7,12 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   statSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 /** Paths under the extension root (VSIX `extension/` directory). */
 export const ALS_DIST_REL = join("packages", "ansible-language-server", "dist");
@@ -141,9 +142,11 @@ export function smokeAlsCli(
   _cwd: string,
   timeoutMs = DEFAULT_SMOKE_TIMEOUT_MS,
 ): Promise<void> {
-  const distDir = dirname(cliPath);
+  const distDir = realpathSync(dirname(cliPath));
+  const cliName = basename(cliPath);
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cliPath, "--stdio"], {
+    // Use a basename argv[1] + realpath cwd so cli.cjs isDirectRun matches on macOS.
+    const child = spawn(process.execPath, [cliName, "--stdio"], {
       cwd: distDir,
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
@@ -250,11 +253,17 @@ export function smokeAlsCli(
         fail(`ALS CLI exited with code ${code}: ${stderr}`);
         return;
       }
-      // Exit 0 without LSP response = bundles may not have loaded
-      fail(
-        "ALS CLI exited before responding to LSP initialize — " +
-          "bundles may not have loaded",
-      );
+      tryParseLspResponse();
+      setTimeout(() => {
+        if (settled) return;
+        tryParseLspResponse();
+        if (settled) return;
+        fail(
+          "ALS CLI exited before responding to LSP initialize — " +
+            "bundles may not have loaded" +
+            (stderr ? ` (stderr: ${stderr})` : ""),
+        );
+      }, 50).unref();
     });
 
     // Send LSP initialize request so the server proves it can load and run
