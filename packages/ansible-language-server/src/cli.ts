@@ -5,7 +5,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 /** Normalize paths so argv[1] matches __filename on macOS (/private symlinks). */
-function canonicalPath(filePath: string): string {
+export function canonicalPath(filePath: string): string {
   const resolved = path.resolve(filePath);
   try {
     return realpathSync(resolved);

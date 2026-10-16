@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { run } from "@src/cli.js";
+import { canonicalPath, run } from "@src/cli.js";
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, "package.json"), "utf8"));
@@ -128,6 +128,13 @@ describe("CLI entry point (built bin)", () => {
     const result = runBuiltCli(["--generate-docs", outPath]);
     expect(result.status).toBe(1);
     expect(result.stderr.length).toBeGreaterThan(0);
+  });
+});
+
+describe("canonicalPath()", () => {
+  it("returns resolved path when realpathSync fails", () => {
+    const missing = resolve(pkgRoot, "definitely-not-a-real-path-als-cli");
+    expect(canonicalPath(missing)).toBe(missing);
   });
 });
 
