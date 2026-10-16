@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { canonicalPath, cliEntryArg, run } from "@src/cli.js";
 
+declare const PACKAGE_VERSION: string;
+
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, "package.json"), "utf8"));
 
@@ -158,7 +160,8 @@ describe("CLI run() (source)", () => {
   it("returns 0 and prints version for --version", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     await expect(run(["--version"])).resolves.toBe(0);
-    expect(log).toHaveBeenCalledWith(pkg.version);
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(PACKAGE_VERSION);
   });
 
   it("returns 1 and prints usage when --generate-docs has no path", async () => {
