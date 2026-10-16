@@ -192,7 +192,7 @@ overrides:
   hono: '>=4.12.34 <5.0.0'
   ip-address: '>=10.2.2'
   diff@>=5.0.0 <8.0.3: 9.0.0
-  file-type@>=13.0.0 <21.3.2: 22.1.1
+  file-type@>=13.0.0 <21.3.2: 22.2.0
   nanoid@3: <7.0.0
 
 packageExtensionsChecksum: sha256-l5iXATrO+IHdGlMiwq1daaoMDCcQ9gqreFXfc7KspzM=
@@ -2323,6 +2323,10 @@ packages:
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
     engines: {node: '>=18'}
 
+  '@tokenizer/inflate@0.5.1':
+    resolution: {integrity: sha512-56U2O6fDLFtqokwWh597IdeUgtM7j+TT9tb1soybhgA6cy163gAcVmoQr8H4Ud/CkgCkViwcuLyqtn6wYqw59Q==}
+    engines: {node: '>=18'}
+
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
 
@@ -4339,8 +4343,8 @@ packages:
     resolution: {integrity: sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==}
     engines: {node: '>=20'}
 
-  file-type@22.1.1:
-    resolution: {integrity: sha512-sEB0oStmeLGtpmSAD88RDNuLsvhv4iC3u0lE25CUvfCULvj49xoQ3l3K525Vn+ZzsZ6DOLajQCV6RmhwwhqiJg==}
+  file-type@22.2.0:
+    resolution: {integrity: sha512-XmEVJsRpQMVYC+sWFW+FKAVo2P7/lPctDdWH4UQ1r6oxhdrTobnowdM3z+ZJ93a4J8D3yDpxX0bEvRuFev0vUQ==}
     engines: {node: '>=22'}
 
   filelist@1.0.6:
@@ -6682,6 +6686,10 @@ packages:
 
   strtok3@10.4.1:
     resolution: {integrity: sha512-MeSp4vHXiZRXM9K0rSWqTvXMU+YzmGICc5+briMVK+RY8qQ1GRTffFYVpK6cSgV/ueImFIEh3uCJJD3xBh1TaQ==}
+    engines: {node: '>=18'}
+
+  strtok3@10.5.0:
+    resolution: {integrity: sha512-PgAsgIuizbZN/r4+g4UNvbVCTpJWdoIdI71kIWwKmdIH0vJ0q7ylMVGU8PWj2s9O98y4MtFWiDTIrtNukZMMgQ==}
     engines: {node: '>=18'}
 
   structured-source@4.0.0:
@@ -9028,6 +9036,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@tokenizer/inflate@0.5.1(supports-color@8.1.1)':
+    dependencies:
+      debug: 4.4.3(supports-color@8.1.1)
+      token-types: 6.1.2
+    transitivePeerDependencies:
+      - supports-color
+
   '@tokenizer/token@0.3.0': {}
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
@@ -9841,7 +9856,7 @@ snapshots:
 
   '@xhmikosr/archive-type@7.1.0(supports-color@8.1.1)':
     dependencies:
-      file-type: 22.1.1(supports-color@8.1.1)
+      file-type: 22.2.0(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -9870,7 +9885,7 @@ snapshots:
   '@xhmikosr/decompress-targz@9.0.1(supports-color@8.1.1)':
     dependencies:
       '@xhmikosr/decompress-tar': 9.0.2(supports-color@8.1.1)
-      file-type: 22.1.1(supports-color@8.1.1)
+      file-type: 22.2.0(supports-color@8.1.1)
       is-stream: 4.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -9905,7 +9920,7 @@ snapshots:
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
-      file-type: 22.1.1(supports-color@8.1.1)
+      file-type: 22.2.0(supports-color@8.1.1)
       filenamify: 6.0.0
       get-stream: 6.0.1
       got: 13.0.0
@@ -11555,10 +11570,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  file-type@22.1.1(supports-color@8.1.1):
+  file-type@22.2.0(supports-color@8.1.1):
     dependencies:
-      '@tokenizer/inflate': 0.4.1(supports-color@8.1.1)
-      strtok3: 10.4.1
+      '@tokenizer/inflate': 0.5.1(supports-color@8.1.1)
+      strtok3: 10.5.0
       token-types: 6.1.2
       uint8array-extras: 1.6.0
     transitivePeerDependencies:
@@ -14277,6 +14292,10 @@ snapshots:
   strip-json-comments@5.0.3: {}
 
   strtok3@10.4.1:
+    dependencies:
+      '@tokenizer/token': 0.3.0
+
+  strtok3@10.5.0:
     dependencies:
       '@tokenizer/token': 0.3.0
 
