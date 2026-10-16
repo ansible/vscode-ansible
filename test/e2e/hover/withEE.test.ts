@@ -40,6 +40,8 @@ describe("ee", function () {
         vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
         waitForHoverReady(docUri1, new vscode.Position(0, 4)),
       ]);
+      // Play-keyword hovers can succeed before EE indexes builtin module docs.
+      await waitForHoverReady(docUri1, new vscode.Position(5, 7));
     });
 
     describe("Hover for play keywords", function () {
