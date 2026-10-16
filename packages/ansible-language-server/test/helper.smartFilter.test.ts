@@ -27,10 +27,7 @@ describe("smartFilter()", () => {
   });
 
   it("breaks ties with sortText when match rank is equal", () => {
-    const completions = [
-      item("ping", "2_1_ping"),
-      item("pong", "2_0_pong"),
-    ];
+    const completions = [item("ping", "2_1_ping"), item("pong", "2_0_pong")];
 
     const filtered = smartFilter(completions, "p");
     expect(filtered[0]?.label).toBe("pong");

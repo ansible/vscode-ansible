@@ -472,11 +472,7 @@ describe("yaml", function () {
         content,
       );
       const yamlDocs = parseAllDocuments(document.getText());
-      const path = getPathAt(
-        document,
-        Position.create(3, 10),
-        yamlDocs,
-      );
+      const path = getPathAt(document, Position.create(3, 10), yamlDocs);
       expect(path).toBeTruthy();
       if (!path) {
         return;
