@@ -103,6 +103,22 @@ function isOptionCompletionResolveData(
   );
 }
 
+function moduleCompletionSortText(
+  priority: number,
+  moduleFqcn: string,
+  useFqcn: boolean,
+): string {
+  const fqcnParts = moduleFqcn.split(".");
+  const name = fqcnParts.slice(2).join(".");
+  const collection = fqcnParts.length >= 2 ? fqcnParts[1] : "";
+  const builtinRank =
+    fqcnParts[0] === "ansible" && collection === "builtin" ? "0" : "1";
+  if (useFqcn) {
+    return `${priority}_${builtinRank}_${moduleFqcn}`;
+  }
+  return `${priority}_${builtinRank}_${name}`;
+}
+
 const priorityMap = {
   nameKeyword: 1,
   moduleName: 2,
@@ -281,9 +297,11 @@ export async function doCompletion(
                 label: useFqcn ? moduleFqcn : name,
                 kind: kind,
                 detail: `${namespace}.${collection}`,
-                sortText: useFqcn
-                  ? `${priority}_${moduleFqcn}`
-                  : `${priority}_${name}`,
+                sortText: moduleCompletionSortText(
+                  priority,
+                  moduleFqcn,
+                  useFqcn,
+                ),
                 filterText: useFqcn
                   ? `${name} ${moduleFqcn} ${collection} ${namespace}` // name should have highest priority (in case of FQCN)
                   : `${name} ${moduleFqcn}`, // name should have priority (in case of no FQCN)
@@ -550,6 +568,7 @@ function getKeywordCompletion(
       label: keyword,
       kind: CompletionItemKind.Property,
       sortText: `${priority}_${keyword}`,
+      filterText: keyword,
       documentation: description,
     };
     const insertText = atEndOfLine(document, position)
