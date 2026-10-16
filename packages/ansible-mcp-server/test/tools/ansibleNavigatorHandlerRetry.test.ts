@@ -6,7 +6,8 @@ import {
 } from "@src/tools/ansibleNavigator.js";
 
 vi.mock("@src/tools/ansibleNavigator.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@src/tools/ansibleNavigator.js")>();
+  const actual =
+    await importOriginal<typeof import("@src/tools/ansibleNavigator.js")>();
   return {
     ...actual,
     runAnsibleNavigator: vi.fn(),
