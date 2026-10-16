@@ -8,6 +8,23 @@ import { existsSync, readFileSync } from "fs";
 
 type varType = { variable: string; priority: number };
 
+/** Sort key for module name completions (ansible.builtin first within priority). */
+export function moduleCompletionSortText(
+  priority: number,
+  moduleFqcn: string,
+  useFqcn: boolean,
+): string {
+  const fqcnParts = moduleFqcn.split(".");
+  const collection = fqcnParts.length >= 2 ? fqcnParts[1] : "";
+  const builtinRank =
+    fqcnParts[0] === "ansible" && collection === "builtin" ? "0" : "1";
+  if (useFqcn) {
+    return `${priority}_${builtinRank}_${moduleFqcn}`;
+  }
+  const name = fqcnParts[2] ?? fqcnParts.slice(2).join(".");
+  return `${priority}_${builtinRank}_${name}`;
+}
+
 const getEnumerableKeys = (value: unknown): string[] =>
   value !== null && typeof value === "object" && !Array.isArray(value)
     ? Object.keys(value)

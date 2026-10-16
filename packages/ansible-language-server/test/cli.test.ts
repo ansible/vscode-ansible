@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { canonicalPath, cliEntryArg, run } from "@src/cli.js";
 
+declare const PACKAGE_VERSION: string;
+
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, "package.json"), "utf8"));
 
@@ -159,9 +161,7 @@ describe("CLI run() (source)", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     await expect(run(["--version"])).resolves.toBe(0);
     expect(log).toHaveBeenCalledTimes(1);
-    // PACKAGE_VERSION is fixed when Vitest loads; als:package can bump package.json
-    // concurrently on CI (task package runs parallel to task unit).
-    expect(String(log.mock.calls[0]?.[0])).toMatch(/^\d+\.\d+\.\d+/);
+    expect(log).toHaveBeenCalledWith(PACKAGE_VERSION);
   });
 
   it("returns 1 and prints usage when --generate-docs has no path", async () => {

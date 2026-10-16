@@ -42,7 +42,10 @@ import {
   isCursorInsideJinjaBrackets,
   isPlaybook,
 } from "@src/utils/yaml.js";
-import { getVarsCompletion } from "@src/providers/completionProviderUtils.js";
+import {
+  getVarsCompletion,
+  moduleCompletionSortText,
+} from "@src/providers/completionProviderUtils.js";
 import { HostType } from "@src/services/ansibleInventory.js";
 
 interface ModuleCompletionResolveData {
@@ -101,22 +104,6 @@ function isOptionCompletionResolveData(
     (record.firstElementOfList === undefined ||
       typeof record.firstElementOfList === "boolean")
   );
-}
-
-function moduleCompletionSortText(
-  priority: number,
-  moduleFqcn: string,
-  useFqcn: boolean,
-): string {
-  const fqcnParts = moduleFqcn.split(".");
-  const name = fqcnParts.slice(2).join(".");
-  const collection = fqcnParts.length >= 2 ? fqcnParts[1] : "";
-  const builtinRank =
-    fqcnParts[0] === "ansible" && collection === "builtin" ? "0" : "1";
-  if (useFqcn) {
-    return `${priority}_${builtinRank}_${moduleFqcn}`;
-  }
-  return `${priority}_${builtinRank}_${name}`;
 }
 
 const priorityMap = {

@@ -200,7 +200,9 @@ export function smartFilter(
       if (rankDiff !== 0) {
         return rankDiff;
       }
-      return a.sortText && b.sortText ? a.sortText.localeCompare(b.sortText) : 0;
+      return a.sortText && b.sortText
+        ? a.sortText.localeCompare(b.sortText)
+        : 0;
     });
   }
 

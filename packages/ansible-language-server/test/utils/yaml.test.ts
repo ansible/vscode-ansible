@@ -2,8 +2,10 @@
 import { expect, beforeEach } from "vitest";
 import { Position } from "vscode-languageserver";
 import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   AncestryBuilder,
+  findProvidedModule,
   getDeclaredCollections,
   getPathAt,
   isBlockParam,
@@ -13,6 +15,8 @@ import {
   isTaskParam,
   parseAllDocuments,
 } from "@src/utils/yaml.js";
+import { IModuleMetadata } from "@src/interfaces/module.js";
+import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { getDoc, isWindows } from "@test/helper.js";
 
 function getPathInFile(yamlFile: string, line: number, character: number) {
@@ -448,6 +452,51 @@ describe("yaml", function () {
       const test = isCursorInsideJinjaBrackets(document, position, path);
 
       expect(test).to.be.eq(false);
+    });
+  });
+
+  describe("findProvidedModule", function () {
+    it("prefers deeper FQCN module keys over short names", async function () {
+      const content = `---
+- hosts: localhost
+  tasks:
+    - ping:
+        data: ok
+      ansible.builtin.debug:
+        msg: hi
+`;
+      const document = TextDocument.create(
+        "file:///task.yml",
+        "ansible",
+        1,
+        content,
+      );
+      const yamlDocs = parseAllDocuments(document.getText());
+      const path = getPathAt(
+        document,
+        Position.create(3, 10),
+        yamlDocs,
+      );
+      expect(path).toBeTruthy();
+      if (!path) {
+        return;
+      }
+
+      const findOrder: string[] = [];
+      const fqcnModule = { source: [] } as IModuleMetadata;
+      const docsLibrary = {
+        findModule: async (name: string) => {
+          findOrder.push(name);
+          if (name === "ansible.builtin.debug") {
+            return [fqcnModule];
+          }
+          return [undefined];
+        },
+      } as unknown as DocsLibrary;
+
+      const module = await findProvidedModule(path, document, docsLibrary);
+      expect(module).toBe(fqcnModule);
+      expect(findOrder[0]).toBe("ansible.builtin.debug");
     });
   });
 });
