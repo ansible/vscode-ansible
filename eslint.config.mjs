@@ -170,7 +170,20 @@ export default defineConfig(
   },
   {
     // Standalone scripts have no tsconfig; skip eslint entirely
-    ignores: ["scripts/**", "**/tsdown.config.ts"],
+    ignores: [
+      "scripts/**",
+      "**/tsdown.config.ts",
+      // Excluded from root tsconfig (plain Node entrypoint); lint als-packaging.mts
+      "tools/smoke-als-vsix.mts",
+    ],
+  },
+  {
+    // tools/*.mts are executed by plain Node; allow same-directory relative imports
+    files: ["tools/**/*.mts"],
+    rules: {
+      "no-restricted-imports": "off",
+      "import/no-unresolved": "off",
+    },
   },
   {
     // Package code uses @src/@test aliases resolved by tsconfig/Vitest per package; ESLint uses root

@@ -113,6 +113,10 @@ export default defineConfig({
           include: ["test/unit/**/*.test.ts"],
           exclude: ["test/unit/webviews/**"],
           setupFiles: ["./test/unit/vitestSetup.ts"],
+          sequence: {
+            // After mcp (1) and als @ee/podman (2); CLI smokes must not run during ALS tests
+            groupOrder: 3,
+          },
         },
       },
       {
@@ -155,7 +159,7 @@ export default defineConfig({
             concurrent: false,
             groupOrder: 1,
           },
-          testTimeout: 30000, // 30 seconds for tests that might spawn processes
+          testTimeout: process.platform === "darwin" ? 60000 : 30000, // mac GHA: slow ansible-navigator spawns
         },
       },
     ],

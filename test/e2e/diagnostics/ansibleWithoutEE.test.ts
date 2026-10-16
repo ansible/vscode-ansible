@@ -40,7 +40,7 @@ describe("ansible-diag-no-ee", function () {
       await vscode.commands.executeCommand("workbench.action.files.save");
       // Wait for ansible-lint diagnostics directly instead of relying on process detection
       // which is unreliable on WSL. Use a generous timeout for slow CI environments.
-      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 30000);
+      await waitForDiagnosticsFromSource(docUri1, "ansible-lint", 1, 30_000);
 
       await testDiagnostics(
         docUri1,
@@ -64,7 +64,7 @@ describe("ansible-diag-no-ee", function () {
       await activate(docUri2);
       await vscode.commands.executeCommand("workbench.action.files.save");
       // Wait for ansible-lint diagnostics directly instead of relying on process detection
-      await waitForDiagnosticsFromSource(docUri2, "ansible-lint", 1, 30000);
+      await waitForDiagnosticsFromSource(docUri2, "ansible-lint", 1, 30_000);
 
       await testDiagnostics(
         docUri2,
