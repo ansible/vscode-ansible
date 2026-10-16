@@ -115,14 +115,26 @@ export function assertAlsDistInExtensionRoot(extensionRoot: string): void {
 
 const MODULE_NOT_FOUND = "MODULE_NOT_FOUND";
 
-/** Grace period for --stdio smoke; MODULE_NOT_FOUND shows up quickly. */
+/** Timeout for the LSP initialize handshake — bundles must load within this. */
 export const DEFAULT_SMOKE_TIMEOUT_MS =
-  process.env.CI === "true" ? 3000 : 10000;
+  process.env.CI === "true" ? 5000 : 10000;
+
+const LSP_INITIALIZE_ID = 1;
+
+/** Build a JSON-RPC Content-Length frame. */
+function lspFrame(body: string): string {
+  return `Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`;
+}
 
 /**
- * Start packaged `cli.cjs --stdio`; fail on `MODULE_NOT_FOUND` or non-zero exit.
- * Exit 0 without that error means bundles resolved (some runners exit before LSP
- * handshake); still running after the grace period also passes.
+ * Start packaged `cli.cjs --stdio`, send an LSP `initialize` request, and
+ * require a valid JSON-RPC response with server capabilities before passing.
+ *
+ * Fails on:
+ * - `MODULE_NOT_FOUND` in stderr (broken bundle)
+ * - Non-zero exit code or unexpected signal
+ * - Exit before the LSP response (even with code 0)
+ * - Timeout without a response (bundles did not load in time)
  */
 export function smokeAlsCli(
   cliPath: string,
@@ -138,10 +150,13 @@ export function smokeAlsCli(
     });
 
     let stderr = "";
+    let stdoutBuf = Buffer.alloc(0);
     let settled = false;
 
     const dispose = () => {
+      child.stdout.removeAllListeners("data");
       child.stderr.removeAllListeners("data");
+      child.stdin.removeAllListeners("error");
       child.removeAllListeners("error");
       child.removeAllListeners("exit");
       child.stdin?.end();
@@ -167,6 +182,45 @@ export function smokeAlsCli(
       resolve();
     };
 
+    // --- Byte-accurate LSP frame parser -----------------------------------
+    const HEADER_DELIM = Buffer.from("\r\n\r\n");
+
+    const tryParseLspResponse = () => {
+      const delimIdx = stdoutBuf.indexOf(HEADER_DELIM);
+      if (delimIdx === -1) return;
+
+      const headerStr = stdoutBuf.subarray(0, delimIdx).toString("ascii");
+      const lenMatch = /Content-Length:\s*(\d+)/i.exec(headerStr);
+      if (!lenMatch) return;
+
+      const contentLength = Number.parseInt(lenMatch[1], 10);
+      const bodyStart = delimIdx + HEADER_DELIM.length;
+      if (stdoutBuf.length < bodyStart + contentLength) return;
+
+      const bodyBytes = stdoutBuf.subarray(
+        bodyStart,
+        bodyStart + contentLength,
+      );
+      stdoutBuf = stdoutBuf.subarray(bodyStart + contentLength);
+
+      try {
+        const msg = JSON.parse(bodyBytes.toString("utf8")) as {
+          id?: number;
+          result?: { capabilities?: unknown };
+        };
+        if (msg.id === LSP_INITIALIZE_ID && msg.result?.capabilities) {
+          succeed();
+        }
+      } catch {
+        // Incomplete or malformed JSON — wait for more data
+      }
+    };
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      stdoutBuf = Buffer.concat([stdoutBuf, chunk]);
+      tryParseLspResponse();
+    });
+
     child.stderr.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
       if (stderr.includes(MODULE_NOT_FOUND)) {
@@ -178,6 +232,10 @@ export function smokeAlsCli(
       fail(`Failed to spawn ALS CLI: ${String(err)}`);
     });
 
+    child.stdin.on("error", (err) => {
+      fail(`ALS CLI stdin write error: ${String(err)}`);
+    });
+
     child.on("exit", (code, signal) => {
       if (settled) return;
       if (stderr.includes(MODULE_NOT_FOUND)) {
@@ -185,26 +243,38 @@ export function smokeAlsCli(
         return;
       }
       if (signal !== null && signal !== "SIGTERM") {
-        fail(
-          `ALS CLI exited with signal ${signal} (code ${code ?? "null"}): ${stderr}`,
-        );
+        fail(`ALS CLI terminated by signal ${signal}: ${stderr}`);
         return;
       }
       if (code !== null && code !== 0) {
-        fail(
-          `ALS CLI exited with code ${code} (signal ${signal ?? "none"}): ${stderr}`,
-        );
+        fail(`ALS CLI exited with code ${code}: ${stderr}`);
         return;
       }
-      succeed();
+      // Exit 0 without LSP response = bundles may not have loaded
+      fail(
+        "ALS CLI exited before responding to LSP initialize — " +
+          "bundles may not have loaded",
+      );
     });
 
+    // Send LSP initialize request so the server proves it can load and run
+    const initBody = JSON.stringify({
+      id: LSP_INITIALIZE_ID,
+      jsonrpc: "2.0",
+      method: "initialize",
+      params: {
+        capabilities: {},
+        processId: null,
+        rootUri: null,
+      },
+    });
+    child.stdin.write(lspFrame(initBody));
+
     const timer = setTimeout(() => {
-      if (stderr.includes(MODULE_NOT_FOUND)) {
-        fail(`ALS CLI stderr contains ${MODULE_NOT_FOUND}: ${stderr}`);
-        return;
-      }
-      succeed();
+      fail(
+        "ALS CLI did not respond to LSP initialize within " +
+          `${timeoutMs}ms — bundles may not have loaded`,
+      );
     }, timeoutMs);
   });
 }

@@ -76,24 +76,30 @@ describe("ALS packaging", function () {
     });
   });
 
-  describe("packaged VSIX contains complete ALS dist", function () {
-    it("should include ALS dist entrypoints inside the VSIX", function () {
-      const vsixPath = resolveVsixPath();
-      if (vsixPath === undefined) {
-        console.warn("No ansible-*.vsix in out/ - run 'task package' first");
-        return;
-      }
+  // On CI, VSIX enforcement is `task package` → `tools/smoke-als-vsix.mts`
+  // (unit tests run before / in parallel with package). This test is for local
+  // validation only. Do NOT remove the package smoke — it is the sole CI gate.
+  describe.skipIf(isPackagingCi())(
+    "packaged VSIX contains complete ALS dist",
+    function () {
+      it("should include ALS dist entrypoints inside the VSIX", function () {
+        const vsixPath = resolveVsixPath();
+        if (vsixPath === undefined) {
+          console.warn("No ansible-*.vsix in out/ - run 'task package' first");
+          return;
+        }
 
-      const { extensionRoot, cleanup } = extractVsixExtensionRoot(vsixPath);
-      try {
-        expect(() =>
-          assertAlsDistComplete(path.join(extensionRoot, ALS_DIST_REL)),
-        ).not.toThrow();
-      } finally {
-        cleanup();
-      }
-    });
-  });
+        const { extensionRoot, cleanup } = extractVsixExtensionRoot(vsixPath);
+        try {
+          expect(() =>
+            assertAlsDistComplete(path.join(extensionRoot, ALS_DIST_REL)),
+          ).not.toThrow();
+        } finally {
+          cleanup();
+        }
+      });
+    },
+  );
 
   describe.skipIf(isPackagingCi())("packaged ALS CLI smoke", function () {
     // On CI, `task package` runs tools/smoke-als-vsix.mts (avoid parallel CLI spawns during als @ee tests).
