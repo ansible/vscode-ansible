@@ -22,6 +22,7 @@ interface ExtensionSettingsType {
 }
 
 export interface ExtensionSettings extends ExtensionSettingsType {
+  config: { path: string };
   ansible: {
     path: string;
     useFullyQualifiedCollectionNames: boolean;
@@ -94,11 +95,16 @@ export interface ExtensionSettingsWithDescriptionBase {
 }
 
 export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
+  config: ConfigSettingsWithDescription;
   ansible: AnsibleSettingsWithDescription;
   completion: CompletionSettingsWithDescription;
   validation: ValidationSettingsWithDescription;
   executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
   python: PythonSettingsWithDescription;
+}
+
+interface ConfigSettingsWithDescription extends SettingsEntry {
+  path: { default: string; description: string };
 }
 
 interface AnsibleSettingsWithDescription extends SettingsEntry {
