@@ -80,6 +80,23 @@ export async function getAnsibleViewControl(
   return control;
 }
 
+/**
+ * Read a sidebar composite title. WebdriverIO v10 uses strict `$()`; multiple
+ * `.composite.title` nodes are common, so match by visible text instead.
+ */
+export async function getCompositeTitleMatching(
+  pattern: RegExp,
+): Promise<string> {
+  const elements = await browser.$$(".composite.title");
+  for (const element of elements) {
+    const text = await element.getText();
+    if (pattern.test(text)) {
+      return text;
+    }
+  }
+  throw new Error(`No .composite.title matched ${pattern}`);
+}
+
 /** Standard setup: open ansible fixture, activate extension, wait for sidebar. */
 export async function prepareAnsibleExtension(): Promise<void> {
   await openPlaybookFixture();
