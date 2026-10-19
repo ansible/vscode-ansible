@@ -87,14 +87,32 @@ export async function getAnsibleViewControl(
 export async function getCompositeTitleMatching(
   pattern: RegExp,
 ): Promise<string> {
-  const elements = await browser.$$(".composite.title");
-  for (const element of elements) {
-    const text = await element.getText();
-    if (pattern.test(text)) {
-      return text;
-    }
+  let title: string | undefined;
+  await browser.waitUntil(
+    async () => {
+      const elements = await browser.$$(".composite.title");
+      for (const element of elements) {
+        if (!(await element.isDisplayed())) {
+          continue;
+        }
+        const text = await element.getText();
+        if (pattern.test(text)) {
+          title = text;
+          return true;
+        }
+      }
+      return false;
+    },
+    {
+      timeout: 15_000,
+      interval: 500,
+      timeoutMsg: `No visible .composite.title matched ${pattern}`,
+    },
+  );
+  if (title === undefined) {
+    throw new Error(`No .composite.title matched ${pattern}`);
   }
-  throw new Error(`No .composite.title matched ${pattern}`);
+  return title;
 }
 
 /** Standard setup: open ansible fixture, activate extension, wait for sidebar. */
