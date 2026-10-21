@@ -321,8 +321,14 @@ jobs:
 
       - name: Check mise
         run: |
-          mise reshim
-          mise doctor
+          mise reshim --force
+          # Skip doctor on Windows: mise-action installs mise.exe but not a
+          # version-tagged mise-shim.exe, so doctor always fails since
+          # 2026.10.14.  Upstream recommends against gating CI on doctor.
+          # ref: https://github.com/jdx/mise/discussions/4432
+          if [ "$OS" != "Windows_NT" ]; then
+            mise doctor
+          fi
 
       - name: Check python virtual environment
         if: runner.os != 'Windows'
