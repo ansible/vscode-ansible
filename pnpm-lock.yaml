@@ -163,7 +163,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  cypress-multi-reporters>mocha: 11.8.0
+  cypress-multi-reporters>mocha: 12.0.3
   mocha-junit-reporter>mocha: 11.8.0
   mocha-multi-reporters>mocha: 12.0.3
   rollup: npm:@rollup/wasm-node@*
@@ -3689,7 +3689,7 @@ packages:
     resolution: {integrity: sha512-5ReXlNE7C/9/rpDI3z0tAJbPXsTHK7P3ogvUtBntQlmctRQ+sSMts7dIQY5MTb0XfBSge3CuwvNvaoqtw90KSQ==}
     engines: {node: '>=6.0.0'}
     peerDependencies:
-      mocha: 11.8.0
+      mocha: 12.0.3
 
   data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
