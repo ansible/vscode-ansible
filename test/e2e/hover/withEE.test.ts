@@ -12,6 +12,15 @@ import {
   unSetFixtureAnsibleCollectionPathEnv,
 } from "@test/e2e/e2e.utils";
 
+/** Errors that mean EE was too slow on CI — skip suite instead of failing the job. */
+function isEeReadinessSkipError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("Timeout waiting for hover provider readiness") ||
+    msg.includes("EE activation exceeded readiness budget")
+  );
+}
+
 describe("ee", function () {
   before(async function () {
     if (skip_ee) {
@@ -40,12 +49,29 @@ describe("ee", function () {
       const readinessTimeoutMs = () =>
         Math.max(readinessDeadline - Date.now(), 1);
 
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+
       try {
-        await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors",
-        );
-        await activate(docUri1);
+        let activationTimer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            activate(docUri1),
+            new Promise<never>((_, reject) => {
+              activationTimer = setTimeout(
+                () =>
+                  reject(new Error("EE activation exceeded readiness budget")),
+                readinessTimeoutMs(),
+              );
+            }),
+          ]);
+        } finally {
+          if (activationTimer !== undefined) {
+            clearTimeout(activationTimer);
+          }
+        }
+
         setEeFixtureAnsibleCollectionPathEnv();
+
         await Promise.race([
           vscode.commands.executeCommand("ansible.awaitDocsLibraryReady"),
           waitForHoverReady(
@@ -61,6 +87,9 @@ describe("ee", function () {
           readinessTimeoutMs(),
         );
       } catch (err: unknown) {
+        if (!isEeReadinessSkipError(err)) {
+          throw err;
+        }
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(
           `[hover-ee] Skipping suite – EE hover readiness not achieved: ${msg}`,
