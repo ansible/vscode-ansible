@@ -8,14 +8,22 @@
 import { browser } from "@wdio/globals";
 import assert from "node:assert/strict";
 import path from "node:path";
+import {
+  getAnsibleViewControl,
+  getCompositeTitleMatching,
+  prepareAnsibleExtension,
+} from "./wdio.utils";
 
 describe("Sidebar and settings", () => {
+  before(async function () {
+    this.timeout(90_000);
+    await prepareAnsibleExtension();
+  });
+
   it("should show the ADT sidebar view", async () => {
-    const workbench = await browser.getWorkbench();
-    const control = await workbench.getActivityBar().getViewControl("Ansible");
-    assert.ok(control);
-    const sideBar = await control.openView();
-    const title = await sideBar.getTitlePart().getTitle();
+    const control = await getAnsibleViewControl();
+    await control.openView();
+    const title = await getCompositeTitleMatching(/Ansible Development Tools/i);
     assert.match(title, /Ansible Development Tools/i);
 
     const workspaceFolder: string = await browser.executeWorkbench((vscode) => {
@@ -27,9 +35,7 @@ describe("Sidebar and settings", () => {
   });
 
   it("should show the welcome page link in sidebar", async () => {
-    const workbench = await browser.getWorkbench();
-    const control = await workbench.getActivityBar().getViewControl("Ansible");
-    assert.ok(control);
+    const control = await getAnsibleViewControl();
     await control.openView();
 
     await browser.executeWorkbench((vscode) =>
@@ -37,8 +43,12 @@ describe("Sidebar and settings", () => {
     );
     await browser.pause(1500);
 
-    const sideTitle = await workbench.getSideBar().getTitlePart().getTitle();
+    const sideTitle = await getCompositeTitleMatching(
+      /Ansible Development Tools/i,
+    );
     assert.match(sideTitle, /Ansible Development Tools/i);
+
+    const workbench = await browser.getWorkbench();
 
     const webviews = await workbench.getAllWebviews();
     let foundWelcomeLink = false;
