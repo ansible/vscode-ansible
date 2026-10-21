@@ -17,7 +17,7 @@ overrides:
   # vscode-test e2e reporters must stay on Mocha 11 (see packageExtensions below).
   "cypress-multi-reporters>mocha": "11.8.0"
   "mocha-junit-reporter>mocha": "11.8.0"
-  "mocha-multi-reporters>mocha": "11.8.0"
+  "mocha-multi-reporters>mocha": "12.0.3"
   rollup: "npm:@rollup/wasm-node@*"
   # VS Code 1.110+ renamed macOS Electron -> Code; Electron symlink removed in
   # 1.131 (microsoft/vscode#326502). @vscode/test-electron 3.1.0 resolves via
