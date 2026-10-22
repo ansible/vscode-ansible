@@ -164,7 +164,7 @@ settings:
 
 overrides:
   cypress-multi-reporters>mocha: 11.8.0
-  mocha-junit-reporter>mocha: 11.8.0
+  mocha-junit-reporter>mocha: 12.0.3
   mocha-multi-reporters>mocha: 12.0.3
   rollup: npm:@rollup/wasm-node@*
   '@vscode/test-electron': 3.1.0
@@ -198,7 +198,7 @@ overrides:
   file-type@>=13.0.0 <21.3.2: 22.2.0
   nanoid@3: <7.0.0
 
-packageExtensionsChecksum: sha256-95P0bAfEYyOUB3bvX5d4lUVSR9nd1tR2W311c7+IPzQ=
+packageExtensionsChecksum: sha256-5Qx86xDvm2VGnIBTgkTsCLlNHUgHBgKgWelkusuJZyo=
 
 patchedDependencies:
   '@vscode/test-cli@0.0.15': e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2
@@ -5942,7 +5942,7 @@ packages:
   mocha-junit-reporter@2.2.1:
     resolution: {integrity: sha512-iDn2tlKHn8Vh8o4nCzcUVW4q7iXp7cC4EB78N0cDHIobLymyHNwe0XG8HEHHjc3hJlXm0Vy6zcrxaIhnI2fWmw==}
     peerDependencies:
-      mocha: 11.8.0
+      mocha: 12.0.3
 
   mocha-multi-reporters@1.5.2:
     resolution: {integrity: sha512-gMvUhex6sP4QVo/BDTXyZknu5HPTEI1w9M1C9BqqAr75ml8MHDTljdMBBuGCCxpCnf9mDUjbOwGQWsaay4VErg==}
