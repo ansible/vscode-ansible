@@ -7,6 +7,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
+  setEeFixtureAnsibleCollectionPathEnv,
 } from "@test/helper.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
@@ -93,9 +94,7 @@ describe("getDefinition()", function () {
   describe("Module name definitions", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
-        );
+        setEeFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings, context);
         }

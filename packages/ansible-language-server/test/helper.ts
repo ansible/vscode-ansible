@@ -42,6 +42,12 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
+import { getEeCollectionsPrependPath } from "@root/test/eeCollectionsEnvUtils.js";
+
+export function setEeFixtureAnsibleCollectionPathEnv(): void {
+  setFixtureAnsibleCollectionPathEnv(getEeCollectionsPrependPath());
+}
+
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
@@ -114,6 +120,26 @@ export function skipEE(): boolean {
   const SKIP_DOCKER = (process.env.SKIP_DOCKER || "0") === "1";
   return SKIP_PODMAN && SKIP_DOCKER;
 }
+
+function smartFilterMatchRank(
+  item: CompletionItem,
+  triggerCharacter: string,
+): number {
+  if (!triggerCharacter) {
+    return 0;
+  }
+  const needle = triggerCharacter.toLowerCase();
+  const label = String(item.label ?? "").toLowerCase();
+  const filterText = String(item.filterText ?? label).toLowerCase();
+  if (label.startsWith(needle)) {
+    return 0;
+  }
+  if (filterText.startsWith(needle)) {
+    return 1;
+  }
+  return 2;
+}
+
 /**
  * A function that tries to imitate the filtering of the completion items done in the respective client extension
  * when the user starts typing against the provided auto-completions
@@ -164,6 +190,20 @@ export function smartFilter(
             return completion.item;
           })
       : completionList.slice(0, 5);
+  }
+
+  if (triggerCharacter) {
+    filteredCompletionList.sort((a: CompletionItem, b: CompletionItem) => {
+      const rankDiff =
+        smartFilterMatchRank(a, triggerCharacter) -
+        smartFilterMatchRank(b, triggerCharacter);
+      if (rankDiff !== 0) {
+        return rankDiff;
+      }
+      return a.sortText && b.sortText
+        ? a.sortText.localeCompare(b.sortText)
+        : 0;
+    });
   }
 
   return filteredCompletionList;

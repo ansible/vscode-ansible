@@ -8,7 +8,12 @@ import { join } from "node:path";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-describe("Ansible Navigator Handler", () => {
+/** Avoid Podman/EE pulls on CI; local Ansible is enough for handler integration tests. */
+const localNavigatorRun = {
+  disableExecutionEnvironment: true as const,
+};
+
+describe("Ansible Navigator Handler", { timeout: 60_000 }, () => {
   let testDir: string;
   let testPlaybookPath: string;
   let cleanPlaybookPath: string;
@@ -71,6 +76,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: `run ${testPlaybookPath}`,
         filePath: testPlaybookPath, // Direct filePath for test
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -85,6 +91,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         filePath: cleanPlaybookPath,
         userMessage: "run test", // Required parameter
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -130,6 +137,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: "run test",
         filePath: testPlaybookPath,
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -144,6 +152,7 @@ describe("Ansible Navigator Handler", () => {
         userMessage: "run test",
         filePath: testPlaybookPath,
         mode: "stdout",
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -157,6 +166,7 @@ describe("Ansible Navigator Handler", () => {
         userMessage: "run test",
         filePath: testPlaybookPath,
         mode: "interactive",
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -174,6 +184,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: "run test",
         filePath: testPlaybookPath,
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -195,6 +206,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: "run test",
         filePath: testPlaybookPath,
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -210,6 +222,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: "run test",
         filePath: testPlaybookPath,
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();
@@ -225,6 +238,7 @@ describe("Ansible Navigator Handler", () => {
       const result = await handler({
         userMessage: "run test",
         filePath: testPlaybookPath,
+        ...localNavigatorRun,
       });
 
       expect(result.content).toBeDefined();

@@ -58,6 +58,38 @@ For the language server tests, navigate to the root of the
 3. **test:** Runs the language server unit tests in both the environments one
    after the other.
 
+## Packaged ALS / VSIX guards
+
+Preventive checks from RCA [AAP-93529](https://redhat.atlassian.net/browse/AAP-93529)
+(tracking issue [AAP-97287](https://redhat.atlassian.net/browse/AAP-97287)) ensure the
+Ansible Language Server ships inside the marketplace VSIX with a complete `dist/`
+(`cli.cjs`, `server.cjs`, and tsdown runtime chunks), not a stub `cli.cjs` only.
+
+### Re-run locally
+
+After a full build:
+
+```bash
+task build
+task package
+```
+
+`task package` runs `node tools/smoke-als-vsix.mts` (unzip VSIX, assert ALS `dist/`,
+smoke `cli.cjs --stdio` without `MODULE_NOT_FOUND`).
+
+To run checks individually:
+
+```bash
+npm exec -- vitest run test/unit/als/alsPackaging.test.ts
+node tools/smoke-als-vsix.mts
+node tools/smoke-als-vsix.mts --vsix out/ansible-<version>.vsix
+```
+
+On CI, `task package` enforces the VSIX smoke; unit tests in
+`test/unit/als/alsPackaging.test.ts` mirror `test/unit/mcp/mcpPackaging.test.ts` for
+`.vscodeignore` and dist layout. CLI `--stdio` smokes in that file are skipped on CI
+so they do not run in parallel with ALS execution-environment (podman) unit tests.
+
 ## Coverage
 
 - [c8] is recommended in favor of the older [nyc] for coverage reporting.

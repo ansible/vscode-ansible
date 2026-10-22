@@ -1,9 +1,34 @@
 import { expect } from "vitest";
 import * as path from "path";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { getVarsCompletion } from "@src/providers/completionProviderUtils.js";
+import {
+  getVarsCompletion,
+  moduleCompletionSortText,
+} from "@src/providers/completionProviderUtils.js";
 import { getPathAt, parseAllDocuments } from "@src/utils/yaml.js";
 import { resolveDocUri } from "@test/helper.js";
+
+describe("moduleCompletionSortText()", () => {
+  it("ranks ansible.builtin before other collections for FQCN completions", () => {
+    const builtin = moduleCompletionSortText(2, "ansible.builtin.ping", true);
+    const collection = moduleCompletionSortText(2, "org_1.coll_3.ping", true);
+    expect(builtin.localeCompare(collection)).toBeLessThan(0);
+    expect(builtin).toBe("2_0_ansible.builtin.ping");
+    expect(collection).toBe("2_1_org_1.coll_3.ping");
+  });
+
+  it("uses the short module name segment for no-FQCN sort keys", () => {
+    const nested = moduleCompletionSortText(
+      2,
+      "org_1.coll_5.sub_coll_1.module_1",
+      false,
+    );
+    const shallow = moduleCompletionSortText(2, "org_1.coll_3.module_3", false);
+    expect(nested).toBe("2_1_sub_coll_1");
+    expect(shallow).toBe("2_1_module_3");
+    expect(nested).not.toBe("2_1_sub_coll_1.module_1");
+  });
+});
 
 describe("getVarsCompletion()", () => {
   it("reads vars from an absolute vars_files path", () => {

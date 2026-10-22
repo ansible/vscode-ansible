@@ -66,6 +66,7 @@ const alsVitestProject = {
   },
   resolve: {
     alias: {
+      "@root": path.resolve(__dirname),
       "@src": path.resolve(als_root, "src"),
       "@test": path.resolve(als_root, "test"),
     },
@@ -83,6 +84,12 @@ const alsVitestProject = {
     testTimeout: 60000, // same as mocha timeout (60 seconds)
     hookTimeout: 30000, // self-hosted WSL runner needs more than the 10s default
     setupFiles: [`${als_root}/test/vitestSetup.ts`],
+    env: {
+      // ALS @ee unit tests only: runner ~/.ansible collections break completion ordering.
+      ...(process.env.CI === "true"
+        ? { ALS_EE_COLLECTIONS_PREPEND: "/usr/share/ansible/collections" }
+        : {}),
+    },
     sequence: {
       concurrent: false,
       groupOrder: 2,
@@ -106,6 +113,10 @@ export default defineConfig({
           include: ["test/unit/**/*.test.ts"],
           exclude: ["test/unit/webviews/**"],
           setupFiles: ["./test/unit/vitestSetup.ts"],
+          sequence: {
+            // After mcp (1) and als @ee/podman (2); CLI smokes must not run during ALS tests
+            groupOrder: 3,
+          },
         },
       },
       {
@@ -148,7 +159,7 @@ export default defineConfig({
             concurrent: false,
             groupOrder: 1,
           },
-          testTimeout: 30000, // 30 seconds for tests that might spawn processes
+          testTimeout: process.platform === "darwin" ? 60000 : 30000, // mac GHA: slow ansible-navigator spawns
         },
       },
     ],

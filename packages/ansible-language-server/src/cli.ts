@@ -1,7 +1,24 @@
 #!/usr/bin/env node
+import { realpathSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+
+/** Normalize paths so argv[1] matches __filename on macOS (/private symlinks). */
+export function canonicalPath(filePath: string): string {
+  const resolved = path.resolve(filePath);
+  try {
+    return realpathSync(resolved);
+  } catch {
+    return resolved;
+  }
+}
+
+/** `process.argv[1]` normalized for direct-run detection (empty when missing). */
+export function cliEntryArg(argv: string[]): string {
+  const entry = argv[1];
+  return entry ? canonicalPath(entry) : "";
+}
 
 declare const PACKAGE_VERSION: string;
 
@@ -51,8 +68,8 @@ export async function run(argv: string[]): Promise<number> {
 }
 
 /** Canonical path of this module (src/cli.ts or dist/cli.cjs depending on build). */
-const thisModulePath = fileURLToPath(import.meta.url);
-const entryArg = process.argv[1] ? path.resolve(process.argv[1]) : "";
+const thisModulePath = canonicalPath(fileURLToPath(import.meta.url));
+const entryArg = cliEntryArg(process.argv);
 const isDirectRun =
   entryArg === thisModulePath ||
   // npm/pnpm bin shim may invoke the package name rather than the file path

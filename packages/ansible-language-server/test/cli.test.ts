@@ -10,7 +10,9 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { run } from "@src/cli.js";
+import { canonicalPath, cliEntryArg, run } from "@src/cli.js";
+
+declare const PACKAGE_VERSION: string;
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pkg = JSON.parse(readFileSync(resolve(pkgRoot, "package.json"), "utf8"));
@@ -131,6 +133,19 @@ describe("CLI entry point (built bin)", () => {
   });
 });
 
+describe("canonicalPath()", () => {
+  it("returns resolved path when realpathSync fails", () => {
+    const missing = resolve(pkgRoot, "definitely-not-a-real-path-als-cli");
+    expect(canonicalPath(missing)).toBe(missing);
+  });
+});
+
+describe("cliEntryArg()", () => {
+  it("returns empty string when argv has no script path", () => {
+    expect(cliEntryArg(["node"])).toBe("");
+  });
+});
+
 describe("CLI run() (source)", () => {
   let tempDir: string | undefined;
 
@@ -145,7 +160,8 @@ describe("CLI run() (source)", () => {
   it("returns 0 and prints version for --version", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
     await expect(run(["--version"])).resolves.toBe(0);
-    expect(log).toHaveBeenCalledWith(pkg.version);
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(PACKAGE_VERSION);
   });
 
   it("returns 1 and prints usage when --generate-docs has no path", async () => {
