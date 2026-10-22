@@ -96,3 +96,5 @@ minimumReleaseAgeExclude:
   - handlebars@4.7.10
   # Renovate security update: shell-quote@1.11.0
   - shell-quote@1.11.0
+  # Renovate security update: @vitest/ui@5.0.5
+  - "@vitest/ui@5.0.5"
