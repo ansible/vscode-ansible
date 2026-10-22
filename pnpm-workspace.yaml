@@ -96,3 +96,5 @@ minimumReleaseAgeExclude:
   - handlebars@4.7.10
   # Renovate security update: shell-quote@1.11.0
   - shell-quote@1.11.0
+  # Renovate security update: electron@44.5.0
+  - electron@44.5.0
