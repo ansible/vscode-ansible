@@ -228,17 +228,24 @@
             "scope": "machine-overridable",
             "type": "string"
           },
+          "ansible.config.path": {
+            "default": "",
+            "markdownDescription": "Path to the `ansible.cfg` file used by the language server for Ansible commands and diagnostics. Supports relative paths and `${workspaceFolder}`.",
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
+          },
           "ansible.ansible.reuseTerminal": {
             "default": false,
             "markdownDescription": "Enabling this will cause ansible commands run through VS Code to reuse the same Ansible Terminal.",
-            "order": 2,
+            "order": 3,
             "scope": "machine-overridable",
             "type": "boolean"
           },
           "ansible.ansible.useFullyQualifiedCollectionNames": {
             "default": true,
             "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
-            "order": 1,
+            "order": 2,
             "scope": "resource",
             "type": "boolean"
           }
@@ -1094,6 +1101,7 @@
     "@types/vscode-webview": "^1.57.5",
     "@typescript-eslint/eslint-plugin": "^8.62.0",
     "@typescript-eslint/parser": "^8.62.0",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vitest/coverage-v8": "^5.0.0",
     "@vitest/ui": "^5.0.0",
@@ -1138,7 +1146,7 @@
     "ts-node": "^10.9.2",
     "tsdown": "^0.23.0",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.62.0",
     "vitest": "^5.0.0",
     "vscode-jsonrpc": "^9.0.0",
