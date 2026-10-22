@@ -227,7 +227,7 @@ function parseRawDeprecationOrTombstone(
 
 export class LazyModuleDocumentation implements IModuleMetadata {
   public static docsRegex =
-    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
+    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*\\?\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>(?:(?!\k<quotes>)[\s\S])*)\k<quotes>/g;
 
   source: string;
   sourceLineRange: [number, number] = [0, 0];
@@ -280,8 +280,50 @@ export class LazyModuleDocumentation implements IModuleMetadata {
           this.errors = document.errors;
         }
       }
+
+      // Fallback: if DOCUMENTATION was not found (e.g. microsoft.ad-style
+      // line continuations that the main regex misses), try alternative formats.
+      // Note: size > 0 is possible when EXAMPLES/RETURN parsed fine but
+      // DOCUMENTATION did not, so we check has(DOCUMENTATION) explicitly.
+      if (!this._contents.has(DOCUMENTATION)) {
+        this.tryParseNonStandardFormats(contents);
+      }
     }
     return this._contents;
+  }
+
+  private tryParseNonStandardFormats(contents: string): void {
+    const documentationFragments = (this._contents ??= new Map());
+
+    // Single regex handles both triple-double and triple-single quote variants.
+    // Uses negative-lookahead patterns to avoid super-linear backtracking.
+    // Group 1 = double-quote content; group 2 = single-quote content.
+    const fallbackRe =
+      /[ \t]*DOCUMENTATION\s*=\s*\\?\s*r?(?:"""((?:(?!""")[\s\S])*)"""|'''((?:(?!''')[\s\S])*)''')/;
+    const fallbackMatch = fallbackRe.exec(contents);
+    if (!fallbackMatch) {
+      return;
+    }
+
+    const docContent = fallbackMatch[1] ?? fallbackMatch[2];
+
+    // Compute sourceLineRange so "Go to Definition" jumps to the correct line,
+    // matching the same logic as the main docsRegex loop above.
+    const matchIndex = fallbackMatch.index;
+    const fullMatch = fallbackMatch[0];
+    const docOffset = fullMatch.indexOf(docContent);
+    const pre = fullMatch.slice(0, docOffset);
+    let startLine = contents.substring(0, matchIndex).match(/\n/g)?.length ?? 0;
+    startLine += pre.match(/\n/g)?.length ?? 0;
+    const endLine = startLine + (docContent.match(/\n/g)?.length ?? 0);
+    this.sourceLineRange = [startLine, endLine];
+
+    const document = parseDocument(docContent);
+    documentationFragments.set(
+      DOCUMENTATION,
+      document.toJSON() as Record<string, unknown>,
+    );
+    this.errors = document.errors;
   }
 
   public set rawDocumentationFragments(
