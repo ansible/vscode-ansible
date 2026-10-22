@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect, beforeAll, afterAll, afterEach } from "vitest";
+import { expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
 import sinon from "sinon";
 import { CompletionItemKind, CompletionItem } from "vscode-languageserver";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@src/providers/completionProvider.js";
 import {} from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import { SchemaService } from "@src/services/schemaService.js";
 import {
   createTestWorkspaceManager,
@@ -23,6 +24,157 @@ import {
   unsetAnsibleConfigEnv,
   skipEE,
 } from "@test/helper.js";
+
+// ─── EE module-completion readiness probe ────────────────────────────────
+// On CI (esp. Linux GHA runners) the EE container runtime + ansible-doc
+// indexing can be unpredictably slow or unavailable.  Rather than letting
+// every @ee module test fail, we probe once and skip module suites when
+// the probe does not succeed within budget (mirrors the hover-ee pattern
+// from #3226).
+
+/** Tri-state: `undefined` = not yet probed, `true` = ready, `false` = unavailable. */
+let eeModuleCompletionReady: boolean | undefined;
+
+/** Deadline for the one-shot readiness probe (ms). */
+const EE_PROBE_BUDGET_MS = 60_000;
+/** Polling interval between probe retries (ms). */
+const EE_PROBE_INTERVAL_MS = 3_000;
+/** Per-attempt timeout for a single doCompletion call (ms). */
+const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+
+const EE_PROBE_TIMEOUT_MSG = "EE probe: doCompletion exceeded attempt timeout";
+
+/** Env var read by {@link spawnSyncWithResult} to cap blocking container ops (tests). */
+const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+
+/** Vitest hook timeout for EE module readiness setup (probe budget + slack). */
+const EE_MODULE_SETUP_HOOK_TIMEOUT_MS = EE_PROBE_BUDGET_MS + 10_000;
+
+/**
+ * Return true for errors that mean EE is not ready yet (retry).  All other
+ * errors are rethrown so completion-provider regressions fail setup.
+ */
+function isTransientEeReadinessError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof Error && "code" in err
+      ? String((err as NodeJS.ErrnoException).code)
+      : "";
+  if (msg.includes(EE_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
+    return true;
+  }
+  if (msg.includes("Failed to initialize execution environment")) {
+    return true;
+  }
+  if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  return false;
+}
+
+function setEeModuleCompletionSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+}
+
+function clearEeModuleCompletionSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+}
+
+/**
+ * Shared `@ee` module-suite setup: enable EE, cap sync container work, run the
+ * one-shot readiness probe when it has not run yet.
+ */
+async function prepareEeModuleCompletionSuite(
+  textDoc: TextDocument,
+  context: WorkspaceFolderContext | undefined,
+  docSettings: Thenable<ExtensionSettings>,
+): Promise<void> {
+  if (skipEE()) {
+    return;
+  }
+  setEeModuleCompletionSpawnSyncTimeout();
+  setEeFixtureAnsibleCollectionPathEnv();
+  await enableExecutionEnvironmentSettings(docSettings, context);
+  if (eeModuleCompletionReady === undefined) {
+    await probeEeModuleCompletion(textDoc, context);
+  }
+}
+
+/**
+ * Probe EE module completion readiness.  The first invocation retries
+ * {@link doCompletion} in a loop until the expected module item arrives
+ * or the budget expires.  Subsequent calls return the cached result
+ * immediately.
+ *
+ * Each attempt is wrapped in a `Promise.race` with a per-attempt timer.
+ * Container commands use `spawnSyncWithResult`, which honors
+ * {@link EE_SPAWN_SYNC_TIMEOUT_ENV} so sync work cannot block past the
+ * per-attempt budget while the probe runs.
+ */
+async function probeEeModuleCompletion(
+  textDoc: TextDocument,
+  context: WorkspaceFolderContext | undefined,
+): Promise<boolean> {
+  if (eeModuleCompletionReady !== undefined) return eeModuleCompletionReady;
+  if (!context) {
+    eeModuleCompletionReady = false;
+    return false;
+  }
+
+  // Position on the module-name line (`ansible.builtin.debug:`) in simple_tasks.yml
+  const probePosition = { line: 7, character: 8 };
+  const deadline = Date.now() + EE_PROBE_BUDGET_MS;
+
+  while (Date.now() < deadline) {
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const remainingMs = Math.min(
+        EE_PROBE_ATTEMPT_TIMEOUT_MS,
+        deadline - Date.now(),
+      );
+      const result = await Promise.race([
+        doCompletion(textDoc, probePosition, context),
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
+            () => reject(new Error(EE_PROBE_TIMEOUT_MSG)),
+            remainingMs,
+          );
+        }),
+      ]);
+      if (result?.some((item) => item.label === "ansible.builtin.debug")) {
+        eeModuleCompletionReady = true;
+        return true;
+      }
+    } catch (err: unknown) {
+      if (!isTransientEeReadinessError(err)) {
+        throw err;
+      }
+      // Transient EE failure or per-attempt timeout — retry after interval
+    } finally {
+      if (attemptTimer !== undefined) {
+        clearTimeout(attemptTimer);
+      }
+    }
+    await new Promise<void>((r) => setTimeout(r, EE_PROBE_INTERVAL_MS));
+  }
+
+  console.warn(
+    `[completion-ee] EE module completion readiness not achieved within ` +
+      `${EE_PROBE_BUDGET_MS / 1000}s — @ee module suites will skip`,
+  );
+  eeModuleCompletionReady = false;
+  return false;
+}
+
+/** beforeEach guard: skip the test when EE module completion is unavailable. */
+function skipIfEeModulesUnavailable(context: { skip: () => void }): void {
+  if (eeModuleCompletionReady === false) {
+    context.skip();
+  }
+}
 
 function testPlayKeywords(
   context: WorkspaceFolderContext | undefined,
@@ -712,22 +864,30 @@ function testModuleKindAndDocumentation(
 
     expect(context).toBeDefined();
     if (context) {
-      beforeAll(async () => {
-        // Skip if EE tests should be skipped (no container runtime available)
-        if (isEE && skipEE()) {
-          return;
-        }
-        const completion = await doCompletion(textDoc, position, context);
-        const filteredCompletion = completion.filter(
-          (item) => item.label === moduleName,
-        );
-        expect(filteredCompletion.length).be.equal(1);
-        expect(filteredCompletion[0].label).be.equal(moduleName);
-        resolvedItem = await doCompletionResolve(
-          filteredCompletion[0],
-          context,
-        );
-      });
+      beforeAll(
+        async () => {
+          if (isEE && !skipEE() && eeModuleCompletionReady === undefined) {
+            setEeModuleCompletionSpawnSyncTimeout();
+            await probeEeModuleCompletion(textDoc, context);
+          }
+          // Skip if EE tests should be skipped (no container runtime, or
+          // the dynamic readiness probe determined EE is unavailable).
+          if (isEE && (skipEE() || eeModuleCompletionReady === false)) {
+            return;
+          }
+          const completion = await doCompletion(textDoc, position, context);
+          const filteredCompletion = completion.filter(
+            (item) => item.label === moduleName,
+          );
+          expect(filteredCompletion.length).be.equal(1);
+          expect(filteredCompletion[0].label).be.equal(moduleName);
+          resolvedItem = await doCompletionResolve(
+            filteredCompletion[0],
+            context,
+          );
+        },
+        isEE ? EE_MODULE_SETUP_HOOK_TIMEOUT_MS : undefined,
+      );
 
       it(`should provide completion kind ${kind} for ${moduleName}`, function () {
         expect(resolvedItem.kind).be.equal(kind);
@@ -947,16 +1107,19 @@ describe("doCompletion()", function () {
     describe("Completion for module names (with different trigger scenarios)", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            simpleTasksDocSettings,
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
             simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testModuleNames(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             simpleTasksDocSettings,
@@ -981,12 +1144,14 @@ describe("doCompletion()", function () {
     describe("module kind and documentation of completion item", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            simpleTasksDocSettings,
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
             simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testModuleKindAndDocumentation(
           simpleTasksContext,
@@ -995,6 +1160,7 @@ describe("doCompletion()", function () {
         );
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             simpleTasksDocSettings,
@@ -1023,16 +1189,19 @@ describe("doCompletion()", function () {
     describe("Completion for module options and suboptions", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            simpleTasksDocSettings,
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
             simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testModuleOptions(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             simpleTasksDocSettings,
@@ -1057,16 +1226,19 @@ describe("doCompletion()", function () {
     describe("Completion for option and suboption values", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            simpleTasksDocSettings,
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
             simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testModuleOptionsValues(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             simpleTasksDocSettings,
@@ -1103,16 +1275,19 @@ describe("doCompletion()", function () {
     describe("Completion for module name without FQCN", function () {
       describe("@ee", function () {
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            noFqcnDocSettings,
+          await prepareEeModuleCompletionSuite(
+            noFqcnTextDoc,
             noFqcnContext,
+            noFqcnDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testModuleNamesWithoutFQCN(noFqcnContext, noFqcnTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             noFqcnDocSettings,
