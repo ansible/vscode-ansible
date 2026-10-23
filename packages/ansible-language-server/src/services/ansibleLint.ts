@@ -13,6 +13,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { fileExists, isObject } from "@src/utils/misc.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { CommandRunner } from "@src/utils/commandRunner.js";
+import { ansibleLintConcurrencyLimiter } from "@src/utils/concurrencyLimiter.js";
 
 interface AnsibleLintPosition {
   line: number;
@@ -190,13 +191,20 @@ export class AnsibleLint {
       settings,
     );
 
+    ansibleLintConcurrencyLimiter.setLimit(
+      settings.validation.lint.maxConcurrentProcesses,
+    );
+
     try {
-      // get ansible-lint result on the doc
-      const result = await commandRunner.runCommand(
-        "ansible-lint",
-        `${linterArguments} "${docPath}"`,
-        workingDirectory,
-        mountPaths,
+      // get ansible-lint result on the doc, throttled so we don't spawn too
+      // many ansible-lint processes at once across the whole workspace
+      const result = await ansibleLintConcurrencyLimiter.run(() =>
+        commandRunner.runCommand(
+          "ansible-lint",
+          `${linterArguments} "${docPath}"`,
+          workingDirectory,
+          mountPaths,
+        ),
       );
 
       diagnostics = this.processReport(result.stdout, workingDirectory);

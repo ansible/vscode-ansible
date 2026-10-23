@@ -15,6 +15,7 @@ interface ExtensionSettingsType {
     | ExtensionSettingsType
     | string
     | boolean
+    | number
     | string[]
     | IContainerEngine
     | IPullPolicy
@@ -40,6 +41,7 @@ export interface ExtensionSettings extends ExtensionSettingsType {
       path: string;
       arguments: string;
       autoFixOnSave: boolean;
+      maxConcurrentProcesses: number;
     };
   };
   executionEnvironment: {
@@ -65,12 +67,13 @@ export interface IVolumeMounts {
 export interface SettingsEntry {
   [name: string]:
     | {
-        default: string | boolean;
+        default: string | boolean | number;
         description: string;
       }
     | SettingsEntry
     | string
     | boolean
+    | number
     | Array<IVolumeMounts>;
 }
 
@@ -93,7 +96,7 @@ interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
 }
 
 export interface ExtensionSettingsWithDescriptionBase {
-  [key: string]: SettingsEntry | string | boolean;
+  [key: string]: SettingsEntry | string | boolean | number;
 }
 
 export interface ExtensionSettingsWithDescription extends ExtensionSettingsWithDescriptionBase {
@@ -174,6 +177,10 @@ interface ValidationSettingsWithDescription extends SettingsEntry {
     };
     autoFixOnSave: {
       default: boolean;
+      description: string;
+    };
+    maxConcurrentProcesses: {
+      default: number;
       description: string;
     };
   };
