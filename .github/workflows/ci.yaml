@@ -398,13 +398,25 @@ jobs:
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
             run: |
               set -e
+              set -o pipefail
               task package -v
               mkdir -p out/log
-              task e2e ${{ matrix.env.TASKFILE_ARGS }}
+              e2e_rc=0
+              task e2e ${{ matrix.env.TASKFILE_ARGS }} 2>&1 | tee out/log/e2e-run.log || e2e_rc=$?
+              if [ "$e2e_rc" -ne 0 ]; then
+                # Retry only on transient VS Code Marketplace errors (503, abort)
+                # that affect extension installation, not on real test failures.
+                if grep -qiE 'Server returned 503|Error while installing extensions.*aborted' out/log/e2e-run.log; then
+                  echo "::warning::e2e failed due to marketplace install error, retrying after flush"
+                  task flush
+                  rm -rf out/e2e/tmp/ || true
+                  task e2e ${{ matrix.env.TASKFILE_ARGS }}
+                else
+                  echo "::error::e2e failed with a non-transient error"
+                  exit 1
+                fi
+              fi
               task build --status --verbose
-            # Add these once e2e is fixed:
-            #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
-            #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
           - name: task unit (ext, vue, als, mcp)
             id: unit
