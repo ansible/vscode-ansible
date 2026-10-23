@@ -71,10 +71,22 @@ export function spawnSyncWithResult(
   args: string[],
   options: child_process.SpawnSyncOptions = {},
 ): SpawnResult {
+  const envTimeout = process.env.ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS;
+  const envTimeoutMs =
+    envTimeout !== undefined && envTimeout !== ""
+      ? Number(envTimeout)
+      : undefined;
+  const timeout =
+    options.timeout ??
+    (envTimeoutMs !== undefined && !Number.isNaN(envTimeoutMs)
+      ? envTimeoutMs
+      : undefined);
+
   const result = child_process.spawnSync(command, args, {
     encoding: "utf-8",
     shell: false,
     ...options,
+    ...(timeout !== undefined ? { timeout } : {}),
   });
   if (result.error) {
     throw result.error;
