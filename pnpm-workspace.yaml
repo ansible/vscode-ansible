@@ -102,3 +102,5 @@ minimumReleaseAgeExclude:
   - electron@44.5.0
   # Renovate security update: @vitest/ui@5.0.5
   - "@vitest/ui@5.0.5"
+  # Renovate security update: zod@4.6.6
+  - zod@4.6.6
