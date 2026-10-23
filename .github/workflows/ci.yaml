@@ -72,6 +72,7 @@ jobs:
       IS_WSL: ${{ contains(matrix.name, 'wsl') && 1 || 0 }}
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
+    timeout-minutes: 45
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
@@ -342,15 +343,7 @@ jobs:
             exit 98
           }
 
-      # Lint must not run in parallel with package: als:package regenerates
-      # docs/als/settings.md and prek treats that dirty worktree as a failure
-      # ("Files were modified by following hooks").
-      - name: task lint
-        if: runner.os == 'Linux'
-        id: lint
-        run: task lint && task lint --status
-
-      # Run setup before parallel build/docs so concurrent task processes do not
+      # Run setup before parallel build/lint so concurrent task processes do not
       # both invoke pnpm install on the same node_modules (ERR_PNPM_PATCH_FAILED).
       - name: task setup
         # starting podman machine can randomly get stuck on macos
@@ -358,19 +351,25 @@ jobs:
         run: task setup && task setup --status
         id: setup
 
+      # Lint can run in parallel with build (but NOT with package — als:package
+      # regenerates docs/als/settings.md and prek treats that dirty worktree as
+      # a failure). Since lint finishes (~2 min) well before build (~5 min),
+      # package only starts in the next group after both complete.
+      # Docs only need to build once (on Linux); skip on other platforms.
       - parallel:
-          - name: task build / package
-            # Warning: ensure that conditional templates have a negative condition
-            # expanding to an empty string because otherwise it will fail the command
-            # with exit code 1 even if the command effectively succeeded!
+          - name: task lint
+            if: ${{ runner.os == 'Linux' }}
+            id: lint
+            run: task lint && task lint --status
+
+          - name: task build
             run: |
               task build -v -x
               task build -v --status
-              ${{ runner.os != 'Windows' && 'task package -v' || '' }}
-              ${{ runner.os != 'Windows' && 'task package -v --status' || ''}}
 
           - name: task docs
             id: docs
+            if: ${{ runner.os == 'Linux' }}
             shell: bash
             # timeout-minutes: 2
             run: task docs && task docs --status
@@ -389,27 +388,29 @@ jobs:
           EOT
           podman info
 
+      # Package is separated from build so unit/wdio tests can start immediately
+      # after build completes without waiting for vsix packaging (~2 min).
+      # Package chains with e2e since only e2e needs the vsix artifact.
       - parallel:
-          - name: task unit (ext, vue, als, mcp)
-            id: unit
-            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
-            run: |
-              task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
-
-          - name: task e2e (vscode-test)
+          - name: task package + e2e
             id: e2e
             # https://github.com/ansible/vscode-ansible/issues/1451
             if: ${{ !cancelled() && contains(matrix.name, 'test') }}
             run: |
               set -e
+              task package -v
               mkdir -p out/log
-              task build 2>out/log/build-before.txt
               task e2e ${{ matrix.env.TASKFILE_ARGS }}
-              task build 2>out/log/build-after.txt
               task build --status --verbose
             # Add these once e2e is fixed:
             #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
             #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
+
+          - name: task unit (ext, vue, als, mcp)
+            id: unit
+            if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+            run: |
+              task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
           - name: task wdio (VS Code UI)
             id: wdio
