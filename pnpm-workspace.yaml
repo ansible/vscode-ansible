@@ -100,3 +100,5 @@ minimumReleaseAgeExclude:
   - vite@8.3.3
   # Renovate security update: electron@44.5.0
   - electron@44.5.0
+  # Renovate security update: @vitest/ui@5.0.5
+  - "@vitest/ui@5.0.5"
