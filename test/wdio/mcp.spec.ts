@@ -49,33 +49,6 @@ async function resetEditorsAndMcp(): Promise<void> {
   await browser.pause(200);
 }
 
-type WorkbenchWithNotifications = {
-  getNotifications: () => Promise<Array<{ getMessage: () => Promise<string> }>>;
-};
-
-/**
- * Check if any visible notification mentions the MCP Server being enabled.
- *
- * Returns `false` (rather than throwing) when the notification panel is not
- * visible, so callers can fall back to checking the setting value directly.
- */
-async function notificationMentionsMcpEnabled(
-  workbench: WorkbenchWithNotifications,
-): Promise<boolean> {
-  try {
-    const notifications = await workbench.getNotifications();
-    for (const notification of notifications) {
-      const message = await notification.getMessage();
-      if (/\bMCP Server\b/i.test(message) && /\benabled\b/i.test(message)) {
-        return true;
-      }
-    }
-  } catch {
-    /* notifications panel may not be visible */
-  }
-  return false;
-}
-
 describe("MCP Server", () => {
   before(async () => {
     await browser.executeWorkbench(async (vscode) => {
@@ -101,18 +74,15 @@ describe("MCP Server", () => {
   it("should enable MCP server via command", async () => {
     const workbench = await browser.getWorkbench();
     await workbench.executeCommand("ansible.mcpServer.enabled");
-    await browser.pause(1500);
 
-    const sawNotification = await notificationMentionsMcpEnabled(workbench);
-    if (!sawNotification) {
-      assert.strictEqual(
-        await readMcpServerEnabledAnsibleSection(),
-        true,
-        "Expected ansible.mcpServer.enabled to be true when no matching notification was found",
-      );
-    } else {
-      assert.ok(sawNotification, "Expected an MCP enable notification");
-    }
+    // Poll until the setting flips instead of a fixed pause — the command
+    // handler may take longer on slower CI runners (macOS in particular).
+    await browser.waitUntil(async () => readMcpServerEnabledAnsibleSection(), {
+      timeout: 10000,
+      interval: 500,
+      timeoutMsg:
+        "ansible.mcpServer.enabled did not become true within 10 s after running the toggle command",
+    });
 
     assert.strictEqual(await readMcpServerEnabledMcpSection(), true);
   });
@@ -150,7 +120,12 @@ describe("MCP Server", () => {
   it("should have MCP toggle command registered", async () => {
     const workbench = await browser.getWorkbench();
     await workbench.executeCommand("ansible.mcpServer.enabled");
-    await browser.pause(800);
+
+    await browser.waitUntil(async () => readMcpServerEnabledAnsibleSection(), {
+      timeout: 10000,
+      interval: 500,
+      timeoutMsg: "ansible.mcpServer.enabled did not become true within 10 s",
+    });
 
     try {
       await workbench.executeCommand("MCP: List Servers");

@@ -316,7 +316,7 @@ tasks:
   flush:
     desc: Cleans cached files that sometimes can affect the build negatively, not a full clean
     cmds:
-      - rm -rf .vscode-test/ || true
+      - rm -rf .vscode-test/ out/e2e/tmp/ || true
   dry:
     desc: Pretend it does run tests, used to validate configuration of the test frameworks
     deps:
