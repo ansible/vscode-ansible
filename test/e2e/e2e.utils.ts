@@ -240,6 +240,12 @@ export function deleteAlsCache(): void {
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
+import { getEeCollectionsPrependPath } from "@test/eeCollectionsEnvUtils.js";
+
+export function setEeFixtureAnsibleCollectionPathEnv(): void {
+  setFixtureAnsibleCollectionPathEnv(getEeCollectionsPrependPath());
+}
+
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
@@ -250,7 +256,7 @@ export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
+  delete process.env.ANSIBLE_COLLECTIONS_PATH;
 }
 
 export async function enableExecutionEnvironmentSettings(): Promise<void> {

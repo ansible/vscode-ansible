@@ -9,13 +9,14 @@
     "paths": {
       "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
       "@root/*": ["./*"],
+      "@root/tools/als-packaging": ["./tools/als-packaging.mts"],
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@webviews/*": ["./webviews/*"]
     },
     "types": ["@types/mocha", "vscode-webview"]
   },
-  "exclude": ["test/wdio/**/*"],
+  "exclude": ["test/wdio/**/*", "tools/smoke-als-vsix.mts"],
   "extends": "./tsconfig.base.json",
   "include": [
     "*.js",

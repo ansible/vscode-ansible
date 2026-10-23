@@ -493,9 +493,12 @@ export async function findProvidedModule(
     // find task parameters that have been provided by the user
     const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
     // should usually be 0 or 1
-    const providedModuleNames = [...providedParameters].filter(
-      (x) => !x || !isTaskKeyword(x),
-    );
+    const providedModuleNames = [...providedParameters]
+      .filter((x) => x && !isTaskKeyword(x))
+      .sort((a, b) => {
+        const fqcnDepth = (key: string) => key.match(/\./g)?.length ?? 0;
+        return fqcnDepth(b) - fqcnDepth(a);
+      });
 
     // find the module if it has been provided
     for (const m of providedModuleNames) {
