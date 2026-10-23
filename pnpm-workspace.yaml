@@ -14,6 +14,10 @@ allowBuilds:
   unrs-resolver: true
 
 overrides:
+  # vscode-test e2e reporters must stay on Mocha 11 (see packageExtensions below).
+  "cypress-multi-reporters>mocha": "11.8.0"
+  "mocha-junit-reporter>mocha": "11.8.0"
+  "mocha-multi-reporters>mocha": "12.0.3"
   rollup: "npm:@rollup/wasm-node@*"
   # VS Code 1.110+ renamed macOS Electron -> Code; Electron symlink removed in
   # 1.131 (microsoft/vscode#326502). @vscode/test-electron 3.1.0 resolves via
@@ -50,19 +54,24 @@ overrides:
   "hono": ">=4.12.34 <5.0.0"
   "ip-address": ">=10.2.2"
   "diff@>=5.0.0 <8.0.3": "9.0.0"
-  "file-type@>=13.0.0 <21.3.2": "22.1.1"
+  "file-type@>=13.0.0 <21.3.2": "22.2.0"
   "nanoid@3": "<7.0.0"
 
 patchedDependencies:
   # See: https://github.com/microsoft/vscode-test-cli/issues/106
   "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
 packageExtensions:
+  # @vscode/test-cli runs Mocha 11; keep reporter packages on the same major so
+  # createStatsCollector resolves from mocha/lib/stats-collector correctly.
   "cypress-multi-reporters@*":
     "dependencies":
-      "mocha": "*"
+      "mocha": "11.8.0"
   "mocha-junit-reporter@*":
     "dependencies":
-      "mocha": "*"
+      "mocha": "11.8.0"
+  "mocha-multi-reporters@*":
+    "dependencies":
+      "mocha": "11.8.0"
 minimumReleaseAgeExclude:
   # Renovate security update: js-yaml@5.2.1 || 5.2.2
   - js-yaml@5.2.1 || 5.2.2
@@ -83,3 +92,7 @@ minimumReleaseAgeExclude:
   - vitest@4.1.11
   # Renovate security update: @modelcontextprotocol/sdk@1.31.0
   - "@modelcontextprotocol/sdk@1.31.0"
+  # Renovate security update: handlebars@4.7.10
+  - handlebars@4.7.10
+  # Renovate security update: shell-quote@1.11.0
+  - shell-quote@1.11.0

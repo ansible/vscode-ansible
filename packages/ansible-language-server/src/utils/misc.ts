@@ -48,6 +48,18 @@ export function validatePlaybookPath(fsPath: string): string | undefined {
   return validateSafePath(fsPath, "Playbook path");
 }
 
+/**
+ * Returns the path unchanged when safe, or undefined when it contains
+ * shell metacharacters. Unlike validateSafePath, does NOT check file
+ * existence — Ansible itself will emit a clear error for a missing config.
+ */
+export function validateConfigPath(configPath: string): string | undefined {
+  if (SHELL_METACHARACTERS.test(configPath)) {
+    return undefined;
+  }
+  return configPath;
+}
+
 function validateActivationScript(scriptPath: string): string | undefined {
   return validateSafePath(scriptPath, "Activation script path");
 }

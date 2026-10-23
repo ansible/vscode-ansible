@@ -42,7 +42,10 @@ import {
   isCursorInsideJinjaBrackets,
   isPlaybook,
 } from "@src/utils/yaml.js";
-import { getVarsCompletion } from "@src/providers/completionProviderUtils.js";
+import {
+  getVarsCompletion,
+  moduleCompletionSortText,
+} from "@src/providers/completionProviderUtils.js";
 import { HostType } from "@src/services/ansibleInventory.js";
 
 interface ModuleCompletionResolveData {
@@ -281,9 +284,11 @@ export async function doCompletion(
                 label: useFqcn ? moduleFqcn : name,
                 kind: kind,
                 detail: `${namespace}.${collection}`,
-                sortText: useFqcn
-                  ? `${priority}_${moduleFqcn}`
-                  : `${priority}_${name}`,
+                sortText: moduleCompletionSortText(
+                  priority,
+                  moduleFqcn,
+                  useFqcn,
+                ),
                 filterText: useFqcn
                   ? `${name} ${moduleFqcn} ${collection} ${namespace}` // name should have highest priority (in case of FQCN)
                   : `${name} ${moduleFqcn}`, // name should have priority (in case of no FQCN)
@@ -550,6 +555,7 @@ function getKeywordCompletion(
       label: keyword,
       kind: CompletionItemKind.Property,
       sortText: `${priority}_${keyword}`,
+      filterText: keyword,
       documentation: description,
     };
     const insertText = atEndOfLine(document, position)
