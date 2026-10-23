@@ -96,3 +96,5 @@ minimumReleaseAgeExclude:
   - handlebars@4.7.10
   # Renovate security update: shell-quote@1.11.0
   - shell-quote@1.11.0
+  # Renovate security update: vite@8.3.3
+  - vite@8.3.3
