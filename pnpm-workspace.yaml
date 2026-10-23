@@ -98,3 +98,5 @@ minimumReleaseAgeExclude:
   - shell-quote@1.11.0
   # Renovate security update: vite@8.3.3
   - vite@8.3.3
+  # Renovate security update: electron@44.5.0
+  - electron@44.5.0
