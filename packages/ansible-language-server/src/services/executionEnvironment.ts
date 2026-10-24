@@ -287,18 +287,18 @@ export class ExecutionEnvironment {
         // --mount avoids the drive-letter colon ambiguity in -v on Windows.
         // Docker parses --mount as CSV, so quote key-value fields containing
         // commas and escape embedded quotes before joining the fields.
-        const encodeMountValue = (value: string): string => {
-          if (!value.includes(",") && !value.includes('"')) {
-            return value;
+        const encodeMountField = (field: string): string => {
+          if (!field.includes(",") && !field.includes('"')) {
+            return field;
           }
-          return `"${value.replace(/"/g, '""')}"`;
+          return `"${field.replace(/"/g, '""')}"`;
         };
         containerCommand.push(
           "--mount",
           [
             "type=bind",
-            `source=${encodeMountValue(hostPath)}`,
-            `target=${encodeMountValue(targetPath)}`,
+            encodeMountField(`source=${hostPath}`),
+            encodeMountField(`target=${targetPath}`),
           ].join(","),
         );
       } else {
