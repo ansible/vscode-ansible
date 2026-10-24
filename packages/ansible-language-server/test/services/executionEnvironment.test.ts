@@ -117,11 +117,10 @@ describe("container path mapping", () => {
       "win32",
     );
 
-    
-expect(result).toContain(
-  'type=bind,source="D:\\Ansible, Config",target="/mnt/d/Ansible, Config"',
-);
 
+    expect(result).toContain(
+      'type=bind,"source=D:\\Ansible, Config","target=/mnt/d/Ansible, Config"',
+    );
 
     expect(result).toContain(
       'ANSIBLE_CONFIG=/mnt/d/Ansible, Config/ansible.cfg',
