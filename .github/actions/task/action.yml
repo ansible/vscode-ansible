@@ -40,6 +40,11 @@ runs:
         mise cfg
         mise exec -v -- which python3
         mise exec -- printenv NODE_OPTIONS || true
+        # mise shims do not prepend the project venv. `mise exec` does, but
+        # later `task` steps do not run inside mise exec. Put the venv bin
+        # on PATH for this step and every following step.
+        echo "${HOME}/.local/share/virtualenvs/vsa/bin" >> "$GITHUB_PATH"
+        export PATH="${HOME}/.local/share/virtualenvs/vsa/bin:${PATH}"
         task setup && task setup --status
 
     - name: Extract commit context from conventional commit and list of known tasks
