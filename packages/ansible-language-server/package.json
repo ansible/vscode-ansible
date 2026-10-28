@@ -40,7 +40,7 @@
   },
   "description": "Ansible language server",
   "devDependencies": {
-    "@types/node": "^24.13.2",
+    "@types/node": "^26.0.0",
     "@types/vscode": "^1.91.0",
     "fuse.js": "^7.4.2",
     "rimraf": "^6.1.3",
