@@ -1,0 +1,4 @@
+---
+- name: Debug message
+  ansible.builtin.debug:
+    msg: "Hello from subtask"

@@ -358,6 +358,7 @@ export class AnsibleLanguageService {
               document,
               params.position,
               await context.docsLibrary,
+              context.workspaceFolder.uri,
             );
           }
         }
