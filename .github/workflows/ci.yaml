@@ -279,9 +279,12 @@ jobs:
           # GITHUB_PATH doesn't work for WSL paths (runner is on the
           # Windows side), so persist PATH via .bashrc which is loaded
           # by every step (wsl-shell-command uses bash -i).
+          # Venv bin must come before mise shims. The non-Windows
+          # GITHUB_PATH update below is skipped here (runner.os is Windows).
+          VENV_BIN="$HOME/.local/share/virtualenvs/vsa/bin"
           SHIMS="$HOME/.local/share/mise/shims"
-          export PATH="$HOME/.local/bin:$SHIMS:$PATH"
-          echo "export PATH=\"$HOME/.local/bin:$SHIMS:\$PATH\"" >> ~/.bashrc
+          export PATH="$VENV_BIN:$HOME/.local/bin:$SHIMS:$PATH"
+          echo "export PATH=\"$VENV_BIN:$HOME/.local/bin:$SHIMS:\$PATH\"" >> ~/.bashrc
           mise reshim
 
       - name: Save WSL bootstrap cache

@@ -10,7 +10,7 @@ DIR="$(dirname "$(realpath "$0")")"
 # then fails looking for ansible.
 if [[ -n "${VIRTUAL_ENV:-}" && -d "${VIRTUAL_ENV}/bin" ]]; then
     case ":${PATH}:" in
-        *":${VIRTUAL_ENV}/bin:"*) ;;
+        ":${VIRTUAL_ENV}/bin:"*) ;;
         *)
             PATH="${VIRTUAL_ENV}/bin:${PATH}"
             export PATH
