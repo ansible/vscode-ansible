@@ -5,6 +5,19 @@ DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
 . "$DIR/_utils.sh"
 
+# mise shims do not prepend the project venv. Without this, `which python3`
+# points at the shim, `uv venv --clear` wipes the synced packages, and CI
+# then fails looking for ansible.
+if [[ -n "${VIRTUAL_ENV:-}" && -d "${VIRTUAL_ENV}/bin" ]]; then
+    case ":${PATH}:" in
+        ":${VIRTUAL_ENV}/bin:"*) ;;
+        *)
+            PATH="${VIRTUAL_ENV}/bin:${PATH}"
+            export PATH
+            ;;
+    esac
+fi
+
 creator_resources_path="$(uv run python -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)")/resources"
 mkdir -p resources/contentCreator/createDevcontainer
 mkdir -p resources/contentCreator/createDevfile
