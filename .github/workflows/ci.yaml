@@ -323,6 +323,11 @@ jobs:
       - name: Check mise
         run: |
           mise reshim --force
+          # mise-action can treat python@3.13 as already installed from an
+          # older cached patch (3.13.17), then rewrite the lock to 3.13.18
+          # without downloading it. A second install follows the lock.
+          # Doctor then fails on the missing patch and skips task setup.
+          mise install
           # Skip doctor on Windows: mise-action installs mise.exe but not a
           # version-tagged mise-shim.exe, so doctor always fails since
           # 2026.10.14.  Upstream recommends against gating CI on doctor.
