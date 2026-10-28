@@ -2,16 +2,6 @@
 # cSpell:ignore precheck
 set -euo pipefail
 
-# Same shim-vs-venv gap as tools/uv.sh: keep the project venv visible.
-if [[ -n "${VIRTUAL_ENV:-}" && -d "${VIRTUAL_ENV}/bin" ]]; then
-    case ":${PATH}:" in
-        *":${VIRTUAL_ENV}/bin:"*) ;;
-        *)
-            PATH="${VIRTUAL_ENV}/bin:${PATH}"
-            export PATH
-            ;;
-    esac
-fi
 
 function check_for_duplicate_executables() {
     local EXECUTABLES=(
