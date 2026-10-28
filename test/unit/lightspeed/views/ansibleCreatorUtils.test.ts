@@ -157,7 +157,7 @@ describe("AnsibleCreatorOperations", () => {
     // implementations, so real semver behavior is restored after a per-test
     // mockImplementationOnce override is consumed.
     vi.clearAllMocks();
-    vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
+    vi.mocked(getCreatorVersion).mockResolvedValue("26.2.0");
     vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
     vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
     vi.mocked(runCommand).mockResolvedValue({
@@ -267,9 +267,10 @@ describe("AnsibleCreatorOperations", () => {
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
       expect(runCommand).not.toHaveBeenCalled();
+      expect(withInterpreter).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
-        "Minimum ansible-creator version needed to add the role",
+        "Minimum ansible-creator version needed to add the role resource is 26.2.0",
       );
     });
 
@@ -278,6 +279,7 @@ describe("AnsibleCreatorOperations", () => {
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
       expect(runCommand).not.toHaveBeenCalled();
+      expect(withInterpreter).not.toHaveBeenCalled();
       expect(lastOutput(web)).toContain("Invalid version format: garbage.");
       expect(lastOutput(web)).not.toContain("Minimum ansible-creator version");
     });
@@ -315,8 +317,9 @@ describe("AnsibleCreatorOperations", () => {
       const web = makeWeb();
       await ops.runPluginAddCommand(pluginPayload({ pluginType: "test" }), web);
       expect(runCommand).not.toHaveBeenCalled();
+      expect(withInterpreter).not.toHaveBeenCalled();
       expect(lastOutput(web)).toContain(
-        "Minimum ansible-creator version needed to add the test plugin",
+        "Minimum ansible-creator version needed to add the test plugin is 26.2.0",
       );
     });
   });
@@ -386,9 +389,8 @@ describe("AnsibleCreatorOperations", () => {
     });
 
     it.each([
-      ["25.5.0", true, "--overwrite"],
-      ["24.0.0", true, "--force"],
-      ["25.5.0", false, "--no-overwrite"],
+      ["26.2.0", true, "--overwrite"],
+      ["26.4.0", false, "--no-overwrite"],
     ])(
       "overwrite matrix version=%s isOverwritten=%s -> %s",
       async (version, isOverwritten, expected) => {
@@ -399,14 +401,26 @@ describe("AnsibleCreatorOperations", () => {
       },
     );
 
-    it("adds no overwrite flag when version is old and not overwritten", async () => {
-      vi.mocked(getCreatorVersion).mockResolvedValue("24.0.0");
+    it("rejects ansible-creator below the minimum version", async () => {
+      vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
       const web = makeWeb();
-      await ops.runInitCommand(projectPayload({ isOverwritten: false }), web);
-      const cmd = interpreterCmd();
-      expect(cmd).not.toContain("--overwrite");
-      expect(cmd).not.toContain("--force");
-      expect(cmd).not.toContain("--no-overwrite");
+      await ops.runInitCommand(projectPayload({ isOverwritten: true }), web);
+      expect(runCommand).not.toHaveBeenCalled();
+      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain(
+        "Minimum ansible-creator version needed is 26.2.0",
+      );
+      expect(lastOutput(web)).toContain("25.5.0");
+    });
+
+    it("rejects an un-parseable ansible-creator version before running", async () => {
+      vi.mocked(getCreatorVersion).mockResolvedValue("garbage");
+      const web = makeWeb();
+      await ops.runInitCommand(projectPayload(), web);
+      expect(runCommand).not.toHaveBeenCalled();
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("Invalid version format: garbage.");
     });
 
     it("omits log flags when logToFile is false", async () => {
@@ -507,29 +521,14 @@ describe("AnsibleCreatorOperations", () => {
   });
 
   describe("version-syntax command builders", () => {
-    it("getCollectionCreatorCommand uses new syntax on a recent version", async () => {
-      vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
-      const cmd = await ops.getCollectionCreatorCommand("ns", "col", "/tmp");
+    it("getCollectionCreatorCommand uses the current init syntax", () => {
+      const cmd = ops.getCollectionCreatorCommand("ns", "col", "/tmp");
       expect(cmd).toBe("ansible-creator init collection ns.col /tmp --no-ansi");
     });
 
-    it("getCollectionCreatorCommand uses legacy syntax on an old version", async () => {
-      vi.mocked(getCreatorVersion).mockResolvedValue("24.0.0");
-      const cmd = await ops.getCollectionCreatorCommand("ns", "col", "/tmp");
-      expect(cmd).toContain("--init-path=/tmp");
-    });
-
-    it("getPlaybookCreatorCommand uses new syntax on a recent version", async () => {
-      vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
-      const cmd = await ops.getPlaybookCreatorCommand("ns", "col", "/tmp");
+    it("getPlaybookCreatorCommand uses the current init syntax", () => {
+      const cmd = ops.getPlaybookCreatorCommand("ns", "col", "/tmp");
       expect(cmd).toBe("ansible-creator init playbook ns.col /tmp --no-ansi");
-    });
-
-    it("getPlaybookCreatorCommand uses legacy syntax on an old version", async () => {
-      vi.mocked(getCreatorVersion).mockResolvedValue("24.0.0");
-      const cmd = await ops.getPlaybookCreatorCommand("ns", "col", "/tmp");
-      expect(cmd).toContain("--scm-org=ns");
-      expect(cmd).toContain("--scm-project=col");
     });
   });
 });
