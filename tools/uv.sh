@@ -5,6 +5,18 @@ DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
 . "$DIR/_utils.sh"
 
+# `task` is started from a mise shim. Shims do not prepend the project venv
+# the way `mise exec` does, so tools installed by `uv sync` are missing.
+if [[ -n "${VIRTUAL_ENV:-}" && -d "${VIRTUAL_ENV}/bin" ]]; then
+    case ":${PATH}:" in
+        *":${VIRTUAL_ENV}/bin:"*) ;;
+        *)
+            PATH="${VIRTUAL_ENV}/bin:${PATH}"
+            export PATH
+            ;;
+    esac
+fi
+
 creator_resources_path="$(uv run python -c "from pathlib import Path; import ansible_creator; print(Path(ansible_creator.__file__).parent)")/resources"
 mkdir -p resources/contentCreator/createDevcontainer
 mkdir -p resources/contentCreator/createDevfile

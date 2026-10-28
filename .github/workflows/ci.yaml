@@ -342,6 +342,9 @@ jobs:
             echo "::warning::python3 mismatch $(mise exec -- which python3) != ${HOME}/.local/share/virtualenvs/vsa/bin/python3"
             exit 98
           }
+          # mise shims do not prepend the project venv. Later `task` steps
+          # are not `mise exec`, so ansible would be missing from PATH.
+          echo "${HOME}/.local/share/virtualenvs/vsa/bin" >> "$GITHUB_PATH"
 
       # Run setup before parallel build/lint so concurrent task processes do not
       # both invoke pnpm install on the same node_modules (ERR_PNPM_PATCH_FAILED).
