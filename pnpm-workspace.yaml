@@ -34,7 +34,7 @@ overrides:
   "brace-expansion@5": ">=5.0.8 <6.0.0"
   # minimatch@5/@9 default-import brace-expansion; v5 is named export only
   "minimatch@5": ">=10.2.6 <11"
-  "minimatch@9": ">=10.2.6 <11"
+  "minimatch@9": "<12"
   "fast-uri@3": "<5.0.0"
   "fast-xml-parser": ">=5.10.1 <6.0.0"
   "fastify": ">=5.8.3 <6.0.0"
@@ -60,6 +60,7 @@ overrides:
 patchedDependencies:
   # See: https://github.com/microsoft/vscode-test-cli/issues/106
   "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
+  cypress-multi-reporters@2.0.5: patches/cypress-multi-reporters@2.0.5.patch
 packageExtensions:
   # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must use the same major
   # so createStatsCollector resolves from mocha/lib/stats-collector correctly.
