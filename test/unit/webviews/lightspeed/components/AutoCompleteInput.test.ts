@@ -98,9 +98,7 @@ describe("AutoCompleteInput", () => {
         },
       });
       await wrapper.find("input").setValue("my");
-      const events = wrapper.emitted("complete") as Array<
-        [{ query: string }]
-      >;
+      const events = wrapper.emitted("complete") as Array<[{ query: string }]>;
       expect(events[events.length - 1][0].query).toBe("my");
     });
 
@@ -334,9 +332,7 @@ describe("AutoCompleteInput", () => {
       await wrapper.find(".dropdown-toggle").trigger("click");
       await flushPromises();
 
-      const events = wrapper.emitted("complete") as Array<
-        [{ query: string }]
-      >;
+      const events = wrapper.emitted("complete") as Array<[{ query: string }]>;
       expect(events[events.length - 1][0].query).toBe("");
     });
   });

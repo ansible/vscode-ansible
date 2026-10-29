@@ -245,9 +245,7 @@ function mergeLcovRecords(lcovData: string): string {
     out.push(`BRH:${brh}`);
 
     // DA lines (sorted by line number)
-    const sortedLines = [...rec.lines.entries()].sort(
-      ([a], [b]) => a - b,
-    );
+    const sortedLines = [...rec.lines.entries()].sort(([a], [b]) => a - b);
     let lf = 0;
     let lh = 0;
     for (const [num, hits] of sortedLines) {
