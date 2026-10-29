@@ -22,27 +22,6 @@ vi.mock("marked", () => ({
   parseInline: vi.fn((text: string) => text),
 }));
 
-// Mock PrimeVue
-vi.mock("primevue/autocomplete", () => ({
-  default: {
-    name: "AutoComplete",
-    template:
-      '<input :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" :placeholder="placeholder" />',
-    props: [
-      "modelValue",
-      "suggestions",
-      "placeholder",
-      "fluid",
-      "size",
-      "showEmptyMessage",
-      "dropdown",
-      "name",
-      "emptySearchMessage",
-    ],
-    emits: ["update:modelValue", "complete"],
-  },
-}));
-
 // Mock highlight.js
 vi.mock("highlight.js/styles/atom-one-dark.css", () => ({}));
 

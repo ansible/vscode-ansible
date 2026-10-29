@@ -229,10 +229,6 @@ export default defineConfig({
       "@webviews": path.resolve(__dirname, "webviews"),
       "@test": path.resolve(__dirname, "test"),
       "@root": path.resolve(__dirname),
-      "@primeuix/themes": path.resolve(
-        __dirname,
-        "node_modules/@primeuix/themes/dist",
-      ),
     },
   },
 });

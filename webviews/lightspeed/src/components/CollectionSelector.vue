@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AutoComplete from "primevue/autocomplete";
+import AutoCompleteInput from "@webviews/lightspeed/src/components/AutoCompleteInput.vue";
 
 import { ref, Ref } from "vue";
 import { AnsibleCollection } from "@src/features/lightspeed/utils/scanner";
@@ -61,11 +61,10 @@ vscodeApi.post("getCollectionList", {});
 
     <br />
     <div id="fieldBox">
-      <AutoComplete
+      <AutoCompleteInput
         id="collectionNameTextField"
         v-model="collectionName"
         dropdown
-        size="small"
         name="selectedCollectionName"
         :suggestions="collectionListFiltered"
         @complete="search"
