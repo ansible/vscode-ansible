@@ -19,10 +19,13 @@ import { SettingsManager } from "@src/settings";
 import {
   ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
-  ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
 } from "@src/definitions/constants";
 
 export class AnsibleCreatorOperations {
+  private defaultCollectionsPath(): string {
+    return `${os.homedir()}/.ansible/collections/ansible_collections`;
+  }
+
   private checkVersionWithError(
     currentVersion: string,
     requiredVersion: string,
@@ -45,12 +48,120 @@ export class AnsibleCreatorOperations {
     }
   }
 
-  public async getRoleCreatorCommand(
-    roleName: string,
-    url: string,
-  ): Promise<string> {
-    const command = `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
-    return command;
+  // Shared version gate: checks creator presence and minimum version, posts
+  // the appropriate error to the webview and returns { passed: false } when
+  // the gate fails. Callers early-return on !passed.
+  private async checkCreatorVersionGate(
+    webView: vscode.Webview,
+    subject: string,
+    urlPayload: Record<string, string | undefined>,
+  ): Promise<{ passed: boolean }> {
+    const creatorVersion = await getCreatorVersion();
+    if (!creatorVersion || creatorVersion === "failed") {
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            "ansible-creator is not installed or not found in PATH.\n" +
+            "Please install ansible-creator and try again.\n",
+          ...urlPayload,
+          status: "failed",
+        },
+      });
+      return { passed: false };
+    }
+
+    const versionCheck = this.checkVersionWithError(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+    if (!versionCheck.isGte) {
+      let commandOutput = versionCheck.userMessage ?? "";
+      if (!versionCheck.userMessage) {
+        commandOutput += `Minimum ansible-creator version needed${subject} is ${ANSIBLE_CREATOR_VERSION_MIN}\n`;
+        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      }
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput,
+          ...urlPayload,
+          status: "failed",
+        },
+      });
+      return { passed: false };
+    }
+
+    return { passed: true };
+  }
+
+  public getRoleCreatorCommand(roleName: string, url: string): string {
+    return `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
+  }
+
+  // Runs an ansible-creator command through the interpreter, posts the
+  // execution result to the webview. Shared by role-add, plugin-add flows.
+  private async executeCreatorCommand(
+    baseCommand: string,
+    isOverwritten: boolean,
+    verbosity: string,
+    webView: vscode.Webview,
+    urlPayload: Record<string, string | undefined>,
+  ): Promise<void> {
+    let command = this.applyOverwriteFlag(baseCommand, isOverwritten);
+    command += this.getVerbosityFlag(verbosity);
+
+    console.debug("[ansible-creator] command: ", command);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command: resolved, env } = await withInterpreter(
+      extSettings.settings,
+      command,
+      "",
+    );
+
+    const result = await runCommand(resolved, env);
+    const commandOutput =
+      `----------------------------------------- ansible-creator logs ------------------------------------------\n` +
+      result.output;
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput,
+        ...urlPayload,
+        status: result.status,
+      },
+    });
+  }
+
+  // Shared flow for role-add and plugin-add: resolves the destination,
+  // gates on the creator version, then builds and executes the command.
+  private async runAddCommand(
+    webView: vscode.Webview,
+    subject: string,
+    collectionPath: string,
+    isOverwritten: boolean,
+    verbosity: string,
+    buildCommand: (url: string) => string,
+  ): Promise<void> {
+    const destinationPathUrl = collectionPath || this.defaultCollectionsPath();
+
+    const gate = await this.checkCreatorVersionGate(webView, subject, {
+      projectUrl: destinationPathUrl,
+    });
+    if (!gate.passed) return;
+
+    await this.executeCreatorCommand(
+      buildCommand(destinationPathUrl),
+      isOverwritten,
+      verbosity,
+      webView,
+      { projectUrl: destinationPathUrl },
+    );
   }
 
   public async runRoleAddCommand(
@@ -58,98 +169,14 @@ export class AnsibleCreatorOperations {
     webView: vscode.Webview,
   ) {
     const { roleName, collectionPath, verbosity, isOverwritten } = payload;
-
-    const destinationPathUrl =
-      collectionPath ||
-      `${os.homedir()}/.ansible/collections/ansible_collections`;
-
-    let ansibleCreatorAddCommand = await this.getRoleCreatorCommand(
-      roleName,
-      destinationPathUrl,
+    await this.runAddCommand(
+      webView,
+      " to add the role resource",
+      collectionPath,
+      isOverwritten,
+      verbosity,
+      (url) => this.getRoleCreatorCommand(roleName, url),
     );
-
-    if (isOverwritten) {
-      ansibleCreatorAddCommand += " --overwrite";
-    } else {
-      ansibleCreatorAddCommand += " --no-overwrite";
-    }
-
-    const verbosityMap: Record<string, string> = {
-      off: "",
-      low: " -v",
-      medium: " -vv",
-      high: " -vvv",
-    };
-
-    const normalizedVerbosity = verbosity.toLowerCase();
-    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
-    ansibleCreatorAddCommand += verbosityFlag;
-
-    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
-
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const { command, env } = await withInterpreter(
-      extSettings.settings,
-      ansibleCreatorAddCommand,
-      "",
-    );
-
-    let commandOutput = "";
-    let commandResult: string;
-
-    const creatorVersion = await getCreatorVersion();
-    if (!creatorVersion || creatorVersion === "failed") {
-      commandOutput += `ansible-creator is not installed or not found in PATH.\n`;
-      commandOutput += `Please install ansible-creator and try again.\n`;
-      commandResult = "failed";
-      await webView.postMessage({
-        command: "execution-log",
-        arguments: {
-          commandOutput: commandOutput,
-          projectUrl: destinationPathUrl,
-          status: commandResult,
-        },
-      });
-      return;
-    }
-    const minRequiredCreatorVersion: Record<string, string> = {
-      role: "25.4.0",
-    };
-    const requiredCreatorVersion = minRequiredCreatorVersion["role"];
-
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
-
-    const versionCheck = this.checkVersionWithError(
-      creatorVersion,
-      requiredCreatorVersion,
-    );
-    if (versionCheck.userMessage) {
-      commandOutput += versionCheck.userMessage;
-    }
-
-    if (versionCheck.isGte) {
-      const ansibleCreatorExecutionResult = await runCommand(command, env);
-      commandOutput += ansibleCreatorExecutionResult.output;
-      commandResult = ansibleCreatorExecutionResult.status;
-    } else {
-      if (!versionCheck.userMessage) {
-        commandOutput += `Minimum ansible-creator version needed to add the role resource is ${requiredCreatorVersion}\n`;
-        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
-        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
-      }
-      commandResult = "failed";
-    }
-
-    await webView.postMessage({
-      command: "execution-log",
-      arguments: {
-        commandOutput: commandOutput,
-        projectUrl: destinationPathUrl,
-        status: commandResult,
-      },
-    });
   }
 
   public async runPluginAddCommand(
@@ -158,100 +185,15 @@ export class AnsibleCreatorOperations {
   ) {
     const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
       payload;
-    const destinationPathUrl =
-      collectionPath ||
-      `${os.homedir()}/.ansible/collections/ansible_collections`;
-
-    let ansibleCreatorAddCommand = await this.getPluginCreatorCommand(
-      pluginName,
-      pluginType.toLowerCase(),
-      destinationPathUrl,
+    await this.runAddCommand(
+      webView,
+      ` to add the ${pluginType} plugin`,
+      collectionPath,
+      isOverwritten,
+      verbosity,
+      (url) =>
+        this.getPluginCreatorCommand(pluginName, pluginType.toLowerCase(), url),
     );
-
-    if (isOverwritten) {
-      ansibleCreatorAddCommand += " --overwrite";
-    } else {
-      ansibleCreatorAddCommand += " --no-overwrite";
-    }
-
-    const verbosityMap: Record<string, string> = {
-      off: "",
-      low: " -v",
-      medium: " -vv",
-      high: " -vvv",
-    };
-
-    const normalizedVerbosity = verbosity.toLowerCase();
-    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
-    ansibleCreatorAddCommand += verbosityFlag;
-    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
-
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const { command, env } = await withInterpreter(
-      extSettings.settings,
-      ansibleCreatorAddCommand,
-      "",
-    );
-
-    let commandOutput = "";
-    let commandResult: string;
-
-    const creatorVersion = await getCreatorVersion();
-    if (!creatorVersion || creatorVersion === "failed") {
-      commandOutput += `ansible-creator is not installed or not found in PATH.\n`;
-      commandOutput += `Please install ansible-creator and try again.\n`;
-      commandResult = "failed";
-      await webView.postMessage({
-        command: "execution-log",
-        arguments: {
-          commandOutput: commandOutput,
-          projectUrl: destinationPathUrl,
-          status: commandResult,
-        },
-      });
-      return;
-    }
-    const minRequiredCreatorVersion: Record<string, string> = {
-      lookup: "24.12.1",
-      filter: "24.12.1",
-      action: "25.0.0",
-      module: "25.3.1",
-      test: "25.3.1",
-    };
-    const requiredCreatorVersion =
-      minRequiredCreatorVersion[pluginType.toLowerCase()];
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
-    const versionCheck = this.checkVersionWithError(
-      creatorVersion,
-      requiredCreatorVersion,
-    );
-    if (versionCheck.userMessage) {
-      commandOutput += versionCheck.userMessage;
-    }
-
-    if (versionCheck.isGte) {
-      const ansibleCreatorExecutionResult = await runCommand(command, env);
-      commandOutput += ansibleCreatorExecutionResult.output;
-      commandResult = ansibleCreatorExecutionResult.status;
-    } else {
-      if (!versionCheck.userMessage) {
-        commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
-        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
-        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
-      }
-      commandResult = "failed";
-    }
-
-    await webView.postMessage({
-      command: "execution-log",
-      arguments: {
-        commandOutput: commandOutput,
-        projectUrl: destinationPathUrl,
-        status: commandResult,
-      },
-    });
   }
 
   public async runInitCommand(
@@ -263,26 +205,20 @@ export class AnsibleCreatorOperations {
     const isCollection =
       "initPath" in payload && !("destinationPath" in payload);
 
-    const built = await this.buildCreatorInitCommand(payload, isCollection);
+    const built = this.buildCreatorInitCommand(payload, isCollection);
     const destinationUrl = built.destinationUrl;
     let ansibleCreatorInitCommand = built.command;
 
-    const creatorVersion = await getCreatorVersion();
-    if (!creatorVersion || creatorVersion === "failed") {
-      await this.postCreatorMissing(webView, isCollection, destinationUrl);
-      return;
-    }
+    const gate = await this.checkCreatorVersionGate(webView, "", {
+      collectionUrl: isCollection ? destinationUrl : undefined,
+      projectUrl: isCollection ? undefined : destinationUrl,
+    });
+    if (!gate.passed) return;
 
-    const versionCheck = this.checkVersionWithError(
-      creatorVersion,
-      ANSIBLE_CREATOR_VERSION_MIN,
-    );
-    const exceedMinVersion = versionCheck.isGte;
-    let commandOutput = versionCheck.userMessage ?? "";
+    let commandOutput = "";
 
     ansibleCreatorInitCommand = this.applyOverwriteFlag(
       ansibleCreatorInitCommand,
-      exceedMinVersion,
       payload.isOverwritten,
     );
     ansibleCreatorInitCommand += this.getVerbosityFlag(payload.verbosity);
@@ -335,18 +271,17 @@ export class AnsibleCreatorOperations {
 
   // Builds the base ansible-creator init command and resolves the destination
   // URL for either a collection or a project payload.
-  private async buildCreatorInitCommand(
+  private buildCreatorInitCommand(
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     isCollection: boolean,
-  ): Promise<{ command: string; destinationUrl: string }> {
+  ): { command: string; destinationUrl: string } {
     if (isCollection) {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
 
-      const initPathUrl =
-        initPath || `${os.homedir()}/.ansible/collections/ansible_collections`;
+      const initPathUrl = initPath || this.defaultCollectionsPath();
 
-      const command = await this.getCollectionCreatorCommand(
+      const command = this.getCollectionCreatorCommand(
         namespaceName,
         collectionName,
         initPathUrl,
@@ -367,7 +302,7 @@ export class AnsibleCreatorOperations {
 
     const destinationUrl = destinationPath || os.homedir();
 
-    const command = await this.getPlaybookCreatorCommand(
+    const command = this.getPlaybookCreatorCommand(
       namespaceName,
       collectionName,
       destinationUrl,
@@ -376,41 +311,10 @@ export class AnsibleCreatorOperations {
     return { command, destinationUrl };
   }
 
-  // Posts the "ansible-creator not installed" execution log and stops.
-  private async postCreatorMissing(
-    webView: vscode.Webview,
-    isCollection: boolean,
-    destinationUrl: string,
-  ) {
-    let commandOutput =
-      "ansible-creator is not installed or not found in PATH.\n";
-    commandOutput += "Please install ansible-creator and try again.\n";
-    await webView.postMessage({
-      command: "execution-log",
-      arguments: {
-        commandOutput: commandOutput,
-        collectionUrl: isCollection ? destinationUrl : undefined,
-        projectUrl: isCollection ? undefined : destinationUrl,
-        status: "failed",
-      },
-    });
-  }
-
-  // Appends the overwrite/force/no-overwrite flag based on the creator version
-  // gate and the user's overwrite choice.
-  private applyOverwriteFlag(
-    command: string,
-    exceedMinVersion: boolean,
-    isOverwritten: boolean,
-  ): string {
-    if (exceedMinVersion && isOverwritten) {
-      return command + " --overwrite";
-    } else if (!exceedMinVersion && isOverwritten) {
-      return command + " --force";
-    } else if (exceedMinVersion && !isOverwritten) {
-      return command + " --no-overwrite";
-    }
-    return command;
+  // Appends --overwrite or --no-overwrite. Callers reject creator versions
+  // below ANSIBLE_CREATOR_VERSION_MIN before this runs.
+  private applyOverwriteFlag(command: string, isOverwritten: boolean): string {
+    return command + (isOverwritten ? " --overwrite" : " --no-overwrite");
   }
 
   // Maps a verbosity level to its ansible-creator flag.
@@ -523,52 +427,27 @@ export class AnsibleCreatorOperations {
     return;
   }
 
-  public async getCollectionCreatorCommand(
+  public getCollectionCreatorCommand(
     namespaceName: string,
     collectionName: string,
     initPathUrl: string,
-  ): Promise<string> {
-    const creatorVersion = await getCreatorVersion();
-
-    const versionCheck = this.checkVersionWithError(
-      creatorVersion,
-      ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
-    );
-
-    let command: string;
-    if (versionCheck.isGte) {
-      command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
-    } else {
-      command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
-    }
-    return command;
+  ): string {
+    return `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
   }
 
-  public async getPluginCreatorCommand(
+  public getPluginCreatorCommand(
     pluginName: string,
     pluginType: string,
     url: string,
-  ): Promise<string> {
-    const command = `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
-    return command;
+  ): string {
+    return `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
   }
 
-  public async getPlaybookCreatorCommand(
+  public getPlaybookCreatorCommand(
     namespace: string,
     collection: string,
     url: string,
-  ): Promise<string> {
-    const creatorVersion = await getCreatorVersion();
-
-    const versionCheck = this.checkVersionWithError(
-      creatorVersion,
-      ANSIBLE_CREATOR_VERSION_MIN,
-    );
-
-    if (versionCheck.isGte) {
-      return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
-    } else {
-      return `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
-    }
+  ): string {
+    return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
   }
 }

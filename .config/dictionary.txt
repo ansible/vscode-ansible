@@ -1,5 +1,6 @@
 ANSTRAT
 Anson
+BRDA
 CGMANIFEST
 CHROMEDRIVER
 CICD
@@ -9,6 +10,7 @@ Chromedriver
 Customizer
 DEEPSEEK
 Elio’s
+FNDA
 FQCN
 FQCNs
 Fqcn
