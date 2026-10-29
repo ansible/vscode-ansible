@@ -443,6 +443,14 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).projectUrl).toBe("/my/plugins");
     });
 
+    it("defaults the collection path when collectionPath is empty", async () => {
+      const web = makeWeb();
+      await ops.runPluginAddCommand(pluginPayload({ collectionPath: "" }), web);
+      expect(lastArgs(web).projectUrl).toContain(
+        "/.ansible/collections/ansible_collections",
+      );
+    });
+
     it("applies --no-overwrite and medium verbosity", async () => {
       const web = makeWeb();
       await ops.runPluginAddCommand(

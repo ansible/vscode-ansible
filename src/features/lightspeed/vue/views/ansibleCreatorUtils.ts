@@ -148,8 +148,7 @@ export class AnsibleCreatorOperations {
     verbosity: string,
     buildCommand: (url: string) => string,
   ): Promise<void> {
-    const destinationPathUrl =
-      collectionPath || this.defaultCollectionsPath();
+    const destinationPathUrl = collectionPath || this.defaultCollectionsPath();
 
     const gate = await this.checkCreatorVersionGate(webView, subject, {
       projectUrl: destinationPathUrl,
@@ -280,8 +279,7 @@ export class AnsibleCreatorOperations {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
 
-      const initPathUrl =
-        initPath || this.defaultCollectionsPath();
+      const initPathUrl = initPath || this.defaultCollectionsPath();
 
       const command = this.getCollectionCreatorCommand(
         namespaceName,
