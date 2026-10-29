@@ -416,11 +416,31 @@ describe("AutoCompleteInput", () => {
       expect(wrapper.find(".autocomplete-list").exists()).toBe(false);
     });
 
+    it("closes dropdown after blur toward toggle and click", async () => {
+      const wrapper = mount(AutoCompleteInput, {
+        props: { ...defaultProps, dropdown: true },
+      });
+      const input = wrapper.find("input");
+      const toggle = wrapper.find(".dropdown-toggle");
+
+      await input.trigger("focus");
+      await flushPromises();
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(true);
+
+      await toggle.trigger("mousedown");
+      await input.trigger("blur", { relatedTarget: toggle.element });
+      await toggle.trigger("click");
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(false);
+    });
+
     it("emits complete with empty query when opening via toggle", async () => {
       const wrapper = mount(AutoCompleteInput, {
         props: { ...defaultProps, dropdown: true, modelValue: "existing" },
       });
 
+      await wrapper.find(".dropdown-toggle").trigger("mousedown");
       await wrapper.find(".dropdown-toggle").trigger("click");
       await flushPromises();
 
@@ -467,6 +487,22 @@ describe("AutoCompleteInput", () => {
       const listItem = wrapper.findAll(".autocomplete-list li")[0].element;
 
       await input.trigger("blur", { relatedTarget: listItem });
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(true);
+    });
+
+    it("keeps dropdown open on blur when focus moves to the toggle button", async () => {
+      const wrapper = mount(AutoCompleteInput, {
+        props: { ...defaultProps, dropdown: true },
+      });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      const toggle = wrapper.find(".dropdown-toggle").element;
+
+      await input.trigger("blur", { relatedTarget: toggle });
       await flushPromises();
 
       expect(wrapper.find(".autocomplete-list").exists()).toBe(true);

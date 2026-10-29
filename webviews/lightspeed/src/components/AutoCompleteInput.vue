@@ -27,6 +27,7 @@ const modelValue = defineModel<string>({ default: "" });
 const showDropdown = ref(false);
 const activeIndex = ref(-1);
 const inputRef = ref<HTMLInputElement | null>(null);
+const toggleRef = ref<HTMLButtonElement | null>(null);
 const listRef = ref<HTMLUListElement | null>(null);
 const popupRef = ref<HTMLElement | null>(null);
 
@@ -71,6 +72,8 @@ function onOptionKeydown(event: KeyboardEvent, item: string) {
 function isRelatedToPopup(related: Node | null): boolean {
   if (!related) return false;
   return (
+    (toggleRef.value?.contains(related) ?? false) ||
+    related === toggleRef.value ||
     (listRef.value?.contains(related) ?? false) ||
     (popupRef.value?.contains(related) ?? false)
   );
@@ -179,6 +182,7 @@ watch(
       />
       <button
         v-if="dropdown"
+        ref="toggleRef"
         class="dropdown-toggle"
         @mousedown.prevent
         @click.prevent="toggleDropdown"
