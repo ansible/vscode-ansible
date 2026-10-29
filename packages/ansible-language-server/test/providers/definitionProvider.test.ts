@@ -14,6 +14,7 @@ import { getDefinition } from "@src/providers/definitionProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { fileExists } from "@src/utils/misc.js";
 import { URI } from "vscode-uri";
+import * as path from "node:path";
 
 function testModuleNamesForDefinition(
   context: WorkspaceFolderContext,
@@ -164,6 +165,292 @@ describe("getDefinition()", function () {
         { line: 0, character: 4 },
         docsLibrary,
       );
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("File reference definitions", function () {
+    const docsLibrary = {
+      findModule: vi.fn().mockResolvedValue([undefined, undefined]),
+    } as unknown as DocsLibrary;
+
+    const playbook = "definition/file_reference/playbook.yml";
+    const roleTasks = "definition/file_reference/roles/web/tasks/main.yml";
+
+    const cases = [
+      {
+        name: "template src is found in the templates directory",
+        file: playbook,
+        position: { line: 6, character: 15 },
+        expected: "definition/file_reference/templates/myfile.txt.j2",
+      },
+      {
+        name: "copy src is found in the files directory",
+        file: playbook,
+        position: { line: 11, character: 15 },
+        expected: "definition/file_reference/files/static.txt",
+      },
+      {
+        name: "short module names are supported",
+        file: playbook,
+        position: { line: 34, character: 15 },
+        expected: "definition/file_reference/templates/myfile.txt.j2",
+      },
+      {
+        name: "free-form include_tasks value is resolved",
+        file: playbook,
+        position: { line: 30, character: 40 },
+        expected: "definition/file_reference/extra_tasks.yml",
+      },
+      {
+        name: "role template is found in the role templates directory",
+        file: roleTasks,
+        position: { line: 3, character: 12 },
+        expected: "definition/file_reference/roles/web/templates/nginx.conf.j2",
+      },
+      {
+        name: "role copy is found in the role files directory",
+        file: roleTasks,
+        position: { line: 8, character: 12 },
+        expected: "definition/file_reference/roles/web/files/motd.txt",
+      },
+    ];
+
+    cases.forEach(({ name, file, position, expected }) => {
+      it(`resolves: ${name}`, async function () {
+        const doc = getDoc(file);
+        const result = await getDefinition(doc, position, docsLibrary);
+        expect(result).toHaveLength(1);
+        const definition = result?.[0];
+        expect(definition).toBeDefined();
+        if (definition) {
+          expect(URI.parse(definition.targetUri).fsPath.toLowerCase()).toBe(
+            resolveDocUri(expected).toLowerCase(),
+          );
+          expect(definition.originSelectionRange).toBeDefined();
+        }
+      });
+    });
+
+    const nullCases = [
+      {
+        name: "file does not exist",
+        position: { line: 16, character: 15 },
+      },
+      {
+        name: "value contains a Jinja expression",
+        position: { line: 21, character: 18 },
+      },
+      {
+        name: "option is a destination on the managed host (dest)",
+        position: { line: 27, character: 16 },
+      },
+    ];
+
+    nullCases.forEach(({ name, position }) => {
+      it(`returns null when ${name}`, async function () {
+        const doc = getDoc(playbook);
+        const result = await getDefinition(doc, position, docsLibrary);
+        expect(result).toBeNull();
+      });
+    });
+
+    it("reports when a static file reference cannot be found", async function () {
+      const doc = getDoc(playbook);
+      const onUnresolvedReference = vi.fn();
+      await getDefinition(
+        doc,
+        { line: 16, character: 15 },
+        docsLibrary,
+        [],
+        onUnresolvedReference,
+      );
+
+      expect(onUnresolvedReference).toHaveBeenCalledWith("absent.txt");
+    });
+
+    it("falls back to the basedir passed by the caller", async function () {
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri("elsewhere.yml")).toString(),
+        "ansible",
+        1,
+        `- hosts: localhost
+  tasks:
+    - ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/x
+`,
+      );
+      const base = resolveDocUri("definition/file_reference");
+      const result = await getDefinition(
+        doc,
+        { line: 3, character: 14 },
+        docsLibrary,
+        [base],
+      );
+      expect(result).toHaveLength(1);
+      const definition = result?.[0];
+      expect(definition).toBeDefined();
+      if (definition) {
+        expect(URI.parse(definition.targetUri).fsPath.toLowerCase()).toBe(
+          path.join(base, "files", "static.txt").toLowerCase(),
+        );
+      }
+    });
+
+    it("resolves top-level import_playbook references", async function () {
+      const text = "- ansible.builtin.import_playbook: imported_playbook.yml\n";
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("imported_playbook.yml")),
+        docsLibrary,
+      );
+
+      expect(result).toHaveLength(1);
+      const definition = result?.[0];
+      expect(definition).toBeDefined();
+      if (definition) {
+        expect(URI.parse(definition.targetUri).fsPath.toLowerCase()).toBe(
+          resolveDocUri(
+            "definition/file_reference/imported_playbook.yml",
+          ).toLowerCase(),
+        );
+      }
+    });
+
+    it("does not resolve nested import_playbook references", async function () {
+      const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.import_playbook: imported_playbook.yml
+`;
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("import_playbook.yml")),
+        docsLibrary,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it.each([
+      {
+        name: "copy with remote_src enabled",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.copy:\n        src: static.txt\n        dest: /tmp/x\n        remote_src: true\n",
+        reference: "static.txt",
+      },
+      {
+        name: "unarchive with remote_src enabled",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.unarchive:\n        src: static.txt\n        dest: /tmp/x\n        remote_src: true\n",
+        reference: "static.txt",
+      },
+      {
+        name: "assemble by default",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.assemble:\n        src: assemble_fragments\n        dest: /tmp/x\n",
+        reference: "assemble_fragments",
+      },
+    ])(
+      "does not resolve managed-host sources for $name",
+      async function ({
+        text,
+        reference,
+      }: {
+        text: string;
+        reference: string;
+      }) {
+        const doc = TextDocument.create(
+          URI.file(resolveDocUri(playbook)).toString(),
+          "ansible",
+          1,
+          text,
+        );
+        const result = await getDefinition(
+          doc,
+          doc.positionAt(text.indexOf(reference)),
+          docsLibrary,
+        );
+
+        expect(result).toBeNull();
+      },
+    );
+
+    it.each([
+      {
+        name: "copy source directory",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.copy:\n        src: directory\n        dest: /tmp/x\n",
+        reference: "directory",
+        expected: "definition/file_reference/files/directory",
+      },
+      {
+        name: "controller-side assemble source directory",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.assemble:\n        src: assemble_fragments\n        dest: /tmp/x\n        remote_src: false\n",
+        reference: "assemble_fragments",
+        expected: "definition/file_reference/files/assemble_fragments",
+      },
+    ])(
+      "resolves directory references for $name",
+      async function ({
+        text,
+        reference,
+        expected,
+      }: {
+        text: string;
+        reference: string;
+        expected: string;
+      }) {
+        const doc = TextDocument.create(
+          URI.file(resolveDocUri(playbook)).toString(),
+          "ansible",
+          1,
+          text,
+        );
+        const result = await getDefinition(
+          doc,
+          doc.positionAt(text.indexOf(reference)),
+          docsLibrary,
+        );
+
+        expect(result).toHaveLength(1);
+        const definition = result?.[0];
+        expect(definition).toBeDefined();
+        if (definition) {
+          expect(URI.parse(definition.targetUri).fsPath.toLowerCase()).toBe(
+            resolveDocUri(expected).toLowerCase(),
+          );
+        }
+      },
+    );
+
+    it("does not resolve an unarchive source directory", async function () {
+      const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.unarchive:
+        src: directory
+        dest: /tmp/x
+`;
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("directory")),
+        docsLibrary,
+      );
+
       expect(result).toBeNull();
     });
   });

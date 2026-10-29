@@ -10,6 +10,8 @@ import {
   TextDocumentSyncOptions,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { URI } from "vscode-uri";
+import * as path from "node:path";
 import {
   doCompletion,
   doCompletionResolve,
@@ -358,6 +360,12 @@ export class AnsibleLanguageService {
               document,
               params.position,
               await context.docsLibrary,
+              [path.dirname(URI.parse(document.uri).fsPath)],
+              (reference) => {
+                this.connection.window.showInformationMessage(
+                  `File not found: ${reference}`,
+                );
+              },
             );
           }
         }
