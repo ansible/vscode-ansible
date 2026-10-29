@@ -61,6 +61,13 @@ function selectItem(item: string) {
   activeIndex.value = -1;
 }
 
+function onOptionKeydown(event: KeyboardEvent, item: string) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    selectItem(item);
+  }
+}
+
 function isRelatedToPopup(related: Node | null): boolean {
   if (!related) return false;
   return (
@@ -70,10 +77,15 @@ function isRelatedToPopup(related: Node | null): boolean {
 }
 
 function onKeydown(event: KeyboardEvent) {
+  if (event.isComposing || event.keyCode === 229) return;
+
   if (!showDropdown.value || props.suggestions.length === 0) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       showDropdown.value = true;
       emit("complete", { query: modelValue.value ?? "" });
+    } else if (event.key === "Escape") {
+      showDropdown.value = false;
+      activeIndex.value = -1;
     }
     return;
   }
@@ -193,6 +205,7 @@ watch(
         role="option"
         :aria-selected="index === activeIndex"
         @click="selectItem(item)"
+        @keydown="(event) => onOptionKeydown(event, item)"
         @mouseenter="activeIndex = index"
       >
         {{ item }}

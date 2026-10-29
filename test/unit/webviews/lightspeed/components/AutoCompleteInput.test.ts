@@ -126,6 +126,32 @@ describe("AutoCompleteInput", () => {
       expect(wrapper.find(".autocomplete-list").exists()).toBe(false);
     });
 
+    it("selects a suggestion on Enter key in list item", async () => {
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      await wrapper.find("input").trigger("focus");
+      await flushPromises();
+
+      const items = wrapper.findAll(".autocomplete-list li");
+      await items[1].trigger("keydown", { key: "Enter" });
+      await flushPromises();
+
+      const emitted = wrapper.emitted("update:modelValue");
+      expect(emitted?.[emitted.length - 1]).toEqual(["bravo"]);
+    });
+
+    it("selects a suggestion on Space key in list item", async () => {
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      await wrapper.find("input").trigger("focus");
+      await flushPromises();
+
+      const items = wrapper.findAll(".autocomplete-list li");
+      await items[0].trigger("keydown", { key: " " });
+      await flushPromises();
+
+      const emitted = wrapper.emitted("update:modelValue");
+      expect(emitted?.[emitted.length - 1]).toEqual(["alpha"]);
+    });
+
     it("hides the dropdown after selection", async () => {
       const wrapper = mount(AutoCompleteInput, { props: defaultProps });
       await wrapper.find("input").trigger("focus");
@@ -256,6 +282,72 @@ describe("AutoCompleteInput", () => {
 
       expect(wrapper.emitted("complete")).toBeTruthy();
     });
+
+    it("opens dropdown on ArrowUp when suggestions are empty", async () => {
+      const wrapper = mount(AutoCompleteInput, {
+        props: { ...defaultProps, suggestions: [] },
+      });
+      const input = wrapper.find("input");
+
+      await input.trigger("keydown", { key: "ArrowUp" });
+      await flushPromises();
+
+      expect(wrapper.emitted("complete")).toBeTruthy();
+    });
+
+    it("ignores keydown during IME composition", async () => {
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      await input.trigger("keydown", {
+        key: "ArrowDown",
+        isComposing: true,
+      });
+      await flushPromises();
+
+      const items = wrapper.findAll(".autocomplete-list li");
+      expect(items[0].classes()).not.toContain("active");
+    });
+
+    it("closes empty message popup on Escape", async () => {
+      const wrapper = mount(AutoCompleteInput, {
+        props: {
+          ...defaultProps,
+          suggestions: [],
+          emptySearchMessage: "No results",
+        },
+      });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-empty").exists()).toBe(true);
+
+      await input.trigger("keydown", { key: "Escape" });
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-empty").exists()).toBe(false);
+    });
+
+    it("scrolls active option into view when navigating", async () => {
+      const scrollIntoView = vi.fn();
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      const list = wrapper.find(".autocomplete-list").element as HTMLElement;
+      vi.spyOn(list, "querySelector").mockReturnValue({
+        scrollIntoView,
+      } as unknown as HTMLElement);
+
+      await input.trigger("keydown", { key: "ArrowDown" });
+      await flushPromises();
+
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: "nearest" });
+    });
   });
 
   describe("empty state", () => {
@@ -348,6 +440,36 @@ describe("AutoCompleteInput", () => {
       await flushPromises();
 
       expect(items[2].classes()).toContain("active");
+    });
+  });
+
+  describe("blur handling", () => {
+    it("closes dropdown on blur when focus leaves the component", async () => {
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(true);
+
+      await input.trigger("blur");
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(false);
+    });
+
+    it("keeps dropdown open on blur when focus moves to a suggestion", async () => {
+      const wrapper = mount(AutoCompleteInput, { props: defaultProps });
+      const input = wrapper.find("input");
+      await input.trigger("focus");
+      await flushPromises();
+
+      const listItem = wrapper.findAll(".autocomplete-list li")[0].element;
+
+      await input.trigger("blur", { relatedTarget: listItem });
+      await flushPromises();
+
+      expect(wrapper.find(".autocomplete-list").exists()).toBe(true);
     });
   });
 
