@@ -1,6 +1,6 @@
 import * as path from "node:path";
 import { homedir } from "node:os";
-import { existsSync, statSync } from "node:fs";
+import { stat } from "node:fs/promises";
 
 /**
  * Describes how a module option that points to a local file is resolved by
@@ -102,9 +102,12 @@ export function findRoleRoot(fileDir: string): string | undefined {
   }
 }
 
-function isValidPath(candidate: string, allowDirectory: boolean): boolean {
+async function isValidPath(
+  candidate: string,
+  allowDirectory: boolean,
+): Promise<boolean> {
   try {
-    const stats = statSync(candidate);
+    const stats = await stat(candidate);
     return stats.isFile() || (allowDirectory && stats.isDirectory());
   } catch {
     return false;
@@ -149,13 +152,13 @@ export function getSearchCandidates(
  * `undefined` when nothing matches or the value cannot be resolved
  * statically (e.g. it uses Jinja templating).
  */
-export function resolveFileReference(
+export async function resolveFileReference(
   reference: string,
   dirname: string,
   documentPath: string,
   basedirs: string[] = [],
   allowDirectory = false,
-): string | undefined {
+): Promise<string | undefined> {
   const value = reference.trim();
   if (!value || value.includes("{{") || value.includes("{%")) {
     return undefined;
@@ -166,12 +169,18 @@ export function resolveFileReference(
     const absolute = value.startsWith("~")
       ? path.join(homedir(), value.slice(1))
       : value;
-    return existsSync(absolute) && isValidPath(absolute, allowDirectory)
-      ? absolute
-      : undefined;
+    return (await isValidPath(absolute, allowDirectory)) ? absolute : undefined;
   }
 
-  return getSearchCandidates(value, dirname, documentPath, basedirs).find(
-    (candidate) => isValidPath(candidate, allowDirectory),
-  );
+  for (const candidate of getSearchCandidates(
+    value,
+    dirname,
+    documentPath,
+    basedirs,
+  )) {
+    if (await isValidPath(candidate, allowDirectory)) {
+      return candidate;
+    }
+  }
+  return undefined;
 }

@@ -20,12 +20,12 @@ import {
  * Handles Go to Definition on the *value* of a task option that references a
  * local file, e.g. `src: myfile.txt.j2` for the template module.
  */
-function getFileDefinition(
+async function getFileDefinition(
   document: TextDocument,
   path: Node[],
   basedirs: string[],
   onUnresolvedReference?: (reference: string) => void,
-): DefinitionLink[] | null {
+): Promise<DefinitionLink[] | null> {
   const node = path[path.length - 1];
   if (!isScalar(node) || typeof node.value !== "string") {
     return null;
@@ -69,9 +69,11 @@ function getFileDefinition(
   }
   const isTopLevelImportPlaybook =
     spec.topLevelOnly &&
-    new AncestryBuilder(path).parent(YAMLMap).parent(YAMLSeq).getPath()
+    new AncestryBuilder(taskKeyPath).parentOfKey().parent(YAMLSeq).getPath()
       ?.length === 1;
-  if (!isTaskParam(taskKeyPath) && !isTopLevelImportPlaybook) {
+  if (
+    spec.topLevelOnly ? !isTopLevelImportPlaybook : !isTaskParam(taskKeyPath)
+  ) {
     return null;
   }
 
@@ -98,7 +100,7 @@ function getFileDefinition(
     return null;
   }
 
-  const target = resolveFileReference(
+  const target = await resolveFileReference(
     node.value,
     spec.dirname,
     URI.parse(document.uri).fsPath,
@@ -135,7 +137,7 @@ export async function getDefinition(
   const yamlDocs = parseAllDocuments(document.getText());
   const path = getPathAt(document, position, yamlDocs);
   if (path) {
-    const fileDefinition = getFileDefinition(
+    const fileDefinition = await getFileDefinition(
       document,
       path,
       basedirs,

@@ -337,7 +337,7 @@ describe("getDefinition()", function () {
       );
       const result = await getDefinition(
         doc,
-        doc.positionAt(text.indexOf("import_playbook.yml")),
+        doc.positionAt(text.indexOf("imported_playbook.yml")),
         docsLibrary,
       );
 

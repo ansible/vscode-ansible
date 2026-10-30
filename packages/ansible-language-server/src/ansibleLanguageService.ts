@@ -362,9 +362,7 @@ export class AnsibleLanguageService {
               await context.docsLibrary,
               [path.dirname(URI.parse(document.uri).fsPath)],
               (reference) => {
-                this.connection.window.showInformationMessage(
-                  `File not found: ${reference}`,
-                );
+                this.connection.console.info(`File not found: ${reference}`);
               },
             );
           }
