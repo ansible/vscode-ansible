@@ -1129,7 +1129,7 @@
     "eslint-plugin-sonarjs": "^4.1.0",
     "express": "^5.2.1",
     "find-process": "^2.1.1",
-    "glob": "^13.0.6",
+    "glob": "^14.0.0",
     "globals": "^17.7.0",
     "ini": "^7.0.0",
     "jsdom": "^30.0.0",
