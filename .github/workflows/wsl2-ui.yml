@@ -151,7 +151,7 @@ jobs:
       - name: Provision Fedora WSL2
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr libatomic && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
 
       # ── Build and test inside WSL ─────────────────────────────────
       - name: Copy source to WSL native filesystem
@@ -262,7 +262,7 @@ jobs:
       - name: Provision Fedora WSL2
         shell: powershell
         run: |
-          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
+          wsl -d ${{ env.WSL_DISTRO }} -- bash -c "set -euo pipefail && dnf install -y --quiet nodejs python3 python3-pip xorg-x11-server-Xvfb nss atk at-spi2-atk cups-libs gtk3 libdrm mesa-libgbm alsa-lib libXcomposite libXdamage libXrandr libatomic && npm install -g pnpm && useradd -m ci && node --version && pnpm --version && python3 --version"
 
       # ── Build and test inside WSL ─────────────────────────────────
       - name: Copy source to WSL native filesystem
