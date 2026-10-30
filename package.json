@@ -996,6 +996,15 @@
       },
       {
         "fileMatch": [
+          "tasks/**/*.yml",
+          "tasks/**/*.yaml",
+          "handlers/**/*.yml",
+          "handlers/**/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json"
+      },
+      {
+        "fileMatch": [
           "playbooks/vars/*.yml",
           "playbooks/vars/*.yaml",
           "vars/*.yml",
