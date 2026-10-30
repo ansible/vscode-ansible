@@ -182,6 +182,20 @@ stories:
       - Completing under a module key in module_defaults suggests options
       - Task and play keyword completion remain unchanged
 
+  - id: LSP-010
+    title: Document outline for playbooks and task files
+    story: >
+      As an Ansible developer, I want plays, task sections, blocks,
+      tasks, and roles listed in the Outline view and breadcrumbs, so
+      that I can navigate large playbooks and task files quickly.
+    prd_refs: [US-18, AC-8]
+    requires_ai: false
+    criteria:
+      - Plays appear as top-level symbols named by name or hosts
+      - Tasks, handlers, and roles appear under their section
+      - Blocks nest their block, rescue, and always tasks
+      - Outline works without ansible-doc or ansible-lint installed
+
   - id: LSP-005
     title: Hover documentation
     story: >

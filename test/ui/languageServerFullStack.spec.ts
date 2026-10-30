@@ -32,6 +32,7 @@ function shell(cmd: string, opts: Record<string, unknown> = {}): string {
  * @covers LSP-003
  * @covers LSP-004
  * @covers LSP-009
+ * @covers LSP-010
  */
 describe('Language Server full stack e2e', function () {
     before(function () {
@@ -249,5 +250,44 @@ describe('Language Server full stack e2e', function () {
         const debugOptions = ['msg', 'var', 'verbosity'];
         const foundOptions = debugOptions.filter((opt) => labels.includes(opt));
         expect(foundOptions.length).toBeGreaterThan(0);
+    });
+
+    it('should outline plays and tasks as document symbols', async function () {
+        this.timeout(60_000);
+
+        const fixtureUri = path.resolve(FIXTURES_DIR, COMPLETION_PLAYBOOK);
+
+        // Returns [playName, [sectionName, childNames[]][]][] so the callback
+        // needs no named helpers, which do not survive serialization.
+        const outline: [string, [string, string[]][]][] = await browser.executeWorkbench(
+            async (vscode: typeof VsCode, uri: string) => {
+                const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(uri));
+                await vscode.window.showTextDocument(doc);
+
+                await new Promise((r) => setTimeout(r, 5000));
+
+                const result: VsCode.DocumentSymbol[] | undefined =
+                    await vscode.commands.executeCommand(
+                        'vscode.executeDocumentSymbolProvider',
+                        doc.uri,
+                    );
+
+                return (result ?? []).map((play) => [
+                    play.name,
+                    play.children.map((section) => [
+                        section.name,
+                        section.children.map((child) => child.name),
+                    ]),
+                ]);
+            },
+            fixtureUri,
+        );
+
+        // VS Code merges symbols from every provider (the YAML extension adds
+        // index-named entries), so look up the play instead of matching all.
+        const play = outline.find(([name]) => name === 'Completion test playbook');
+        expect(play).toBeDefined();
+        const tasks = play?.[1].find(([name]) => name === 'tasks');
+        expect(tasks?.[1]).toEqual(['Test debug options', 'Test task keywords']);
     });
 });
