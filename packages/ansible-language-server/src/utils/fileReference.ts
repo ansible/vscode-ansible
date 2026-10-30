@@ -116,8 +116,7 @@ async function isValidPath(
 
 /**
  * Builds the ordered list of locations that ansible-playbook looks at, which
- * mirrors `DataLoader.path_dwim_relative_stack()` and
- * `Task.get_search_path()`:
+ * mirrors Ansible's relative path resolution and `Task.get_search_path()`:
  *
  *  1. role directory (when inside a role): `<role>/<dirname>/<src>`, `<role>/<src>`
  *  2. directory of the file that contains the task, same two patterns
