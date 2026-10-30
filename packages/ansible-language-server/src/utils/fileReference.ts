@@ -52,7 +52,7 @@ const BUILTIN_PREFIX = /^ansible\.(builtin|legacy)\./;
  * Returns the file reference spec for a module name, accepting both the short
  * name (`template`) and the builtin FQCN (`ansible.builtin.template`).
  */
-export function getFileReferenceSpec(
+function getFileReferenceSpec(
   moduleName: string,
 ): FileReferenceSpec | undefined {
   const shortName = moduleName.replace(BUILTIN_PREFIX, "");
@@ -87,7 +87,7 @@ export function isFileReference(
  * When the file is part of a role (`<role>/tasks/...` or
  * `<role>/handlers/...`) returns the role directory.
  */
-export function findRoleRoot(fileDir: string): string | undefined {
+function findRoleRoot(fileDir: string): string | undefined {
   let current = fileDir;
   for (;;) {
     const parent = path.dirname(current);
@@ -123,7 +123,7 @@ async function isValidPath(
  *  2. directory of the file that contains the task, same two patterns
  *  3. the playbook base directory (or workspace folder as a fallback)
  */
-export function getSearchCandidates(
+function getSearchCandidates(
   reference: string,
   dirname: string,
   documentPath: string,
