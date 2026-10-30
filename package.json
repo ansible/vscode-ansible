@@ -996,6 +996,15 @@
       },
       {
         "fileMatch": [
+          "tasks/**/*.yml",
+          "tasks/**/*.yaml",
+          "handlers/**/*.yml",
+          "handlers/**/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/tasks.json"
+      },
+      {
+        "fileMatch": [
           "playbooks/vars/*.yml",
           "playbooks/vars/*.yaml",
           "vars/*.yml",
@@ -1179,7 +1188,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@12.15.0",
+  "packageManager": "pnpm@12.16.1",
   "publisher": "redhat",
   "qna": false,
   "repository": {
