@@ -10,6 +10,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { doCompletion, doCompletionResolve } from './providers/completionProvider';
 import { doDefinition } from './providers/definitionProvider';
+import { doDocumentSymbols } from './providers/documentSymbolProvider';
 import { doHover } from './providers/hoverProvider';
 import { doSemanticTokens, tokenModifiers, tokenTypes } from './providers/semanticTokenProvider';
 import { doValidate } from './providers/validationProvider';
@@ -70,6 +71,7 @@ export class AnsibleLanguageService {
                     },
                     hoverProvider: true,
                     definitionProvider: true,
+                    documentSymbolProvider: true,
                     completionProvider: {
                         resolveProvider: true,
                     },
@@ -257,6 +259,18 @@ export class AnsibleLanguageService {
                 }
             } catch (error) {
                 this.handleError(error, 'onDefinition');
+            }
+            return null;
+        });
+
+        this.connection.onDocumentSymbol((params) => {
+            try {
+                const document = this.documents.get(params.textDocument.uri);
+                if (document) {
+                    return doDocumentSymbols(document);
+                }
+            } catch (error) {
+                this.handleError(error, 'onDocumentSymbol');
             }
             return null;
         });
