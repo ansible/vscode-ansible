@@ -1640,3 +1640,135 @@ describe("doCompletion()", function () {
     });
   });
 });
+
+describe("completion disabled via ansible.completion.enabled", function () {
+  const workspaceManager = createTestWorkspaceManager();
+  const fixtureFileUri = resolveDocUri("completion/simple_tasks.yml");
+  const schemaFileUri = resolveDocUri("roles/demo/meta/main.yml");
+  // Resolve settings per document, so each test changes the settings of the
+  // document it completes in.
+  workspaceManager.clientCapabilities.workspace = { configuration: true };
+  workspaceManager.connection.workspace.getConfiguration = () =>
+    Promise.resolve({});
+
+  function getContextOrThrow(): WorkspaceFolderContext {
+    const context = workspaceManager.getContext(fixtureFileUri);
+    if (!context) {
+      throw new Error(`No workspace context found for ${fixtureFileUri}`);
+    }
+    return context;
+  }
+
+  async function setCompletionEnabled(
+    enabled: boolean,
+    uri = fixtureFileUri,
+  ): Promise<void> {
+    const settings = await getContextOrThrow().documentSettings.get(uri);
+    settings.completion.enabled = enabled;
+  }
+
+  afterEach(async function () {
+    sinon.restore();
+    await setCompletionEnabled(true, fixtureFileUri);
+    await setCompletionEnabled(true, schemaFileUri);
+  });
+
+  it("offers completion items while enabled", async function () {
+    const context = getContextOrThrow();
+    const textDoc = TextDocument.create(fixtureFileUri, "ansible", 1, "- ");
+
+    const items = await doCompletion(
+      textDoc,
+      { line: 0, character: 2 },
+      context,
+    );
+
+    expect(items.length).toBeGreaterThan(0);
+  });
+
+  it("offers no completion items once disabled", async function () {
+    const context = getContextOrThrow();
+    await setCompletionEnabled(false);
+    const textDoc = TextDocument.create(fixtureFileUri, "ansible", 1, "- ");
+
+    const items = await doCompletion(
+      textDoc,
+      { line: 0, character: 2 },
+      context,
+    );
+
+    expect(items).toEqual([]);
+  });
+
+  it("suppresses schema based completions too", async function () {
+    const context = getContextOrThrow();
+    const textDoc = TextDocument.create(
+      schemaFileUri,
+      "ansible",
+      1,
+      `galaxy_info:\n  `,
+    );
+    const schemaCompleterMod = await import("@src/services/schemaCompleter.js");
+    const completeStub = sinon
+      .stub(schemaCompleterMod.SchemaCompleter.prototype, "complete")
+      .returns([
+        {
+          label: "author",
+          kind: CompletionItemKind.Property,
+        },
+      ]);
+    const schemaService = {
+      shouldValidateWithSchema: () => true,
+      getSchemaForDocument: async () => ({
+        type: "object",
+        properties: {
+          galaxy_info: {
+            type: "object",
+            properties: {
+              author: { type: "string", description: "Author" },
+            },
+          },
+        },
+      }),
+    } as unknown as SchemaService;
+
+    // sanity check: the schema branch does offer completions while enabled
+    const enabledItems = await doCompletion(
+      textDoc,
+      { line: 1, character: 2 },
+      context,
+      schemaService,
+    );
+    expect(enabledItems.map((item) => item.label)).toContain("author");
+
+    await setCompletionEnabled(false, schemaFileUri);
+    const disabledItems = await doCompletion(
+      textDoc,
+      { line: 1, character: 2 },
+      context,
+      schemaService,
+    );
+
+    // the guard runs before the schema branch, so the completer is never
+    // consulted a second time
+    expect(disabledItems).toEqual([]);
+    expect(completeStub.callCount).toBe(1);
+  });
+
+  it("leaves completion items unresolved when disabled", async function () {
+    const context = getContextOrThrow();
+    await setCompletionEnabled(false);
+    const completionItem: CompletionItem = {
+      label: "sub_opt_1",
+      data: {
+        documentUri: fixtureFileUri,
+        type: "string",
+        atEndOfLine: true,
+      },
+    };
+
+    const resolved = await doCompletionResolve(completionItem, context);
+
+    expect(resolved.insertText).toBeUndefined();
+  });
+});
