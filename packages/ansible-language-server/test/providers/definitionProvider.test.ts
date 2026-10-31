@@ -530,3 +530,4 @@ describe("getDefinition()", function () {
       expect(result).toBeNull();
     });
   });
+});
