@@ -195,7 +195,7 @@ overrides:
   hono: '>=4.12.34 <5.0.0'
   ip-address: '>=10.2.2'
   diff@>=5.0.0 <8.0.3: 9.0.0
-  file-type@>=13.0.0 <21.3.2: 22.2.0
+  file-type@>=13.0.0 <21.3.2: 22.3.0
   nanoid@3: <7.0.0
 
 packageExtensionsChecksum: sha256-5Qx86xDvm2VGnIBTgkTsCLlNHUgHBgKgWelkusuJZyo=
@@ -363,7 +363,7 @@ importers:
         version: 10.2.0
       cypress-multi-reporters:
         specifier: ^2.0.5
-        version: 2.0.5(supports-color@8.1.1)
+        version: 2.0.5(mocha@12.0.3)(supports-color@8.1.1)
       electron:
         specifier: ^45.0.0
         version: 45.0.0(supports-color@8.1.1)
@@ -423,10 +423,10 @@ importers:
         version: 0.24.0(supports-color@8.1.1)
       mocha-junit-reporter:
         specifier: ^2.2.1
-        version: 2.2.1(supports-color@8.1.1)
+        version: 2.2.1(mocha@12.0.3)(supports-color@8.1.1)
       mocha-multi-reporters:
         specifier: ^1.5.1
-        version: 1.5.2(supports-color@8.1.1)
+        version: 1.5.2(mocha@12.0.3)(supports-color@8.1.1)
       ovsx:
         specifier: ^1.0.2
         version: 1.2.0(@types/node@26.6.5)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
@@ -2467,8 +2467,8 @@ packages:
     resolution: {integrity: sha512-2mAv+8pkG6GIZiF1kNg1jAjh27IDxEPKwdGul3snfztFerfPGI1LjDezZp3i7BElXompqEtPmoPx6c2wgtWsOA==}
     engines: {node: '>=18'}
 
-  '@tokenizer/inflate@0.5.1':
-    resolution: {integrity: sha512-56U2O6fDLFtqokwWh597IdeUgtM7j+TT9tb1soybhgA6cy163gAcVmoQr8H4Ud/CkgCkViwcuLyqtn6wYqw59Q==}
+  '@tokenizer/inflate@0.6.0':
+    resolution: {integrity: sha512-+0RDxhBkyT9xMnGdJAwmats9yxRLR8ypJrQgrnLqOu4Gv/aHlnxYgdGVy2QTwvBl6IF/w2Hr+ZNirH+iMUbVZA==}
     engines: {node: '>=18'}
 
   '@tokenizer/token@0.3.0':
@@ -3439,6 +3439,10 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agent-base@9.0.0:
+    resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
+    engines: {node: '>= 20'}
 
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
@@ -4666,8 +4670,8 @@ packages:
     resolution: {integrity: sha512-Ievi/yy8DS3ygGvT47PjSfdFoX+2isQueoYP1cntFW1JLYAuS4GD7NUPGg4zv2iZfV52uDyk5w5Z0TdpRS6Q1g==}
     engines: {node: '>=20'}
 
-  file-type@22.2.0:
-    resolution: {integrity: sha512-XmEVJsRpQMVYC+sWFW+FKAVo2P7/lPctDdWH4UQ1r6oxhdrTobnowdM3z+ZJ93a4J8D3yDpxX0bEvRuFev0vUQ==}
+  file-type@22.3.0:
+    resolution: {integrity: sha512-PrPedgnnWl5bWz3JHgar0QSzRvzeyFh7dZ9JpYOgcPZu4KALS9zw4MMa6qXRYyjeBsAlpaWB2boLuG991+0HIQ==}
     engines: {node: '>=22'}
 
   filename-reserved-regex@3.0.0:
@@ -5025,6 +5029,10 @@ packages:
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
+
+  https-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
+    engines: {node: '>= 20'}
 
   human-signals@1.1.1:
     resolution: {integrity: sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==}
@@ -6389,6 +6397,15 @@ packages:
     resolution: {integrity: sha512-5nnx0yGyVUcY6t9RnWcARWtwT9F1D8O9rt08htPvnd49W1IgZtmLkhu9WfMzQj1cFxjHIO6connUNVW5k7AVyQ==}
     engines: {node: '>= 0.10'}
 
+  proxy-agent-negotiate@1.1.0:
+    resolution: {integrity: sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      kerberos: ^2.0.0
+    peerDependenciesMeta:
+      kerberos:
+        optional: true
+
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
 
@@ -6934,8 +6951,8 @@ packages:
     resolution: {integrity: sha512-ki4hZQfh5rX0QDLLkOCj+h+CVNkqmp/CMf8v8kZpkNVK6jGQooMytqzLZYUVYIZcFZ6yDB70EfD8POcFXiF5oA==}
     engines: {node: '>=18'}
 
-  strtok3@10.6.2:
-    resolution: {integrity: sha512-BkdixFFUt7r7LsX6aGNPVyYMLjW+M1USLlKPNbZsrZEmLFh5tGqhdfckKo6xgsZIJqdDD0CZGkeCJJwNWQIKQA==}
+  strtok3@10.6.3:
+    resolution: {integrity: sha512-MD8mENgyXMr2mDaDfzP3RWYDSyYQxIIou7HhCiCJiBekrsoDtUG0id3vYnjDfY9ndOEbazFXe13Qw6u/1AB8ew==}
     engines: {node: '>=18'}
 
   structured-source@4.0.0:
@@ -9386,9 +9403,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tokenizer/inflate@0.5.1(supports-color@8.1.1)':
+  '@tokenizer/inflate@0.6.0(supports-color@8.1.1)':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
+      strtok3: 10.6.3
       token-types: 6.1.2
     transitivePeerDependencies:
       - supports-color
@@ -10099,11 +10117,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
       - expect-webdriverio
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/config@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)':
@@ -10155,11 +10176,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
       - tsx
+      - utf-8-validate
       - webdriverio
       - yauzl
 
@@ -10217,7 +10241,7 @@ snapshots:
       '@wdio/utils': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
       deepmerge-ts: 8.0.2
       expect-webdriverio: 8.0.0(@wdio/types@10.1.0)(webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0))
-      webdriver: 10.1.0
+      webdriver: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
       webdriverio: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
     transitivePeerDependencies:
       - '@wdio/electron-service'
@@ -10225,11 +10249,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
       - tsx
+      - utf-8-validate
       - yauzl
 
   '@wdio/session@10.1.0(expect-webdriverio@8.0.0(@wdio/types@10.1.0)(webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)))(supports-color@8.1.1)(tsx@4.23.15)(yauzl@3.4.0)':
@@ -10254,10 +10281,13 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/snapshot@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)':
@@ -10267,10 +10297,13 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/spec-reporter@10.1.0':
@@ -10311,7 +10344,7 @@ snapshots:
 
   '@xhmikosr/archive-type@7.1.0(supports-color@8.1.1)':
     dependencies:
-      file-type: 22.2.0(supports-color@8.1.1)
+      file-type: 22.3.0(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -10340,7 +10373,7 @@ snapshots:
   '@xhmikosr/decompress-targz@9.0.1(supports-color@8.1.1)':
     dependencies:
       '@xhmikosr/decompress-tar': 9.0.2(supports-color@8.1.1)
-      file-type: 22.2.0(supports-color@8.1.1)
+      file-type: 22.3.0(supports-color@8.1.1)
       is-stream: 4.0.1
     transitivePeerDependencies:
       - bare-abort-controller
@@ -10375,7 +10408,7 @@ snapshots:
       content-disposition: 0.5.4
       defaults: 2.0.2
       ext-name: 5.0.0
-      file-type: 22.2.0(supports-color@8.1.1)
+      file-type: 22.3.0(supports-color@8.1.1)
       filenamify: 6.0.0
       get-stream: 6.0.1
       got: 13.0.0
@@ -10484,6 +10517,8 @@ snapshots:
   acorn@8.18.0: {}
 
   agent-base@7.1.4: {}
+
+  agent-base@9.0.0: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -11149,10 +11184,11 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  cypress-multi-reporters@2.0.5(supports-color@8.1.1):
+  cypress-multi-reporters@2.0.5(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
@@ -11986,10 +12022,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  file-type@22.2.0(supports-color@8.1.1):
+  file-type@22.3.0(supports-color@8.1.1):
     dependencies:
-      '@tokenizer/inflate': 0.5.1(supports-color@8.1.1)
-      strtok3: 10.6.2
+      '@tokenizer/inflate': 0.6.0(supports-color@8.1.1)
+      strtok3: 10.6.3
       token-types: 6.1.2
       uint8array-extras: 1.6.0
     transitivePeerDependencies:
@@ -12403,6 +12439,15 @@ snapshots:
       agent-base: 7.1.4
       debug: 4.4.3(supports-color@8.1.1)
     transitivePeerDependencies:
+      - supports-color
+
+  https-proxy-agent@9.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
       - supports-color
 
   human-signals@1.1.1: {}
@@ -13403,20 +13448,22 @@ snapshots:
     dependencies:
       obliterator: 2.0.5
 
-  mocha-junit-reporter@2.2.1(supports-color@8.1.1):
+  mocha-junit-reporter@2.2.1(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       md5: 2.3.0
       mkdirp: 3.0.1
+      mocha: 12.0.3
       strip-ansi: 6.0.1
       xml: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mocha-multi-reporters@1.5.2(supports-color@8.1.1):
+  mocha-multi-reporters@1.5.2(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -13959,6 +14006,8 @@ snapshots:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+
+  proxy-agent-negotiate@1.1.0: {}
 
   pump@3.0.4:
     dependencies:
@@ -14604,7 +14653,7 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
 
-  strtok3@10.6.2:
+  strtok3@10.6.3:
     dependencies:
       '@tokenizer/token': 0.3.0
 
@@ -15198,7 +15247,26 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  webdriver@10.1.0: {}
+  webdriver@10.1.0(supports-color@8.1.1)(yauzl@3.4.0):
+    dependencies:
+      '@types/node': 22.20.5
+      '@types/ws': 8.18.1
+      '@wdio/config': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
+      '@wdio/logger': 10.1.0
+      '@wdio/protocols': 10.0.2
+      '@wdio/types': 10.1.0
+      '@wdio/utils': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
+      deepmerge-ts: 8.0.2
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      undici: 8.11.2
+      ws: 8.22.0
+    transitivePeerDependencies:
+      - bufferutil
+      - kerberos
+      - proxy-agent
+      - supports-color
+      - utf-8-validate
+      - yauzl
 
   webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0):
     dependencies:
@@ -15224,13 +15292,16 @@ snapshots:
       rgb2hex: 0.2.5
       serialize-error: 13.0.2
       urlpattern-polyfill: 10.1.0
-      webdriver: 10.1.0
+      webdriver: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   webidl-conversions@3.0.1: {}
