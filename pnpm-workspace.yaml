@@ -14,7 +14,7 @@ allowBuilds:
   unrs-resolver: true
 
 overrides:
-  # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must match (see below).
+  # Pin reporters to Mocha 12 (patched for ES-class Base compatibility).
   "cypress-multi-reporters>mocha": "12.0.3"
   "mocha-junit-reporter>mocha": "12.0.3"
   "mocha-multi-reporters>mocha": "12.0.3"
@@ -32,9 +32,9 @@ overrides:
   "brace-expansion@1": ">=5.0.8 <6.0.0"
   "brace-expansion@2": ">=5.0.9 <6.0.0"
   "brace-expansion@5": ">=5.0.8 <6.0.0"
-  # minimatch@5/@9 default-import brace-expansion; v5 is named export only
-  "minimatch@5": ">=10.2.6 <11"
-  "minimatch@9": ">=10.2.6 <11"
+  # minimatch@5/@9 override to patched release (CVE-2026-118764)
+  "minimatch@5": ">=11.0.1 <12"
+  "minimatch@9": ">=11.0.1 <12"
   "fast-uri@3": "<5.0.0"
   "fast-xml-parser": ">=5.10.1 <6.0.0"
   "fastify": ">=5.8.3 <6.0.0"
@@ -60,12 +60,16 @@ overrides:
 patchedDependencies:
   # See: https://github.com/microsoft/vscode-test-cli/issues/106
   "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
+  # Mocha 12 uses ES class Base; cypress-multi-reporters uses Base.call() which breaks.
+  # Patch converts to class extends Base and handles both Mocha 11/12 stats-collector exports.
+  cypress-multi-reporters@2.0.5: patches/cypress-multi-reporters@2.0.5.patch
+  mocha-junit-reporter@2.2.1: patches/mocha-junit-reporter@2.2.1.patch
 packageExtensions:
-  # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must use the same major
-  # so createStatsCollector resolves from mocha/lib/stats-collector correctly.
+  # cypress-multi-reporters needs mocha as a dependency (not declared upstream).
+  # Patch handles both Mocha 11 and 12 export shapes; override pins to 12.0.3.
   "cypress-multi-reporters@*":
     "dependencies":
-      "mocha": "11.8.0"
+      "mocha": "12.0.3"
   "mocha-junit-reporter@*":
     "dependencies":
       "mocha": "12.0.3"
@@ -104,3 +108,7 @@ minimumReleaseAgeExclude:
   - "@vitest/ui@5.0.5"
   # Renovate security update: zod@4.6.6
   - zod@4.6.6
+  # Renovate security update: minimatch@11.0.1 (CVE-2026-118764)
+  - minimatch@11.0.1
+  # Renovate security update: glob@14.0.2 (CVE-2026-118773)
+  - glob@14.0.2

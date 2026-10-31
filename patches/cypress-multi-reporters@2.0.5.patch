@@ -1,0 +1,360 @@
+diff --git a/lib/MultiReporters.js b/lib/MultiReporters.js
+index 98dc4efb5e79df3e69b0f0a15f071a1a7d17ecec..8ac9fe4d0ec48c75b72360ad365d65467a508a0a 100644
+--- a/lib/MultiReporters.js
++++ b/lib/MultiReporters.js
+@@ -9,7 +9,6 @@ const _ = {
+ };
+ const debug = require('debug')('mocha:reporters:MultiReporters');
+ const fs = require('fs');
+-const util = require('util');
+ const mocha = require('mocha');
+ const {Base} = mocha.reporters;
+ const path = require('path');
+@@ -25,7 +24,8 @@ try {
+     const {version} = json;
+     // istanbul ignore else
+     if (semver.gte(version, '6.0.0')) {
+-        createStatsCollector = require('mocha/lib/stats-collector');
++        const statsCollector = require('mocha/lib/stats-collector');
++        createStatsCollector = statsCollector.createStatsCollector || statsCollector;
+         mocha6plus = true;
+     }
+     else {
+@@ -38,194 +38,194 @@ catch (e) {
+     console.warn('Couldn\'t determine Mocha version');
+ }
+
+-function MultiReporters(runner, options) {
+-    // istanbul ignore else
+-    if (mocha6plus) {
+-        createStatsCollector(runner);
+-    }
+-    Base.call(this, runner);
++class MultiReporters extends Base {
++    constructor(runner, options) {
++        // istanbul ignore else
++        if (mocha6plus) {
++            createStatsCollector(runner);
++        }
++        super(runner);
+
+-    if (_.get(options, 'execute', true)) {
+-        options = this.getOptions(options);
++        if (_.get(options, 'execute', true)) {
++            options = this.getOptions(options);
+
+-        let enabledReporters = _.get(options, 'reporterEnabled', 'tap');
+-        if (!Array.isArray(enabledReporters)) {
+-            enabledReporters = enabledReporters.split(',');
+-        }
++            let enabledReporters = _.get(options, 'reporterEnabled', 'tap');
++            if (!Array.isArray(enabledReporters)) {
++                enabledReporters = enabledReporters.split(',');
++            }
+
+-        this._reporters = enabledReporters.map(
+-            function processReporterEnabled(name, index) {
+-                debug(name, index);
++            this._reporters = enabledReporters.map(
++                function processReporterEnabled(name, index) {
++                    debug(name, index);
+
+-                name = name.trim();
++                    name = name.trim();
+
+-                const reporterOptions = this.getReporterOptions(options, name);
++                    const reporterOptions = this.getReporterOptions(options, name);
+
+-                //
+-                // Mocha Reporters
+-                // https://github.com/mochajs/mocha/blob/master/lib/reporters/index.js
+-                //
+-                let Reporter = _.get(mocha, ['reporters', name], null);
++                    //
++                    // Mocha Reporters
++                    // https://github.com/mochajs/mocha/blob/master/lib/reporters/index.js
++                    //
++                    let Reporter = _.get(mocha, ['reporters', name], null);
+
+-                //
+-                // External Reporters.
+-                // Try to load reporters from process.cwd() and node_modules.
+-                //
+-                if (Reporter === null) {
+-                    try {
+-                        Reporter = require(name);
+-                    }
+-                    catch (err) {
+-                        if (err.message.indexOf('Cannot find module') !== -1) {
+-                            // Try to load reporters from a path (absolute or relative)
+-                            try {
+-                                Reporter = require(path.resolve(process.cwd(), name));
++                    //
++                    // External Reporters.
++                    // Try to load reporters from process.cwd() and node_modules.
++                    //
++                    if (Reporter === null) {
++                        try {
++                            Reporter = require(name);
++                        }
++                        catch (err) {
++                            if (err.message.indexOf('Cannot find module') !== -1) {
++                                // Try to load reporters from a path (absolute or relative)
++                                try {
++                                    Reporter = require(path.resolve(process.cwd(), name));
++                                }
++                                catch (_err) {
++                                    _err.message.indexOf('Cannot find module') !== -1 ? console.warn(`"${  name  }" reporter not found`)
++                                        : console.warn(`"${  name  }" reporter blew up with error:\n${  _err.stack}`);
++                                }
+                             }
+-                            catch (_err) {
+-                                _err.message.indexOf('Cannot find module') !== -1 ? console.warn(`"${  name  }" reporter not found`)
+-                                    : console.warn(`"${  name  }" reporter blew up with error:\n${  _err.stack}`);
++                            else {
++                                console.warn(`"${  name  }" reporter blew up with error:\n${  err.stack}`);
+                             }
+                         }
+-                        else {
+-                            console.warn(`"${  name  }" reporter blew up with error:\n${  err.stack}`);
+-                        }
+                     }
+-                }
+
+-                if (Reporter !== null) {
+-                    return new Reporter(
+-                        runner, {
+-                            reporterOptions,
+-                            reporterOption: reporterOptions
+-                        }
+-                    );
+-                }
+-                else {
+-                    console.error('Reporter not found!', name);
+-                }
+-            },
+-            this
+-        );
++                    if (Reporter !== null) {
++                        return new Reporter(
++                            runner, {
++                                reporterOptions,
++                                reporterOption: reporterOptions
++                            }
++                        );
++                    }
++                    else {
++                        console.error('Reporter not found!', name);
++                    }
++                },
++                this
++            );
++        }
+     }
+-}
+
+-util.inherits(MultiReporters, Base);
++    done(failures, fn) {
++        const numberOfReporters = _.size(this._reporters);
+
+-MultiReporters.CONFIG_FILE = '../config.json';
++        if (numberOfReporters === 0) {
++            console.error('Unable to invoke fn(failures) - no reporters were registered');
++            return;
++        }
+
+-MultiReporters.prototype.done = function (failures, fn) {
+-    const numberOfReporters = _.size(this._reporters);
++        const reportersWithDoneHandler = this._reporters.filter(function (reporter) {
++            return reporter && (typeof reporter.done === 'function');
++        });
+
+-    if (numberOfReporters === 0) {
+-        console.error('Unable to invoke fn(failures) - no reporters were registered');
+-        return;
+-    }
++        const numberOfReportersWithDoneHandler = _.size(reportersWithDoneHandler);
+
+-    const reportersWithDoneHandler = this._reporters.filter(function (reporter) {
+-        return reporter && (typeof reporter.done === 'function');
+-    });
++        if (numberOfReportersWithDoneHandler === 0) {
++            return fn(failures);
++        }
+
+-    const numberOfReportersWithDoneHandler = _.size(reportersWithDoneHandler);
++        const done = _.after(numberOfReportersWithDoneHandler, function() {
++            fn(failures);
++        });
+
+-    if (numberOfReportersWithDoneHandler === 0) {
+-        return fn(failures);
++        reportersWithDoneHandler.forEach(function(reporter) {
++            reporter.done(failures, done);
++        });
+     }
+
+-    const done = _.after(numberOfReportersWithDoneHandler, function() {
+-        fn(failures);
+-    });
+-
+-    reportersWithDoneHandler.forEach(function(reporter) {
+-        reporter.done(failures, done);
+-    });
+-};
++    getOptions(options) {
++        debug('options', options);
+
+-MultiReporters.prototype.getOptions = function (options) {
+-    debug('options', options);
++        const cmrOutput = _.get(options, 'reporterOptions.cmrOutput');
++        const resultantOptions = _.merge({}, this.getDefaultOptions(), this.getCustomOptions(options), cmrOutput ? {cmrOutput} : null);
+
+-    const cmrOutput = _.get(options, 'reporterOptions.cmrOutput');
+-    const resultantOptions = _.merge({}, this.getDefaultOptions(), this.getCustomOptions(options), cmrOutput ? {cmrOutput} : null);
++        debug('options file (resultant)', resultantOptions);
++        return resultantOptions;
++    }
+
+-    debug('options file (resultant)', resultantOptions);
+-    return resultantOptions;
+-};
++    getCustomOptions(options) {
++        let customOptionsFile = _.get(options, 'reporterOptions.configFile');
++        debug('options file (custom)', customOptionsFile);
+
+-MultiReporters.prototype.getCustomOptions = function (options) {
+-    let customOptionsFile = _.get(options, 'reporterOptions.configFile');
+-    debug('options file (custom)', customOptionsFile);
++        let customOptions;
++        if (customOptionsFile) {
++            customOptionsFile = path.resolve(customOptionsFile);
++            debug('options file (custom)', customOptionsFile);
+
+-    let customOptions;
+-    if (customOptionsFile) {
+-        customOptionsFile = path.resolve(customOptionsFile);
+-        debug('options file (custom)', customOptionsFile);
++            try {
++                if ('.js' === path.extname(customOptionsFile)) {
++                    customOptions = require(customOptionsFile);
++                }
++                else {
++                    customOptions = JSON.parse(fs.readFileSync(customOptionsFile).toString().trim());
++                }
+
+-        try {
+-            if ('.js' === path.extname(customOptionsFile)) {
+-                customOptions = require(customOptionsFile);
++                debug('options (custom)', customOptions);
+             }
+-            else {
+-                customOptions = JSON.parse(fs.readFileSync(customOptionsFile).toString().trim());
++            catch (e) {
++                console.error(e);
++                throw e;
+             }
+-
+-            debug('options (custom)', customOptions);
+         }
+-        catch (e) {
+-            console.error(e);
+-            throw e;
++        else {
++            customOptions = _.get(options, 'reporterOptions');
+         }
+-    }
+-    else {
+-        customOptions = _.get(options, 'reporterOptions');
++
++        return customOptions;
+     }
+
+-    return customOptions;
+-};
++    getDefaultOptions() {
++        const defaultOptionsFile = require.resolve(MultiReporters.CONFIG_FILE);
++        debug('options file (default)', defaultOptionsFile);
+
+-MultiReporters.prototype.getDefaultOptions = function () {
+-    const defaultOptionsFile = require.resolve(MultiReporters.CONFIG_FILE);
+-    debug('options file (default)', defaultOptionsFile);
++        let defaultOptions = fs.readFileSync(defaultOptionsFile).toString();
++        debug('options (default)', defaultOptions);
+
+-    let defaultOptions = fs.readFileSync(defaultOptionsFile).toString();
+-    debug('options (default)', defaultOptions);
++        try {
++            defaultOptions = JSON.parse(defaultOptions);
++        }
++        catch (e) {
++            console.error(e);
++            throw e;
++        }
+
+-    try {
+-        defaultOptions = JSON.parse(defaultOptions);
++        return defaultOptions;
+     }
+-    catch (e) {
+-        console.error(e);
+-        throw e;
+-    }
+-
+-    return defaultOptions;
+-};
+
+-MultiReporters.prototype.getReporterOptions = function (options, name) {
+-    const _name = name;
+-    const commonReporterOptions = _.get(options, 'reporterOptions', {});
+-    debug('reporter options (common)', _name, commonReporterOptions);
++    getReporterOptions(options, name) {
++        const _name = name;
++        const commonReporterOptions = _.get(options, 'reporterOptions', {});
++        debug('reporter options (common)', _name, commonReporterOptions);
+
+-    name = [_.camelCase(name), 'ReporterOptions'].join('');
+-    const customReporterOptions = _.get(options, [name], {});
+-    debug('reporter options (custom)', _name, customReporterOptions);
++        name = [_.camelCase(name), 'ReporterOptions'].join('');
++        const customReporterOptions = _.get(options, [name], {});
++        debug('reporter options (custom)', _name, customReporterOptions);
+
+-    const resultantReporterOptions = _.merge({}, commonReporterOptions, customReporterOptions);
+-    debug('reporter options (resultant)', _name, resultantReporterOptions);
++        const resultantReporterOptions = _.merge({}, commonReporterOptions, customReporterOptions);
++        debug('reporter options (resultant)', _name, resultantReporterOptions);
+
+-    let cmrOutput = _.get(options, 'cmrOutput');
+-    if (cmrOutput) {
+-        if (!Array.isArray(cmrOutput)) {
+-            cmrOutput = cmrOutput.split(':').map((cmrOutputReporter) => {
+-                return cmrOutputReporter.split('+');
++        let cmrOutput = _.get(options, 'cmrOutput');
++        if (cmrOutput) {
++            if (!Array.isArray(cmrOutput)) {
++                cmrOutput = cmrOutput.split(':').map((cmrOutputReporter) => {
++                    return cmrOutputReporter.split('+');
++                });
++            }
++            cmrOutput.forEach(([targetName, prop, output]) => {
++                if (resultantReporterOptions[prop] && _name === targetName) {
++                    resultantReporterOptions[prop] = resultantReporterOptions[prop].replace(/\{id\}/gu, output);
++                }
+             });
+         }
+-        cmrOutput.forEach(([targetName, prop, output]) => {
+-            if (resultantReporterOptions[prop] && _name === targetName) {
+-                resultantReporterOptions[prop] = resultantReporterOptions[prop].replace(/\{id\}/gu, output);
+-            }
+-        });
++
++        return resultantReporterOptions;
+     }
++}
+
+-    return resultantReporterOptions;
+-};
++MultiReporters.CONFIG_FILE = '../config.json';
+
+ module.exports = MultiReporters;
