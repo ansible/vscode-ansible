@@ -14,7 +14,7 @@ runs:
   steps:
     # needed by our prek system hooks like toml
     - name: Install uv (cache)
-      uses: astral-sh/setup-uv@v10.3.2
+      uses: astral-sh/setup-uv@v10.3.3
 
     # needed by our prek systems hooks like biome
     - name: Install node (cache)
