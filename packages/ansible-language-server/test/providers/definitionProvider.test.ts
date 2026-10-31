@@ -453,5 +453,80 @@ describe("getDefinition()", function () {
 
       expect(result).toBeNull();
     });
+
+    it.each([
+      { value: '"yes"', resolves: false },
+      { value: '"on"', resolves: false },
+      { value: '"true"', resolves: false },
+      { value: '"no"', resolves: true },
+      { value: '"off"', resolves: true },
+      { value: '"false"', resolves: true },
+      { value: '"maybe"', resolves: false },
+    ])(
+      "handles string remote_src $value",
+      async function ({
+        value,
+        resolves,
+      }: {
+        value: string;
+        resolves: boolean;
+      }) {
+        const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/x
+        remote_src: ${value}
+`;
+        const doc = TextDocument.create(
+          URI.file(resolveDocUri(playbook)).toString(),
+          "ansible",
+          1,
+          text,
+        );
+        const result = await getDefinition(
+          doc,
+          doc.positionAt(text.indexOf("static.txt")),
+          docsLibrary,
+        );
+
+        if (resolves) {
+          expect(result).toHaveLength(1);
+        } else {
+          expect(result).toBeNull();
+        }
+      },
+    );
+
+    it("returns null for a top-level free-form value outside a task", async function () {
+      const text = "include_tasks: extra_tasks.yml\n";
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("extra_tasks.yml")),
+        docsLibrary,
+      );
+      expect(result).toBeNull();
+    });
+
+    it("returns null for a top-level module option outside a task", async function () {
+      const text = "template:\n  src: myfile.txt.j2\n";
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("myfile.txt.j2")),
+        docsLibrary,
+      );
+      expect(result).toBeNull();
+    });
   });
-});
