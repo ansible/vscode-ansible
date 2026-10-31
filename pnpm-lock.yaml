@@ -202,6 +202,7 @@ packageExtensionsChecksum: sha256-5Qx86xDvm2VGnIBTgkTsCLlNHUgHBgKgWelkusuJZyo=
 
 patchedDependencies:
   '@vscode/test-cli@0.0.15': e13bd8d1cf6524096a6c3fd50b9e914526c46186f440e041139203de06f23ea2
+  cypress-multi-reporters@2.0.5: 42f2c7fec7f548b0bf6000ca311339a5b0553bde0fee8846e63d5bf38a47eea1
 
 importers:
 
@@ -363,7 +364,7 @@ importers:
         version: 10.2.0
       cypress-multi-reporters:
         specifier: ^2.0.5
-        version: 2.0.5(mocha@12.0.3)(supports-color@8.1.1)
+        version: 2.0.5(patch_hash=42f2c7fec7f548b0bf6000ca311339a5b0553bde0fee8846e63d5bf38a47eea1)(mocha@12.0.3)(supports-color@8.1.1)
       electron:
         specifier: ^45.0.0
         version: 45.0.0(supports-color@8.1.1)
@@ -11158,7 +11159,7 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  cypress-multi-reporters@2.0.5(mocha@12.0.3)(supports-color@8.1.1):
+  cypress-multi-reporters@2.0.5(patch_hash=42f2c7fec7f548b0bf6000ca311339a5b0553bde0fee8846e63d5bf38a47eea1)(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
