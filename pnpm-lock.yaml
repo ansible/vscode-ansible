@@ -357,7 +357,7 @@ importers:
         version: 10.2.0
       cypress-multi-reporters:
         specifier: ^2.0.5
-        version: 2.0.5(supports-color@8.1.1)
+        version: 2.0.5(mocha@12.0.3)(supports-color@8.1.1)
       electron:
         specifier: ^45.0.0
         version: 45.0.0(supports-color@8.1.1)
@@ -417,10 +417,10 @@ importers:
         version: 0.24.0(supports-color@8.1.1)
       mocha-junit-reporter:
         specifier: ^2.2.1
-        version: 2.2.1(supports-color@8.1.1)
+        version: 2.2.1(mocha@12.0.3)(supports-color@8.1.1)
       mocha-multi-reporters:
         specifier: ^1.5.1
-        version: 1.5.2(supports-color@8.1.1)
+        version: 1.5.2(mocha@12.0.3)(supports-color@8.1.1)
       ovsx:
         specifier: ^1.0.2
         version: 1.2.0(@types/node@26.6.5)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
@@ -11139,10 +11139,11 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  cypress-multi-reporters@2.0.5(supports-color@8.1.1):
+  cypress-multi-reporters@2.0.5(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
@@ -13413,20 +13414,22 @@ snapshots:
     dependencies:
       obliterator: 2.0.5
 
-  mocha-junit-reporter@2.2.1(supports-color@8.1.1):
+  mocha-junit-reporter@2.2.1(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       md5: 2.3.0
       mkdirp: 3.0.1
+      mocha: 12.0.3
       strip-ansi: 6.0.1
       xml: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mocha-multi-reporters@1.5.2(supports-color@8.1.1):
+  mocha-multi-reporters@1.5.2(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
     transitivePeerDependencies:
       - supports-color
 

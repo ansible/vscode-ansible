@@ -26,12 +26,12 @@ export function findDocumentation(
   let files;
   switch (kind) {
     case "builtin":
-      files = globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
+      files = globArray([`${dir}/**/*.py`, `!${dir}/**/_*.py`]);
       break;
     case "builtin_doc_fragment":
       files = globArray([
         `${path.resolve(dir, "../")}/plugins/doc_fragments/*.py`,
-        "!/**/_*.py",
+        `!${path.resolve(dir, "../")}/plugins/doc_fragments/_*.py`,
       ]);
       break;
     case "collection":
