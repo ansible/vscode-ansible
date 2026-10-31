@@ -1,0 +1,20 @@
+---
+- name: File definition test
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Include adjacent tasks
+      ansible.builtin.include_tasks: adjacent_tasks.yml
+
+    - name: Include nonexistent file
+      ansible.builtin.include_tasks: nonexistent.yml
+
+    - name: Template with src
+      ansible.builtin.template:
+        src: "{{ dynamic_file }}"
+        dest: /tmp/out
+
+    - name: Path traversal attempt
+      ansible.builtin.copy:
+        src: ../../../etc/passwd
+        dest: /tmp/out

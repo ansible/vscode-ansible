@@ -1,5 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { expect, beforeAll, afterAll, vi } from "vitest";
+import * as path from "path";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -165,6 +166,106 @@ describe("getDefinition()", function () {
         docsLibrary,
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe("File reference definitions", function () {
+    const fixturesBase = path.resolve(__dirname, "..", "fixtures");
+    const workspaceFolderUri = URI.file(fixturesBase).toString();
+    const docsLibrary = {
+      findModule: vi.fn().mockResolvedValue([undefined, undefined]),
+    } as unknown as DocsLibrary;
+
+    const resolvedTests = [
+      {
+        description: "adjacent file for include_tasks",
+        fixture: "definition/playbook_for_file_definition.yml",
+        position: { line: 6, character: 40 },
+        expectedPathFragment: "adjacent_tasks.yml",
+      },
+      {
+        description: "src file from role files/ dir",
+        fixture: "definition/roles/test_role/tasks/main.yml",
+        position: { line: 3, character: 10 },
+        expectedPathFragment: path.join(
+          "roles",
+          "test_role",
+          "files",
+          "config.cfg",
+        ),
+      },
+      {
+        description: "src template from role templates/ dir",
+        fixture: "definition/roles/test_role/tasks/main.yml",
+        position: { line: 8, character: 10 },
+        expectedPathFragment: path.join(
+          "roles",
+          "test_role",
+          "templates",
+          "motd.j2",
+        ),
+      },
+      {
+        description: "include_tasks within role",
+        fixture: "definition/roles/test_role/tasks/main.yml",
+        position: { line: 12, character: 40 },
+        expectedPathFragment: "subtasks.yml",
+      },
+    ];
+
+    resolvedTests.forEach(
+      ({ description, fixture, position, expectedPathFragment }) => {
+        it(`should resolve ${description}`, async function () {
+          const doc = getDoc(fixture);
+          const result = await getDefinition(
+            doc,
+            position,
+            docsLibrary,
+            workspaceFolderUri,
+          );
+
+          expect(result).toHaveLength(1);
+          if (result) {
+            const def = result[0];
+            expect(def.targetUri.startsWith("file:///")).toBe(true);
+            const targetPath = URI.parse(def.targetUri).fsPath;
+            expect(targetPath).toContain(expectedPathFragment);
+            expect(await fileExists(targetPath)).toBe(true);
+          }
+        });
+      },
+    );
+
+    const nullTests = [
+      {
+        description: "nonexistent file",
+        fixture: "definition/playbook_for_file_definition.yml",
+        position: { line: 9, character: 40 },
+      },
+      {
+        description: "Jinja2 template value",
+        fixture: "definition/playbook_for_file_definition.yml",
+        position: { line: 13, character: 14 },
+      },
+      {
+        description: "path-traversal attempt",
+        fixture: "definition/playbook_for_file_definition.yml",
+        position: { line: 17, character: 10 },
+      },
+    ];
+
+    nullTests.forEach(({ description, fixture, position }) => {
+      it(`should return null for ${description}`, async function () {
+        const doc = getDoc(fixture);
+        const result = await getDefinition(
+          doc,
+          position,
+          docsLibrary,
+          workspaceFolderUri,
+        );
+
+        expect(result).toBeNull();
+      });
     });
   });
 });

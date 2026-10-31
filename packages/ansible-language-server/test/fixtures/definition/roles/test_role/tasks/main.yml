@@ -1,0 +1,13 @@
+---
+- name: Copy config
+  ansible.builtin.copy:
+    src: config.cfg
+    dest: /etc/config.cfg
+
+- name: Template MOTD
+  ansible.builtin.template:
+    src: motd.j2
+    dest: /etc/motd
+
+- name: Include subtask
+  ansible.builtin.include_tasks: subtasks.yml
