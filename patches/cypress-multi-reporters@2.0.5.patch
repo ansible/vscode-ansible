@@ -1,0 +1,13 @@
+diff --git a/lib/MultiReporters.js b/lib/MultiReporters.js
+index 98dc4efb5e79df3e69b0f0a15f071a1a7d17ecec..cf3c8f2fa4eac1fb00dffe437c5cebbe504af7a7 100644
+--- a/lib/MultiReporters.js
++++ b/lib/MultiReporters.js
+@@ -25,7 +25,7 @@ try {
+     const {version} = json;
+     // istanbul ignore else
+     if (semver.gte(version, '6.0.0')) {
+-        createStatsCollector = require('mocha/lib/stats-collector');
++        ({createStatsCollector} = require('mocha/lib/stats-collector'));
+         mocha6plus = true;
+     }
+     else {
