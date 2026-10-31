@@ -33,7 +33,7 @@ overrides:
   "brace-expansion@2": ">=5.0.9 <6.0.0"
   "brace-expansion@5": ">=5.0.8 <6.0.0"
   # minimatch@5/@9 default-import brace-expansion; v5 is named export only
-  "minimatch@5": ">=10.2.6 <11"
+  "minimatch@5": ">=11.0.1 <12"
   "minimatch@9": ">=10.2.6 <11"
   "fast-uri@3": "<5.0.0"
   "fast-xml-parser": ">=5.10.1 <6.0.0"
@@ -104,3 +104,5 @@ minimumReleaseAgeExclude:
   - "@vitest/ui@5.0.5"
   # Renovate security update: zod@4.6.6
   - zod@4.6.6
+  # Renovate security update: minimatch@11.0.1
+  - minimatch@11.0.1

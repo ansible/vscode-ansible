@@ -175,7 +175,7 @@ overrides:
   brace-expansion@1: '>=5.0.8 <6.0.0'
   brace-expansion@2: '>=5.0.9 <6.0.0'
   brace-expansion@5: '>=5.0.8 <6.0.0'
-  minimatch@5: '>=10.2.6 <11'
+  minimatch@5: '>=11.0.1 <12'
   minimatch@9: '>=10.2.6 <11'
   fast-uri@3: <5.0.0
   fast-xml-parser: '>=5.10.1 <6.0.0'
@@ -363,7 +363,7 @@ importers:
         version: 10.2.0
       cypress-multi-reporters:
         specifier: ^2.0.5
-        version: 2.0.5(supports-color@8.1.1)
+        version: 2.0.5(mocha@12.0.3)(supports-color@8.1.1)
       electron:
         specifier: ^45.0.0
         version: 45.0.0(supports-color@8.1.1)
@@ -423,10 +423,10 @@ importers:
         version: 0.24.0(supports-color@8.1.1)
       mocha-junit-reporter:
         specifier: ^2.2.1
-        version: 2.2.1(supports-color@8.1.1)
+        version: 2.2.1(mocha@12.0.3)(supports-color@8.1.1)
       mocha-multi-reporters:
         specifier: ^1.5.1
-        version: 1.5.2(supports-color@8.1.1)
+        version: 1.5.2(mocha@12.0.3)(supports-color@8.1.1)
       ovsx:
         specifier: ^1.0.2
         version: 1.2.0(@types/node@26.6.5)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
@@ -3440,6 +3440,10 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
+  agent-base@9.0.0:
+    resolution: {integrity: sha512-TQf59BsZnytt8GdJKLPfUZ54g/iaUL2OWDSFCCvMOhsHduDQxO8xC4PNeyIkVcA5KwL2phPSv0douC0fgWzmnA==}
+    engines: {node: '>= 20'}
+
   ajv-formats@3.0.1:
     resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
     peerDependencies:
@@ -5026,6 +5030,10 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
+  https-proxy-agent@9.1.0:
+    resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
+    engines: {node: '>= 20'}
+
   human-signals@1.1.1:
     resolution: {integrity: sha512-SEQu7vl8KjNL2eoGBLF3+wAjpsNfA9XMlXAYj/3EdaNfAlxKthD1xjEQfGOUhllCGGJVNY34bRr6lPINhNjyZw==}
     engines: {node: '>=8.12.0'}
@@ -6388,6 +6396,15 @@ packages:
   proxy-addr@2.0.8:
     resolution: {integrity: sha512-5nnx0yGyVUcY6t9RnWcARWtwT9F1D8O9rt08htPvnd49W1IgZtmLkhu9WfMzQj1cFxjHIO6connUNVW5k7AVyQ==}
     engines: {node: '>= 0.10'}
+
+  proxy-agent-negotiate@1.1.0:
+    resolution: {integrity: sha512-N8IBcM3UgCVzz2L2Lqv8DVntDnnC8/hiV4nEDUPkqq72TPUgYWjQc+bdZlBPZK9LzPAvOY//gAt0S0DApoOXWQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      kerberos: ^2.0.0
+    peerDependenciesMeta:
+      kerberos:
+        optional: true
 
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
@@ -10099,11 +10116,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
       - expect-webdriverio
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/config@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)':
@@ -10155,11 +10175,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
       - tsx
+      - utf-8-validate
       - webdriverio
       - yauzl
 
@@ -10217,7 +10240,7 @@ snapshots:
       '@wdio/utils': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
       deepmerge-ts: 8.0.2
       expect-webdriverio: 8.0.0(@wdio/types@10.1.0)(webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0))
-      webdriver: 10.1.0
+      webdriver: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
       webdriverio: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
     transitivePeerDependencies:
       - '@wdio/electron-service'
@@ -10225,11 +10248,14 @@ snapshots:
       - appium
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
       - tsx
+      - utf-8-validate
       - yauzl
 
   '@wdio/session@10.1.0(expect-webdriverio@8.0.0(@wdio/types@10.1.0)(webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)))(supports-color@8.1.1)(tsx@4.23.15)(yauzl@3.4.0)':
@@ -10254,10 +10280,13 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/snapshot@10.1.0(supports-color@8.1.1)(yauzl@3.4.0)':
@@ -10267,10 +10296,13 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - puppeteer-core
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   '@wdio/spec-reporter@10.1.0':
@@ -10484,6 +10516,8 @@ snapshots:
   acorn@8.18.0: {}
 
   agent-base@7.1.4: {}
+
+  agent-base@9.0.0: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -11149,10 +11183,11 @@ snapshots:
 
   csstype@3.2.3: {}
 
-  cypress-multi-reporters@2.0.5(supports-color@8.1.1):
+  cypress-multi-reporters@2.0.5(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
       semver: 7.8.5
     transitivePeerDependencies:
       - supports-color
@@ -12405,6 +12440,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  https-proxy-agent@9.1.0(supports-color@8.1.1):
+    dependencies:
+      agent-base: 9.0.0
+      debug: 4.4.3(supports-color@8.1.1)
+      proxy-agent-negotiate: 1.1.0
+    transitivePeerDependencies:
+      - kerberos
+      - supports-color
+
   human-signals@1.1.1: {}
 
   human-signals@8.0.1: {}
@@ -13403,20 +13447,22 @@ snapshots:
     dependencies:
       obliterator: 2.0.5
 
-  mocha-junit-reporter@2.2.1(supports-color@8.1.1):
+  mocha-junit-reporter@2.2.1(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       md5: 2.3.0
       mkdirp: 3.0.1
+      mocha: 12.0.3
       strip-ansi: 6.0.1
       xml: 1.0.1
     transitivePeerDependencies:
       - supports-color
 
-  mocha-multi-reporters@1.5.2(supports-color@8.1.1):
+  mocha-multi-reporters@1.5.2(mocha@12.0.3)(supports-color@8.1.1):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.18.1
+      mocha: 12.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -13959,6 +14005,8 @@ snapshots:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+
+  proxy-agent-negotiate@1.1.0: {}
 
   pump@3.0.4:
     dependencies:
@@ -15198,7 +15246,26 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  webdriver@10.1.0: {}
+  webdriver@10.1.0(supports-color@8.1.1)(yauzl@3.4.0):
+    dependencies:
+      '@types/node': 22.20.5
+      '@types/ws': 8.18.1
+      '@wdio/config': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
+      '@wdio/logger': 10.1.0
+      '@wdio/protocols': 10.0.2
+      '@wdio/types': 10.1.0
+      '@wdio/utils': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
+      deepmerge-ts: 8.0.2
+      https-proxy-agent: 9.1.0(supports-color@8.1.1)
+      undici: 8.11.2
+      ws: 8.22.0
+    transitivePeerDependencies:
+      - bufferutil
+      - kerberos
+      - proxy-agent
+      - supports-color
+      - utf-8-validate
+      - yauzl
 
   webdriverio@10.1.0(supports-color@8.1.1)(yauzl@3.4.0):
     dependencies:
@@ -15224,13 +15291,16 @@ snapshots:
       rgb2hex: 0.2.5
       serialize-error: 13.0.2
       urlpattern-polyfill: 10.1.0
-      webdriver: 10.1.0
+      webdriver: 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
     transitivePeerDependencies:
       - bare-abort-controller
       - bare-buffer
+      - bufferutil
+      - kerberos
       - proxy-agent
       - react-native-b4a
       - supports-color
+      - utf-8-validate
       - yauzl
 
   webidl-conversions@3.0.1: {}
