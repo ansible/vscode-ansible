@@ -56,6 +56,11 @@
       "matchPackageNames": ["python", "python/cpython", "nodejs"]
     },
     {
+      "allowedVersions": "<12",
+      "description": "@vscode/test-cli runs Mocha 11, and cypress-multi-reporters breaks if it resolves a different major",
+      "matchDepNames": ["cypress-multi-reporters>mocha"]
+    },
+    {
       "branchTopic": "npm-dev",
       "groupSlug": "npm-dev",
       "matchDepTypes": ["devDependencies"],
