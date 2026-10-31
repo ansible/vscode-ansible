@@ -16,6 +16,98 @@ import {
   parseAllDocuments,
 } from "@src/utils/yaml.js";
 
+type FileRefSpec = NonNullable<ReturnType<typeof isFileReference>>;
+
+interface FileRefContext {
+  moduleName: string;
+  optionName: string | undefined;
+  taskKeyPath: Node[];
+  moduleOptions: YAMLMap | null;
+}
+
+function parseBooleanLike(value: unknown): boolean | undefined {
+  if (value === true || value === false) {
+    return value;
+  }
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const lower = value.toLowerCase();
+  if (["true", "yes", "on"].includes(lower)) {
+    return true;
+  }
+  if (["false", "no", "off"].includes(lower)) {
+    return false;
+  }
+  return undefined;
+}
+
+function isRemoteSource(
+  moduleOptions: YAMLMap | null,
+  remoteByDefault: boolean | undefined,
+): boolean {
+  const remoteSrcNode = moduleOptions?.get("remote_src", true);
+  const remoteSrcValue = isScalar(remoteSrcNode)
+    ? remoteSrcNode.value
+    : undefined;
+  const hasRemoteSrcOption = !!remoteSrcNode;
+  const remoteSrc = parseBooleanLike(remoteSrcValue);
+  return (
+    remoteSrc === true ||
+    (hasRemoteSrcOption && remoteSrc === undefined) ||
+    (!!remoteByDefault && remoteSrc !== false)
+  );
+}
+
+function getFileRefContext(path: Node[], node: Node): FileRefContext | null {
+  // The value must be the value of a Pair, never a key or a sequence item.
+  const owner = new AncestryBuilder(path).parent(YAMLMap);
+  const ownerKey = owner.getStringKey();
+  if (!ownerKey || owner.getValue() !== node) {
+    return null;
+  }
+
+  const parentMap = owner.get();
+  const grandParent = new AncestryBuilder(path).parent(YAMLMap).parent(YAMLMap);
+  const moduleKey = grandParent.getStringKey();
+
+  if (parentMap && moduleKey && grandParent.get()) {
+    // `template: { src: x }`: the value belongs to an option of the module
+    const taskKeyPath = grandParent.getKeyPath();
+    if (!taskKeyPath) {
+      return null;
+    }
+    return {
+      moduleName: moduleKey,
+      optionName: ownerKey,
+      taskKeyPath,
+      moduleOptions: parentMap,
+    };
+  }
+
+  // `include_tasks: x`: the value belongs to the task itself (free-form)
+  const taskKeyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
+  if (!taskKeyPath) {
+    return null;
+  }
+  return {
+    moduleName: ownerKey,
+    optionName: undefined,
+    taskKeyPath,
+    moduleOptions: null,
+  };
+}
+
+function isValidTaskPosition(spec: FileRefSpec, taskKeyPath: Node[]): boolean {
+  if (spec.topLevelOnly) {
+    return (
+      new AncestryBuilder(taskKeyPath).parentOfKey().parent(YAMLSeq).getPath()
+        ?.length === 1
+    );
+  }
+  return isTaskParam(taskKeyPath);
+}
+
 /**
  * Handles Go to Definition on the *value* of a task option that references a
  * local file, e.g. `src: myfile.txt.j2` for the template module.
@@ -26,77 +118,22 @@ async function getFileDefinition(
   basedirs: string[],
   onUnresolvedReference?: (reference: string) => void,
 ): Promise<DefinitionLink[] | null> {
-  const node = path[path.length - 1];
+  const node = path.at(-1);
   if (!isScalar(node) || typeof node.value !== "string") {
     return null;
   }
 
-  // The value must be the value of a Pair, never a key or a sequence item.
-  const owner = new AncestryBuilder(path).parent(YAMLMap);
-  const ownerKey = owner.getStringKey();
-  const ownerValue = owner.getValue();
-  if (!ownerKey || ownerValue !== node) {
+  const context = getFileRefContext(path, node);
+  if (!context) {
     return null;
   }
 
-  let moduleName: string | null;
-  let optionName: string | undefined;
-  let taskKeyPath: Node[] | null;
-  let moduleOptions: YAMLMap | null = null;
-
-  const parentMap = owner.get();
-  const grandParent = new AncestryBuilder(path).parent(YAMLMap).parent(YAMLMap);
-  const moduleKey = grandParent.getStringKey();
-  if (parentMap && moduleKey && grandParent.get()) {
-    // `template: { src: x }`: the value belongs to an option of the module
-    moduleName = moduleKey;
-    optionName = ownerKey;
-    taskKeyPath = grandParent.getKeyPath();
-    moduleOptions = parentMap;
-  } else {
-    // `include_tasks: x`: the value belongs to the task itself (free-form)
-    moduleName = ownerKey;
-    optionName = undefined;
-    taskKeyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
-  }
-
-  if (!moduleName || !taskKeyPath) {
-    return null;
-  }
-  const spec = isFileReference(moduleName, optionName);
-  if (!spec) {
-    return null;
-  }
-  const isTopLevelImportPlaybook =
-    spec.topLevelOnly &&
-    new AncestryBuilder(taskKeyPath).parentOfKey().parent(YAMLSeq).getPath()
-      ?.length === 1;
-  if (
-    spec.topLevelOnly ? !isTopLevelImportPlaybook : !isTaskParam(taskKeyPath)
-  ) {
+  const spec = isFileReference(context.moduleName, context.optionName);
+  if (!spec || !isValidTaskPosition(spec, context.taskKeyPath)) {
     return null;
   }
 
-  const remoteSrcNode = moduleOptions?.get("remote_src", true);
-  const remoteSrcValue = isScalar(remoteSrcNode)
-    ? remoteSrcNode.value
-    : undefined;
-  const hasRemoteSrcOption = !!remoteSrcNode;
-  const remoteSrc =
-    remoteSrcValue === true ||
-    (typeof remoteSrcValue === "string" &&
-      ["true", "yes", "on"].includes(remoteSrcValue.toLowerCase()))
-      ? true
-      : remoteSrcValue === false ||
-          (typeof remoteSrcValue === "string" &&
-            ["false", "no", "off"].includes(remoteSrcValue.toLowerCase()))
-        ? false
-        : undefined;
-  if (
-    remoteSrc === true ||
-    (hasRemoteSrcOption && remoteSrc === undefined) ||
-    (spec.remoteByDefault && remoteSrc !== false)
-  ) {
+  if (isRemoteSource(context.moduleOptions, spec.remoteByDefault)) {
     return null;
   }
 
