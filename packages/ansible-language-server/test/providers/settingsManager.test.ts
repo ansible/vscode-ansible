@@ -92,3 +92,51 @@ describe("get()", function () {
     });
   });
 });
+
+describe("handleConfigurationChanged()", function () {
+  describe("When the client pushes partial legacy settings", function () {
+    let settings: ExtensionSettings;
+    let defaults: ExtensionSettings;
+
+    beforeAll(async () => {
+      const workspaceManager = createTestWorkspaceManager();
+      const context = workspaceManager.getContext("");
+      if (typeof context === "undefined") {
+        throw new Error("No workspace context");
+      }
+      defaults = structuredClone(context.documentSettings.globalSettings);
+      await context.documentSettings.handleConfigurationChanged({
+        settings: { ansible: { validation: { enabled: false } } },
+      });
+      settings = await context.documentSettings.get("");
+    });
+
+    it("should apply the provided setting", function () {
+      expect(settings.validation.enabled).toBe(false);
+    });
+
+    it("should keep defaults for omitted settings", function () {
+      expect(settings.completion).toEqual(defaults.completion);
+      expect(settings.validation.lint).toEqual(defaults.validation.lint);
+    });
+
+    it("should default array settings to arrays", function () {
+      expect(settings.executionEnvironment.volumeMounts).toEqual([]);
+    });
+  });
+
+  describe("When the client pushes no ansible settings", function () {
+    it("should fall back to defaults", async function () {
+      const workspaceManager = createTestWorkspaceManager();
+      const context = workspaceManager.getContext("");
+      if (typeof context === "undefined") {
+        throw new Error("No workspace context");
+      }
+      const defaults = structuredClone(context.documentSettings.globalSettings);
+      await context.documentSettings.handleConfigurationChanged({
+        settings: {},
+      });
+      expect(await context.documentSettings.get("")).toEqual(defaults);
+    });
+  });
+});

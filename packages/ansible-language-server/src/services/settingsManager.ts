@@ -98,6 +98,11 @@ export class SettingsManager {
       },
     },
     completion: {
+      enabled: {
+        default: true,
+        description:
+          "Toggle completion provider. If disabled, no completion items are offered for Ansible files",
+      },
       provideRedirectModules: {
         default: true,
         description:
@@ -237,10 +242,14 @@ export class SettingsManager {
           h();
         });
       }
-      this.globalSettings =
+      // Clients may send only the settings they changed, so fill the rest
+      // from defaults instead of replacing the whole object.
+      this.globalSettings = _.merge(
+        structuredClone(this.defaultSettings),
         (hasLegacyAnsibleSettings(params.settings) &&
           params.settings.ansible) ||
-        this.defaultSettings;
+          {},
+      );
     }
   }
 
@@ -260,7 +269,7 @@ export class SettingsManager {
         if (
           Object.hasOwn(value, "default") &&
           value.default !== undefined &&
-          typeof value.default != "object"
+          (typeof value.default != "object" || Array.isArray(value.default))
         ) {
           settingsObject[key] = value.default;
         } else {
