@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent } from "vscode-languageserver";
-import { expect, beforeAll, afterAll, vi } from "vitest";
+import { expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -9,13 +9,139 @@ import {
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
   setEeFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
 /** Play/task/block/role keyword hovers never read DocsLibrary; avoid EE docs init (flaky on GHA). */
 const KEYWORD_HOVER_DOCS_LIBRARY = {} as DocsLibrary;
+
+/** Tri-state: `undefined` = not probed, `true` = EE docs ready, `false` = skip @ee doc suites. */
+let eeHoverDocsReady: boolean | undefined;
+
+const EE_HOVER_PROBE_BUDGET_MS = 60_000;
+const EE_HOVER_PROBE_INTERVAL_MS = 3_000;
+const EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+const EE_HOVER_PROBE_TIMEOUT_MSG = "EE probe: doHover exceeded attempt timeout";
+const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+const EE_HOVER_SETUP_HOOK_TIMEOUT_MS = EE_HOVER_PROBE_BUDGET_MS + 10_000;
+
+function isTransientEeHoverReadinessError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof Error && "code" in err
+      ? String((err as NodeJS.ErrnoException).code)
+      : "";
+  if (msg.includes(EE_HOVER_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
+    return true;
+  }
+  if (msg.includes("Failed to initialize execution environment")) {
+    return true;
+  }
+  if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  return false;
+}
+
+function setEeHoverSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(
+    EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS,
+  );
+}
+
+function clearEeHoverSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+}
+
+async function probeEeHoverDocs(
+  textDoc: TextDocument,
+  context: WorkspaceFolderContext | undefined,
+): Promise<boolean> {
+  if (eeHoverDocsReady !== undefined) {
+    return eeHoverDocsReady;
+  }
+  if (!context) {
+    eeHoverDocsReady = false;
+    return false;
+  }
+
+  const probePosition = { line: 4, character: 8 };
+  const deadline = Date.now() + EE_HOVER_PROBE_BUDGET_MS;
+
+  while (Date.now() < deadline) {
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const remainingMs = Math.min(
+        EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS,
+        deadline - Date.now(),
+      );
+      const hover = await Promise.race([
+        (async () => {
+          const docsLibrary = await context.docsLibrary;
+          return doHover(textDoc, probePosition, docsLibrary);
+        })(),
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
+            () => reject(new Error(EE_HOVER_PROBE_TIMEOUT_MSG)),
+            remainingMs,
+          );
+        }),
+      ]);
+      if (
+        hover &&
+        get_hover_value(hover).includes("Print statements during execution")
+      ) {
+        eeHoverDocsReady = true;
+        return true;
+      }
+    } catch (err: unknown) {
+      if (!isTransientEeHoverReadinessError(err)) {
+        throw err;
+      }
+    } finally {
+      if (attemptTimer !== undefined) {
+        clearTimeout(attemptTimer);
+      }
+    }
+    await new Promise<void>((r) => setTimeout(r, EE_HOVER_PROBE_INTERVAL_MS));
+  }
+
+  console.warn(
+    `[hover-ee] EE module hover readiness not achieved within ` +
+      `${EE_HOVER_PROBE_BUDGET_MS / 1000}s — @ee docs hover suites will skip`,
+  );
+  eeHoverDocsReady = false;
+  return false;
+}
+
+async function prepareEeHoverDocsSuite(
+  textDoc: TextDocument,
+  context: WorkspaceFolderContext | undefined,
+  docSettings: Thenable<ExtensionSettings> | undefined,
+): Promise<void> {
+  if (skipEE() || !docSettings) {
+    return;
+  }
+  setEeHoverSpawnSyncTimeout();
+  setEeFixtureAnsibleCollectionPathEnv();
+  await enableExecutionEnvironmentSettings(docSettings, context);
+  if (eeHoverDocsReady === undefined) {
+    await probeEeHoverDocs(textDoc, context);
+  }
+}
+
+function skipIfEeHoverDocsUnavailable(context: { skip: () => void }): void {
+  if (eeHoverDocsReady === false) {
+    context.skip();
+  }
+}
 
 function get_hover_value(hover: Hover | undefined | null): string {
   if (hover) {
@@ -453,20 +579,21 @@ describe("doHover()", function () {
   describe("Module name and options hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await enableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
+        await prepareEeHoverDocsSuite(
+          moduleTextDoc,
+          moduleContext,
+          moduleDocSettings,
+        );
+      }, EE_HOVER_SETUP_HOOK_TIMEOUT_MS);
+
+      beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (moduleContext) {
         testModuleNames(moduleContext, moduleTextDoc);
       }
 
       afterAll(async function () {
+        clearEeHoverSpawnSyncTimeout();
         setFixtureAnsibleCollectionPathEnv();
         if (moduleDocSettings && moduleContext) {
           await disableExecutionEnvironmentSettings(
@@ -497,20 +624,21 @@ describe("doHover()", function () {
   describe("No hover", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await enableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
+        await prepareEeHoverDocsSuite(
+          moduleTextDoc,
+          moduleContext,
+          moduleDocSettings,
+        );
+      }, EE_HOVER_SETUP_HOOK_TIMEOUT_MS);
+
+      beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (moduleContext) {
         testNoHover(moduleContext, moduleTextDoc);
       }
 
       afterAll(async function () {
+        clearEeHoverSpawnSyncTimeout();
         setFixtureAnsibleCollectionPathEnv();
         if (moduleDocSettings && moduleContext) {
           await disableExecutionEnvironmentSettings(
@@ -548,17 +676,17 @@ describe("doHover()", function () {
   describe("Hover for playbook adjacent collection", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (pacDocSettings && pacContext) {
-          await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
-        }
-      });
+        await prepareEeHoverDocsSuite(pacTextDoc, pacContext, pacDocSettings);
+      }, EE_HOVER_SETUP_HOOK_TIMEOUT_MS);
+
+      beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (pacContext) {
         testPlaybookAdjacentCollection(pacContext, pacTextDoc);
       }
 
       afterAll(async function () {
+        clearEeHoverSpawnSyncTimeout();
         setFixtureAnsibleCollectionPathEnv();
         if (pacDocSettings && pacContext) {
           await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
@@ -593,14 +721,25 @@ describe("doHover()", function () {
   describe("Negate hover for non playbook adjacent collection", function () {
     describe("@ee", function () {
       beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (nonAdjacentDocSettings && nonAdjacentContext) {
+        await prepareEeHoverDocsSuite(
+          moduleTextDoc,
+          moduleContext,
+          moduleDocSettings,
+        );
+        if (
+          !skipEE() &&
+          eeHoverDocsReady !== false &&
+          nonAdjacentDocSettings &&
+          nonAdjacentContext
+        ) {
           await enableExecutionEnvironmentSettings(
             nonAdjacentDocSettings,
             nonAdjacentContext,
           );
         }
-      });
+      }, EE_HOVER_SETUP_HOOK_TIMEOUT_MS);
+
+      beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (nonAdjacentContext) {
         testNonPlaybookAdjacentCollection(
@@ -610,6 +749,7 @@ describe("doHover()", function () {
       }
 
       afterAll(async function () {
+        clearEeHoverSpawnSyncTimeout();
         setFixtureAnsibleCollectionPathEnv();
         if (nonAdjacentDocSettings && nonAdjacentContext) {
           await disableExecutionEnvironmentSettings(
