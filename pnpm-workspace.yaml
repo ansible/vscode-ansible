@@ -15,7 +15,8 @@ allowBuilds:
 
 overrides:
   # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must match (see below).
-  "cypress-multi-reporters>mocha": "12.0.3"
+  # Keep it on 11.x until @vscode/test-cli moves to Mocha 12 (renovate.json).
+  "cypress-multi-reporters>mocha": "11.8.0"
   "mocha-junit-reporter>mocha": "12.0.3"
   "mocha-multi-reporters>mocha": "12.0.3"
   rollup: "npm:@rollup/wasm-node@*"
