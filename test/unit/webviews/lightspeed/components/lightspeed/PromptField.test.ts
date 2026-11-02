@@ -28,13 +28,15 @@ describe("PromptField", () => {
     );
   });
 
-  it("renders the AutoComplete component", () => {
+  it("renders the AutoCompleteInput component", () => {
     const wrapper = mount(PromptField, {
       props: {
         prompt: "",
       },
     });
-    expect(wrapper.findComponent({ name: "AutoComplete" }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "AutoCompleteInput" }).exists()).toBe(
+      true,
+    );
   });
 
   it("requests recent prompts on mount", async () => {
@@ -59,14 +61,14 @@ describe("PromptField", () => {
     );
   });
 
-  it("passes placeholder to AutoComplete", () => {
+  it("passes placeholder to AutoCompleteInput", () => {
     const wrapper = mount(PromptField, {
       props: {
         prompt: "",
         placeholder: "Enter your prompt here...",
       },
     });
-    const autocomplete = wrapper.findComponent({ name: "AutoComplete" });
+    const autocomplete = wrapper.findComponent({ name: "AutoCompleteInput" });
     expect(autocomplete.props("placeholder")).toBe("Enter your prompt here...");
   });
 
@@ -106,7 +108,7 @@ describe("PromptField", () => {
     void handler?.(["b", "a"]);
     await flushPromises();
 
-    const ac = wrapper.findComponent({ name: "AutoComplete" });
+    const ac = wrapper.findComponent({ name: "AutoCompleteInput" });
 
     // empty query -> full (sorted) list
     ac.vm.$emit("complete", { query: "" });

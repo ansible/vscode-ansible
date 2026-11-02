@@ -7,7 +7,6 @@
     "module": "ESNext",
     "outDir": "lib",
     "paths": {
-      "@primeuix/themes/*": ["./node_modules/@primeuix/themes/dist/*"],
       "@root/*": ["./*"],
       "@root/tools/als-packaging": ["./tools/als-packaging.mts"],
       "@src/*": ["./src/*"],

@@ -18,6 +18,7 @@ import CollectionSelector from "@webviews/lightspeed/src/components/CollectionSe
 import ErrorBox from "@webviews/lightspeed/src/components/ErrorBox.vue";
 import PromptExampleBox from "@webviews/lightspeed/src/components/lightspeed/PromptExampleBox.vue";
 import PromptField from "@webviews/lightspeed/src/components/lightspeed/PromptField.vue";
+import ProgressSpinner from "@webviews/lightspeed/src/components/ProgressSpinner.vue";
 
 const page = ref(1);
 const prompt = ref("");
