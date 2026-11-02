@@ -17,7 +17,8 @@ overrides:
   # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must match (see below).
   # Keep it on 11.x until @vscode/test-cli moves to Mocha 12 (renovate.json).
   "cypress-multi-reporters>mocha": "11.8.0"
-  "mocha-junit-reporter>mocha": "12.0.3"
+  # Mocha 12 exports stats-collector as ESM; mocha-junit-reporter requires CJS default export.
+  "mocha-junit-reporter>mocha": "11.8.0"
   "mocha-multi-reporters>mocha": "12.0.3"
   rollup: "npm:@rollup/wasm-node@*"
   # VS Code 1.110+ renamed macOS Electron -> Code; Electron symlink removed in
@@ -62,14 +63,14 @@ patchedDependencies:
   # See: https://github.com/microsoft/vscode-test-cli/issues/106
   "@vscode/test-cli@0.0.15": "patches/@vscode__test-cli@0.0.15.patch"
 packageExtensions:
-  # @vscode/test-cli runs Mocha 11; cypress-multi-reporters must use the same major
-  # so createStatsCollector resolves from mocha/lib/stats-collector correctly.
+  # @vscode/test-cli runs Mocha 11; e2e reporters must use the same major so
+  # createStatsCollector resolves from mocha/lib/stats-collector correctly.
   "cypress-multi-reporters@*":
     "dependencies":
       "mocha": "11.8.0"
   "mocha-junit-reporter@*":
     "dependencies":
-      "mocha": "12.0.3"
+      "mocha": "11.8.0"
   "mocha-multi-reporters@*":
     "dependencies":
       "mocha": "12.0.3"

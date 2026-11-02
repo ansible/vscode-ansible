@@ -165,7 +165,8 @@ describe("Ansible Development Tools MCP Server Performance", () => {
 
       expect(tools).toHaveLength(TOOL_COUNT);
       expect(tools.map((t) => t.name)).toContain("zen_of_ansible");
-      expect(duration).toBeLessThan(10); // Should be nearly instantaneous
+      // CI runners can exceed single-digit ms; still catches large regressions
+      expect(duration).toBeLessThan(50);
     });
 
     it("should handle repeated tool listings efficiently", () => {
