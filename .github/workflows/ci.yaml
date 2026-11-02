@@ -738,13 +738,13 @@ jobs:
       - name: SonarCloud scan
         # Run for pull requests or push to main. Skip Dependabot PRs here (no
         # SONAR_TOKEN in ci); the secured post workflow scans after ci succeeds.
-        if: >
-          ${{ !cancelled() &&
+        if: >-
+          !cancelled() &&
           github.actor != 'dependabot[bot]' &&
           hashFiles('**/*coverage.xml') != '' &&
           (github.event_name == 'pull_request' ||
           (github.event_name == 'push' && github.ref_name =='main')
-          )}}
+          )
         uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.CICD_ORG_SONAR_TOKEN_CICD_BOT || secrets.AAP_ORG_SONAR_TOKEN_ANSIBLE_CICD_BOT }}
