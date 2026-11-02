@@ -241,8 +241,8 @@ importers:
         specifier: ^18.0.5
         version: 18.0.14
       minimatch:
-        specifier: ^10.2.5
-        version: 10.2.6
+        specifier: ^11.0.1
+        version: 11.0.3
       semver:
         specifier: ^7.8.5
         version: 7.8.5
