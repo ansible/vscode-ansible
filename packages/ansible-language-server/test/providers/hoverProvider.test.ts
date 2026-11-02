@@ -1,6 +1,13 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent } from "vscode-languageserver";
-import { expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import {
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+  type TestContext,
+} from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -21,6 +28,9 @@ const KEYWORD_HOVER_DOCS_LIBRARY = {} as DocsLibrary;
 
 /** Tri-state: `undefined` = not probed, `true` = EE docs ready, `false` = skip @ee doc suites. */
 let eeHoverDocsReady: boolean | undefined;
+/** Library from a successful probe. Later @ee suites clear the context cache, which would re-run EE init and hang. */
+let eeHoverDocsLibrary: DocsLibrary | undefined;
+let eeHoverProbeContext: WorkspaceFolderContext | undefined;
 
 const EE_HOVER_PROBE_BUDGET_MS = 60_000;
 const EE_HOVER_PROBE_INTERVAL_MS = 3_000;
@@ -82,10 +92,11 @@ async function probeEeHoverDocs(
         EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS,
         deadline - Date.now(),
       );
-      const hover = await Promise.race([
+      const probed = await Promise.race([
         (async () => {
           const docsLibrary = await context.docsLibrary;
-          return doHover(textDoc, probePosition, docsLibrary);
+          const hover = await doHover(textDoc, probePosition, docsLibrary);
+          return { docsLibrary, hover };
         })(),
         new Promise<never>((_, reject) => {
           attemptTimer = setTimeout(
@@ -95,9 +106,13 @@ async function probeEeHoverDocs(
         }),
       ]);
       if (
-        hover &&
-        get_hover_value(hover).includes("Print statements during execution")
+        probed.hover &&
+        get_hover_value(probed.hover).includes(
+          "Print statements during execution",
+        )
       ) {
+        eeHoverDocsLibrary = probed.docsLibrary;
+        eeHoverProbeContext = context;
         eeHoverDocsReady = true;
         return true;
       }
@@ -140,6 +155,49 @@ async function prepareEeHoverDocsSuite(
 function skipIfEeHoverDocsUnavailable(context: { skip: () => void }): void {
   if (eeHoverDocsReady === false) {
     context.skip();
+  }
+}
+
+/**
+ * @ee suites after the probe call clearCachedServices(), so a fresh
+ * `context.docsLibrary` re-inits the EE and can hang past the test timeout.
+ * Reuse the probed library for that context. Other contexts get one bounded
+ * wait, then the test is skipped.
+ */
+async function resolveHoverDocs(
+  context: WorkspaceFolderContext,
+  test: TestContext,
+  useCachedEeDocs: boolean,
+): Promise<DocsLibrary | undefined> {
+  if (!useCachedEeDocs) {
+    return context.docsLibrary;
+  }
+  if (eeHoverDocsLibrary && eeHoverProbeContext === context) {
+    return eeHoverDocsLibrary;
+  }
+
+  let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      context.docsLibrary,
+      new Promise<never>((_, reject) => {
+        attemptTimer = setTimeout(
+          () => reject(new Error(EE_HOVER_PROBE_TIMEOUT_MSG)),
+          EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } catch (err: unknown) {
+    if (!isTransientEeHoverReadinessError(err)) {
+      throw err;
+    }
+    console.warn("[hover-ee] docsLibrary init stalled — skipping hover test");
+    test.skip();
+    return undefined;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
   }
 }
 
@@ -280,6 +338,7 @@ function testRoleKeywords(
 function testModuleNames(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
+  useCachedEeDocs = false,
 ) {
   const tests = [
     {
@@ -295,41 +354,57 @@ function testModuleNames(
   ];
 
   tests.forEach(({ word, position, doc }) => {
-    it(`should provide hovering for '${word}'`, async function () {
-      const actualHover = await doHover(
-        textDoc,
-        position,
-        await context.docsLibrary,
-      );
+    it(`should provide hovering for '${word}'`, async (ctx: TestContext) => {
+      const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+      if (!docsLibrary) {
+        return;
+      }
+      const actualHover = await doHover(textDoc, position, docsLibrary);
       expect(get_hover_value(actualHover)).toContain(doc);
     });
   });
 }
 
-function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
-  it("should not provide hovering for values", async function () {
+function testNoHover(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument,
+  useCachedEeDocs = false,
+) {
+  it("should not provide hovering for values", async (ctx: TestContext) => {
+    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+    if (!docsLibrary) {
+      return;
+    }
     const actualHover = await doHover(
       textDoc,
       { line: 13, character: 24 },
-      await context.docsLibrary,
+      docsLibrary,
     );
     expect(actualHover).toBeNull();
   });
 
-  it("should not provide hovering for improper module name and options", async function () {
+  it("should not provide hovering for improper module name and options", async (ctx: TestContext) => {
+    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+    if (!docsLibrary) {
+      return;
+    }
     const actualHover = await doHover(
       textDoc,
       { line: 13, character: 8 },
-      await context.docsLibrary,
+      docsLibrary,
     );
     expect(actualHover).toBeNull();
   });
 
-  it("should not provide hovering for improper module option", async function () {
+  it("should not provide hovering for improper module option", async (ctx: TestContext) => {
+    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+    if (!docsLibrary) {
+      return;
+    }
     const actualHover = await doHover(
       textDoc,
       { line: 14, character: 10 },
-      await context.docsLibrary,
+      docsLibrary,
     );
     expect(actualHover).toBeNull();
   });
@@ -338,6 +413,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
 function testPlaybookAdjacentCollection(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
+  useCachedEeDocs = false,
 ) {
   const tests = [
     {
@@ -358,12 +434,12 @@ function testPlaybookAdjacentCollection(
   ];
 
   tests.forEach(({ word, position, doc }) => {
-    it(`should provide hovering for '${word}'`, async function () {
-      const actualHover = await doHover(
-        textDoc,
-        position,
-        await context.docsLibrary,
-      );
+    it(`should provide hovering for '${word}'`, async (ctx: TestContext) => {
+      const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+      if (!docsLibrary) {
+        return;
+      }
+      const actualHover = await doHover(textDoc, position, docsLibrary);
       expect(get_hover_value(actualHover)).toContain(doc);
     });
   });
@@ -372,6 +448,7 @@ function testPlaybookAdjacentCollection(
 function testNonPlaybookAdjacentCollection(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
+  useCachedEeDocs = false,
 ) {
   const tests = [
     {
@@ -387,12 +464,12 @@ function testNonPlaybookAdjacentCollection(
   ];
 
   tests.forEach(({ word, position, doc }) => {
-    it(`should not provide hovering for '${word}'`, async function () {
-      const actualHover = await doHover(
-        textDoc,
-        position,
-        await context.docsLibrary,
-      );
+    it(`should not provide hovering for '${word}'`, async (ctx: TestContext) => {
+      const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+      if (!docsLibrary) {
+        return;
+      }
+      const actualHover = await doHover(textDoc, position, docsLibrary);
 
       if (!doc) {
         expect(actualHover).toBeNull();
@@ -589,7 +666,7 @@ describe("doHover()", function () {
       beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (moduleContext) {
-        testModuleNames(moduleContext, moduleTextDoc);
+        testModuleNames(moduleContext, moduleTextDoc, true);
       }
 
       afterAll(async function () {
@@ -634,7 +711,7 @@ describe("doHover()", function () {
       beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (moduleContext) {
-        testNoHover(moduleContext, moduleTextDoc);
+        testNoHover(moduleContext, moduleTextDoc, true);
       }
 
       afterAll(async function () {
@@ -682,7 +759,7 @@ describe("doHover()", function () {
       beforeEach(skipIfEeHoverDocsUnavailable);
 
       if (pacContext) {
-        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc, true);
       }
 
       afterAll(async function () {
@@ -745,6 +822,7 @@ describe("doHover()", function () {
         testNonPlaybookAdjacentCollection(
           nonAdjacentContext,
           nonAdjacentTextDoc,
+          true,
         );
       }
 
