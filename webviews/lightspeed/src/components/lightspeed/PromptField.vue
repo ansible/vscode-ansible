@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AutoComplete from "primevue/autocomplete";
+import AutoCompleteInput from "@webviews/lightspeed/src/components/AutoCompleteInput.vue";
 
 import { vscodeApi } from "@webviews/lightspeed/src/utils";
 import { ref } from "vue";
@@ -37,11 +37,9 @@ vscodeApi.post("getRecentPrompts", {});
       ></label
     >
     <div class="fieldBox">
-      <AutoComplete
+      <AutoCompleteInput
         id="PromptTextField"
-        fluid
         v-model="prompt"
-        size="small"
         :suggestions="recentPromptsFiltered"
         :placeholder
         @complete="search"
