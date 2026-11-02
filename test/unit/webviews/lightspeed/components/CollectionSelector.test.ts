@@ -79,7 +79,9 @@ describe("CollectionSelector", () => {
     await flushPromises();
 
     expect(wrapper.find("#collectionSelectorContainer").exists()).toBe(true);
-    expect(wrapper.findComponent({ name: "AutoComplete" }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "AutoCompleteInput" }).exists()).toBe(
+      true,
+    );
   });
 
   it("displays collection selection label", async () => {
@@ -167,7 +169,7 @@ describe("CollectionSelector", () => {
     ]);
     await flushPromises();
 
-    const ac = wrapper.findComponent({ name: "AutoComplete" });
+    const ac = wrapper.findComponent({ name: "AutoCompleteInput" });
 
     // empty query -> all fqcns
     ac.vm.$emit("complete", { query: "" });
