@@ -14,6 +14,9 @@ import { doHover } from "@src/providers/hoverProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 
+/** Play/task/block/role keyword hovers never read DocsLibrary; avoid EE docs init (flaky on GHA). */
+const KEYWORD_HOVER_DOCS_LIBRARY = {} as DocsLibrary;
+
 function get_hover_value(hover: Hover | undefined | null): string {
   if (hover) {
     if (Array.isArray(hover)) {
@@ -53,7 +56,7 @@ function testPlayKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary,
+        KEYWORD_HOVER_DOCS_LIBRARY,
       );
       if (actualHover) {
         expect(get_hover_value(actualHover)).toContain(doc);
@@ -81,7 +84,7 @@ function testTaskKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary,
+        KEYWORD_HOVER_DOCS_LIBRARY,
       );
       if (actualHover) {
         expect(get_hover_value(actualHover)).toContain(doc);
@@ -109,7 +112,7 @@ function testBlockKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary,
+        KEYWORD_HOVER_DOCS_LIBRARY,
       );
       if (actualHover) {
         expect(get_hover_value(actualHover)).toContain(doc);
@@ -137,7 +140,7 @@ function testRoleKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary,
+        KEYWORD_HOVER_DOCS_LIBRARY,
       );
       if (actualHover) {
         expect(get_hover_value(actualHover)).toContain(doc);
