@@ -48,7 +48,6 @@ const config: KnipConfig = {
           "@vscode/python-extension", // dynamic API import for ms-python.python fallback
           "@google/genai",
           "@highlightjs/vue-plugin",
-          "@primeuix/themes",
           "@redhat-developer/vscode-redhat-telemetry",
           "@vscode-elements/elements",
           "@vscode/codicons",
@@ -56,7 +55,6 @@ const config: KnipConfig = {
           "js-yaml",
           "marked",
           "minimatch",
-          "primevue",
           "semver",
           "uuid",
           "vscode-languageclient",
