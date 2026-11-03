@@ -1,6 +1,7 @@
 import { expect } from "vitest";
 import sinon from "sinon";
 import { Connection } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import { AnsibleLanguageService } from "@src/ansibleLanguageService.js";
 
 interface MockConnection extends Connection {
@@ -218,6 +219,96 @@ describe("AnsibleLanguageService", () => {
         const result = await handler({});
         expect(result).toEqual({ success: true });
       }
+    });
+  });
+
+  describe("onDefinition", () => {
+    const uri = "file:///test/play.yml";
+    const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.template:
+        src: missing.j2
+        dest: /tmp/x
+`;
+
+    function setup() {
+      const service = new AnsibleLanguageService(
+        mockConnection,
+        mockDocuments as never,
+      );
+      service.initialize();
+      const handler = (
+        mockConnection as unknown as { onDefinition: sinon.SinonStub }
+      ).onDefinition.firstCall.args[0] as (
+        params: unknown,
+      ) => Promise<unknown>;
+      return { service, handler };
+    }
+
+    function stubContext(service: AnsibleLanguageService) {
+      (
+        service as unknown as {
+          workspaceManager: { getContext: () => unknown };
+        }
+      ).workspaceManager.getContext = () => ({
+        workspaceFolder: { uri: "file:///test", name: "test" },
+        docsLibrary: Promise.resolve({
+          findModule: async () => [undefined],
+        }),
+      });
+    }
+
+    it("logs when a referenced file cannot be found", async () => {
+      const doc = TextDocument.create(uri, "ansible", 1, text);
+      mockDocuments.get.returns(doc);
+      const { service, handler } = setup();
+      stubContext(service);
+
+      const result = await handler({
+        textDocument: { uri },
+        position: doc.positionAt(text.indexOf("missing.j2") + 1),
+      });
+
+      expect(result).toBeNull();
+      const infoStub = (
+        mockConnection as unknown as { console: { info: sinon.SinonStub } }
+      ).console.info;
+      expect(infoStub.calledWith("File not found: missing.j2")).toBe(true);
+    });
+
+    it("returns null when the document is not open", async () => {
+      const { handler } = setup();
+
+      const result = await handler({
+        textDocument: { uri },
+        position: { line: 0, character: 0 },
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("logs and returns null when the handler throws", async () => {
+      const doc = TextDocument.create(uri, "ansible", 1, text);
+      mockDocuments.get.returns(doc);
+      const { service, handler } = setup();
+      (
+        service as unknown as {
+          workspaceManager: { getContext: () => unknown };
+        }
+      ).workspaceManager.getContext = () => {
+        throw new Error("boom");
+      };
+
+      const result = await handler({
+        textDocument: { uri },
+        position: { line: 0, character: 0 },
+      });
+
+      expect(result).toBeNull();
+      const errorStub = (
+        mockConnection as unknown as { console: { error: sinon.SinonStub } }
+      ).console.error;
+      expect(errorStub.called).toBe(true);
     });
   });
 });

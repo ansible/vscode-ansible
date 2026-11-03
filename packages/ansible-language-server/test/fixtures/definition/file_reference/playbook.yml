@@ -1,0 +1,35 @@
+- hosts: localhost
+  tasks:
+    # Keep test cursor positions stable.
+    - name: Template lookup
+      ansible.builtin.template:
+        dest: /tmp/template
+        src: myfile.txt.j2
+
+    - name: Copy lookup
+      ansible.builtin.copy:
+        dest: /tmp/static
+        src: static.txt
+
+    - name: Missing file
+      ansible.builtin.copy:
+        dest: /tmp/missing
+        src: absent.txt
+
+    - name: Dynamic file
+      ansible.builtin.template:
+        dest: /tmp/dynamic
+        src: "{{ file_name }}"
+
+      # Keep test cursor positions stable.
+    - name: Managed host destination
+      ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/remote
+
+      # Keep test cursor positions stable.
+    - ansible.builtin.include_tasks: extra_tasks.yml
+
+    - name: Short module
+      template:
+        src: myfile.txt.j2
