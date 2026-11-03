@@ -23,8 +23,11 @@ import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
-/** Play/task/block/role keyword hovers never read DocsLibrary; avoid EE docs init (flaky on GHA). */
-const KEYWORD_HOVER_DOCS_LIBRARY = {} as DocsLibrary;
+/** Keyword hovers use getKeywordHover only; stub avoids EE docs init (flaky on GHA). */
+const KEYWORD_HOVER_DOCS_LIBRARY = {
+  findModule: vi.fn().mockResolvedValue([undefined, undefined]),
+  getModuleRoute: vi.fn(),
+} as unknown as DocsLibrary;
 
 /** Tri-state: `undefined` = not probed, `true` = EE docs ready, `false` = skip @ee doc suites. */
 let eeHoverDocsReady: boolean | undefined;
@@ -38,6 +41,8 @@ const EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 const EE_HOVER_PROBE_TIMEOUT_MSG = "EE probe: doHover exceeded attempt timeout";
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
 const EE_HOVER_SETUP_HOOK_TIMEOUT_MS = EE_HOVER_PROBE_BUDGET_MS + 10_000;
+/** `null` = not saved; restore in clearEeHoverSpawnSyncTimeout(). */
+let eeHoverSpawnSyncTimeoutSaved: string | undefined | null = null;
 
 function isTransientEeHoverReadinessError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
@@ -61,13 +66,24 @@ function isTransientEeHoverReadinessError(err: unknown): boolean {
 }
 
 function setEeHoverSpawnSyncTimeout(): void {
+  if (eeHoverSpawnSyncTimeoutSaved === null) {
+    eeHoverSpawnSyncTimeoutSaved = process.env[EE_SPAWN_SYNC_TIMEOUT_ENV];
+  }
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(
     EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS,
   );
 }
 
 function clearEeHoverSpawnSyncTimeout(): void {
-  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  if (eeHoverSpawnSyncTimeoutSaved === null) {
+    return;
+  }
+  if (eeHoverSpawnSyncTimeoutSaved === undefined) {
+    Reflect.deleteProperty(process.env, EE_SPAWN_SYNC_TIMEOUT_ENV);
+  } else {
+    process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = eeHoverSpawnSyncTimeoutSaved;
+  }
+  eeHoverSpawnSyncTimeoutSaved = null;
 }
 
 async function probeEeHoverDocs(
@@ -128,6 +144,7 @@ async function probeEeHoverDocs(
     await new Promise<void>((r) => setTimeout(r, EE_HOVER_PROBE_INTERVAL_MS));
   }
 
+  // Intentional: skip doc-dependent @ee suites rather than hang CI (60s test timeout).
   console.warn(
     `[hover-ee] EE module hover readiness not achieved within ` +
       `${EE_HOVER_PROBE_BUDGET_MS / 1000}s — @ee docs hover suites will skip`,

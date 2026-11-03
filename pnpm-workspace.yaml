@@ -34,10 +34,11 @@ overrides:
   "brace-expansion@1": ">=5.0.8 <6.0.0"
   "brace-expansion@2": ">=5.0.9 <6.0.0"
   "brace-expansion@5": ">=5.0.8 <6.0.0"
-  # CVE-2026-118764: force minimatch 11+ (incl. glob@13 → minimatch@10 used by glob.sync)
+  # CVE-2026-118764: force minimatch 11+ (glob@13 peers minimatch@10; see glob@13>minimatch)
   "minimatch": ">=11.0.1 <12"
-  # minimatch@5 default-import brace-expansion; v5 is named export only — stay on 10.x
-  "minimatch@5": ">=10.2.6 <11"
+  "glob@13>minimatch": ">=11.0.1 <12"
+  # Legacy ^5 peer chain; lockfile has no 10.x instances — keep on patched 11.x (CVE-2026-118764)
+  "minimatch@5": ">=11.0.1 <12"
   "minimatch@9": ">=11.0.1 <12"
   "fast-uri@3": "<5.0.0"
   "fast-xml-parser": ">=5.10.1 <6.0.0"

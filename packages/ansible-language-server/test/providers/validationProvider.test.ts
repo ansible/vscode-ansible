@@ -31,9 +31,13 @@ const EE_VALIDATION_PROBE_INTERVAL_MS = 3_000;
 const EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 const EE_VALIDATION_PROBE_TIMEOUT_MSG =
   "EE probe: doValidate exceeded attempt timeout";
+const EE_VALIDATION_PROBE_DIAGNOSTICS_MSG =
+  "EE probe: syntax-check returned diagnostics";
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
 const EE_VALIDATION_SETUP_HOOK_TIMEOUT_MS =
   EE_VALIDATION_PROBE_BUDGET_MS + 10_000;
+/** `null` = not saved; restore in clearEeValidationSpawnSyncTimeout(). */
+let eeValidationSpawnSyncTimeoutSaved: string | undefined | null = null;
 
 function isTransientEeValidationReadinessError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
@@ -42,6 +46,9 @@ function isTransientEeValidationReadinessError(err: unknown): boolean {
       ? String((err as NodeJS.ErrnoException).code)
       : "";
   if (msg.includes(EE_VALIDATION_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (msg.includes(EE_VALIDATION_PROBE_DIAGNOSTICS_MSG)) {
     return true;
   }
   if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
@@ -57,13 +64,24 @@ function isTransientEeValidationReadinessError(err: unknown): boolean {
 }
 
 function setEeValidationSpawnSyncTimeout(): void {
+  if (eeValidationSpawnSyncTimeoutSaved === null) {
+    eeValidationSpawnSyncTimeoutSaved = process.env[EE_SPAWN_SYNC_TIMEOUT_ENV];
+  }
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(
     EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS,
   );
 }
 
 function clearEeValidationSpawnSyncTimeout(): void {
-  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  if (eeValidationSpawnSyncTimeoutSaved === null) {
+    return;
+  }
+  if (eeValidationSpawnSyncTimeoutSaved === undefined) {
+    Reflect.deleteProperty(process.env, EE_SPAWN_SYNC_TIMEOUT_ENV);
+  } else {
+    process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = eeValidationSpawnSyncTimeoutSaved;
+  }
+  eeValidationSpawnSyncTimeoutSaved = null;
 }
 
 async function probeEeValidationSyntaxCheck(
@@ -96,11 +114,15 @@ async function probeEeValidationSyntaxCheck(
           );
         }),
       ]);
-      const diagnosticCount = Array.from(result.values()).flat().length;
-      if (diagnosticCount === 0) {
-        eeValidationSyntaxCheckReady = true;
-        return true;
+      if (
+        Array.from(result.values()).some(
+          (diagnostics) => diagnostics.length > 0,
+        )
+      ) {
+        throw new Error(EE_VALIDATION_PROBE_DIAGNOSTICS_MSG);
       }
+      eeValidationSyntaxCheckReady = true;
+      return true;
     } catch (err: unknown) {
       if (!isTransientEeValidationReadinessError(err)) {
         throw err;

@@ -36,15 +36,15 @@ repos:
         priority: 1
       - id: renovate-config-validator
         priority: 1
-        # Unpinned `npm exec --package=renovate` races npm: version metadata
-        # can appear before the tarball (GHA 404 on renovate-44.205.2.tgz).
-        # Retry covers that window without pinning a moving renovate tag.
+        # Retry only npm package fetch (404 right after a renovate release); validate once.
         entry: >
           bash -c 'for i in 1 2 3 4 5; do
-            npm -y exec --package=renovate -- renovate-config-validator --strict && exit 0;
-            echo "renovate-config-validator: npm fetch failed (attempt $i/5), retrying";
+            npm -y exec --package=renovate -- node -p "\"ok\"" >/dev/null 2>&1 && break;
+            echo "renovate npm package fetch failed (attempt $i/5), retrying";
+            if [ "$i" -eq 5 ]; then exit 1; fi;
             sleep $((i * 15));
-          done; exit 1'
+          done;
+          npm -y exec --package=renovate -- renovate-config-validator --strict'
   - repo: local
     hooks:
       - id: pnpm-install
