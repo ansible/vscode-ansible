@@ -43,7 +43,8 @@ function isEeInfrastructureDiagnostic(message: string): boolean {
   return (
     message.includes("Failed to initialize execution environment") ||
     /Process '.*' exited with code/.test(message) ||
-    message.includes("ETIMEDOUT")
+    message.includes("ETIMEDOUT") ||
+    message.includes("Cannot connect to the Docker daemon")
   );
 }
 
@@ -66,6 +67,9 @@ function isTransientEeValidationReadinessError(err: unknown): boolean {
     return true;
   }
   if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  if (msg.includes("Cannot connect to the Docker daemon")) {
     return true;
   }
   return false;
@@ -523,6 +527,22 @@ function testInvalidYamlFile(textDoc: TextDocument) {
     });
   });
 }
+
+describe("isEeInfrastructureDiagnostic()", function () {
+  it("treats Docker daemon connection failures as EE infrastructure", function () {
+    expect(
+      isEeInfrastructureDiagnostic(
+        "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?",
+      ),
+    ).toBe(true);
+  });
+
+  it("leaves ordinary syntax-check diagnostics outside the retry path", function () {
+    expect(
+      isEeInfrastructureDiagnostic("syntax-check failed: unexpected token"),
+    ).toBe(false);
+  });
+});
 
 describe("doValidate()", function () {
   const workspaceManager = createTestWorkspaceManager();

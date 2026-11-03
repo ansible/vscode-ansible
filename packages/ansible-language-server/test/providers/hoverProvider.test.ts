@@ -39,10 +39,30 @@ const EE_HOVER_PROBE_BUDGET_MS = 60_000;
 const EE_HOVER_PROBE_INTERVAL_MS = 3_000;
 const EE_HOVER_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 const EE_HOVER_PROBE_TIMEOUT_MSG = "EE probe: doHover exceeded attempt timeout";
+const EE_HOVER_PROBE_MISSING_HOVER_MSG =
+  "EE probe: doHover missing expected module hover";
+const EE_HOVER_PROBE_EXPECTED_DOC = "Print statements during execution";
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
 const EE_HOVER_SETUP_HOOK_TIMEOUT_MS = EE_HOVER_PROBE_BUDGET_MS + 10_000;
 /** `null` = not saved; restore in clearEeHoverSpawnSyncTimeout(). */
 let eeHoverSpawnSyncTimeoutSaved: string | undefined | null = null;
+
+function get_hover_value(hover: Hover | undefined | null): string {
+  if (hover) {
+    if (Array.isArray(hover)) {
+      return "";
+    } else {
+      if (Object.hasOwn(hover.contents as object, "value")) {
+        return (hover.contents as MarkupContent)["value"];
+      }
+    }
+  }
+  return "";
+}
+
+function isExpectedEeModuleHover(hover: Hover | undefined | null): boolean {
+  return get_hover_value(hover).includes(EE_HOVER_PROBE_EXPECTED_DOC);
+}
 
 function isTransientEeHoverReadinessError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
@@ -51,6 +71,9 @@ function isTransientEeHoverReadinessError(err: unknown): boolean {
       ? String((err as NodeJS.ErrnoException).code)
       : "";
   if (msg.includes(EE_HOVER_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (msg.includes(EE_HOVER_PROBE_MISSING_HOVER_MSG)) {
     return true;
   }
   if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
@@ -121,6 +144,10 @@ async function probeEeHoverDocs(
           );
         }),
       ]);
+      if (!isExpectedEeModuleHover(probed.hover)) {
+        context.clearCachedServices();
+        throw new Error(EE_HOVER_PROBE_MISSING_HOVER_MSG);
+      }
       eeHoverDocsLibrary = probed.docsLibrary;
       eeHoverProbeContext = context;
       eeHoverDocsReady = true;
@@ -212,18 +239,6 @@ async function resolveHoverDocs(
   }
 }
 
-function get_hover_value(hover: Hover | undefined | null): string {
-  if (hover) {
-    if (Array.isArray(hover)) {
-      return "";
-    } else {
-      if (Object.hasOwn(hover.contents as object, "value")) {
-        return (hover.contents as MarkupContent)["value"];
-      }
-    }
-  }
-  return "";
-}
 function testPlayKeywords(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
@@ -355,7 +370,7 @@ function testModuleNames(
     {
       word: "ansible.builtin.debug",
       position: { line: 4, character: 8 },
-      doc: "Print statements during execution",
+      doc: EE_HOVER_PROBE_EXPECTED_DOC,
     },
     {
       word: "ansible.builtin.debug -> msg",
@@ -845,6 +860,15 @@ describe("doHover()", function () {
   });
 
   describe("Edge cases with mocked DocsLibrary", function () {
+    it("does not treat a null probe hover as EE documentation ready", function () {
+      expect(isExpectedEeModuleHover(null)).toBe(false);
+      expect(
+        isExpectedEeModuleHover({
+          contents: { kind: "markdown", value: EE_HOVER_PROBE_EXPECTED_DOC },
+        }),
+      ).toBe(true);
+    });
+
     it("returns tombstone hover when module is removed", async function () {
       const doc = TextDocument.create(
         "file:///tmp/tombstone.yml",
