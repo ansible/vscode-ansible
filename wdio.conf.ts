@@ -45,9 +45,14 @@ export const config: WebdriverIO.Config = {
 
   logLevel: "warn",
   bail: 0,
-  // First spec can fail when VS Code/chromedriver is slow to accept connections (macOS CI).
+  // macOS CI: the first chromedriver session can fail with EADDRINUSE /
+  // ECONNREFUSED while another VS Code process is still starting. Retry that
+  // spec file once. specFileRetriesDelay is in seconds — WDIO sleeps
+  // delay * 1000 ms, and it also applies before the first attempt because
+  // the runner's retry counter starts at -1. A millisecond value (5000)
+  // blocks here for ~83 minutes and trips the 30-minute CI timeout.
   specFileRetries: 1,
-  specFileRetriesDelay: 5_000,
+  specFileRetriesDelay: 5,
   waitforTimeout: 10000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
