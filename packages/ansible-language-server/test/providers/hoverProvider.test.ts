@@ -121,17 +121,10 @@ async function probeEeHoverDocs(
           );
         }),
       ]);
-      if (
-        probed.hover &&
-        get_hover_value(probed.hover).includes(
-          "Print statements during execution",
-        )
-      ) {
-        eeHoverDocsLibrary = probed.docsLibrary;
-        eeHoverProbeContext = context;
-        eeHoverDocsReady = true;
-        return true;
-      }
+      eeHoverDocsLibrary = probed.docsLibrary;
+      eeHoverProbeContext = context;
+      eeHoverDocsReady = true;
+      return true;
     } catch (err: unknown) {
       if (!isTransientEeHoverReadinessError(err)) {
         throw err;

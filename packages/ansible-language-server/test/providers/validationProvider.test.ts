@@ -39,6 +39,14 @@ const EE_VALIDATION_SETUP_HOOK_TIMEOUT_MS =
 /** `null` = not saved; restore in clearEeValidationSpawnSyncTimeout(). */
 let eeValidationSpawnSyncTimeoutSaved: string | undefined | null = null;
 
+function isEeInfrastructureDiagnostic(message: string): boolean {
+  return (
+    message.includes("Failed to initialize execution environment") ||
+    /Process '.*' exited with code/.test(message) ||
+    message.includes("ETIMEDOUT")
+  );
+}
+
 function isTransientEeValidationReadinessError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   const code =
@@ -114,11 +122,8 @@ async function probeEeValidationSyntaxCheck(
           );
         }),
       ]);
-      if (
-        Array.from(result.values()).some(
-          (diagnostics) => diagnostics.length > 0,
-        )
-      ) {
+      const diagnostics = Array.from(result.values()).flat();
+      if (diagnostics.some((d) => isEeInfrastructureDiagnostic(d.message))) {
         throw new Error(EE_VALIDATION_PROBE_DIAGNOSTICS_MSG);
       }
       eeValidationSyntaxCheckReady = true;
