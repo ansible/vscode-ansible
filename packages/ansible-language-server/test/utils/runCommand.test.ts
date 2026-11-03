@@ -1,5 +1,6 @@
 import { CommandRunner } from "@src/utils/commandRunner.js";
-import { describe, expect, it, vi } from "vitest";
+import { asyncExec, asyncSpawn } from "@src/utils/misc.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AssertionError } from "assert";
 import { WorkspaceManager } from "@src/services/workspaceManager.js";
 import type { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
@@ -230,5 +231,35 @@ describe("commandRunner", function () {
       new Set(["/tmp/custom-mount", "/tmp/ansible.cfg"]),
       { ANSIBLE_CONFIG: "/tmp/ansible.cfg" },
     );
+  });
+
+  describe("command timeouts", function () {
+    const timeoutEnv = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+    let previousTimeout: string | undefined;
+
+    beforeEach(() => {
+      previousTimeout = process.env[timeoutEnv];
+      process.env[timeoutEnv] = "200";
+    });
+
+    afterEach(() => {
+      if (previousTimeout === undefined) {
+        Reflect.deleteProperty(process.env, timeoutEnv);
+      } else {
+        process.env[timeoutEnv] = previousTimeout;
+      }
+    });
+
+    it("kills asyncSpawn when the timeout expires", async () => {
+      await expect(asyncSpawn("sleep", ["5"])).rejects.toMatchObject({
+        code: "ETIMEDOUT",
+      });
+    });
+
+    it("kills asyncExec when the timeout expires", async () => {
+      await expect(asyncExec("sleep 5")).rejects.toMatchObject({
+        code: "ETIMEDOUT",
+      });
+    });
   });
 });

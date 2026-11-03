@@ -17,7 +17,44 @@ function isVenvDirectory(binDir: string): boolean {
   return existsSync(path.join(binDir, "activate"));
 }
 
-export const asyncExec = promisify(child_process.exec);
+const execAsync = promisify(child_process.exec);
+
+/**
+ * Honor explicit options.timeout, else ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS.
+ * Used by spawnSync, exec, and spawn so tests can kill hung EE commands.
+ */
+function resolveCommandTimeoutMs(optionsTimeout?: number): number | undefined {
+  if (optionsTimeout !== undefined && !Number.isNaN(optionsTimeout)) {
+    return optionsTimeout;
+  }
+  const envTimeout = process.env.ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS;
+  if (envTimeout === undefined || envTimeout === "") {
+    return undefined;
+  }
+  const envTimeoutMs = Number(envTimeout);
+  return Number.isNaN(envTimeoutMs) ? undefined : envTimeoutMs;
+}
+
+export async function asyncExec(
+  command: string,
+  options: child_process.ExecOptions = {},
+): Promise<{ stdout: string; stderr: string }> {
+  const timeout = resolveCommandTimeoutMs(
+    typeof options.timeout === "number" ? options.timeout : undefined,
+  );
+  try {
+    return await execAsync(command, {
+      ...options,
+      ...(timeout !== undefined ? { timeout } : {}),
+    });
+  } catch (err: unknown) {
+    const execError = err as NodeJS.ErrnoException & { killed?: boolean };
+    if (execError.killed === true) {
+      execError.code = "ETIMEDOUT";
+    }
+    throw execError;
+  }
+}
 
 // eslint-disable-next-line no-control-regex
 const SHELL_METACHARACTERS = /[\x00\n\r$`;&|(){}<>!']/;
@@ -71,16 +108,9 @@ export function spawnSyncWithResult(
   args: string[],
   options: child_process.SpawnSyncOptions = {},
 ): SpawnResult {
-  const envTimeout = process.env.ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS;
-  const envTimeoutMs =
-    envTimeout !== undefined && envTimeout !== ""
-      ? Number(envTimeout)
-      : undefined;
-  const timeout =
-    options.timeout ??
-    (envTimeoutMs !== undefined && !Number.isNaN(envTimeoutMs)
-      ? envTimeoutMs
-      : undefined);
+  const timeout = resolveCommandTimeoutMs(
+    typeof options.timeout === "number" ? options.timeout : undefined,
+  );
 
   const result = child_process.spawnSync(command, args, {
     encoding: "utf-8",
@@ -106,25 +136,51 @@ export function spawnSyncWithResult(
 export function asyncSpawn(
   command: string,
   args: string[],
-  options: SpawnOptions = {},
+  options: SpawnOptions & { timeout?: number } = {},
 ): Promise<SpawnResult> {
+  const { timeout: optionsTimeout, ...spawnOptions } = options;
+  const timeout = resolveCommandTimeoutMs(optionsTimeout);
   return new Promise((resolve, reject) => {
     const proc = child_process.spawn(command, args, {
-      ...options,
+      ...spawnOptions,
       shell: false,
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (timeoutTimer !== undefined) {
+        clearTimeout(timeoutTimer);
+      }
+      fn();
+    };
+    const timeoutTimer =
+      timeout === undefined
+        ? undefined
+        : setTimeout(() => {
+            proc.kill("SIGTERM");
+            const error = new Error(
+              `Process '${command}' timed out after ${timeout}ms`,
+            ) as NodeJS.ErrnoException & { stdout?: string; stderr?: string };
+            error.code = "ETIMEDOUT";
+            error.stdout = stdout;
+            error.stderr = stderr;
+            finish(() => reject(error));
+          }, timeout);
     proc.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
     });
     proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString();
     });
-    proc.on("error", reject);
+    proc.on("error", (err) => finish(() => reject(err)));
     proc.on("close", (code) => {
       if (code === 0) {
-        resolve({ stdout, stderr });
+        finish(() => resolve({ stdout, stderr }));
         return;
       }
       const message =
@@ -139,7 +195,7 @@ export function asyncSpawn(
       error.code = code ?? undefined;
       error.stdout = stdout;
       error.stderr = stderr;
-      reject(error);
+      finish(() => reject(error));
     });
   });
 }
