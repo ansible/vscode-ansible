@@ -168,7 +168,7 @@ async function resolveHoverDocs(
   context: WorkspaceFolderContext,
   test: TestContext,
   useCachedEeDocs: boolean,
-): Promise<DocsLibrary | undefined> {
+): Promise<DocsLibrary> {
   if (!useCachedEeDocs) {
     return context.docsLibrary;
   }
@@ -192,8 +192,8 @@ async function resolveHoverDocs(
       throw err;
     }
     console.warn("[hover-ee] docsLibrary init stalled — skipping hover test");
-    test.skip();
-    return undefined;
+    // EE docs indexing can exceed the test timeout on GHA runners.
+    test.skip("EE docs init exceeded the readiness budget");
   } finally {
     if (attemptTimer !== undefined) {
       clearTimeout(attemptTimer);
@@ -356,9 +356,6 @@ function testModuleNames(
   tests.forEach(({ word, position, doc }) => {
     it(`should provide hovering for '${word}'`, async (ctx: TestContext) => {
       const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-      if (!docsLibrary) {
-        return;
-      }
       const actualHover = await doHover(textDoc, position, docsLibrary);
       expect(get_hover_value(actualHover)).toContain(doc);
     });
@@ -370,43 +367,27 @@ function testNoHover(
   textDoc: TextDocument,
   useCachedEeDocs = false,
 ) {
-  it("should not provide hovering for values", async (ctx: TestContext) => {
-    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-    if (!docsLibrary) {
-      return;
-    }
-    const actualHover = await doHover(
-      textDoc,
-      { line: 13, character: 24 },
-      docsLibrary,
-    );
-    expect(actualHover).toBeNull();
-  });
+  const tests = [
+    {
+      word: "values",
+      position: { line: 13, character: 24 },
+    },
+    {
+      word: "improper module name and options",
+      position: { line: 13, character: 8 },
+    },
+    {
+      word: "improper module option",
+      position: { line: 14, character: 10 },
+    },
+  ];
 
-  it("should not provide hovering for improper module name and options", async (ctx: TestContext) => {
-    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-    if (!docsLibrary) {
-      return;
-    }
-    const actualHover = await doHover(
-      textDoc,
-      { line: 13, character: 8 },
-      docsLibrary,
-    );
-    expect(actualHover).toBeNull();
-  });
-
-  it("should not provide hovering for improper module option", async (ctx: TestContext) => {
-    const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-    if (!docsLibrary) {
-      return;
-    }
-    const actualHover = await doHover(
-      textDoc,
-      { line: 14, character: 10 },
-      docsLibrary,
-    );
-    expect(actualHover).toBeNull();
+  tests.forEach(({ word, position }) => {
+    it(`should not provide hovering for ${word}`, async (ctx: TestContext) => {
+      const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
+      const actualHover = await doHover(textDoc, position, docsLibrary);
+      expect(actualHover).toBeNull();
+    });
   });
 }
 
@@ -436,9 +417,6 @@ function testPlaybookAdjacentCollection(
   tests.forEach(({ word, position, doc }) => {
     it(`should provide hovering for '${word}'`, async (ctx: TestContext) => {
       const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-      if (!docsLibrary) {
-        return;
-      }
       const actualHover = await doHover(textDoc, position, docsLibrary);
       expect(get_hover_value(actualHover)).toContain(doc);
     });
@@ -466,9 +444,6 @@ function testNonPlaybookAdjacentCollection(
   tests.forEach(({ word, position, doc }) => {
     it(`should not provide hovering for '${word}'`, async (ctx: TestContext) => {
       const docsLibrary = await resolveHoverDocs(context, ctx, useCachedEeDocs);
-      if (!docsLibrary) {
-        return;
-      }
       const actualHover = await doHover(textDoc, position, docsLibrary);
 
       if (!doc) {
