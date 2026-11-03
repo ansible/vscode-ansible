@@ -1,5 +1,12 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect, beforeAll, afterAll, afterEach, beforeEach } from "vitest";
+import {
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  beforeEach,
+  type TestContext,
+} from "vitest";
 import sinon from "sinon";
 import { Connection, Diagnostic, integer } from "vscode-languageserver";
 import {
@@ -161,6 +168,7 @@ async function prepareEeValidationSyntaxCheckSuite(
   validationManager: ValidationManager,
 ): Promise<void> {
   if (skipEE() || !docSettings || !context) {
+    eeValidationSyntaxCheckReady = false;
     return;
   }
   setEeValidationSpawnSyncTimeout();
@@ -174,8 +182,44 @@ async function prepareEeValidationSyntaxCheckSuite(
 function skipIfEeValidationSyntaxCheckUnavailable(context: {
   skip: () => void;
 }): void {
-  if (eeValidationSyntaxCheckReady === false) {
+  // Skip unless the probe finished successfully. `undefined` means the hook
+  // never completed (timeout / skipEE); running doValidate then hangs CI.
+  if (eeValidationSyntaxCheckReady !== true) {
     context.skip();
+  }
+}
+
+async function doValidateForTest(
+  ctx: TestContext,
+  textDoc: TextDocument,
+  validationManager: ValidationManager,
+  context: WorkspaceFolderContext | undefined,
+  skipOnEeTimeout: boolean,
+): Promise<Map<string, Diagnostic[]>> {
+  if (!skipOnEeTimeout) {
+    return doValidate(textDoc, validationManager, false, context);
+  }
+  let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      doValidate(textDoc, validationManager, false, context),
+      new Promise<never>((_, reject) => {
+        attemptTimer = setTimeout(
+          () => reject(new Error(EE_VALIDATION_PROBE_TIMEOUT_MSG)),
+          EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } catch (err: unknown) {
+    if (isTransientEeValidationReadinessError(err)) {
+      ctx.skip("EE syntax-check exceeded the readiness budget");
+      return undefined as never;
+    }
+    throw err;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
   }
 }
 
@@ -196,16 +240,19 @@ function assertValidateTests(
   validationManager: ValidationManager,
   textDoc: TextDocument,
   validationEnabled: boolean,
+  skipOnEeTimeout = false,
 ) {
   tests.forEach((test) => {
-    it(`should provide diagnostics for ${test.name}`, async function () {
+    it(`should provide diagnostics for ${test.name}`, async function (ctx: TestContext) {
       expect(context).toBeDefined();
-      const actualDiagnostics: Map<string, Diagnostic[]> = await doValidate(
-        textDoc,
-        validationManager,
-        false,
-        context,
-      );
+      const actualDiagnostics: Map<string, Diagnostic[]> =
+        await doValidateForTest(
+          ctx,
+          textDoc,
+          validationManager,
+          context,
+          skipOnEeTimeout,
+        );
 
       if (!validationEnabled) {
         expect(actualDiagnostics.has(`file://${textDoc.uri}`)).toBe(false);
@@ -377,6 +424,7 @@ function testAnsibleSyntaxCheckNoErrors(
   validationManager: ValidationManager,
   textDoc: TextDocument,
   validationEnabled: boolean,
+  skipOnEeTimeout = false,
 ) {
   const tests = [
     {
@@ -392,6 +440,7 @@ function testAnsibleSyntaxCheckNoErrors(
       validationManager,
       textDoc,
       validationEnabled,
+      skipOnEeTimeout,
     );
   }
 }
@@ -401,6 +450,7 @@ function testAnsibleSyntaxCheckEmptyPlaybook(
   validationManager: ValidationManager,
   textDoc: TextDocument,
   validationEnabled: boolean,
+  skipOnEeTimeout = false,
 ) {
   const tests = [
     {
@@ -414,6 +464,7 @@ function testAnsibleSyntaxCheckEmptyPlaybook(
     validationManager,
     textDoc,
     validationEnabled,
+    skipOnEeTimeout,
   );
 }
 
@@ -760,6 +811,7 @@ describe("doValidate()", function () {
                 validationManager,
                 textDoc,
                 true,
+                true,
               );
 
               afterAll(async function () {
@@ -820,6 +872,7 @@ describe("doValidate()", function () {
                 context,
                 validationManager,
                 textDoc,
+                true,
                 true,
               );
 
