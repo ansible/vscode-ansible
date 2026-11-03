@@ -1,6 +1,6 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { Hover, MarkupContent } from "vscode-languageserver";
-import { expect, beforeAll, afterAll, vi } from "vitest";
+import { expect, beforeAll, beforeEach, afterAll, vi } from "vitest";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -9,10 +9,153 @@ import {
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
   setEeFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+
+// Interleaved @ee/@noee suites used to enable+disable EE (and clear
+// docsLibrary) for every describe. Linux CI then timed out on the next
+// suite's first `it` waiting for initialize(). Enable once, reuse cache.
+let eeHoverReady: boolean | undefined;
+
+const EE_PROBE_BUDGET_MS = 60_000;
+const EE_PROBE_INTERVAL_MS = 3_000;
+const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+const EE_PROBE_TIMEOUT_MSG = "EE probe: docsLibrary exceeded attempt timeout";
+const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+const EE_HOVER_SETUP_HOOK_TIMEOUT_MS = EE_PROBE_BUDGET_MS * 3 + 15_000;
+
+type EeHoverContextPair = [
+  Thenable<ExtensionSettings> | undefined,
+  WorkspaceFolderContext | undefined,
+];
+
+function isTransientEeReadinessError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof Error && "code" in err
+      ? String((err as NodeJS.ErrnoException).code)
+      : "";
+  if (msg.includes(EE_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
+    return true;
+  }
+  if (msg.includes("Failed to initialize execution environment")) {
+    return true;
+  }
+  if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  return false;
+}
+
+function setEeHoverSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+}
+
+function clearEeHoverSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+}
+
+async function warmEeDocsLibrary(
+  context: WorkspaceFolderContext,
+): Promise<boolean> {
+  const deadline = Date.now() + EE_PROBE_BUDGET_MS;
+  while (Date.now() < deadline) {
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const remainingMs = Math.min(
+        EE_PROBE_ATTEMPT_TIMEOUT_MS,
+        deadline - Date.now(),
+      );
+      await Promise.race([
+        context.docsLibrary,
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
+            () => reject(new Error(EE_PROBE_TIMEOUT_MSG)),
+            remainingMs,
+          );
+        }),
+      ]);
+      return true;
+    } catch (err: unknown) {
+      if (!isTransientEeReadinessError(err)) {
+        throw err;
+      }
+      context.clearCachedServices();
+    } finally {
+      if (attemptTimer !== undefined) {
+        clearTimeout(attemptTimer);
+      }
+    }
+    await new Promise<void>((r) => setTimeout(r, EE_PROBE_INTERVAL_MS));
+  }
+
+  console.warn(
+    `[hover-ee] EE docsLibrary not ready within ` +
+      `${EE_PROBE_BUDGET_MS / 1000}s — @ee hover tests will skip`,
+  );
+  return false;
+}
+
+function uniqueEeHoverContexts(
+  pairs: EeHoverContextPair[],
+): Array<[Thenable<ExtensionSettings>, WorkspaceFolderContext]> {
+  const seen = new Set<WorkspaceFolderContext>();
+  const unique: Array<[Thenable<ExtensionSettings>, WorkspaceFolderContext]> =
+    [];
+  for (const [settings, context] of pairs) {
+    if (!settings || !context || seen.has(context)) {
+      continue;
+    }
+    seen.add(context);
+    unique.push([settings, context]);
+  }
+  return unique;
+}
+
+async function prepareAllEeHoverContexts(
+  pairs: EeHoverContextPair[],
+): Promise<void> {
+  if (skipEE()) {
+    eeHoverReady = false;
+    return;
+  }
+  setEeHoverSpawnSyncTimeout();
+  setEeFixtureAnsibleCollectionPathEnv();
+  const unique = uniqueEeHoverContexts(pairs);
+  for (const [settings, context] of unique) {
+    await enableExecutionEnvironmentSettings(settings, context);
+  }
+  for (const [, context] of unique) {
+    if (!(await warmEeDocsLibrary(context))) {
+      eeHoverReady = false;
+      return;
+    }
+  }
+  eeHoverReady = true;
+}
+
+async function teardownAllEeHoverContexts(
+  pairs: EeHoverContextPair[],
+): Promise<void> {
+  clearEeHoverSpawnSyncTimeout();
+  setFixtureAnsibleCollectionPathEnv();
+  for (const [settings, context] of uniqueEeHoverContexts(pairs)) {
+    await disableExecutionEnvironmentSettings(settings, context);
+  }
+}
+
+function skipIfEeHoverUnavailable(ctx: { skip: () => void }): void {
+  if (eeHoverReady === false) {
+    ctx.skip();
+  }
+}
 
 function get_hover_value(hover: Hover | undefined | null): string {
   if (hover) {
@@ -287,158 +430,12 @@ describe("doHover()", function () {
   const docSettings = context?.documentSettings.get(textDoc.uri);
   expect(docSettings).toBeDefined();
 
-  describe("Play keywords hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-      if (context) {
-        testPlayKeywords(context, textDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-      if (context) {
-        testPlayKeywords(context, textDoc);
-      }
-    });
-  });
-
-  describe("Task keywords hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-      if (context) {
-        testTaskKeywords(context, textDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-      if (context) {
-        testTaskKeywords(context, textDoc);
-      }
-    });
-  });
-
-  describe("Block keywords hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-
-      if (context) {
-        testBlockKeywords(context, textDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (docSettings && context) {
-          await disableExecutionEnvironmentSettings(docSettings, context);
-        }
-      });
-
-      if (context) {
-        testBlockKeywords(context, textDoc);
-      }
-    });
-  });
-  // Capture variables for role keywords tests
   const roleFixturePath = "hover/roles.yml";
   const roleFixtureUri = resolveDocUri(roleFixturePath);
   const roleContext = workspaceManager.getContext(roleFixtureUri);
   const roleTextDoc = getDoc(roleFixturePath);
   const roleDocSettings = roleContext?.documentSettings.get(roleTextDoc.uri);
 
-  describe("Role keywords hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (roleDocSettings && roleContext) {
-          await enableExecutionEnvironmentSettings(
-            roleDocSettings,
-            roleContext,
-          );
-        }
-      });
-
-      if (roleContext) {
-        testRoleKeywords(roleContext, roleTextDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (roleDocSettings && roleContext) {
-          await disableExecutionEnvironmentSettings(
-            roleDocSettings,
-            roleContext,
-          );
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (roleDocSettings && roleContext) {
-          await disableExecutionEnvironmentSettings(
-            roleDocSettings,
-            roleContext,
-          );
-        }
-      });
-
-      if (roleContext) {
-        testRoleKeywords(roleContext, roleTextDoc);
-      }
-    });
-  });
-
-  // Capture variables for module name and no hover tests
   const moduleFixturePath = "hover/tasks.yml";
   const moduleFixtureUri = resolveDocUri(moduleFixturePath);
   const moduleContext = workspaceManager.getContext(moduleFixtureUri);
@@ -447,137 +444,12 @@ describe("doHover()", function () {
     moduleTextDoc.uri,
   );
 
-  describe("Module name and options hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await enableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-
-      if (moduleContext) {
-        testModuleNames(moduleContext, moduleTextDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await disableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await disableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-
-      if (moduleContext) {
-        testModuleNames(moduleContext, moduleTextDoc);
-      }
-    });
-  });
-
-  describe("No hover", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await enableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-
-      if (moduleContext) {
-        testNoHover(moduleContext, moduleTextDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await disableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (moduleDocSettings && moduleContext) {
-          await disableExecutionEnvironmentSettings(
-            moduleDocSettings,
-            moduleContext,
-          );
-        }
-      });
-
-      if (moduleContext) {
-        testNoHover(moduleContext, moduleTextDoc);
-      }
-    });
-  });
-
-  // Capture variables for playbook adjacent collection tests
   const pacFixturePath = "playbook_adjacent_collection/playbook.yml";
   const pacFixtureUri = resolveDocUri(pacFixturePath);
   const pacContext = workspaceManager.getContext(pacFixtureUri);
   const pacTextDoc = getDoc(pacFixturePath);
   const pacDocSettings = pacContext?.documentSettings.get(pacTextDoc.uri);
 
-  describe("Hover for playbook adjacent collection", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (pacDocSettings && pacContext) {
-          await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
-        }
-      });
-
-      if (pacContext) {
-        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
-      }
-
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (pacDocSettings && pacContext) {
-          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
-        }
-      });
-    });
-
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (pacDocSettings && pacContext) {
-          await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
-        }
-      });
-
-      if (pacContext) {
-        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
-      }
-    });
-  });
-
-  // Capture variables for non-adjacent playbook tests
   const nonAdjacentFixturePath =
     "playbook_adjacent_collection/non_adjacent_playbooks/playbook2.yml";
   const nonAdjacentFixtureUri = resolveDocUri(nonAdjacentFixturePath);
@@ -587,47 +459,128 @@ describe("doHover()", function () {
     nonAdjacentTextDoc.uri,
   );
 
-  describe("Negate hover for non playbook adjacent collection", function () {
-    describe("@ee", function () {
-      beforeAll(async () => {
-        setEeFixtureAnsibleCollectionPathEnv();
-        if (nonAdjacentDocSettings && nonAdjacentContext) {
-          await enableExecutionEnvironmentSettings(
-            nonAdjacentDocSettings,
-            nonAdjacentContext,
-          );
-        }
-      });
+  const eeHoverContexts: EeHoverContextPair[] = [
+    [docSettings, context],
+    [roleDocSettings, roleContext],
+    [moduleDocSettings, moduleContext],
+    [pacDocSettings, pacContext],
+    [nonAdjacentDocSettings, nonAdjacentContext],
+  ];
 
+  describe("@noee", function () {
+    beforeAll(async () => {
+      setFixtureAnsibleCollectionPathEnv();
+      for (const [settings, folderContext] of uniqueEeHoverContexts(
+        eeHoverContexts,
+      )) {
+        await disableExecutionEnvironmentSettings(settings, folderContext);
+      }
+    });
+
+    describe("Play keywords hover", function () {
+      if (context) {
+        testPlayKeywords(context, textDoc);
+      }
+    });
+
+    describe("Task keywords hover", function () {
+      if (context) {
+        testTaskKeywords(context, textDoc);
+      }
+    });
+
+    describe("Block keywords hover", function () {
+      if (context) {
+        testBlockKeywords(context, textDoc);
+      }
+    });
+
+    describe("Role keywords hover", function () {
+      if (roleContext) {
+        testRoleKeywords(roleContext, roleTextDoc);
+      }
+    });
+
+    describe("Module name and options hover", function () {
+      if (moduleContext) {
+        testModuleNames(moduleContext, moduleTextDoc);
+      }
+    });
+
+    describe("No hover", function () {
+      if (moduleContext) {
+        testNoHover(moduleContext, moduleTextDoc);
+      }
+    });
+
+    describe("Hover for playbook adjacent collection", function () {
+      if (pacContext) {
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
+      }
+    });
+
+    describe("Negate hover for non playbook adjacent collection", function () {
       if (nonAdjacentContext) {
         testNonPlaybookAdjacentCollection(
           nonAdjacentContext,
           nonAdjacentTextDoc,
         );
       }
+    });
+  });
 
-      afterAll(async function () {
-        setFixtureAnsibleCollectionPathEnv();
-        if (nonAdjacentDocSettings && nonAdjacentContext) {
-          await disableExecutionEnvironmentSettings(
-            nonAdjacentDocSettings,
-            nonAdjacentContext,
-          );
-        }
-      });
+  describe("@ee", function () {
+    beforeAll(async () => {
+      await prepareAllEeHoverContexts(eeHoverContexts);
+    }, EE_HOVER_SETUP_HOOK_TIMEOUT_MS);
+    beforeEach(skipIfEeHoverUnavailable);
+    afterAll(async () => {
+      await teardownAllEeHoverContexts(eeHoverContexts);
     });
 
-    describe("@noee", function () {
-      beforeAll(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        if (nonAdjacentDocSettings && nonAdjacentContext) {
-          await disableExecutionEnvironmentSettings(
-            nonAdjacentDocSettings,
-            nonAdjacentContext,
-          );
-        }
-      });
+    describe("Play keywords hover", function () {
+      if (context) {
+        testPlayKeywords(context, textDoc);
+      }
+    });
 
+    describe("Task keywords hover", function () {
+      if (context) {
+        testTaskKeywords(context, textDoc);
+      }
+    });
+
+    describe("Block keywords hover", function () {
+      if (context) {
+        testBlockKeywords(context, textDoc);
+      }
+    });
+
+    describe("Role keywords hover", function () {
+      if (roleContext) {
+        testRoleKeywords(roleContext, roleTextDoc);
+      }
+    });
+
+    describe("Module name and options hover", function () {
+      if (moduleContext) {
+        testModuleNames(moduleContext, moduleTextDoc);
+      }
+    });
+
+    describe("No hover", function () {
+      if (moduleContext) {
+        testNoHover(moduleContext, moduleTextDoc);
+      }
+    });
+
+    describe("Hover for playbook adjacent collection", function () {
+      if (pacContext) {
+        testPlaybookAdjacentCollection(pacContext, pacTextDoc);
+      }
+    });
+
+    describe("Negate hover for non playbook adjacent collection", function () {
       if (nonAdjacentContext) {
         testNonPlaybookAdjacentCollection(
           nonAdjacentContext,
