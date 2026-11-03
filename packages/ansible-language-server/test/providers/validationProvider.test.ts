@@ -87,7 +87,7 @@ async function probeEeValidationSyntaxCheck(
         EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS,
         deadline - Date.now(),
       );
-      await Promise.race([
+      const result = await Promise.race([
         doValidate(textDoc, validationManager, false, context),
         new Promise<never>((_, reject) => {
           attemptTimer = setTimeout(
@@ -96,8 +96,11 @@ async function probeEeValidationSyntaxCheck(
           );
         }),
       ]);
-      eeValidationSyntaxCheckReady = true;
-      return true;
+      const diagnosticCount = Array.from(result.values()).flat().length;
+      if (diagnosticCount === 0) {
+        eeValidationSyntaxCheckReady = true;
+        return true;
+      }
     } catch (err: unknown) {
       if (!isTransientEeValidationReadinessError(err)) {
         throw err;

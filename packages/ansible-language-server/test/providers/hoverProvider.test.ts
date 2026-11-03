@@ -194,6 +194,7 @@ async function resolveHoverDocs(
     console.warn("[hover-ee] docsLibrary init stalled — skipping hover test");
     // EE docs indexing can exceed the test timeout on GHA runners.
     test.skip("EE docs init exceeded the readiness budget");
+    return undefined as never;
   } finally {
     if (attemptTimer !== undefined) {
       clearTimeout(attemptTimer);
