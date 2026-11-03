@@ -45,6 +45,9 @@ export const config: WebdriverIO.Config = {
 
   logLevel: "warn",
   bail: 0,
+  // First spec can fail when VS Code/chromedriver is slow to accept connections (macOS CI).
+  specFileRetries: 1,
+  specFileRetriesDelay: 5_000,
   waitforTimeout: 10000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,

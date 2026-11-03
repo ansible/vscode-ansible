@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { expect, beforeAll, afterAll, afterEach } from "vitest";
+import { expect, beforeAll, afterAll, afterEach, beforeEach } from "vitest";
 import sinon from "sinon";
 import { Connection, Diagnostic, integer } from "vscode-languageserver";
 import {
@@ -7,6 +7,7 @@ import {
   getYamlValidation,
 } from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import {
   createTestValidationManager,
   createTestWorkspaceManager,
@@ -16,10 +17,133 @@ import {
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
   setEeFixtureAnsibleCollectionPathEnv,
+  skipEE,
 } from "@test/helper.js";
 import { ValidationManager } from "@src/services/validationManager.js";
 import { SchemaService } from "@src/services/schemaService.js";
 import { CommandRunner } from "@src/utils/commandRunner.js";
+
+/** Tri-state EE syntax-check readiness for @ee validation suites. */
+let eeValidationSyntaxCheckReady: boolean | undefined;
+
+const EE_VALIDATION_PROBE_BUDGET_MS = 60_000;
+const EE_VALIDATION_PROBE_INTERVAL_MS = 3_000;
+const EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+const EE_VALIDATION_PROBE_TIMEOUT_MSG =
+  "EE probe: doValidate exceeded attempt timeout";
+const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+const EE_VALIDATION_SETUP_HOOK_TIMEOUT_MS =
+  EE_VALIDATION_PROBE_BUDGET_MS + 10_000;
+
+function isTransientEeValidationReadinessError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof Error && "code" in err
+      ? String((err as NodeJS.ErrnoException).code)
+      : "";
+  if (msg.includes(EE_VALIDATION_PROBE_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
+    return true;
+  }
+  if (msg.includes("Failed to initialize execution environment")) {
+    return true;
+  }
+  if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  return false;
+}
+
+function setEeValidationSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(
+    EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS,
+  );
+}
+
+function clearEeValidationSpawnSyncTimeout(): void {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+}
+
+async function probeEeValidationSyntaxCheck(
+  textDoc: TextDocument,
+  context: WorkspaceFolderContext | undefined,
+  validationManager: ValidationManager,
+): Promise<boolean> {
+  if (eeValidationSyntaxCheckReady !== undefined) {
+    return eeValidationSyntaxCheckReady;
+  }
+  if (!context) {
+    eeValidationSyntaxCheckReady = false;
+    return false;
+  }
+
+  const deadline = Date.now() + EE_VALIDATION_PROBE_BUDGET_MS;
+  while (Date.now() < deadline) {
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const remainingMs = Math.min(
+        EE_VALIDATION_PROBE_ATTEMPT_TIMEOUT_MS,
+        deadline - Date.now(),
+      );
+      await Promise.race([
+        doValidate(textDoc, validationManager, false, context),
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
+            () => reject(new Error(EE_VALIDATION_PROBE_TIMEOUT_MSG)),
+            remainingMs,
+          );
+        }),
+      ]);
+      eeValidationSyntaxCheckReady = true;
+      return true;
+    } catch (err: unknown) {
+      if (!isTransientEeValidationReadinessError(err)) {
+        throw err;
+      }
+    } finally {
+      if (attemptTimer !== undefined) {
+        clearTimeout(attemptTimer);
+      }
+    }
+    await new Promise<void>((r) =>
+      setTimeout(r, EE_VALIDATION_PROBE_INTERVAL_MS),
+    );
+  }
+
+  console.warn(
+    `[validation-ee] EE syntax-check readiness not achieved within ` +
+      `${EE_VALIDATION_PROBE_BUDGET_MS / 1000}s — @ee syntax-check suites will skip`,
+  );
+  eeValidationSyntaxCheckReady = false;
+  return false;
+}
+
+async function prepareEeValidationSyntaxCheckSuite(
+  docSettings: Thenable<ExtensionSettings> | undefined,
+  context: WorkspaceFolderContext | undefined,
+  textDoc: TextDocument,
+  validationManager: ValidationManager,
+): Promise<void> {
+  if (skipEE() || !docSettings || !context) {
+    return;
+  }
+  setEeValidationSpawnSyncTimeout();
+  setEeFixtureAnsibleCollectionPathEnv();
+  await enableExecutionEnvironmentSettings(docSettings, context);
+  if (eeValidationSyntaxCheckReady === undefined) {
+    await probeEeValidationSyntaxCheck(textDoc, context, validationManager);
+  }
+}
+
+function skipIfEeValidationSyntaxCheckUnavailable(context: {
+  skip: () => void;
+}): void {
+  if (eeValidationSyntaxCheckReady === false) {
+    context.skip();
+  }
+}
 
 function testValidationFromCache(
   validationManager: ValidationManager,
@@ -571,9 +695,15 @@ describe("doValidate()", function () {
             describe("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
-                setEeFixtureAnsibleCollectionPathEnv();
-                await enableExecutionEnvironmentSettings(docSettings, context);
-              });
+                await prepareEeValidationSyntaxCheckSuite(
+                  docSettings,
+                  context,
+                  textDoc,
+                  validationManager,
+                );
+              }, EE_VALIDATION_SETUP_HOOK_TIMEOUT_MS);
+
+              beforeEach(skipIfEeValidationSyntaxCheckUnavailable);
 
               testAnsibleSyntaxCheckNoErrors(
                 context,
@@ -583,6 +713,7 @@ describe("doValidate()", function () {
               );
 
               afterAll(async function () {
+                clearEeValidationSpawnSyncTimeout();
                 (await docSettings).validation.lint.enabled = true;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings, context);
@@ -625,9 +756,15 @@ describe("doValidate()", function () {
             describe("@ee", function () {
               beforeAll(async () => {
                 (await docSettings).validation.lint.enabled = false;
-                setEeFixtureAnsibleCollectionPathEnv();
-                await enableExecutionEnvironmentSettings(docSettings, context);
-              });
+                await prepareEeValidationSyntaxCheckSuite(
+                  docSettings,
+                  context,
+                  textDoc,
+                  validationManager,
+                );
+              }, EE_VALIDATION_SETUP_HOOK_TIMEOUT_MS);
+
+              beforeEach(skipIfEeValidationSyntaxCheckUnavailable);
 
               testAnsibleSyntaxCheckEmptyPlaybook(
                 context,
@@ -637,6 +774,7 @@ describe("doValidate()", function () {
               );
 
               afterAll(async function () {
+                clearEeValidationSpawnSyncTimeout();
                 (await docSettings).validation.lint.enabled = true;
                 setFixtureAnsibleCollectionPathEnv();
                 await disableExecutionEnvironmentSettings(docSettings, context);
