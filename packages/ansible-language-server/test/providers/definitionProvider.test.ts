@@ -545,7 +545,12 @@ describe("getDefinition()", function () {
     });
 
     describe("path safety", function () {
-      const defAt = async (text: string, reference: string, offset = 0) => {
+      const defAt = async (
+        text: string,
+        reference: string,
+        offset = 0,
+        onUnresolvedReference?: (reference: string) => void,
+      ) => {
         const doc = TextDocument.create(
           URI.file(resolveDocUri(playbook)).toString(),
           "ansible",
@@ -556,6 +561,8 @@ describe("getDefinition()", function () {
           doc,
           doc.positionAt(text.indexOf(reference) + offset),
           docsLibrary,
+          [],
+          onUnresolvedReference,
         );
       };
 
@@ -631,7 +638,6 @@ describe("getDefinition()", function () {
     - ansible.builtin.include_vars:
         dir: .
 `;
-        // cursor on the "." value, not the key
         const result = await defAt(text, "dir: .", 5);
         expect(result).toHaveLength(1);
         expect(fsPathOf(result)).toBe(

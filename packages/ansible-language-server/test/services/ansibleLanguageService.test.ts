@@ -239,9 +239,7 @@ describe("AnsibleLanguageService", () => {
       service.initialize();
       const handler = (
         mockConnection as unknown as { onDefinition: sinon.SinonStub }
-      ).onDefinition.firstCall.args[0] as (
-        params: unknown,
-      ) => Promise<unknown>;
+      ).onDefinition.firstCall.args[0] as (params: unknown) => Promise<unknown>;
       return { service, handler };
     }
 
