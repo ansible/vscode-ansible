@@ -282,6 +282,23 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.volumeMounts", []);
 }
 
+/** ALS debounces configuration invalidation by 500ms in WorkspaceFolderContext. */
+const ALS_CONFIG_SETTLE_MS = 1500;
+
+/**
+ * Restore local (non-EE) ansible-lint validation after EE e2e suites.
+ * Linux CI runs hover-ee with podman; without an explicit reset, later lint
+ * diagnostics tests can see zero ansible-lint results.
+ */
+export async function ensureLocalAnsibleLintValidation(): Promise<void> {
+  await disableExecutionEnvironmentSettings();
+  await updateSettings("validation.enabled", true);
+  await updateSettings("validation.lint.enabled", true);
+  clearActivationCache();
+  deleteAlsCache();
+  await sleep(ALS_CONFIG_SETTLE_MS);
+}
+
 /**
  * Wait for diagnostics to appear from a specific source.
  * This is more reliable than process detection, especially on WSL where
