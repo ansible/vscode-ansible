@@ -23,8 +23,11 @@ import { ValidationManager } from "@src/services/validationManager.js";
 import { SchemaService } from "@src/services/schemaService.js";
 import { CommandRunner } from "@src/utils/commandRunner.js";
 
-/** Tri-state: `undefined` = not probed, `true` = ready, `false` = skip @ee validation. */
+/** Tri-state: `undefined` = not probed, `true` = ready, `false` = skip @ee lint path. */
 let eeValidationReady: boolean | undefined;
+
+/** Separate probe for ansible-playbook --syntax-check (lint disabled). */
+let eeSyntaxCheckValidationReady: boolean | undefined;
 
 const EE_PROBE_BUDGET_MS = 60_000;
 const EE_PROBE_INTERVAL_MS = 3_000;
@@ -110,6 +113,58 @@ async function probeEeValidation(
   return false;
 }
 
+async function probeEeSyntaxCheckValidation(
+  textDoc: TextDocument,
+  validationManager: ValidationManager,
+  context: WorkspaceFolderContext,
+  docSettings: Thenable<ExtensionSettings>,
+): Promise<boolean> {
+  if (eeSyntaxCheckValidationReady !== undefined) {
+    return eeSyntaxCheckValidationReady;
+  }
+
+  const deadline = Date.now() + EE_PROBE_BUDGET_MS;
+  while (Date.now() < deadline) {
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const settings = await docSettings;
+      settings.validation.lint.enabled = false;
+
+      const remainingMs = Math.min(
+        EE_PROBE_ATTEMPT_TIMEOUT_MS,
+        deadline - Date.now(),
+      );
+      await Promise.race([
+        doValidate(textDoc, validationManager, false, context),
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
+            () => reject(new Error(EE_PROBE_TIMEOUT_MSG)),
+            remainingMs,
+          );
+        }),
+      ]);
+      eeSyntaxCheckValidationReady = true;
+      return true;
+    } catch (err: unknown) {
+      if (!isTransientEeReadinessError(err)) {
+        throw err;
+      }
+    } finally {
+      if (attemptTimer !== undefined) {
+        clearTimeout(attemptTimer);
+      }
+    }
+    await new Promise<void>((r) => setTimeout(r, EE_PROBE_INTERVAL_MS));
+  }
+
+  console.warn(
+    `[validation-ee] EE syntax-check validation not ready within ` +
+      `${EE_PROBE_BUDGET_MS / 1000}s — @ee syntax-check suites will skip`,
+  );
+  eeSyntaxCheckValidationReady = false;
+  return false;
+}
+
 async function prepareEeValidationSuite(
   docSettings: Thenable<ExtensionSettings>,
   context: WorkspaceFolderContext | undefined,
@@ -134,6 +189,38 @@ async function prepareEeValidationSuite(
 function skipIfEeValidationUnavailable(ctx: { skip: () => void }): void {
   if (skipEE() || eeValidationReady === false) {
     ctx.skip();
+  }
+}
+
+function skipIfEeSyntaxCheckUnavailable(ctx: { skip: () => void }): void {
+  if (skipEE() || eeSyntaxCheckValidationReady === false) {
+    ctx.skip();
+  }
+}
+
+async function prepareEeSyntaxCheckValidationSuite(
+  docSettings: Thenable<ExtensionSettings>,
+  context: WorkspaceFolderContext | undefined,
+  textDoc: TextDocument,
+  validationManager: ValidationManager,
+  configureSettings?: () => Promise<void>,
+): Promise<void> {
+  if (skipEE()) {
+    return;
+  }
+  setEeValidationSpawnSyncTimeout();
+  setEeFixtureAnsibleCollectionPathEnv();
+  if (configureSettings) {
+    await configureSettings();
+  }
+  await enableExecutionEnvironmentSettings(docSettings, context);
+  if (eeSyntaxCheckValidationReady === undefined && context) {
+    await probeEeSyntaxCheckValidation(
+      textDoc,
+      validationManager,
+      context,
+      docSettings,
+    );
   }
 }
 
@@ -691,9 +778,9 @@ describe("doValidate()", function () {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              beforeEach(skipIfEeValidationUnavailable);
+              beforeEach(skipIfEeSyntaxCheckUnavailable);
               beforeAll(async function () {
-                await prepareEeValidationSuite(
+                await prepareEeSyntaxCheckValidationSuite(
                   docSettings,
                   context,
                   textDoc,
@@ -753,9 +840,9 @@ describe("doValidate()", function () {
             docSettings = context.documentSettings.get(textDoc.uri);
 
             describe("@ee", function () {
-              beforeEach(skipIfEeValidationUnavailable);
+              beforeEach(skipIfEeSyntaxCheckUnavailable);
               beforeAll(async function () {
-                await prepareEeValidationSuite(
+                await prepareEeSyntaxCheckValidationSuite(
                   docSettings,
                   context,
                   textDoc,
