@@ -60,9 +60,7 @@ overrides:
   "source-map-js": ">=1.2.2"
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
-  "undici@6": "<9.0.0"
-  # jsdom@29 imports undici 7 internals removed in undici 8; cap ^7 deps at 7.x
-  "undici@7": "<9.0.0"
+  # Dependabot: pin all undici consumers to 8.12.3 (jsdom@30 uses undici 8.x).
   "undici@8": "8.12.3"
   "undici": "8.12.3"
   "@electron/get>undici": "8.12.3"

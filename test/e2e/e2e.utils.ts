@@ -292,6 +292,7 @@ const ALS_CONFIG_SETTLE_MS = 1500;
  */
 export async function ensureLocalAnsibleLintValidation(): Promise<void> {
   await disableExecutionEnvironmentSettings();
+  await updateSettings("trace.server", "off", "ansibleServer");
   await updateSettings("validation.enabled", true);
   await updateSettings("validation.lint.enabled", true);
   clearActivationCache();

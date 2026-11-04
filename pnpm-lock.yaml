@@ -199,8 +199,6 @@ overrides:
   source-map-js: '>=1.2.2'
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
-  undici@6: <9.0.0
-  undici@7: <9.0.0
   undici@8: 8.12.3
   undici: 8.12.3
   '@electron/get>undici': 8.12.3
