@@ -1502,6 +1502,12 @@ describe("doCompletion()", function () {
             nonAdjacentDocSettings,
             nonAdjacentContext,
           );
+          if (simpleTasksDocSettings && simpleTasksContext) {
+            await disableExecutionEnvironmentSettings(
+              simpleTasksDocSettings,
+              simpleTasksContext,
+            );
+          }
         });
       });
 
@@ -1523,6 +1529,17 @@ describe("doCompletion()", function () {
   }
 
   describe("Schema, aliases, and edge-case completions", function () {
+    beforeAll(async function () {
+      clearEeModuleCompletionSpawnSyncTimeout();
+      setFixtureAnsibleCollectionPathEnv();
+      if (simpleTasksContext && simpleTasksDocSettings) {
+        await disableExecutionEnvironmentSettings(
+          simpleTasksDocSettings,
+          simpleTasksContext,
+        );
+      }
+    });
+
     afterEach(function () {
       sinon.restore();
     });
