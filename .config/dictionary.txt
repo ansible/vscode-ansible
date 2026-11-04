@@ -73,6 +73,7 @@ hostsvars
 inetpub
 issuetracker
 jsdom
+katex
 keytar
 knip
 lcovonly
