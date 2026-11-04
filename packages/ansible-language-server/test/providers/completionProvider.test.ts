@@ -171,9 +171,32 @@ async function probeEeModuleCompletion(
 
 /** beforeEach guard: skip the test when EE module completion is unavailable. */
 function skipIfEeModulesUnavailable(context: { skip: () => void }): void {
-  if (eeModuleCompletionReady === false) {
+  if (skipEE() || eeModuleCompletionReady !== true) {
     context.skip();
   }
+}
+
+/**
+ * Run the shared EE module probe on `simple_tasks.yml`, then enable EE for
+ * the suite under test (may use a different workspace document).
+ */
+async function prepareEeCompletionSuiteForSettings(
+  suiteDocSettings: Thenable<ExtensionSettings>,
+  suiteContext: WorkspaceFolderContext | undefined,
+  probeTextDoc: TextDocument,
+  probeContext: WorkspaceFolderContext | undefined,
+  probeDocSettings: Thenable<ExtensionSettings>,
+): Promise<void> {
+  await prepareEeModuleCompletionSuite(
+    probeTextDoc,
+    probeContext,
+    probeDocSettings,
+  );
+  if (skipEE() || eeModuleCompletionReady !== true) {
+    return;
+  }
+  setEeFixtureAnsibleCollectionPathEnv();
+  await enableExecutionEnvironmentSettings(suiteDocSettings, suiteContext);
 }
 
 function testPlayKeywords(
@@ -872,7 +895,7 @@ function testModuleKindAndDocumentation(
           }
           // Skip if EE tests should be skipped (no container runtime, or
           // the dynamic readiness probe determined EE is unavailable).
-          if (isEE && (skipEE() || eeModuleCompletionReady === false)) {
+          if (isEE && (skipEE() || eeModuleCompletionReady !== true)) {
             return;
           }
           const completion = await doCompletion(textDoc, position, context);
@@ -906,25 +929,38 @@ function testModuleKindAndDocumentation(
 
 describe("doCompletion()", function () {
   const workspaceManager = createTestWorkspaceManager();
-  const fixtureFilePath = "completion/simple_tasks.yml";
-  const fixtureFileUri = resolveDocUri(fixtureFilePath);
-  const context = workspaceManager.getContext(fixtureFileUri);
+  const simpleTasksFixturePath = "completion/simple_tasks.yml";
+  const simpleTasksFixtureUri = resolveDocUri(simpleTasksFixturePath);
+  const simpleTasksContext = workspaceManager.getContext(simpleTasksFixtureUri);
+  const simpleTasksTextDoc = getDoc(simpleTasksFixturePath);
+  expect(simpleTasksContext).toBeDefined();
+  const simpleTasksDocSettings = simpleTasksContext
+    ? simpleTasksContext.documentSettings.get(simpleTasksTextDoc.uri)
+    : undefined;
 
-  const textDoc = getDoc(fixtureFilePath);
+  const context = simpleTasksContext;
+
+  const textDoc = simpleTasksTextDoc;
   expect(context).toBeDefined();
-  if (context) {
-    const docSettings = context.documentSettings.get(textDoc.uri);
+  if (context && simpleTasksDocSettings) {
+    const docSettings = simpleTasksDocSettings;
 
     describe("Completion for host values with static inventory file", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        });
+        beforeAll(async function () {
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
+          );
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testHostValues(context, textDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings, context);
         });
@@ -948,14 +984,20 @@ describe("doCompletion()", function () {
 
     describe("Completion for play keywords", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        });
+        beforeAll(async function () {
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
+          );
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testPlayKeywords(context, textDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings, context);
         });
@@ -984,17 +1026,25 @@ describe("doCompletion()", function () {
 
     describe("Completion for role keywords", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
+        beforeAll(async function () {
+          if (!simpleTasksDocSettings) {
+            return;
+          }
+          await prepareEeCompletionSuiteForSettings(
             rolesDocSettings,
             rolesContext,
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testRoleKeywords(rolesContext, rolesTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             rolesDocSettings,
@@ -1028,17 +1078,25 @@ describe("doCompletion()", function () {
 
     describe("Completion for block keywords", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
+        beforeAll(async function () {
+          if (!simpleTasksDocSettings) {
+            return;
+          }
+          await prepareEeCompletionSuiteForSettings(
             blocksDocSettings,
             blocksContext,
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testBlockKeywords(blocksContext, blocksTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             blocksDocSettings,
@@ -1060,29 +1118,23 @@ describe("doCompletion()", function () {
       });
     });
   }
-  const simpleTasksFixturePath = "completion/simple_tasks.yml";
-  const simpleTasksFixtureUri = resolveDocUri(simpleTasksFixturePath);
-  const simpleTasksContext = workspaceManager.getContext(simpleTasksFixtureUri);
-  const simpleTasksTextDoc = getDoc(simpleTasksFixturePath);
-  expect(simpleTasksContext).toBeDefined();
-  if (simpleTasksContext) {
-    const simpleTasksDocSettings = simpleTasksContext.documentSettings.get(
-      simpleTasksTextDoc.uri,
-    );
-
+  if (simpleTasksContext && simpleTasksDocSettings) {
     describe("Completion for task keywords", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
-            simpleTasksDocSettings,
+        beforeAll(async function () {
+          await prepareEeModuleCompletionSuite(
+            simpleTasksTextDoc,
             simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testTaskKeywords(simpleTasksContext, simpleTasksTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             simpleTasksDocSettings,
@@ -1323,17 +1375,25 @@ describe("doCompletion()", function () {
 
     describe("Completion for variables inside jinja inline brackets", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
+        beforeAll(async function () {
+          if (!simpleTasksDocSettings) {
+            return;
+          }
+          await prepareEeCompletionSuiteForSettings(
             jinjaVarsDocSettings,
             jinjaVarsContext,
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testVarsCompletionInsideJinja(jinjaVarsContext, jinjaVarsTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             jinjaVarsDocSettings,
@@ -1366,14 +1426,25 @@ describe("doCompletion()", function () {
 
     describe("Completion for playbook adjacent collection", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(pacDocSettings, pacContext);
-        });
+        beforeAll(async function () {
+          if (!simpleTasksDocSettings) {
+            return;
+          }
+          await prepareEeCompletionSuiteForSettings(
+            pacDocSettings,
+            pacContext,
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
+          );
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testPlaybookAdjacentCollection(pacContext, pacTextDoc);
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(pacDocSettings, pacContext);
         });
@@ -1404,13 +1475,20 @@ describe("doCompletion()", function () {
 
     describe("Negate completion for non playbook adjacent collection", function () {
       describe("@ee", function () {
-        beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(
+        beforeAll(async function () {
+          if (!simpleTasksDocSettings) {
+            return;
+          }
+          await prepareEeCompletionSuiteForSettings(
             nonAdjacentDocSettings,
             nonAdjacentContext,
+            simpleTasksTextDoc,
+            simpleTasksContext,
+            simpleTasksDocSettings,
           );
-        });
+        }, EE_MODULE_SETUP_HOOK_TIMEOUT_MS);
+
+        beforeEach(skipIfEeModulesUnavailable);
 
         testNonPlaybookAdjacentCollection(
           nonAdjacentContext,
@@ -1418,6 +1496,7 @@ describe("doCompletion()", function () {
         );
 
         afterAll(async function () {
+          clearEeModuleCompletionSpawnSyncTimeout();
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(
             nonAdjacentDocSettings,
