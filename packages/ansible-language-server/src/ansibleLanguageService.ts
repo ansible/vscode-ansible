@@ -16,7 +16,10 @@ import {
   doCompletionResolve,
   hasCompletionDocumentUri,
 } from "@src/providers/completionProvider.js";
-import { getDefinition } from "@src/providers/definitionProvider.js";
+import {
+  getDefinition,
+  getIncludingDocumentDirectories,
+} from "@src/providers/definitionProvider.js";
 import { doHover } from "@src/providers/hoverProvider.js";
 import {
   doSemanticTokens,
@@ -355,14 +358,20 @@ export class AnsibleLanguageService {
             params.textDocument.uri,
           );
           if (context) {
-            // The document directory is already searched by the resolver, so
-            // the workspace root is the only extra base directory needed.
             const workspaceRoot = URI.parse(context.workspaceFolder.uri).fsPath;
+            const basedirs = [
+              ...(await getIncludingDocumentDirectories(
+                document,
+                this.documents.all(),
+                [workspaceRoot],
+              )),
+              workspaceRoot,
+            ];
             return await getDefinition(
               document,
               params.position,
               await context.docsLibrary,
-              [workspaceRoot],
+              basedirs,
               (reference) => {
                 this.connection.console.info(`File not found: ${reference}`);
               },

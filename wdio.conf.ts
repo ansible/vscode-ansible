@@ -45,7 +45,10 @@ export const config: WebdriverIO.Config = {
 
   logLevel: "warn",
   bail: 0,
-  waitforTimeout: 10000,
+  // wdio-vscode-service waits for `.monaco-workbench` with this timeout, then
+  // WDIO logs and swallows a before-hook failure. 10s is not enough on a
+  // loaded macOS runner, so specs were starting before the window existed.
+  waitforTimeout: 60000,
   connectionRetryTimeout: 120000,
   connectionRetryCount: 3,
   services: [
