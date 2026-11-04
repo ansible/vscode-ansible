@@ -1,7 +1,12 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
 import sinon from "sinon";
-import { Connection, Diagnostic, integer } from "vscode-languageserver";
+import {
+  Connection,
+  Diagnostic,
+  DiagnosticSeverity,
+  integer,
+} from "vscode-languageserver";
 import {
   doValidate,
   getYamlValidation,
@@ -63,6 +68,23 @@ function setEeValidationSpawnSyncTimeout(): void {
 
 function clearEeValidationSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+}
+
+/** ansible-playbook failures become Ansible-sourced diagnostics, not thrown errors. */
+function eeSyntaxCheckProbeSucceeded(
+  diagnosticsByFile: Map<string, Diagnostic[]>,
+): boolean {
+  for (const diags of diagnosticsByFile.values()) {
+    for (const diag of diags) {
+      if (
+        diag.source === "Ansible" &&
+        diag.severity === DiagnosticSeverity.Error
+      ) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 async function probeEeValidation(
@@ -134,7 +156,7 @@ async function probeEeSyntaxCheckValidation(
         EE_PROBE_ATTEMPT_TIMEOUT_MS,
         deadline - Date.now(),
       );
-      await Promise.race([
+      const diagnosticsByFile = await Promise.race([
         doValidate(textDoc, validationManager, false, context),
         new Promise<never>((_, reject) => {
           attemptTimer = setTimeout(
@@ -143,6 +165,10 @@ async function probeEeSyntaxCheckValidation(
           );
         }),
       ]);
+      if (!eeSyntaxCheckProbeSucceeded(diagnosticsByFile)) {
+        await new Promise<void>((r) => setTimeout(r, EE_PROBE_INTERVAL_MS));
+        continue;
+      }
       eeSyntaxCheckValidationReady = true;
       return true;
     } catch (err: unknown) {

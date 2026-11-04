@@ -6,7 +6,20 @@
  * which configuration scope is queried.
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { browser } from "@wdio/globals";
+
+function assertMcpEnableCommandContributedInManifest(): void {
+  const manifest = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), "package.json"), "utf8"),
+  ) as { contributes?: { commands?: Array<{ command: string }> } };
+  const commands = manifest.contributes?.commands ?? [];
+  assert.ok(
+    commands.some((entry) => entry.command === "ansible.mcpServer.enabled"),
+    "package.json must contribute ansible.mcpServer.enabled in contributes.commands",
+  );
+}
 
 /**
  * Read `mcpServer.enabled` from the `ansible` settings section.
@@ -140,6 +153,7 @@ describe("MCP Server", () => {
   });
 
   it("should enable MCP server via command", async () => {
+    assertMcpEnableCommandContributedInManifest();
     await runAnsibleCommand("ansible.mcpServer.enabled");
     await waitForMcpServerEnabled(true);
     assert.strictEqual(await readMcpServerEnabledAnsibleSection(), true);

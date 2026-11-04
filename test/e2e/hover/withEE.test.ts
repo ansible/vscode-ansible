@@ -10,6 +10,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   unSetFixtureAnsibleCollectionPathEnv,
+  EE_E2E_READINESS_BUDGET_MS,
 } from "@test/e2e/e2e.utils";
 
 /** Errors that mean EE was too slow on CI — skip suite instead of failing the job. */
@@ -41,11 +42,12 @@ describe("ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
     before(async function () {
-      // Two hover readiness probes share one budget.  On Linux GHA runners the
-      // EE container start + docs-library indexing is unpredictably slow; when
-      // the budget is exhausted the suite is skipped instead of failing CI.
-      this.timeout(600_000);
-      const readinessDeadline = Date.now() + 540_000;
+      // Two hover readiness probes share one budget. When the budget is
+      // exhausted the suite is skipped instead of failing CI. On GHA, a long
+      // budget only delays skip (see e2e.log on slow runs); ALS @ee hover uses
+      // a ~60s probe — keep CI e2e aligned so package+e2e does not sit idle.
+      this.timeout(EE_E2E_READINESS_BUDGET_MS + 60_000);
+      const readinessDeadline = Date.now() + EE_E2E_READINESS_BUDGET_MS;
       const readinessTimeoutMs = () =>
         Math.max(readinessDeadline - Date.now(), 1);
 

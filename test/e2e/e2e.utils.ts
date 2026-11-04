@@ -11,6 +11,18 @@ let doc: vscode.TextDocument;
 export const skip_ee: boolean =
   process.env.SKIP_PODMAN === "1" || process.env.SKIP_DOCKER === "1";
 
+/** Max wait for EE hover readiness in e2e (extension host is slower than bare LSP). */
+export const EE_E2E_READINESS_BUDGET_MS: number = (() => {
+  const fromEnv = process.env.E2E_EE_READINESS_BUDGET_MS;
+  if (fromEnv !== undefined && fromEnv !== "") {
+    const parsed = Number(fromEnv);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return process.env.CI === "true" ? 120_000 : 540_000;
+})();
+
 // Cache for tracking activated documents to avoid redundant initialization
 const activatedDocuments = new Set<string>();
 let isExtensionActivated = false;
