@@ -8,7 +8,7 @@ import {
   skip_ee,
   deleteAlsCache,
   enableExecutionEnvironmentSettings,
-  disableExecutionEnvironmentSettings,
+  ensureLocalAnsibleLintValidation,
   unSetFixtureAnsibleCollectionPathEnv,
 } from "@test/e2e/e2e.utils";
 
@@ -36,9 +36,8 @@ describe("ee", function () {
   });
 
   after(async function () {
-    await disableExecutionEnvironmentSettings(); // Revert back the default settings
+    await ensureLocalAnsibleLintValidation();
     unSetFixtureAnsibleCollectionPathEnv();
-    deleteAlsCache();
   });
 
   describe("hover-ee", function () {
