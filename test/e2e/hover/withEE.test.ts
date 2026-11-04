@@ -10,8 +10,11 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   unSetFixtureAnsibleCollectionPathEnv,
-  EE_E2E_READINESS_BUDGET_MS,
 } from "@test/e2e/e2e.utils";
+
+/** EE hover readiness budget in e2e (extension host slower than bare LSP). */
+const EE_E2E_READINESS_BUDGET_MS =
+  process.env.CI === "true" ? 120_000 : 540_000;
 
 /** Errors that mean EE was too slow on CI — skip suite instead of failing the job. */
 function isEeReadinessSkipError(err: unknown): boolean {
