@@ -11,6 +11,7 @@ import {} from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import { SchemaService } from "@src/services/schemaService.js";
+import { terminateTrackedAsyncSpawns } from "@src/utils/misc.js";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -49,6 +50,8 @@ const EE_COMPLETION_TEST_TIMEOUT_MSG =
 
 /** Env var read by {@link spawnSyncWithResult} to cap blocking container ops (tests). */
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+/** Env var read by {@link asyncSpawn} to register children for test cancellation. */
+const EE_TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
 
 /**
  * Suite-workspace `docsLibrary` warm budget. Playbook-adjacent `@ee` CI
@@ -95,10 +98,13 @@ function isTransientEeReadinessError(err: unknown): boolean {
 
 function setEeModuleCompletionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = "1";
 }
 
 function clearEeModuleCompletionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = undefined;
+  terminateTrackedAsyncSpawns();
 }
 
 /**
@@ -201,16 +207,27 @@ function skipIfEeModulesUnavailable(context: { skip: () => void }): void {
  * then hits EE `copyPluginDocFiles` (async) and can exceed Vitest's 60s
  * `it` timeout on Linux GHA.
  *
- * One wait, full budget: 30s slices + `clearCachedServices` abort a copy
- * that would finish in 61–120s and restart it from zero.
+ * One wait with the full warm budget: shorter per-attempt races would stop
+ * waiting while `copyPluginDocFiles` keeps running; `clearCachedServices`
+ * only drops cached service handles and does not stop an in-flight copy.
  */
+async function drainInFlightDocsLibraryInit(
+  context: WorkspaceFolderContext,
+  initPromise: Thenable<unknown>,
+): Promise<void> {
+  terminateTrackedAsyncSpawns();
+  await Promise.resolve(initPromise).catch(() => undefined);
+  context.clearCachedServices();
+}
+
 async function warmEeDocsLibrary(
   context: WorkspaceFolderContext,
 ): Promise<boolean> {
+  const initPromise = context.docsLibrary;
   let attemptTimer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
-      context.docsLibrary,
+      initPromise,
       new Promise<never>((_, reject) => {
         attemptTimer = setTimeout(
           () => reject(new Error(EE_DOCS_WARM_TIMEOUT_MSG)),
@@ -223,6 +240,7 @@ async function warmEeDocsLibrary(
     if (!isTransientEeReadinessError(err)) {
       throw err;
     }
+    await drainInFlightDocsLibraryInit(context, initPromise);
     console.warn(
       `[completion-ee] EE docsLibrary not ready within ` +
         `${EE_DOCS_WARM_BUDGET_MS / 1000}s — remaining @ee module suites will skip`,
@@ -275,6 +293,8 @@ async function doCompletionForTestOrSkip(
     return await doCompletionForTest(textDoc, position, context);
   } catch (err: unknown) {
     if (isTransientEeReadinessError(err)) {
+      terminateTrackedAsyncSpawns();
+      context.clearCachedServices();
       eeModuleCompletionReady = false;
       testContext.skip();
       return [];
