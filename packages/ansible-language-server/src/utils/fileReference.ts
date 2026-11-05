@@ -224,7 +224,7 @@ export async function resolveFileReference(
         rootsRealPaths.some((root) => isWithin(root, candidateRealPath)) &&
         (await isValidPath(candidateRealPath, allowDirectory))
       ) {
-        return candidateRealPath;
+        return candidate;
       }
     } catch {
       continue;
