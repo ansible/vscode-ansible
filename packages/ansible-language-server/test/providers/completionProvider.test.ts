@@ -61,12 +61,18 @@ const EE_TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
  */
 const EE_DOCS_WARM_BUDGET_MS = EE_PROBE_BUDGET_MS * 2;
 
+/** After cancel/SIGTERM, cap wait for in-flight EE work (sync cleanup budget). */
+const EE_INFLIGHT_DRAIN_BUDGET_MS = EE_PROBE_ATTEMPT_TIMEOUT_MS;
+
 /**
  * Vitest hook timeout for EE module readiness setup.
- * Probe + per-suite docsLibrary warm each use a full budget.
+ * Probe + per-suite docsLibrary warm + bounded post-timeout drain.
  */
 const EE_MODULE_SETUP_HOOK_TIMEOUT_MS =
-  EE_PROBE_BUDGET_MS + EE_DOCS_WARM_BUDGET_MS + 15_000;
+  EE_PROBE_BUDGET_MS +
+  EE_DOCS_WARM_BUDGET_MS +
+  EE_INFLIGHT_DRAIN_BUDGET_MS +
+  15_000;
 
 /**
  * Return true for errors that mean EE is not ready yet (retry).  All other
@@ -212,12 +218,31 @@ function skipIfEeModulesUnavailable(context: { skip: () => void }): void {
  * waiting while `copyPluginDocFiles` keeps running; `clearCachedServices`
  * only drops cached service handles and does not stop an in-flight copy.
  */
+async function boundedDrainInFlight(
+  inFlight: Thenable<unknown>,
+  budgetMs: number = EE_INFLIGHT_DRAIN_BUDGET_MS,
+): Promise<void> {
+  terminateTrackedAsyncSpawns();
+  let drainTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      Promise.resolve(inFlight).catch(() => undefined),
+      new Promise<void>((resolve) => {
+        drainTimer = setTimeout(resolve, budgetMs);
+      }),
+    ]);
+  } finally {
+    if (drainTimer !== undefined) {
+      clearTimeout(drainTimer);
+    }
+  }
+}
+
 async function drainInFlightDocsLibraryInit(
   context: WorkspaceFolderContext,
   initPromise: Thenable<unknown>,
 ): Promise<void> {
-  terminateTrackedAsyncSpawns();
-  await Promise.resolve(initPromise).catch(() => undefined);
+  await boundedDrainInFlight(initPromise);
   context.clearCachedServices();
 }
 
@@ -282,8 +307,7 @@ async function doCompletionForTestOrSkip(
     ]);
   } catch (err: unknown) {
     if (isTransientEeReadinessError(err)) {
-      terminateTrackedAsyncSpawns();
-      await Promise.resolve(completionPromise).catch(() => undefined);
+      await boundedDrainInFlight(completionPromise);
       context.clearCachedServices();
       eeModuleCompletionReady = false;
       testContext.skip();
