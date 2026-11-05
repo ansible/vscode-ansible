@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { realpath, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 
 /**
  * Describes how a module option that points to a local file is resolved by
@@ -14,8 +14,7 @@ interface FileReferenceSpec {
   options: string[];
   /** Whether the free-form value (`module: some/file`) is a file reference. */
   freeForm?: boolean;
-  allowDirectoryOptions?: string[];
-  directoryOptions?: string[];
+  allowDirectory?: boolean;
   remoteByDefault?: boolean;
   topLevelOnly?: boolean;
 }
@@ -27,16 +26,12 @@ interface FileReferenceSpec {
  */
 const FILE_REFERENCE_MODULES: Record<string, FileReferenceSpec> = {
   template: { dirname: "templates", options: ["src"] },
-  copy: {
-    dirname: "files",
-    options: ["src"],
-    allowDirectoryOptions: ["src"],
-  },
+  copy: { dirname: "files", options: ["src"], allowDirectory: true },
   unarchive: { dirname: "files", options: ["src"] },
   assemble: {
     dirname: "files",
     options: ["src"],
-    allowDirectoryOptions: ["src"],
+    allowDirectory: true,
     remoteByDefault: true,
   },
   include_tasks: { dirname: "tasks", options: ["file"], freeForm: true },
@@ -45,7 +40,7 @@ const FILE_REFERENCE_MODULES: Record<string, FileReferenceSpec> = {
     dirname: "vars",
     options: ["file", "dir"],
     freeForm: true,
-    directoryOptions: ["dir"],
+    allowDirectory: true,
   },
   import_playbook: {
     dirname: "",
@@ -56,6 +51,9 @@ const FILE_REFERENCE_MODULES: Record<string, FileReferenceSpec> = {
 };
 
 const BUILTIN_PREFIX = /^ansible\.(builtin|legacy)\./;
+
+/** Upper bound for the upward walk that looks for a role root. */
+const MAX_ROLE_SEARCH_DEPTH = 10;
 
 /**
  * Whether a value contains Jinja and so cannot be resolved statically.
@@ -102,11 +100,12 @@ export function isFileReference(
 
 /**
  * When the file is part of a role (`<role>/tasks/...` or
- * `<role>/handlers/...`) returns the role directory.
+ * `<role>/handlers/...`) returns the role directory. The walk is bounded so a
+ * coincidental `tasks` directory far up the tree is never picked up.
  */
 function findRoleRoot(fileDir: string): string | undefined {
   let current = fileDir;
-  while (true) {
+  for (let depth = 0; depth < MAX_ROLE_SEARCH_DEPTH; depth++) {
     const parent = path.dirname(current);
     if (parent === current) {
       return undefined;
@@ -136,13 +135,9 @@ function isWithin(root: string, candidate: string): boolean {
 async function isValidPath(
   candidate: string,
   allowDirectory: boolean,
-  requireDirectory: boolean,
 ): Promise<boolean> {
   try {
     const stats = await stat(candidate);
-    if (requireDirectory) {
-      return stats.isDirectory();
-    }
     return stats.isFile() || (allowDirectory && stats.isDirectory());
   } catch {
     return false;
@@ -170,7 +165,7 @@ function getSearchRoots(documentPath: string, basedirs: string[]): string[] {
  *
  *  1. role directory (when inside a role)
  *  2. directory of the file that contains the task
- *  3. base directories supplied by the caller (typically the workspace folder)
+ *  3. the playbook base directory (or workspace folder as a fallback)
  */
 function getSearchCandidates(
   reference: string,
@@ -202,7 +197,6 @@ export async function resolveFileReference(
   documentPath: string,
   basedirs: string[] = [],
   allowDirectory = false,
-  requireDirectory = false,
 ): Promise<string | undefined> {
   const value = reference.trim();
   if (!value || isTemplatedValue(value)) {
@@ -215,11 +209,6 @@ export async function resolveFileReference(
   }
 
   const searchRoots = getSearchRoots(documentPath, basedirs);
-  const rootsRealPaths = (
-    await Promise.all(
-      searchRoots.map((root) => realpath(root).catch(() => undefined)),
-    )
-  ).filter((root): root is string => !!root);
   const candidates = path.isAbsolute(value)
     ? [path.resolve(value)]
     : getSearchCandidates(value, dirname, searchRoots);
@@ -228,16 +217,8 @@ export async function resolveFileReference(
     if (!searchRoots.some((root) => isWithin(root, candidate))) {
       continue;
     }
-    try {
-      const candidateRealPath = await realpath(candidate);
-      if (
-        rootsRealPaths.some((root) => isWithin(root, candidateRealPath)) &&
-        (await isValidPath(candidateRealPath, allowDirectory, requireDirectory))
-      ) {
-        return candidateRealPath;
-      }
-    } catch {
-      continue;
+    if (await isValidPath(candidate, allowDirectory)) {
+      return candidate;
     }
   }
   return undefined;
