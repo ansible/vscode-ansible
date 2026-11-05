@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { stat } from "node:fs/promises";
+import { realpath, stat } from "node:fs/promises";
 
 /**
  * Describes how a module option that points to a local file is resolved by
@@ -52,9 +52,6 @@ const FILE_REFERENCE_MODULES: Record<string, FileReferenceSpec> = {
 
 const BUILTIN_PREFIX = /^ansible\.(builtin|legacy)\./;
 
-/** Upper bound for the upward walk that looks for a role root. */
-const MAX_ROLE_SEARCH_DEPTH = 10;
-
 /**
  * Whether a value contains Jinja and so cannot be resolved statically.
  * Single source of truth, shared with the definition provider.
@@ -100,12 +97,11 @@ export function isFileReference(
 
 /**
  * When the file is part of a role (`<role>/tasks/...` or
- * `<role>/handlers/...`) returns the role directory. The walk is bounded so a
- * coincidental `tasks` directory far up the tree is never picked up.
+ * `<role>/handlers/...`) returns the role directory.
  */
 function findRoleRoot(fileDir: string): string | undefined {
   let current = fileDir;
-  for (let depth = 0; depth < MAX_ROLE_SEARCH_DEPTH; depth++) {
+  while (true) {
     const parent = path.dirname(current);
     if (parent === current) {
       return undefined;
@@ -209,6 +205,11 @@ export async function resolveFileReference(
   }
 
   const searchRoots = getSearchRoots(documentPath, basedirs);
+  const rootsRealPaths = (
+    await Promise.all(
+      searchRoots.map((root) => realpath(root).catch(() => undefined)),
+    )
+  ).filter((root): root is string => !!root);
   const candidates = path.isAbsolute(value)
     ? [path.resolve(value)]
     : getSearchCandidates(value, dirname, searchRoots);
@@ -217,8 +218,16 @@ export async function resolveFileReference(
     if (!searchRoots.some((root) => isWithin(root, candidate))) {
       continue;
     }
-    if (await isValidPath(candidate, allowDirectory)) {
-      return candidate;
+    try {
+      const candidateRealPath = await realpath(candidate);
+      if (
+        rootsRealPaths.some((root) => isWithin(root, candidateRealPath)) &&
+        (await isValidPath(candidateRealPath, allowDirectory))
+      ) {
+        return candidateRealPath;
+      }
+    } catch {
+      continue;
     }
   }
   return undefined;

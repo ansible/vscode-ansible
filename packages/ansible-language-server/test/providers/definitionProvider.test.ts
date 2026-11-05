@@ -374,6 +374,11 @@ describe("getDefinition()", function () {
         text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.assemble:\n        src: assemble_fragments\n        dest: /tmp/x\n",
         reference: "assemble_fragments",
       },
+      {
+        name: "copy with remote_src enabled through task args",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.copy:\n        src: static.txt\n        dest: /tmp/x\n      args:\n        remote_src: true\n",
+        reference: "static.txt",
+      },
     ])(
       "does not resolve managed-host sources for $name",
       async function ({
@@ -411,6 +416,12 @@ describe("getDefinition()", function () {
         text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.assemble:\n        src: assemble_fragments\n        dest: /tmp/x\n        remote_src: false\n",
         reference: "assemble_fragments",
         expected: "definition/file_reference/files/assemble_fragments",
+      },
+      {
+        name: "copy source provided through task args",
+        text: "- hosts: localhost\n  tasks:\n    - ansible.builtin.copy:\n        dest: /tmp/x\n      args:\n        src: static.txt\n",
+        reference: "static.txt",
+        expected: "definition/file_reference/files/static.txt",
       },
     ])(
       "resolves directory references for $name",
@@ -475,6 +486,8 @@ describe("getDefinition()", function () {
       { value: '"no"', resolves: true },
       { value: '"off"', resolves: true },
       { value: '"false"', resolves: true },
+      { value: '"0"', resolves: true },
+      { value: '"1"', resolves: false },
       { value: '"maybe"', resolves: false },
     ])(
       "handles string remote_src $value",
@@ -511,6 +524,70 @@ describe("getDefinition()", function () {
         }
       },
     );
+
+    it.each([
+      { value: "0", resolves: true },
+      { value: "1", resolves: false },
+    ])(
+      "handles numeric remote_src $value",
+      async function ({
+        value,
+        resolves,
+      }: {
+        value: string;
+        resolves: boolean;
+      }) {
+        const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/x
+        remote_src: ${value}
+`;
+        const doc = TextDocument.create(
+          URI.file(resolveDocUri(playbook)).toString(),
+          "ansible",
+          1,
+          text,
+        );
+        const result = await getDefinition(
+          doc,
+          doc.positionAt(text.indexOf("static.txt")),
+          docsLibrary,
+        );
+
+        if (resolves) {
+          expect(result).toHaveLength(1);
+        } else {
+          expect(result).toBeNull();
+        }
+      },
+    );
+
+    it("gives module options precedence over task args", async function () {
+      const text = `- hosts: localhost
+  tasks:
+    - ansible.builtin.copy:
+        src: static.txt
+        dest: /tmp/x
+        remote_src: false
+      args:
+        remote_src: true
+`;
+      const doc = TextDocument.create(
+        URI.file(resolveDocUri(playbook)).toString(),
+        "ansible",
+        1,
+        text,
+      );
+      const result = await getDefinition(
+        doc,
+        doc.positionAt(text.indexOf("static.txt")),
+        docsLibrary,
+      );
+
+      expect(result).toHaveLength(1);
+    });
 
     it("returns null for a top-level free-form value outside a task", async function () {
       const text = "include_tasks: extra_tasks.yml\n";

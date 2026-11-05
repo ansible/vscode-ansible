@@ -3,6 +3,7 @@ import { Position, TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 import { isScalar, Node, YAMLMap, YAMLSeq } from "yaml";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
+import { isTaskKeyword } from "@src/utils/ansible.js";
 import {
   isFileReference,
   isTemplatedValue,
@@ -24,20 +25,24 @@ interface FileRefContext {
   optionName: string | undefined;
   taskKeyPath: Node[];
   moduleOptions: YAMLMap | null;
+  taskArgs: YAMLMap | null;
 }
 
 function parseBooleanLike(value: unknown): boolean | undefined {
   if (value === true || value === false) {
     return value;
   }
+  if (value === 0 || value === 1) {
+    return value === 1;
+  }
   if (typeof value !== "string") {
     return undefined;
   }
   const lower = value.toLowerCase();
-  if (["true", "yes", "on"].includes(lower)) {
+  if (["true", "yes", "on", "1"].includes(lower)) {
     return true;
   }
-  if (["false", "no", "off"].includes(lower)) {
+  if (["false", "no", "off", "0"].includes(lower)) {
     return false;
   }
   return undefined;
@@ -45,9 +50,11 @@ function parseBooleanLike(value: unknown): boolean | undefined {
 
 function isRemoteSource(
   moduleOptions: YAMLMap | null,
+  taskArgs: YAMLMap | null,
   remoteByDefault: boolean | undefined,
 ): boolean {
-  const remoteSrcNode = moduleOptions?.get("remote_src", true);
+  const remoteSrcNode =
+    moduleOptions?.get("remote_src", true) ?? taskArgs?.get("remote_src", true);
   const remoteSrcValue = isScalar(remoteSrcNode)
     ? remoteSrcNode.value
     : undefined;
@@ -72,17 +79,52 @@ function getFileRefContext(path: Node[], node: Node): FileRefContext | null {
   const grandParent = new AncestryBuilder(path).parent(YAMLMap).parent(YAMLMap);
   const moduleKey = grandParent.getStringKey();
 
-  if (parentMap && moduleKey && grandParent.get()) {
+  if (parentMap && moduleKey === "args") {
+    const taskMap = grandParent.get();
+    const taskKeyPath = grandParent.getPath();
+    if (!taskMap || !taskKeyPath) {
+      return null;
+    }
+    const modulePair = taskMap.items.find(
+      (pair) =>
+        isScalar(pair.key) &&
+        typeof pair.key.value === "string" &&
+        pair.key.value !== "args" &&
+        !isTaskKeyword(pair.key.value),
+    );
+    if (!modulePair || !isScalar(modulePair.key)) {
+      return null;
+    }
+    const moduleName = String(modulePair.key.value);
+    const moduleOptionsNode = taskMap.get(moduleName, true);
+    return {
+      moduleName,
+      optionName: ownerKey,
+      taskKeyPath: [
+        ...taskKeyPath,
+        modulePair as unknown as Node,
+        modulePair.key,
+      ],
+      moduleOptions:
+        moduleOptionsNode instanceof YAMLMap ? moduleOptionsNode : null,
+      taskArgs: parentMap,
+    };
+  }
+
+  const taskMap = grandParent.get();
+  if (parentMap && moduleKey && taskMap) {
     // `template: { src: x }`: the value belongs to an option of the module
     const taskKeyPath = grandParent.getKeyPath();
     if (!taskKeyPath) {
       return null;
     }
+    const taskArgsNode = taskMap.get("args", true);
     return {
       moduleName: moduleKey,
       optionName: ownerKey,
       taskKeyPath,
       moduleOptions: parentMap,
+      taskArgs: taskArgsNode instanceof YAMLMap ? taskArgsNode : null,
     };
   }
 
@@ -96,6 +138,7 @@ function getFileRefContext(path: Node[], node: Node): FileRefContext | null {
     optionName: undefined,
     taskKeyPath,
     moduleOptions: null,
+    taskArgs: null,
   };
 }
 
@@ -134,7 +177,13 @@ async function getFileDefinition(
     return null;
   }
 
-  if (isRemoteSource(context.moduleOptions, spec.remoteByDefault)) {
+  if (
+    isRemoteSource(
+      context.moduleOptions,
+      context.taskArgs,
+      spec.remoteByDefault,
+    )
+  ) {
     return null;
   }
 
