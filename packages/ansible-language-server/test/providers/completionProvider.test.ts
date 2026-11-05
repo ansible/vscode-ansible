@@ -44,7 +44,8 @@ const EE_PROBE_INTERVAL_MS = 3_000;
 const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 
 const EE_PROBE_TIMEOUT_MSG = "EE probe: doCompletion exceeded attempt timeout";
-const EE_DOCS_WARM_TIMEOUT_MSG = "EE probe: docsLibrary exceeded attempt timeout";
+const EE_DOCS_WARM_TIMEOUT_MSG =
+  "EE probe: docsLibrary exceeded attempt timeout";
 const EE_COMPLETION_TEST_TIMEOUT_MSG =
   "EE test: doCompletion exceeded attempt timeout";
 
@@ -257,18 +258,21 @@ async function warmEeDocsLibrary(
  * Bound `doCompletion` while EE spawn timeouts are armed so a stuck
  * container call cannot sit until Vitest's default 60s `it` timeout.
  */
-async function doCompletionForTest(
+async function doCompletionForTestOrSkip(
   textDoc: TextDocument,
   position: { line: number; character: number },
   context: WorkspaceFolderContext,
+  testContext: { skip: () => void },
 ) {
   if (!process.env[EE_SPAWN_SYNC_TIMEOUT_ENV]) {
     return doCompletion(textDoc, position, context);
   }
+
+  const completionPromise = doCompletion(textDoc, position, context);
   let attemptTimer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      doCompletion(textDoc, position, context),
+      completionPromise,
       new Promise<never>((_, reject) => {
         attemptTimer = setTimeout(
           () => reject(new Error(EE_COMPLETION_TEST_TIMEOUT_MSG)),
@@ -276,30 +280,20 @@ async function doCompletionForTest(
         );
       }),
     ]);
-  } finally {
-    if (attemptTimer !== undefined) {
-      clearTimeout(attemptTimer);
-    }
-  }
-}
-
-async function doCompletionForTestOrSkip(
-  textDoc: TextDocument,
-  position: { line: number; character: number },
-  context: WorkspaceFolderContext,
-  testContext: { skip: () => void },
-) {
-  try {
-    return await doCompletionForTest(textDoc, position, context);
   } catch (err: unknown) {
     if (isTransientEeReadinessError(err)) {
       terminateTrackedAsyncSpawns();
+      await Promise.resolve(completionPromise).catch(() => undefined);
       context.clearCachedServices();
       eeModuleCompletionReady = false;
       testContext.skip();
       return [];
     }
     throw err;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
   }
 }
 
@@ -809,7 +803,9 @@ function testPlaybookAdjacentCollection(
   expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
-      it(`should provide completion for ${name}`, async function (testContext) {
+      it(`should provide completion for ${name}`, async function (testContext: {
+        skip: () => void;
+      }) {
         const actualCompletion = await doCompletionForTestOrSkip(
           textDoc,
           position,
@@ -854,7 +850,9 @@ function testNonPlaybookAdjacentCollection(
   expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
-      it(`should not provide completion for ${name}`, async function (testContext) {
+      it(`should not provide completion for ${name}`, async function (testContext: {
+        skip: () => void;
+      }) {
         const actualCompletion = await doCompletionForTestOrSkip(
           textDoc,
           position,
