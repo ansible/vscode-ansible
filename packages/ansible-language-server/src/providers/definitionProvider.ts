@@ -67,6 +67,78 @@ function isRemoteSource(
   );
 }
 
+function getArgsFileRefContext(
+  taskMap: YAMLMap | null,
+  taskKeyPath: Node[] | null,
+  argsMap: YAMLMap,
+  optionName: string,
+): FileRefContext | null {
+  if (!taskMap || !taskKeyPath) {
+    return null;
+  }
+  const modulePair = taskMap.items.find(
+    (pair) =>
+      isScalar(pair.key) &&
+      typeof pair.key.value === "string" &&
+      pair.key.value !== "args" &&
+      !isTaskKeyword(pair.key.value),
+  );
+  if (!modulePair || !isScalar(modulePair.key)) {
+    return null;
+  }
+  const moduleName = String(modulePair.key.value);
+  const moduleOptionsNode = taskMap.get(moduleName, true);
+  return {
+    moduleName,
+    optionName,
+    taskKeyPath: [
+      ...taskKeyPath,
+      modulePair as unknown as Node,
+      modulePair.key,
+    ],
+    moduleOptions:
+      moduleOptionsNode instanceof YAMLMap ? moduleOptionsNode : null,
+    taskArgs: argsMap,
+  };
+}
+
+function getModuleOptionFileRefContext(
+  taskMap: YAMLMap | null,
+  taskKeyPath: Node[] | null,
+  moduleOptions: YAMLMap,
+  moduleName: string,
+  optionName: string,
+): FileRefContext | null {
+  if (!taskMap || !taskKeyPath) {
+    return null;
+  }
+  const taskArgsNode = taskMap.get("args", true);
+  return {
+    moduleName,
+    optionName,
+    taskKeyPath,
+    moduleOptions,
+    taskArgs: taskArgsNode instanceof YAMLMap ? taskArgsNode : null,
+  };
+}
+
+function getFreeFormFileRefContext(
+  path: Node[],
+  moduleName: string,
+): FileRefContext | null {
+  const taskKeyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
+  if (!taskKeyPath) {
+    return null;
+  }
+  return {
+    moduleName,
+    optionName: undefined,
+    taskKeyPath,
+    moduleOptions: null,
+    taskArgs: null,
+  };
+}
+
 function getFileRefContext(path: Node[], node: Node): FileRefContext | null {
   // The value must be the value of a Pair, never a key or a sequence item.
   const owner = new AncestryBuilder(path).parent(YAMLMap);
@@ -78,68 +150,26 @@ function getFileRefContext(path: Node[], node: Node): FileRefContext | null {
   const parentMap = owner.get();
   const grandParent = new AncestryBuilder(path).parent(YAMLMap).parent(YAMLMap);
   const moduleKey = grandParent.getStringKey();
+  const taskMap = grandParent.get();
 
   if (parentMap && moduleKey === "args") {
-    const taskMap = grandParent.get();
-    const taskKeyPath = grandParent.getPath();
-    if (!taskMap || !taskKeyPath) {
-      return null;
-    }
-    const modulePair = taskMap.items.find(
-      (pair) =>
-        isScalar(pair.key) &&
-        typeof pair.key.value === "string" &&
-        pair.key.value !== "args" &&
-        !isTaskKeyword(pair.key.value),
+    return getArgsFileRefContext(
+      taskMap,
+      grandParent.getPath(),
+      parentMap,
+      ownerKey,
     );
-    if (!modulePair || !isScalar(modulePair.key)) {
-      return null;
-    }
-    const moduleName = String(modulePair.key.value);
-    const moduleOptionsNode = taskMap.get(moduleName, true);
-    return {
-      moduleName,
-      optionName: ownerKey,
-      taskKeyPath: [
-        ...taskKeyPath,
-        modulePair as unknown as Node,
-        modulePair.key,
-      ],
-      moduleOptions:
-        moduleOptionsNode instanceof YAMLMap ? moduleOptionsNode : null,
-      taskArgs: parentMap,
-    };
   }
-
-  const taskMap = grandParent.get();
   if (parentMap && moduleKey && taskMap) {
-    // `template: { src: x }`: the value belongs to an option of the module
-    const taskKeyPath = grandParent.getKeyPath();
-    if (!taskKeyPath) {
-      return null;
-    }
-    const taskArgsNode = taskMap.get("args", true);
-    return {
-      moduleName: moduleKey,
-      optionName: ownerKey,
-      taskKeyPath,
-      moduleOptions: parentMap,
-      taskArgs: taskArgsNode instanceof YAMLMap ? taskArgsNode : null,
-    };
+    return getModuleOptionFileRefContext(
+      taskMap,
+      grandParent.getKeyPath(),
+      parentMap,
+      moduleKey,
+      ownerKey,
+    );
   }
-
-  // `include_tasks: x`: the value belongs to the task itself (free-form)
-  const taskKeyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
-  if (!taskKeyPath) {
-    return null;
-  }
-  return {
-    moduleName: ownerKey,
-    optionName: undefined,
-    taskKeyPath,
-    moduleOptions: null,
-    taskArgs: null,
-  };
+  return getFreeFormFileRefContext(path, ownerKey);
 }
 
 function isValidTaskPosition(spec: FileRefSpec, taskKeyPath: Node[]): boolean {

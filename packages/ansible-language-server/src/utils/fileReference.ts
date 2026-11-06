@@ -101,11 +101,8 @@ export function isFileReference(
  */
 function findRoleRoot(fileDir: string): string | undefined {
   let current = fileDir;
-  while (true) {
+  while (path.dirname(current) !== current) {
     const parent = path.dirname(current);
-    if (parent === current) {
-      return undefined;
-    }
     const base = path.basename(current);
     if (base === "tasks" || base === "handlers") {
       return parent;
