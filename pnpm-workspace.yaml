@@ -64,7 +64,7 @@ overrides:
   "undici@8": "8.12.3"
   "undici": "8.12.3"
   "@electron/get>undici": "8.12.3"
-  "cheerio>undici": "8.12.3"
+  "cheerio>undici": "8.12.4"
   "wdio-vscode-service>undici": "8.12.3"
   "hono": ">=4.13.11 <5.0.0"
   "ip-address": ">=10.7.4"
