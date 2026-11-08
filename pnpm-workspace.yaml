@@ -63,7 +63,7 @@ overrides:
   # Dependabot: pin all undici consumers to 8.12.3 (jsdom@30 uses undici 8.x).
   "undici@8": "8.12.3"
   "undici": "8.12.3"
-  "@electron/get>undici": "8.12.3"
+  "@electron/get>undici": "8.12.4"
   "cheerio>undici": "8.12.3"
   "wdio-vscode-service>undici": "8.12.3"
   "hono": ">=4.13.11 <5.0.0"
