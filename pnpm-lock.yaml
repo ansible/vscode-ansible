@@ -202,7 +202,7 @@ overrides:
   undici@8: 8.12.3
   undici: 8.12.3
   '@electron/get>undici': 8.12.4
-  cheerio>undici: 8.12.3
+  cheerio>undici: 8.12.4
   wdio-vscode-service>undici: 8.12.3
   hono: '>=4.13.11 <5.0.0'
   ip-address: '>=10.7.4'
@@ -10815,7 +10815,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 8.12.3
+      undici: 8.12.4
       whatwg-mimetype: 4.0.0
 
   chokidar@4.0.3:
@@ -14903,8 +14903,7 @@ snapshots:
 
   undici@8.12.3: {}
 
-  undici@8.12.4:
-    optional: true
+  undici@8.12.4: {}
 
   unicorn-magic@0.1.0: {}
 
