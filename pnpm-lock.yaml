@@ -201,8 +201,8 @@ overrides:
   ws@8: '>=8.17.1'
   undici@8: 8.12.3
   undici: 8.12.3
-  '@electron/get>undici': 8.12.3
-  cheerio>undici: 8.12.3
+  '@electron/get>undici': 8.12.4
+  cheerio>undici: 8.12.4
   wdio-vscode-service>undici: 8.12.3
   hono: '>=4.13.11 <5.0.0'
   ip-address: '>=10.7.4'
@@ -7245,6 +7245,10 @@ packages:
     resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
     engines: {node: '>=22.19.0'}
 
+  undici@8.12.4:
+    resolution: {integrity: sha512-8Mx+uNKKER2bA4AdtedkqRbwUCIJFr2nJckXRe5yrDqzePqwLP7VNcctN8/XdmDSbF7mS+jJKIszlL+vbam1VA==}
+    engines: {node: '>=22.19.0'}
+
   unicorn-magic@0.1.0:
     resolution: {integrity: sha512-lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==}
     engines: {node: '>=18'}
@@ -8165,7 +8169,7 @@ snapshots:
       semver: 7.8.5
       sumchecker: 3.0.1(supports-color@8.1.1)
     optionalDependencies:
-      undici: 8.12.3
+      undici: 8.12.4
     transitivePeerDependencies:
       - supports-color
 
@@ -10811,7 +10815,7 @@ snapshots:
       parse5: 7.3.0
       parse5-htmlparser2-tree-adapter: 7.1.0
       parse5-parser-stream: 7.1.2
-      undici: 8.12.3
+      undici: 8.12.4
       whatwg-mimetype: 4.0.0
 
   chokidar@4.0.3:
@@ -14898,6 +14902,8 @@ snapshots:
   undici-types@8.9.0: {}
 
   undici@8.12.3: {}
+
+  undici@8.12.4: {}
 
   unicorn-magic@0.1.0: {}
 
