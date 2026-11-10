@@ -11,6 +11,7 @@ import {} from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 import { SchemaService } from "@src/services/schemaService.js";
+import { terminateTrackedAsyncSpawns } from "@src/utils/misc.js";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -43,12 +44,35 @@ const EE_PROBE_INTERVAL_MS = 3_000;
 const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 
 const EE_PROBE_TIMEOUT_MSG = "EE probe: doCompletion exceeded attempt timeout";
+const EE_DOCS_WARM_TIMEOUT_MSG =
+  "EE probe: docsLibrary exceeded attempt timeout";
+const EE_COMPLETION_TEST_TIMEOUT_MSG =
+  "EE test: doCompletion exceeded attempt timeout";
 
 /** Env var read by {@link spawnSyncWithResult} to cap blocking container ops (tests). */
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+/** Env var read by {@link asyncSpawn} to register children for test cancellation. */
+const EE_TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
 
-/** Vitest hook timeout for EE module readiness setup (probe budget + slack). */
-const EE_MODULE_SETUP_HOOK_TIMEOUT_MS = EE_PROBE_BUDGET_MS + 10_000;
+/**
+ * Suite-workspace `docsLibrary` warm budget. Playbook-adjacent `@ee` CI
+ * timed out at Vitest's 60s `it` cap while `copyPluginDocFiles` was still
+ * running; wait longer in `beforeAll` instead of killing the copy at 30s.
+ */
+const EE_DOCS_WARM_BUDGET_MS = EE_PROBE_BUDGET_MS * 2;
+
+/** After cancel/SIGTERM, cap wait for in-flight EE work (sync cleanup budget). */
+const EE_INFLIGHT_DRAIN_BUDGET_MS = EE_PROBE_ATTEMPT_TIMEOUT_MS;
+
+/**
+ * Vitest hook timeout for EE module readiness setup.
+ * Probe + per-suite docsLibrary warm + bounded post-timeout drain.
+ */
+const EE_MODULE_SETUP_HOOK_TIMEOUT_MS =
+  EE_PROBE_BUDGET_MS +
+  EE_DOCS_WARM_BUDGET_MS +
+  EE_INFLIGHT_DRAIN_BUDGET_MS +
+  15_000;
 
 /**
  * Return true for errors that mean EE is not ready yet (retry).  All other
@@ -60,7 +84,11 @@ function isTransientEeReadinessError(err: unknown): boolean {
     err instanceof Error && "code" in err
       ? String((err as NodeJS.ErrnoException).code)
       : "";
-  if (msg.includes(EE_PROBE_TIMEOUT_MSG)) {
+  if (
+    msg.includes(EE_PROBE_TIMEOUT_MSG) ||
+    msg.includes(EE_DOCS_WARM_TIMEOUT_MSG) ||
+    msg.includes(EE_COMPLETION_TEST_TIMEOUT_MSG)
+  ) {
     return true;
   }
   if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
@@ -77,10 +105,13 @@ function isTransientEeReadinessError(err: unknown): boolean {
 
 function setEeModuleCompletionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = "1";
 }
 
 function clearEeModuleCompletionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = undefined;
+  terminateTrackedAsyncSpawns();
 }
 
 /**
@@ -177,6 +208,120 @@ function skipIfEeModulesUnavailable(context: { skip: () => void }): void {
 }
 
 /**
+ * Warm `docsLibrary` for a workspace that is not the probe document.
+ * Playbook-adjacent suites use a different WorkspaceFolderContext; the
+ * simple_tasks probe does not initialize that cache. First `doCompletion`
+ * then hits EE `copyPluginDocFiles` (async) and can exceed Vitest's 60s
+ * `it` timeout on Linux GHA.
+ *
+ * One wait with the full warm budget: shorter per-attempt races would stop
+ * waiting while `copyPluginDocFiles` keeps running; `clearCachedServices`
+ * only drops cached service handles and does not stop an in-flight copy.
+ */
+async function boundedDrainInFlight(
+  inFlight: Thenable<unknown>,
+  budgetMs: number = EE_INFLIGHT_DRAIN_BUDGET_MS,
+): Promise<void> {
+  terminateTrackedAsyncSpawns();
+  let drainTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      Promise.resolve(inFlight).catch(() => undefined),
+      new Promise<void>((resolve) => {
+        drainTimer = setTimeout(resolve, budgetMs);
+      }),
+    ]);
+  } finally {
+    if (drainTimer !== undefined) {
+      clearTimeout(drainTimer);
+    }
+  }
+}
+
+async function drainInFlightDocsLibraryInit(
+  context: WorkspaceFolderContext,
+  initPromise: Thenable<unknown>,
+): Promise<void> {
+  await boundedDrainInFlight(initPromise);
+  context.clearCachedServices();
+}
+
+async function warmEeDocsLibrary(
+  context: WorkspaceFolderContext,
+): Promise<boolean> {
+  const initPromise = context.docsLibrary;
+  let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      initPromise,
+      new Promise<never>((_, reject) => {
+        attemptTimer = setTimeout(
+          () => reject(new Error(EE_DOCS_WARM_TIMEOUT_MSG)),
+          EE_DOCS_WARM_BUDGET_MS,
+        );
+      }),
+    ]);
+    return true;
+  } catch (err: unknown) {
+    if (!isTransientEeReadinessError(err)) {
+      throw err;
+    }
+    await drainInFlightDocsLibraryInit(context, initPromise);
+    console.warn(
+      `[completion-ee] EE docsLibrary not ready within ` +
+        `${EE_DOCS_WARM_BUDGET_MS / 1000}s — remaining @ee module suites will skip`,
+    );
+    return false;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
+  }
+}
+
+/**
+ * Bound `doCompletion` while EE spawn timeouts are armed so a stuck
+ * container call cannot sit until Vitest's default 60s `it` timeout.
+ */
+async function doCompletionForTestOrSkip(
+  textDoc: TextDocument,
+  position: { line: number; character: number },
+  context: WorkspaceFolderContext,
+  testContext: { skip: () => void },
+) {
+  if (!process.env[EE_SPAWN_SYNC_TIMEOUT_ENV]) {
+    return doCompletion(textDoc, position, context);
+  }
+
+  const completionPromise = doCompletion(textDoc, position, context);
+  let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      completionPromise,
+      new Promise<never>((_, reject) => {
+        attemptTimer = setTimeout(
+          () => reject(new Error(EE_COMPLETION_TEST_TIMEOUT_MSG)),
+          EE_PROBE_ATTEMPT_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } catch (err: unknown) {
+    if (isTransientEeReadinessError(err)) {
+      await boundedDrainInFlight(completionPromise);
+      context.clearCachedServices();
+      eeModuleCompletionReady = false;
+      testContext.skip();
+      return [];
+    }
+    throw err;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
+  }
+}
+
+/**
  * Run the shared EE module probe on `simple_tasks.yml`, then enable EE for
  * the suite under test (may use a different workspace document).
  */
@@ -197,6 +342,12 @@ async function prepareEeCompletionSuiteForSettings(
   }
   setEeFixtureAnsibleCollectionPathEnv();
   await enableExecutionEnvironmentSettings(suiteDocSettings, suiteContext);
+  if (suiteContext && suiteContext !== probeContext) {
+    const warmed = await warmEeDocsLibrary(suiteContext);
+    if (!warmed) {
+      eeModuleCompletionReady = false;
+    }
+  }
 }
 
 function testPlayKeywords(
@@ -676,8 +827,15 @@ function testPlaybookAdjacentCollection(
   expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
-      it(`should provide completion for ${name}`, async function () {
-        const actualCompletion = await doCompletion(textDoc, position, context);
+      it(`should provide completion for ${name}`, async function (testContext: {
+        skip: () => void;
+      }) {
+        const actualCompletion = await doCompletionForTestOrSkip(
+          textDoc,
+          position,
+          context,
+          testContext,
+        );
 
         const filteredCompletion = smartFilter(
           actualCompletion,
@@ -716,8 +874,15 @@ function testNonPlaybookAdjacentCollection(
   expect(context).toBeDefined();
   if (context) {
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
-      it(`should not provide completion for ${name}`, async function () {
-        const actualCompletion = await doCompletion(textDoc, position, context);
+      it(`should not provide completion for ${name}`, async function (testContext: {
+        skip: () => void;
+      }) {
+        const actualCompletion = await doCompletionForTestOrSkip(
+          textDoc,
+          position,
+          context,
+          testContext,
+        );
 
         const filteredCompletion = smartFilter(
           actualCompletion,

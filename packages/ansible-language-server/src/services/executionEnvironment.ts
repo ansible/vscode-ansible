@@ -428,20 +428,41 @@ export class ExecutionEnvironment {
     return true;
   }
 
+  /** Bounded {@link child_process.spawnSync} for container engine cleanup/list ops. */
+  private syncContainerEngine(
+    engine: string,
+    args: string[],
+    options: child_process.SpawnSyncOptions = {},
+  ): child_process.SpawnSyncReturns<string> {
+    const envTimeout = process.env.ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS;
+    const envTimeoutMs =
+      envTimeout !== undefined && envTimeout !== ""
+        ? Number(envTimeout)
+        : undefined;
+    const timeout =
+      options.timeout ??
+      (envTimeoutMs !== undefined && !Number.isNaN(envTimeoutMs)
+        ? envTimeoutMs
+        : 30_000);
+
+    return child_process.spawnSync(engine, args, {
+      encoding: "utf-8",
+      shell: false,
+      ...options,
+      timeout,
+    });
+  }
+
   private getContainerIds(engine: string, args: string[]): string[] {
     /* v8 ignore next 10 */
-    try {
-      const result = child_process.spawnSync(engine, args, {
-        encoding: "utf-8",
-        shell: false,
-      });
-      return result.stdout
-        .trim()
-        .split("\n")
-        .filter((id) => id.trim() !== "");
-    } catch {
+    const result = this.syncContainerEngine(engine, args);
+    if (result.error) {
       return [];
     }
+    return (result.stdout ?? "")
+      .trim()
+      .split("\n")
+      .filter((id) => id.trim() !== "");
   }
 
   private runContainerCommand(
@@ -452,14 +473,12 @@ export class ExecutionEnvironment {
     cwd: string,
   ): void {
     /* v8 ignore next 8 */
-    try {
-      child_process.spawnSync(engine, [action, ...ids], {
-        cwd,
-        shell: false,
-      });
-    } catch (error) {
+    const result = this.syncContainerEngine(engine, [action, ...ids], {
+      cwd,
+    });
+    if (result.error) {
       console.error(
-        `Error detected while trying to ${action} the container ${containerName}: ${error instanceof Error ? error.message : String(error)}`,
+        `Error detected while trying to ${action} the container ${containerName}: ${result.error.message}`,
       );
     }
   }
@@ -504,18 +523,17 @@ export class ExecutionEnvironment {
       return false;
     }
 
-    let containerNameExist: boolean;
-    try {
-      const result = child_process.spawnSync(
-        this._container_engine,
-        ["container", "ls", "-aq", "-f", `name=${containerName}`],
-        { encoding: "utf-8", shell: false },
-      );
-      containerNameExist = result.stdout.trim() !== "";
-    } catch {
-      containerNameExist = false;
+    const result = this.syncContainerEngine(this._container_engine, [
+      "container",
+      "ls",
+      "-aq",
+      "-f",
+      `name=${containerName}`,
+    ]);
+    if (result.error) {
+      return false;
     }
-    return containerNameExist;
+    return (result.stdout ?? "").trim() !== "";
   }
 
   private updateContainerVolumeMountFromSettings(): void {
