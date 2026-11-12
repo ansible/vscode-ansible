@@ -29,19 +29,31 @@ vi.mock("@src/features/lightspeed/ansibleContext", () => ({
 vi.mock("@google/genai", () => {
   // Create a proper constructor class that can be instantiated with 'new'
   const generateContentMock = vi.fn();
+  const googleGenAIConstructor = vi.fn();
 
   class MockGoogleGenAI {
     models = {
       generateContent: generateContentMock,
     };
+
+    constructor(options: unknown) {
+      googleGenAIConstructor(options);
+    }
   }
 
   // Export the mock so we can access it in tests
   (
     MockGoogleGenAI as unknown as {
       __generateContentMock: typeof generateContentMock;
+      __googleGenAIConstructor: typeof googleGenAIConstructor;
     }
   ).__generateContentMock = generateContentMock;
+  (
+    MockGoogleGenAI as unknown as {
+      __generateContentMock: typeof generateContentMock;
+      __googleGenAIConstructor: typeof googleGenAIConstructor;
+    }
+  ).__googleGenAIConstructor = googleGenAIConstructor;
 
   return {
     GoogleGenAI: MockGoogleGenAI,
@@ -139,6 +151,12 @@ const sharedGenerateContent = (
   }
 ).__generateContentMock;
 
+const googleGenAIConstructor = (
+  GoogleGenAI as unknown as {
+    __googleGenAIConstructor: ReturnType<typeof vi.fn>;
+  }
+).__googleGenAIConstructor;
+
 describe("GoogleProvider", () => {
   describe("Constructor", () => {
     it("should initialize with config and log model name", () => {
@@ -155,6 +173,39 @@ describe("GoogleProvider", () => {
         expect.stringContaining(MODEL_NAMES.GEMINI_25_FLASH),
       );
       expect(sharedGenerateContent).toBeDefined();
+    });
+
+    it("should pin GoogleGenAI to apiVersion v1beta by default", () => {
+      new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+      });
+
+      expect(googleGenAIConstructor).toHaveBeenCalledWith({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        apiVersion: "v1beta",
+      });
+    });
+
+    it("should pin GoogleGenAI to apiVersion v1beta when using a custom base URL", () => {
+      const baseUrl = "https://generativelanguage.googleapis.com";
+
+      new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+        baseUrl,
+      });
+
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining(baseUrl),
+      );
+      expect(googleGenAIConstructor).toHaveBeenCalledWith({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        apiVersion: "v1beta",
+        httpOptions: {
+          baseUrl,
+        },
+      });
     });
   });
 
