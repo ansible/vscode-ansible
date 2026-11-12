@@ -38,9 +38,9 @@ export const ADE_ISOLATION_MODE_MIN = "25.4.0";
 /* Slightly lower than CloudFront's timeout which is 30s. */
 export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
 
-export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
-
-export const ANSIBLE_CREATOR_COLLECTION_VERSION_MIN = "24.7.1";
+// ansible-creator v26.2.0 (February 2026). Not 2026.2.0: semver would
+// reject every published release. Covers init collection/playbook and add.
+export const ANSIBLE_CREATOR_VERSION_MIN = "26.2.0";
 
 export const DevfileImages = {
   Upstream: "ghcr.io/ansible/ansible-devspaces:latest",

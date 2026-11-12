@@ -3,7 +3,7 @@ import * as os from "os";
 import { SettingsManager } from "@src/settings";
 import { withInterpreter } from "@src/features/utils/commandRunner";
 import { ANSIBLE_CREATOR_VERSION_MIN } from "@src/definitions/constants";
-import * as semver from "semver";
+import { isAnsibleCreatorVersionGte } from "@src/features/contentCreator/ansibleCreatorVersion";
 
 export async function getBinDetail(cmd: string, arg: string) {
   const extSettings = new SettingsManager();
@@ -109,16 +109,14 @@ export async function checkContentCreatorRequirements() {
         required: ANSIBLE_CREATOR_VERSION_MIN,
         current: "not found",
       });
-    } else {
-      const parsed =
-        semver.valid(creatorVersion) ?? semver.coerce(creatorVersion)?.version;
-      if (!parsed || !semver.gte(parsed, ANSIBLE_CREATOR_VERSION_MIN)) {
-        failures.push({
-          type: "ansible-creator",
-          required: ANSIBLE_CREATOR_VERSION_MIN,
-          current: parsed ?? creatorVersion,
-        });
-      }
+    } else if (
+      !isAnsibleCreatorVersionGte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)
+    ) {
+      failures.push({
+        type: "ansible-creator",
+        required: ANSIBLE_CREATOR_VERSION_MIN,
+        current: creatorVersion,
+      });
     }
   } catch (error) {
     console.error(
