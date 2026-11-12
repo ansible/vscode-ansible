@@ -5,6 +5,7 @@ import {
   activate,
   testDiagnostics,
   waitForDiagnosticsFromSource,
+  ensureLocalAnsibleLintValidation,
 } from "@test/e2e/e2e.utils";
 
 describe("yaml-diag-no-ee", function () {
@@ -19,6 +20,8 @@ describe("yaml-diag-no-ee", function () {
       if (process.env.IS_WSL === "1") {
         this.skip();
       }
+      await ensureLocalAnsibleLintValidation();
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     });
 
     it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {

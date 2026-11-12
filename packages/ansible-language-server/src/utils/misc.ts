@@ -66,6 +66,34 @@ function validateActivationScript(scriptPath: string): string | undefined {
 
 type SpawnResult = { stdout: string; stderr: string };
 
+/** When `"1"`, {@link asyncSpawn} registers children for {@link terminateTrackedAsyncSpawns}. */
+const TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
+const trackedAsyncSpawns = new Set<child_process.ChildProcess>();
+
+/** SIGTERM tracked {@link asyncSpawn} children (used by ALS @ee unit tests on timeout). */
+export function terminateTrackedAsyncSpawns(): void {
+  for (const proc of trackedAsyncSpawns) {
+    try {
+      proc.kill("SIGTERM");
+    } catch {
+      // ignore processes that already exited
+    }
+  }
+}
+
+function untrackAsyncSpawn(proc: child_process.ChildProcess): void {
+  trackedAsyncSpawns.delete(proc);
+}
+
+function trackAsyncSpawn(proc: child_process.ChildProcess): void {
+  if (process.env[TRACK_ASYNC_SPAWN_ENV] !== "1") {
+    return;
+  }
+  trackedAsyncSpawns.add(proc);
+  proc.once("close", () => untrackAsyncSpawn(proc));
+  proc.once("error", () => untrackAsyncSpawn(proc));
+}
+
 export function spawnSyncWithResult(
   command: string,
   args: string[],
@@ -113,6 +141,7 @@ export function asyncSpawn(
       ...options,
       shell: false,
     });
+    trackAsyncSpawn(proc);
     let stdout = "";
     let stderr = "";
     proc.stdout?.on("data", (chunk: Buffer) => {

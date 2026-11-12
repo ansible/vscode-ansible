@@ -27,10 +27,11 @@ overrides:
   # consumers (incl. wdio-vscode-service@^2.4.1) onto the fixed release.
   "@vscode/test-electron": "3.1.0"
   # Security overrides
+  "@azure/msal-node": ">=7.1.0"
   "@fastify/static": ">=10.1.2 <11.0.0"
-  "@hono/node-server": ">=2.0.5 <3.0.0"
+  "@hono/node-server": ">=2.1.3 <3.0.0"
   "@xhmikosr/decompress@10": "11.1.4"
-  "body-parser": ">=2.3.0 <3.0.0"
+  "body-parser": ">=2.4.0 <3.0.0"
   "brace-expansion@1": ">=5.0.8 <6.0.0"
   "brace-expansion@2": ">=5.0.9 <6.0.0"
   "brace-expansion@5": ">=5.0.8 <6.0.0"
@@ -39,24 +40,34 @@ overrides:
   # minimatch@5/@9 default-import brace-expansion; v5 is named export only
   "minimatch@5": ">=11.0.1 <12"
   "minimatch@9": ">=11.0.1 <12"
-  "fast-uri@3": "<5.0.0"
+  "fast-uri@3": ">=4.2.3 <5.0.0"
+  "fast-uri": "4.2.3"
   "fast-xml-parser": ">=5.10.1 <6.0.0"
-  "fastify": ">=5.8.3 <6.0.0"
+  "fastify": ">=5.12.6 <6.0.0"
   "find-my-way": ">=9.7.0 <10.0.0"
+  "follow-redirects": ">=1.16.2"
   "form-data@4": ">=4.0.6"
+  "glob": ">=14.0.2 <15.0.0"
   "js-yaml@5": ">=5.2.2"
+  "katex": ">=0.18.2"
   "linkify-it": "<7.0.0"
-  "markdown-it": "<16.0.0"
+  "markdown-it": ">=15.0.3 <16.0.0"
+  "qs": ">=6.16.1"
+  "re2js": ">=2.8.7"
   "postcss": ">=8.5.18 <9.0.0"
   "protobufjs@7": "<9.0.0"
-  "serialize-javascript": ">=7.0.5 <8.0.0"
+  "serialize-javascript": ">=7.1.3 <8.0.0"
+  "source-map-js": ">=1.2.2"
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
-  "undici@6": "<9.0.0"
-  # jsdom@29 imports undici 7 internals removed in undici 8; cap ^7 deps at 7.x
-  "undici@7": "<9.0.0"
-  "hono": ">=4.12.34 <5.0.0"
-  "ip-address": ">=10.2.2"
+  # Dependabot: pin all undici consumers to 8.12.3 (jsdom@30 uses undici 8.x).
+  "undici@8": "8.12.3"
+  "undici": "8.12.3"
+  "@electron/get>undici": "8.12.4"
+  "cheerio>undici": "8.12.4"
+  "wdio-vscode-service>undici": "8.12.4"
+  "hono": ">=4.13.11 <5.0.0"
+  "ip-address": ">=10.7.4"
   "diff@>=5.0.0 <8.0.3": "9.0.0"
   "file-type@>=13.0.0 <21.3.2": "22.3.0"
   "nanoid@3": "<7.0.0"
@@ -84,9 +95,9 @@ minimumReleaseAgeExclude:
   # Renovate security update: brace-expansion@5.0.8 || 5.0.9
   - brace-expansion@5.0.8 || 5.0.9
   # Renovate security update: undici@8.10.0
-  - undici@6.28.0 || 7.29.0 || 8.10.0
-  - hono@4.13.1
-  - ip-address@10.5.0
+  - undici@6.28.0 || 7.29.0 || 8.10.0 || 8.12.2 || 8.12.3
+  - hono@4.13.1 || 4.13.11 || 4.13.16
+  - ip-address@10.5.0 || 10.7.4 || 10.7.5
   - diff@8.0.4
   - file-type@21.3.2
   - nanoid@3.3.18
@@ -106,6 +117,20 @@ minimumReleaseAgeExclude:
   - electron@44.5.0 || 44.9.1
   # Renovate security update: @vitest/ui@5.0.5
   - "@vitest/ui@5.0.5"
+  - "@vitest/mocker@5.0.3"
+  - vitest@5.0.3
+  - follow-redirects@1.16.1 || 1.16.2
+  - "@azure/msal-node@7.1.0"
+  - katex@0.18.2
+  - body-parser@2.4.0
+  - fast-uri@4.2.3
+  - markdown-it@15.0.3
+  - serialize-javascript@7.1.3 || 7.1.4
+  - source-map-js@1.2.2
+  - qs@6.16.1 || 6.17.1
+  - re2js@2.8.7
+  - "@hono/node-server@2.1.3"
+  - fastify@5.12.6
   # Renovate security update: zod@4.6.6
   - zod@4.6.6
   # Renovate security update: glob@14.0.2
