@@ -4,8 +4,10 @@
   "automergeStrategy": "squash",
   "commitMessageAction": "update",
   "configMigration": true,
-  "dependencyDashboard": true,
-  "dependencyDashboardAutoclose": true,
+  "dependencyDashboard": {
+    "autoclose": true,
+    "enabled": true
+  },
   "extends": [
     "config:recommended",
     ":semanticCommitTypeAll(chore)",

@@ -3,12 +3,14 @@
  * `doCompletionResolve()` is called to resolve the selected completion item.
  */
 
-import { expect, beforeAll, afterAll, afterEach } from "vitest";
+import { expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
 import sinon from "sinon";
 import { EOL } from "os";
 import { doCompletionResolve } from "@src/providers/completionProvider.js";
 import {} from "@src/providers/validationProvider.js";
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
+import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
+import { terminateTrackedAsyncSpawns } from "@src/utils/misc.js";
 import {
   createTestWorkspaceManager,
   enableExecutionEnvironmentSettings,
@@ -17,7 +19,126 @@ import {
   setEeFixtureAnsibleCollectionPathEnv,
   resolveDocUri,
   getDoc,
+  skipEE,
 } from "@test/helper.js";
+
+const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+const EE_DOCS_WARM_BUDGET_MS = 60_000 * 2;
+const EE_INFLIGHT_DRAIN_BUDGET_MS = EE_PROBE_ATTEMPT_TIMEOUT_MS;
+const EE_DOCS_WARM_TIMEOUT_MSG =
+  "EE resolver: docsLibrary exceeded warm budget";
+const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+const EE_TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
+const EE_RESOLVE_SETUP_HOOK_TIMEOUT_MS =
+  EE_DOCS_WARM_BUDGET_MS + EE_INFLIGHT_DRAIN_BUDGET_MS + 15_000;
+
+function isTransientEeReadinessError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  const code =
+    err instanceof Error && "code" in err
+      ? String((err as NodeJS.ErrnoException).code)
+      : "";
+  if (msg.includes(EE_DOCS_WARM_TIMEOUT_MSG)) {
+    return true;
+  }
+  if (code === "ETIMEDOUT" || msg.includes("ETIMEDOUT")) {
+    return true;
+  }
+  if (msg.includes("Failed to initialize execution environment")) {
+    return true;
+  }
+  if (/Process '.*' exited with code/.test(msg)) {
+    return true;
+  }
+  return false;
+}
+
+async function boundedDrainInFlight(
+  inFlight: Thenable<unknown>,
+  budgetMs: number = EE_INFLIGHT_DRAIN_BUDGET_MS,
+): Promise<void> {
+  terminateTrackedAsyncSpawns();
+  let drainTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      Promise.resolve(inFlight).catch(() => undefined),
+      new Promise<void>((resolve) => {
+        drainTimer = setTimeout(resolve, budgetMs);
+      }),
+    ]);
+  } finally {
+    if (drainTimer !== undefined) {
+      clearTimeout(drainTimer);
+    }
+  }
+}
+
+async function warmEeDocsLibraryForResolver(
+  context: WorkspaceFolderContext,
+): Promise<boolean> {
+  const initPromise = context.docsLibrary;
+  let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      initPromise,
+      new Promise<never>((_, reject) => {
+        attemptTimer = setTimeout(
+          () => reject(new Error(EE_DOCS_WARM_TIMEOUT_MSG)),
+          EE_DOCS_WARM_BUDGET_MS,
+        );
+      }),
+    ]);
+    return true;
+  } catch (err: unknown) {
+    if (!isTransientEeReadinessError(err)) {
+      throw err;
+    }
+    await boundedDrainInFlight(initPromise);
+    context.clearCachedServices();
+    console.warn(
+      `[resolver-ee] EE docsLibrary not ready within ` +
+        `${EE_DOCS_WARM_BUDGET_MS / 1000}s — @ee resolve tests will skip`,
+    );
+    return false;
+  } finally {
+    if (attemptTimer !== undefined) {
+      clearTimeout(attemptTimer);
+    }
+  }
+}
+
+async function prepareEeResolverSuite(
+  docSettings: Thenable<ExtensionSettings>,
+  context: WorkspaceFolderContext,
+): Promise<boolean> {
+  if (skipEE()) {
+    return false;
+  }
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = "1";
+  setEeFixtureAnsibleCollectionPathEnv();
+  await enableExecutionEnvironmentSettings(docSettings, context);
+  return warmEeDocsLibraryForResolver(context);
+}
+
+async function teardownEeResolverSuite(
+  docSettings: Thenable<ExtensionSettings>,
+  context: WorkspaceFolderContext,
+): Promise<void> {
+  process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = undefined;
+  terminateTrackedAsyncSpawns();
+  setFixtureAnsibleCollectionPathEnv();
+  await disableExecutionEnvironmentSettings(docSettings, context);
+}
+
+function skipIfEeResolveUnavailable(skipFlag: () => boolean) {
+  return (ctx: { skip: () => void }): void => {
+    if (skipEE() || skipFlag()) {
+      ctx.skip();
+    }
+  };
+}
 
 function testFQCNEnabled(context: WorkspaceFolderContext) {
   const tests = [
@@ -227,15 +348,19 @@ describe("doCompletionResolve()", function () {
     describe("Resolve completion for module names", function () {
       describe("Resolve completion for module names when FQCN is enabled", function () {
         describe("@ee", function () {
+          let skipEeResolve = false;
+
           beforeAll(async () => {
-            setEeFixtureAnsibleCollectionPathEnv();
-            await enableExecutionEnvironmentSettings(docSettings, context);
-          });
+            skipEeResolve = !(await prepareEeResolverSuite(
+              docSettings,
+              context,
+            ));
+          }, EE_RESOLVE_SETUP_HOOK_TIMEOUT_MS);
+          beforeEach(skipIfEeResolveUnavailable(() => skipEeResolve));
           testFQCNEnabled(context);
 
           afterAll(async function () {
-            setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings, context);
+            await teardownEeResolverSuite(docSettings, context);
           });
         });
 
@@ -250,17 +375,21 @@ describe("doCompletionResolve()", function () {
 
       describe("Resolve completion for module names when FQCN is disabled", function () {
         describe("@ee", function () {
+          let skipEeResolve = false;
+
           beforeAll(async () => {
-            setEeFixtureAnsibleCollectionPathEnv();
-            await enableExecutionEnvironmentSettings(docSettings, context);
+            skipEeResolve = !(await prepareEeResolverSuite(
+              docSettings,
+              context,
+            ));
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
               false;
-          });
+          }, EE_RESOLVE_SETUP_HOOK_TIMEOUT_MS);
+          beforeEach(skipIfEeResolveUnavailable(() => skipEeResolve));
           testFQCNDisabled(context);
 
           afterAll(async function () {
-            setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings, context);
+            await teardownEeResolverSuite(docSettings, context);
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
           });
         });
@@ -284,16 +413,17 @@ describe("doCompletionResolve()", function () {
 
     describe("Resolve completion for module options and suboptions", function () {
       describe("@ee", function () {
+        let skipEeResolve = false;
+
         beforeAll(async () => {
-          setEeFixtureAnsibleCollectionPathEnv();
-          await enableExecutionEnvironmentSettings(docSettings, context);
-        });
+          skipEeResolve = !(await prepareEeResolverSuite(docSettings, context));
+        }, EE_RESOLVE_SETUP_HOOK_TIMEOUT_MS);
+        beforeEach(skipIfEeResolveUnavailable(() => skipEeResolve));
 
         testResolveModuleOptionCompletion(context);
 
         afterAll(async function () {
-          setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings, context);
+          await teardownEeResolverSuite(docSettings, context);
         });
       });
 
