@@ -49,23 +49,15 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       `[Google Provider] Initializing with model: ${this.modelName}`,
     );
 
-    // @google/genai v3 defaults to API v1; beta-only model aliases need v1beta.
     if (config.baseUrl) {
       this.logger.info(
         `[Google Provider] Using custom base URL: ${config.baseUrl}`,
       );
       this.client = new GoogleGenAI({
-        apiKey: config.apiKey,
-        apiVersion: "v1beta",
-        httpOptions: {
-          baseUrl: config.baseUrl,
-        },
+        apiKey: config.apiKey, apiVersion: "v1beta", httpOptions: { baseUrl: config.baseUrl },
       });
     } else {
-      this.client = new GoogleGenAI({
-        apiKey: config.apiKey,
-        apiVersion: "v1beta",
-      });
+      this.client = new GoogleGenAI({ apiKey: config.apiKey, apiVersion: "v1beta" });
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
