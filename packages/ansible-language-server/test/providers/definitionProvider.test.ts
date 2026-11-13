@@ -23,9 +23,11 @@ let eeDefinitionReady: boolean | undefined;
 const EE_PROBE_BUDGET_MS = 60_000;
 const EE_PROBE_INTERVAL_MS = 3_000;
 const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
+const EE_INFLIGHT_DRAIN_BUDGET_MS = EE_PROBE_ATTEMPT_TIMEOUT_MS;
 const EE_PROBE_TIMEOUT_MSG = "EE probe: docsLibrary exceeded attempt timeout";
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
-const EE_DEFINITION_SETUP_HOOK_TIMEOUT_MS = EE_PROBE_BUDGET_MS + 15_000;
+const EE_DEFINITION_SETUP_HOOK_TIMEOUT_MS =
+  EE_PROBE_BUDGET_MS + EE_INFLIGHT_DRAIN_BUDGET_MS + 15_000;
 
 function isTransientEeReadinessError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
@@ -56,19 +58,54 @@ function clearEeDefinitionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
 }
 
+/**
+ * Wait for an abandoned `docsLibrary` init before `clearCachedServices`.
+ * A timed-out probe can still be copying plugin docs into the host cache;
+ * starting another attempt on the same path can skip `cp` and write a
+ * success marker over a partial cache.
+ */
+async function drainAbandonedDocsLibraryInit(
+  initPromise: Thenable<unknown>,
+  budgetMs: number,
+): Promise<"succeeded" | "failed" | "timeout"> {
+  let drainTimer: ReturnType<typeof setTimeout> | undefined;
+  let outcome: "succeeded" | "failed" | "timeout" = "timeout";
+  try {
+    await Promise.race([
+      Promise.resolve(initPromise).then(
+        () => {
+          outcome = "succeeded";
+        },
+        () => {
+          outcome = "failed";
+        },
+      ),
+      new Promise<void>((resolve) => {
+        drainTimer = setTimeout(resolve, budgetMs);
+      }),
+    ]);
+  } finally {
+    if (drainTimer !== undefined) {
+      clearTimeout(drainTimer);
+    }
+  }
+  return outcome;
+}
+
 async function warmEeDocsLibrary(
   context: WorkspaceFolderContext,
 ): Promise<boolean> {
   const deadline = Date.now() + EE_PROBE_BUDGET_MS;
   while (Date.now() < deadline) {
     let attemptTimer: ReturnType<typeof setTimeout> | undefined;
+    const initPromise = context.docsLibrary;
     try {
       const remainingMs = Math.min(
         EE_PROBE_ATTEMPT_TIMEOUT_MS,
         deadline - Date.now(),
       );
       await Promise.race([
-        context.docsLibrary,
+        initPromise,
         new Promise<never>((_, reject) => {
           attemptTimer = setTimeout(
             () => reject(new Error(EE_PROBE_TIMEOUT_MSG)),
@@ -80,6 +117,16 @@ async function warmEeDocsLibrary(
     } catch (err: unknown) {
       if (!isTransientEeReadinessError(err)) {
         throw err;
+      }
+      const drainOutcome = await drainAbandonedDocsLibraryInit(
+        initPromise,
+        EE_INFLIGHT_DRAIN_BUDGET_MS,
+      );
+      if (drainOutcome === "succeeded") {
+        return true;
+      }
+      if (drainOutcome === "timeout") {
+        break;
       }
       context.clearCachedServices();
     } finally {
