@@ -37,17 +37,15 @@ export interface GoogleConfig {
 export function createGoogleGenAIClient(
   config: Pick<GoogleConfig, "apiKey" | "baseUrl">,
 ): GoogleGenAI {
+  const apiKey = config.apiKey;
+  const apiVersion = "v1beta";
   if (config.baseUrl) {
-    return new GoogleGenAI({
-      apiKey: config.apiKey,
-      apiVersion: "v1beta",
-      httpOptions: { baseUrl: config.baseUrl },
-    });
+    const httpOptions = { baseUrl: config.baseUrl };
+    const clientOptions = { apiKey, apiVersion, httpOptions };
+    return new GoogleGenAI(clientOptions);
   }
-  return new GoogleGenAI({
-    apiKey: config.apiKey,
-    apiVersion: "v1beta",
-  });
+  const clientOptions = { apiKey, apiVersion };
+  return new GoogleGenAI(clientOptions);
 }
 
 export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {

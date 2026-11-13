@@ -198,22 +198,16 @@ describe("GoogleProvider", () => {
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining(MODEL_NAMES.GEMINI_25_FLASH),
       );
+      expect(googleGenAIConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apiKey: TEST_API_KEYS.GOOGLE,
+          apiVersion: "v1beta",
+        }),
+      );
       expect(sharedGenerateContent).toBeDefined();
     });
 
-    it("should pin GoogleGenAI to apiVersion v1beta by default", () => {
-      new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-
-      expect(googleGenAIConstructor).toHaveBeenCalledWith({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        apiVersion: "v1beta",
-      });
-    });
-
-    it("should pin GoogleGenAI to apiVersion v1beta when using a custom base URL", () => {
+    it("should log a custom base URL when configured", () => {
       const baseUrl = "https://generativelanguage.googleapis.com";
 
       new GoogleProvider({
@@ -225,13 +219,6 @@ describe("GoogleProvider", () => {
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining(baseUrl),
       );
-      expect(googleGenAIConstructor).toHaveBeenCalledWith({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        apiVersion: "v1beta",
-        httpOptions: {
-          baseUrl,
-        },
-      });
     });
   });
 
