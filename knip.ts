@@ -143,6 +143,8 @@ const config: KnipConfig = {
       "exports",
       "types",
     ],
+    // terminateTrackedAsyncSpawns is for @ee unit tests only (production knip excludes tests)
+    "packages/ansible-language-server/src/utils/misc.ts": ["exports"],
     "packages/ansible-language-server/src/interfaces/extensionSettings.ts": [
       "types",
     ],
