@@ -60,12 +60,12 @@ overrides:
   "source-map-js": ">=1.2.2"
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
-  # Dependabot: pin all undici consumers to 8.12.3 (jsdom@30 uses undici 8.x).
-  "undici@8": "8.12.3"
-  "undici": "8.12.3"
+  # Dependabot: pin all undici consumers to 8.12.4 (jsdom@30 uses undici 8.x).
+  "undici@8": "8.12.4"
+  "undici": "8.12.4"
   "@electron/get>undici": "8.12.4"
   "cheerio>undici": "8.12.4"
-  "wdio-vscode-service>undici": "8.12.3"
+  "wdio-vscode-service>undici": "8.12.4"
   "hono": ">=4.13.11 <5.0.0"
   "ip-address": ">=10.7.4"
   "diff@>=5.0.0 <8.0.3": "9.0.0"
@@ -95,7 +95,7 @@ minimumReleaseAgeExclude:
   # Renovate security update: brace-expansion@5.0.8 || 5.0.9
   - brace-expansion@5.0.8 || 5.0.9
   # Renovate security update: undici@8.10.0
-  - undici@6.28.0 || 7.29.0 || 8.10.0 || 8.12.2 || 8.12.3
+  - undici@6.28.0 || 7.29.0 || 8.10.0 || 8.12.2 || 8.12.3 || 8.12.4
   - hono@4.13.1 || 4.13.11 || 4.13.16
   - ip-address@10.5.0 || 10.7.4 || 10.7.5
   - diff@8.0.4
