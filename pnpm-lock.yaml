@@ -199,7 +199,7 @@ overrides:
   source-map-js: '>=1.2.2'
   tar-fs@3: '>=3.1.2'
   ws@8: '>=8.17.1'
-  undici@8: 8.12.3
+  undici@8: 8.12.4
   undici: 8.12.3
   '@electron/get>undici': 8.12.4
   cheerio>undici: 8.12.4
@@ -11198,7 +11198,7 @@ snapshots:
       '@wdio/logger': 10.1.0
       '@zip.js/zip.js': 2.24.0
       decamelize: 6.0.1
-      undici: 8.12.3
+      undici: 8.12.4
 
   editions@6.22.0:
     dependencies:
@@ -12020,7 +12020,7 @@ snapshots:
       '@zip.js/zip.js': 2.24.0
       decamelize: 6.0.1
       modern-tar: 0.8.6
-      undici: 8.12.3
+      undici: 8.12.4
 
   generator-function@2.0.1: {}
 
@@ -12635,7 +12635,7 @@ snapshots:
       parse5-parser-stream: 8.1.0
       saxes: 6.0.0
       tough-cookie: 6.0.2
-      undici: 8.12.3
+      undici: 8.12.4
       w3c-xmlserializer: 6.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -15062,7 +15062,7 @@ snapshots:
       '@wdio/utils': 10.1.0(supports-color@8.1.1)(yauzl@3.4.0)
       deepmerge-ts: 8.0.2
       https-proxy-agent: 9.1.0(supports-color@8.1.1)
-      undici: 8.12.3
+      undici: 8.12.4
       ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil

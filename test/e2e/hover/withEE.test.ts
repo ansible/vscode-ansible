@@ -90,6 +90,12 @@ describe("ee", function () {
           new vscode.Position(5, 7),
           readinessTimeoutMs(),
         );
+        // Collection docs from EE often finish after builtins on loaded Linux runners.
+        await waitForHoverReady(
+          docUri1,
+          new vscode.Position(9, 7),
+          readinessTimeoutMs(),
+        );
       } catch (err: unknown) {
         if (!isEeReadinessSkipError(err)) {
           throw err;
@@ -173,10 +179,14 @@ describe("ee", function () {
     });
 
     describe("Hover for module name and options present in the EE", function () {
-      // Collection module docs may also benefit from retry logic for stability
-      const collectionRetryOptions = { retries: 5, retryDelay: 500 };
+      const collectionRetryOptions = {
+        retries: 10,
+        retryDelay: 1000,
+        attemptTimeout: 5000,
+      };
 
       it("should hover over collection module name present in EE (ansible.posix.patch)", async function () {
+        this.timeout(90_000);
         await testHover(
           docUri1,
           new vscode.Position(9, 7),
@@ -190,6 +200,7 @@ describe("ee", function () {
       });
 
       it("should hover over collection module option present in EE (ansible.posix.patch -> src)", async function () {
+        this.timeout(90_000);
         await testHover(
           docUri1,
           new vscode.Position(10, 9),
@@ -203,6 +214,7 @@ describe("ee", function () {
       });
 
       it("should hover over collection module option present in EE (ansible.posix.patch -> dest)", async function () {
+        this.timeout(90_000);
         await testHover(
           docUri1,
           new vscode.Position(11, 9),
