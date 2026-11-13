@@ -13,7 +13,7 @@ import {
 import { WorkspaceFolderContext } from "@src/services/workspaceManager.js";
 import { getDefinition } from "@src/providers/definitionProvider.js";
 import { DocsLibrary } from "@src/services/docsLibrary.js";
-import { fileExists } from "@src/utils/misc.js";
+import { fileExists, terminateTrackedAsyncSpawns } from "@src/utils/misc.js";
 import { URI } from "vscode-uri";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings.js";
 
@@ -26,6 +26,8 @@ const EE_PROBE_ATTEMPT_TIMEOUT_MS = 30_000;
 const EE_INFLIGHT_DRAIN_BUDGET_MS = EE_PROBE_ATTEMPT_TIMEOUT_MS;
 const EE_PROBE_TIMEOUT_MSG = "EE probe: docsLibrary exceeded attempt timeout";
 const EE_SPAWN_SYNC_TIMEOUT_ENV = "ANSIBLE_LS_SPAWN_SYNC_TIMEOUT_MS";
+const EE_TRACK_ASYNC_SPAWN_ENV = "ANSIBLE_LS_TRACK_ASYNC_SPAWN";
+const EE_REQUIRED_FIXTURE_MODULE = "org_1.coll_3.module_3";
 const EE_DEFINITION_SETUP_HOOK_TIMEOUT_MS =
   EE_PROBE_BUDGET_MS + EE_INFLIGHT_DRAIN_BUDGET_MS + 15_000;
 
@@ -52,10 +54,13 @@ function isTransientEeReadinessError(err: unknown): boolean {
 
 function setEeDefinitionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = String(EE_PROBE_ATTEMPT_TIMEOUT_MS);
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = "1";
 }
 
 function clearEeDefinitionSpawnSyncTimeout(): void {
   process.env[EE_SPAWN_SYNC_TIMEOUT_ENV] = undefined;
+  process.env[EE_TRACK_ASYNC_SPAWN_ENV] = undefined;
+  terminateTrackedAsyncSpawns();
 }
 
 /**
@@ -65,13 +70,22 @@ function clearEeDefinitionSpawnSyncTimeout(): void {
  * success marker over a partial cache.
  */
 type DrainResult =
-  | { outcome: "succeeded" | "timeout" }
+  | { outcome: "succeeded" }
+  | { outcome: "timeout" }
   | { outcome: "failed"; error: unknown };
 
+async function hasRequiredEeFixtureModule(
+  docsLibrary: DocsLibrary,
+): Promise<boolean> {
+  const [module] = await docsLibrary.findModule(EE_REQUIRED_FIXTURE_MODULE);
+  return module !== undefined;
+}
+
 async function drainAbandonedDocsLibraryInit(
-  initPromise: Thenable<unknown>,
+  initPromise: Thenable<DocsLibrary>,
   budgetMs: number,
 ): Promise<DrainResult> {
+  terminateTrackedAsyncSpawns();
   let drainTimer: ReturnType<typeof setTimeout> | undefined;
   let result: DrainResult = { outcome: "timeout" };
   try {
@@ -108,7 +122,7 @@ async function warmEeDocsLibrary(
         EE_PROBE_ATTEMPT_TIMEOUT_MS,
         deadline - Date.now(),
       );
-      await Promise.race([
+      const docsLibrary = await Promise.race([
         initPromise,
         new Promise<never>((_, reject) => {
           attemptTimer = setTimeout(
@@ -117,7 +131,10 @@ async function warmEeDocsLibrary(
           );
         }),
       ]);
-      return true;
+      if (await hasRequiredEeFixtureModule(docsLibrary)) {
+        return true;
+      }
+      context.clearCachedServices();
     } catch (err: unknown) {
       if (!isTransientEeReadinessError(err)) {
         throw err;
@@ -127,12 +144,13 @@ async function warmEeDocsLibrary(
         EE_INFLIGHT_DRAIN_BUDGET_MS,
       );
       if (drain.outcome === "succeeded") {
-        return true;
-      }
-      if (drain.outcome === "timeout") {
+        const docsLibrary = await initPromise;
+        if (await hasRequiredEeFixtureModule(docsLibrary)) {
+          return true;
+        }
+      } else if (drain.outcome === "timeout") {
         break;
-      }
-      if (!isTransientEeReadinessError(drain.error)) {
+      } else if (!isTransientEeReadinessError(drain.error)) {
         throw drain.error;
       }
       context.clearCachedServices();
