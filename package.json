@@ -1073,7 +1073,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
-    "@google/genai": "^2.10.0",
+    "@google/genai": "^3.0.0",
     "@highlightjs/vue-plugin": "2.1.0",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@vscode-elements/elements": "^2.5.1",
