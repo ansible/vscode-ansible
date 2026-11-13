@@ -64,20 +64,24 @@ function clearEeDefinitionSpawnSyncTimeout(): void {
  * starting another attempt on the same path can skip `cp` and write a
  * success marker over a partial cache.
  */
+type DrainResult =
+  | { outcome: "succeeded" | "timeout" }
+  | { outcome: "failed"; error: unknown };
+
 async function drainAbandonedDocsLibraryInit(
   initPromise: Thenable<unknown>,
   budgetMs: number,
-): Promise<"succeeded" | "failed" | "timeout"> {
+): Promise<DrainResult> {
   let drainTimer: ReturnType<typeof setTimeout> | undefined;
-  let outcome: "succeeded" | "failed" | "timeout" = "timeout";
+  let result: DrainResult = { outcome: "timeout" };
   try {
     await Promise.race([
       Promise.resolve(initPromise).then(
         () => {
-          outcome = "succeeded";
+          result = { outcome: "succeeded" };
         },
-        () => {
-          outcome = "failed";
+        (err: unknown) => {
+          result = { outcome: "failed", error: err };
         },
       ),
       new Promise<void>((resolve) => {
@@ -89,7 +93,7 @@ async function drainAbandonedDocsLibraryInit(
       clearTimeout(drainTimer);
     }
   }
-  return outcome;
+  return result;
 }
 
 async function warmEeDocsLibrary(
@@ -118,15 +122,18 @@ async function warmEeDocsLibrary(
       if (!isTransientEeReadinessError(err)) {
         throw err;
       }
-      const drainOutcome = await drainAbandonedDocsLibraryInit(
+      const drain = await drainAbandonedDocsLibraryInit(
         initPromise,
         EE_INFLIGHT_DRAIN_BUDGET_MS,
       );
-      if (drainOutcome === "succeeded") {
+      if (drain.outcome === "succeeded") {
         return true;
       }
-      if (drainOutcome === "timeout") {
+      if (drain.outcome === "timeout") {
         break;
+      }
+      if (!isTransientEeReadinessError(drain.error)) {
+        throw drain.error;
       }
       context.clearCachedServices();
     } finally {
