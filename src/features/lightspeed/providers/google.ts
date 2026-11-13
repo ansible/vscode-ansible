@@ -33,6 +33,23 @@ export interface GoogleConfig {
   baseUrl?: string;
 }
 
+/** @google/genai v3 defaults to v1; beta-only model aliases need v1beta. */
+export function createGoogleGenAIClient(
+  config: Pick<GoogleConfig, "apiKey" | "baseUrl">,
+): GoogleGenAI {
+  if (config.baseUrl) {
+    return new GoogleGenAI({
+      apiKey: config.apiKey,
+      apiVersion: "v1beta",
+      httpOptions: { baseUrl: config.baseUrl },
+    });
+  }
+  return new GoogleGenAI({
+    apiKey: config.apiKey,
+    apiVersion: "v1beta",
+  });
+}
+
 export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
   readonly name = "google";
   readonly displayName = "Google Gemini";
@@ -53,12 +70,8 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
       this.logger.info(
         `[Google Provider] Using custom base URL: ${config.baseUrl}`,
       );
-      // prettier-ignore
-      this.client = new GoogleGenAI({ apiKey: config.apiKey, apiVersion: "v1beta", httpOptions: { baseUrl: config.baseUrl } });
-    } else {
-      // prettier-ignore
-      this.client = new GoogleGenAI({ apiKey: config.apiKey, apiVersion: "v1beta" });
     }
+    this.client = createGoogleGenAIClient(config);
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleGeminiError(error: any, operation: string): Error {

@@ -111,7 +111,10 @@ beforeEach(() => {
   );
 });
 
-import { GoogleProvider } from "@src/features/lightspeed/providers/google.js";
+import {
+  createGoogleGenAIClient,
+  GoogleProvider,
+} from "@src/features/lightspeed/providers/google.js";
 import type { CompletionRequestParams } from "@src/interfaces/lightspeed.js";
 import type {
   ChatRequestParams,
@@ -156,6 +159,29 @@ const googleGenAIConstructor = (
     __googleGenAIConstructor: ReturnType<typeof vi.fn>;
   }
 ).__googleGenAIConstructor;
+
+describe("createGoogleGenAIClient", () => {
+  it("should pin GoogleGenAI to apiVersion v1beta by default", () => {
+    createGoogleGenAIClient({ apiKey: TEST_API_KEYS.GOOGLE });
+
+    expect(googleGenAIConstructor).toHaveBeenCalledWith({
+      apiKey: TEST_API_KEYS.GOOGLE,
+      apiVersion: "v1beta",
+    });
+  });
+
+  it("should pin GoogleGenAI to apiVersion v1beta when using a custom base URL", () => {
+    const baseUrl = "https://generativelanguage.googleapis.com";
+
+    createGoogleGenAIClient({ apiKey: TEST_API_KEYS.GOOGLE, baseUrl });
+
+    expect(googleGenAIConstructor).toHaveBeenCalledWith({
+      apiKey: TEST_API_KEYS.GOOGLE,
+      apiVersion: "v1beta",
+      httpOptions: { baseUrl },
+    });
+  });
+});
 
 describe("GoogleProvider", () => {
   describe("Constructor", () => {
