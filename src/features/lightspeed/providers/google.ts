@@ -54,10 +54,15 @@ export class GoogleProvider extends BaseLLMProvider<GoogleConfig> {
         `[Google Provider] Using custom base URL: ${config.baseUrl}`,
       );
       this.client = new GoogleGenAI({
-        apiKey: config.apiKey, apiVersion: "v1beta", httpOptions: { baseUrl: config.baseUrl },
+        apiKey: config.apiKey,
+        apiVersion: "v1beta",
+        httpOptions: { baseUrl: config.baseUrl },
       });
     } else {
-      this.client = new GoogleGenAI({ apiKey: config.apiKey, apiVersion: "v1beta" });
+      this.client = new GoogleGenAI({
+        apiKey: config.apiKey,
+        apiVersion: "v1beta",
+      });
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
