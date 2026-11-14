@@ -205,7 +205,6 @@ function skipIfEeDefinitionUnavailable(ctx: { skip: () => void }): void {
   }
 }
 
-
 function testModuleNamesForDefinition(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
