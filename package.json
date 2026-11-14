@@ -1073,7 +1073,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
-    "@google/genai": "^2.10.0",
+    "@google/genai": "^3.0.0",
     "@highlightjs/vue-plugin": "2.1.0",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
     "@vscode-elements/elements": "^2.5.1",
@@ -1186,7 +1186,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.18.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {

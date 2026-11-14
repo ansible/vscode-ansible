@@ -45,3 +45,6 @@ github_checks:
 ignore:
   - ".agents/**"  # Exclude agent skill documentation from coverage
   - "wdio.conf.ts"
+  - "renovate.json"
+  - "pnpm-lock.yaml"
+  - "package.json"
