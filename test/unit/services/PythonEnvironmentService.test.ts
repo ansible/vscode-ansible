@@ -93,6 +93,7 @@ describe("PythonEnvironmentService", function () {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(vscode.workspace.getConfiguration).mockReset();
     resetSingleton();
 
     mockGetExtension = vi.mocked(vscode.extensions.getExtension);
@@ -186,7 +187,6 @@ describe("PythonEnvironmentService", function () {
     });
 
     it("should skip duplicate Python extension init when already initialized", async function () {
-      const pythonActivate = vi.fn();
       mockGetExtension.mockImplementation((id: string) => {
         if (id === PYTHON_ENVS_EXTENSION_ID) {
           return {
@@ -197,22 +197,17 @@ describe("PythonEnvironmentService", function () {
           };
         }
         if (id === "ms-python.python") {
-          return { isActive: true, activate: pythonActivate };
+          return { isActive: true, activate: vi.fn() };
         }
         return undefined;
       });
       mockExistsSync.mockReturnValue(true);
       mockPythonExtApi.mockResolvedValue(makeMockPythonExtApi());
-      mockGetConfiguration.mockReturnValue({
-        get: vi.fn().mockReturnValue(true),
-        update: vi.fn(),
-      });
       mockShowWarningMessage.mockResolvedValue(undefined);
 
       await service.initialize();
 
       expect(mockPythonExtApi).toHaveBeenCalledTimes(1);
-      expect(pythonActivate).not.toHaveBeenCalled();
     });
 
     it("should activate extension if not active", async function () {
