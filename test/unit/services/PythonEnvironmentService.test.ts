@@ -909,7 +909,9 @@ describe("PythonEnvironmentService", function () {
       mockExistsSync.mockReturnValue(true);
       mockPythonExtApi.mockResolvedValue(fallbackApi);
 
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+      const warnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => undefined);
 
       await service.initialize();
       const result = await service.getEnvironment();
@@ -917,7 +919,9 @@ describe("PythonEnvironmentService", function () {
       expect(result).toBeDefined();
       expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Python Environments API returned no environment"),
+        expect.stringContaining(
+          "Python Environments API returned no environment",
+        ),
       );
       warnSpy.mockRestore();
     });
