@@ -836,23 +836,64 @@ describe("PythonEnvironmentService", function () {
       expect(result).toEqual(mockEnv);
     });
 
-    it("should handle API errors gracefully", async function () {
+    it("should fall back to ms-python.python when envs API returns undefined", async function () {
       const mockApi = makeMockEnvsApi({
-        getEnvironment: vi.fn().mockRejectedValue(new Error("API error")),
+        getEnvironment: vi.fn().mockResolvedValue(undefined),
       });
+      const fallbackApi = makeMockPythonExtApi();
 
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        extensionPath: "/ext/path",
-        exports: mockApi,
-        activate: vi.fn(),
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: mockApi,
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
       });
       mockExistsSync.mockReturnValue(true);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
 
       await service.initialize();
       const result = await service.getEnvironment();
 
-      expect(result).toBeUndefined();
+      expect(result).toBeDefined();
+      expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
+    });
+
+    it("should fall back when envs API throws", async function () {
+      const mockApi = makeMockEnvsApi({
+        getEnvironment: vi.fn().mockRejectedValue(new Error("API error")),
+      });
+      const fallbackApi = makeMockPythonExtApi();
+
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: mockApi,
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(true);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      await service.initialize();
+      const result = await service.getEnvironment();
+
+      expect(result).toBeDefined();
+      expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
     });
   });
 

@@ -57,10 +57,13 @@ any level (User, Remote, Workspace and/or Folder).
 
 ## Python Configuration
 
-- `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
-  This setting may be used to make the extension work with `ansible` and
-  `ansible-lint` installations in a Python virtual environment. Supports
-  ${workspaceFolder}.
+- `ansible.python.interpreterPath`: Optional override for the Python executable
+  used by Ansible. **Leave blank** for normal use: select an environment from
+  the Ansible status bar (delegates to the Python / Python Environments
+  extension). The extension does **not** write this setting when you change
+  environments. Set this only for advanced overrides (for example a fixed venv
+  path); prefer **User** settings over committing workspace paths. Supports
+  `~`, `${workspaceFolder}`, and relative paths such as `./.venv/bin/python`.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.

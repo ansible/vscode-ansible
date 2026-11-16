@@ -19,6 +19,11 @@ export function expandTilde(filePath: string): string {
     return path.join(os.homedir(), filePath.slice(2));
   }
 
+  // ~path without a slash (e.g. ~/.venv mis-typed as ~.venv) — expand under home
+  if (filePath.startsWith("~")) {
+    return path.join(os.homedir(), filePath.slice(1));
+  }
+
   return filePath;
 }
 

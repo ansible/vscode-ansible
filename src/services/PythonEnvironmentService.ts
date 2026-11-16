@@ -78,6 +78,8 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       if (petAvailable) {
         await this._initFromEnvsExtension(envsExt);
+        // Secondary reader when python-envs omits or stale-selects an environment
+        await this._initFromPythonExtension();
       } else {
         console.warn(
           "[Ansible] PET binary not found — environment discovery will be degraded",
@@ -164,6 +166,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // ---------------------------------------------------------------------------
 
   private async _initFromPythonExtension(): Promise<void> {
+    if (this._pythonExtApi) {
+      return;
+    }
     try {
       const pythonExt = vscode.extensions.getExtension(PYTHON_EXT_ID);
       if (!pythonExt) {
@@ -317,7 +322,12 @@ export class PythonEnvironmentService implements vscode.Disposable {
     if (this._pythonEnvApi) {
       try {
         const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
-        return env;
+        if (env) {
+          return env;
+        }
+        console.warn(
+          "[Ansible] Python Environments API returned no environment; trying ms-python.python",
+        );
       } catch (error) {
         console.error(
           `[Ansible] Error getting environment (envs API): ${error instanceof Error ? error.message : String(error)}`,
