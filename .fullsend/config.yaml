@@ -1,0 +1,22 @@
+# fullsend per-repo configuration
+# https://github.com/fullsend-ai/fullsend
+#
+# This file configures fullsend for per-repo installation mode.
+# See ADR 0033 for details.
+version: "1"
+roles:
+  - triage
+  - coder
+  - review
+  - fix
+  - retro
+  - prioritize
+allowed_remote_resources:
+  - https://raw.githubusercontent.com/fullsend-ai/fullsend/
+  - https://raw.githubusercontent.com/fullsend-ai/agents/
+tracker:
+  github:
+    allowed_targets:
+      repos:
+        - ansible/vscode-ansible
+        - fullsend-ai/fullsend
