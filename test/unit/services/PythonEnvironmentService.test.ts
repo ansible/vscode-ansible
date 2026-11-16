@@ -132,13 +132,23 @@ describe("PythonEnvironmentService", function () {
   describe("initialize — primary path (PET available)", function () {
     it("should use Environments API when PET binary exists", async function () {
       const mockApi = makeMockEnvsApi();
-      mockGetExtension.mockReturnValue({
-        isActive: true,
-        extensionPath: "/ext/path",
-        exports: mockApi,
-        activate: vi.fn(),
+      const fallbackApi = makeMockPythonExtApi();
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: mockApi,
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
       });
       mockExistsSync.mockReturnValue(true);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
 
       const result = await service.initialize();
 
@@ -146,6 +156,7 @@ describe("PythonEnvironmentService", function () {
       expect(service.isAvailable()).toBe(true);
       expect(service.hasFullApi()).toBe(true);
       expect(service.getApi()).toBe(mockApi);
+      expect(mockPythonExtApi).toHaveBeenCalledTimes(1);
     });
 
     it("should initialize ms-python.python as secondary reader when PET is available", async function () {
@@ -909,21 +920,11 @@ describe("PythonEnvironmentService", function () {
       mockExistsSync.mockReturnValue(true);
       mockPythonExtApi.mockResolvedValue(fallbackApi);
 
-      const warnSpy = vi
-        .spyOn(console, "warn")
-        .mockImplementation(() => undefined);
-
       await service.initialize();
       const result = await service.getEnvironment();
 
       expect(result).toBeDefined();
       expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          "Python Environments API returned no environment",
-        ),
-      );
-      warnSpy.mockRestore();
     });
 
     it("should fall back when envs API throws", async function () {
@@ -1599,6 +1600,26 @@ describe("PythonEnvironmentService", function () {
       const result = await service.resolveInterpreterPath("   ");
 
       expect(result).toBe("/usr/bin/python3.11");
+    });
+
+    it("should expand user path when tilde is missing a slash", async function () {
+      const mockApi = makeMockEnvsApi();
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: mockApi,
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+
+      await service.initialize();
+      const result = await service.resolveInterpreterPath(
+        "~.miniconda/envs/ansible/bin/python",
+      );
+
+      expect(result).toBeDefined();
+      expect(result).toContain(".miniconda/envs/ansible/bin/python");
+      expect(result?.startsWith("/")).toBe(true);
     });
   });
 

@@ -78,7 +78,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       if (petAvailable) {
         await this._initFromEnvsExtension(envsExt);
-        // Secondary reader when python-envs omits or stale-selects an environment
         await this._initFromPythonExtension();
       } else {
         console.warn(
@@ -325,9 +324,6 @@ export class PythonEnvironmentService implements vscode.Disposable {
         if (env) {
           return env;
         }
-        console.warn(
-          "[Ansible] Python Environments API returned no environment; trying ms-python.python",
-        );
       } catch (error) {
         console.error(
           `[Ansible] Error getting environment (envs API): ${error instanceof Error ? error.message : String(error)}`,
