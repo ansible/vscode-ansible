@@ -93,7 +93,6 @@ describe("PythonEnvironmentService", function () {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(vscode.workspace.getConfiguration).mockReset();
     resetSingleton();
 
     mockGetExtension = vi.mocked(vscode.extensions.getExtension);
