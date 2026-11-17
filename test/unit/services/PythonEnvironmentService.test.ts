@@ -159,9 +159,11 @@ describe("PythonEnvironmentService", function () {
       expect(mockPythonExtApi).toHaveBeenCalledTimes(1);
     });
 
-    it("should initialize ms-python.python as secondary reader when PET is available", async function () {
+    it("should warn and skip the secondary reader when ms-python.python is not installed", async function () {
       const mockApi = makeMockEnvsApi();
-      const fallbackApi = makeMockPythonExtApi();
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => undefined);
 
       mockGetExtension.mockImplementation((id: string) => {
         if (id === PYTHON_ENVS_EXTENSION_ID) {
@@ -172,17 +174,21 @@ describe("PythonEnvironmentService", function () {
             activate: vi.fn(),
           };
         }
-        if (id === "ms-python.python") {
-          return { isActive: true, activate: vi.fn() };
-        }
         return undefined;
       });
       mockExistsSync.mockReturnValue(true);
-      mockPythonExtApi.mockResolvedValue(fallbackApi);
 
-      await service.initialize();
+      const result = await service.initialize();
 
-      expect(mockPythonExtApi).toHaveBeenCalledTimes(1);
+      expect(result).toBe(true);
+      expect(service.hasFullApi()).toBe(true);
+      expect(service.getApi()).toBe(mockApi);
+      expect(mockPythonExtApi).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "Python extension (ms-python.python) not installed",
+        ),
+      );
     });
 
     it("should skip duplicate Python extension init when already initialized", async function () {
