@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import * as vscode from "vscode";
 import {
   PythonEnvironmentService,
@@ -1652,9 +1654,9 @@ describe("PythonEnvironmentService", function () {
         "~.miniconda/envs/ansible/bin/python",
       );
 
-      expect(result).toBeDefined();
-      expect(result).toContain(".miniconda/envs/ansible/bin/python");
-      expect(result?.startsWith("/")).toBe(true);
+      expect(result).toBe(
+        path.join(os.homedir(), ".miniconda/envs/ansible/bin/python"),
+      );
     });
   });
 
