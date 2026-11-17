@@ -213,6 +213,13 @@ function main(): void {
   }
 
   const preReleaseArg = resolved.preRelease ? "--pre-release" : "";
+  // Trusted publishing only works inside GitHub Actions (the CLI exchanges the
+  // job's OIDC token). Elsewhere, fall back to the registry tokens read from
+  // the environment (`VSCE_PAT` / `OVSX_PAT`) so `--publish` still works locally.
+  const trustedPublishing =
+    process.env.GITHUB_ACTIONS === "true"
+      ? { vsce: ["--oidc"], ovsx: ["--trusted-publishing"] }
+      : { vsce: [], ovsx: [] };
 
   if (wantPublish) {
     const vsixFiles = findPackagedVsix();
@@ -229,7 +236,7 @@ function main(): void {
       "--",
       "vsce",
       "publish",
-      "--oidc",
+      ...trustedPublishing.vsce,
       preReleaseArg,
       "--skip-duplicate",
       "--packagePath",
@@ -243,7 +250,7 @@ function main(): void {
       "--",
       "ovsx",
       "publish",
-      "--trusted-publishing",
+      ...trustedPublishing.ovsx,
       preReleaseArg,
       "--skip-duplicate",
       vsix,
