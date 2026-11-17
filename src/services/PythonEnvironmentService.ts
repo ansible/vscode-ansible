@@ -165,9 +165,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // ---------------------------------------------------------------------------
 
   private async _initFromPythonExtension(): Promise<void> {
-    if (this._pythonExtApi) {
-      return;
-    }
+    if (this._pythonExtApi) return;
     try {
       const pythonExt = vscode.extensions.getExtension(PYTHON_EXT_ID);
       if (!pythonExt) {
