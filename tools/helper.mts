@@ -218,8 +218,8 @@ function main(): void {
   // the environment (`VSCE_PAT` / `OVSX_PAT`) so `--publish` still works locally.
   const trustedPublishing =
     process.env.GITHUB_ACTIONS === "true"
-      ? { vsce: ["--oidc"], ovsx: ["--trusted-publishing"] }
-      : { vsce: [], ovsx: [] };
+      ? { ovsx: ["--trusted-publishing"], vsce: ["--oidc"] }
+      : { ovsx: [], vsce: [] };
 
   if (wantPublish) {
     const vsixFiles = findPackagedVsix();
