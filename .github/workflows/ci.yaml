@@ -785,6 +785,7 @@ jobs:
       contents: write
       issues: write
       checks: read
+      id-token: write
     steps:
       - name: Checkout Source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -818,9 +819,6 @@ jobs:
       - name: Publish extension to marketplaces
         run: |
           node ./tools/helper.mts --publish
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
       - name: Report unexpected failures
         if: ${{ always() && failure() }}
