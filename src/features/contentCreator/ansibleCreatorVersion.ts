@@ -1,36 +1,66 @@
 import * as semver from "semver";
 
-/** Map PEP 440 ansible-creator versions to semver for ordered comparison. */
-export function pep440ToSemverComparable(version: string): string | null {
-  let v = version.trim();
-  if (/^v/i.test(v)) {
-    v = v.slice(1);
-  }
-  v = v.replace(/^\d+!/, "");
-  v = v.split("+")[0];
+function isDigit(char: string | undefined): boolean {
+  return char !== undefined && char >= "0" && char <= "9";
+}
 
-  if (/^\d+(?:\.\d+)*$/.test(v)) {
-    const parts = v.split(".").map((segment) => parseInt(segment, 10));
-    while (parts.length < 3) {
-      parts.push(0);
+/** Split a PEP 440 release from its suffix without a backtracking regex. */
+function readRelease(
+  version: string,
+): { parts: number[]; rest: string } | null {
+  const parts: number[] = [];
+  let index = 0;
+  while (index < version.length) {
+    const start = index;
+    while (isDigit(version[index])) {
+      index += 1;
     }
-    return parts.join(".");
+    if (index === start) {
+      break;
+    }
+    parts.push(Number.parseInt(version.slice(start, index), 10));
+    if (version[index] === "." && isDigit(version[index + 1])) {
+      index += 1;
+      continue;
+    }
+    break;
   }
-
-  const match = v.match(/^(\d+(?:\.\d+)*)(.+)$/);
-  if (!match) {
+  if (parts.length === 0) {
     return null;
   }
+  return { parts, rest: version.slice(index) };
+}
 
-  const releaseParts = match[1]
-    .split(".")
-    .map((segment) => parseInt(segment, 10));
-  while (releaseParts.length < 3) {
-    releaseParts.push(0);
+function padRelease(parts: number[]): string {
+  const padded = parts.slice();
+  while (padded.length < 3) {
+    padded.push(0);
   }
-  const releaseSemver = releaseParts.join(".");
+  return padded.join(".");
+}
 
-  const pre = match[2].startsWith(".") ? match[2].slice(1) : match[2];
+/** Map PEP 440 ansible-creator versions to semver for ordered comparison. */
+export function pep440ToSemverComparable(version: string): string | null {
+  let normalized = version.trim();
+  if (/^v/i.test(normalized)) {
+    normalized = normalized.slice(1);
+  }
+  normalized = normalized.replace(/^\d+!/, "");
+  const localSeparator = normalized.indexOf("+");
+  if (localSeparator !== -1) {
+    normalized = normalized.slice(0, localSeparator);
+  }
+
+  const parsed = readRelease(normalized);
+  if (!parsed) {
+    return null;
+  }
+  const releaseSemver = padRelease(parsed.parts);
+  if (parsed.rest === "") {
+    return releaseSemver;
+  }
+
+  const pre = parsed.rest.startsWith(".") ? parsed.rest.slice(1) : parsed.rest;
   if (!/^(?:dev|a|b|rc)\d+|post\d+$/i.test(pre)) {
     return null;
   }
@@ -43,7 +73,6 @@ export function pep440ToSemverComparable(version: string): string | null {
     .replace(/^rc(\d+)$/i, "rc.$1")
     .replace(/^a(\d+)$/i, "alpha.$1")
     .replace(/^b(\d+)$/i, "beta.$1");
-
   return `${releaseSemver}-${preSemver}`;
 }
 

@@ -1,6 +1,7 @@
+import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
 import * as vscode from "vscode";
-import { Uri } from "vscode";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -8,6 +9,7 @@ import {
   PluginFormInterface,
 } from "@src/features/contentCreator/types";
 import {
+  expandPath,
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
@@ -29,9 +31,37 @@ const PYTHON_ENV_FAILURE_OUTPUT =
   "Failed to resolve the Python environment for ansible-creator.\n" +
   "Please check your ansible.python.interpreterPath setting and try again.\n";
 
+/** Quote one argv token for `execSync(string)`, which runs a shell. */
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", `'\\''`)}'`;
+}
+
+function isAnsibleCollectionsRoot(fsPath: string): boolean {
+  const normalized = fsPath.replaceAll("\\", "/").replace(/\/+$/, "");
+  return normalized.endsWith("/collections/ansible_collections");
+}
+
 export class AnsibleCreatorOperations {
   private defaultCollectionsPath(): string {
-    return `${os.homedir()}/.ansible/collections/ansible_collections`;
+    return path.join(
+      os.homedir(),
+      ".ansible",
+      "collections",
+      "ansible_collections",
+    );
+  }
+
+  /**
+   * Expand `~` and `$HOME`, then make the path absolute against the home
+   * directory. `runCommand` executes with `cwd: os.homedir()`, so a relative
+   * path and an `existsSync` check against the extension host cwd would
+   * disagree.
+   */
+  private creatorPath(input: string): string {
+    const expanded = expandPath(input.trim());
+    return path.isAbsolute(expanded)
+      ? path.normalize(expanded)
+      : path.resolve(os.homedir(), expanded);
   }
 
   private async postExecutionFailure(
@@ -136,7 +166,7 @@ export class AnsibleCreatorOperations {
   }
 
   public getRoleCreatorCommand(roleName: string, url: string): string {
-    return `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
+    return `ansible-creator add resource role ${shellQuote(roleName)} ${shellQuote(url)} --no-ansi`;
   }
 
   // Runs an ansible-creator command through the interpreter, posts the
@@ -185,6 +215,18 @@ export class AnsibleCreatorOperations {
     });
   }
 
+  // ansible-creator 26.2 add requires galaxy.yml in the destination directory.
+  private collectionRootError(destinationPathUrl: string): string | null {
+    if (fs.existsSync(path.join(destinationPathUrl, "galaxy.yml"))) {
+      return null;
+    }
+    return (
+      "ansible-creator add requires a collection directory that contains galaxy.yml.\n" +
+      `The path "${destinationPathUrl}" is not a collection root.\n` +
+      "Select the collection directory and try again.\n"
+    );
+  }
+
   // Shared flow for role-add and plugin-add: resolves the destination,
   // gates on the creator version, then builds and executes the command.
   private async runAddCommand(
@@ -195,7 +237,16 @@ export class AnsibleCreatorOperations {
     verbosity: string,
     buildCommand: (url: string) => string,
   ): Promise<void> {
-    const destinationPathUrl = collectionPath || this.defaultCollectionsPath();
+    const destinationPathUrl = this.creatorPath(
+      collectionPath || this.defaultCollectionsPath(),
+    );
+    const rootError = this.collectionRootError(destinationPathUrl);
+    if (rootError) {
+      await this.postExecutionFailure(webView, rootError, {
+        projectUrl: destinationPathUrl,
+      });
+      return;
+    }
 
     const gate = await this.checkCreatorVersionGate(webView, subject, {
       projectUrl: destinationPathUrl,
@@ -344,7 +395,9 @@ export class AnsibleCreatorOperations {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
 
-      const initPathUrl = initPath || this.defaultCollectionsPath();
+      const initPathUrl = this.creatorPath(
+        initPath || this.defaultCollectionsPath(),
+      );
 
       const command = this.getCollectionCreatorCommand(
         namespaceName,
@@ -352,11 +405,11 @@ export class AnsibleCreatorOperations {
         initPathUrl,
       );
 
-      const destinationUrl = initPathUrl.endsWith(
-        "/collections/ansible_collections",
-      )
-        ? Uri.joinPath(Uri.parse(initPathUrl), namespaceName, collectionName)
-            .fsPath
+      // path.join, not Uri.parse: a Windows path such as
+      // "C:\Users\a/.ansible/..." is parsed with scheme "C" and the drive
+      // letter is dropped from fsPath.
+      const destinationUrl = isAnsibleCollectionsRoot(initPathUrl)
+        ? path.join(initPathUrl, namespaceName, collectionName)
         : initPathUrl;
 
       return { command, destinationUrl };
@@ -365,7 +418,7 @@ export class AnsibleCreatorOperations {
     const projectPayload = payload as AnsibleProjectFormInterface;
     const { destinationPath, namespaceName, collectionName } = projectPayload;
 
-    const destinationUrl = destinationPath || os.homedir();
+    const destinationUrl = this.creatorPath(destinationPath || os.homedir());
 
     const command = this.getPlaybookCreatorCommand(
       namespaceName,
@@ -404,11 +457,12 @@ export class AnsibleCreatorOperations {
       return { command, logFilePathUrl: "" };
     }
 
-    const logFilePathUrl =
-      payload.logFilePath || `${os.tmpdir()}/ansible-creator.log`;
+    const logFilePathUrl = this.creatorPath(
+      payload.logFilePath || path.join(os.tmpdir(), "ansible-creator.log"),
+    );
     let updated = command;
-    updated += ` --lf=${logFilePathUrl}`;
-    updated += ` --ll=${payload.logLevel.toLowerCase()}`;
+    updated += ` --lf=${shellQuote(logFilePathUrl)}`;
+    updated += ` --ll=${shellQuote(payload.logLevel.toLowerCase())}`;
 
     if (isCollection) {
       updated += ` --la=${payload.logFileAppend}`;
@@ -429,8 +483,8 @@ export class AnsibleCreatorOperations {
     webView: vscode.Webview,
   ): Promise<{ output: string; succeeded: boolean }> {
     let commandOutput = "";
-    const venvPathUrl = Uri.joinPath(Uri.parse(destinationUrl), ".venv").fsPath;
-    let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
+    const venvPathUrl = path.join(destinationUrl, ".venv");
+    let adeCommand = `cd ${shellQuote(destinationUrl)} && ade install --venv ${shellQuote(venvPathUrl)} --editable . --no-ansi`;
     adeCommand += this.getVerbosityFlag(payload.verbosity);
 
     commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
@@ -538,7 +592,7 @@ export class AnsibleCreatorOperations {
     collectionName: string,
     initPathUrl: string,
   ): string {
-    return `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
+    return `ansible-creator init collection ${shellQuote(`${namespaceName}.${collectionName}`)} ${shellQuote(initPathUrl)} --no-ansi`;
   }
 
   public getPluginCreatorCommand(
@@ -546,7 +600,7 @@ export class AnsibleCreatorOperations {
     pluginType: string,
     url: string,
   ): string {
-    return `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
+    return `ansible-creator add plugin ${shellQuote(pluginType)} ${shellQuote(pluginName)} ${shellQuote(url)} --no-ansi`;
   }
 
   public getPlaybookCreatorCommand(
@@ -554,6 +608,6 @@ export class AnsibleCreatorOperations {
     collection: string,
     url: string,
   ): string {
-    return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    return `ansible-creator init playbook ${shellQuote(`${namespace}.${collection}`)} ${shellQuote(url)} --no-ansi`;
   }
 }
