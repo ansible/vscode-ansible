@@ -5,7 +5,13 @@
  * as tools like vscode-test fails to perform the filtering itself.
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -111,6 +117,156 @@ function readLcovFiles(inputs: string[]): string {
     .map((input) => readFileSync(input, "utf8").trimEnd())
     .filter((data) => data.length > 0)
     .join("\n");
+}
+
+interface UnitCoverageIndex {
+  /** "line,block,branch" keys present in the unit report, per source file. */
+  branches: Map<string, Set<string>>;
+  /** DA line numbers present in the unit report, per source file. */
+  lines: Map<string, Set<number>>;
+}
+
+function splitLcovRecords(lcovData: string): string[] {
+  return lcovData
+    .split(/end_of_record\n?/)
+    .map((record) => record.trim())
+    .filter((record) => record.length > 0);
+}
+
+function sourceFileOf(record: string): string | undefined {
+  return /^SF:(.+)$/m.exec(record)?.[1]?.trim();
+}
+
+/**
+ * Index lines and branches the unit report actually instrumented.
+ * Vitest's V8 reporter only emits statement lines. c8's e2e/wdio
+ * conversion emits DA:0 for every source line, including braces and
+ * signatures V8 never tracks. Those zeros become uncovered lines in
+ * Sonar and Codecov even when the statement was executed.
+ */
+export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
+  const lines = new Map<string, Set<number>>();
+  const branches = new Map<string, Set<string>>();
+  for (const record of splitLcovRecords(unitLcov)) {
+    const sourceFile = sourceFileOf(record);
+    if (sourceFile === undefined) {
+      continue;
+    }
+    const fileLines = new Set<number>();
+    const fileBranches = new Set<string>();
+    for (const rawLine of record.split("\n")) {
+      if (rawLine.startsWith("DA:")) {
+        const lineNo = Number.parseInt(
+          rawLine.slice(3).split(",")[0] ?? "",
+          10,
+        );
+        if (!Number.isNaN(lineNo)) {
+          fileLines.add(lineNo);
+        }
+      } else if (rawLine.startsWith("BRDA:")) {
+        const parts = rawLine.slice(5).split(",");
+        if (parts.length >= 3) {
+          fileBranches.add(`${parts[0]},${parts[1]},${parts[2]}`);
+        }
+      }
+    }
+    lines.set(sourceFile, fileLines);
+    branches.set(sourceFile, fileBranches);
+  }
+  return { branches, lines };
+}
+
+function isMiss(hits: string): boolean {
+  return hits === "0" || hits === "-";
+}
+
+/**
+ * Drop zero-hit lines from a non-unit lcov report when the unit report
+ * measured that file and did not instrument the line. Records for files
+ * the unit report did not measure are left unchanged. Real unit misses
+ * (DA present with 0 hits) are kept.
+ */
+export function filterLcovAgainstUnit(
+  otherLcov: string,
+  unitIndex: UnitCoverageIndex,
+): string {
+  const records: string[] = [];
+  for (const record of splitLcovRecords(otherLcov)) {
+    const sourceFile = sourceFileOf(record);
+    const knownLines =
+      sourceFile === undefined ? undefined : unitIndex.lines.get(sourceFile);
+    if (sourceFile === undefined || knownLines === undefined) {
+      records.push(`${record}\nend_of_record`);
+      continue;
+    }
+    const knownBranches = unitIndex.branches.get(sourceFile) ?? new Set();
+    const kept: string[] = [];
+    let lf = 0;
+    let lh = 0;
+    let brf = 0;
+    let brh = 0;
+    for (const rawLine of record.split("\n")) {
+      if (rawLine.startsWith("DA:")) {
+        const parts = rawLine.slice(3).split(",");
+        const lineNo = Number.parseInt(parts[0] ?? "", 10);
+        const hits = Number.parseInt(parts[1] ?? "", 10);
+        const missed = Number.isNaN(hits) || hits === 0;
+        if (missed && !knownLines.has(lineNo)) {
+          continue;
+        }
+        kept.push(rawLine);
+        lf += 1;
+        if (!missed) {
+          lh += 1;
+        }
+      } else if (rawLine.startsWith("BRDA:")) {
+        const parts = rawLine.slice(5).split(",");
+        const key = `${parts[0]},${parts[1]},${parts[2]}`;
+        const hits = parts[3] ?? "0";
+        if (isMiss(hits) && !knownBranches.has(key)) {
+          continue;
+        }
+        kept.push(rawLine);
+        brf += 1;
+        if (!isMiss(hits)) {
+          brh += 1;
+        }
+      } else if (/^(?:LF|LH|BRF|BRH):/.test(rawLine)) {
+        continue;
+      } else if (rawLine.length > 0) {
+        kept.push(rawLine);
+      }
+    }
+    kept.push(`BRF:${brf}`, `BRH:${brh}`, `LF:${lf}`, `LH:${lh}`);
+    records.push(`${kept.join("\n")}\nend_of_record`);
+  }
+  return `${records.join("\n")}\n`;
+}
+
+function isUnitLcov(inputPath: string): boolean {
+  return path.basename(path.dirname(inputPath)) === "unit";
+}
+
+/**
+ * Rewrite e2e/wdio lcov files so Sonar, which reads each lcov directly,
+ * does not treat uninstrumented source lines as uncovered.
+ */
+function rewriteNonUnitLcov(inputs: string[]): void {
+  const unitInput = inputs.find((input) => isUnitLcov(input));
+  if (unitInput === undefined || !existsSync(unitInput)) {
+    return;
+  }
+  const unitIndex = indexUnitCoverage(readFileSync(unitInput, "utf8"));
+  for (const input of inputs) {
+    if (input === unitInput || !existsSync(input)) {
+      continue;
+    }
+    const filtered = filterLcovAgainstUnit(
+      readFileSync(input, "utf8"),
+      unitIndex,
+    );
+    writeFileSync(input, filtered, "utf8");
+  }
 }
 
 /**
@@ -291,6 +447,7 @@ function main(argv = process.argv.slice(2)): number {
     return options.help ? 0 : 1;
   }
 
+  rewriteNonUnitLcov(options.inputs);
   const lcovData = readLcovFiles(options.inputs);
   const merged = mergeLcovRecords(lcovData);
   const filtered = filterLcovByPath(merged, options.excludes);
