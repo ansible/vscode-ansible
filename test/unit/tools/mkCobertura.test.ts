@@ -13,6 +13,7 @@ import {
   filterLcovAgainstUnit,
   indexUnitCoverage,
   rewriteNonUnitLcov,
+  rewriteUnitLcov,
 } from "@root/tools/mk-cobertura";
 
 const unitLcov = `
@@ -152,6 +153,75 @@ describe("rewriteNonUnitLcov", () => {
       expect(e2eText).not.toContain("DA:3,0");
       expect(e2eText).toContain("BRDA:2,0,0,0");
       expect(e2eText).not.toContain("BRDA:3,0,0,0");
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+});
+
+describe("rewriteUnitLcov", () => {
+  it("writes covered statement gaps into the unit report Sonar reads", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-unit-"));
+    const unit = path.join(root, "unit", "lcov.info");
+    const e2e = path.join(root, "e2e", "lcov.info");
+    try {
+      mkdirSync(path.dirname(unit), { recursive: true });
+      mkdirSync(path.dirname(e2e), { recursive: true });
+      writeFileSync(
+        unit,
+        ["SF:src/example.ts", "DA:10,4", "DA:13,2", "end_of_record", ""].join(
+          "\n",
+        ),
+      );
+      writeFileSync(
+        e2e,
+        [
+          "SF:src/example.ts",
+          "DA:10,0",
+          "DA:11,0",
+          "DA:12,0",
+          "DA:13,0",
+          "end_of_record",
+          "",
+        ].join("\n"),
+      );
+
+      const inputs = [unit, e2e];
+      rewriteNonUnitLcov(inputs);
+      rewriteUnitLcov(inputs);
+
+      const unitText = readFileSync(unit, "utf8");
+      expect(unitText).toContain("DA:11,4");
+      expect(unitText).toContain("DA:12,4");
+      const e2eText = readFileSync(e2e, "utf8");
+      expect(e2eText).toContain("DA:10,0");
+      expect(e2eText).toContain("DA:13,0");
+      expect(e2eText).not.toContain("DA:11,");
+      expect(e2eText).not.toContain("DA:12,");
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  it("does not turn a real unit miss into a hit", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-unit-miss-"));
+    const unit = path.join(root, "unit", "lcov.info");
+    try {
+      mkdirSync(path.dirname(unit), { recursive: true });
+      writeFileSync(
+        unit,
+        ["SF:src/example.ts", "DA:10,4", "DA:13,0", "end_of_record", ""].join(
+          "\n",
+        ),
+      );
+
+      rewriteUnitLcov([unit]);
+
+      const unitText = readFileSync(unit, "utf8");
+      expect(unitText).toContain("DA:10,4");
+      expect(unitText).toContain("DA:13,0");
+      expect(unitText).not.toContain("DA:11,");
+      expect(unitText).not.toContain("DA:12,");
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
