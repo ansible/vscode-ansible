@@ -18,6 +18,16 @@ import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService
  * @param scope - Optional workspace scope for environment resolution.
  * @returns Promise resolving to the command and environment with venv PATH.
  */
+export async function withInterpreterArgv(
+  settings: ExtensionSettings,
+  runExecutable: string,
+  cmdArgs: string[],
+  scope?: import("vscode").Uri,
+): Promise<{ executable: string; args: string[]; env: NodeJS.ProcessEnv }> {
+  const env = await buildInterpreterEnv(settings, scope);
+  return { executable: runExecutable, args: cmdArgs, env };
+}
+
 export async function withInterpreter(
   settings: ExtensionSettings,
   runExecutable: string,
@@ -27,6 +37,15 @@ export async function withInterpreter(
   // Build command string
   const command = `${runExecutable} ${cmdArgs}`;
 
+  const env = await buildInterpreterEnv(settings, scope);
+
+  return { command, env };
+}
+
+async function buildInterpreterEnv(
+  settings: ExtensionSettings,
+  scope?: import("vscode").Uri,
+): Promise<NodeJS.ProcessEnv> {
   // Start with base environment and Ansible-specific vars
   const env = Object.assign({}, process.env, {
     ANSIBLE_FORCE_COLOR: "0", // ensure output is parsable (no ANSI)
@@ -60,5 +79,5 @@ export async function withInterpreter(
     }
   }
 
-  return { command, env };
+  return env;
 }

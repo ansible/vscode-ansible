@@ -177,7 +177,8 @@ export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
 }
 
 function isMiss(hits: string): boolean {
-  return hits === "0" || hits === "-";
+  const normalized = hits.trim();
+  return normalized === "0" || normalized === "-";
 }
 
 /**

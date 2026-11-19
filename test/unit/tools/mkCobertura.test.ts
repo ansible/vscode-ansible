@@ -49,4 +49,20 @@ end_of_record
     expect(filtered).toContain("LF:3");
     expect(filtered).toContain("LH:1");
   });
+
+  it("treats CRLF BRDA hit values as misses when filtering", () => {
+    const other = `
+SF:src/example.ts
+BRDA:9,0,0,0\r
+BRDA:9,0,1,-\r
+LF:0
+LH:0
+end_of_record
+`;
+    const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(unitLcov));
+    expect(filtered).not.toMatch(/BRDA:9,0,0/);
+    expect(filtered).not.toMatch(/BRDA:9,0,1/);
+    expect(filtered).toContain("BRF:0");
+    expect(filtered).toContain("BRH:0");
+  });
 });

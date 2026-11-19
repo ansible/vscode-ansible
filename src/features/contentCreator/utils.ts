@@ -37,6 +37,20 @@ export async function getCreatorVersion(): Promise<string> {
   return creatorVersion;
 }
 
+function formatExecFailure(error: unknown): string {
+  if (error instanceof Error) {
+    const execError = error as cp.ExecException & {
+      stdout: string;
+      stderr: string;
+    };
+
+    let errorMessage = execError.stdout ? execError.stdout : execError.stderr;
+    errorMessage += execError.message;
+    return errorMessage;
+  }
+  return `Exception: ${JSON.stringify(error)}`;
+}
+
 export async function runCommand(
   command: string,
   runEnv: NodeJS.ProcessEnv | undefined,
@@ -53,20 +67,26 @@ export async function runCommand(
       .toString();
     return { output: result, status: "passed" };
   } catch (error) {
-    let errorMessage: string;
-    if (error instanceof Error) {
-      const execError = error as cp.ExecException & {
-        // according to the docs, these are always available
-        stdout: string;
-        stderr: string;
-      };
+    return { output: formatExecFailure(error), status: "failed" };
+  }
+}
 
-      errorMessage = execError.stdout ? execError.stdout : execError.stderr;
-      errorMessage += execError.message;
-    } else {
-      errorMessage = `Exception: ${JSON.stringify(error)}`;
-    }
-    return { output: errorMessage, status: "failed" };
+export async function runCommandArgv(
+  executable: string,
+  args: string[],
+  runEnv: NodeJS.ProcessEnv | undefined,
+  cwd?: string,
+): Promise<{ output: string; status: string }> {
+  try {
+    const result = cp
+      .execFileSync(executable, args, {
+        env: runEnv,
+        cwd: cwd ?? os.homedir(),
+      })
+      .toString();
+    return { output: result, status: "passed" };
+  } catch (error) {
+    return { output: formatExecFailure(error), status: "failed" };
   }
 }
 

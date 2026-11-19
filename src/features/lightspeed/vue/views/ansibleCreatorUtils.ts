@@ -13,13 +13,13 @@ import {
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
-  runCommand,
+  runCommandArgv,
 } from "@src/features/contentCreator/utils";
 import {
   checkAnsibleCreatorVersion,
   checkToolVersionWithError,
 } from "@src/features/contentCreator/ansibleCreatorVersion";
-import { withInterpreter } from "@src/features/utils/commandRunner";
+import { withInterpreterArgv } from "@src/features/utils/commandRunner";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings";
 import { SettingsManager } from "@src/settings";
 import {
@@ -31,10 +31,8 @@ const PYTHON_ENV_FAILURE_OUTPUT =
   "Failed to resolve the Python environment for ansible-creator.\n" +
   "Please check your ansible.python.interpreterPath setting and try again.\n";
 
-/** Quote one argv token for `execSync(string)`, which runs a shell. */
-function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", `'\\''`)}'`;
-}
+const ANSIBLE_CREATOR_EXECUTABLE = "ansible-creator";
+const ADE_EXECUTABLE = "ade";
 
 function isAnsibleCollectionsRoot(fsPath: string): boolean {
   const normalized = fsPath.replaceAll("\\", "/").replace(/\/+$/, "");
@@ -84,10 +82,14 @@ export class AnsibleCreatorOperations {
     urlPayload: Record<string, string | undefined>,
     settings: ExtensionSettings,
     runExecutable: string,
-    cmdArgs: string,
-  ): Promise<{ command: string; env: NodeJS.ProcessEnv } | null> {
+    cmdArgs: string[],
+  ): Promise<{
+    executable: string;
+    args: string[];
+    env: NodeJS.ProcessEnv;
+  } | null> {
     try {
-      return await withInterpreter(settings, runExecutable, cmdArgs);
+      return await withInterpreterArgv(settings, runExecutable, cmdArgs);
     } catch (error) {
       console.error(
         "[ansible-creator] Python environment resolution failed:",
@@ -165,23 +167,28 @@ export class AnsibleCreatorOperations {
     return { passed: true };
   }
 
-  public getRoleCreatorCommand(roleName: string, url: string): string {
-    return `ansible-creator add resource role ${shellQuote(roleName)} ${shellQuote(url)} --no-ansi`;
+  public getRoleCreatorCommand(roleName: string, url: string): string[] {
+    return ["add", "resource", "role", roleName, url, "--no-ansi"];
   }
 
   // Runs an ansible-creator command through the interpreter, posts the
   // execution result to the webview. Shared by role-add, plugin-add flows.
   private async executeCreatorCommand(
-    baseCommand: string,
+    baseArgs: string[],
     isOverwritten: boolean,
     verbosity: string,
     webView: vscode.Webview,
     urlPayload: Record<string, string | undefined>,
   ): Promise<void> {
-    let command = this.applyOverwriteFlag(baseCommand, isOverwritten);
-    command += this.getVerbosityFlag(verbosity);
+    const cmdArgs = [...baseArgs];
+    this.applyOverwriteFlag(cmdArgs, isOverwritten);
+    this.appendVerbosityArgs(cmdArgs, verbosity);
 
-    console.debug("[ansible-creator] command: ", command);
+    console.debug(
+      "[ansible-creator] command: ",
+      ANSIBLE_CREATOR_EXECUTABLE,
+      cmdArgs.join(" "),
+    );
 
     const extSettings = new SettingsManager();
     await extSettings.initialize();
@@ -190,15 +197,16 @@ export class AnsibleCreatorOperations {
       webView,
       urlPayload,
       extSettings.settings,
-      command,
-      "",
+      ANSIBLE_CREATOR_EXECUTABLE,
+      cmdArgs,
     );
     if (!resolvedInterpreter) {
       return;
     }
 
-    const result = await runCommand(
-      resolvedInterpreter.command,
+    const result = await runCommandArgv(
+      resolvedInterpreter.executable,
+      resolvedInterpreter.args,
       resolvedInterpreter.env,
     );
     const commandOutput =
@@ -235,7 +243,7 @@ export class AnsibleCreatorOperations {
     collectionPath: string,
     isOverwritten: boolean,
     verbosity: string,
-    buildCommand: (url: string) => string,
+    buildCommand: (url: string) => string[],
   ): Promise<void> {
     const destinationPathUrl = this.creatorPath(
       collectionPath || this.defaultCollectionsPath(),
@@ -305,7 +313,7 @@ export class AnsibleCreatorOperations {
 
     const built = this.buildCreatorInitCommand(payload, isCollection);
     const destinationUrl = built.destinationUrl;
-    let ansibleCreatorInitCommand = built.command;
+    const cmdArgs = [...built.args];
 
     const gate = await this.checkCreatorVersionGate(webView, "", {
       collectionUrl: isCollection ? destinationUrl : undefined,
@@ -315,19 +323,14 @@ export class AnsibleCreatorOperations {
 
     let commandOutput = "";
 
-    ansibleCreatorInitCommand = this.applyOverwriteFlag(
-      ansibleCreatorInitCommand,
-      payload.isOverwritten,
-    );
-    ansibleCreatorInitCommand += this.getVerbosityFlag(payload.verbosity);
+    this.applyOverwriteFlag(cmdArgs, payload.isOverwritten);
+    this.appendVerbosityArgs(cmdArgs, payload.verbosity);
 
-    const logFlags = this.applyLogFileFlags(
-      ansibleCreatorInitCommand,
+    const logFilePathUrl = this.applyLogFileArgs(
+      cmdArgs,
       payload,
       isCollection,
     );
-    ansibleCreatorInitCommand = logFlags.command;
-    const logFilePathUrl = logFlags.logFilePathUrl;
 
     const extSettings = new SettingsManager();
     await extSettings.initialize();
@@ -340,16 +343,17 @@ export class AnsibleCreatorOperations {
       webView,
       initUrlPayload,
       extSettings.settings,
-      ansibleCreatorInitCommand,
-      "",
+      ANSIBLE_CREATOR_EXECUTABLE,
+      cmdArgs,
     );
     if (!resolvedInterpreter) {
       return;
     }
 
     // Execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(
-      resolvedInterpreter.command,
+    const ansibleCreatorExecutionResult = await runCommandArgv(
+      resolvedInterpreter.executable,
+      resolvedInterpreter.args,
       resolvedInterpreter.env,
     );
     commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
@@ -390,7 +394,7 @@ export class AnsibleCreatorOperations {
   private buildCreatorInitCommand(
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     isCollection: boolean,
-  ): { command: string; destinationUrl: string } {
+  ): { args: string[]; destinationUrl: string } {
     if (isCollection) {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
@@ -399,7 +403,7 @@ export class AnsibleCreatorOperations {
         initPath || this.defaultCollectionsPath(),
       );
 
-      const command = this.getCollectionCreatorCommand(
+      const args = this.getCollectionCreatorCommand(
         namespaceName,
         collectionName,
         initPathUrl,
@@ -412,7 +416,7 @@ export class AnsibleCreatorOperations {
         ? path.join(initPathUrl, namespaceName, collectionName)
         : initPathUrl;
 
-      return { command, destinationUrl };
+      return { args, destinationUrl };
     }
 
     const projectPayload = payload as AnsibleProjectFormInterface;
@@ -420,57 +424,59 @@ export class AnsibleCreatorOperations {
 
     const destinationUrl = this.creatorPath(destinationPath || os.homedir());
 
-    const command = this.getPlaybookCreatorCommand(
+    const args = this.getPlaybookCreatorCommand(
       namespaceName,
       collectionName,
       destinationUrl,
     );
 
-    return { command, destinationUrl };
+    return { args, destinationUrl };
   }
 
   // Appends --overwrite or --no-overwrite. Callers reject creator versions
   // below ANSIBLE_CREATOR_VERSION_MIN before this runs.
-  private applyOverwriteFlag(command: string, isOverwritten: boolean): string {
-    return command + (isOverwritten ? " --overwrite" : " --no-overwrite");
+  private applyOverwriteFlag(args: string[], isOverwritten: boolean): void {
+    args.push(isOverwritten ? "--overwrite" : "--no-overwrite");
   }
 
-  // Maps a verbosity level to its ansible-creator flag.
-  private getVerbosityFlag(verbosity: string): string {
+  // Maps a verbosity level to its ansible-creator argv flags.
+  private appendVerbosityArgs(args: string[], verbosity: string): void {
     const verbosityMap: Record<string, string> = {
       off: "",
-      low: " -v",
-      medium: " -vv",
-      high: " -vvv",
+      low: "-v",
+      medium: "-vv",
+      high: "-vvv",
     };
-    return verbosityMap[verbosity.toLowerCase()] || "";
+    const flag = verbosityMap[verbosity.toLowerCase()];
+    if (flag) {
+      args.push(flag);
+    }
   }
 
   // Appends the log-file flags when logging to file is enabled and returns the
   // resolved log file path (empty when logging is disabled).
-  private applyLogFileFlags(
-    command: string,
+  private applyLogFileArgs(
+    args: string[],
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     isCollection: boolean,
-  ): { command: string; logFilePathUrl: string } {
+  ): string {
     if (!payload.logToFile) {
-      return { command, logFilePathUrl: "" };
+      return "";
     }
 
     const logFilePathUrl = this.creatorPath(
       payload.logFilePath || path.join(os.tmpdir(), "ansible-creator.log"),
     );
-    let updated = command;
-    updated += ` --lf=${shellQuote(logFilePathUrl)}`;
-    updated += ` --ll=${shellQuote(payload.logLevel.toLowerCase())}`;
+    args.push(`--lf=${logFilePathUrl}`);
+    args.push(`--ll=${payload.logLevel.toLowerCase()}`);
 
     if (isCollection) {
-      updated += ` --la=${payload.logFileAppend}`;
+      args.push(`--la=${payload.logFileAppend}`);
     } else {
-      updated += ` --la=${payload.logFileAppend ? "true" : "false"}`;
+      args.push(`--la=${payload.logFileAppend ? "true" : "false"}`);
     }
 
-    return { command: updated, logFilePathUrl };
+    return logFilePathUrl;
   }
 
   // Runs the ansible-dev-environment editable-mode install for a collection and
@@ -484,8 +490,15 @@ export class AnsibleCreatorOperations {
   ): Promise<{ output: string; succeeded: boolean }> {
     let commandOutput = "";
     const venvPathUrl = path.join(destinationUrl, ".venv");
-    let adeCommand = `cd ${shellQuote(destinationUrl)} && ade install --venv ${shellQuote(venvPathUrl)} --editable . --no-ansi`;
-    adeCommand += this.getVerbosityFlag(payload.verbosity);
+    const adeArgs = [
+      "install",
+      "--venv",
+      venvPathUrl,
+      "--editable",
+      ".",
+      "--no-ansi",
+    ];
+    this.appendVerbosityArgs(adeArgs, payload.verbosity);
 
     commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
 
@@ -518,13 +531,17 @@ export class AnsibleCreatorOperations {
     const exceedADEImVersion = adeVersionCheck.isGte;
 
     if (exceedADEImVersion) {
-      adeCommand += " --im=cfg";
-      let resolvedInterpreter: { command: string; env: NodeJS.ProcessEnv };
+      adeArgs.push("--im=cfg");
+      let resolvedInterpreter: {
+        executable: string;
+        args: string[];
+        env: NodeJS.ProcessEnv;
+      };
       try {
-        resolvedInterpreter = await withInterpreter(
+        resolvedInterpreter = await withInterpreterArgv(
           extSettings.settings,
-          adeCommand,
-          "",
+          ADE_EXECUTABLE,
+          adeArgs,
         );
       } catch (error) {
         console.error(
@@ -534,12 +551,14 @@ export class AnsibleCreatorOperations {
         commandOutput += `${PYTHON_ENV_FAILURE_OUTPUT}\n`;
         return { output: commandOutput, succeeded: false };
       }
-      const adeExecutionResult = await runCommand(
-        resolvedInterpreter.command,
+      const adeExecutionResult = await runCommandArgv(
+        resolvedInterpreter.executable,
+        resolvedInterpreter.args,
         resolvedInterpreter.env,
+        destinationUrl,
       );
       commandOutput += adeExecutionResult.output;
-      console.debug("[ade] command: ", adeCommand);
+      console.debug("[ade] command: ", ADE_EXECUTABLE, adeArgs.join(" "));
       return {
         output: commandOutput,
         succeeded: adeExecutionResult.status === "passed",
@@ -550,7 +569,7 @@ export class AnsibleCreatorOperations {
     commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
     commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
     commandOutput += `Please upgrade to the latest version of ade for this feature.`;
-    console.debug("[ade] command: ", adeCommand);
+    console.debug("[ade] command: ", ADE_EXECUTABLE, adeArgs.join(" "));
     return { output: commandOutput, succeeded: false };
   }
 
@@ -591,23 +610,29 @@ export class AnsibleCreatorOperations {
     namespaceName: string,
     collectionName: string,
     initPathUrl: string,
-  ): string {
-    return `ansible-creator init collection ${shellQuote(`${namespaceName}.${collectionName}`)} ${shellQuote(initPathUrl)} --no-ansi`;
+  ): string[] {
+    return [
+      "init",
+      "collection",
+      `${namespaceName}.${collectionName}`,
+      initPathUrl,
+      "--no-ansi",
+    ];
   }
 
   public getPluginCreatorCommand(
     pluginName: string,
     pluginType: string,
     url: string,
-  ): string {
-    return `ansible-creator add plugin ${shellQuote(pluginType)} ${shellQuote(pluginName)} ${shellQuote(url)} --no-ansi`;
+  ): string[] {
+    return ["add", "plugin", pluginType, pluginName, url, "--no-ansi"];
   }
 
   public getPlaybookCreatorCommand(
     namespace: string,
     collection: string,
     url: string,
-  ): string {
-    return `ansible-creator init playbook ${shellQuote(`${namespace}.${collection}`)} ${shellQuote(url)} --no-ansi`;
+  ): string[] {
+    return ["init", "playbook", `${namespace}.${collection}`, url, "--no-ansi"];
   }
 }
