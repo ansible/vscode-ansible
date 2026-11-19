@@ -112,9 +112,21 @@ function filterLcovByPath(lcovData: string, excludes: string[]): string {
   return kept.map((record) => `${record}\nend_of_record`).join("\n");
 }
 
-function readLcovFiles(inputs: string[]): string {
+function readLcovFiles(
+  inputs: string[],
+  unitIndex?: UnitCoverageIndex,
+): string {
   return inputs
-    .map((input) => readFileSync(input, "utf8").trimEnd())
+    .map((input) => {
+      let data = readFileSync(input, "utf8").trimEnd();
+      if (data.length === 0) {
+        return "";
+      }
+      if (unitIndex !== undefined && isUnitLcov(input)) {
+        data = expandCoveredStatementLines(data, unitIndex).trimEnd();
+      }
+      return data;
+    })
     .filter((data) => data.length > 0)
     .join("\n");
 }
@@ -262,15 +274,40 @@ function isUnitLcov(inputPath: string): boolean {
 const STATEMENT_GAP_LIMIT = 40;
 const LEADING_SIGNATURE_LIMIT = 8;
 
-export function expandCoveredStatementLines(lcovData: string): string {
-  const expanded = splitLcovRecords(lcovData).map((record) =>
-    expandRecord(record),
-  );
+export function expandCoveredStatementLines(
+  lcovData: string,
+  unitIndex?: UnitCoverageIndex,
+): string {
+  const expanded = splitLcovRecords(lcovData).map((record) => {
+    const sourceFile = sourceFileOf(record);
+    const knownLines =
+      sourceFile === undefined || unitIndex === undefined
+        ? undefined
+        : unitIndex.lines.get(sourceFile);
+    return expandRecord(record, knownLines);
+  });
   return expanded.length === 0 ? "" : `${expanded.join("\n")}\n`;
 }
 
-function expandRecord(record: string): string {
+function maySynthesizeLine(
+  lineNo: number,
+  da: Map<number, number>,
+  instrumented: Set<number>,
+  knownLines: Set<number> | undefined,
+): boolean {
+  if (da.has(lineNo) || instrumented.has(lineNo)) {
+    return false;
+  }
+  return knownLines?.has(lineNo) !== true;
+}
+
+function expandRecord(
+  record: string,
+  knownLines?: Set<number>,
+): string {
   const da = new Map<number, number>();
+  /** Lines present in the input report; synthetic fills never become anchors. */
+  const instrumented = new Set<number>();
   const rest: string[] = [];
   for (const rawLine of record.split("\n")) {
     if (rawLine.startsWith("DA:")) {
@@ -278,6 +315,7 @@ function expandRecord(record: string): string {
       const lineNo = Number.parseInt(parts[0] ?? "", 10);
       const hits = Number.parseInt(parts[1] ?? "", 10);
       if (!Number.isNaN(lineNo) && !Number.isNaN(hits)) {
+        instrumented.add(lineNo);
         da.set(lineNo, hits);
       }
     } else if (!rawLine.startsWith("LF:") && !rawLine.startsWith("LH:")) {
@@ -285,14 +323,14 @@ function expandRecord(record: string): string {
     }
   }
 
-  const ordered = [...da.keys()].sort((left, right) => left - right);
-  const first = ordered[0];
-  if (first !== undefined) {
-    const firstHits = da.get(first) ?? 0;
+  const ordered = [...instrumented].sort((left, right) => left - right);
+  const firstCovered = ordered.find((lineNo) => (da.get(lineNo) ?? 0) > 0);
+  if (firstCovered !== undefined) {
+    const firstHits = da.get(firstCovered) ?? 0;
     if (firstHits > 0) {
-      const start = Math.max(1, first - LEADING_SIGNATURE_LIMIT);
-      for (let lineNo = start; lineNo < first; lineNo += 1) {
-        if (!da.has(lineNo)) {
+      const start = Math.max(1, firstCovered - LEADING_SIGNATURE_LIMIT);
+      for (let lineNo = start; lineNo < firstCovered; lineNo += 1) {
+        if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
           da.set(lineNo, firstHits);
         }
       }
@@ -316,7 +354,7 @@ function expandRecord(record: string): string {
       continue;
     }
     for (let lineNo = start + 1; lineNo < end; lineNo += 1) {
-      if (!da.has(lineNo)) {
+      if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
         da.set(lineNo, startHits);
       }
     }
@@ -360,13 +398,6 @@ export function rewriteNonUnitLcov(inputs: string[]): void {
       unitIndex,
     );
     writeFileSync(input, filtered, "utf8");
-  }
-  for (const [index, input] of unitInputs.entries()) {
-    writeFileSync(
-      input,
-      expandCoveredStatementLines(unitTexts[index] ?? ""),
-      "utf8",
-    );
   }
 }
 
@@ -549,7 +580,18 @@ function main(argv = process.argv.slice(2)): number {
   }
 
   rewriteNonUnitLcov(options.inputs);
-  const lcovData = readLcovFiles(options.inputs);
+  const unitInputs = options.inputs.filter(
+    (input) => isUnitLcov(input) && existsSync(input),
+  );
+  const unitIndex =
+    unitInputs.length === 0
+      ? undefined
+      : indexUnitCoverage(
+          unitInputs
+            .map((input) => readFileSync(input, "utf8"))
+            .join("\n"),
+        );
+  const lcovData = readLcovFiles(options.inputs, unitIndex);
   const merged = mergeLcovRecords(lcovData);
   const filtered = filterLcovByPath(merged, options.excludes);
   const tempDir = mkdtempSync(path.join(tmpdir(), "lcov-to-cobertura-"));

@@ -61,7 +61,7 @@ export function pep440ToSemverComparable(version: string): string | null {
   }
 
   const pre = parsed.rest.startsWith(".") ? parsed.rest.slice(1) : parsed.rest;
-  if (!/^(?:dev|a|b|rc)\d+|post\d+$/i.test(pre)) {
+  if (!/^(?:(?:dev|a|b|rc)\d+|post\d+)$/i.test(pre)) {
     return null;
   }
   if (/^post\d+$/i.test(pre)) {
