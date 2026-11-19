@@ -42,12 +42,12 @@ vi.mock("@src/features/contentCreator/utils", async (importOriginal) => {
     getADEVersion: vi.fn(),
     getCreatorVersion: vi.fn(),
     getBinDetail: vi.fn(),
-    runCommand: vi.fn(),
+    runCommandArgv: vi.fn(),
   };
 });
 
 vi.mock("@src/features/utils/commandRunner", () => ({
-  withInterpreter: vi.fn(),
+  withInterpreterArgv: vi.fn(),
 }));
 
 vi.mock("fs", () => ({
@@ -74,9 +74,9 @@ import {
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
-  runCommand,
+  runCommandArgv,
 } from "@src/features/contentCreator/utils";
-import { withInterpreter } from "@src/features/utils/commandRunner";
+import { withInterpreterArgv } from "@src/features/utils/commandRunner";
 import type {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -103,9 +103,12 @@ function lastArgs(web: Web): Record<string, unknown> {
   return calls[calls.length - 1][0].arguments as Record<string, unknown>;
 }
 
-// The command string handed to withInterpreter (the assembled ansible-creator cmd).
+// argv passed to withInterpreterArgv for ansible-creator / ade.
 function interpreterCmd(callIndex = 0): string {
-  return vi.mocked(withInterpreter).mock.calls[callIndex][1] as string;
+  const call = vi.mocked(withInterpreterArgv).mock.calls[callIndex];
+  const executable = call[1] as string;
+  const args = call[2] as string[];
+  return [executable, ...args].join(" ");
 }
 
 function rolePayload(o: Partial<RoleFormInterface> = {}): RoleFormInterface {
@@ -178,13 +181,13 @@ describe("AnsibleCreatorOperations", () => {
     vi.mocked(getCreatorVersion).mockResolvedValue("26.2.0");
     vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
     vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
-    vi.mocked(runCommand).mockResolvedValue({
+    vi.mocked(runCommandArgv).mockResolvedValue({
       output: "creator-output\n",
       status: "passed",
     } as never);
-    vi.mocked(withInterpreter).mockImplementation(
-      async (_settings: unknown, command: string) =>
-        ({ command, env: { TEST: "1" } }) as never,
+    vi.mocked(withInterpreterArgv).mockImplementation(
+      async (_settings: unknown, executable: string, args: string[]) =>
+        ({ executable, args, env: { TEST: "1" } }) as never,
     );
     ops = new AnsibleCreatorOperations();
   });
@@ -377,11 +380,11 @@ describe("AnsibleCreatorOperations", () => {
   });
 
   describe("runRoleAddCommand", () => {
-    it("reports failure and skips runCommand when ansible-creator is missing", async () => {
+    it("reports failure and skips runCommandArgv when ansible-creator is missing", async () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("failed");
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain("ansible-creator is not installed");
     });
@@ -393,7 +396,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       expect(interpreterCmd()).toContain("--overwrite");
-      expect(interpreterCmd()).toContain(" -vvv");
+      expect(interpreterCmd()).toContain("-vvv");
       // default destination path used
       expect(lastArgs(web).projectUrl).toContain(
         "/.ansible/collections/ansible_collections",
@@ -402,9 +405,9 @@ describe("AnsibleCreatorOperations", () => {
 
     it.each([
       ["off", ""],
-      ["low", " -v"],
-      ["medium", " -vv"],
-      ["high", " -vvv"],
+      ["low", "-v"],
+      ["medium", "-vv"],
+      ["high", "-vvv"],
       ["bogus", ""],
     ])(
       "maps verbosity %s -> %s and uses --no-overwrite",
@@ -425,18 +428,18 @@ describe("AnsibleCreatorOperations", () => {
     it("runs the command when the version gate passes", async () => {
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
-      expect(runCommand).toHaveBeenCalledTimes(1);
+      expect(runCommandArgv).toHaveBeenCalledTimes(1);
       expect(lastArgs(web).status).toBe("passed");
       expect(lastOutput(web)).toContain("creator-output");
     });
 
-    it("posts failed execution-log when withInterpreter rejects after the gate", async () => {
-      vi.mocked(withInterpreter).mockRejectedValueOnce(
+    it("posts failed execution-log when withInterpreterArgv rejects after the gate", async () => {
+      vi.mocked(withInterpreterArgv).mockRejectedValueOnce(
         new Error("interpreter resolution failed"),
       );
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
         "Failed to resolve the Python environment for ansible-creator",
@@ -444,19 +447,19 @@ describe("AnsibleCreatorOperations", () => {
     });
 
     it("reports interpreter failure when the rejection is not an Error", async () => {
-      vi.mocked(withInterpreter).mockRejectedValueOnce("env down");
+      vi.mocked(withInterpreterArgv).mockRejectedValueOnce("env down");
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
       expect(lastArgs(web).status).toBe("failed");
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
     });
 
     it("emits the minimum-version message when the gate fails without a userMessage", async () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("25.3.0");
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
-      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
         "Minimum ansible-creator version needed to add the role resource is 26.2.0",
@@ -467,8 +470,8 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("garbage");
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
-      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
       expect(lastOutput(web)).toContain("Invalid version format: garbage.");
       expect(lastOutput(web)).not.toContain("Minimum ansible-creator version");
     });
@@ -479,7 +482,7 @@ describe("AnsibleCreatorOperations", () => {
         rolePayload({ collectionPath: "/custom/path" }),
         web,
       );
-      expect(interpreterCmd()).toContain("'/custom/path'");
+      expect(interpreterCmd()).toContain("/custom/path");
       expect(lastArgs(web).projectUrl).toBe("/custom/path");
     });
 
@@ -493,17 +496,17 @@ describe("AnsibleCreatorOperations", () => {
       expect(vi.mocked(fs.existsSync)).toHaveBeenCalledWith(
         path.join(expected, "galaxy.yml"),
       );
-      expect(interpreterCmd()).toContain(`'${expected}'`);
+      expect(interpreterCmd()).toContain(expected);
       expect(lastArgs(web).projectUrl).toBe(expected);
     });
   });
 
   describe("runPluginAddCommand", () => {
-    it("reports failure and skips runCommand when ansible-creator is missing", async () => {
+    it("reports failure and skips runCommandArgv when ansible-creator is missing", async () => {
       vi.mocked(getCreatorVersion).mockResolvedValue(undefined as never);
       const web = makeWeb();
       await ops.runPluginAddCommand(pluginPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain("ansible-creator is not installed");
     });
@@ -516,11 +519,11 @@ describe("AnsibleCreatorOperations", () => {
           pluginPayload({ pluginType, isOverwritten: true, verbosity: "low" }),
           web,
         );
-        expect(runCommand).toHaveBeenCalledTimes(1);
+        expect(runCommandArgv).toHaveBeenCalledTimes(1);
         const cmd = interpreterCmd();
-        expect(cmd).toContain(`add plugin '${pluginType}'`);
+        expect(cmd).toContain(`add plugin ${pluginType}`);
         expect(cmd).toContain("--overwrite");
-        expect(cmd).toContain(" -v");
+        expect(cmd).toContain("-v");
         expect(lastArgs(web).status).toBe("passed");
       },
     );
@@ -529,8 +532,8 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("24.0.0");
       const web = makeWeb();
       await ops.runPluginAddCommand(pluginPayload({ pluginType: "test" }), web);
-      expect(runCommand).not.toHaveBeenCalled();
-      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
       expect(lastOutput(web)).toContain(
         "Minimum ansible-creator version needed to add the test plugin is 26.2.0",
       );
@@ -558,8 +561,8 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false);
       const web = makeWeb();
       await ops.runRoleAddCommand(rolePayload({ collectionPath: "" }), web);
-      expect(withInterpreter).not.toHaveBeenCalled();
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain("galaxy.yml");
       expect(lastArgs(web).projectUrl).toContain(
@@ -575,14 +578,14 @@ describe("AnsibleCreatorOperations", () => {
       );
       const cmd = interpreterCmd();
       expect(cmd).toContain("--no-overwrite");
-      expect(cmd).toContain(" -vv");
+      expect(cmd).toContain("-vv");
     });
 
     it("appends userMessage when version is un-parseable", async () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("not-a-version");
       const web = makeWeb();
       await ops.runPluginAddCommand(pluginPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastOutput(web)).toContain(
         "Invalid version format: not-a-version.",
       );
@@ -597,7 +600,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       const cmd = interpreterCmd();
-      expect(cmd).toContain("init collection 'ns.col'");
+      expect(cmd).toContain("init collection ns.col");
       expect(lastArgs(web).collectionUrl).toBe("/tmp/init");
       expect(lastArgs(web).projectUrl).toBeUndefined();
     });
@@ -622,7 +625,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       const cmd = interpreterCmd();
-      expect(cmd).toContain("init playbook 'ns.col'");
+      expect(cmd).toContain("init playbook ns.col");
       expect(lastArgs(web).projectUrl).toBe("/tmp/proj");
       expect(lastArgs(web).collectionUrl).toBeUndefined();
     });
@@ -639,7 +642,7 @@ describe("AnsibleCreatorOperations", () => {
       const expected = path.join(os.homedir(), "cols");
       await ops.runInitCommand(collectionPayload({ initPath: "~/cols" }), web);
       expect(lastArgs(web).collectionUrl).toBe(expected);
-      expect(interpreterCmd()).toContain(`'${expected}'`);
+      expect(interpreterCmd()).toContain(expected);
     });
 
     it("falls back to default initPath when collection initPath is empty", async () => {
@@ -654,7 +657,7 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("failed");
       const web = makeWeb();
       await ops.runInitCommand(collectionPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).collectionUrl).toBeDefined();
       expect(lastArgs(web).projectUrl).toBeUndefined();
       expect(lastArgs(web).status).toBe("failed");
@@ -664,7 +667,7 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("failed");
       const web = makeWeb();
       await ops.runInitCommand(projectPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).projectUrl).toBeDefined();
       expect(lastArgs(web).collectionUrl).toBeUndefined();
     });
@@ -686,8 +689,8 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
       const web = makeWeb();
       await ops.runInitCommand(projectPayload({ isOverwritten: true }), web);
-      expect(runCommand).not.toHaveBeenCalled();
-      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
         "Minimum ansible-creator version needed is 26.2.0",
@@ -701,8 +704,8 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("25.5.0");
       const web = makeWeb();
       await ops.runInitCommand(collectionPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
-      expect(withInterpreter).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
+      expect(withInterpreterArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
         "Minimum ansible-creator version needed is 26.2.0",
@@ -715,7 +718,7 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("garbage");
       const web = makeWeb();
       await ops.runInitCommand(projectPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain("Invalid version format: garbage.");
     });
@@ -724,7 +727,7 @@ describe("AnsibleCreatorOperations", () => {
       vi.mocked(getCreatorVersion).mockResolvedValue("garbage");
       const web = makeWeb();
       await ops.runInitCommand(collectionPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain("Invalid version format: garbage.");
       expect(lastArgs(web).collectionUrl).toBeDefined();
@@ -747,7 +750,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       const cmd = interpreterCmd();
-      expect(cmd).toContain("--lf='/var/log/c.log'");
+      expect(cmd).toContain("--lf=/var/log/c.log");
       expect(cmd).toContain("--la=true");
     });
 
@@ -792,7 +795,7 @@ describe("AnsibleCreatorOperations", () => {
       );
       const cmd = interpreterCmd();
       expect(cmd).toContain("--la=true");
-      expect(cmd).toContain("--lf='/tmp/log.txt'");
+      expect(cmd).toContain("--lf=/tmp/log.txt");
     });
 
     it("includes log level flag when logToFile is true", async () => {
@@ -806,7 +809,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       const cmd = interpreterCmd();
-      expect(cmd).toContain("--ll='warning'");
+      expect(cmd).toContain("--ll=warning");
     });
 
     it("installs in editable mode when ADE version is high enough", async () => {
@@ -816,11 +819,11 @@ describe("AnsibleCreatorOperations", () => {
         collectionPayload({ isEditableModeInstall: true }),
         web,
       );
-      // second withInterpreter call is the ADE command with --im=cfg
-      const adeCmd = vi.mocked(withInterpreter).mock.calls[1][1] as string;
-      expect(adeCmd).toContain("--im=cfg");
-      // runCommand called for both creator and ADE
-      expect(runCommand).toHaveBeenCalledTimes(2);
+      // second withInterpreterArgv call is the ADE command with --im=cfg
+      const adeArgs = vi.mocked(withInterpreterArgv).mock.calls[1][2] as string[];
+      expect(adeArgs).toContain("--im=cfg");
+      // runCommandArgv called for both creator and ADE
+      expect(runCommandArgv).toHaveBeenCalledTimes(2);
     });
 
     it("reports the editable-mode failure when ADE version is too low", async () => {
@@ -834,7 +837,7 @@ describe("AnsibleCreatorOperations", () => {
         "Collection could not be installed in editable mode",
       );
       // only the creator command ran
-      expect(runCommand).toHaveBeenCalledTimes(1);
+      expect(runCommandArgv).toHaveBeenCalledTimes(1);
     });
 
     it("skips the ADE block when editable mode is disabled", async () => {
@@ -844,7 +847,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       expect(getADEVersion).not.toHaveBeenCalled();
-      expect(runCommand).toHaveBeenCalledTimes(1);
+      expect(runCommandArgv).toHaveBeenCalledTimes(1);
     });
 
     it("includes verbosity in the ADE editable-mode command", async () => {
@@ -857,17 +860,17 @@ describe("AnsibleCreatorOperations", () => {
         }),
         web,
       );
-      const adeCmd = vi.mocked(withInterpreter).mock.calls[1][1] as string;
-      expect(adeCmd).toContain(" -vv");
+      const adeArgs = vi.mocked(withInterpreterArgv).mock.calls[1][2] as string[];
+      expect(adeArgs).toContain("-vv");
     });
 
     it("posts failed execution-log when init interpreter resolution fails", async () => {
-      vi.mocked(withInterpreter).mockRejectedValueOnce(
+      vi.mocked(withInterpreterArgv).mockRejectedValueOnce(
         new Error("no interpreter"),
       );
       const web = makeWeb();
       await ops.runInitCommand(projectPayload(), web);
-      expect(runCommand).not.toHaveBeenCalled();
+      expect(runCommandArgv).not.toHaveBeenCalled();
       expect(lastArgs(web).status).toBe("failed");
       expect(lastOutput(web)).toContain(
         "Failed to resolve the Python environment for ansible-creator",
@@ -876,7 +879,7 @@ describe("AnsibleCreatorOperations", () => {
 
     it("marks editable mode failed when the ADE command fails", async () => {
       vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
-      vi.mocked(runCommand)
+      vi.mocked(runCommandArgv)
         .mockResolvedValueOnce({
           output: "creator-output\n",
           status: "passed",
@@ -919,9 +922,10 @@ describe("AnsibleCreatorOperations", () => {
 
     it("posts failed final execution-log when ADE interpreter resolution fails", async () => {
       vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
-      vi.mocked(withInterpreter)
+      vi.mocked(withInterpreterArgv)
         .mockResolvedValueOnce({
-          command: "creator-cmd",
+          executable: "ansible-creator",
+          args: [],
           env: { TEST: "1" },
         } as never)
         .mockRejectedValueOnce(new Error("no interpreter"));
@@ -944,9 +948,10 @@ describe("AnsibleCreatorOperations", () => {
 
     it("reports ADE interpreter failure when the rejection is not an Error", async () => {
       vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
-      vi.mocked(withInterpreter)
+      vi.mocked(withInterpreterArgv)
         .mockResolvedValueOnce({
-          command: "creator-cmd",
+          executable: "ansible-creator",
+          args: [],
           env: { TEST: "1" },
         } as never)
         .mockRejectedValueOnce("no interpreter");
@@ -1033,37 +1038,60 @@ describe("AnsibleCreatorOperations", () => {
   describe("version-syntax command builders", () => {
     it("getCollectionCreatorCommand uses the current init syntax", () => {
       const cmd = ops.getCollectionCreatorCommand("ns", "col", "/tmp");
-      expect(cmd).toBe(
-        "ansible-creator init collection 'ns.col' '/tmp' --no-ansi",
-      );
+      expect(cmd).toEqual([
+        "init",
+        "collection",
+        "ns.col",
+        "/tmp",
+        "--no-ansi",
+      ]);
     });
 
     it("getPlaybookCreatorCommand uses the current init syntax", () => {
       const cmd = ops.getPlaybookCreatorCommand("ns", "col", "/tmp");
-      expect(cmd).toBe(
-        "ansible-creator init playbook 'ns.col' '/tmp' --no-ansi",
-      );
+      expect(cmd).toEqual([
+        "init",
+        "playbook",
+        "ns.col",
+        "/tmp",
+        "--no-ansi",
+      ]);
     });
 
     it("getRoleCreatorCommand uses add resource role syntax", () => {
       const cmd = ops.getRoleCreatorCommand("myrole", "/tmp/dest");
-      expect(cmd).toBe(
-        "ansible-creator add resource role 'myrole' '/tmp/dest' --no-ansi",
-      );
+      expect(cmd).toEqual([
+        "add",
+        "resource",
+        "role",
+        "myrole",
+        "/tmp/dest",
+        "--no-ansi",
+      ]);
     });
 
-    it("getRoleCreatorCommand quotes a name that contains a shell metacharacter", () => {
+    it("getRoleCreatorCommand keeps shell metacharacters as literal argv", () => {
       const cmd = ops.getRoleCreatorCommand("role';touch", "/tmp/My Role");
-      expect(cmd).toBe(
-        "ansible-creator add resource role 'role'\\'';touch' '/tmp/My Role' --no-ansi",
-      );
+      expect(cmd).toEqual([
+        "add",
+        "resource",
+        "role",
+        "role';touch",
+        "/tmp/My Role",
+        "--no-ansi",
+      ]);
     });
 
     it("getPluginCreatorCommand uses add plugin syntax", () => {
       const cmd = ops.getPluginCreatorCommand("myplugin", "module", "/tmp/p");
-      expect(cmd).toBe(
-        "ansible-creator add plugin 'module' 'myplugin' '/tmp/p' --no-ansi",
-      );
+      expect(cmd).toEqual([
+        "add",
+        "plugin",
+        "module",
+        "myplugin",
+        "/tmp/p",
+        "--no-ansi",
+      ]);
     });
   });
 });
