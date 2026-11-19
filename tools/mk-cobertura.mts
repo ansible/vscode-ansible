@@ -231,9 +231,7 @@ export function filterLcovAgainstUnit(
         if (!isMiss(hits)) {
           brh += 1;
         }
-      } else if (/^(?:LF|LH|BRF|BRH):/.test(rawLine)) {
-        continue;
-      } else if (rawLine.length > 0) {
+      } else if (!/^(?:LF|LH|BRF|BRH):/.test(rawLine) && rawLine.length > 0) {
         kept.push(rawLine);
       }
     }
