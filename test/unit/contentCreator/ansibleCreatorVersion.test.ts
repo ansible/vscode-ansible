@@ -40,6 +40,10 @@ describe("pep440ToSemverComparable", () => {
     expect(pep440ToSemverComparable("dev0")).toBeNull();
     expect(pep440ToSemverComparable("")).toBeNull();
   });
+
+  it("rejects unknown characters after a valid prerelease suffix", () => {
+    expect(pep440ToSemverComparable("26.3.0rc1junk")).toBeNull();
+  });
 });
 
 describe("checkAnsibleCreatorVersion", () => {
@@ -64,6 +68,10 @@ describe("checkAnsibleCreatorVersion", () => {
   it("rejects unknown tails without coercing to the release", () => {
     expect(
       checkAnsibleCreatorVersion("26.2.0.pre1", ANSIBLE_CREATOR_VERSION_MIN)
+        .isGte,
+    ).toBe(false);
+    expect(
+      checkAnsibleCreatorVersion("26.3.0rc1junk", ANSIBLE_CREATOR_VERSION_MIN)
         .isGte,
     ).toBe(false);
   });

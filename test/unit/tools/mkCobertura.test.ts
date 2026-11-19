@@ -203,4 +203,37 @@ end_of_record
     expect(expanded).toContain("DA:3,7");
     expect(expanded).toContain("DA:4,7");
   });
+
+  it("produces the same expansion from unchanged raw unit input", () => {
+    const source = `
+SF:src/example.ts
+DA:20,1
+LF:1
+LH:1
+end_of_record
+`;
+    expect(expandCoveredStatementLines(source)).toBe(
+      expandCoveredStatementLines(source),
+    );
+  });
+
+  it("does not synthesize hits on lines measured in another unit record", () => {
+    const unitIndex = indexUnitCoverage(`
+SF:src/example.ts
+DA:1,0
+end_of_record
+`);
+    const expanded = expandCoveredStatementLines(
+      `
+SF:src/example.ts
+DA:4,7
+LF:1
+LH:1
+end_of_record
+`,
+      unitIndex,
+    );
+    expect(expanded).not.toContain("DA:1,7");
+    expect(expanded).toContain("DA:4,7");
+  });
 });
