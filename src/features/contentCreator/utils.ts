@@ -71,12 +71,12 @@ export async function runCommand(
   }
 }
 
-export async function runCommandArgv(
+export function runCommandArgv(
   executable: string,
   args: string[],
   runEnv: NodeJS.ProcessEnv | undefined,
   cwd?: string,
-): Promise<{ output: string; status: string }> {
+): { output: string; status: string } {
   try {
     const result = cp
       .execFileSync(executable, args, {
@@ -95,18 +95,21 @@ export async function runCommandArgv(
  * @param pathUrl - original path url (string)
  * @returns updatedUrl - updated and expanded path url (string)
  */
+/** Expand a leading `~` path component. Interior tildes stay literal. */
+function expandLeadingTilde(pathUrl: string): string {
+  if (pathUrl === "~") {
+    return os.homedir();
+  }
+  if (pathUrl.startsWith("~/") || pathUrl.startsWith("~\\")) {
+    return `${os.homedir()}${pathUrl.slice(1)}`;
+  }
+  return pathUrl;
+}
+
 export function expandPath(pathUrl: string): string {
-  let updatedUrl = pathUrl;
-
-  // expand `~` to home directory.
-  const re1 = /~/gi;
-  updatedUrl = updatedUrl.replace(re1, os.homedir());
-
   // expand `$HOME` to home directory
   const re2 = /\$HOME/gi;
-  updatedUrl = updatedUrl.replace(re2, os.homedir());
-
-  return updatedUrl;
+  return expandLeadingTilde(pathUrl).replace(re2, os.homedir());
 }
 
 export async function getADEVersion(): Promise<string> {

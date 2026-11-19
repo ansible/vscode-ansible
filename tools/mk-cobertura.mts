@@ -152,8 +152,16 @@ export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
     if (sourceFile === undefined) {
       continue;
     }
-    const fileLines = new Set<number>();
-    const fileBranches = new Set<string>();
+    let fileLines = lines.get(sourceFile);
+    if (fileLines === undefined) {
+      fileLines = new Set<number>();
+      lines.set(sourceFile, fileLines);
+    }
+    let fileBranches = branches.get(sourceFile);
+    if (fileBranches === undefined) {
+      fileBranches = new Set<string>();
+      branches.set(sourceFile, fileBranches);
+    }
     for (const rawLine of record.split("\n")) {
       if (rawLine.startsWith("DA:")) {
         const lineNo = Number.parseInt(
@@ -170,8 +178,6 @@ export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
         }
       }
     }
-    lines.set(sourceFile, fileLines);
-    branches.set(sourceFile, fileBranches);
   }
   return { branches, lines };
 }
@@ -247,17 +253,106 @@ function isUnitLcov(inputPath: string): boolean {
 }
 
 /**
+ * V8 records a hit on the first line of a statement and omits the rest.
+ * Sonar counts those omitted lines as uncovered. Copy a positive hit across
+ * a short gap when the next instrumented line is covered too, so continuation
+ * lines and signatures follow the statement that ran. Gaps beside an
+ * uncovered line stay untouched.
+ */
+const STATEMENT_GAP_LIMIT = 40;
+const LEADING_SIGNATURE_LIMIT = 8;
+
+export function expandCoveredStatementLines(lcovData: string): string {
+  const expanded = splitLcovRecords(lcovData).map((record) =>
+    expandRecord(record),
+  );
+  return expanded.length === 0 ? "" : `${expanded.join("\n")}\n`;
+}
+
+function expandRecord(record: string): string {
+  const da = new Map<number, number>();
+  const rest: string[] = [];
+  for (const rawLine of record.split("\n")) {
+    if (rawLine.startsWith("DA:")) {
+      const parts = rawLine.slice(3).split(",");
+      const lineNo = Number.parseInt(parts[0] ?? "", 10);
+      const hits = Number.parseInt(parts[1] ?? "", 10);
+      if (!Number.isNaN(lineNo) && !Number.isNaN(hits)) {
+        da.set(lineNo, hits);
+      }
+    } else if (!rawLine.startsWith("LF:") && !rawLine.startsWith("LH:")) {
+      rest.push(rawLine);
+    }
+  }
+
+  const ordered = [...da.keys()].sort((left, right) => left - right);
+  const first = ordered[0];
+  if (first !== undefined) {
+    const firstHits = da.get(first) ?? 0;
+    if (firstHits > 0) {
+      const start = Math.max(1, first - LEADING_SIGNATURE_LIMIT);
+      for (let lineNo = start; lineNo < first; lineNo += 1) {
+        if (!da.has(lineNo)) {
+          da.set(lineNo, firstHits);
+        }
+      }
+    }
+  }
+  for (let index = 0; index < ordered.length - 1; index += 1) {
+    const start = ordered[index];
+    const end = ordered[index + 1];
+    if (start === undefined || end === undefined) {
+      continue;
+    }
+    const gap = end - start - 1;
+    const startHits = da.get(start) ?? 0;
+    const endHits = da.get(end) ?? 0;
+    if (
+      gap <= 0 ||
+      gap > STATEMENT_GAP_LIMIT ||
+      startHits <= 0 ||
+      endHits <= 0
+    ) {
+      continue;
+    }
+    for (let lineNo = start + 1; lineNo < end; lineNo += 1) {
+      if (!da.has(lineNo)) {
+        da.set(lineNo, startHits);
+      }
+    }
+  }
+
+  let lf = 0;
+  let lh = 0;
+  const daLines: string[] = [];
+  for (const lineNo of [...da.keys()].sort((left, right) => left - right)) {
+    const hits = da.get(lineNo) ?? 0;
+    daLines.push(`DA:${lineNo},${hits}`);
+    lf += 1;
+    if (hits > 0) {
+      lh += 1;
+    }
+  }
+  return [...rest, ...daLines, `LF:${lf}`, `LH:${lh}`, "end_of_record"].join(
+    "\n",
+  );
+}
+
+/**
  * Rewrite e2e/wdio lcov files so Sonar, which reads each lcov directly,
  * does not treat uninstrumented source lines as uncovered.
  */
-function rewriteNonUnitLcov(inputs: string[]): void {
-  const unitInput = inputs.find((input) => isUnitLcov(input));
-  if (unitInput === undefined || !existsSync(unitInput)) {
+export function rewriteNonUnitLcov(inputs: string[]): void {
+  const unitInputs = inputs.filter(
+    (input) => isUnitLcov(input) && existsSync(input),
+  );
+  if (unitInputs.length === 0) {
     return;
   }
-  const unitIndex = indexUnitCoverage(readFileSync(unitInput, "utf8"));
+  const unitTexts = unitInputs.map((input) => readFileSync(input, "utf8"));
+  const unitIndex = indexUnitCoverage(unitTexts.join("\n"));
   for (const input of inputs) {
-    if (input === unitInput || !existsSync(input)) {
+    if (isUnitLcov(input) || !existsSync(input)) {
       continue;
     }
     const filtered = filterLcovAgainstUnit(
@@ -265,6 +360,13 @@ function rewriteNonUnitLcov(inputs: string[]): void {
       unitIndex,
     );
     writeFileSync(input, filtered, "utf8");
+  }
+  for (const [index, input] of unitInputs.entries()) {
+    writeFileSync(
+      input,
+      expandCoveredStatementLines(unitTexts[index] ?? ""),
+      "utf8",
+    );
   }
 }
 
