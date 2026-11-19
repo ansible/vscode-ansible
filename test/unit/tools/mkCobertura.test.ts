@@ -191,6 +191,21 @@ end_of_record
     expect(expanded).not.toContain("DA:12,");
   });
 
+  it("does not fill the leading gap when the first instrumented line is uncovered", () => {
+    const expanded = expandCoveredStatementLines(`
+SF:src/example.ts
+DA:1,0
+DA:4,7
+LF:2
+LH:1
+end_of_record
+`);
+    expect(expanded).toContain("DA:1,0");
+    expect(expanded).toContain("DA:4,7");
+    expect(expanded).not.toContain("DA:2,");
+    expect(expanded).not.toContain("DA:3,");
+  });
+
   it("fills a short signature before the first covered line", () => {
     const expanded = expandCoveredStatementLines(`
 SF:src/example.ts

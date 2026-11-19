@@ -815,8 +815,12 @@ describe("AnsibleCreatorOperations", () => {
     it("installs in editable mode when ADE version is high enough", async () => {
       vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
       const web = makeWeb();
+      const destinationWithSpaces = "/tmp/My Collections";
       await ops.runInitCommand(
-        collectionPayload({ isEditableModeInstall: true }),
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: destinationWithSpaces,
+        }),
         web,
       );
       // second withInterpreterArgv call is the ADE command with --im=cfg
@@ -825,6 +829,21 @@ describe("AnsibleCreatorOperations", () => {
       expect(adeArgs).toContain("--im=cfg");
       // runCommandArgv called for both creator and ADE
       expect(runCommandArgv).toHaveBeenCalledTimes(2);
+      const adeRun = vi.mocked(runCommandArgv).mock.calls[1];
+      expect(adeRun?.[0]).toBe("ade");
+      expect(adeRun?.[1]).toEqual(
+        expect.arrayContaining([
+          "install",
+          "--venv",
+          path.join(destinationWithSpaces, ".venv"),
+          "--editable",
+          ".",
+          "--no-ansi",
+          "--im=cfg",
+        ]),
+      );
+      expect(adeRun?.[2]).toEqual({ TEST: "1" });
+      expect(adeRun?.[3]).toBe(destinationWithSpaces);
     });
 
     it("reports the editable-mode failure when ADE version is too low", async () => {
