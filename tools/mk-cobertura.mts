@@ -301,10 +301,7 @@ function maySynthesizeLine(
   return knownLines?.has(lineNo) !== true;
 }
 
-function expandRecord(
-  record: string,
-  knownLines?: Set<number>,
-): string {
+function expandRecord(record: string, knownLines?: Set<number>): string {
   const da = new Map<number, number>();
   /** Lines present in the input report; synthetic fills never become anchors. */
   const instrumented = new Set<number>();
@@ -324,15 +321,13 @@ function expandRecord(
   }
 
   const ordered = [...instrumented].sort((left, right) => left - right);
-  const firstCovered = ordered.find((lineNo) => (da.get(lineNo) ?? 0) > 0);
-  if (firstCovered !== undefined) {
-    const firstHits = da.get(firstCovered) ?? 0;
-    if (firstHits > 0) {
-      const start = Math.max(1, firstCovered - LEADING_SIGNATURE_LIMIT);
-      for (let lineNo = start; lineNo < firstCovered; lineNo += 1) {
-        if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
-          da.set(lineNo, firstHits);
-        }
+  const firstInstrumented = ordered[0];
+  if (firstInstrumented !== undefined && (da.get(firstInstrumented) ?? 0) > 0) {
+    const firstHits = da.get(firstInstrumented) ?? 0;
+    const start = Math.max(1, firstInstrumented - LEADING_SIGNATURE_LIMIT);
+    for (let lineNo = start; lineNo < firstInstrumented; lineNo += 1) {
+      if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
+        da.set(lineNo, firstHits);
       }
     }
   }
@@ -587,9 +582,7 @@ function main(argv = process.argv.slice(2)): number {
     unitInputs.length === 0
       ? undefined
       : indexUnitCoverage(
-          unitInputs
-            .map((input) => readFileSync(input, "utf8"))
-            .join("\n"),
+          unitInputs.map((input) => readFileSync(input, "utf8")).join("\n"),
         );
   const lcovData = readLcovFiles(options.inputs, unitIndex);
   const merged = mergeLcovRecords(lcovData);
