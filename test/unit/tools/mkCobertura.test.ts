@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   filterLcovAgainstUnit,
   indexUnitCoverage,
-} from "@root/tools/mk-cobertura.mts";
+} from "@root/tools/mk-cobertura";
 
 const unitLcov = `
 SF:src/example.ts
