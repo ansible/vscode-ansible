@@ -1,6 +1,6 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 import * as os from "os";
-import * as path from "path";
+import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   AnsibleCollectionFormInterface,
@@ -34,8 +34,16 @@ const PYTHON_ENV_FAILURE_OUTPUT =
 const ANSIBLE_CREATOR_EXECUTABLE = "ansible-creator";
 const ADE_EXECUTABLE = "ade";
 
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === "/") {
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
 function isAnsibleCollectionsRoot(fsPath: string): boolean {
-  const normalized = fsPath.replaceAll("\\", "/").replace(/\/+$/, "");
+  const normalized = trimTrailingSlashes(fsPath.replaceAll("\\", "/"));
   return normalized.endsWith("/collections/ansible_collections");
 }
 
@@ -204,7 +212,7 @@ export class AnsibleCreatorOperations {
       return;
     }
 
-    const result = await runCommandArgv(
+    const result = runCommandArgv(
       resolvedInterpreter.executable,
       resolvedInterpreter.args,
       resolvedInterpreter.env,
@@ -351,7 +359,7 @@ export class AnsibleCreatorOperations {
     }
 
     // Execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommandArgv(
+    const ansibleCreatorExecutionResult = runCommandArgv(
       resolvedInterpreter.executable,
       resolvedInterpreter.args,
       resolvedInterpreter.env,
@@ -467,8 +475,10 @@ export class AnsibleCreatorOperations {
     const logFilePathUrl = this.creatorPath(
       payload.logFilePath || path.join(os.tmpdir(), "ansible-creator.log"),
     );
-    args.push(`--lf=${logFilePathUrl}`);
-    args.push(`--ll=${payload.logLevel.toLowerCase()}`);
+    args.push(
+      `--lf=${logFilePathUrl}`,
+      `--ll=${payload.logLevel.toLowerCase()}`,
+    );
 
     if (isCollection) {
       args.push(`--la=${payload.logFileAppend}`);
@@ -551,7 +561,7 @@ export class AnsibleCreatorOperations {
         commandOutput += `${PYTHON_ENV_FAILURE_OUTPUT}\n`;
         return { output: commandOutput, succeeded: false };
       }
-      const adeExecutionResult = await runCommandArgv(
+      const adeExecutionResult = runCommandArgv(
         resolvedInterpreter.executable,
         resolvedInterpreter.args,
         resolvedInterpreter.env,

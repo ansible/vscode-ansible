@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 import * as os from "os";
 import * as path from "path";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -50,7 +50,7 @@ vi.mock("@src/features/utils/commandRunner", () => ({
   withInterpreterArgv: vi.fn(),
 }));
 
-vi.mock("fs", () => ({
+vi.mock("node:fs", () => ({
   existsSync: vi.fn(() => true),
 }));
 
@@ -181,7 +181,7 @@ describe("AnsibleCreatorOperations", () => {
     vi.mocked(getCreatorVersion).mockResolvedValue("26.2.0");
     vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
     vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
-    vi.mocked(runCommandArgv).mockResolvedValue({
+    vi.mocked(runCommandArgv).mockReturnValue({
       output: "creator-output\n",
       status: "passed",
     } as never);
@@ -882,11 +882,11 @@ describe("AnsibleCreatorOperations", () => {
     it("marks editable mode failed when the ADE command fails", async () => {
       vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
       vi.mocked(runCommandArgv)
-        .mockResolvedValueOnce({
+        .mockReturnValueOnce({
           output: "creator-output\n",
           status: "passed",
         } as never)
-        .mockResolvedValueOnce({
+        .mockReturnValueOnce({
           output: "ade failed\n",
           status: "failed",
         } as never);

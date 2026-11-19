@@ -5,6 +5,7 @@ import {
   expandPath,
   getBinDetail,
   runCommand,
+  runCommandArgv,
 } from "@src/features/contentCreator/utils";
 
 const homeDir = homedir();
@@ -80,6 +81,21 @@ const expandPathTests = [
     pathUrl: "*/path/to/file3",
     expected: `*/path/to/file3`,
   },
+  {
+    name: "preserve a tilde inside an absolute path",
+    pathUrl: "/tmp/team~archive",
+    expected: "/tmp/team~archive",
+  },
+  {
+    name: "preserve a tilde after a leading home segment",
+    pathUrl: "~/path/team~archive",
+    expected: `${homeDir}/path/team~archive`,
+  },
+  {
+    name: "expand a leading $HOME",
+    pathUrl: "$HOME/path/to/file",
+    expected: `${homeDir}/path/to/file`,
+  },
 ];
 
 describe(__filename, function () {
@@ -127,6 +143,28 @@ describe(__filename, function () {
           }
         }
       });
+    });
+  });
+
+  describe("'runCommandArgv()' utility functions for the content creator", function () {
+    it("returns passed output for a successful argv command", function () {
+      const result = runCommandArgv(
+        process.execPath,
+        ["-e", "process.stdout.write('ok')"],
+        process.env,
+      );
+      expect(result.status).toBe("passed");
+      expect(result.output).toContain("ok");
+    });
+
+    it("returns failed output when the executable is missing", function () {
+      const result = runCommandArgv(
+        "ansible-creator-missing-bin",
+        ["--version"],
+        process.env,
+      );
+      expect(result.status).toBe("failed");
+      expect(result.output.length).toBeGreaterThan(0);
     });
   });
 
