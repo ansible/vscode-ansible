@@ -820,7 +820,8 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       // second withInterpreterArgv call is the ADE command with --im=cfg
-      const adeArgs = vi.mocked(withInterpreterArgv).mock.calls[1][2] as string[];
+      const adeArgs = vi.mocked(withInterpreterArgv).mock
+        .calls[1][2] as string[];
       expect(adeArgs).toContain("--im=cfg");
       // runCommandArgv called for both creator and ADE
       expect(runCommandArgv).toHaveBeenCalledTimes(2);
@@ -860,7 +861,8 @@ describe("AnsibleCreatorOperations", () => {
         }),
         web,
       );
-      const adeArgs = vi.mocked(withInterpreterArgv).mock.calls[1][2] as string[];
+      const adeArgs = vi.mocked(withInterpreterArgv).mock
+        .calls[1][2] as string[];
       expect(adeArgs).toContain("-vv");
     });
 
@@ -1049,13 +1051,7 @@ describe("AnsibleCreatorOperations", () => {
 
     it("getPlaybookCreatorCommand uses the current init syntax", () => {
       const cmd = ops.getPlaybookCreatorCommand("ns", "col", "/tmp");
-      expect(cmd).toEqual([
-        "init",
-        "playbook",
-        "ns.col",
-        "/tmp",
-        "--no-ansi",
-      ]);
+      expect(cmd).toEqual(["init", "playbook", "ns.col", "/tmp", "--no-ansi"]);
     });
 
     it("getRoleCreatorCommand uses add resource role syntax", () => {
