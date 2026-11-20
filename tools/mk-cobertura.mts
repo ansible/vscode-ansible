@@ -5,7 +5,13 @@
  * as tools like vscode-test fails to perform the filtering itself.
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import process from "node:process";
@@ -106,11 +112,331 @@ function filterLcovByPath(lcovData: string, excludes: string[]): string {
   return kept.map((record) => `${record}\nend_of_record`).join("\n");
 }
 
-function readLcovFiles(inputs: string[]): string {
+function readLcovFiles(
+  inputs: string[],
+  unitIndex?: UnitCoverageIndex,
+): string {
   return inputs
-    .map((input) => readFileSync(input, "utf8").trimEnd())
+    .map((input) => {
+      let data = readFileSync(input, "utf8").trimEnd();
+      if (data.length === 0) {
+        return "";
+      }
+      if (unitIndex !== undefined && isUnitLcov(input)) {
+        data = expandCoveredStatementLines(data, unitIndex).trimEnd();
+      }
+      return data;
+    })
     .filter((data) => data.length > 0)
     .join("\n");
+}
+
+interface UnitCoverageIndex {
+  /** "line,block,branch" keys present in the unit report, per source file. */
+  branches: Map<string, Set<string>>;
+  /** DA line numbers present in the unit report, per source file. */
+  lines: Map<string, Set<number>>;
+}
+
+function splitLcovRecords(lcovData: string): string[] {
+  return lcovData
+    .split(/end_of_record\n?/)
+    .map((record) => record.trim())
+    .filter((record) => record.length > 0);
+}
+
+function sourceFileOf(record: string): string | undefined {
+  return /^SF:(.+)$/m.exec(record)?.[1]?.trim();
+}
+
+/** Repository-relative POSIX key so unit and WDIO SF: values match. */
+function lcovSourceKey(sourceFile: string): string {
+  const resolved = path.resolve(sourceFile);
+  const relative = path.relative(process.cwd(), resolved);
+  if (
+    relative.length > 0 &&
+    !relative.startsWith("..") &&
+    !path.isAbsolute(relative)
+  ) {
+    return relative.split(path.sep).join("/");
+  }
+  return sourceFile.split("\\").join("/");
+}
+
+/**
+ * Index lines and branches the unit report actually instrumented.
+ * Vitest's V8 reporter only emits statement lines. c8's e2e/wdio
+ * conversion emits DA:0 for every source line, including braces and
+ * signatures V8 never tracks. Those zeros become uncovered lines in
+ * Sonar and Codecov even when the statement was executed.
+ */
+export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
+  const lines = new Map<string, Set<number>>();
+  const branches = new Map<string, Set<string>>();
+  for (const record of splitLcovRecords(unitLcov)) {
+    const sourceFile = sourceFileOf(record);
+    if (sourceFile === undefined) {
+      continue;
+    }
+    const sourceKey = lcovSourceKey(sourceFile);
+    let fileLines = lines.get(sourceKey);
+    if (fileLines === undefined) {
+      fileLines = new Set<number>();
+      lines.set(sourceKey, fileLines);
+    }
+    let fileBranches = branches.get(sourceKey);
+    if (fileBranches === undefined) {
+      fileBranches = new Set<string>();
+      branches.set(sourceKey, fileBranches);
+    }
+    for (const rawLine of record.split("\n")) {
+      if (rawLine.startsWith("DA:")) {
+        const lineNo = Number.parseInt(
+          rawLine.slice(3).split(",")[0] ?? "",
+          10,
+        );
+        if (!Number.isNaN(lineNo)) {
+          fileLines.add(lineNo);
+        }
+      } else if (rawLine.startsWith("BRDA:")) {
+        const parts = rawLine.slice(5).split(",");
+        if (parts.length >= 3) {
+          fileBranches.add(`${parts[0]},${parts[1]},${parts[2]}`);
+        }
+      }
+    }
+  }
+  return { branches, lines };
+}
+
+function isMiss(hits: string): boolean {
+  const normalized = hits.trim();
+  return normalized === "0" || normalized === "-";
+}
+
+/**
+ * Drop zero-hit lines from a non-unit lcov report when the unit report
+ * measured that file and did not instrument the line. Records for files
+ * the unit report did not measure are left unchanged. Real unit misses
+ * (DA present with 0 hits) are kept.
+ */
+export function filterLcovAgainstUnit(
+  otherLcov: string,
+  unitIndex: UnitCoverageIndex,
+): string {
+  const records: string[] = [];
+  for (const record of splitLcovRecords(otherLcov)) {
+    const sourceFile = sourceFileOf(record);
+    const knownLines =
+      sourceFile === undefined
+        ? undefined
+        : unitIndex.lines.get(lcovSourceKey(sourceFile));
+    if (sourceFile === undefined || knownLines === undefined) {
+      records.push(`${record}\nend_of_record`);
+      continue;
+    }
+    const kept: string[] = [];
+    let lf = 0;
+    let lh = 0;
+    let brf = 0;
+    let brh = 0;
+    for (const rawLine of record.split("\n")) {
+      if (rawLine.startsWith("DA:")) {
+        const parts = rawLine.slice(3).split(",");
+        const lineNo = Number.parseInt(parts[0] ?? "", 10);
+        const hits = Number.parseInt(parts[1] ?? "", 10);
+        const missed = Number.isNaN(hits) || hits === 0;
+        if (missed && !knownLines.has(lineNo)) {
+          continue;
+        }
+        kept.push(rawLine);
+        lf += 1;
+        if (!missed) {
+          lh += 1;
+        }
+      } else if (rawLine.startsWith("BRDA:")) {
+        const parts = rawLine.slice(5).split(",");
+        const hits = parts[3] ?? "0";
+        kept.push(rawLine);
+        brf += 1;
+        if (!isMiss(hits)) {
+          brh += 1;
+        }
+      } else if (!/^(?:LF|LH|BRF|BRH):/.test(rawLine) && rawLine.length > 0) {
+        kept.push(rawLine);
+      }
+    }
+    kept.push(`BRF:${brf}`, `BRH:${brh}`, `LF:${lf}`, `LH:${lh}`);
+    records.push(`${kept.join("\n")}\nend_of_record`);
+  }
+  return `${records.join("\n")}\n`;
+}
+
+function isUnitLcov(inputPath: string): boolean {
+  return path.basename(path.dirname(inputPath)) === "unit";
+}
+
+/**
+ * V8 records a hit on the first line of a statement and omits the rest.
+ * Sonar counts those omitted lines as uncovered. Copy a positive hit across
+ * a short gap when the next instrumented line is covered too, so continuation
+ * lines and signatures follow the statement that ran. Gaps beside an
+ * uncovered line stay untouched.
+ */
+const STATEMENT_GAP_LIMIT = 40;
+const LEADING_SIGNATURE_LIMIT = 8;
+
+export function expandCoveredStatementLines(
+  lcovData: string,
+  unitIndex?: UnitCoverageIndex,
+): string {
+  const expanded = splitLcovRecords(lcovData).map((record) => {
+    const sourceFile = sourceFileOf(record);
+    const knownLines =
+      sourceFile === undefined || unitIndex === undefined
+        ? undefined
+        : unitIndex.lines.get(lcovSourceKey(sourceFile));
+    return expandRecord(record, knownLines);
+  });
+  return expanded.length === 0 ? "" : `${expanded.join("\n")}\n`;
+}
+
+function maySynthesizeLine(
+  lineNo: number,
+  da: Map<number, number>,
+  instrumented: Set<number>,
+  knownLines: Set<number> | undefined,
+): boolean {
+  if (da.has(lineNo) || instrumented.has(lineNo)) {
+    return false;
+  }
+  return knownLines?.has(lineNo) !== true;
+}
+
+function expandRecord(record: string, knownLines?: Set<number>): string {
+  const da = new Map<number, number>();
+  /** Lines present in the input report; synthetic fills never become anchors. */
+  const instrumented = new Set<number>();
+  const rest: string[] = [];
+  for (const rawLine of record.split("\n")) {
+    if (rawLine.startsWith("DA:")) {
+      const parts = rawLine.slice(3).split(",");
+      const lineNo = Number.parseInt(parts[0] ?? "", 10);
+      const hits = Number.parseInt(parts[1] ?? "", 10);
+      if (!Number.isNaN(lineNo) && !Number.isNaN(hits)) {
+        instrumented.add(lineNo);
+        da.set(lineNo, hits);
+      }
+    } else if (!rawLine.startsWith("LF:") && !rawLine.startsWith("LH:")) {
+      rest.push(rawLine);
+    }
+  }
+
+  const ordered = [...instrumented].sort((left, right) => left - right);
+  const firstInstrumented = ordered[0];
+  if (firstInstrumented !== undefined && (da.get(firstInstrumented) ?? 0) > 0) {
+    const firstHits = da.get(firstInstrumented) ?? 0;
+    const start = Math.max(1, firstInstrumented - LEADING_SIGNATURE_LIMIT);
+    for (let lineNo = start; lineNo < firstInstrumented; lineNo += 1) {
+      if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
+        da.set(lineNo, firstHits);
+      }
+    }
+  }
+  for (let index = 0; index < ordered.length - 1; index += 1) {
+    const start = ordered[index];
+    const end = ordered[index + 1];
+    if (start === undefined || end === undefined) {
+      continue;
+    }
+    const gap = end - start - 1;
+    const startHits = da.get(start) ?? 0;
+    const endHits = da.get(end) ?? 0;
+    if (
+      gap <= 0 ||
+      gap > STATEMENT_GAP_LIMIT ||
+      startHits <= 0 ||
+      endHits <= 0
+    ) {
+      continue;
+    }
+    for (let lineNo = start + 1; lineNo < end; lineNo += 1) {
+      if (maySynthesizeLine(lineNo, da, instrumented, knownLines)) {
+        da.set(lineNo, startHits);
+      }
+    }
+  }
+
+  let lf = 0;
+  let lh = 0;
+  const daLines: string[] = [];
+  for (const lineNo of [...da.keys()].sort((left, right) => left - right)) {
+    const hits = da.get(lineNo) ?? 0;
+    daLines.push(`DA:${lineNo},${hits}`);
+    lf += 1;
+    if (hits > 0) {
+      lh += 1;
+    }
+  }
+  return [...rest, ...daLines, `LF:${lf}`, `LH:${lh}`, "end_of_record"].join(
+    "\n",
+  );
+}
+
+/**
+ * Rewrite e2e/wdio lcov files so Sonar, which reads each lcov directly,
+ * does not keep zero hits for lines the unit report never instrumented.
+ */
+export function rewriteNonUnitLcov(inputs: string[]): void {
+  const unitInputs = inputs.filter(
+    (input) => isUnitLcov(input) && existsSync(input),
+  );
+  if (unitInputs.length === 0) {
+    return;
+  }
+  const unitTexts = unitInputs.map((input) => readFileSync(input, "utf8"));
+  const unitIndex = indexUnitCoverage(unitTexts.join("\n"));
+  for (const input of inputs) {
+    if (isUnitLcov(input) || !existsSync(input)) {
+      continue;
+    }
+    const filtered = filterLcovAgainstUnit(
+      readFileSync(input, "utf8"),
+      unitIndex,
+    );
+    writeFileSync(input, filtered, "utf8");
+  }
+}
+
+/**
+ * Persist statement-gap hits into unit lcov files.
+ *
+ * expandCoveredStatementLines feeds Cobertura only. Sonar reads each
+ * lcov.info on disk and counts lines missing from those reports as
+ * uncovered, including signatures and continuations V8 never emits.
+ * Filter non-unit reports first so their zeros are already gone before
+ * these synthetic hits exist.
+ */
+export function rewriteUnitLcov(inputs: string[]): void {
+  const unitInputs = inputs.filter(
+    (input) => isUnitLcov(input) && existsSync(input),
+  );
+  if (unitInputs.length === 0) {
+    return;
+  }
+  const unitIndex = indexUnitCoverage(
+    unitInputs.map((input) => readFileSync(input, "utf8")).join("\n"),
+  );
+  for (const input of unitInputs) {
+    const expanded = expandCoveredStatementLines(
+      readFileSync(input, "utf8"),
+      unitIndex,
+    );
+    if (expanded.length === 0) {
+      continue;
+    }
+    writeFileSync(input, expanded, "utf8");
+  }
 }
 
 /**
@@ -291,7 +617,18 @@ function main(argv = process.argv.slice(2)): number {
     return options.help ? 0 : 1;
   }
 
-  const lcovData = readLcovFiles(options.inputs);
+  rewriteNonUnitLcov(options.inputs);
+  rewriteUnitLcov(options.inputs);
+  const unitInputs = options.inputs.filter(
+    (input) => isUnitLcov(input) && existsSync(input),
+  );
+  const unitIndex =
+    unitInputs.length === 0
+      ? undefined
+      : indexUnitCoverage(
+          unitInputs.map((input) => readFileSync(input, "utf8")).join("\n"),
+        );
+  const lcovData = readLcovFiles(options.inputs, unitIndex);
   const merged = mergeLcovRecords(lcovData);
   const filtered = filterLcovByPath(merged, options.excludes);
   const tempDir = mkdtempSync(path.join(tmpdir(), "lcov-to-cobertura-"));

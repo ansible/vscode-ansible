@@ -3,7 +3,7 @@ import * as os from "os";
 import { SettingsManager } from "@src/settings";
 import { withInterpreter } from "@src/features/utils/commandRunner";
 import { ANSIBLE_CREATOR_VERSION_MIN } from "@src/definitions/constants";
-import * as semver from "semver";
+import { isAnsibleCreatorVersionGte } from "@src/features/contentCreator/ansibleCreatorVersion";
 
 export async function getBinDetail(cmd: string, arg: string) {
   const extSettings = new SettingsManager();
@@ -37,6 +37,20 @@ export async function getCreatorVersion(): Promise<string> {
   return creatorVersion;
 }
 
+function formatExecFailure(error: unknown): string {
+  if (error instanceof Error) {
+    const execError = error as cp.ExecException & {
+      stdout: string;
+      stderr: string;
+    };
+
+    let errorMessage = execError.stdout ? execError.stdout : execError.stderr;
+    errorMessage += execError.message;
+    return errorMessage;
+  }
+  return `Exception: ${JSON.stringify(error)}`;
+}
+
 export async function runCommand(
   command: string,
   runEnv: NodeJS.ProcessEnv | undefined,
@@ -53,20 +67,35 @@ export async function runCommand(
       .toString();
     return { output: result, status: "passed" };
   } catch (error) {
-    let errorMessage: string;
-    if (error instanceof Error) {
-      const execError = error as cp.ExecException & {
-        // according to the docs, these are always available
-        stdout: string;
-        stderr: string;
-      };
+    return { output: formatExecFailure(error), status: "failed" };
+  }
+}
 
-      errorMessage = execError.stdout ? execError.stdout : execError.stderr;
-      errorMessage += execError.message;
-    } else {
-      errorMessage = `Exception: ${JSON.stringify(error)}`;
-    }
-    return { output: errorMessage, status: "failed" };
+export function runCommandArgv(
+  executable: string,
+  args: string[],
+  runEnv: NodeJS.ProcessEnv | undefined,
+  cwd?: string,
+): { exitCode?: number | null; output: string; status: string } {
+  try {
+    const result = cp
+      .execFileSync(executable, args, {
+        env: runEnv,
+        cwd: cwd ?? os.homedir(),
+      })
+      .toString();
+    return { exitCode: 0, output: result, status: "passed" };
+  } catch (error) {
+    const status =
+      error && typeof error === "object" && "status" in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+    const exitCode = typeof status === "number" ? status : null;
+    return {
+      exitCode,
+      output: formatExecFailure(error),
+      status: "failed",
+    };
   }
 }
 
@@ -75,18 +104,42 @@ export async function runCommand(
  * @param pathUrl - original path url (string)
  * @returns updatedUrl - updated and expanded path url (string)
  */
+/** Expand a leading `~` path component. Interior tildes stay literal. */
+function expandLeadingTilde(pathUrl: string): string {
+  if (pathUrl === "~") {
+    return os.homedir();
+  }
+  if (pathUrl.startsWith("~/") || pathUrl.startsWith("~\\")) {
+    return `${os.homedir()}${pathUrl.slice(1)}`;
+  }
+  return pathUrl;
+}
+
+/** `$NAME` or `${NAME}` tokens, matching Python os.path.expandvars names. */
+const ENV_VAR_TOKEN = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/g;
+
+function envVarReplacement(
+  match: string,
+  braced: string | undefined,
+  bare: string | undefined,
+): string {
+  const name = braced ?? bare ?? "";
+  if (name.toUpperCase() === "HOME") {
+    return os.homedir();
+  }
+  return process.env[name] ?? match;
+}
+
 export function expandPath(pathUrl: string): string {
-  let updatedUrl = pathUrl;
+  ENV_VAR_TOKEN.lastIndex = 0;
+  return expandLeadingTilde(pathUrl).replace(ENV_VAR_TOKEN, envVarReplacement);
+}
 
-  // expand `~` to home directory.
-  const re1 = /~/gi;
-  updatedUrl = updatedUrl.replace(re1, os.homedir());
-
-  // expand `$HOME` to home directory
-  const re2 = /\$HOME/gi;
-  updatedUrl = updatedUrl.replace(re2, os.homedir());
-
-  return updatedUrl;
+/** First unresolved `$NAME` / `${NAME}` token, if any. */
+export function unresolvedEnvVarToken(pathUrl: string): string | null {
+  ENV_VAR_TOKEN.lastIndex = 0;
+  const match = ENV_VAR_TOKEN.exec(pathUrl);
+  return match?.[0] ?? null;
 }
 
 export async function getADEVersion(): Promise<string> {
@@ -109,16 +162,14 @@ export async function checkContentCreatorRequirements() {
         required: ANSIBLE_CREATOR_VERSION_MIN,
         current: "not found",
       });
-    } else {
-      const parsed =
-        semver.valid(creatorVersion) ?? semver.coerce(creatorVersion)?.version;
-      if (!parsed || !semver.gte(parsed, ANSIBLE_CREATOR_VERSION_MIN)) {
-        failures.push({
-          type: "ansible-creator",
-          required: ANSIBLE_CREATOR_VERSION_MIN,
-          current: parsed ?? creatorVersion,
-        });
-      }
+    } else if (
+      !isAnsibleCreatorVersionGte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)
+    ) {
+      failures.push({
+        type: "ansible-creator",
+        required: ANSIBLE_CREATOR_VERSION_MIN,
+        current: creatorVersion,
+      });
     }
   } catch (error) {
     console.error(
