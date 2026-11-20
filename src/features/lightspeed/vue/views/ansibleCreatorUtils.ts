@@ -47,8 +47,15 @@ function trimTrailingSlashes(value: string): string {
 }
 
 function isAnsibleCollectionsRoot(fsPath: string): boolean {
-  const normalized = trimTrailingSlashes(fsPath.replaceAll("\\", "/"));
-  return normalized.endsWith("/collections/ansible_collections");
+  const normalized = trimTrailingSlashes(path.normalize(fsPath));
+  const parts = normalized
+    .split(path.sep)
+    .filter((segment) => segment.length > 0);
+  return (
+    parts.length >= 2 &&
+    parts[parts.length - 2] === "collections" &&
+    parts[parts.length - 1] === "ansible_collections"
+  );
 }
 
 /** Resolve symlinks by walking up to the nearest existing ancestor. */
@@ -82,7 +89,8 @@ export class AnsibleCreatorOperations {
    * disagree.
    */
   private creatorPath(input: string): string {
-    const expanded = expandPath(input.trim());
+    const pathInput = input.trim().length === 0 ? "" : input;
+    const expanded = expandPath(pathInput);
     return path.isAbsolute(expanded)
       ? path.normalize(expanded)
       : path.resolve(os.homedir(), expanded);
@@ -174,6 +182,72 @@ export class AnsibleCreatorOperations {
     return (
       fs.existsSync(path.join(destinationUrl, "galaxy.yml")) &&
       fs.existsSync(path.join(destinationUrl, "devfile.yaml"))
+    );
+  }
+
+  private readGalaxyCollectionId(
+    destinationUrl: string,
+  ): { namespace: string; name: string } | null {
+    const galaxyPath = path.join(destinationUrl, "galaxy.yml");
+    if (!fs.existsSync(galaxyPath)) {
+      return null;
+    }
+    try {
+      const content = fs.readFileSync(galaxyPath, "utf8");
+      const namespace = /^namespace:\s*(\S+)/m.exec(content)?.[1];
+      const name = /^name:\s*(\S+)/m.exec(content)?.[1];
+      if (namespace && name) {
+        return { namespace, name };
+      }
+    } catch (error) {
+      console.error(
+        "[ansible-creator] Failed to read galaxy.yml:",
+        error instanceof Error ? error.message : error,
+      );
+    }
+    return null;
+  }
+
+  private collectionScaffoldMatchesRequest(
+    destinationUrl: string,
+    namespaceName: string,
+    collectionName: string,
+  ): boolean {
+    const collectionId = this.readGalaxyCollectionId(destinationUrl);
+    if (!collectionId) {
+      return false;
+    }
+    return (
+      collectionId.namespace === namespaceName &&
+      collectionId.name === collectionName
+    );
+  }
+
+  private existingCollectionConflictMessage(
+    destinationUrl: string,
+    namespaceName: string,
+    collectionName: string,
+  ): string | null {
+    if (!this.isCollectionScaffoldPresent(destinationUrl)) {
+      return null;
+    }
+    if (
+      this.collectionScaffoldMatchesRequest(
+        destinationUrl,
+        namespaceName,
+        collectionName,
+      )
+    ) {
+      return null;
+    }
+    const existing = this.readGalaxyCollectionId(destinationUrl);
+    const existingLabel = existing
+      ? `${existing.namespace}.${existing.name}`
+      : "another collection";
+    return (
+      `The directory "${destinationUrl}" already contains collection ${existingLabel}.\n` +
+      `It does not match the requested collection ${namespaceName}.${collectionName}.\n` +
+      "Choose a different destination or enable overwrite to scaffold a new collection.\n"
     );
   }
 
@@ -412,16 +486,50 @@ export class AnsibleCreatorOperations {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const gate = await this.checkCreatorVersionGate(
-      webView,
-      "",
-      {
-        collectionUrl: isCollection ? destinationUrl : undefined,
-        projectUrl: isCollection ? undefined : destinationUrl,
-      },
-      extSettings.settings,
-    );
-    if (!gate.passed) return;
+    const collectionPayload = isCollection
+      ? (payload as AnsibleCollectionFormInterface)
+      : undefined;
+
+    if (collectionPayload) {
+      const conflict = this.existingCollectionConflictMessage(
+        destinationUrl,
+        collectionPayload.namespaceName,
+        collectionPayload.collectionName,
+      );
+      if (conflict) {
+        await this.postExecutionFailure(webView, conflict, {
+          collectionUrl: destinationUrl,
+        });
+        return;
+      }
+    }
+
+    const skipCreatorScaffold =
+      isCollection &&
+      collectionPayload !== undefined &&
+      payload.isEditableModeInstall &&
+      this.isCollectionScaffoldPresent(destinationUrl) &&
+      this.collectionScaffoldMatchesRequest(
+        destinationUrl,
+        collectionPayload.namespaceName,
+        collectionPayload.collectionName,
+      );
+
+    let gate: { passed: boolean; creatorEnv?: ResolvedToolEnv } = {
+      passed: true,
+    };
+    if (!skipCreatorScaffold) {
+      gate = await this.checkCreatorVersionGate(
+        webView,
+        "",
+        {
+          collectionUrl: isCollection ? destinationUrl : undefined,
+          projectUrl: isCollection ? undefined : destinationUrl,
+        },
+        extSettings.settings,
+      );
+      if (!gate.passed) return;
+    }
 
     let commandOutput = "";
 
@@ -438,12 +546,6 @@ export class AnsibleCreatorOperations {
       collectionUrl: isCollection ? destinationUrl : undefined,
       projectUrl: isCollection ? undefined : destinationUrl,
     };
-
-    const skipCreatorScaffold =
-      isCollection &&
-      payload.isEditableModeInstall &&
-      !payload.isOverwritten &&
-      this.isCollectionScaffoldPresent(destinationUrl);
 
     let ansibleCreatorCommandPassed = "passed";
 
@@ -500,6 +602,12 @@ export class AnsibleCreatorOperations {
         finalStatus = "failed";
         commandOutput +=
           "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n";
+        commandOutput +=
+          "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n";
+        if (payload.isOverwritten) {
+          commandOutput +=
+            "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
+        }
       }
     }
 
