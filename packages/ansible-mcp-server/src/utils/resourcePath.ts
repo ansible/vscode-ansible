@@ -54,6 +54,35 @@ function getResourceBaseDir(callerUrl?: string): string {
 }
 
 /**
+ * Look for a resource in the built output. The build copies data/ to
+ * dist/data/ and lib/resources/data/, while this module and its callers are
+ * emitted to dist/utils/, dist/resources/ and lib/utils/.
+ *
+ * @param baseDir - Directory of the module that asks for the resource
+ * @param relativePath - Path relative to the data directory
+ * @returns Absolute path to the resource file, or undefined if not found
+ * @internal Exported only for unit tests; not part of the public API.
+ */
+export async function resolveBuiltResourcePath(
+  baseDir: string,
+  relativePath: string,
+): Promise<string | undefined> {
+  for (const altBaseDir of [
+    path.join(baseDir, "..", "resources"),
+    path.join(baseDir, ".."),
+  ]) {
+    const altResourcePath = path.join(altBaseDir, "data", relativePath);
+    try {
+      await fs.access(altResourcePath);
+      return altResourcePath;
+    } catch {
+      // Try the next candidate
+    }
+  }
+  return undefined;
+}
+
+/**
  * Works generically in any environment (dev, bundled, CI, production) by resolving
  * relative to the module's location. The build process ensures resources are always
  * placed in a consistent location relative to the code.
@@ -110,6 +139,15 @@ export async function resolveResourcePath(
       } catch {
         // Fall through to error
       }
+    }
+
+    // Fallback: built output (dist/ and lib/)
+    const builtResourcePath = await resolveBuiltResourcePath(
+      baseDir,
+      relativePath,
+    );
+    if (builtResourcePath) {
+      return builtResourcePath;
     }
 
     const errorMsg =
