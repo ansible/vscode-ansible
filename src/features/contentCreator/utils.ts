@@ -76,7 +76,7 @@ export function runCommandArgv(
   args: string[],
   runEnv: NodeJS.ProcessEnv | undefined,
   cwd?: string,
-): { output: string; status: string } {
+): { exitCode?: number | null; output: string; status: string } {
   try {
     const result = cp
       .execFileSync(executable, args, {
@@ -84,9 +84,18 @@ export function runCommandArgv(
         cwd: cwd ?? os.homedir(),
       })
       .toString();
-    return { output: result, status: "passed" };
+    return { exitCode: 0, output: result, status: "passed" };
   } catch (error) {
-    return { output: formatExecFailure(error), status: "failed" };
+    const status =
+      error && typeof error === "object" && "status" in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+    const exitCode = typeof status === "number" ? status : null;
+    return {
+      exitCode,
+      output: formatExecFailure(error),
+      status: "failed",
+    };
   }
 }
 
@@ -109,7 +118,12 @@ function expandLeadingTilde(pathUrl: string): string {
 export function expandPath(pathUrl: string): string {
   // expand `$HOME` to home directory
   const re2 = /\$HOME/gi;
-  return expandLeadingTilde(pathUrl).replace(re2, os.homedir());
+  let expanded = expandLeadingTilde(pathUrl).replace(re2, os.homedir());
+  expanded = expanded.replace(
+    /\$([A-Za-z_][A-Za-z0-9_]*)/g,
+    (match, name: string) => process.env[name] ?? match,
+  );
+  return expanded;
 }
 
 export async function getADEVersion(): Promise<string> {
