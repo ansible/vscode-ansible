@@ -297,6 +297,25 @@ export class AnsibleCreatorOperations {
     );
   }
 
+  private galaxyIdentityRequiredForAde(
+    destinationUrl: string,
+    namespaceName: string,
+    collectionName: string,
+  ): string | null {
+    const galaxyPath = path.join(destinationUrl, "galaxy.yml");
+    if (!fs.existsSync(galaxyPath)) {
+      return (
+        `The file "${galaxyPath}" is missing.\n` +
+        `ADE cannot start until collection ${namespaceName}.${collectionName} exists at this destination.\n`
+      );
+    }
+    return this.existingCollectionConflictMessage(
+      destinationUrl,
+      namespaceName,
+      collectionName,
+    );
+  }
+
   // Shared version gate: checks creator presence and minimum version, posts
   // the appropriate error to the webview and returns { passed: false } when
   // the gate fails. Callers early-return on !passed.
@@ -792,7 +811,8 @@ export class AnsibleCreatorOperations {
   private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
     let recovery =
       "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n" +
-      "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n";
+      "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n" +
+      "If the collection version changed, remove leftover .tar.gz files from the collection build directory before resubmitting so ADE finds exactly one archive.\n";
     if (isOverwritten) {
       recovery +=
         "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
@@ -988,7 +1008,7 @@ export class AnsibleCreatorOperations {
     const exceedADEImVersion = adeVersionCheck.isGte;
 
     if (exceedADEImVersion) {
-      const identityConflict = this.existingCollectionConflictMessage(
+      const identityConflict = this.galaxyIdentityRequiredForAde(
         destinationUrl,
         payload.namespaceName,
         payload.collectionName,
