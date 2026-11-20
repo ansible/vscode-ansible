@@ -594,7 +594,7 @@ export class AnsibleCreatorOperations {
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     destinationUrl: string,
   ): boolean {
-    if (!collectionPayload || !payload.isEditableModeInstall) {
+    if (!collectionPayload || !collectionPayload.isEditableModeInstall) {
       return false;
     }
     if (payload.isOverwritten) {
@@ -682,22 +682,22 @@ export class AnsibleCreatorOperations {
     isCollection: boolean,
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     destinationUrl: string,
-    logFilePathUrl: string | undefined,
+    logFilePathUrl: string,
     extSettings: SettingsManager,
     webView: vscode.Webview,
     creatorStatus: string,
   ): Promise<{ extraOutput: string; finalStatus: string }> {
     let finalStatus = creatorStatus;
     let extraOutput = "";
-    if (
-      !isCollection ||
-      !payload.isEditableModeInstall ||
-      creatorStatus !== "passed"
-    ) {
+    if (!isCollection || creatorStatus !== "passed") {
+      return { extraOutput, finalStatus };
+    }
+    const collectionPayload = payload as AnsibleCollectionFormInterface;
+    if (!collectionPayload.isEditableModeInstall) {
       return { extraOutput, finalStatus };
     }
     const adeInstallResult = await this.runAdeEditableInstall(
-      payload,
+      collectionPayload,
       destinationUrl,
       logFilePathUrl,
       extSettings,
@@ -706,7 +706,9 @@ export class AnsibleCreatorOperations {
     extraOutput = adeInstallResult.output;
     if (!adeInstallResult.succeeded) {
       finalStatus = "failed";
-      extraOutput += this.buildAdeFailureRecoveryOutput(payload.isOverwritten);
+      extraOutput += this.buildAdeFailureRecoveryOutput(
+        collectionPayload.isOverwritten,
+      );
     }
     return { extraOutput, finalStatus };
   }
