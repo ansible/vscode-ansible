@@ -53,8 +53,8 @@ function isAnsibleCollectionsRoot(fsPath: string): boolean {
     .filter((segment) => segment.length > 0);
   return (
     parts.length >= 2 &&
-    parts[parts.length - 2] === "collections" &&
-    parts[parts.length - 1] === "ansible_collections"
+    parts.at(-2) === "collections" &&
+    parts.at(-1) === "ansible_collections"
   );
 }
 
@@ -474,8 +474,6 @@ export class AnsibleCreatorOperations {
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     webView: vscode.Webview,
   ) {
-    // Determine if this is a collection or project payload
-    // Collections have 'initPath', projects have 'destinationPath'
     const isCollection =
       "initPath" in payload && !("destinationPath" in payload);
 
@@ -490,49 +488,40 @@ export class AnsibleCreatorOperations {
       ? (payload as AnsibleCollectionFormInterface)
       : undefined;
 
-    if (collectionPayload) {
-      const conflict = this.existingCollectionConflictMessage(
+    if (
+      await this.postCollectionConflictIfNeeded(
+        webView,
+        collectionPayload,
         destinationUrl,
-        collectionPayload.namespaceName,
-        collectionPayload.collectionName,
-      );
-      if (conflict) {
-        await this.postExecutionFailure(webView, conflict, {
-          collectionUrl: destinationUrl,
-        });
-        return;
-      }
+      )
+    ) {
+      return;
     }
 
-    const skipCreatorScaffold =
-      isCollection &&
-      collectionPayload !== undefined &&
-      payload.isEditableModeInstall &&
-      !payload.isOverwritten &&
-      this.isCollectionScaffoldPresent(destinationUrl) &&
-      this.collectionScaffoldMatchesRequest(
-        destinationUrl,
-        collectionPayload.namespaceName,
-        collectionPayload.collectionName,
-      );
+    const skipCreatorScaffold = this.shouldSkipCreatorScaffoldForEditableResume(
+      collectionPayload,
+      payload,
+      destinationUrl,
+    );
 
     let gate: { passed: boolean; creatorEnv?: ResolvedToolEnv } = {
       passed: true,
     };
+    const initUrlPayload = this.buildInitUrlPayload(
+      isCollection,
+      destinationUrl,
+    );
     if (!skipCreatorScaffold) {
       gate = await this.checkCreatorVersionGate(
         webView,
         "",
-        {
-          collectionUrl: isCollection ? destinationUrl : undefined,
-          projectUrl: isCollection ? undefined : destinationUrl,
-        },
+        initUrlPayload,
         extSettings.settings,
       );
-      if (!gate.passed) return;
+      if (!gate.passed) {
+        return;
+      }
     }
-
-    let commandOutput = "";
 
     this.applyOverwriteFlag(cmdArgs, payload.isOverwritten);
     this.appendVerbosityArgs(cmdArgs, payload.verbosity);
@@ -543,85 +532,183 @@ export class AnsibleCreatorOperations {
       isCollection,
     );
 
-    const initUrlPayload = {
-      collectionUrl: isCollection ? destinationUrl : undefined,
-      projectUrl: isCollection ? undefined : destinationUrl,
-    };
-
-    let ansibleCreatorCommandPassed = "passed";
-
-    if (skipCreatorScaffold) {
-      commandOutput +=
-        "Existing collection scaffold detected; skipping ansible-creator init and running the editable install step only.\n";
-    } else if (gate.creatorEnv) {
-      const ansibleCreatorExecutionResult = runCommandArgv(
-        gate.creatorEnv.executable,
-        cmdArgs,
-        gate.creatorEnv.env,
-      );
-      commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
-      commandOutput += ansibleCreatorExecutionResult.output;
-      ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
-    } else {
-      const resolvedInterpreter = await this.withInterpreterOrNotify(
-        webView,
-        initUrlPayload,
-        extSettings.settings,
-        ANSIBLE_CREATOR_EXECUTABLE,
-        cmdArgs,
-      );
-      if (!resolvedInterpreter) {
-        return;
-      }
-      const ansibleCreatorExecutionResult = runCommandArgv(
-        resolvedInterpreter.executable,
-        resolvedInterpreter.args,
-        resolvedInterpreter.env,
-      );
-      commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
-      commandOutput += ansibleCreatorExecutionResult.output;
-      ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+    const creatorStep = await this.runCreatorInitStep(
+      webView,
+      skipCreatorScaffold,
+      gate,
+      initUrlPayload,
+      extSettings.settings,
+      cmdArgs,
+    );
+    if (creatorStep === null) {
+      return;
     }
 
-    let finalStatus = ansibleCreatorCommandPassed;
-
-    // Execute ADE command for collections if needed
-    if (
-      isCollection &&
-      payload.isEditableModeInstall &&
-      ansibleCreatorCommandPassed === "passed"
-    ) {
-      const adeInstallResult = await this.runAdeEditableInstall(
-        payload,
-        destinationUrl,
-        logFilePathUrl,
-        extSettings,
-        webView,
-      );
-      commandOutput += adeInstallResult.output;
-      if (!adeInstallResult.succeeded) {
-        finalStatus = "failed";
-        commandOutput +=
-          "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n";
-        commandOutput +=
-          "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n";
-        if (payload.isOverwritten) {
-          commandOutput +=
-            "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
-        }
-      }
-    }
+    let commandOutput = creatorStep.output;
+    const { extraOutput, finalStatus } = await this.runEditableAdeIfNeeded(
+      isCollection,
+      payload,
+      destinationUrl,
+      logFilePathUrl,
+      extSettings,
+      webView,
+      creatorStep.status,
+    );
+    commandOutput += extraOutput;
 
     await webView.postMessage({
       command: "execution-log",
       arguments: {
-        commandOutput: commandOutput,
+        commandOutput,
         logFileUrl: logFilePathUrl,
-        collectionUrl: isCollection ? destinationUrl : undefined,
-        projectUrl: isCollection ? undefined : destinationUrl,
+        ...initUrlPayload,
         status: finalStatus,
       },
     });
+  }
+
+  private async postCollectionConflictIfNeeded(
+    webView: vscode.Webview,
+    collectionPayload: AnsibleCollectionFormInterface | undefined,
+    destinationUrl: string,
+  ): Promise<boolean> {
+    if (!collectionPayload) {
+      return false;
+    }
+    const conflict = this.existingCollectionConflictMessage(
+      destinationUrl,
+      collectionPayload.namespaceName,
+      collectionPayload.collectionName,
+    );
+    if (!conflict) {
+      return false;
+    }
+    await this.postExecutionFailure(webView, conflict, {
+      collectionUrl: destinationUrl,
+    });
+    return true;
+  }
+
+  private shouldSkipCreatorScaffoldForEditableResume(
+    collectionPayload: AnsibleCollectionFormInterface | undefined,
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    destinationUrl: string,
+  ): boolean {
+    if (!collectionPayload || !payload.isEditableModeInstall) {
+      return false;
+    }
+    if (payload.isOverwritten) {
+      return false;
+    }
+    if (!this.isCollectionScaffoldPresent(destinationUrl)) {
+      return false;
+    }
+    return this.collectionScaffoldMatchesRequest(
+      destinationUrl,
+      collectionPayload.namespaceName,
+      collectionPayload.collectionName,
+    );
+  }
+
+  private buildInitUrlPayload(
+    isCollection: boolean,
+    destinationUrl: string,
+  ): Record<string, string | undefined> {
+    return {
+      collectionUrl: isCollection ? destinationUrl : undefined,
+      projectUrl: isCollection ? undefined : destinationUrl,
+    };
+  }
+
+  private async runCreatorInitStep(
+    webView: vscode.Webview,
+    skipCreatorScaffold: boolean,
+    gate: { passed: boolean; creatorEnv?: ResolvedToolEnv },
+    initUrlPayload: Record<string, string | undefined>,
+    settings: ExtensionSettings,
+    cmdArgs: string[],
+  ): Promise<{ output: string; status: string } | null> {
+    if (skipCreatorScaffold) {
+      return {
+        output:
+          "Existing collection scaffold detected; skipping ansible-creator init and running the editable install step only.\n",
+        status: "passed",
+      };
+    }
+    if (gate.creatorEnv) {
+      const result = runCommandArgv(
+        gate.creatorEnv.executable,
+        cmdArgs,
+        gate.creatorEnv.env,
+      );
+      return {
+        output: `------------------------------------------- ansible-creator logs ---------------------------------------------\n${result.output}`,
+        status: result.status,
+      };
+    }
+    const resolvedInterpreter = await this.withInterpreterOrNotify(
+      webView,
+      initUrlPayload,
+      settings,
+      ANSIBLE_CREATOR_EXECUTABLE,
+      cmdArgs,
+    );
+    if (!resolvedInterpreter) {
+      return null;
+    }
+    const result = runCommandArgv(
+      resolvedInterpreter.executable,
+      resolvedInterpreter.args,
+      resolvedInterpreter.env,
+    );
+    return {
+      output: `------------------------------------------- ansible-creator logs ---------------------------------------------\n${result.output}`,
+      status: result.status,
+    };
+  }
+
+  private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
+    let recovery =
+      "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n" +
+      "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n";
+    if (isOverwritten) {
+      recovery +=
+        "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
+    }
+    return recovery;
+  }
+
+  private async runEditableAdeIfNeeded(
+    isCollection: boolean,
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    destinationUrl: string,
+    logFilePathUrl: string | undefined,
+    extSettings: SettingsManager,
+    webView: vscode.Webview,
+    creatorStatus: string,
+  ): Promise<{ extraOutput: string; finalStatus: string }> {
+    let finalStatus = creatorStatus;
+    let extraOutput = "";
+    if (
+      !isCollection ||
+      !payload.isEditableModeInstall ||
+      creatorStatus !== "passed"
+    ) {
+      return { extraOutput, finalStatus };
+    }
+    const adeInstallResult = await this.runAdeEditableInstall(
+      payload,
+      destinationUrl,
+      logFilePathUrl,
+      extSettings,
+      webView,
+    );
+    extraOutput = adeInstallResult.output;
+    if (!adeInstallResult.succeeded) {
+      finalStatus = "failed";
+      extraOutput += this.buildAdeFailureRecoveryOutput(payload.isOverwritten);
+    }
+    return { extraOutput, finalStatus };
   }
 
   // Builds the base ansible-creator init command and resolves the destination

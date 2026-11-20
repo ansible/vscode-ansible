@@ -1289,6 +1289,89 @@ describe("AnsibleCreatorOperations", () => {
         "retry the editable install without re-scaffolding",
       );
     });
+
+    it("includes overwrite-specific ADE retry guidance when scaffold used overwrite", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          const version =
+            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
+          return { output: `${version}\n`, status: "passed" };
+        }
+        if (executable === "ade") {
+          return { output: "ade failed\n", status: "failed" };
+        }
+        return { output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          isOverwritten: true,
+        }),
+        web,
+      );
+      expect(lastOutput(web)).toContain(
+        "Overwrite applies only to ansible-creator scaffolding",
+      );
+    });
+
+    it("runs creator init through withInterpreterArgv when creatorEnv is absent", async () => {
+      vi.spyOn(ops, "checkCreatorVersionGate").mockResolvedValue({
+        passed: true,
+        creatorEnv: undefined,
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(collectionPayload(), web);
+      expect(withInterpreterArgv).toHaveBeenCalled();
+      expect(creatorRunCommandArgvCalls().length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("walks to an existing ancestor when realpathSync fails for the init path", async () => {
+      const missingLeaf = fixturePath("/tmp/unresolved/leaf");
+      const resolvedParent = fixturePath("/tmp/resolved-parent");
+      vi.mocked(fs.realpathSync).mockImplementation((targetPath) => {
+        const target = String(targetPath);
+        if (target === missingLeaf) {
+          throw new Error("ENOENT");
+        }
+        if (target === path.dirname(missingLeaf)) {
+          return resolvedParent;
+        }
+        return target;
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({ initPath: missingLeaf }),
+        web,
+      );
+      expect(creatorRunCmd()).toContain(resolvedParent);
+    });
+
+    it("fails when galaxy.yml exists but cannot be read for identity checks", async () => {
+      vi.mocked(fs.readFileSync).mockImplementation(() => {
+        throw new Error("EACCES");
+      });
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("another collection");
+      expect(adeInstallRunArgv()).toBeUndefined();
+    });
   });
 
   describe("isADEPresent", () => {
