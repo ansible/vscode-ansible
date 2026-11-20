@@ -1302,6 +1302,52 @@ describe("AnsibleCreatorOperations", () => {
       expect(adeInstallRunArgv()).toBeUndefined();
     });
 
+    it("does not start ADE when galaxy.yml disappears after the ADE version gate", async () => {
+      setProbedAdeVersion("25.4.0");
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          if (executable === "ade") {
+            vi.mocked(fs.existsSync).mockImplementation((target) => {
+              return (
+                String(target) === path.join(collectionRoot, "devfile.yaml")
+              );
+            });
+            return {
+              exitCode: 0,
+              output: `${probedAdeVersion}\n`,
+              status: "passed",
+            };
+          }
+          return {
+            exitCode: 0,
+            output: `${probedCreatorVersion}\n`,
+            status: "passed",
+          };
+        }
+        return { exitCode: 0, output: "ade-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("galaxy.yml");
+      expect(lastOutput(web)).toContain("is missing");
+      expect(adeInstallRunArgv()).toBeUndefined();
+    });
+
     it("expands braced environment variables in the init path", async () => {
       const previous = process.env.COLLECTION_DIR;
       process.env.COLLECTION_DIR = "demo";
@@ -1428,7 +1474,7 @@ describe("AnsibleCreatorOperations", () => {
           return {
             exitCode: 2,
             output:
-              "Command failed: ade install --venv /tmp/error-handling/.venv --editable .\n" +
+              "Command failed: ade install --venv /tmp/Build ERROR Data/.venv --editable .\n" +
               "Note: All python requirements are installed.\n" +
               "Note: All required system packages are installed.\n",
             status: "failed",
@@ -1648,6 +1694,8 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastOutput(web)).toContain(
         "retry the editable install without re-scaffolding",
       );
+      expect(lastOutput(web)).toContain("leftover .tar.gz files");
+      expect(lastOutput(web)).toContain("build directory");
     });
 
     it("includes overwrite-specific ADE retry guidance when scaffold used overwrite", async () => {
