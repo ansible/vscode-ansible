@@ -67,6 +67,11 @@ const runCommandTests = [
 
 const expandPathTests = [
   {
+    name: "expand a lone tilde to the home directory",
+    pathUrl: "~",
+    expected: homeDir,
+  },
+  {
     name: "expand path for '~' operator",
     pathUrl: "~/path/to/file",
     expected: `${homeDir}/path/to/file`,
