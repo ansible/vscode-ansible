@@ -1231,7 +1231,7 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastOutput(web)).toContain("does not match the requested collection");
     });
 
-    it("treats ADE exit code 2 as success when install output has no failure", async () => {
+    it("treats ADE exit code 2 as success when install completion notes are present", async () => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
         if (isVersionProbeArgs(args)) {
@@ -1242,7 +1242,9 @@ describe("AnsibleCreatorOperations", () => {
         if (executable === "ade" && args[0] === "install") {
           return {
             exitCode: 2,
-            output: "ansible.cfg updated\n",
+            output:
+              "Warning: ~/.ansible.cfg updated with 'collections_path = .'\n" +
+              "Note: All python requirements are installed.\n",
             status: "failed",
           };
         }
@@ -1254,6 +1256,31 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       expect(lastArgs(web).status).toBe("passed");
+    });
+
+    it("treats ADE exit code 2 as failure when output lacks completion evidence", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          const version =
+            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
+          return { exitCode: 0, output: `${version}\n`, status: "passed" };
+        }
+        if (executable === "ade" && args[0] === "install") {
+          return {
+            exitCode: 2,
+            output: "Error: permission denied\n",
+            status: "failed",
+          };
+        }
+        return { exitCode: 0, output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({ isEditableModeInstall: true }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
     });
 
     it("rejects ADE resume when an existing collection identity does not match", async () => {

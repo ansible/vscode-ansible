@@ -684,8 +684,13 @@ export class AnsibleCreatorOperations {
       return false;
     }
     const failurePattern =
-      /\b(ERROR|Error:|Traceback|failed to install|No such file|command not found)\b/;
-    return !failurePattern.test(output);
+      /\b(ERROR|Traceback|failed to install|No such file|command not found)\b|Error:\s/i;
+    if (failurePattern.test(output)) {
+      return false;
+    }
+    const completionPattern =
+      /Note:\s+All (?:python )?requirements are installed|Note:\s+Installed collections include|Note:\s+All required system packages are installed|INFO:\s+Symlinking/i;
+    return completionPattern.test(output);
   }
 
   private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
