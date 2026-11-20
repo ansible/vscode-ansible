@@ -10,7 +10,6 @@ import {
 } from "@src/features/contentCreator/types";
 import {
   expandPath,
-  getADEVersion,
   getCreatorVersion,
   getBinDetail,
   runCommandArgv,
@@ -45,6 +44,20 @@ function trimTrailingSlashes(value: string): string {
 function isAnsibleCollectionsRoot(fsPath: string): boolean {
   const normalized = trimTrailingSlashes(fsPath.replaceAll("\\", "/"));
   return normalized.endsWith("/collections/ansible_collections");
+}
+
+/** Resolve symlinks by walking up to the nearest existing ancestor. */
+function resolveCanonicalPath(targetPath: string): string {
+  try {
+    return fs.realpathSync(targetPath);
+  } catch {
+    const parent = path.dirname(targetPath);
+    if (parent === targetPath) {
+      return targetPath;
+    }
+    const resolvedParent = resolveCanonicalPath(parent);
+    return path.join(resolvedParent, path.basename(targetPath));
+  }
 }
 
 export class AnsibleCreatorOperations {
@@ -112,6 +125,33 @@ export class AnsibleCreatorOperations {
     }
   }
 
+  private async probeToolVersion(
+    settings: ExtensionSettings,
+    executable: string,
+  ): Promise<string> {
+    const resolved = await withInterpreterArgv(settings, executable, [
+      "--version",
+    ]);
+    const result = runCommandArgv(
+      resolved.executable,
+      resolved.args,
+      resolved.env,
+    );
+    if (result.status !== "passed") {
+      return "failed";
+    }
+    return result.output.trimEnd();
+  }
+
+  private async discoverCreatorVersion(
+    settings?: ExtensionSettings,
+  ): Promise<string> {
+    if (settings) {
+      return this.probeToolVersion(settings, ANSIBLE_CREATOR_EXECUTABLE);
+    }
+    return getCreatorVersion();
+  }
+
   // Shared version gate: checks creator presence and minimum version, posts
   // the appropriate error to the webview and returns { passed: false } when
   // the gate fails. Callers early-return on !passed.
@@ -119,10 +159,11 @@ export class AnsibleCreatorOperations {
     webView: vscode.Webview,
     subject: string,
     urlPayload: Record<string, string | undefined>,
+    settings?: ExtensionSettings,
   ): Promise<{ passed: boolean }> {
     let creatorVersion: string;
     try {
-      creatorVersion = await getCreatorVersion();
+      creatorVersion = await this.discoverCreatorVersion(settings);
     } catch (error) {
       console.error(
         "[ansible-creator] Version discovery failed:",
@@ -187,6 +228,7 @@ export class AnsibleCreatorOperations {
     verbosity: string,
     webView: vscode.Webview,
     urlPayload: Record<string, string | undefined>,
+    extSettings: SettingsManager,
   ): Promise<void> {
     const cmdArgs = [...baseArgs];
     this.applyOverwriteFlag(cmdArgs, isOverwritten);
@@ -197,9 +239,6 @@ export class AnsibleCreatorOperations {
       ANSIBLE_CREATOR_EXECUTABLE,
       cmdArgs.join(" "),
     );
-
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
 
     const resolvedInterpreter = await this.withInterpreterOrNotify(
       webView,
@@ -264,9 +303,17 @@ export class AnsibleCreatorOperations {
       return;
     }
 
-    const gate = await this.checkCreatorVersionGate(webView, subject, {
-      projectUrl: destinationPathUrl,
-    });
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const gate = await this.checkCreatorVersionGate(
+      webView,
+      subject,
+      {
+        projectUrl: destinationPathUrl,
+      },
+      extSettings.settings,
+    );
     if (!gate.passed) return;
 
     await this.executeCreatorCommand(
@@ -275,6 +322,7 @@ export class AnsibleCreatorOperations {
       verbosity,
       webView,
       { projectUrl: destinationPathUrl },
+      extSettings,
     );
   }
 
@@ -323,10 +371,18 @@ export class AnsibleCreatorOperations {
     const destinationUrl = built.destinationUrl;
     const cmdArgs = [...built.args];
 
-    const gate = await this.checkCreatorVersionGate(webView, "", {
-      collectionUrl: isCollection ? destinationUrl : undefined,
-      projectUrl: isCollection ? undefined : destinationUrl,
-    });
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const gate = await this.checkCreatorVersionGate(
+      webView,
+      "",
+      {
+        collectionUrl: isCollection ? destinationUrl : undefined,
+        projectUrl: isCollection ? undefined : destinationUrl,
+      },
+      extSettings.settings,
+    );
     if (!gate.passed) return;
 
     let commandOutput = "";
@@ -339,9 +395,6 @@ export class AnsibleCreatorOperations {
       payload,
       isCollection,
     );
-
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
 
     const initUrlPayload = {
       collectionUrl: isCollection ? destinationUrl : undefined,
@@ -371,7 +424,11 @@ export class AnsibleCreatorOperations {
     let finalStatus = ansibleCreatorCommandPassed;
 
     // Execute ADE command for collections if needed
-    if (isCollection && payload.isEditableModeInstall) {
+    if (
+      isCollection &&
+      payload.isEditableModeInstall &&
+      ansibleCreatorCommandPassed === "passed"
+    ) {
       const adeInstallResult = await this.runAdeEditableInstall(
         payload,
         destinationUrl,
@@ -407,8 +464,8 @@ export class AnsibleCreatorOperations {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
 
-      const initPathUrl = this.creatorPath(
-        initPath || this.defaultCollectionsPath(),
+      const initPathUrl = resolveCanonicalPath(
+        this.creatorPath(initPath || this.defaultCollectionsPath()),
       );
 
       const args = this.getCollectionCreatorCommand(
@@ -524,13 +581,23 @@ export class AnsibleCreatorOperations {
     });
     let adeVersion: string;
     try {
-      adeVersion = await getADEVersion();
+      adeVersion = await this.probeToolVersion(
+        extSettings.settings,
+        ADE_EXECUTABLE,
+      );
     } catch (error) {
       console.error(
         "[ade] Version discovery failed:",
         error instanceof Error ? error.message : error,
       );
       commandOutput += `${PYTHON_ENV_FAILURE_OUTPUT}\n`;
+      return { output: commandOutput, succeeded: false };
+    }
+
+    if (!adeVersion || adeVersion === "failed") {
+      commandOutput +=
+        "ansible-dev-environment (ade) is not installed or not found in PATH.\n" +
+        "Please install ade or select a Python environment where it is available, then try again.\n";
       return { output: commandOutput, succeeded: false };
     }
 
