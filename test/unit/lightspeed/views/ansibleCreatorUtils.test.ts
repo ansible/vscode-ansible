@@ -117,7 +117,7 @@ function creatorRunCmd(callIndex = 0): string {
   if (!call) {
     return "";
   }
-  return [(call[0] as string), ...(call[1] as string[])].join(" ");
+  return [call[0] as string, ...(call[1] as string[])].join(" ");
 }
 
 function adeInstallRunArgv(): string[] | undefined {
