@@ -52,6 +52,8 @@ vi.mock("@src/features/utils/commandRunner", () => ({
 
 vi.mock("node:fs", () => ({
   existsSync: vi.fn(() => true),
+  readFileSync: vi.fn(() => "namespace: ns\nname: col\nauthors:\n  - me\n"),
+  realpathSync: vi.fn((targetPath: string) => targetPath),
 }));
 
 vi.mock("@src/settings", () => ({
@@ -1154,6 +1156,51 @@ describe("AnsibleCreatorOperations", () => {
       );
       expect(creatorRunCommandArgvCalls()).toHaveLength(1);
       expect(adeInstallRunArgv()).toBeDefined();
+      expect(getCreatorVersion).not.toHaveBeenCalled();
+    });
+
+    it("rejects ADE resume when an existing collection identity does not match", async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        "namespace: other\nname: col\n",
+      );
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
+      expect(adeInstallRunArgv()).toBeUndefined();
+    });
+
+    it("canonicalizes init paths with realpathSync before building commands", async () => {
+      const resolvedRoot = fixturePath("/tmp/collections/ansible_collections");
+      const symlink = fixturePath("/tmp/collections-link");
+      vi.mocked(fs.realpathSync).mockImplementation((targetPath) => {
+        if (String(targetPath) === symlink) {
+          return resolvedRoot;
+        }
+        return String(targetPath);
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(collectionPayload({ initPath: symlink }), web);
+      expect(creatorRunCmd()).toContain(resolvedRoot);
+      expect(lastArgs(web).collectionUrl).toBe(
+        path.join(resolvedRoot, "ns", "col"),
+      );
     });
 
     it("includes ADE retry guidance when editable install fails after scaffold", async () => {
