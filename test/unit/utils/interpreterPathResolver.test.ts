@@ -118,6 +118,18 @@ describe("interpreterPathResolver", () => {
       const result = resolveInterpreterPath(tildePath);
       expect(result).toBe("/home/user");
     });
+
+    it("should not resolve tilde-without-slash under workspace folder", () => {
+      const misTypedHomePath = "~.miniconda/envs/ansible/bin/python";
+      const result = resolveInterpreterPath(misTypedHomePath);
+      expect(result).toBe("/home/user/.miniconda/envs/ansible/bin/python");
+      expect(result).not.toContain(mockWorkspacePath);
+    });
+
+    it("should leave named-user tilde paths unchanged", () => {
+      const namedUserPath = "~user/.venv/bin/python";
+      expect(resolveInterpreterPath(namedUserPath)).toBe(namedUserPath);
+    });
   });
 
   describe("expandTilde", () => {
@@ -137,6 +149,18 @@ describe("interpreterPathResolver", () => {
 
     it("should return relative paths unchanged", () => {
       expect(expandTilde("./venv/bin/python")).toBe("./venv/bin/python");
+    });
+
+    it("should expand tilde without slash (e.g. ~/.venv typed as ~.venv)", () => {
+      expect(expandTilde("~.miniconda/envs/ansible/bin/python")).toBe(
+        "/home/user/.miniconda/envs/ansible/bin/python",
+      );
+    });
+
+    it("should leave named-user tilde paths unchanged", () => {
+      expect(expandTilde("~user/.venv/bin/python")).toBe(
+        "~user/.venv/bin/python",
+      );
     });
 
     it("should return empty string for empty input", () => {
