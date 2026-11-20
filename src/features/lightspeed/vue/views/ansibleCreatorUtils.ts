@@ -247,7 +247,7 @@ export class AnsibleCreatorOperations {
     return (
       `The directory "${destinationUrl}" already contains collection ${existingLabel}.\n` +
       `It does not match the requested collection ${namespaceName}.${collectionName}.\n` +
-      "Choose a different destination or enable overwrite to scaffold a new collection.\n"
+      "Choose a different destination. Overwrite cannot replace a different collection identity.\n"
     );
   }
 
@@ -508,6 +508,7 @@ export class AnsibleCreatorOperations {
       isCollection &&
       collectionPayload !== undefined &&
       payload.isEditableModeInstall &&
+      !payload.isOverwritten &&
       this.isCollectionScaffoldPresent(destinationUrl) &&
       this.collectionScaffoldMatchesRequest(
         destinationUrl,

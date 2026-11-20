@@ -238,6 +238,12 @@ describe("AnsibleCreatorOperations", () => {
       }
       return true;
     });
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      "namespace: ns\nname: col\nauthors:\n  - me\n",
+    );
+    vi.mocked(fs.realpathSync).mockImplementation((targetPath) =>
+      String(targetPath),
+    );
     vi.mocked(getCreatorVersion).mockResolvedValue("26.2.0");
     vi.mocked(getADEVersion).mockResolvedValue("25.4.0");
     vi.mocked(getBinDetail).mockResolvedValue("ade 25.4.0" as never);
@@ -1183,7 +1189,65 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastOutput(web)).toContain(
         "does not match the requested collection",
       );
+      expect(lastOutput(web)).toContain(
+        "Overwrite cannot replace a different collection identity",
+      );
       expect(adeInstallRunArgv()).toBeUndefined();
+    });
+
+    it("runs Creator with overwrite when re-scaffolding a matching collection in editable mode", async () => {
+      setProbedCreatorVersion("26.2.0");
+      setProbedAdeVersion("25.4.0");
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          isOverwritten: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastOutput(web)).not.toContain(
+        "skipping ansible-creator init and running the editable install step only",
+      );
+      const initCalls = creatorRunCommandArgvCalls().filter(([, args]) =>
+        args.includes("init"),
+      );
+      expect(initCalls.length).toBeGreaterThanOrEqual(1);
+      expect(initCalls[0]?.[1]).toContain("--overwrite");
+    });
+
+    it("rejects identity mismatch even when overwrite is enabled", async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        "namespace: other\nname: col\n",
+      );
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          isOverwritten: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(creatorRunCommandArgvCalls()).toHaveLength(0);
     });
 
     it("canonicalizes init paths with realpathSync before building commands", async () => {
