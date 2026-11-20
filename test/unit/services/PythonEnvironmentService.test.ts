@@ -253,6 +253,24 @@ describe("PythonEnvironmentService", function () {
       expect(mockOnDidChange).toHaveBeenCalled();
     });
 
+    it("should not subscribe to fallback change events when envs API is active", async function () {
+      const fallbackApi = makeMockPythonExtApi();
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: makeMockEnvsApi(),
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      await service.initialize();
+
+      expect(
+        fallbackApi.environments.onDidChangeActiveEnvironmentPath,
+      ).not.toHaveBeenCalled();
+    });
+
     it("should not reinitialize if already initialized", async function () {
       const mockApi = makeMockEnvsApi();
       mockGetExtension.mockReturnValue({
@@ -905,7 +923,7 @@ describe("PythonEnvironmentService", function () {
       expect(result).toEqual(mockEnv);
     });
 
-    it("should fall back to ms-python.python when envs API returns null", async function () {
+    it("should not fall back when envs API returns null", async function () {
       const mockApi = makeMockEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(null),
       });
@@ -931,10 +949,13 @@ describe("PythonEnvironmentService", function () {
       await service.initialize();
       const result = await service.getEnvironment();
 
-      expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
+      expect(result).toBeNull();
+      expect(
+        fallbackApi.environments.getActiveEnvironmentPath,
+      ).not.toHaveBeenCalled();
     });
 
-    it("should fall back to ms-python.python when envs API returns undefined", async function () {
+    it("should not fall back when envs API returns undefined", async function () {
       const mockApi = makeMockEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(undefined),
       });
@@ -960,8 +981,10 @@ describe("PythonEnvironmentService", function () {
       await service.initialize();
       const result = await service.getEnvironment();
 
-      expect(result).toBeDefined();
-      expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
+      expect(result).toBeUndefined();
+      expect(
+        fallbackApi.environments.getActiveEnvironmentPath,
+      ).not.toHaveBeenCalled();
     });
 
     it("should fall back when envs API throws", async function () {

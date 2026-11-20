@@ -125,6 +125,11 @@ describe("interpreterPathResolver", () => {
       expect(result).toBe("/home/user/.miniconda/envs/ansible/bin/python");
       expect(result).not.toContain(mockWorkspacePath);
     });
+
+    it("should leave named-user tilde paths unchanged", () => {
+      const namedUserPath = "~jdoe/.venv/bin/python";
+      expect(resolveInterpreterPath(namedUserPath)).toBe(namedUserPath);
+    });
   });
 
   describe("expandTilde", () => {
@@ -149,6 +154,12 @@ describe("interpreterPathResolver", () => {
     it("should expand tilde without slash (e.g. ~/.venv typed as ~.venv)", () => {
       expect(expandTilde("~.miniconda/envs/ansible/bin/python")).toBe(
         "/home/user/.miniconda/envs/ansible/bin/python",
+      );
+    });
+
+    it("should leave named-user tilde paths unchanged", () => {
+      expect(expandTilde("~jdoe/.venv/bin/python")).toBe(
+        "~jdoe/.venv/bin/python",
       );
     });
 
