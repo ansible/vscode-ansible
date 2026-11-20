@@ -115,15 +115,31 @@ function expandLeadingTilde(pathUrl: string): string {
   return pathUrl;
 }
 
+/** `$NAME` or `${NAME}` tokens, matching Python os.path.expandvars names. */
+const ENV_VAR_TOKEN = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/g;
+
+function envVarReplacement(
+  match: string,
+  braced: string | undefined,
+  bare: string | undefined,
+): string {
+  const name = braced ?? bare ?? "";
+  if (name.toUpperCase() === "HOME") {
+    return os.homedir();
+  }
+  return process.env[name] ?? match;
+}
+
 export function expandPath(pathUrl: string): string {
-  // expand `$HOME` to home directory
-  const re2 = /\$HOME/gi;
-  let expanded = expandLeadingTilde(pathUrl).replace(re2, os.homedir());
-  expanded = expanded.replace(
-    /\$([A-Za-z_]\w*)/g,
-    (match, name: string) => process.env[name] ?? match,
-  );
-  return expanded;
+  ENV_VAR_TOKEN.lastIndex = 0;
+  return expandLeadingTilde(pathUrl).replace(ENV_VAR_TOKEN, envVarReplacement);
+}
+
+/** First unresolved `$NAME` / `${NAME}` token, if any. */
+export function unresolvedEnvVarToken(pathUrl: string): string | null {
+  ENV_VAR_TOKEN.lastIndex = 0;
+  const match = ENV_VAR_TOKEN.exec(pathUrl);
+  return match?.[0] ?? null;
 }
 
 export async function getADEVersion(): Promise<string> {

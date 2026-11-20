@@ -3,6 +3,7 @@ import { assert, expect, describe, it, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
 import {
   expandPath,
+  unresolvedEnvVarToken,
   getBinDetail,
   runCommand,
   runCommandArgv,
@@ -178,6 +179,47 @@ describe(__filename, function () {
       it(`should provide details for ${name}`, function () {
         expect(expandPath(pathUrl)).toBe(expected);
       });
+    });
+
+    it("expands $HOME_PROJECT as a complete variable name", function () {
+      const previous = process.env.HOME_PROJECT;
+      process.env.HOME_PROJECT = "/srv/collections";
+      try {
+        expect(expandPath("$HOME_PROJECT/acme")).toBe("/srv/collections/acme");
+        expect(unresolvedEnvVarToken(expandPath("$HOME_PROJECT/acme"))).toBe(
+          null,
+        );
+      } finally {
+        if (previous === undefined) {
+          delete process.env.HOME_PROJECT;
+        } else {
+          process.env.HOME_PROJECT = previous;
+        }
+      }
+    });
+
+    it("expands braced environment variables", function () {
+      const previous = process.env.COLLECTION_DIR;
+      process.env.COLLECTION_DIR = "demo";
+      try {
+        expect(expandPath("/tmp/${COLLECTION_DIR}")).toBe("/tmp/demo");
+      } finally {
+        if (previous === undefined) {
+          delete process.env.COLLECTION_DIR;
+        } else {
+          process.env.COLLECTION_DIR = previous;
+        }
+      }
+    });
+
+    it("leaves unknown environment variables unresolved", function () {
+      delete process.env.MISSING_CREATOR_PATH_VAR;
+      expect(expandPath("/tmp/${MISSING_CREATOR_PATH_VAR}")).toBe(
+        "/tmp/${MISSING_CREATOR_PATH_VAR}",
+      );
+      expect(unresolvedEnvVarToken("/tmp/${MISSING_CREATOR_PATH_VAR}")).toBe(
+        "${MISSING_CREATOR_PATH_VAR}",
+      );
     });
   });
 });
