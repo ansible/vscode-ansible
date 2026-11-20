@@ -149,6 +149,20 @@ function sourceFileOf(record: string): string | undefined {
   return /^SF:(.+)$/m.exec(record)?.[1]?.trim();
 }
 
+/** Repository-relative POSIX key so unit and WDIO SF: values match. */
+function lcovSourceKey(sourceFile: string): string {
+  const resolved = path.resolve(sourceFile);
+  const relative = path.relative(process.cwd(), resolved);
+  if (
+    relative.length > 0 &&
+    !relative.startsWith("..") &&
+    !path.isAbsolute(relative)
+  ) {
+    return relative.split(path.sep).join("/");
+  }
+  return sourceFile.split("\\").join("/");
+}
+
 /**
  * Index lines and branches the unit report actually instrumented.
  * Vitest's V8 reporter only emits statement lines. c8's e2e/wdio
@@ -164,15 +178,16 @@ export function indexUnitCoverage(unitLcov: string): UnitCoverageIndex {
     if (sourceFile === undefined) {
       continue;
     }
-    let fileLines = lines.get(sourceFile);
+    const sourceKey = lcovSourceKey(sourceFile);
+    let fileLines = lines.get(sourceKey);
     if (fileLines === undefined) {
       fileLines = new Set<number>();
-      lines.set(sourceFile, fileLines);
+      lines.set(sourceKey, fileLines);
     }
-    let fileBranches = branches.get(sourceFile);
+    let fileBranches = branches.get(sourceKey);
     if (fileBranches === undefined) {
       fileBranches = new Set<string>();
-      branches.set(sourceFile, fileBranches);
+      branches.set(sourceKey, fileBranches);
     }
     for (const rawLine of record.split("\n")) {
       if (rawLine.startsWith("DA:")) {
@@ -213,7 +228,9 @@ export function filterLcovAgainstUnit(
   for (const record of splitLcovRecords(otherLcov)) {
     const sourceFile = sourceFileOf(record);
     const knownLines =
-      sourceFile === undefined ? undefined : unitIndex.lines.get(sourceFile);
+      sourceFile === undefined
+        ? undefined
+        : unitIndex.lines.get(lcovSourceKey(sourceFile));
     if (sourceFile === undefined || knownLines === undefined) {
       records.push(`${record}\nend_of_record`);
       continue;
@@ -278,7 +295,7 @@ export function expandCoveredStatementLines(
     const knownLines =
       sourceFile === undefined || unitIndex === undefined
         ? undefined
-        : unitIndex.lines.get(sourceFile);
+        : unitIndex.lines.get(lcovSourceKey(sourceFile));
     return expandRecord(record, knownLines);
   });
   return expanded.length === 0 ? "" : `${expanded.join("\n")}\n`;

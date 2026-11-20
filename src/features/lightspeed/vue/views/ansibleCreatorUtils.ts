@@ -14,6 +14,7 @@ import {
   getCreatorVersion,
   getBinDetail,
   runCommandArgv,
+  unresolvedEnvVarToken,
 } from "@src/features/contentCreator/utils";
 import {
   checkAnsibleCreatorVersion,
@@ -95,6 +96,17 @@ export class AnsibleCreatorOperations {
     return path.isAbsolute(expanded)
       ? path.normalize(expanded)
       : path.resolve(os.homedir(), expanded);
+  }
+
+  private unresolvedCreatorPathMessage(resolvedPath: string): string | null {
+    const token = unresolvedEnvVarToken(resolvedPath);
+    if (token === null) {
+      return null;
+    }
+    return (
+      `The destination path contains unresolved environment variable ${token}.\n` +
+      "Enter a literal filesystem path and try again.\n"
+    );
   }
 
   private async postExecutionFailure(
@@ -186,23 +198,39 @@ export class AnsibleCreatorOperations {
     );
   }
 
-  private readGalaxyCollectionId(
+  private readGalaxyDocument(
     destinationUrl: string,
-  ): { namespace: string; name: string } | null {
+  ):
+    | { kind: "missing" }
+    | { kind: "invalid"; message: string }
+    | { kind: "unknown" }
+    | { kind: "ok"; namespace: string; name: string } {
     const galaxyPath = path.join(destinationUrl, "galaxy.yml");
     if (!fs.existsSync(galaxyPath)) {
-      return null;
+      return { kind: "missing" };
     }
     try {
       const content = fs.readFileSync(galaxyPath, "utf8");
       const doc = parseDocument(content);
+      if (doc.errors.length > 0) {
+        const details = doc.errors
+          .map((error) => error.message)
+          .filter((message) => message.length > 0)
+          .join("\n");
+        return {
+          kind: "invalid",
+          message:
+            `The file "${galaxyPath}" is invalid YAML and must be fixed before continuing.\n` +
+            (details.length > 0 ? `${details}\n` : ""),
+        };
+      }
       const namespaceNode = doc.get("namespace", true);
       const nameNode = doc.get("name", true);
       if (isScalar(namespaceNode) && isScalar(nameNode)) {
         const namespace = String(namespaceNode.value).trim();
         const name = String(nameNode.value).trim();
         if (namespace.length > 0 && name.length > 0) {
-          return { namespace, name };
+          return { kind: "ok", namespace, name };
         }
       }
     } catch (error) {
@@ -211,7 +239,17 @@ export class AnsibleCreatorOperations {
         error instanceof Error ? error.message : error,
       );
     }
-    return null;
+    return { kind: "unknown" };
+  }
+
+  private readGalaxyCollectionId(
+    destinationUrl: string,
+  ): { namespace: string; name: string } | null {
+    const document = this.readGalaxyDocument(destinationUrl);
+    if (document.kind !== "ok") {
+      return null;
+    }
+    return { namespace: document.namespace, name: document.name };
   }
 
   private collectionScaffoldMatchesRequest(
@@ -234,22 +272,24 @@ export class AnsibleCreatorOperations {
     namespaceName: string,
     collectionName: string,
   ): string | null {
-    if (!fs.existsSync(path.join(destinationUrl, "galaxy.yml"))) {
+    const document = this.readGalaxyDocument(destinationUrl);
+    if (document.kind === "missing") {
       return null;
     }
+    if (document.kind === "invalid") {
+      return document.message;
+    }
     if (
-      this.collectionScaffoldMatchesRequest(
-        destinationUrl,
-        namespaceName,
-        collectionName,
-      )
+      document.kind === "ok" &&
+      document.namespace === namespaceName &&
+      document.name === collectionName
     ) {
       return null;
     }
-    const existing = this.readGalaxyCollectionId(destinationUrl);
-    const existingLabel = existing
-      ? `${existing.namespace}.${existing.name}`
-      : "another collection";
+    const existingLabel =
+      document.kind === "ok"
+        ? `${document.namespace}.${document.name}`
+        : "another collection";
     return (
       `The directory "${destinationUrl}" already contains collection ${existingLabel}.\n` +
       `It does not match the requested collection ${namespaceName}.${collectionName}.\n` +
@@ -412,6 +452,14 @@ export class AnsibleCreatorOperations {
     const destinationPathUrl = this.creatorPath(
       collectionPath || this.defaultCollectionsPath(),
     );
+    const unresolvedPath =
+      this.unresolvedCreatorPathMessage(destinationPathUrl);
+    if (unresolvedPath) {
+      await this.postExecutionFailure(webView, unresolvedPath, {
+        projectUrl: destinationPathUrl,
+      });
+      return;
+    }
     const rootError = this.collectionRootError(destinationPathUrl);
     if (rootError) {
       await this.postExecutionFailure(webView, rootError, {
@@ -494,6 +542,25 @@ export class AnsibleCreatorOperations {
       ? (payload as AnsibleCollectionFormInterface)
       : undefined;
 
+    const unresolvedPath = this.unresolvedCreatorPathMessage(destinationUrl);
+    if (unresolvedPath) {
+      await this.postExecutionFailure(webView, unresolvedPath, {
+        collectionUrl: isCollection ? destinationUrl : undefined,
+        projectUrl: isCollection ? undefined : destinationUrl,
+      });
+      return;
+    }
+
+    if (collectionPayload?.isEditableModeInstall && /\s/.test(destinationUrl)) {
+      await this.postExecutionFailure(
+        webView,
+        "ansible-dev-environment cannot install into a destination path that contains spaces.\n" +
+          "Choose a destination without spaces and try again.\n",
+        { collectionUrl: destinationUrl },
+      );
+      return;
+    }
+
     if (
       await this.postCollectionConflictIfNeeded(
         webView,
@@ -525,6 +592,15 @@ export class AnsibleCreatorOperations {
         extSettings.settings,
       );
       if (!gate.passed) {
+        return;
+      }
+      if (
+        await this.postCollectionConflictIfNeeded(
+          webView,
+          collectionPayload,
+          destinationUrl,
+        )
+      ) {
         return;
       }
     }
@@ -683,12 +759,34 @@ export class AnsibleCreatorOperations {
     if (execution.exitCode !== 2) {
       return false;
     }
-    const failurePattern =
-      /\b(ERROR|Traceback|failed to install|No such file|command not found)\b|Error:\s|Required system packages are missing|Missing python dependencies|Failed to install requirements/i;
-    if (failurePattern.test(output)) {
+    if (this.adeOutputHasFailureDiagnostic(output)) {
       return false;
     }
     return /Note:\s+All required system packages are installed/i.test(output);
+  }
+
+  private adeOutputHasFailureDiagnostic(output: string): boolean {
+    for (const rawLine of output.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (line.length === 0 || /^Command failed:/i.test(line)) {
+        continue;
+      }
+      if (/^Error:\s/i.test(line) || /^Traceback\b/i.test(line)) {
+        return true;
+      }
+      if (
+        /(^|\s)ERROR(\s|:|$)/.test(line) ||
+        /\bfailed to install\b/i.test(line) ||
+        /\bNo such file\b/i.test(line) ||
+        /\bcommand not found\b/i.test(line) ||
+        /\bRequired system packages are missing\b/i.test(line) ||
+        /\bMissing python dependencies\b/i.test(line) ||
+        /\bFailed to install requirements\b/i.test(line)
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
@@ -890,6 +988,15 @@ export class AnsibleCreatorOperations {
     const exceedADEImVersion = adeVersionCheck.isGte;
 
     if (exceedADEImVersion) {
+      const identityConflict = this.existingCollectionConflictMessage(
+        destinationUrl,
+        payload.namespaceName,
+        payload.collectionName,
+      );
+      if (identityConflict) {
+        commandOutput += identityConflict;
+        return { output: commandOutput, succeeded: false };
+      }
       adeArgs.push("--im=cfg");
       const adeExecutionResult = runCommandArgv(
         adeEnv.executable,

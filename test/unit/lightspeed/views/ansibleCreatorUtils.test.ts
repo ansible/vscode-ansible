@@ -893,11 +893,11 @@ describe("AnsibleCreatorOperations", () => {
     it("installs in editable mode when ADE version is high enough", async () => {
       setProbedAdeVersion("25.4.0");
       const web = makeWeb();
-      const destinationWithSpaces = fixturePath("/tmp/My Collections");
+      const destination = fixturePath("/tmp/MyCollections");
       await ops.runInitCommand(
         collectionPayload({
           isEditableModeInstall: true,
-          initPath: destinationWithSpaces,
+          initPath: destination,
         }),
         web,
       );
@@ -912,7 +912,7 @@ describe("AnsibleCreatorOperations", () => {
         expect.arrayContaining([
           "install",
           "--venv",
-          path.join(destinationWithSpaces, ".venv"),
+          path.join(destination, ".venv"),
           "--editable",
           ".",
           "--no-ansi",
@@ -920,7 +920,24 @@ describe("AnsibleCreatorOperations", () => {
         ]),
       );
       expect(adeRun?.[2]).toEqual({ TEST: "1" });
-      expect(adeRun?.[3]).toBe(destinationWithSpaces);
+      expect(adeRun?.[3]).toBe(destination);
+    });
+
+    it("rejects editable install before scaffolding when the destination contains spaces", async () => {
+      setProbedAdeVersion("25.4.0");
+      const web = makeWeb();
+      const destinationWithSpaces = fixturePath("/tmp/My Collections");
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: destinationWithSpaces,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("contains spaces");
+      expectCreatorRunSkipped();
+      expect(adeInstallRunArgv()).toBeUndefined();
     });
 
     it("reports the editable-mode failure when ADE version is too low", async () => {
@@ -1183,6 +1200,141 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).status).toBe("passed");
     });
 
+    it("rejects invalid galaxy.yml YAML before reading collection identity", async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        "namespace: acme\nname: demo\nname: other\n",
+      );
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("invalid YAML");
+      expect(lastOutput(web)).toContain("must be fixed");
+      expectCreatorRunSkipped();
+      expect(adeInstallRunArgv()).toBeUndefined();
+    });
+
+    it("rechecks collection identity after the Creator version gate", async () => {
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          if (executable === "ansible-creator") {
+            vi.mocked(fs.readFileSync).mockReturnValue(
+              "namespace: other\nname: col\n",
+            );
+            return {
+              exitCode: 0,
+              output: `${probedCreatorVersion}\n`,
+              status: "passed",
+            };
+          }
+          return {
+            exitCode: 0,
+            output: `${probedAdeVersion}\n`,
+            status: "passed",
+          };
+        }
+        return { exitCode: 0, output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(collectionPayload(), web);
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
+      expectCreatorRunSkipped();
+    });
+
+    it("rechecks collection identity after the ADE version gate", async () => {
+      setProbedAdeVersion("25.4.0");
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          if (executable === "ade") {
+            vi.mocked(fs.readFileSync).mockReturnValue(
+              "namespace: other\nname: col\n",
+            );
+            return {
+              exitCode: 0,
+              output: `${probedAdeVersion}\n`,
+              status: "passed",
+            };
+          }
+          return {
+            exitCode: 0,
+            output: `${probedCreatorVersion}\n`,
+            status: "passed",
+          };
+        }
+        return { exitCode: 0, output: "ade-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
+      expect(adeInstallRunArgv()).toBeUndefined();
+    });
+
+    it("expands braced environment variables in the init path", async () => {
+      const previous = process.env.COLLECTION_DIR;
+      process.env.COLLECTION_DIR = "demo";
+      try {
+        const web = makeWeb();
+        await ops.runInitCommand(
+          collectionPayload({ initPath: "/tmp/${COLLECTION_DIR}" }),
+          web,
+        );
+        expect(creatorRunCmd()).toContain(fixturePath("/tmp/demo"));
+      } finally {
+        if (previous === undefined) {
+          delete process.env.COLLECTION_DIR;
+        } else {
+          process.env.COLLECTION_DIR = previous;
+        }
+      }
+    });
+
+    it("rejects an init path with an unresolved environment variable", async () => {
+      delete process.env.MISSING_CREATOR_PATH_VAR;
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          initPath: "/tmp/${MISSING_CREATOR_PATH_VAR}",
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(lastOutput(web)).toContain("unresolved environment variable");
+      expectCreatorRunSkipped();
+    });
+
     it("resumes ADE when galaxy.yml identity values are quoted", async () => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(fs.readFileSync).mockReturnValue(
@@ -1249,6 +1401,34 @@ describe("AnsibleCreatorOperations", () => {
             exitCode: 2,
             output:
               "Warning: ~/.ansible.cfg updated with 'collections_path = .'\n" +
+              "Note: All python requirements are installed.\n" +
+              "Note: All required system packages are installed.\n",
+            status: "failed",
+          };
+        }
+        return { exitCode: 0, output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({ isEditableModeInstall: true }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("passed");
+    });
+
+    it("does not treat an ERROR substring in a --venv path as an ADE failure", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          const version =
+            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
+          return { exitCode: 0, output: `${version}\n`, status: "passed" };
+        }
+        if (executable === "ade" && args[0] === "install") {
+          return {
+            exitCode: 2,
+            output:
+              "Command failed: ade install --venv /tmp/error-handling/.venv --editable .\n" +
               "Note: All python requirements are installed.\n" +
               "Note: All required system packages are installed.\n",
             status: "failed",

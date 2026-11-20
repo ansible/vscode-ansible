@@ -111,6 +111,23 @@ end_of_record
     expect(filtered).toContain("BRDA:2,0,0,0");
     expect(filtered).toContain("BRDA:3,0,0,0");
   });
+
+  it("matches relative unit SF paths with absolute WDIO SF paths", () => {
+    const absolute = path.resolve("src/example.ts");
+    const other = `
+SF:${absolute}
+DA:1,0
+DA:2,0
+DA:3,0
+LF:3
+LH:0
+end_of_record
+`;
+    const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(unitLcov));
+    expect(filtered).toMatch(/^DA:1,0$/m);
+    expect(filtered).toMatch(/^DA:2,0$/m);
+    expect(filtered).not.toMatch(/^DA:3,0$/m);
+  });
 });
 
 describe("rewriteNonUnitLcov", () => {
