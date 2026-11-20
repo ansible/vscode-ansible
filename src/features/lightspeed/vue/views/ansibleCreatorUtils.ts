@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as os from "os";
 import * as path from "node:path";
 import * as vscode from "vscode";
+import { isScalar, parseDocument } from "yaml";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -194,10 +195,15 @@ export class AnsibleCreatorOperations {
     }
     try {
       const content = fs.readFileSync(galaxyPath, "utf8");
-      const namespace = /^namespace:\s*(\S+)/m.exec(content)?.[1];
-      const name = /^name:\s*(\S+)/m.exec(content)?.[1];
-      if (namespace && name) {
-        return { namespace, name };
+      const doc = parseDocument(content);
+      const namespaceNode = doc.get("namespace", true);
+      const nameNode = doc.get("name", true);
+      if (isScalar(namespaceNode) && isScalar(nameNode)) {
+        const namespace = String(namespaceNode.value).trim();
+        const name = String(nameNode.value).trim();
+        if (namespace.length > 0 && name.length > 0) {
+          return { namespace, name };
+        }
       }
     } catch (error) {
       console.error(
@@ -228,7 +234,7 @@ export class AnsibleCreatorOperations {
     namespaceName: string,
     collectionName: string,
   ): string | null {
-    if (!this.isCollectionScaffoldPresent(destinationUrl)) {
+    if (!fs.existsSync(path.join(destinationUrl, "galaxy.yml"))) {
       return null;
     }
     if (
@@ -667,6 +673,21 @@ export class AnsibleCreatorOperations {
     };
   }
 
+  private adeEditableInstallSucceeded(
+    output: string,
+    execution: { exitCode?: number | null; status: string },
+  ): boolean {
+    if (execution.status === "passed") {
+      return true;
+    }
+    if (execution.exitCode !== 2) {
+      return false;
+    }
+    const failurePattern =
+      /\b(ERROR|Error:|Traceback|failed to install|No such file|command not found)\b/;
+    return !failurePattern.test(output);
+  }
+
   private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
     let recovery =
       "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n" +
@@ -877,7 +898,10 @@ export class AnsibleCreatorOperations {
       console.debug("[ade] command: ", ADE_EXECUTABLE, adeArgs.join(" "));
       return {
         output: commandOutput,
-        succeeded: adeExecutionResult.status === "passed",
+        succeeded: this.adeEditableInstallSucceeded(
+          adeExecutionResult.output,
+          adeExecutionResult,
+        ),
       };
     }
 

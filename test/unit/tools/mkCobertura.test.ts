@@ -59,7 +59,7 @@ end_of_record
     expect(filtered).not.toMatch(/^DA:3,0$/m);
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:9,0,0,2");
-    expect(filtered).not.toContain("BRDA:3,0,0,0");
+    expect(filtered).toContain("BRDA:3,0,0,0");
     expect(filtered).toContain("SF:src/e2e-only.ts");
     expectDaLine(filtered, "4,0");
     expect(filtered).toContain("LF:3");
@@ -76,9 +76,9 @@ LH:0
 end_of_record
 `;
     const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(unitLcov));
-    expect(filtered).not.toMatch(/BRDA:9,0,0/);
-    expect(filtered).not.toMatch(/BRDA:9,0,1/);
-    expect(filtered).toContain("BRF:0");
+    expect(filtered).toMatch(/BRDA:9,0,0,0/);
+    expect(filtered).toMatch(/BRDA:9,0,1,-/);
+    expect(filtered).toContain("BRF:2");
     expect(filtered).toContain("BRH:0");
   });
 
@@ -109,7 +109,7 @@ end_of_record
     expect(filtered).not.toMatch(/^DA:3,0$/m);
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:2,0,0,0");
-    expect(filtered).not.toContain("BRDA:3,0,0,0");
+    expect(filtered).toContain("BRDA:3,0,0,0");
   });
 });
 
@@ -156,7 +156,7 @@ describe("rewriteNonUnitLcov", () => {
       expectDaLine(e2eText, "2,0");
       expect(e2eText).not.toMatch(/^DA:3,0$/m);
       expect(e2eText).toContain("BRDA:2,0,0,0");
-      expect(e2eText).not.toContain("BRDA:3,0,0,0");
+      expect(e2eText).toContain("BRDA:3,0,0,0");
     } finally {
       rmSync(root, { force: true, recursive: true });
     }

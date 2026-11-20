@@ -218,7 +218,6 @@ export function filterLcovAgainstUnit(
       records.push(`${record}\nend_of_record`);
       continue;
     }
-    const knownBranches = unitIndex.branches.get(sourceFile) ?? new Set();
     const kept: string[] = [];
     let lf = 0;
     let lh = 0;
@@ -240,11 +239,7 @@ export function filterLcovAgainstUnit(
         }
       } else if (rawLine.startsWith("BRDA:")) {
         const parts = rawLine.slice(5).split(",");
-        const key = `${parts[0]},${parts[1]},${parts[2]}`;
         const hits = parts[3] ?? "0";
-        if (isMiss(hits) && !knownBranches.has(key)) {
-          continue;
-        }
         kept.push(rawLine);
         brf += 1;
         if (!isMiss(hits)) {
