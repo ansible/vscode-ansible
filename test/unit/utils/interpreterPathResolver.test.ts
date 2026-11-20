@@ -127,7 +127,7 @@ describe("interpreterPathResolver", () => {
     });
 
     it("should leave named-user tilde paths unchanged", () => {
-      const namedUserPath = "~jdoe/.venv/bin/python";
+      const namedUserPath = "~user/.venv/bin/python";
       expect(resolveInterpreterPath(namedUserPath)).toBe(namedUserPath);
     });
   });
@@ -158,8 +158,8 @@ describe("interpreterPathResolver", () => {
     });
 
     it("should leave named-user tilde paths unchanged", () => {
-      expect(expandTilde("~jdoe/.venv/bin/python")).toBe(
-        "~jdoe/.venv/bin/python",
+      expect(expandTilde("~user/.venv/bin/python")).toBe(
+        "~user/.venv/bin/python",
       );
     });
 

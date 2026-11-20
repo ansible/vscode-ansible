@@ -320,6 +320,48 @@ describe("PythonEnvironmentService", function () {
       expect(service.getApi()).toBeUndefined();
     });
 
+    it("should forward fallback environment change events", async function () {
+      let onChange: (() => void) | undefined;
+      const fallbackApi = makeMockPythonExtApi({
+        onDidChangeActiveEnvironmentPath: vi.fn((listener) => {
+          onChange = listener;
+          return { dispose: vi.fn() };
+        }),
+      });
+      mockGetExtension.mockImplementation((id: string) => {
+        if (id === PYTHON_ENVS_EXTENSION_ID) {
+          return {
+            isActive: true,
+            extensionPath: "/ext/path",
+            exports: makeMockEnvsApi(),
+            activate: vi.fn(),
+          };
+        }
+        if (id === "ms-python.python") {
+          return { isActive: true, activate: vi.fn() };
+        }
+        return undefined;
+      });
+      mockExistsSync.mockReturnValue(false);
+      mockShowWarningMessage.mockResolvedValue(undefined);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+      const emitter = (
+        service as unknown as {
+          _onDidChangeEnvironment: { fire: (event: unknown) => void };
+        }
+      )._onDidChangeEnvironment;
+      const fire = vi.spyOn(emitter, "fire");
+
+      await service.initialize();
+      expect(
+        fallbackApi.environments.onDidChangeActiveEnvironmentPath,
+      ).toHaveBeenCalled();
+      expect(onChange).toBeDefined();
+      onChange?.();
+
+      expect(fire).toHaveBeenCalledWith({});
+    });
+
     it("should show PET warning notification once", async function () {
       mockGetExtension.mockImplementation((id: string) => {
         if (id === PYTHON_ENVS_EXTENSION_ID) {

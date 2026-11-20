@@ -64,7 +64,7 @@ any level (User, Remote, Workspace and/or Folder).
   environments. Set this only for advanced overrides (for example a fixed venv
   path); prefer **User** settings over committing workspace paths. Supports
   `~`, `~/path`, the common `~.path` typo, `${workspaceFolder}`, and relative
-  paths such as `./.venv/bin/python`. Named-user forms such as `~jdoe/path` are
+  paths such as `./.venv/bin/python`. Named-user forms such as `~user/path` are
   left unchanged.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
