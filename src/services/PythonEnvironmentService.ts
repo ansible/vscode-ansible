@@ -195,7 +195,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
       const onChange = () => this._onDidChangeEnvironment.fire({});
       const envApi = api.environments;
       // Wire up change events only when the Environments API is unavailable.
-      if (!this._pythonEnvApi) {
+      if (!this._pythonEnvApi?.onDidChangeEnvironment) {
         const listener = envApi.onDidChangeActiveEnvironmentPath(onChange);
         this._disposables.push(listener);
       }

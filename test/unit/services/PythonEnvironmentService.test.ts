@@ -271,6 +271,24 @@ describe("PythonEnvironmentService", function () {
       ).not.toHaveBeenCalled();
     });
 
+    it("should subscribe to fallback events when envs API has no event", async function () {
+      const fallbackApi = makeMockPythonExtApi();
+      mockGetExtension.mockReturnValue({
+        isActive: true,
+        extensionPath: "/ext/path",
+        exports: makeMockEnvsApi({ onDidChangeEnvironment: undefined }),
+        activate: vi.fn(),
+      });
+      mockExistsSync.mockReturnValue(true);
+      mockPythonExtApi.mockResolvedValue(fallbackApi);
+
+      await service.initialize();
+
+      expect(
+        fallbackApi.environments.onDidChangeActiveEnvironmentPath,
+      ).toHaveBeenCalled();
+    });
+
     it("should not reinitialize if already initialized", async function () {
       const mockApi = makeMockEnvsApi();
       mockGetExtension.mockReturnValue({
