@@ -33,6 +33,11 @@ const PYTHON_ENV_FAILURE_OUTPUT =
 const ANSIBLE_CREATOR_EXECUTABLE = "ansible-creator";
 const ADE_EXECUTABLE = "ade";
 
+type ResolvedToolEnv = {
+  executable: string;
+  env: NodeJS.ProcessEnv;
+};
+
 function trimTrailingSlashes(value: string): string {
   let end = value.length;
   while (end > 0 && value[end - 1] === "/") {
@@ -125,31 +130,42 @@ export class AnsibleCreatorOperations {
     }
   }
 
-  private async probeToolVersion(
+  private async resolveToolEnv(
     settings: ExtensionSettings,
     executable: string,
-  ): Promise<string> {
-    const resolved = await withInterpreterArgv(settings, executable, [
-      "--version",
-    ]);
-    const result = runCommandArgv(
-      resolved.executable,
-      resolved.args,
-      resolved.env,
-    );
-    if (result.status !== "passed") {
-      return "failed";
-    }
-    return result.output.trimEnd();
+  ): Promise<ResolvedToolEnv> {
+    const resolved = await withInterpreterArgv(settings, executable, []);
+    return { executable: resolved.executable, env: resolved.env };
+  }
+
+  private probeToolVersionWithEnv(
+    toolEnv: ResolvedToolEnv,
+  ): { version: string; status: string; output: string } {
+    const result = runCommandArgv(toolEnv.executable, ["--version"], toolEnv.env);
+    const version =
+      result.status === "passed" ? result.output.trimEnd() : "failed";
+    return { version, status: result.status, output: result.output };
   }
 
   private async discoverCreatorVersion(
-    settings?: ExtensionSettings,
+    settings: ExtensionSettings | undefined,
+    toolEnv: ResolvedToolEnv | undefined,
   ): Promise<string> {
+    if (settings && toolEnv) {
+      return this.probeToolVersionWithEnv(toolEnv).version;
+    }
     if (settings) {
-      return this.probeToolVersion(settings, ANSIBLE_CREATOR_EXECUTABLE);
+      const env = await this.resolveToolEnv(settings, ANSIBLE_CREATOR_EXECUTABLE);
+      return this.probeToolVersionWithEnv(env).version;
     }
     return getCreatorVersion();
+  }
+
+  private isCollectionScaffoldPresent(destinationUrl: string): boolean {
+    return (
+      fs.existsSync(path.join(destinationUrl, "galaxy.yml")) &&
+      fs.existsSync(path.join(destinationUrl, "devfile.yaml"))
+    );
   }
 
   // Shared version gate: checks creator presence and minimum version, posts
@@ -160,10 +176,17 @@ export class AnsibleCreatorOperations {
     subject: string,
     urlPayload: Record<string, string | undefined>,
     settings?: ExtensionSettings,
-  ): Promise<{ passed: boolean }> {
+  ): Promise<{ passed: boolean; creatorEnv?: ResolvedToolEnv }> {
     let creatorVersion: string;
+    let creatorEnv: ResolvedToolEnv | undefined;
     try {
-      creatorVersion = await this.discoverCreatorVersion(settings);
+      if (settings) {
+        creatorEnv = await this.resolveToolEnv(
+          settings,
+          ANSIBLE_CREATOR_EXECUTABLE,
+        );
+      }
+      creatorVersion = await this.discoverCreatorVersion(settings, creatorEnv);
     } catch (error) {
       console.error(
         "[ansible-creator] Version discovery failed:",
@@ -213,7 +236,7 @@ export class AnsibleCreatorOperations {
       return { passed: false };
     }
 
-    return { passed: true };
+    return { passed: true, creatorEnv };
   }
 
   public getRoleCreatorCommand(roleName: string, url: string): string[] {
@@ -229,6 +252,7 @@ export class AnsibleCreatorOperations {
     webView: vscode.Webview,
     urlPayload: Record<string, string | undefined>,
     extSettings: SettingsManager,
+    creatorEnv?: ResolvedToolEnv,
   ): Promise<void> {
     const cmdArgs = [...baseArgs];
     this.applyOverwriteFlag(cmdArgs, isOverwritten);
@@ -240,22 +264,30 @@ export class AnsibleCreatorOperations {
       cmdArgs.join(" "),
     );
 
-    const resolvedInterpreter = await this.withInterpreterOrNotify(
-      webView,
-      urlPayload,
-      extSettings.settings,
-      ANSIBLE_CREATOR_EXECUTABLE,
-      cmdArgs,
-    );
-    if (!resolvedInterpreter) {
-      return;
+    let result: { output: string; status: string };
+    if (creatorEnv) {
+      result = runCommandArgv(
+        creatorEnv.executable,
+        cmdArgs,
+        creatorEnv.env,
+      );
+    } else {
+      const resolvedInterpreter = await this.withInterpreterOrNotify(
+        webView,
+        urlPayload,
+        extSettings.settings,
+        ANSIBLE_CREATOR_EXECUTABLE,
+        cmdArgs,
+      );
+      if (!resolvedInterpreter) {
+        return;
+      }
+      result = runCommandArgv(
+        resolvedInterpreter.executable,
+        resolvedInterpreter.args,
+        resolvedInterpreter.env,
+      );
     }
-
-    const result = runCommandArgv(
-      resolvedInterpreter.executable,
-      resolvedInterpreter.args,
-      resolvedInterpreter.env,
-    );
     const commandOutput =
       `----------------------------------------- ansible-creator logs ------------------------------------------\n` +
       result.output;
@@ -323,6 +355,7 @@ export class AnsibleCreatorOperations {
       webView,
       { projectUrl: destinationPathUrl },
       extSettings,
+      gate.creatorEnv,
     );
   }
 
@@ -400,26 +433,47 @@ export class AnsibleCreatorOperations {
       collectionUrl: isCollection ? destinationUrl : undefined,
       projectUrl: isCollection ? undefined : destinationUrl,
     };
-    const resolvedInterpreter = await this.withInterpreterOrNotify(
-      webView,
-      initUrlPayload,
-      extSettings.settings,
-      ANSIBLE_CREATOR_EXECUTABLE,
-      cmdArgs,
-    );
-    if (!resolvedInterpreter) {
-      return;
-    }
 
-    // Execute ansible-creator command
-    const ansibleCreatorExecutionResult = runCommandArgv(
-      resolvedInterpreter.executable,
-      resolvedInterpreter.args,
-      resolvedInterpreter.env,
-    );
-    commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionResult.output;
-    const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+    const skipCreatorScaffold =
+      isCollection &&
+      payload.isEditableModeInstall &&
+      !payload.isOverwritten &&
+      this.isCollectionScaffoldPresent(destinationUrl);
+
+    let ansibleCreatorCommandPassed = "passed";
+
+    if (skipCreatorScaffold) {
+      commandOutput +=
+        "Existing collection scaffold detected; skipping ansible-creator init and running the editable install step only.\n";
+    } else if (gate.creatorEnv) {
+      const ansibleCreatorExecutionResult = runCommandArgv(
+        gate.creatorEnv.executable,
+        cmdArgs,
+        gate.creatorEnv.env,
+      );
+      commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
+      commandOutput += ansibleCreatorExecutionResult.output;
+      ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+    } else {
+      const resolvedInterpreter = await this.withInterpreterOrNotify(
+        webView,
+        initUrlPayload,
+        extSettings.settings,
+        ANSIBLE_CREATOR_EXECUTABLE,
+        cmdArgs,
+      );
+      if (!resolvedInterpreter) {
+        return;
+      }
+      const ansibleCreatorExecutionResult = runCommandArgv(
+        resolvedInterpreter.executable,
+        resolvedInterpreter.args,
+        resolvedInterpreter.env,
+      );
+      commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
+      commandOutput += ansibleCreatorExecutionResult.output;
+      ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+    }
 
     let finalStatus = ansibleCreatorCommandPassed;
 
@@ -439,6 +493,8 @@ export class AnsibleCreatorOperations {
       commandOutput += adeInstallResult.output;
       if (!adeInstallResult.succeeded) {
         finalStatus = "failed";
+        commandOutput +=
+          "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n";
       }
     }
 
@@ -580,11 +636,10 @@ export class AnsibleCreatorOperations {
       },
     });
     let adeVersion: string;
+    let adeEnv: ResolvedToolEnv;
     try {
-      adeVersion = await this.probeToolVersion(
-        extSettings.settings,
-        ADE_EXECUTABLE,
-      );
+      adeEnv = await this.resolveToolEnv(extSettings.settings, ADE_EXECUTABLE);
+      adeVersion = this.probeToolVersionWithEnv(adeEnv).version;
     } catch (error) {
       console.error(
         "[ade] Version discovery failed:",
@@ -609,29 +664,10 @@ export class AnsibleCreatorOperations {
 
     if (exceedADEImVersion) {
       adeArgs.push("--im=cfg");
-      let resolvedInterpreter: {
-        executable: string;
-        args: string[];
-        env: NodeJS.ProcessEnv;
-      };
-      try {
-        resolvedInterpreter = await withInterpreterArgv(
-          extSettings.settings,
-          ADE_EXECUTABLE,
-          adeArgs,
-        );
-      } catch (error) {
-        console.error(
-          "[ade] Python environment resolution failed:",
-          error instanceof Error ? error.message : error,
-        );
-        commandOutput += `${PYTHON_ENV_FAILURE_OUTPUT}\n`;
-        return { output: commandOutput, succeeded: false };
-      }
       const adeExecutionResult = runCommandArgv(
-        resolvedInterpreter.executable,
-        resolvedInterpreter.args,
-        resolvedInterpreter.env,
+        adeEnv.executable,
+        adeArgs,
+        adeEnv.env,
         destinationUrl,
       );
       commandOutput += adeExecutionResult.output;

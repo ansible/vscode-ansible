@@ -16,6 +16,10 @@ import {
   rewriteUnitLcov,
 } from "@root/tools/mk-cobertura";
 
+function expectDaLine(output: string, spec: string): void {
+  expect(output).toMatch(new RegExp(`^DA:${spec}$`, "m"));
+}
+
 const unitLcov = `
 SF:src/example.ts
 DA:1,3
@@ -52,12 +56,12 @@ end_of_record
     expect(filtered).toMatch(/^DA:1,0$/m);
     expect(filtered).toMatch(/^DA:2,0$/m);
     expect(filtered).toMatch(/^DA:9,4$/m);
-    expect(filtered).not.toContain("DA:3,0");
+    expect(filtered).not.toMatch(/^DA:3,0$/m);
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:9,0,0,2");
     expect(filtered).not.toContain("BRDA:3,0,0,0");
     expect(filtered).toContain("SF:src/e2e-only.ts");
-    expect(filtered).toContain("DA:4,0");
+    expectDaLine(filtered, "4,0");
     expect(filtered).toContain("LF:3");
     expect(filtered).toContain("LH:1");
   });
@@ -102,7 +106,7 @@ end_of_record
     const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(repeated));
     expect(filtered).toMatch(/^DA:1,0$/m);
     expect(filtered).toMatch(/^DA:2,0$/m);
-    expect(filtered).not.toContain("DA:3,0");
+    expect(filtered).not.toMatch(/^DA:3,0$/m);
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:2,0,0,0");
     expect(filtered).not.toContain("BRDA:3,0,0,0");
@@ -145,12 +149,12 @@ describe("rewriteNonUnitLcov", () => {
       rewriteNonUnitLcov([firstUnit, secondUnit, e2e]);
 
       const secondText = readFileSync(secondUnit, "utf8");
-      expect(secondText).toContain("DA:2,0");
+      expectDaLine(secondText, "2,0");
       expect(secondText).toContain("BRDA:2,0,0,0");
       const e2eText = readFileSync(e2e, "utf8");
-      expect(e2eText).toContain("DA:1,0");
-      expect(e2eText).toContain("DA:2,0");
-      expect(e2eText).not.toContain("DA:3,0");
+      expectDaLine(e2eText, "1,0");
+      expectDaLine(e2eText, "2,0");
+      expect(e2eText).not.toMatch(/^DA:3,0$/m);
       expect(e2eText).toContain("BRDA:2,0,0,0");
       expect(e2eText).not.toContain("BRDA:3,0,0,0");
     } finally {
@@ -191,13 +195,13 @@ describe("rewriteUnitLcov", () => {
       rewriteUnitLcov(inputs);
 
       const unitText = readFileSync(unit, "utf8");
-      expect(unitText).toContain("DA:11,4");
-      expect(unitText).toContain("DA:12,4");
+      expectDaLine(unitText, "11,4");
+      expectDaLine(unitText, "12,4");
       const e2eText = readFileSync(e2e, "utf8");
-      expect(e2eText).toContain("DA:10,0");
-      expect(e2eText).toContain("DA:13,0");
-      expect(e2eText).not.toContain("DA:11,");
-      expect(e2eText).not.toContain("DA:12,");
+      expectDaLine(e2eText, "10,0");
+      expectDaLine(e2eText, "13,0");
+      expect(e2eText).not.toMatch(/^DA:11,/m);
+      expect(e2eText).not.toMatch(/^DA:12,/m);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
@@ -218,10 +222,10 @@ describe("rewriteUnitLcov", () => {
       rewriteUnitLcov([unit]);
 
       const unitText = readFileSync(unit, "utf8");
-      expect(unitText).toContain("DA:10,4");
-      expect(unitText).toContain("DA:13,0");
-      expect(unitText).not.toContain("DA:11,");
-      expect(unitText).not.toContain("DA:12,");
+      expectDaLine(unitText, "10,4");
+      expectDaLine(unitText, "13,0");
+      expect(unitText).not.toMatch(/^DA:11,/m);
+      expect(unitText).not.toMatch(/^DA:12,/m);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
@@ -238,10 +242,10 @@ LF:2
 LH:2
 end_of_record
 `);
-    expect(expanded).toContain("DA:1,4");
-    expect(expanded).toContain("DA:2,4");
-    expect(expanded).toContain("DA:3,4");
-    expect(expanded).toContain("DA:4,2");
+    expectDaLine(expanded, "1,4");
+    expectDaLine(expanded, "2,4");
+    expectDaLine(expanded, "3,4");
+    expectDaLine(expanded, "4,2");
     expect(expanded).toContain("LF:4");
     expect(expanded).toContain("LH:4");
   });
@@ -255,10 +259,10 @@ LF:2
 LH:1
 end_of_record
 `);
-    expect(expanded).toContain("DA:10,4");
-    expect(expanded).toContain("DA:13,0");
-    expect(expanded).not.toContain("DA:11,");
-    expect(expanded).not.toContain("DA:12,");
+    expectDaLine(expanded, "10,4");
+    expectDaLine(expanded, "13,0");
+    expect(expanded).not.toMatch(/^DA:11,/m);
+    expect(expanded).not.toMatch(/^DA:12,/m);
   });
 
   it("does not fill the leading gap when the first instrumented line is uncovered", () => {
@@ -270,10 +274,10 @@ LF:2
 LH:1
 end_of_record
 `);
-    expect(expanded).toContain("DA:1,0");
-    expect(expanded).toContain("DA:4,7");
-    expect(expanded).not.toContain("DA:2,");
-    expect(expanded).not.toContain("DA:3,");
+    expectDaLine(expanded, "1,0");
+    expectDaLine(expanded, "4,7");
+    expect(expanded).not.toMatch(/^DA:2,/m);
+    expect(expanded).not.toMatch(/^DA:3,/m);
   });
 
   it("fills a short signature before the first covered line", () => {
@@ -284,9 +288,9 @@ LF:1
 LH:1
 end_of_record
 `);
-    expect(expanded).toContain("DA:1,7");
-    expect(expanded).toContain("DA:3,7");
-    expect(expanded).toContain("DA:4,7");
+    expectDaLine(expanded, "1,7");
+    expectDaLine(expanded, "3,7");
+    expectDaLine(expanded, "4,7");
   });
 
   it("produces the same expansion from unchanged raw unit input", () => {
@@ -318,7 +322,7 @@ end_of_record
 `,
       unitIndex,
     );
-    expect(expanded).not.toContain("DA:1,7");
-    expect(expanded).toContain("DA:4,7");
+    expect(expanded).not.toMatch(/^DA:1,7$/m);
+    expectDaLine(expanded, "4,7");
   });
 });
