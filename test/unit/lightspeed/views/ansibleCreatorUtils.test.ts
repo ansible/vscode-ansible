@@ -1176,7 +1176,8 @@ describe("AnsibleCreatorOperations", () => {
       const creatorVersionProbes = vi
         .mocked(runCommandArgv)
         .mock.calls.filter(
-          ([exe, args]) => exe === "ansible-creator" && isVersionProbeArgs(args),
+          ([exe, args]) =>
+            exe === "ansible-creator" && isVersionProbeArgs(args),
         );
       expect(creatorVersionProbes).toHaveLength(0);
       expect(lastArgs(web).status).toBe("passed");
@@ -1205,7 +1206,9 @@ describe("AnsibleCreatorOperations", () => {
       );
       expect(lastArgs(web).status).toBe("passed");
       expect(adeInstallRunArgv()).toBeDefined();
-      expect(lastOutput(web)).not.toContain("does not match the requested collection");
+      expect(lastOutput(web)).not.toContain(
+        "does not match the requested collection",
+      );
     });
 
     it("rejects identity mismatch when only galaxy.yml is present", async () => {
@@ -1228,7 +1231,9 @@ describe("AnsibleCreatorOperations", () => {
       );
       expect(lastArgs(web).status).toBe("failed");
       expect(creatorRunCommandArgvCalls()).toHaveLength(0);
-      expect(lastOutput(web)).toContain("does not match the requested collection");
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
     });
 
     it("treats ADE exit code 2 as success when install completion notes are present", async () => {
