@@ -997,7 +997,7 @@ describe("PythonEnvironmentService", function () {
       ).not.toHaveBeenCalled();
     });
 
-    it("should not fall back when envs API returns undefined", async function () {
+    it("should fall back when envs API returns undefined", async function () {
       const mockApi = makeMockEnvsApi({
         getEnvironment: vi.fn().mockResolvedValue(undefined),
       });
@@ -1023,10 +1023,10 @@ describe("PythonEnvironmentService", function () {
       await service.initialize();
       const result = await service.getEnvironment();
 
-      expect(result).toBeUndefined();
+      expect(result?.execInfo.run.executable).toBe("/usr/bin/python3");
       expect(
         fallbackApi.environments.getActiveEnvironmentPath,
-      ).not.toHaveBeenCalled();
+      ).toHaveBeenCalled();
     });
 
     it("should fall back when envs API throws", async function () {

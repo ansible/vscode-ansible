@@ -192,15 +192,15 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       this._pythonExtApi = api;
 
-      // Wire up environment change events
-      if (!this._pythonEnvApi) {
-        const listener = api.environments.onDidChangeActiveEnvironmentPath(
-          () => {
-            this._onDidChangeEnvironment.fire({});
-          },
+      const onDidChangeEnvironment = () =>
+        this._onDidChangeEnvironment.fire({});
+      // Wire up change events only when the Environments API is unavailable.
+      if (!this._pythonEnvApi)
+        this._disposables.push(
+          api.environments.onDidChangeActiveEnvironmentPath(
+            onDidChangeEnvironment,
+          ),
         );
-        this._disposables.push(listener);
-      }
 
       console.log(
         "[Ansible] Python Environment Service initialized via Python extension (fallback)",
@@ -322,7 +322,10 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
     if (this._pythonEnvApi) {
       try {
-        return await this._pythonEnvApi.getEnvironment(resolvedScope);
+        const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
+        if (env !== undefined) {
+          return env;
+        }
       } catch (error) {
         console.error(
           `[Ansible] Error getting environment (envs API): ${error instanceof Error ? error.message : String(error)}`,

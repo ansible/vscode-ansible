@@ -34,9 +34,6 @@ export function resolveInterpreterPath(
 
   if (resolvedPath.startsWith("~")) {
     resolvedPath = expandTilde(resolvedPath);
-    if (resolvedPath.startsWith("~")) {
-      return interpreterPath;
-    }
   }
 
   if (resolvedPath.includes("${workspaceFolder}")) {
@@ -54,7 +51,7 @@ export function resolveInterpreterPath(
     }
   }
 
-  if (!path.isAbsolute(resolvedPath)) {
+  if (!path.isAbsolute(resolvedPath) && !resolvedPath.startsWith("~")) {
     const workspaceFolder = getWorkspaceFolderPath(documentUri);
     if (workspaceFolder) {
       resolvedPath = path.resolve(workspaceFolder, resolvedPath);
