@@ -49,9 +49,9 @@ end_of_record
 `;
     const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(unitLcov));
     expect(filtered).toContain("SF:src/example.ts");
-    expect(filtered).toContain("DA:1,0");
-    expect(filtered).toContain("DA:2,0");
-    expect(filtered).toContain("DA:9,4");
+    expect(filtered).toMatch(/^DA:1,0$/m);
+    expect(filtered).toMatch(/^DA:2,0$/m);
+    expect(filtered).toMatch(/^DA:9,4$/m);
     expect(filtered).not.toContain("DA:3,0");
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:9,0,0,2");
@@ -100,8 +100,8 @@ BRDA:3,0,0,0
 end_of_record
 `;
     const filtered = filterLcovAgainstUnit(other, indexUnitCoverage(repeated));
-    expect(filtered).toContain("DA:1,0");
-    expect(filtered).toContain("DA:2,0");
+    expect(filtered).toMatch(/^DA:1,0$/m);
+    expect(filtered).toMatch(/^DA:2,0$/m);
     expect(filtered).not.toContain("DA:3,0");
     expect(filtered).toContain("BRDA:1,0,0,0");
     expect(filtered).toContain("BRDA:2,0,0,0");
