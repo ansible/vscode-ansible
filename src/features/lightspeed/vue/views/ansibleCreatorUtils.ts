@@ -138,10 +138,16 @@ export class AnsibleCreatorOperations {
     return { executable: resolved.executable, env: resolved.env };
   }
 
-  private probeToolVersionWithEnv(
-    toolEnv: ResolvedToolEnv,
-  ): { version: string; status: string; output: string } {
-    const result = runCommandArgv(toolEnv.executable, ["--version"], toolEnv.env);
+  private probeToolVersionWithEnv(toolEnv: ResolvedToolEnv): {
+    version: string;
+    status: string;
+    output: string;
+  } {
+    const result = runCommandArgv(
+      toolEnv.executable,
+      ["--version"],
+      toolEnv.env,
+    );
     const version =
       result.status === "passed" ? result.output.trimEnd() : "failed";
     return { version, status: result.status, output: result.output };
@@ -155,7 +161,10 @@ export class AnsibleCreatorOperations {
       return this.probeToolVersionWithEnv(toolEnv).version;
     }
     if (settings) {
-      const env = await this.resolveToolEnv(settings, ANSIBLE_CREATOR_EXECUTABLE);
+      const env = await this.resolveToolEnv(
+        settings,
+        ANSIBLE_CREATOR_EXECUTABLE,
+      );
       return this.probeToolVersionWithEnv(env).version;
     }
     return getCreatorVersion();
@@ -266,11 +275,7 @@ export class AnsibleCreatorOperations {
 
     let result: { output: string; status: string };
     if (creatorEnv) {
-      result = runCommandArgv(
-        creatorEnv.executable,
-        cmdArgs,
-        creatorEnv.env,
-      );
+      result = runCommandArgv(creatorEnv.executable, cmdArgs, creatorEnv.env);
     } else {
       const resolvedInterpreter = await this.withInterpreterOrNotify(
         webView,
