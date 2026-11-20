@@ -1291,6 +1291,33 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).status).toBe("failed");
     });
 
+    it("treats ADE exit code 2 as failure when Error follows the system-packages note", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          const version =
+            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
+          return { exitCode: 0, output: `${version}\n`, status: "passed" };
+        }
+        if (executable === "ade" && args[0] === "install") {
+          return {
+            exitCode: 2,
+            output:
+              "Note: All required system packages are installed.\n" +
+              "Error: permission denied\n",
+            status: "failed",
+          };
+        }
+        return { exitCode: 0, output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({ isEditableModeInstall: true }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+    });
+
     it("treats ADE exit code 2 as failure when system packages are missing", async () => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
