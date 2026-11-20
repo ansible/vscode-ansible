@@ -120,7 +120,7 @@ export function expandPath(pathUrl: string): string {
   const re2 = /\$HOME/gi;
   let expanded = expandLeadingTilde(pathUrl).replace(re2, os.homedir());
   expanded = expanded.replace(
-    /\$([A-Za-z_][A-Za-z0-9_]*)/g,
+    /\$([A-Za-z_]\w*)/g,
     (match, name: string) => process.env[name] ?? match,
   );
   return expanded;
