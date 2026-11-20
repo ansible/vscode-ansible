@@ -1490,7 +1490,21 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).status).toBe("passed");
     });
 
-    it("treats ADE exit code 2 as failure when Error follows an early completion note", async () => {
+    it.each([
+      [
+        "Error follows an early completion note",
+        "Note: All python requirements are installed.\nError: permission denied\n",
+      ],
+      [
+        "Error follows the system-packages note",
+        "Note: All required system packages are installed.\nError: permission denied\n",
+      ],
+      [
+        "system packages are missing",
+        "Note: All python requirements are installed.\n" +
+          "Warning: Required system packages are missing. Please use the system package manager to install them.\n",
+      ],
+    ])("treats ADE exit code 2 as failure when %s", async (_label, output) => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
         if (isVersionProbeArgs(args)) {
@@ -1501,63 +1515,7 @@ describe("AnsibleCreatorOperations", () => {
         if (executable === "ade" && args[0] === "install") {
           return {
             exitCode: 2,
-            output:
-              "Note: All python requirements are installed.\n" +
-              "Error: permission denied\n",
-            status: "failed",
-          };
-        }
-        return { exitCode: 0, output: "creator-output\n", status: "passed" };
-      });
-      const web = makeWeb();
-      await ops.runInitCommand(
-        collectionPayload({ isEditableModeInstall: true }),
-        web,
-      );
-      expect(lastArgs(web).status).toBe("failed");
-    });
-
-    it("treats ADE exit code 2 as failure when Error follows the system-packages note", async () => {
-      setProbedAdeVersion("25.4.0");
-      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
-        if (isVersionProbeArgs(args)) {
-          const version =
-            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
-          return { exitCode: 0, output: `${version}\n`, status: "passed" };
-        }
-        if (executable === "ade" && args[0] === "install") {
-          return {
-            exitCode: 2,
-            output:
-              "Note: All required system packages are installed.\n" +
-              "Error: permission denied\n",
-            status: "failed",
-          };
-        }
-        return { exitCode: 0, output: "creator-output\n", status: "passed" };
-      });
-      const web = makeWeb();
-      await ops.runInitCommand(
-        collectionPayload({ isEditableModeInstall: true }),
-        web,
-      );
-      expect(lastArgs(web).status).toBe("failed");
-    });
-
-    it("treats ADE exit code 2 as failure when system packages are missing", async () => {
-      setProbedAdeVersion("25.4.0");
-      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
-        if (isVersionProbeArgs(args)) {
-          const version =
-            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
-          return { exitCode: 0, output: `${version}\n`, status: "passed" };
-        }
-        if (executable === "ade" && args[0] === "install") {
-          return {
-            exitCode: 2,
-            output:
-              "Note: All python requirements are installed.\n" +
-              "Warning: Required system packages are missing. Please use the system package manager to install them.\n",
+            output,
             status: "failed",
           };
         }

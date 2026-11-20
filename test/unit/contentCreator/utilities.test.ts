@@ -186,9 +186,9 @@ describe(__filename, function () {
       process.env.HOME_PROJECT = "/srv/collections";
       try {
         expect(expandPath("$HOME_PROJECT/acme")).toBe("/srv/collections/acme");
-        expect(unresolvedEnvVarToken(expandPath("$HOME_PROJECT/acme"))).toBe(
-          null,
-        );
+        expect(
+          unresolvedEnvVarToken(expandPath("$HOME_PROJECT/acme")),
+        ).toBeNull();
       } finally {
         if (previous === undefined) {
           delete process.env.HOME_PROJECT;

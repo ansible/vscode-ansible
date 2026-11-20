@@ -561,28 +561,10 @@ export class AnsibleCreatorOperations {
       ? (payload as AnsibleCollectionFormInterface)
       : undefined;
 
-    const unresolvedPath = this.unresolvedCreatorPathMessage(destinationUrl);
-    if (unresolvedPath) {
-      await this.postExecutionFailure(webView, unresolvedPath, {
-        collectionUrl: isCollection ? destinationUrl : undefined,
-        projectUrl: isCollection ? undefined : destinationUrl,
-      });
-      return;
-    }
-
-    if (collectionPayload?.isEditableModeInstall && /\s/.test(destinationUrl)) {
-      await this.postExecutionFailure(
-        webView,
-        "ansible-dev-environment cannot install into a destination path that contains spaces.\n" +
-          "Choose a destination without spaces and try again.\n",
-        { collectionUrl: destinationUrl },
-      );
-      return;
-    }
-
     if (
-      await this.postCollectionConflictIfNeeded(
+      await this.postInitDestinationGuards(
         webView,
+        isCollection,
         collectionPayload,
         destinationUrl,
       )
@@ -668,6 +650,36 @@ export class AnsibleCreatorOperations {
     });
   }
 
+  private async postInitDestinationGuards(
+    webView: vscode.Webview,
+    isCollection: boolean,
+    collectionPayload: AnsibleCollectionFormInterface | undefined,
+    destinationUrl: string,
+  ): Promise<boolean> {
+    const unresolvedPath = this.unresolvedCreatorPathMessage(destinationUrl);
+    if (unresolvedPath) {
+      await this.postExecutionFailure(webView, unresolvedPath, {
+        collectionUrl: isCollection ? destinationUrl : undefined,
+        projectUrl: isCollection ? undefined : destinationUrl,
+      });
+      return true;
+    }
+    if (collectionPayload?.isEditableModeInstall && /\s/.test(destinationUrl)) {
+      await this.postExecutionFailure(
+        webView,
+        "ansible-dev-environment cannot install into a destination path that contains spaces.\n" +
+          "Choose a destination without spaces and try again.\n",
+        { collectionUrl: destinationUrl },
+      );
+      return true;
+    }
+    return this.postCollectionConflictIfNeeded(
+      webView,
+      collectionPayload,
+      destinationUrl,
+    );
+  }
+
   private async postCollectionConflictIfNeeded(
     webView: vscode.Webview,
     collectionPayload: AnsibleCollectionFormInterface | undefined,
@@ -695,7 +707,7 @@ export class AnsibleCreatorOperations {
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     destinationUrl: string,
   ): boolean {
-    if (!collectionPayload || !collectionPayload.isEditableModeInstall) {
+    if (!collectionPayload?.isEditableModeInstall) {
       return false;
     }
     if (payload.isOverwritten) {
