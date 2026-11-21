@@ -68,8 +68,21 @@ export async function resolveResourcePath(
   relativePath: string,
   callerUrl?: string,
 ): Promise<string> {
-  const baseDir = getResourceBaseDir(callerUrl);
+  return resolveResourceInDir(getResourceBaseDir(callerUrl), relativePath);
+}
 
+/**
+ * Locate a resource file starting from an already-resolved base directory.
+ *
+ * @param baseDir - Directory of the running module (or its resources sibling)
+ * @param relativePath - Path relative to the resources/data directory
+ * @returns Absolute path to the resource file
+ * @throws Error if the file cannot be found
+ */
+export async function resolveResourceInDir(
+  baseDir: string,
+  relativePath: string,
+): Promise<string> {
   // Resources are in data/ relative to base directory:
   // - Dev: src/resources/agents.js -> src/resources/data/
   const resourcePath = path.join(baseDir, "data", relativePath);
@@ -110,6 +123,16 @@ export async function resolveResourcePath(
       } catch {
         // Fall through to error
       }
+    }
+
+    // Fallback: in the bundled build (dist/) the chunks live in dist/utils/ or
+    // dist/resources/ while data/ is copied to dist/data/.
+    const bundledResourcePath = path.join(baseDir, "..", "data", relativePath);
+    try {
+      await fs.access(bundledResourcePath);
+      return bundledResourcePath;
+    } catch {
+      // Fall through to error
     }
 
     const errorMsg =
