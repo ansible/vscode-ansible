@@ -4,7 +4,7 @@ import { Uri, workspace } from "vscode";
 
 /**
  * Expands tilde (~) in a path to the user's home directory.
- * Handles both ~ alone and ~/path formats.
+ * Handles ~, ~/path, and the common ~.path home-relative typo.
  */
 export function expandTilde(filePath: string): string {
   if (!filePath) {
@@ -15,8 +15,8 @@ export function expandTilde(filePath: string): string {
     return os.homedir();
   }
 
-  if (filePath.startsWith("~/")) {
-    return path.join(os.homedir(), filePath.slice(2));
+  if (filePath.startsWith("~/") || filePath.startsWith("~.")) {
+    return path.join(os.homedir(), filePath.slice(1));
   }
 
   return filePath;
@@ -51,7 +51,7 @@ export function resolveInterpreterPath(
     }
   }
 
-  if (!path.isAbsolute(resolvedPath)) {
+  if (!path.isAbsolute(resolvedPath) && !resolvedPath.startsWith("~")) {
     const workspaceFolder = getWorkspaceFolderPath(documentUri);
     if (workspaceFolder) {
       resolvedPath = path.resolve(workspaceFolder, resolvedPath);

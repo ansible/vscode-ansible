@@ -78,6 +78,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       if (petAvailable) {
         await this._initFromEnvsExtension(envsExt);
+        await this._initFromPythonExtension();
       } else {
         console.warn(
           "[Ansible] PET binary not found — environment discovery will be degraded",
@@ -164,6 +165,7 @@ export class PythonEnvironmentService implements vscode.Disposable {
   // ---------------------------------------------------------------------------
 
   private async _initFromPythonExtension(): Promise<void> {
+    if (this._pythonExtApi) return;
     try {
       const pythonExt = vscode.extensions.getExtension(PYTHON_EXT_ID);
       if (!pythonExt) {
@@ -190,11 +192,13 @@ export class PythonEnvironmentService implements vscode.Disposable {
 
       this._pythonExtApi = api;
 
-      // Wire up environment change events
-      const listener = api.environments.onDidChangeActiveEnvironmentPath(() => {
-        this._onDidChangeEnvironment.fire({});
-      });
-      this._disposables.push(listener);
+      const onChange = () => this._onDidChangeEnvironment.fire({});
+      const envApi = api.environments;
+      // Wire up change events only when the Environments API is unavailable.
+      if (!this._pythonEnvApi?.onDidChangeEnvironment) {
+        const listener = envApi.onDidChangeActiveEnvironmentPath(onChange);
+        this._disposables.push(listener);
+      }
 
       console.log(
         "[Ansible] Python Environment Service initialized via Python extension (fallback)",
@@ -317,7 +321,9 @@ export class PythonEnvironmentService implements vscode.Disposable {
     if (this._pythonEnvApi) {
       try {
         const env = await this._pythonEnvApi.getEnvironment(resolvedScope);
-        return env;
+        if (env !== undefined) {
+          return env;
+        }
       } catch (error) {
         console.error(
           `[Ansible] Error getting environment (envs API): ${error instanceof Error ? error.message : String(error)}`,
