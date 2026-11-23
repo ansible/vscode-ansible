@@ -1407,6 +1407,66 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastOutput(web)).not.toContain(
         "does not match the requested collection",
       );
+      const nonProbeCalls = creatorRunCommandArgvCalls();
+      expect(nonProbeCalls).toHaveLength(1);
+      expect(nonProbeCalls[0]?.[0]).toBe("ade");
+      expect(nonProbeCalls[0]?.[1]?.[0]).toBe("install");
+    });
+
+    it("rejects identity when galaxy.yml strings have padding ADE would keep", async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        'namespace: "ns "\nname: "col"\n',
+      );
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          isOverwritten: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(creatorRunCommandArgvCalls()).toHaveLength(0);
+      expect(adeInstallRunArgv()).toBeUndefined();
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
+    });
+
+    it("rejects identity when galaxy.yml namespace or name is not a string", async () => {
+      vi.mocked(fs.readFileSync).mockReturnValue("namespace: 123\nname: col\n");
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          isOverwritten: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("failed");
+      expect(creatorRunCommandArgvCalls()).toHaveLength(0);
+      expect(adeInstallRunArgv()).toBeUndefined();
+      expect(lastOutput(web)).toContain(
+        "does not match the requested collection",
+      );
     });
 
     it("rejects identity mismatch when only galaxy.yml is present", async () => {
@@ -1653,7 +1713,13 @@ describe("AnsibleCreatorOperations", () => {
         "retry the editable install without re-scaffolding",
       );
       expect(lastOutput(web)).toContain("leftover .tar.gz files");
-      expect(lastOutput(web)).toContain("build directory");
+      expect(lastOutput(web)).toContain(
+        path.join(".venv", ".ansible-dev-environment", "ns.col", "build"),
+      );
+      expect(lastOutput(web)).toContain("or the build path ADE reported");
+      expect(lastOutput(web)).not.toContain(
+        "from the collection build directory",
+      );
     });
 
     it("includes overwrite-specific ADE retry guidance when scaffold used overwrite", async () => {

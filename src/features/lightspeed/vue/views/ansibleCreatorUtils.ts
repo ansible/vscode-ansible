@@ -226,9 +226,14 @@ export class AnsibleCreatorOperations {
       }
       const namespaceNode = doc.get("namespace", true);
       const nameNode = doc.get("name", true);
-      if (isScalar(namespaceNode) && isScalar(nameNode)) {
-        const namespace = String(namespaceNode.value).trim();
-        const name = String(nameNode.value).trim();
+      if (
+        isScalar(namespaceNode) &&
+        isScalar(nameNode) &&
+        typeof namespaceNode.value === "string" &&
+        typeof nameNode.value === "string"
+      ) {
+        const namespace = namespaceNode.value;
+        const name = nameNode.value;
         if (namespace.length > 0 && name.length > 0) {
           return { kind: "ok", namespace, name };
         }
@@ -820,11 +825,21 @@ export class AnsibleCreatorOperations {
     return false;
   }
 
-  private buildAdeFailureRecoveryOutput(isOverwritten: boolean): string {
+  private buildAdeFailureRecoveryOutput(
+    isOverwritten: boolean,
+    namespaceName: string,
+    collectionName: string,
+  ): string {
+    const adeCacheBuildDir = path.join(
+      ".venv",
+      ".ansible-dev-environment",
+      `${namespaceName}.${collectionName}`,
+      "build",
+    );
     let recovery =
       "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n" +
       "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n" +
-      "If the collection version changed, remove leftover .tar.gz files from the collection build directory before resubmitting so ADE finds exactly one archive.\n";
+      `If the collection version changed, remove leftover .tar.gz files from ADE's cache build directory (${adeCacheBuildDir}) or the build path ADE reported, then retry so ADE finds exactly one archive.\n`;
     if (isOverwritten) {
       recovery +=
         "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
@@ -862,6 +877,8 @@ export class AnsibleCreatorOperations {
       finalStatus = "failed";
       extraOutput += this.buildAdeFailureRecoveryOutput(
         collectionPayload.isOverwritten,
+        collectionPayload.namespaceName,
+        collectionPayload.collectionName,
       );
     }
     return { extraOutput, finalStatus };
