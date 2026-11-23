@@ -1564,6 +1564,16 @@ describe("AnsibleCreatorOperations", () => {
         "Note: All python requirements are installed.\n" +
           "Warning: Required system packages are missing. Please use the system package manager to install them.\n",
       ],
+      [
+        "only a Command failed line carries the failure diagnostic",
+        "Note: All required system packages are installed.\n" +
+          "Command failed: ade install --editable . Error: permission denied\n",
+      ],
+      [
+        "Command failed line reports failed to install",
+        "Note: All required system packages are installed.\n" +
+          "Command failed: collection failed to install\n",
+      ],
     ])("treats ADE exit code 2 as failure when %s", async (_label, output) => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {

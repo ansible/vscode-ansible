@@ -804,25 +804,44 @@ export class AnsibleCreatorOperations {
   private adeOutputHasFailureDiagnostic(output: string): boolean {
     for (const rawLine of output.split(/\r?\n/)) {
       const line = rawLine.trim();
-      if (line.length === 0 || /^Command failed:/i.test(line)) {
+      if (line.length === 0) {
         continue;
       }
-      if (/^Error:\s/i.test(line) || /^Traceback\b/i.test(line)) {
+      // Node execFileSync prefixes non-zero exits with "Command failed: <argv>".
+      // Scan that remainder for real diagnostics, but skip the generic ERROR
+      // token so a venv path segment cannot fake a failure.
+      const commandFailedMatch = /^Command failed:\s*(.*)$/i.exec(line);
+      if (commandFailedMatch) {
+        const remainder = commandFailedMatch[1]?.trim() ?? "";
+        if (
+          remainder.length > 0 &&
+          this.adeLineHasExplicitFailureDiagnostic(remainder)
+        ) {
+          return true;
+        }
+        continue;
+      }
+      if (this.adeLineHasExplicitFailureDiagnostic(line)) {
         return true;
       }
-      if (
-        /(^|\s)ERROR(\s|:|$)/.test(line) ||
-        /\bfailed to install\b/i.test(line) ||
-        /\bNo such file\b/i.test(line) ||
-        /\bcommand not found\b/i.test(line) ||
-        /\bRequired system packages are missing\b/i.test(line) ||
-        /\bMissing python dependencies\b/i.test(line) ||
-        /\bFailed to install requirements\b/i.test(line)
-      ) {
+      if (/(^|\s)ERROR(\s|:|$)/.test(line)) {
         return true;
       }
     }
     return false;
+  }
+
+  private adeLineHasExplicitFailureDiagnostic(line: string): boolean {
+    return (
+      /\bError:\s/i.test(line) ||
+      /^Traceback\b/i.test(line) ||
+      /\bfailed to install\b/i.test(line) ||
+      /\bNo such file\b/i.test(line) ||
+      /\bcommand not found\b/i.test(line) ||
+      /\bRequired system packages are missing\b/i.test(line) ||
+      /\bMissing python dependencies\b/i.test(line) ||
+      /\bFailed to install requirements\b/i.test(line)
+    );
   }
 
   private buildAdeFailureRecoveryOutput(
