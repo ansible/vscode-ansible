@@ -9,6 +9,7 @@
     "paths": {
       "@root/*": ["./*"],
       "@root/tools/als-packaging": ["./tools/als-packaging.mts"],
+      "@root/tools/mk-cobertura": ["./tools/mk-cobertura.mts"],
       "@src/*": ["./src/*"],
       "@test/*": ["./test/*"],
       "@webviews/*": ["./webviews/*"]

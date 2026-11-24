@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
-import { withInterpreter } from "@src/features/utils/commandRunner";
+import {
+  withInterpreter,
+  withInterpreterArgv,
+} from "@src/features/utils/commandRunner";
 import { PythonEnvironmentService } from "@src/services/PythonEnvironmentService";
 import type { ExtensionSettings } from "@src/interfaces/extensionSettings";
 
@@ -148,6 +151,24 @@ describe("commandRunner", () => {
       if (originalPath) {
         expect(result.env.PATH).toContain(originalPath);
       }
+    });
+
+    it("returns the executable and args without joining a shell string", async () => {
+      mockPythonEnvService.resolveInterpreterPath.mockResolvedValue(
+        "/home/user/.venv/bin/python",
+      );
+      mockPythonEnvService.getEnvironment.mockResolvedValue({});
+
+      const result = await withInterpreterArgv(
+        mockSettings,
+        "ansible-creator",
+        ["init", "collection", "ns.col"],
+      );
+
+      expect(result.executable).toBe("ansible-creator");
+      expect(result.args).toEqual(["init", "collection", "ns.col"]);
+      expect(result.env.PATH?.startsWith("/home/user/.venv/bin")).toBe(true);
+      expect(result.env.ANSIBLE_FORCE_COLOR).toBe("0");
     });
 
     it("should use path.delimiter for PATH separation", async () => {
