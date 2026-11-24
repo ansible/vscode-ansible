@@ -1,0 +1,9 @@
+- name: Role template
+  ansible.builtin.template:
+    dest: /etc/nginx/nginx.conf
+    src: nginx.conf.j2
+
+- name: Role copy
+  ansible.builtin.copy:
+    dest: /etc/motd
+    src: motd.txt

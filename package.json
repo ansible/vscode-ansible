@@ -263,7 +263,7 @@
           },
           "ansible.python.interpreterPath": {
             "default": "",
-            "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
+            "markdownDescription": "Optional override for the Python interpreter used by Ansible commands and the language server. **Leave blank** and use the status bar or **Ansible: Select Python Environment** so interpreter choice is owned by the Python extension (not written into workspace settings). Supports `~`, `${workspaceFolder}`, and relative paths — prefer **User** scope for per-machine overrides. Does not apply when **Activation Script** is set.",
             "order": 0,
             "scope": "machine-overridable",
             "type": "string"
@@ -297,17 +297,24 @@
       },
       {
         "properties": {
+          "ansible.completion.enabled": {
+            "default": true,
+            "markdownDescription": "Enables completion suggestions for Ansible files. If disabled, no completion items are offered by this extension.",
+            "order": 0,
+            "scope": "resource",
+            "type": "boolean"
+          },
           "ansible.completion.provideModuleOptionAliases": {
             "default": true,
-            "markdownDescription": "Toggle alias provider when completing module options.",
-            "order": 1,
+            "markdownDescription": "Toggle alias provider when completing module options. Requires `#ansible.completion.enabled#` to be enabled.",
+            "order": 2,
             "scope": "resource",
             "type": "boolean"
           },
           "ansible.completion.provideRedirectModules": {
             "default": true,
-            "markdownDescription": "Toggle redirected module provider when completing modules.",
-            "order": 0,
+            "markdownDescription": "Toggle redirected module provider when completing modules. Requires `#ansible.completion.enabled#` to be enabled.",
+            "order": 1,
             "scope": "resource",
             "type": "boolean"
           }
@@ -1186,7 +1193,7 @@
   "license": "MIT",
   "main": "./dist/extension/extension.js",
   "name": "ansible",
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.21.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {

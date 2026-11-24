@@ -3,8 +3,10 @@ import { assert, expect, describe, it, vi, beforeEach } from "vitest";
 import * as vscode from "vscode";
 import {
   expandPath,
+  unresolvedEnvVarToken,
   getBinDetail,
   runCommand,
+  runCommandArgv,
 } from "@src/features/contentCreator/utils";
 
 const homeDir = homedir();
@@ -66,6 +68,11 @@ const runCommandTests = [
 
 const expandPathTests = [
   {
+    name: "expand a lone tilde to the home directory",
+    pathUrl: "~",
+    expected: homeDir,
+  },
+  {
     name: "expand path for '~' operator",
     pathUrl: "~/path/to/file",
     expected: `${homeDir}/path/to/file`,
@@ -79,6 +86,21 @@ const expandPathTests = [
     name: "not expand path for any other symbols/vars",
     pathUrl: "*/path/to/file3",
     expected: `*/path/to/file3`,
+  },
+  {
+    name: "preserve a tilde inside an absolute path",
+    pathUrl: "/tmp/team~archive",
+    expected: "/tmp/team~archive",
+  },
+  {
+    name: "preserve a tilde after a leading home segment",
+    pathUrl: "~/path/team~archive",
+    expected: `${homeDir}/path/team~archive`,
+  },
+  {
+    name: "expand a leading $HOME",
+    pathUrl: "$HOME/path/to/file",
+    expected: `${homeDir}/path/to/file`,
   },
 ];
 
@@ -130,11 +152,98 @@ describe(__filename, function () {
     });
   });
 
+  describe("'runCommandArgv()' utility functions for the content creator", function () {
+    it("returns passed output for a successful argv command", function () {
+      const result = runCommandArgv(
+        process.execPath,
+        ["-e", "process.stdout.write('ok')"],
+        process.env,
+      );
+      expect(result.status).toBe("passed");
+      expect(result.output).toContain("ok");
+    });
+
+    it("returns failed output when the executable is missing", function () {
+      const result = runCommandArgv(
+        "ansible-creator-missing-bin",
+        ["--version"],
+        process.env,
+      );
+      expect(result.status).toBe("failed");
+      expect(result.output.length).toBeGreaterThan(0);
+    });
+  });
+
   describe("'expandPath()' utility functions for the content creator", function () {
     expandPathTests.forEach(({ name, pathUrl, expected }) => {
       it(`should provide details for ${name}`, function () {
         expect(expandPath(pathUrl)).toBe(expected);
       });
+    });
+
+    it("expands $HOME_PROJECT as a complete variable name", function () {
+      const previous = process.env.HOME_PROJECT;
+      process.env.HOME_PROJECT = "/srv/collections";
+      try {
+        expect(expandPath("$HOME_PROJECT/acme")).toBe("/srv/collections/acme");
+        expect(
+          unresolvedEnvVarToken(expandPath("$HOME_PROJECT/acme")),
+        ).toBeNull();
+      } finally {
+        if (previous === undefined) {
+          delete process.env.HOME_PROJECT;
+        } else {
+          process.env.HOME_PROJECT = previous;
+        }
+      }
+    });
+
+    it("expands braced environment variables", function () {
+      const previous = process.env.COLLECTION_DIR;
+      process.env.COLLECTION_DIR = "demo";
+      try {
+        expect(expandPath("/tmp/${COLLECTION_DIR}")).toBe("/tmp/demo");
+      } finally {
+        if (previous === undefined) {
+          delete process.env.COLLECTION_DIR;
+        } else {
+          process.env.COLLECTION_DIR = previous;
+        }
+      }
+    });
+
+    it("maps $HOME case-insensitively only on Windows", function () {
+      const previousHome = process.env.Home;
+      delete process.env.Home;
+      try {
+        if (process.platform === "win32") {
+          expect(expandPath("$Home/path/to/file")).toBe(
+            `${homeDir}/path/to/file`,
+          );
+          return;
+        }
+        expect(expandPath("$Home/path/to/file")).toBe("$Home/path/to/file");
+        process.env.Home = "/tmp/custom-home";
+        expect(expandPath("$Home/path/to/file")).toBe(
+          "/tmp/custom-home/path/to/file",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.Home;
+        } else {
+          process.env.Home = previousHome;
+        }
+      }
+    });
+
+    it("leaves unknown environment variables unresolved", function () {
+      delete process.env.MISSING_CREATOR_PATH_VAR;
+      expect(expandPath("/tmp/${MISSING_CREATOR_PATH_VAR}")).toBe(
+        "/tmp/${MISSING_CREATOR_PATH_VAR}",
+      );
+      expect(unresolvedEnvVarToken("/tmp/${MISSING_CREATOR_PATH_VAR}")).toBe(
+        "${MISSING_CREATOR_PATH_VAR}",
+      );
     });
   });
 });
