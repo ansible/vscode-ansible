@@ -426,37 +426,6 @@ export function rewriteNonUnitLcov(inputs: string[]): void {
 }
 
 /**
- * Persist statement-gap hits into unit lcov files.
- *
- * expandCoveredStatementLines feeds Cobertura only. Sonar reads each
- * lcov.info on disk and counts lines missing from those reports as
- * uncovered, including signatures and continuations V8 never emits.
- * Filter non-unit reports first so their zeros are already gone before
- * these synthetic hits exist.
- */
-export function rewriteUnitLcov(inputs: string[]): void {
-  const unitInputs = inputs.filter(
-    (input) => isUnitLcov(input) && existsSync(input),
-  );
-  if (unitInputs.length === 0) {
-    return;
-  }
-  const unitIndex = indexUnitCoverage(
-    unitInputs.map((input) => readFileSync(input, "utf8")).join("\n"),
-  );
-  for (const input of unitInputs) {
-    const expanded = expandCoveredStatementLines(
-      readFileSync(input, "utf8"),
-      unitIndex,
-    );
-    if (expanded.length === 0) {
-      continue;
-    }
-    writeFileSync(input, expanded, "utf8");
-  }
-}
-
-/**
  * Merge lcov records that share the same source file (SF line).
  *
  * When multiple lcov reports (unit, e2e, wdio) contain the same SF entry,
@@ -635,7 +604,8 @@ function main(argv = process.argv.slice(2)): number {
   }
 
   rewriteNonUnitLcov(options.inputs);
-  rewriteUnitLcov(options.inputs);
+  // Statement-gap hits stay in-memory for Cobertura (readLcovFiles).
+  // Do not rewrite out/coverage/unit/lcov.info; Sonar/Codecov read raw V8 hits.
   const unitInputs = options.inputs.filter(
     (input) => isUnitLcov(input) && existsSync(input),
   );

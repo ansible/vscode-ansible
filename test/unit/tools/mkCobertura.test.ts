@@ -13,7 +13,6 @@ import {
   filterLcovAgainstUnit,
   indexUnitCoverage,
   rewriteNonUnitLcov,
-  rewriteUnitLcov,
 } from "@root/tools/mk-cobertura";
 
 function expectDaLine(output: string, spec: string): void {
@@ -180,20 +179,22 @@ describe("rewriteNonUnitLcov", () => {
   });
 });
 
-describe("rewriteUnitLcov", () => {
-  it("writes covered statement gaps into the unit report Sonar reads", () => {
+describe("rewriteNonUnitLcov unit reports", () => {
+  it("does not persist synthetic statement-gap hits into unit lcov", () => {
     const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-unit-"));
     const unit = path.join(root, "unit", "lcov.info");
     const e2e = path.join(root, "e2e", "lcov.info");
     try {
       mkdirSync(path.dirname(unit), { recursive: true });
       mkdirSync(path.dirname(e2e), { recursive: true });
-      writeFileSync(
-        unit,
-        ["SF:src/example.ts", "DA:10,4", "DA:13,2", "end_of_record", ""].join(
-          "\n",
-        ),
-      );
+      const originalUnit = [
+        "SF:src/example.ts",
+        "DA:10,4",
+        "DA:13,2",
+        "end_of_record",
+        "",
+      ].join("\n");
+      writeFileSync(unit, originalUnit);
       writeFileSync(
         e2e,
         [
@@ -207,42 +208,14 @@ describe("rewriteUnitLcov", () => {
         ].join("\n"),
       );
 
-      const inputs = [unit, e2e];
-      rewriteNonUnitLcov(inputs);
-      rewriteUnitLcov(inputs);
+      rewriteNonUnitLcov([unit, e2e]);
 
-      const unitText = readFileSync(unit, "utf8");
-      expectDaLine(unitText, "11,4");
-      expectDaLine(unitText, "12,4");
+      expect(readFileSync(unit, "utf8")).toBe(originalUnit);
       const e2eText = readFileSync(e2e, "utf8");
       expectDaLine(e2eText, "10,0");
       expectDaLine(e2eText, "13,0");
       expect(e2eText).not.toMatch(/^DA:11,/m);
       expect(e2eText).not.toMatch(/^DA:12,/m);
-    } finally {
-      rmSync(root, { force: true, recursive: true });
-    }
-  });
-
-  it("does not turn a real unit miss into a hit", () => {
-    const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-unit-miss-"));
-    const unit = path.join(root, "unit", "lcov.info");
-    try {
-      mkdirSync(path.dirname(unit), { recursive: true });
-      writeFileSync(
-        unit,
-        ["SF:src/example.ts", "DA:10,4", "DA:13,0", "end_of_record", ""].join(
-          "\n",
-        ),
-      );
-
-      rewriteUnitLcov([unit]);
-
-      const unitText = readFileSync(unit, "utf8");
-      expectDaLine(unitText, "10,4");
-      expectDaLine(unitText, "13,0");
-      expect(unitText).not.toMatch(/^DA:11,/m);
-      expect(unitText).not.toMatch(/^DA:12,/m);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }

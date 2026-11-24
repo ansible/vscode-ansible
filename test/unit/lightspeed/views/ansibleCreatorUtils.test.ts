@@ -1621,6 +1621,11 @@ describe("AnsibleCreatorOperations", () => {
         "Note: All required system packages are installed.\n" +
           "Command failed: collection failed to install\n",
       ],
+      [
+        "Command failed remainder is not a benign ADE argv",
+        "Note: All required system packages are installed.\n" +
+          "Command failed: ade install --venv /tmp/.venv --editable . permission denied\n",
+      ],
     ])("treats ADE exit code 2 as failure when %s", async (_label, output) => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {

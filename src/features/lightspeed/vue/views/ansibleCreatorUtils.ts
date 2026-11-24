@@ -826,18 +826,15 @@ export class AnsibleCreatorOperations {
         continue;
       }
       // Node execFileSync prefixes non-zero exits with "Command failed: <argv>".
-      // Scan that remainder for real diagnostics, but skip the generic ERROR
-      // token so a venv path segment cannot fake a failure.
+      // Fail closed unless the remainder is only an ADE install argv (a venv
+      // path may contain ERROR). Extra text after argv is a real failure.
       const commandFailedMatch = /^Command failed:\s*/i.exec(line);
       if (commandFailedMatch) {
         const remainder = line.slice(commandFailedMatch[0].length).trim();
-        if (
-          remainder.length > 0 &&
-          this.adeLineHasExplicitFailureDiagnostic(remainder)
-        ) {
-          return true;
+        if (this.adeCommandFailedRemainderIsBenign(remainder)) {
+          continue;
         }
-        continue;
+        return true;
       }
       if (this.adeLineHasExplicitFailureDiagnostic(line)) {
         return true;
@@ -847,6 +844,26 @@ export class AnsibleCreatorOperations {
       }
     }
     return false;
+  }
+
+  private adeCommandFailedRemainderIsBenign(remainder: string): boolean {
+    let rest = remainder.trim();
+    if (rest.length === 0) {
+      return true;
+    }
+    const withoutAde = rest.replace(/^(?:\S+[/\\])?ade\s+/i, "");
+    if (withoutAde === rest) {
+      return false;
+    }
+    rest = withoutAde;
+    if (!/^install\b/i.test(rest)) {
+      return false;
+    }
+    rest = rest.replace(/^install\b/i, "").trim();
+    rest = rest.replace(/--venv\s+.+?(?=\s+--|$)/gi, "").trim();
+    rest = rest.replace(/--editable\b/gi, "").trim();
+    rest = rest.replace(/(?:^|\s)\.(?=\s|$)/g, " ").trim();
+    return rest.length === 0;
   }
 
   private adeLineHasExplicitFailureDiagnostic(line: string): boolean {
