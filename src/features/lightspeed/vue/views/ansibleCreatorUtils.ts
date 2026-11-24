@@ -34,6 +34,15 @@ const PYTHON_ENV_FAILURE_OUTPUT =
 
 const ANSIBLE_CREATOR_EXECUTABLE = "ansible-creator";
 const ADE_EXECUTABLE = "ade";
+const ADE_INSTALL_FLAGS = [
+  "--editable",
+  "--no-ansi",
+  "--im=cfg",
+  "-vvv",
+  "-vv",
+  "-v",
+  ".",
+] as const;
 
 type ResolvedToolEnv = {
   executable: string;
@@ -851,31 +860,101 @@ export class AnsibleCreatorOperations {
     if (rest.length === 0) {
       return true;
     }
-    const withoutAde = rest.replace(/^(?:\S+[/\\])?ade\s+/i, "");
-    if (withoutAde === rest) {
+    rest = this.stripLeadingAdeExecutable(rest);
+    if (rest === undefined) {
       return false;
     }
-    rest = withoutAde;
-    if (!/^install\b/i.test(rest)) {
+    if (!this.consumePrefix(rest, "install")) {
       return false;
     }
-    rest = rest.replace(/^install\b/i, "").trim();
-    const benignTokens = [
-      /--venv\s+.+?(?=\s+(?:--|-[vV]{1,3}(?=\s|$))|$)/g,
-      /--editable\b/gi,
-      /--no-ansi\b/gi,
-      /--im=cfg\b/gi,
-      /(?<![-\w])-v{1,3}(?=\s|$)/gi,
-      /(?:^|\s)\.(?=\s|$)/g,
-    ];
-    let previous = "";
-    while (rest.length > 0 && rest !== previous) {
-      previous = rest;
-      for (const token of benignTokens) {
-        rest = rest.replace(token, " ").replace(/\s+/g, " ").trim();
+    rest = rest.slice("install".length).trim();
+    while (rest.length > 0) {
+      if (this.consumePrefix(rest, "--venv")) {
+        rest = rest.slice("--venv".length).trim();
+        const nextFlag = this.nextAdeInstallFlagIndex(rest);
+        if (nextFlag === 0) {
+          return false;
+        }
+        if (nextFlag === -1) {
+          return rest.length > 0;
+        }
+        rest = rest.slice(nextFlag).trim();
+        continue;
+      }
+      const flag = this.leadingAdeInstallFlag(rest);
+      if (flag === undefined) {
+        return false;
+      }
+      rest = rest.slice(flag.length).trim();
+    }
+    return true;
+  }
+
+  private stripLeadingAdeExecutable(remainder: string): string | undefined {
+    const lower = remainder.toLowerCase();
+    const adeAt = lower.indexOf("ade ");
+    if (adeAt === -1) {
+      return undefined;
+    }
+    if (adeAt > 0) {
+      const prefix = remainder.slice(0, adeAt);
+      if (!prefix.endsWith("/") && !prefix.endsWith("\\")) {
+        return undefined;
+      }
+      if (prefix.includes(" ") || prefix.includes("\t")) {
+        return undefined;
       }
     }
-    return rest.length === 0;
+    return remainder.slice(adeAt + "ade ".length).trim();
+  }
+
+  private consumePrefix(value: string, prefix: string): boolean {
+    if (value.length < prefix.length) {
+      return false;
+    }
+    if (value.slice(0, prefix.length).toLowerCase() !== prefix.toLowerCase()) {
+      return false;
+    }
+    return (
+      value.length === prefix.length ||
+      value[prefix.length] === " " ||
+      value[prefix.length] === "\t"
+    );
+  }
+
+  private leadingAdeInstallFlag(rest: string): string | undefined {
+    for (const flag of ADE_INSTALL_FLAGS) {
+      if (this.consumePrefix(rest, flag)) {
+        return flag;
+      }
+    }
+    return undefined;
+  }
+
+  private nextAdeInstallFlagIndex(rest: string): number {
+    let found = -1;
+    for (const flag of ADE_INSTALL_FLAGS) {
+      let from = 0;
+      while (from < rest.length) {
+        const idx = rest.toLowerCase().indexOf(flag.toLowerCase(), from);
+        if (idx === -1) {
+          break;
+        }
+        const beforeOk =
+          idx === 0 || rest[idx - 1] === " " || rest[idx - 1] === "\t";
+        const afterIdx = idx + flag.length;
+        const afterOk =
+          afterIdx === rest.length ||
+          rest[afterIdx] === " " ||
+          rest[afterIdx] === "\t";
+        if (beforeOk && afterOk && (found === -1 || idx < found)) {
+          found = idx;
+          break;
+        }
+        from = idx + 1;
+      }
+    }
+    return found;
   }
 
   private adeLineHasExplicitFailureDiagnostic(line: string): boolean {

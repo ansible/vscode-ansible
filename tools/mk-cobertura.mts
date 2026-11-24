@@ -7,6 +7,7 @@
 import { execFileSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -573,6 +574,21 @@ function mergeLcovRecords(lcovData: string): string {
   return out.join("\n");
 }
 
+/**
+ * Write the merged, statement-gap-expanded LCOV next to Cobertura output.
+ * Sonar cannot consume Cobertura and must not read raw unit/lcov.info, where
+ * V8 omits continuation lines of executed statements.
+ */
+export function writeSonarLcov(
+  coberturaOutput: string,
+  lcovData: string,
+): string {
+  const dest = path.join(path.dirname(coberturaOutput), "sonar", "lcov.info");
+  mkdirSync(path.dirname(dest), { recursive: true });
+  writeFileSync(dest, lcovData, "utf8");
+  return dest;
+}
+
 function runUpstream(
   input: string,
   options: Pick<Options, "baseDir" | "output">,
@@ -604,8 +620,8 @@ function main(argv = process.argv.slice(2)): number {
   }
 
   rewriteNonUnitLcov(options.inputs);
-  // Statement-gap hits stay in-memory for Cobertura (readLcovFiles).
-  // Do not rewrite out/coverage/unit/lcov.info; Sonar/Codecov read raw V8 hits.
+  // Statement-gap hits stay out of out/coverage/unit/lcov.info (raw V8).
+  // Cobertura expands in memory; Sonar reads out/coverage/sonar/lcov.info.
   const unitInputs = options.inputs.filter(
     (input) => isUnitLcov(input) && existsSync(input),
   );
@@ -618,6 +634,7 @@ function main(argv = process.argv.slice(2)): number {
   const lcovData = readLcovFiles(options.inputs, unitIndex);
   const merged = mergeLcovRecords(lcovData);
   const filtered = filterLcovByPath(merged, options.excludes);
+  writeSonarLcov(options.output, filtered);
   const tempDir = mkdtempSync(path.join(tmpdir(), "lcov-to-cobertura-"));
   const filteredInput = path.join(tempDir, "filtered.lcov");
 

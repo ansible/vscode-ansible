@@ -339,5 +339,6 @@ tasks:
       - out/coverage/*/lcov.info
     generates:
       - out/coverage/cobertura-coverage.xml
+      - out/coverage/sonar/lcov.info
     cmds:
       - node tools/mk-cobertura.mts -o out/coverage/cobertura-coverage.xml -e "node_modules" -e "dist" -e ".*\/dist" out/coverage/*/lcov.info

@@ -13,6 +13,7 @@ import {
   filterLcovAgainstUnit,
   indexUnitCoverage,
   rewriteNonUnitLcov,
+  writeSonarLcov,
 } from "@root/tools/mk-cobertura";
 
 function expectDaLine(output: string, spec: string): void {
@@ -337,5 +338,19 @@ end_of_record
     );
     expect(expanded).not.toMatch(/^DA:1,7$/m);
     expectDaLine(expanded, "4,7");
+  });
+});
+
+describe("writeSonarLcov", () => {
+  it("writes merged lcov beside the cobertura output without touching unit reports", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-sonar-"));
+    try {
+      const cobertura = path.join(root, "cobertura-coverage.xml");
+      const dest = writeSonarLcov(cobertura, "SF:src/example.ts\nDA:1,1\nend_of_record\n");
+      expect(dest).toBe(path.join(root, "sonar", "lcov.info"));
+      expect(readFileSync(dest, "utf8")).toContain("DA:1,1");
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
   });
 });
