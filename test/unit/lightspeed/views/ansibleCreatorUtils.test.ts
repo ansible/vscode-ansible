@@ -1852,6 +1852,9 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastOutput(web)).toContain(
         "Disable overwrite, keep editable mode and the same collection details",
       );
+      expect(lastOutput(web)).not.toContain(
+        "submit the same form again to retry the editable install without re-scaffolding",
+      );
     });
 
     it("runs creator init through withInterpreterArgv when creatorEnv is absent", async () => {

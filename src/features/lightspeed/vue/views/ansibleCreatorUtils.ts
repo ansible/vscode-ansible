@@ -999,16 +999,21 @@ export class AnsibleCreatorOperations {
       `${namespaceName}.${collectionName}`,
       "build",
     );
-    let recovery =
-      "\nCollection files are on disk. Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n" +
-      "If a partial .venv directory was left behind, move or remove it before resubmitting so ADE can recreate the environment.\n" +
+    const sharedRecovery =
+      "\nCollection files are on disk.\n" +
+      "If a partial .venv directory was left behind, move or remove it before retrying so ADE can recreate the environment.\n" +
       `If the collection version changed, remove leftover .tar.gz files from ADE's cache build directory (${adeCacheBuildDir}) or the build path ADE reported, then retry so ADE finds exactly one archive.\n`;
     if (isOverwritten) {
-      recovery +=
+      return (
+        sharedRecovery +
         "Overwrite is enabled, so submitting this form again will re-run ansible-creator with --overwrite and can replace files you edited.\n" +
-        "Disable overwrite, keep editable mode and the same collection details, then submit again to retry ADE without re-scaffolding.\n";
+        "Disable overwrite, keep editable mode and the same collection details, then submit again to retry ADE without re-scaffolding.\n"
+      );
     }
-    return recovery;
+    return (
+      sharedRecovery +
+      "Fix the ADE issue above and submit the same form again to retry the editable install without re-scaffolding.\n"
+    );
   }
 
   private async runEditableAdeIfNeeded(
