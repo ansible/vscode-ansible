@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as os from "os";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { isScalar, parseDocument } from "yaml";
+import { isAlias, isScalar, parseDocument, type Document } from "yaml";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -224,19 +224,10 @@ export class AnsibleCreatorOperations {
             (details.length > 0 ? `${details}\n` : ""),
         };
       }
-      const namespaceNode = doc.get("namespace", true);
-      const nameNode = doc.get("name", true);
-      if (
-        isScalar(namespaceNode) &&
-        isScalar(nameNode) &&
-        typeof namespaceNode.value === "string" &&
-        typeof nameNode.value === "string"
-      ) {
-        const namespace = namespaceNode.value;
-        const name = nameNode.value;
-        if (namespace.length > 0 && name.length > 0) {
-          return { kind: "ok", namespace, name };
-        }
+      const namespace = this.galaxyYamlString(doc, "namespace");
+      const name = this.galaxyYamlString(doc, "name");
+      if (namespace && name) {
+        return { kind: "ok", namespace, name };
       }
     } catch (error) {
       console.error(
@@ -245,6 +236,15 @@ export class AnsibleCreatorOperations {
       );
     }
     return { kind: "unknown" };
+  }
+
+  private galaxyYamlString(doc: Document, key: string): string | null {
+    const node = doc.get(key, true);
+    const resolved = isAlias(node) ? node.resolve(doc) : node;
+    if (isScalar(resolved) && typeof resolved.value === "string") {
+      return resolved.value.length > 0 ? resolved.value : null;
+    }
+    return null;
   }
 
   private readGalaxyCollectionId(
@@ -810,9 +810,9 @@ export class AnsibleCreatorOperations {
       // Node execFileSync prefixes non-zero exits with "Command failed: <argv>".
       // Scan that remainder for real diagnostics, but skip the generic ERROR
       // token so a venv path segment cannot fake a failure.
-      const commandFailedMatch = /^Command failed:\s*(.*)$/i.exec(line);
+      const commandFailedMatch = /^Command failed:\s*/i.exec(line);
       if (commandFailedMatch) {
-        const remainder = commandFailedMatch[1]?.trim() ?? "";
+        const remainder = line.slice(commandFailedMatch[0].length).trim();
         if (
           remainder.length > 0 &&
           this.adeLineHasExplicitFailureDiagnostic(remainder)

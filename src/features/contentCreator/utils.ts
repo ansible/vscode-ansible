@@ -124,7 +124,11 @@ function envVarReplacement(
   bare: string | undefined,
 ): string {
   const name = braced ?? bare ?? "";
-  if (name.toUpperCase() === "HOME") {
+  const isHome =
+    process.platform === "win32"
+      ? name.toUpperCase() === "HOME"
+      : name === "HOME";
+  if (isHome) {
     return os.homedir();
   }
   return process.env[name] ?? match;

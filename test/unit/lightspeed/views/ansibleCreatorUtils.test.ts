@@ -1381,6 +1381,38 @@ describe("AnsibleCreatorOperations", () => {
       expectCreatorRunSkipped();
     });
 
+    it("resumes ADE when galaxy.yml identity values use YAML aliases", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        "description: &org ns\nnamespace: *org\nname: col\n",
+      );
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return (
+          targetPath === path.join(collectionRoot, "galaxy.yml") ||
+          targetPath === path.join(collectionRoot, "devfile.yaml")
+        );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("passed");
+      expect(adeInstallRunArgv()).toBeDefined();
+      expect(lastOutput(web)).not.toContain(
+        "does not match the requested collection",
+      );
+      const nonProbeCalls = creatorRunCommandArgvCalls();
+      expect(nonProbeCalls).toHaveLength(1);
+      expect(nonProbeCalls[0]?.[0]).toBe("ade");
+      expect(nonProbeCalls[0]?.[1]?.[0]).toBe("install");
+    });
+
     it("resumes ADE when galaxy.yml identity values are quoted", async () => {
       setProbedAdeVersion("25.4.0");
       vi.mocked(fs.readFileSync).mockReturnValue(

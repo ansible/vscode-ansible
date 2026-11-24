@@ -212,6 +212,30 @@ describe(__filename, function () {
       }
     });
 
+    it("maps $HOME case-insensitively only on Windows", function () {
+      const previousHome = process.env.Home;
+      delete process.env.Home;
+      try {
+        if (process.platform === "win32") {
+          expect(expandPath("$Home/path/to/file")).toBe(
+            `${homeDir}/path/to/file`,
+          );
+          return;
+        }
+        expect(expandPath("$Home/path/to/file")).toBe("$Home/path/to/file");
+        process.env.Home = "/tmp/custom-home";
+        expect(expandPath("$Home/path/to/file")).toBe(
+          "/tmp/custom-home/path/to/file",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.Home;
+        } else {
+          process.env.Home = previousHome;
+        }
+      }
+    });
+
     it("leaves unknown environment variables unresolved", function () {
       delete process.env.MISSING_CREATOR_PATH_VAR;
       expect(expandPath("/tmp/${MISSING_CREATOR_PATH_VAR}")).toBe(
