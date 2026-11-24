@@ -213,8 +213,10 @@ export class AnsibleCreatorOperations {
     namespaceName: string,
     collectionName: string,
   ): { creatorInitPathUrl: string; destinationUrl: string } {
+    const selectedInitPath =
+      initPath.trim().length === 0 ? this.defaultCollectionsPath() : initPath;
     const initPathUrl = resolveCanonicalPath(
-      this.creatorPath(initPath || this.defaultCollectionsPath()),
+      this.creatorPath(selectedInitPath),
     );
     const destinationUrl = isAnsibleCollectionsRoot(initPathUrl)
       ? path.join(initPathUrl, namespaceName, collectionName)
@@ -299,12 +301,12 @@ export class AnsibleCreatorOperations {
     );
   }
 
-  private existingCollectionConflictMessage(
+  private conflictMessageFromGalaxyDocument(
+    document: ReturnType<AnsibleCreatorOperations["readGalaxyDocument"]>,
     destinationUrl: string,
     namespaceName: string,
     collectionName: string,
   ): string | null {
-    const document = this.readGalaxyDocument(destinationUrl);
     if (document.kind === "missing") {
       return null;
     }
@@ -329,19 +331,34 @@ export class AnsibleCreatorOperations {
     );
   }
 
+  private existingCollectionConflictMessage(
+    destinationUrl: string,
+    namespaceName: string,
+    collectionName: string,
+  ): string | null {
+    return this.conflictMessageFromGalaxyDocument(
+      this.readGalaxyDocument(destinationUrl),
+      destinationUrl,
+      namespaceName,
+      collectionName,
+    );
+  }
+
   private galaxyIdentityRequiredForAde(
     destinationUrl: string,
     namespaceName: string,
     collectionName: string,
   ): string | null {
-    const galaxyPath = path.join(destinationUrl, "galaxy.yml");
-    if (!fs.existsSync(galaxyPath)) {
+    const document = this.readGalaxyDocument(destinationUrl);
+    if (document.kind === "missing") {
+      const galaxyPath = path.join(destinationUrl, "galaxy.yml");
       return (
         `The file "${galaxyPath}" is missing.\n` +
         `ADE cannot start until collection ${namespaceName}.${collectionName} exists at this destination.\n`
       );
     }
-    return this.existingCollectionConflictMessage(
+    return this.conflictMessageFromGalaxyDocument(
+      document,
       destinationUrl,
       namespaceName,
       collectionName,
@@ -988,7 +1005,8 @@ export class AnsibleCreatorOperations {
       `If the collection version changed, remove leftover .tar.gz files from ADE's cache build directory (${adeCacheBuildDir}) or the build path ADE reported, then retry so ADE finds exactly one archive.\n`;
     if (isOverwritten) {
       recovery +=
-        "Overwrite applies only to ansible-creator scaffolding; the editable install retry still skips re-scaffolding when the collection already exists.\n";
+        "Overwrite is enabled, so submitting this form again will re-run ansible-creator with --overwrite and can replace files you edited.\n" +
+        "Disable overwrite, keep editable mode and the same collection details, then submit again to retry ADE without re-scaffolding.\n";
     }
     return recovery;
   }

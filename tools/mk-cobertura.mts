@@ -113,20 +113,26 @@ function filterLcovByPath(lcovData: string, excludes: string[]): string {
   return kept.map((record) => `${record}\nend_of_record`).join("\n");
 }
 
-function readLcovFiles(
+export function readLcovFiles(
   inputs: string[],
   unitIndex?: UnitCoverageIndex,
 ): string {
   return inputs
     .map((input) => {
-      let data = readFileSync(input, "utf8").trimEnd();
+      if (!existsSync(input)) {
+        return "";
+      }
+      const data = readFileSync(input, "utf8").trimEnd();
       if (data.length === 0) {
         return "";
       }
-      if (unitIndex !== undefined && isUnitLcov(input)) {
-        data = expandCoveredStatementLines(data, unitIndex).trimEnd();
+      if (unitIndex === undefined) {
+        return data;
       }
-      return data;
+      if (isUnitLcov(input)) {
+        return expandCoveredStatementLines(data, unitIndex).trimEnd();
+      }
+      return filterLcovAgainstUnit(data, unitIndex).trimEnd();
     })
     .filter((data) => data.length > 0)
     .join("\n");
@@ -326,6 +332,21 @@ function maySynthesizeLine(
   return knownLines?.has(lineNo) !== true;
 }
 
+function hasEarlierCombinedInstrumentation(
+  firstInstrumented: number,
+  knownLines: Set<number> | undefined,
+): boolean {
+  if (knownLines === undefined) {
+    return false;
+  }
+  for (const lineNo of knownLines) {
+    if (lineNo < firstInstrumented) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function gapHasInstrumentedBoundary(
   start: number,
   end: number,
@@ -363,7 +384,11 @@ function expandRecord(record: string, knownLines?: Set<number>): string {
 
   const ordered = [...instrumented].sort((left, right) => left - right);
   const firstInstrumented = ordered[0];
-  if (firstInstrumented !== undefined && (da.get(firstInstrumented) ?? 0) > 0) {
+  if (
+    firstInstrumented !== undefined &&
+    (da.get(firstInstrumented) ?? 0) > 0 &&
+    !hasEarlierCombinedInstrumentation(firstInstrumented, knownLines)
+  ) {
     const firstHits = da.get(firstInstrumented) ?? 0;
     const start = Math.max(1, firstInstrumented - LEADING_SIGNATURE_LIMIT);
     for (let lineNo = start; lineNo < firstInstrumented; lineNo += 1) {
@@ -411,31 +436,6 @@ function expandRecord(record: string, knownLines?: Set<number>): string {
   return [...rest, ...daLines, `LF:${lf}`, `LH:${lh}`, "end_of_record"].join(
     "\n",
   );
-}
-
-/**
- * Rewrite e2e/wdio lcov files so Sonar, which reads each lcov directly,
- * does not keep zero hits for lines the unit report never instrumented.
- */
-export function rewriteNonUnitLcov(inputs: string[]): void {
-  const unitInputs = inputs.filter(
-    (input) => isUnitLcov(input) && existsSync(input),
-  );
-  if (unitInputs.length === 0) {
-    return;
-  }
-  const unitTexts = unitInputs.map((input) => readFileSync(input, "utf8"));
-  const unitIndex = indexUnitCoverage(unitTexts.join("\n"));
-  for (const input of inputs) {
-    if (isUnitLcov(input) || !existsSync(input)) {
-      continue;
-    }
-    const filtered = filterLcovAgainstUnit(
-      readFileSync(input, "utf8"),
-      unitIndex,
-    );
-    writeFileSync(input, filtered, "utf8");
-  }
 }
 
 /**
@@ -632,7 +632,6 @@ function main(argv = process.argv.slice(2)): number {
   }
 
   options.inputs = excludeGeneratedSonarLcov(options.inputs);
-  rewriteNonUnitLcov(options.inputs);
   // Statement-gap hits stay out of out/coverage/unit/lcov.info (raw V8).
   // Cobertura expands in memory; Sonar reads out/coverage/sonar/lcov.info.
   const unitInputs = options.inputs.filter(

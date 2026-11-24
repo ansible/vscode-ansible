@@ -14,7 +14,7 @@ import {
   filterLcovAgainstUnit,
   indexUnitCoverage,
   isGeneratedSonarLcov,
-  rewriteNonUnitLcov,
+  readLcovFiles,
   writeSonarLcov,
 } from "@root/tools/mk-cobertura";
 
@@ -132,8 +132,8 @@ end_of_record
   });
 });
 
-describe("rewriteNonUnitLcov", () => {
-  it("indexes every unit report and leaves those reports unfiltered", () => {
+describe("readLcovFiles", () => {
+  it("indexes every unit report and filters non-unit data in memory", () => {
     const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-"));
     const firstUnit = path.join(root, "a", "unit", "first.info");
     const secondUnit = path.join(root, "b", "unit", "second.info");
@@ -165,24 +165,24 @@ describe("rewriteNonUnitLcov", () => {
         ].join("\n"),
       );
 
-      rewriteNonUnitLcov([firstUnit, secondUnit, e2e]);
-
-      const secondText = readFileSync(secondUnit, "utf8");
-      expectDaLine(secondText, "2,0");
-      expect(secondText).toContain("BRDA:2,0,0,0");
-      const e2eText = readFileSync(e2e, "utf8");
-      expectDaLine(e2eText, "1,0");
-      expectDaLine(e2eText, "2,0");
-      expect(e2eText).not.toMatch(/^DA:3,0$/m);
-      expect(e2eText).toContain("BRDA:2,0,0,0");
-      expect(e2eText).toContain("BRDA:3,0,0,0");
+      const originalE2e = readFileSync(e2e, "utf8");
+      const unitIndex = indexUnitCoverage(
+        `${readFileSync(firstUnit, "utf8")}\n${readFileSync(secondUnit, "utf8")}`,
+      );
+      const merged = readLcovFiles([firstUnit, secondUnit, e2e], unitIndex);
+      expect(readFileSync(e2e, "utf8")).toBe(originalE2e);
+      expectDaLine(merged, "1,0");
+      expectDaLine(merged, "2,0");
+      expect(merged).not.toMatch(/^DA:3,0$/m);
+      expect(merged).toContain("BRDA:2,0,0,0");
+      expect(merged).toContain("BRDA:3,0,0,0");
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
   });
 });
 
-describe("rewriteNonUnitLcov unit reports", () => {
+describe("readLcovFiles unit reports", () => {
   it("does not persist synthetic statement-gap hits into unit lcov", () => {
     const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-unit-"));
     const unit = path.join(root, "unit", "lcov.info");
@@ -211,14 +211,11 @@ describe("rewriteNonUnitLcov unit reports", () => {
         ].join("\n"),
       );
 
-      rewriteNonUnitLcov([unit, e2e]);
-
+      const originalE2e = readFileSync(e2e, "utf8");
+      const unitIndex = indexUnitCoverage(originalUnit);
+      readLcovFiles([unit, e2e], unitIndex);
       expect(readFileSync(unit, "utf8")).toBe(originalUnit);
-      const e2eText = readFileSync(e2e, "utf8");
-      expectDaLine(e2eText, "10,0");
-      expectDaLine(e2eText, "13,0");
-      expect(e2eText).not.toMatch(/^DA:11,/m);
-      expect(e2eText).not.toMatch(/^DA:12,/m);
+      expect(readFileSync(e2e, "utf8")).toBe(originalE2e);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
@@ -339,6 +336,30 @@ end_of_record
       unitIndex,
     );
     expect(expanded).not.toMatch(/^DA:1,7$/m);
+    expect(expanded).not.toMatch(/^DA:2,/m);
+    expect(expanded).not.toMatch(/^DA:3,/m);
+    expectDaLine(expanded, "4,7");
+  });
+
+  it("does not fill the leading gap after an earlier combined miss", () => {
+    const unitIndex = indexUnitCoverage(`
+SF:src/example.ts
+DA:2,0
+DA:4,7
+end_of_record
+`);
+    const expanded = expandCoveredStatementLines(
+      `
+SF:src/example.ts
+DA:4,7
+LF:1
+LH:1
+end_of_record
+`,
+      unitIndex,
+    );
+    expect(expanded).not.toMatch(/^DA:1,/m);
+    expect(expanded).not.toMatch(/^DA:3,/m);
     expectDaLine(expanded, "4,7");
   });
 });

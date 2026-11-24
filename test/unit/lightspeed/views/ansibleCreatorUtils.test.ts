@@ -742,6 +742,23 @@ describe("AnsibleCreatorOperations", () => {
       );
     });
 
+    it("falls back to default initPath when collection initPath is whitespace", async () => {
+      const web = makeWeb();
+      await ops.runInitCommand(collectionPayload({ initPath: "   " }), web);
+      expect(creatorRunCmd()).toContain(
+        "/.ansible/collections/ansible_collections",
+      );
+      expect(lastArgs(web).collectionUrl).toContain(
+        path.join(
+          ".ansible",
+          "collections",
+          "ansible_collections",
+          "ns",
+          "col",
+        ),
+      );
+    });
+
     it("creator-missing early return for a collection payload", async () => {
       setProbedCreatorVersion("failed");
       const web = makeWeb();
@@ -1833,7 +1850,7 @@ describe("AnsibleCreatorOperations", () => {
         web,
       );
       expect(lastOutput(web)).toContain(
-        "Overwrite applies only to ansible-creator scaffolding",
+        "Disable overwrite, keep editable mode and the same collection details",
       );
     });
 
