@@ -1597,6 +1597,37 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).status).toBe("passed");
     });
 
+    it("treats ADE exit code 2 as success when Command failed is the full install argv", async () => {
+      setProbedAdeVersion("25.4.0");
+      vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
+        if (isVersionProbeArgs(args)) {
+          const version =
+            executable === "ade" ? probedAdeVersion : probedCreatorVersion;
+          return { exitCode: 0, output: `${version}\n`, status: "passed" };
+        }
+        if (executable === "ade" && args[0] === "install") {
+          return {
+            exitCode: 2,
+            output:
+              "Command failed: ade install --venv /tmp/init/.venv --editable . --no-ansi -vv --im=cfg\n" +
+              "Note: All python requirements are installed.\n" +
+              "Note: All required system packages are installed.\n",
+            status: "failed",
+          };
+        }
+        return { exitCode: 0, output: "creator-output\n", status: "passed" };
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          verbosity: "medium",
+        }),
+        web,
+      );
+      expect(lastArgs(web).status).toBe("passed");
+    });
+
     it.each([
       [
         "Error follows an early completion note",
@@ -1625,6 +1656,11 @@ describe("AnsibleCreatorOperations", () => {
         "Command failed remainder is not a benign ADE argv",
         "Note: All required system packages are installed.\n" +
           "Command failed: ade install --venv /tmp/.venv --editable . permission denied\n",
+      ],
+      [
+        "Command failed full argv still has extra diagnostic text",
+        "Note: All required system packages are installed.\n" +
+          "Command failed: ade install --venv /tmp/.venv --editable . --no-ansi -vv --im=cfg permission denied\n",
       ],
     ])("treats ADE exit code 2 as failure when %s", async (_label, output) => {
       setProbedAdeVersion("25.4.0");

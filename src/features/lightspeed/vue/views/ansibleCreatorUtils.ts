@@ -860,9 +860,21 @@ export class AnsibleCreatorOperations {
       return false;
     }
     rest = rest.replace(/^install\b/i, "").trim();
-    rest = rest.replace(/--venv\s+.+?(?=\s+--|$)/gi, "").trim();
-    rest = rest.replace(/--editable\b/gi, "").trim();
-    rest = rest.replace(/(?:^|\s)\.(?=\s|$)/g, " ").trim();
+    const benignTokens = [
+      /--venv\s+.+?(?=\s+(?:--|-[vV]{1,3}(?=\s|$))|$)/g,
+      /--editable\b/gi,
+      /--no-ansi\b/gi,
+      /--im=cfg\b/gi,
+      /(?<![-\w])-v{1,3}(?=\s|$)/gi,
+      /(?:^|\s)\.(?=\s|$)/g,
+    ];
+    let previous = "";
+    while (rest.length > 0 && rest !== previous) {
+      previous = rest;
+      for (const token of benignTokens) {
+        rest = rest.replace(token, " ").replace(/\s+/g, " ").trim();
+      }
+    }
     return rest.length === 0;
   }
 
