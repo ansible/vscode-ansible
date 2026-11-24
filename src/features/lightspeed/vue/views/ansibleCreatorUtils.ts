@@ -194,8 +194,26 @@ export class AnsibleCreatorOperations {
   private isCollectionScaffoldPresent(destinationUrl: string): boolean {
     return (
       fs.existsSync(path.join(destinationUrl, "galaxy.yml")) &&
-      fs.existsSync(path.join(destinationUrl, "devfile.yaml"))
+      fs.existsSync(path.join(destinationUrl, "devfile.yaml")) &&
+      fs.existsSync(path.join(destinationUrl, "meta"))
     );
+  }
+
+  private resolveCollectionInitPaths(
+    initPath: string,
+    namespaceName: string,
+    collectionName: string,
+  ): { creatorInitPathUrl: string; destinationUrl: string } {
+    const initPathUrl = resolveCanonicalPath(
+      this.creatorPath(initPath || this.defaultCollectionsPath()),
+    );
+    const destinationUrl = isAnsibleCollectionsRoot(initPathUrl)
+      ? path.join(initPathUrl, namespaceName, collectionName)
+      : initPathUrl;
+    const creatorInitPathUrl = isAnsibleCollectionsRoot(initPathUrl)
+      ? initPathUrl
+      : destinationUrl;
+    return { creatorInitPathUrl, destinationUrl };
   }
 
   private readGalaxyDocument(
@@ -912,24 +930,17 @@ export class AnsibleCreatorOperations {
     if (isCollection) {
       const collectionPayload = payload as AnsibleCollectionFormInterface;
       const { namespaceName, collectionName, initPath } = collectionPayload;
-
-      const initPathUrl = resolveCanonicalPath(
-        this.creatorPath(initPath || this.defaultCollectionsPath()),
-      );
-
+      const { creatorInitPathUrl, destinationUrl } =
+        this.resolveCollectionInitPaths(
+          initPath,
+          namespaceName,
+          collectionName,
+        );
       const args = this.getCollectionCreatorCommand(
         namespaceName,
         collectionName,
-        initPathUrl,
+        creatorInitPathUrl,
       );
-
-      // path.join, not Uri.parse: a Windows path such as
-      // "C:\Users\a/.ansible/..." is parsed with scheme "C" and the drive
-      // letter is dropped from fsPath.
-      const destinationUrl = isAnsibleCollectionsRoot(initPathUrl)
-        ? path.join(initPathUrl, namespaceName, collectionName)
-        : initPathUrl;
-
       return { args, destinationUrl };
     }
 

@@ -323,6 +323,29 @@ end_of_record
     );
   });
 
+  it("does not fill a gap beside an uncovered line in the unit index", () => {
+    const unitIndex = indexUnitCoverage(`
+SF:src/example.ts
+DA:2,0
+end_of_record
+`);
+    const expanded = expandCoveredStatementLines(
+      `
+SF:src/example.ts
+DA:1,7
+DA:4,7
+LF:2
+LH:2
+end_of_record
+`,
+      unitIndex,
+    );
+    expectDaLine(expanded, "1,7");
+    expectDaLine(expanded, "4,7");
+    expect(expanded).not.toMatch(/^DA:2,/m);
+    expect(expanded).not.toMatch(/^DA:3,/m);
+  });
+
   it("does not synthesize hits on lines measured in another unit record", () => {
     const unitIndex = indexUnitCoverage(`
 SF:src/example.ts

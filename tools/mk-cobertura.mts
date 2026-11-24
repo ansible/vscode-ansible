@@ -313,6 +313,22 @@ function maySynthesizeLine(
   return knownLines?.has(lineNo) !== true;
 }
 
+function gapHasInstrumentedBoundary(
+  start: number,
+  end: number,
+  knownLines: Set<number> | undefined,
+): boolean {
+  if (knownLines === undefined) {
+    return false;
+  }
+  for (let lineNo = start + 1; lineNo < end; lineNo += 1) {
+    if (knownLines.has(lineNo)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function expandRecord(record: string, knownLines?: Set<number>): string {
   const da = new Map<number, number>();
   /** Lines present in the input report; synthetic fills never become anchors. */
@@ -356,7 +372,8 @@ function expandRecord(record: string, knownLines?: Set<number>): string {
       gap <= 0 ||
       gap > STATEMENT_GAP_LIMIT ||
       startHits <= 0 ||
-      endHits <= 0
+      endHits <= 0 ||
+      gapHasInstrumentedBoundary(start, end, knownLines)
     ) {
       continue;
     }

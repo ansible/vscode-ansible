@@ -163,6 +163,17 @@ function fixturePath(inputPath: string): string {
   return path.normalize(inputPath);
 }
 
+function collectionScaffoldExists(
+  targetPath: string,
+  collectionRoot: string,
+): boolean {
+  return (
+    targetPath === path.join(collectionRoot, "galaxy.yml") ||
+    targetPath === path.join(collectionRoot, "devfile.yaml") ||
+    targetPath === path.join(collectionRoot, "meta")
+  );
+}
+
 function rolePayload(o: Partial<RoleFormInterface> = {}): RoleFormInterface {
   return {
     roleName: "myrole",
@@ -1156,7 +1167,7 @@ describe("AnsibleCreatorOperations", () => {
       expect(lastArgs(web).status).toBe("failed");
     });
 
-    it("retries ADE only when the collection scaffold already exists", async () => {
+    it("runs Creator when only galaxy.yml and devfile.yaml exist", async () => {
       setProbedAdeVersion("25.4.0");
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
@@ -1165,6 +1176,31 @@ describe("AnsibleCreatorOperations", () => {
           targetPath === path.join(collectionRoot, "galaxy.yml") ||
           targetPath === path.join(collectionRoot, "devfile.yaml")
         );
+      });
+      const web = makeWeb();
+      await ops.runInitCommand(
+        collectionPayload({
+          isEditableModeInstall: true,
+          initPath: collectionRoot,
+        }),
+        web,
+      );
+      expect(lastOutput(web)).not.toContain(
+        "skipping ansible-creator init and running the editable install step only",
+      );
+      const nonProbeCalls = creatorRunCommandArgvCalls().filter(
+        ([executable, args]) =>
+          executable === "ansible-creator" && !isVersionProbeArgs(args),
+      );
+      expect(nonProbeCalls.length).toBeGreaterThan(0);
+    });
+
+    it("retries ADE only when the collection scaffold already exists", async () => {
+      setProbedAdeVersion("25.4.0");
+      const collectionRoot = fixturePath("/tmp/col-root");
+      vi.mocked(fs.existsSync).mockImplementation((target) => {
+        const targetPath = String(target);
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
         if (isVersionProbeArgs(args)) {
@@ -1207,10 +1243,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1262,10 +1295,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
         if (isVersionProbeArgs(args)) {
@@ -1307,10 +1337,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       vi.mocked(runCommandArgv).mockImplementation((executable, args) => {
         if (isVersionProbeArgs(args)) {
@@ -1389,10 +1416,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1421,10 +1445,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1452,10 +1473,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1479,10 +1497,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1638,10 +1653,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1667,10 +1679,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1698,10 +1707,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
@@ -1828,7 +1834,9 @@ describe("AnsibleCreatorOperations", () => {
         collectionPayload({ initPath: missingLeaf }),
         web,
       );
-      expect(creatorRunCmd()).toContain(resolvedParent);
+      const expectedDestination = path.join(resolvedParent, "leaf");
+      expect(lastArgs(web).collectionUrl).toBe(expectedDestination);
+      expect(creatorRunCmd()).toContain(expectedDestination);
     });
 
     it("fails when galaxy.yml exists but cannot be read for identity checks", async () => {
@@ -1838,10 +1846,7 @@ describe("AnsibleCreatorOperations", () => {
       const collectionRoot = fixturePath("/tmp/col-root");
       vi.mocked(fs.existsSync).mockImplementation((target) => {
         const targetPath = String(target);
-        return (
-          targetPath === path.join(collectionRoot, "galaxy.yml") ||
-          targetPath === path.join(collectionRoot, "devfile.yaml")
-        );
+        return collectionScaffoldExists(targetPath, collectionRoot);
       });
       const web = makeWeb();
       await ops.runInitCommand(
