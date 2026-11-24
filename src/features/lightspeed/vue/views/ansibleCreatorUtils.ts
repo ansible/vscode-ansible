@@ -860,10 +860,11 @@ export class AnsibleCreatorOperations {
     if (rest.length === 0) {
       return true;
     }
-    rest = this.stripLeadingAdeExecutable(rest);
-    if (rest === undefined) {
+    const stripped = this.stripLeadingAdeExecutable(rest);
+    if (stripped === undefined) {
       return false;
     }
+    rest = stripped;
     if (!this.consumePrefix(rest, "install")) {
       return false;
     }

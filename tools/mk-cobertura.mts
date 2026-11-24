@@ -277,6 +277,18 @@ function isUnitLcov(inputPath: string): boolean {
   return path.basename(path.dirname(inputPath)) === "unit";
 }
 
+/** Prior Sonar output must not re-enter the merge via the coverage glob. */
+export function isGeneratedSonarLcov(inputPath: string): boolean {
+  return (
+    path.basename(inputPath) === "lcov.info" &&
+    path.basename(path.dirname(inputPath)) === "sonar"
+  );
+}
+
+export function excludeGeneratedSonarLcov(inputs: string[]): string[] {
+  return inputs.filter((input) => !isGeneratedSonarLcov(input));
+}
+
 /**
  * V8 records a hit on the first line of a statement and omits the rest.
  * Sonar counts those omitted lines as uncovered. Copy a positive hit across
@@ -619,6 +631,7 @@ function main(argv = process.argv.slice(2)): number {
     return options.help ? 0 : 1;
   }
 
+  options.inputs = excludeGeneratedSonarLcov(options.inputs);
   rewriteNonUnitLcov(options.inputs);
   // Statement-gap hits stay out of out/coverage/unit/lcov.info (raw V8).
   // Cobertura expands in memory; Sonar reads out/coverage/sonar/lcov.info.

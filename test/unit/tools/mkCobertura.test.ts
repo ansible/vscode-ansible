@@ -9,9 +9,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  excludeGeneratedSonarLcov,
   expandCoveredStatementLines,
   filterLcovAgainstUnit,
   indexUnitCoverage,
+  isGeneratedSonarLcov,
   rewriteNonUnitLcov,
   writeSonarLcov,
 } from "@root/tools/mk-cobertura";
@@ -341,12 +343,31 @@ end_of_record
   });
 });
 
+describe("excludeGeneratedSonarLcov", () => {
+  it("drops prior sonar/lcov.info so stale hits cannot re-enter the merge", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-inputs-"));
+    try {
+      const unit = path.join(root, "unit", "lcov.info");
+      const e2e = path.join(root, "e2e", "lcov.info");
+      const sonar = path.join(root, "sonar", "lcov.info");
+      const filtered = excludeGeneratedSonarLcov([unit, e2e, sonar]);
+      expect(isGeneratedSonarLcov(sonar)).toBe(true);
+      expect(filtered).toEqual([unit, e2e]);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+});
+
 describe("writeSonarLcov", () => {
   it("writes merged lcov beside the cobertura output without touching unit reports", () => {
     const root = mkdtempSync(path.join(tmpdir(), "mk-cobertura-sonar-"));
     try {
       const cobertura = path.join(root, "cobertura-coverage.xml");
-      const dest = writeSonarLcov(cobertura, "SF:src/example.ts\nDA:1,1\nend_of_record\n");
+      const dest = writeSonarLcov(
+        cobertura,
+        "SF:src/example.ts\nDA:1,1\nend_of_record\n",
+      );
       expect(dest).toBe(path.join(root, "sonar", "lcov.info"));
       expect(readFileSync(dest, "utf8")).toContain("DA:1,1");
     } finally {
