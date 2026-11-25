@@ -1121,7 +1121,7 @@
     "@vitest/ui": "5.1.1",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "^4.0.0",
+    "@vscode/vsce": "^4.1.0",
     "@vue/test-utils": "^2.4.11",
     "@wdio/cli": "^10.0.0",
     "@wdio/globals": "^10.0.0",
