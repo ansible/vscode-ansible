@@ -336,8 +336,11 @@ tasks:
     desc: Consolidate and filter coverage reports
     platforms: [linux, darwin]
     sources:
-      - out/coverage/*/lcov.info
+      - out/coverage/unit/lcov.info
+      - out/coverage/e2e/lcov.info
+      - out/coverage/wdio/lcov.info
     generates:
       - out/coverage/cobertura-coverage.xml
+      - out/coverage/sonar/lcov.info
     cmds:
       - node tools/mk-cobertura.mts -o out/coverage/cobertura-coverage.xml -e "node_modules" -e "dist" -e ".*\/dist" out/coverage/*/lcov.info
