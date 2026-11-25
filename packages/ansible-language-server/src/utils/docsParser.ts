@@ -305,14 +305,16 @@ export class LazyModuleDocumentation implements IModuleMetadata {
       return;
     }
 
-    const docContent = fallbackMatch[1] ?? fallbackMatch[2];
+    const docContent = (fallbackMatch[1] ?? fallbackMatch[2]).replace(
+      /^(?:\n---)?\n?/,
+      "",
+    );
 
     // Compute sourceLineRange so "Go to Definition" jumps to the correct line,
     // matching the same logic as the main docsRegex loop above.
     const matchIndex = fallbackMatch.index;
     const fullMatch = fallbackMatch[0];
-    const docOffset = fullMatch.indexOf(docContent);
-    const pre = fullMatch.slice(0, docOffset);
+    const pre = fullMatch.slice(0, -(docContent.length + 3)); // closing quotes
     let startLine = contents.substring(0, matchIndex).match(/\n/g)?.length ?? 0;
     startLine += pre.match(/\n/g)?.length ?? 0;
     const endLine = startLine + (docContent.match(/\n/g)?.length ?? 0);
