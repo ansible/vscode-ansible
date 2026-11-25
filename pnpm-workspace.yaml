@@ -61,7 +61,7 @@ overrides:
   "tar-fs@3": ">=3.1.2"
   "ws@8": ">=8.17.1"
   # Dependabot: pin all undici consumers to 8.12.4 (jsdom@30 uses undici 8.x).
-  "undici@8": "8.12.4"
+  "undici@8": "8.13.1"
   "undici": "8.12.4"
   "@electron/get>undici": "8.13.1"
   "cheerio>undici": "8.12.4"
