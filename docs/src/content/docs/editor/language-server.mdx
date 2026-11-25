@@ -14,6 +14,11 @@ The Ansible Language Server implements the [Language Server Protocol](https://mi
 | **Hover** | Documentation popups for keywords, modules, and module options. Shows descriptions, types, default values, and choices drawn from `ansible-doc` output. |
 | **Diagnostics** | Real-time validation using ansible-lint (preferred) or `ansible-playbook --syntax-check` as a fallback. YAML structural validation is always active. Diagnostics update on file open, save, and content change. |
 | **Semantic tokens** | Syntax highlighting tokens for modules, keywords, and properties. Enables theme-aware highlighting beyond what TextMate grammars provide. |
+| **Document symbols** | Hierarchical outline of plays, task sections (`pre_tasks`, `roles`, `tasks`, `post_tasks`, `handlers`), blocks with `rescue`/`always`, tasks, roles, and `import_playbook` entries. Powers the Outline view, breadcrumbs, and Go to Symbol in Editor (`Ctrl+Shift+O`). |
+
+### Document symbols
+
+Named plays, blocks, and tasks use their `name` value. Unnamed plays fall back to `Play: <hosts>` and unnamed tasks to their module name, so the outline stays readable for terse task files. Task files without a play wrapper, such as `roles/<role>/tasks/main.yml`, are outlined as a flat list of tasks. Every document in a multi-document (`---`) file is included. Symbols are computed from the YAML structure alone and do not require `ansible-doc` or `ansible-lint`.
 
 ### Completion context
 
@@ -105,9 +110,8 @@ The server supports two non-standard notifications for integration with the exte
 
 The following LSP capabilities are not yet implemented:
 
-- Go to definition
 - Code actions / quick fixes
-- Document symbols / outline
+- Workspace symbols
 - Formatting
 - Rename
 - Signature help
