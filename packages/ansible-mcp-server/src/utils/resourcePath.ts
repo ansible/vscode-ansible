@@ -78,6 +78,8 @@ export async function resolveResourcePath(
  * @param relativePath - Path relative to the resources/data directory
  * @returns Absolute path to the resource file
  * @throws Error if the file cannot be found
+ * @internal Exported only so unit tests can exercise the bundled layout; not
+ *   part of the public API.
  */
 export async function resolveResourceInDir(
   baseDir: string,
