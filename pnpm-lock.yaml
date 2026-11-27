@@ -199,7 +199,7 @@ overrides:
   minimatch@5: '>=11.0.1 <12'
   minimatch@9: '>=11.0.1 <12'
   fast-uri@3: '>=4.2.3 <5.0.0'
-  fast-uri: 4.2.3
+  fast-uri: 4.2.4
   fast-xml-parser: '>=5.10.1 <6.0.0'
   fastify: '>=5.12.6 <6.0.0'
   find-my-way: '>=9.7.0 <10.0.0'
@@ -4622,6 +4622,9 @@ packages:
   fast-uri@4.2.3:
     resolution: {integrity: sha512-I1PXwP5eAhlNlcdpjt9CgB59op2ZvZfxw+BkqGFVIUOgNpCVTcTqp3HhTX7brxj5vsip+nSY4nTvff+eIA76hg==}
 
+  fast-uri@4.2.4:
+    resolution: {integrity: sha512-ARrctoImibWG27hlPe0Gc93d6HwZBYipqd9QhnXyYzS101vKmqx2J/1R8kzhnnYTph0umtJqu9rqIuYtVDaAOg==}
+
   fast-wrap-ansi@0.2.2:
     resolution: {integrity: sha512-7F2Fl+TjRSenLqlU3UjSH0iyqopqoZIu7eZVpEirP2g1GtWa2G/ecEmBdgz31+Mxr+ELclgg6sokpSFIQiZ02Q==}
 
@@ -8312,7 +8315,7 @@ snapshots:
     dependencies:
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      fast-uri: 4.2.3
+      fast-uri: 4.2.4
 
   '@fastify/cors@9.0.1':
     dependencies:
@@ -11885,7 +11888,7 @@ snapshots:
       '@fastify/merge-json-schemas': 0.2.1
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
-      fast-uri: 4.2.3
+      fast-uri: 4.2.4
       json-schema-ref-resolver: 3.0.0
       rfdc: 1.4.1
 
@@ -11902,6 +11905,8 @@ snapshots:
       fast-string-truncated-width: 3.0.3
 
   fast-uri@4.2.3: {}
+
+  fast-uri@4.2.4: {}
 
   fast-wrap-ansi@0.2.2:
     dependencies:
