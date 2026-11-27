@@ -18,6 +18,38 @@ import { URI } from "vscode-uri";
 import { AnsibleInventory } from "@src/services/ansibleInventory.js";
 
 /**
+ * Returns the folder with a canonical URI and no trailing slash.
+ *
+ * Clients such as Zed send `file:///proj/`. Services build file paths as
+ * `${folderPath}/${relativePath}`, so a trailing slash produces
+ * `file:///proj//file.yml` and diagnostics are published for a URI that
+ * does not match the open document. Root paths keep their slash.
+ */
+function normalizeWorkspaceFolder(folder: WorkspaceFolder): WorkspaceFolder {
+  const parsed = URI.parse(folder.uri);
+  const isRoot = parsed.path === "/" || /^\/[a-zA-Z]:\/$/.test(parsed.path);
+  let end = parsed.path.length;
+  while (!isRoot && end > 1 && parsed.path[end - 1] === "/") {
+    end--;
+  }
+  const folderUri =
+    end < parsed.path.length
+      ? parsed.with({ path: parsed.path.slice(0, end) })
+      : parsed;
+  return { ...folder, uri: folderUri.toString() };
+}
+
+/**
+ * Checks whether `uri` is the folder itself or lies inside it, comparing whole
+ * path segments so `file:///proj2/a.yml` does not match `file:///proj`.
+ * Both arguments must be canonical URI strings.
+ */
+function isUriInFolder(uri: string, folderUri: string): boolean {
+  const prefix = folderUri.endsWith("/") ? folderUri : `${folderUri}/`;
+  return uri === folderUri || uri.startsWith(prefix);
+}
+
+/**
  * Holds the overall context for the whole workspace.
  */
 export class WorkspaceManager {
@@ -32,7 +64,9 @@ export class WorkspaceManager {
   }
 
   public setWorkspaceFolders(workspaceFolders: WorkspaceFolder[]): void {
-    this.sortedWorkspaceFolders = this.sortWorkspaceFolders(workspaceFolders);
+    this.sortedWorkspaceFolders = this.sortWorkspaceFolders(
+      workspaceFolders.map(normalizeWorkspaceFolder),
+    );
   }
 
   public setCapabilities(capabilities: ClientCapabilities): void {
@@ -72,8 +106,9 @@ export class WorkspaceManager {
    * Finds the inner-most workspace folder for the given URI.
    */
   public getWorkspaceFolder(uri: string): WorkspaceFolder | undefined {
+    const documentUri = URI.parse(uri).toString();
     for (const workspaceFolder of this.sortedWorkspaceFolders) {
-      if (URI.parse(uri).toString().startsWith(workspaceFolder.uri)) {
+      if (isUriInFolder(documentUri, workspaceFolder.uri)) {
         return workspaceFolder;
       }
     }
@@ -102,7 +137,9 @@ export class WorkspaceManager {
   }
 
   public handleWorkspaceChanged(event: WorkspaceFoldersChangeEvent): void {
-    const removedUris = new Set(event.removed.map((folder) => folder.uri));
+    const removedUris = new Set(
+      event.removed.map((folder) => normalizeWorkspaceFolder(folder).uri),
+    );
 
     // We only keep contexts of existing workspace folders
     for (const removedUri of removedUris) {
@@ -112,7 +149,7 @@ export class WorkspaceManager {
     const newWorkspaceFolders = this.sortedWorkspaceFolders.filter((folder) => {
       return !removedUris.has(folder.uri);
     });
-    newWorkspaceFolders.push(...event.added);
+    newWorkspaceFolders.push(...event.added.map(normalizeWorkspaceFolder));
     this.sortedWorkspaceFolders =
       this.sortWorkspaceFolders(newWorkspaceFolders);
   }
@@ -182,7 +219,8 @@ export class WorkspaceFolderContext {
   ): void {
     this.documentMetadata.handleWatchedDocumentChange(params);
     for (const fileEvent of params.changes) {
-      if (fileEvent.uri.startsWith(this.workspaceFolder.uri)) {
+      const fileUri = URI.parse(fileEvent.uri).toString();
+      if (isUriInFolder(fileUri, this.workspaceFolder.uri)) {
         // in case the configuration changes for this folder, we should
         // invalidate the services that rely on it in initialization
         this._executionEnvironment = undefined;
